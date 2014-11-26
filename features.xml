@@ -1,0 +1,9 @@
+<features name="accumulo-plugin" version="2.0.0">
+  <feature name="accumulo-plugin" version="2.0.0">
+    <bundle> mvn:org.safehaus.subutai/accumulo-plugin-api/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/accumulo-plugin-impl/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/accumulo-plugin-ui/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/accumulo-plugin-cli/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/accumulo-plugin-rest/2.0.0</bundle>
+  </feature>
+</features>
