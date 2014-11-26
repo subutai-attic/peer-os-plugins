@@ -1,0 +1,9 @@
+<features name="hadoop-plugin" version="2.0.0">
+  <feature name="hadoop-plugin" version="2.0.0">
+    <bundle> mvn:org.safehaus.subutai/hadoop-plugin-api/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/hadoop-plugin-impl/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/hadoop-plugin-ui/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/hadoop-plugin-cli/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/hadoop-plugin-rest/2.0.0</bundle>
+  </feature>
+</features>
