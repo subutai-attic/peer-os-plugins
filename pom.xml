@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.safehaus.subutai</groupId>
+    <artifactId>mgmt-server-plugins-parent</artifactId>
+    <version>2.0.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>sqoop-plugin-parent</artifactId>
+  <name>Subutai Sqoop Parent</name>
+  <description>Subutai Sqoop Parent</description>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>sqoop-api</module>
+    <module>sqoop-impl</module>
+    <module>sqoop-ui</module>
+    <module>sqoop-cli</module>
+    <module>sqoop-rest</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.karaf.tooling</groupId>
+        <artifactId>karaf-maven-plugin</artifactId>
+        <version>3.0.2</version>
+        <extensions>true</extensions>
+        <configuration>
+          <startLevel>80</startLevel>
+          <aggregateFeatures>true</aggregateFeatures>
+        </configuration>
+        <executions>
+          <execution>
+            <id>create-kar</id>
+            <goals>
+              <goal>features-create-kar</goal>
+            </goals>
+            <configuration>
+              <featuresFile>features.xml</featuresFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
