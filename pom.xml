@@ -23,7 +23,6 @@
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
     <jaxrs.version>2.7.12</jaxrs.version>
-    <karaf-maven-plugin></karaf-maven-plugin>
   </properties>
 
   <modules>
@@ -143,6 +142,12 @@
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         <version>${jaxrs.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.karaf.tooling</groupId>
+        <artifactId>karaf-maven-plugin</artifactId>
+        <version>${karaf.version}</version>
       </dependency>
 
     </dependencies>
