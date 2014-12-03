@@ -21,6 +21,6 @@ package:
 	@mv ${BUILD_DIR}/*.deb target/
 
 install:
-	@echo Installing hadoop plugin's debian package
+	@echo Installing hive plugin's debian package
 	dpkg -i ${BUILD_DIR}/*.deb
 
