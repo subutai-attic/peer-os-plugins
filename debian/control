@@ -1,0 +1,13 @@
+Source: hadoop-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+
+Package: hadoop-subutai-plugin
+Architecture: all
+Pre-Depends: subutai-repo-hadoop-subutai-template (= 2.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This package contains kar file of Subutai Hadoop plugin that runs  on subutai server application.
