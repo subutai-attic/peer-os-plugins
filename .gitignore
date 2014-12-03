@@ -18,4 +18,9 @@ target
 /server/server-karaf/nb-configuration.xml
 /server/core/broker/broker-impl/activemq-data
 server/core/broker/broker-impl/activemq-data
+*-subutai-plugin-debian-build/
+*.log
+*substvars
+files
+debian/storm-subutai-plugin
 
