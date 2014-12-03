@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-PACKAGE_NAME=hadoop-subutai-plugin
+PACKAGE_NAME=zookeeper-subutai-plugin
 BUILD_DIR=$(PACKAGE_NAME)-debian-build
 DEBIAN_BUILD_DIR=debian/$(PACKAGE_NAME)
 
@@ -21,6 +21,6 @@ package:
 	@mv ${BUILD_DIR}/*.deb target/
 
 install: 
-	@echo Installing hadoop plugin's debian package
+	@echo Installing zookeeper plugin's debian package
 	dpkg -i ${BUILD_DIR}/*.deb
 

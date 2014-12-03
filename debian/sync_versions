@@ -7,7 +7,7 @@
 ##################################################################################
 
 #Variables
-package_name="hadoop-subutai-plugin"
+package_name="zookeeper-subutai-plugin"
 changelogFile="debian/changelog"
 
 

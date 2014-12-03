@@ -1,4 +1,4 @@
-Source: hadoop-subutai-plugin
+Source: zookeeper-subutai-plugin
 Section: devel
 Priority: optional
 Maintainer: Subutai
@@ -6,8 +6,8 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 
-Package: hadoop-subutai-plugin
+Package: zookeeper-subutai-plugin
 Architecture: all
-Pre-Depends: subutai-repo-hadoop-subutai-template (= 2.1.0)
+Pre-Depends: subutai-repo-zookeeper-subutai-template (= 2.1.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: This package contains kar file of Subutai Hadoop plugin that runs  on subutai server application.
+Description: This package contains kar file of Subutai Zookeeper plugin that runs  on subutai server application.

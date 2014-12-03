@@ -2,7 +2,7 @@
 
 #export DH_VERBOSE=1
 
-PACKAGE_NAME=hadoop-subutai-plugin
+PACKAGE_NAME=zookeeper-subutai-plugin
 d = debian/$(PACKAGE_NAME)
 KARDIR=/opt/subutai-management/deploy/
 MANDIR=/usr/share/man/man1
