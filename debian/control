@@ -1,0 +1,13 @@
+Source: mongo-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+
+Package: mongo-subutai-plugin
+Architecture: all
+Pre-Depends: subutai-repo-mongo-subutai-template (= 2.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This package contains kar file of Subutai Mongo plugin that runs  on subutai server application.
