@@ -8,5 +8,5 @@ Homepage: http://www.safehaus.org
 
 Package: flume-subutai-plugin
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, subutai-repo-hadoop-subutai-template (= 2.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Flume plugin that runs  on subutai server application.
