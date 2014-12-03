@@ -8,5 +8,6 @@ Homepage: http://www.safehaus.org
 
 Package: cassandra-subutai-plugin
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, subutai-repo-cassandra-subutai-template (= 2.1.0)
+Pre-Depends: subutai-repo-cassandra-subutai-template (= 2.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Cassandra plugin that runs  on subutai server application.
