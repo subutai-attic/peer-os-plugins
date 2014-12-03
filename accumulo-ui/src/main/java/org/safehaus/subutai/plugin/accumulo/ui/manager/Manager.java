@@ -602,7 +602,7 @@ public class Manager
 
                 if ( containerHost != null )
                 {
-                    TerminalWindow terminal = new TerminalWindow( Sets.newHashSet( containerHost ) );
+                    TerminalWindow terminal = new TerminalWindow( containerHost );
                     contentRoot.getUI().addWindow( terminal.getWindow() );
                 }
                 else
