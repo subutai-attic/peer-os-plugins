@@ -1,0 +1,12 @@
+Source: pig-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+
+Package: pig-subutai-plugin
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This package contains kar file of Subutai Pig plugin that runs  on subutai server application.
