@@ -1,0 +1,27 @@
+#!/bin/bash
+##################################################################################
+#
+# This script checks the version information from the parent pom file
+# and puts that version information into changelog file.
+#
+##################################################################################
+
+#Variables
+package_name="presto-subutai-plugin"
+changelogFile="debian/changelog"
+
+
+pom_version=`mvn org.apache.maven.plugins:maven-help-plugin:2.2:evaluate -Dexpression=project.version |grep -Ev '(^\[|Download\w+:)'`
+echo "detected pom version is: $pom_version"
+
+versionLineNumber=$(sed -n '/'$package_name' (/=' $changelogFile)
+versionLineContent=$(sed $versionLineNumber!d $changelogFile)
+version=$(echo $versionLineContent | awk -F" " '{split($2,a," ");print a[1]}')
+firstParanthesisIndex=$(echo `expr index $version "\("`)
+lastParantesisIndex=$(echo `expr index $version "\)"`)
+lastParantesisIndex=`expr $lastParantesisIndex - 2 `
+version=${version:$firstParanthesisIndex:$lastParantesisIndex}
+
+echo "Current version:" $version
+echo "Updated version:" $pom_version
+sed -i "s/$version/$pom_version/1" $changelogFile
