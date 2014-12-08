@@ -8,8 +8,6 @@
   <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
   <reference id="hostRegistry" interface="org.safehaus.subutai.core.hostregistry.api.HostRegistry" />
 
-
-
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.hadoop.ui.HadoopPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="hadoop" />
