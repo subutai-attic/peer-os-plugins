@@ -1,4 +1,4 @@
-i#!/bin/bash
+#!/bin/bash
 set -e
 . /var/lib/jenkins/jobs/master.get_branch_repo/workspace/big-data/pack-funcs
 
