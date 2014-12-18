@@ -12,4 +12,4 @@ getSourcesToRelevantDirectories $productName "plugin"
 # 3) Create the Debian package
 generateDebianPackagePlugins $productName
 # 4) Create the Wrapper Repo Debian Package
-#generateRepoPackage $productName "plugin"
+generateRepoPackage $productName-"subutai-plugin"
