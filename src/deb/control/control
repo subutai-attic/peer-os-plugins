@@ -1,0 +1,10 @@
+Package: shark-subutai-plugin
+Section: devel
+Priority: optional
+Architecture: all
+Homepage: http://www.safehaus.org
+Depends: debhelper (>= 8.0.0), ${shlibs:Depends}, ${misc:Depends}
+Version: 2.1.1
+Maintainer: Subutai
+Description: eBuddy XMS Server -- servlet
+  eBuddy XMS Server messaging backbone
