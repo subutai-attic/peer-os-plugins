@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.oozie.impl;
 
 import java.util.Set;
 
-
 import org.safehaus.subutai.common.command.OutputRedirection;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -120,7 +119,8 @@ public class Commands
         return
 
                 new RequestBuilder( "apt-get --force-yes --assume-yes purge " + SERVER_PACKAGE_NAME ).withTimeout( 90 )
-                                                                                                     .withStdOutRedirection(OutputRedirection.NO )
+                                                                                                     .withStdOutRedirection(
+                                                                                                             OutputRedirection.NO )
 
                 ;
     }

@@ -2,7 +2,9 @@ package org.safehaus.subutai.plugin.oozie.impl;
 
 
 import org.safehaus.subutai.common.exception.ClusterConfigurationException;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import com.google.common.collect.Sets;
