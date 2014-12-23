@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.safehaus.subutai</groupId>
     <artifactId>accumulo-plugin-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.4</version>
   </parent>
 
   <artifactId>accumulo-plugin-api</artifactId>
@@ -22,12 +22,12 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>hadoop-plugin-api</artifactId>
-      <version>${project.version}</version>
+      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>zookeeper-plugin-api</artifactId>
-      <version>${project.version}</version>
+      <version>${zookeeper.version}</version>
     </dependency>
   </dependencies>
 
