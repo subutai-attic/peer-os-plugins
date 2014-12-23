@@ -93,14 +93,14 @@ class OverHadoopSetupStrategy extends PigSetupStrategy
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }
-                /*else if ( !result.getStdOut()
+                else if ( !result.getStdOut()
                         .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
-                }*/
+                }
             }
             catch ( CommandException e )
             {
