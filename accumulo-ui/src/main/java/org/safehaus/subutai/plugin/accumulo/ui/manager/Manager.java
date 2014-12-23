@@ -30,7 +30,6 @@ import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -607,7 +606,7 @@ public class Manager
                 }
                 else
                 {
-                    Notification.show( "Agent is not connected" );
+                    Notification.show( "Host not found" );
                 }
             }
         } );
@@ -620,8 +619,10 @@ public class Manager
         {
             Environment environment = environmentManager.getEnvironmentByUUID(
                     hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() );
-            populateTable( slavesTable, environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ), false );
-            populateTable( tracersTable, environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ), false );
+            populateTable( slavesTable, environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ),
+                    false );
+            populateTable( tracersTable, environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ),
+                    false );
 
 
             Set<ContainerHost> masters = new HashSet<>();
@@ -868,10 +869,10 @@ public class Manager
         clusterCombo.removeAllItems();
         if ( mongoClusterInfos != null && !mongoClusterInfos.isEmpty() )
         {
-            for ( AccumuloClusterConfig mongoClusterInfo : mongoClusterInfos )
+            for ( AccumuloClusterConfig accumuloCluster : mongoClusterInfos )
             {
-                clusterCombo.addItem( mongoClusterInfo );
-                clusterCombo.setItemCaption( mongoClusterInfo, mongoClusterInfo.getClusterName() );
+                clusterCombo.addItem( accumuloCluster );
+                clusterCombo.setItemCaption( accumuloCluster, accumuloCluster.getClusterName() + "(" + accumuloCluster.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

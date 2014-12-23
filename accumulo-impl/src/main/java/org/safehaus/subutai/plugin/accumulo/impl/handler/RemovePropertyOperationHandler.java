@@ -56,7 +56,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
         Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
         CommandResult result = null;
         boolean allSuccess = true;
-        for ( ContainerHost containerHost : environment.getContainerHostsByIds( accumuloClusterConfig.getAllNodes() ))
+        for ( ContainerHost containerHost : environment.getContainerHostsByIds( accumuloClusterConfig.getAllNodes() ) )
         {
             try
             {
