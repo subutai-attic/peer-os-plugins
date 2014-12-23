@@ -18,7 +18,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -53,13 +52,8 @@
       <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>template-registry-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.9.5</version>
     </dependency>
   </dependencies>
   <build>
