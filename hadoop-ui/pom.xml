@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.safehaus.subutai</groupId>
     <artifactId>hadoop-plugin-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.4</version>
   </parent>
 
   <artifactId>hadoop-plugin-ui</artifactId>
@@ -48,7 +48,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>plugin-common</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
