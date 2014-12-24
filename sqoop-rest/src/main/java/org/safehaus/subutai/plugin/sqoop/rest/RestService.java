@@ -23,7 +23,7 @@ import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Strings;
 
 
 public class RestService
@@ -113,22 +113,22 @@ public class RestService
         DataSourceType type = DataSourceType.valueOf( dataSourceType );
         settings.setType( type );
 
-        if ( !StringUtils.isEmpty( importAllTables ) )
+        if ( !Strings.isNullOrEmpty( importAllTables ) )
         {
             settings.addParameter( ImportParameter.IMPORT_ALL_TABLES, importAllTables );
         }
 
-        if ( !StringUtils.isEmpty( datasourceDatabase ) )
+        if ( !Strings.isNullOrEmpty( datasourceDatabase ) )
         {
             settings.addParameter( ImportParameter.DATASOURCE_DATABASE, datasourceDatabase );
         }
 
-        if ( !StringUtils.isEmpty( datasourceTableName ) )
+        if ( !Strings.isNullOrEmpty( datasourceTableName ) )
         {
             settings.addParameter( ImportParameter.DATASOURCE_TABLE_NAME, datasourceTableName );
         }
 
-        if ( !StringUtils.isEmpty( datasourceColumnFamily ) )
+        if ( !Strings.isNullOrEmpty( datasourceColumnFamily ) )
         {
             settings.addParameter( ImportParameter.DATASOURCE_COLUMN_FAMILY, datasourceColumnFamily );
         }

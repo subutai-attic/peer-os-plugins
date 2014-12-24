@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.safehaus.subutai</groupId>
     <artifactId>sqoop-plugin-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.4</version>
   </parent>
 
   <artifactId>sqoop-plugin-cli</artifactId>
@@ -23,27 +23,15 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tracker-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.compendium</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.servicemix.bundles</groupId>
-      <artifactId>org.apache.servicemix.bundles.junit</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -52,11 +40,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <inherited>true</inherited>
-        <extensions>true</extensions>
         <configuration>
-          <manifestLocation>META-INF</manifestLocation>
-          <unpackBundle>true</unpackBundle>
           <instructions>
             <Bundle-SymbolicName>${project.groupId}.plugin.sqoop.cli</Bundle-SymbolicName>
             <Export-Package>
