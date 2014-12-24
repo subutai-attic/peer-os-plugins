@@ -227,8 +227,6 @@ public class OozieImpl implements Oozie
             return s;
         }
         return null;
-
-        //        return new OozieSetupStrategy( environment, config, po, this );
     }
 
 

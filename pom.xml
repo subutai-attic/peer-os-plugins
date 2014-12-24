@@ -71,7 +71,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>host-registry-api</artifactId>
+        <artifactId>peer-manager-api</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
