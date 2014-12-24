@@ -11,8 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.protocol.ConfigBase;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+
+import com.google.common.base.Objects;
 
 
 public class SolrClusterConfig implements ConfigBase
@@ -27,19 +27,18 @@ public class SolrClusterConfig implements ConfigBase
     private UUID environmentId;
 
 
-
-
-
     public SolrClusterConfig setClusterName( String clusterName )
     {
         this.clusterName = clusterName;
         return this;
     }
 
+
     public String getClusterName()
     {
         return clusterName;
     }
+
 
     @Override
     public String getProductName()
@@ -91,14 +90,12 @@ public class SolrClusterConfig implements ConfigBase
     }
 
 
-
-
     @Override
     public String toString()
     {
-        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE ).append( "clusterName", clusterName )
-                                                                            .append( "numberOfNodes", numberOfNodes )
-                                                                            .append( "nodes", nodes ).toString();
+        return Objects.toStringHelper( this ).add( "templateName", templateName ).add( "clusterName", clusterName )
+                      .add( "numberOfNodes", numberOfNodes ).add( "nodes", nodes ).add( "environmentId", environmentId )
+                      .toString();
     }
 
 

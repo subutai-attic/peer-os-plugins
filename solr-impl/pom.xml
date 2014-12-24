@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.safehaus.subutai</groupId>
     <artifactId>solr-plugin-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.4</version>
   </parent>
 
   <artifactId>solr-plugin-impl</artifactId>
@@ -39,13 +39,11 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${org.mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
