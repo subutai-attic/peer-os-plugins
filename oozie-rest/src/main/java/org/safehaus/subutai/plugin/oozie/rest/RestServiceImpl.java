@@ -1,31 +1,21 @@
 package org.safehaus.subutai.plugin.oozie.rest;
 
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.protocol.Agent;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.agent.api.AgentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.TrimmedOozieClusterConfig;
 
 
-/**
- * Created by bahadyr on 9/4/14.
- */
 public class RestServiceImpl implements RestService
 {
 
     private Oozie oozieManager;
     private Hadoop hadoopManager;
-    private AgentManager agentManager;
 
 
     public Oozie getOozieManager()
@@ -52,18 +42,6 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public AgentManager getAgentManager()
-    {
-        return agentManager;
-    }
-
-
-    public void setAgentManager( final AgentManager agentManager )
-    {
-        this.agentManager = agentManager;
-    }
-
-
     @Override
     public Response listClusters()
     {
@@ -78,41 +56,43 @@ public class RestServiceImpl implements RestService
     }
 
 
+    //TODO implement me properly
     @Override
     public Response createCluster( final String config )
     {
 
-        TrimmedOozieClusterConfig tocc = JsonUtil.fromJson( config, TrimmedOozieClusterConfig.class );
-
-        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( tocc.getHadoopClusterName() );
-        if ( hadoopConfig == null )
-        {
-
-            String errorMsg = JsonUtil.toJson( "ERROR",
-                    String.format( "Hadoop cluster %s not found", tocc.getHadoopClusterName() ) );
-            return Response.status( Response.Status.UNSUPPORTED_MEDIA_TYPE ).entity( errorMsg ).build();
-        }
-
-        OozieClusterConfig occ = new OozieClusterConfig();
-        occ.setClusterName( tocc.getClusterName() );
-        Agent serverHostname = agentManager.getAgentByHostname( tocc.getServerHostname() );
-        occ.setServer( serverHostname );
-        Set<Agent> clients = new HashSet<>();
-        //        Set<String> hadoopNodes = new HashSet<String>();
-        for ( Agent agent : hadoopConfig.getAllNodes() )
-        {
-            clients.add( agent );
-            //            hadoopNodes.add( agent.getHostname() );
-        }
-        Agent agent = agentManager.getAgentByHostname( tocc.getServerHostname() );
-        clients.remove( agent );
-        occ.setClients( clients );
-        //        config.setHadoopNodes( hadoopNodes );
-        occ.setHadoopClusterName( hadoopConfig.getClusterName() );
-
-        UUID uuid = this.oozieManager.installCluster( occ );
-        String operationId = JsonUtil.toJson( "OPERATION_ID", uuid.toString() );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+        //        TrimmedOozieClusterConfig tocc = JsonUtil.fromJson( config, TrimmedOozieClusterConfig.class );
+        //
+        //        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( tocc.getHadoopClusterName() );
+        //        if ( hadoopConfig == null )
+        //        {
+        //
+        //            String errorMsg = JsonUtil.toJson( "ERROR",
+        //                    String.format( "Hadoop cluster %s not found", tocc.getHadoopClusterName() ) );
+        //            return Response.status( Response.Status.UNSUPPORTED_MEDIA_TYPE ).entity( errorMsg ).build();
+        //        }
+        //
+        //        OozieClusterConfig occ = new OozieClusterConfig();
+        //        occ.setClusterName( tocc.getClusterName() );
+        //        Agent serverHostname = agentManager.getAgentByHostname( tocc.getServerHostname() );
+        //        occ.setServer( serverHostname );
+        //        Set<Agent> clients = new HashSet<>();
+        //        //        Set<String> hadoopNodes = new HashSet<String>();
+        //        for ( Agent agent : hadoopConfig.getAllNodes() )
+        //        {
+        //            clients.add( agent );
+        //            //            hadoopNodes.add( agent.getHostname() );
+        //        }
+        //        Agent agent = agentManager.getAgentByHostname( tocc.getServerHostname() );
+        //        clients.remove( agent );
+        //        occ.setClients( clients );
+        //        //        config.setHadoopNodes( hadoopNodes );
+        //        occ.setHadoopClusterName( hadoopConfig.getClusterName() );
+        //
+        //        UUID uuid = this.oozieManager.installCluster( occ );
+        //        String operationId = JsonUtil.toJson( "OPERATION_ID", uuid.toString() );
+        //        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+        return null;
     }
 
 

@@ -45,10 +45,7 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>plugin-common</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>com.vaadin</groupId>-->
-      <!--<artifactId>vaadin-server</artifactId>-->
-    <!--</dependency>-->
+
   </dependencies>
 
   <build>

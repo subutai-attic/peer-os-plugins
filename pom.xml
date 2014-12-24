@@ -24,14 +24,16 @@
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
     <jaxrs.version>2.7.12</jaxrs.version>
+    <hadoop.version>2.0.4</hadoop.version>
   </properties>
 
   <modules>
     <module>oozie-api</module>
     <module>oozie-impl</module>
     <module>oozie-ui</module>
-    <!--<module>oozie-cli</module>-->
-    <!--<module>oozie-rest</module>-->
+    <module>oozie-cli</module>
+    <module>oozie-rest</module>
+    <module>oozie-kar</module>
   </modules>
 
   <dependencyManagement>
@@ -94,7 +96,7 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>hadoop-plugin-api</artifactId>
-        <version>2.0.0</version>
+        <version>${hadoop.version}</version>
       </dependency>
 
       <dependency>
@@ -134,12 +136,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.apache.servicemix.bundles</groupId>
-        <artifactId>org.apache.servicemix.bundles.junit</artifactId>
-        <version>${servicemix.bundles.junit.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         <version>${jaxrs.version}</version>
@@ -156,28 +152,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.karaf.tooling</groupId>
-        <artifactId>karaf-maven-plugin</artifactId>
-        <version>3.0.2</version>
-        <extensions>true</extensions>
-        <configuration>
-          <startLevel>80</startLevel>
-          <aggregateFeatures>true</aggregateFeatures>
-        </configuration>
-        <executions>
-          <execution>
-            <id>create-kar</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>features-create-kar</goal>
-            </goals>
-            <configuration>
-              <featuresFile>features.xml</featuresFile>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -193,6 +167,19 @@
           <target>7</target>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
+        <inherited>true</inherited>
+        <extensions>true</extensions>
+        <configuration>
+          <manifestLocation>META-INF</manifestLocation>
+          <unpackBundle>true</unpackBundle>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
