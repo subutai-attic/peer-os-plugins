@@ -11,7 +11,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.OperationType;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 import org.safehaus.subutai.plugin.shark.impl.handler.ClusterOperationHandler;
@@ -35,7 +34,6 @@ public class SharkImpl implements Shark
 
     final Logger LOG = LoggerFactory.getLogger(SharkImpl.class.getName());
     private Spark sparkManager;
-    private Hadoop hadoopManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     protected ExecutorService executor;
@@ -44,12 +42,11 @@ public class SharkImpl implements Shark
     protected Commands commands;
 
 
-    public SharkImpl(Tracker tracker, EnvironmentManager environmentManager, Hadoop hadoopManager, Spark sparkManager,
+    public SharkImpl(Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager,
                      DataSource dataSource)
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-        this.hadoopManager = hadoopManager;
         this.sparkManager = sparkManager;
         this.dataSource = dataSource;
     }
@@ -62,12 +59,6 @@ public class SharkImpl implements Shark
     public Spark getSparkManager()
     {
         return sparkManager;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
     }
 
 

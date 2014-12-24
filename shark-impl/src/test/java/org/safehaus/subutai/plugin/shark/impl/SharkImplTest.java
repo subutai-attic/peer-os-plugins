@@ -1,5 +1,18 @@
 package org.safehaus.subutai.plugin.shark.impl;
 
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
+import javax.sql.DataSource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,23 +27,19 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.Spark;
-
-import javax.sql.DataSource;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class SharkImplTest
 {
     private SharkImpl sharkImpl;
@@ -50,8 +59,6 @@ public class SharkImplTest
     @Mock
     Spark spark;
     @Mock
-    Hadoop hadoop;
-    @Mock
     PreparedStatement preparedStatement;
     @Mock
     Connection connection;
@@ -64,96 +71,94 @@ public class SharkImplTest
     @Mock
     PluginDAO pluginDAO;
 
+
     @Before
     public void setUp() throws Exception
     {
         // mock init
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
-        when(resultSetMetaData.getColumnCount()).thenReturn(1);
+        when( dataSource.getConnection() ).thenReturn( connection );
+        when( connection.prepareStatement( any( String.class ) ) ).thenReturn( preparedStatement );
+        when( preparedStatement.executeQuery() ).thenReturn( resultSet );
+        when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
+        when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
 
-        uuid = new UUID(50, 50);
-        sharkImpl = new SharkImpl(tracker, environmentManager, hadoop, spark, dataSource);
-//        sharkImpl.init();
-        sharkImpl.setPluginDAO(pluginDAO);
+        uuid = new UUID( 50, 50 );
+        sharkImpl = new SharkImpl( tracker, environmentManager, spark, dataSource );
+        //        sharkImpl.init();
+        sharkImpl.setPluginDAO( pluginDAO );
 
         // mock InstallClusterHandler
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( trackerOperation.getId() ).thenReturn( uuid );
         sharkImpl.executor = executor;
 
-        when(pluginDAO.getInfo(SharkClusterConfig.PRODUCT_KEY, "test",
-                SharkClusterConfig.class)).thenReturn(sharkClusterConfig);
+        when( pluginDAO.getInfo( SharkClusterConfig.PRODUCT_KEY, "test", SharkClusterConfig.class ) )
+                .thenReturn( sharkClusterConfig );
 
         // asserts
-        assertEquals(connection, dataSource.getConnection());
-        assertEquals(preparedStatement, connection.prepareStatement(any(String.class)));
-        assertEquals(resultSet, preparedStatement.executeQuery());
-        assertEquals(resultSetMetaData, resultSet.getMetaData());
-        assertNotNull(resultSetMetaData.getColumnCount());
-
+        assertEquals( connection, dataSource.getConnection() );
+        assertEquals( preparedStatement, connection.prepareStatement( any( String.class ) ) );
+        assertEquals( resultSet, preparedStatement.executeQuery() );
+        assertEquals( resultSetMetaData, resultSet.getMetaData() );
+        assertNotNull( resultSetMetaData.getColumnCount() );
     }
+
 
     @Test
     public void testGetSparkManager()
     {
         sharkImpl.getSparkManager();
 
-        assertNotNull(sharkImpl.getSparkManager());
-        assertEquals(spark, sharkImpl.getSparkManager());
+        assertNotNull( sharkImpl.getSparkManager() );
+        assertEquals( spark, sharkImpl.getSparkManager() );
     }
 
-    @Test
-    public void testGetHadoopManager()
-    {
-        sharkImpl.getHadoopManager();
-
-        assertNotNull(sharkImpl.getHadoopManager());
-        assertEquals(hadoop, sharkImpl.getHadoopManager());
-    }
 
     @Test
     public void testGetEnvironmentManager()
     {
         sharkImpl.getEnvironmentManager();
 
-        assertNotNull(sharkImpl.getEnvironmentManager());
-        assertEquals(environmentManager, sharkImpl.getEnvironmentManager());
+        assertNotNull( sharkImpl.getEnvironmentManager() );
+        assertEquals( environmentManager, sharkImpl.getEnvironmentManager() );
     }
+
 
     @Test
     public void testGetPluginDao() throws SQLException
     {
         sharkImpl.getPluginDao();
 
-        assertNotNull(sharkImpl.getPluginDao());
+        assertNotNull( sharkImpl.getPluginDao() );
     }
+
 
     @Test
     public void testInit() throws SQLException
     {
-//        sharkImpl.init();
+        //        sharkImpl.init();
     }
+
 
     @Test
     public void testGetTracker()
     {
         sharkImpl.getTracker();
 
-        assertEquals(tracker, sharkImpl.getTracker());
-        assertNotNull(sharkImpl.getTracker());
+        assertEquals( tracker, sharkImpl.getTracker() );
+        assertNotNull( sharkImpl.getTracker() );
     }
+
 
     @Test
     public void testGetCommands() throws SQLException
     {
         sharkImpl.getCommands();
 
-//        assertNotNull(sharkImpl.getCommands());
+        //        assertNotNull(sharkImpl.getCommands());
     }
+
 
     @Test
     public void testDestroy() throws SQLException
@@ -161,23 +166,25 @@ public class SharkImplTest
         sharkImpl.destroy();
     }
 
+
     @Test
     public void testInstallCluster() throws SQLException, CommandException, ClusterException, ClusterSetupException
     {
-        UUID id = sharkImpl.installCluster(sharkClusterConfig);
+        UUID id = sharkImpl.installCluster( sharkClusterConfig );
 
         // asserts
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testUninstallCluster()
     {
-        UUID id = sharkImpl.uninstallCluster("test");
+        UUID id = sharkImpl.uninstallCluster( "test" );
 
         // asserts
-        verify(executor).execute( isA( AbstractOperationHandler.class ) );
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
         assertEquals( uuid, id );
     }
 
@@ -187,64 +194,66 @@ public class SharkImplTest
     {
         List<SharkClusterConfig> myList = new ArrayList<>();
         myList.add( sharkClusterConfig );
-        when(pluginDAO.getInfo( SharkClusterConfig.PRODUCT_KEY, SharkClusterConfig.class )).thenReturn(myList);
+        when( pluginDAO.getInfo( SharkClusterConfig.PRODUCT_KEY, SharkClusterConfig.class ) ).thenReturn( myList );
 
 
         sharkImpl.getClusters();
 
         // assertions
         assertNotNull( sharkImpl.getClusters() );
-        assertEquals(myList, sharkImpl.getClusters());
-
+        assertEquals( myList, sharkImpl.getClusters() );
     }
+
 
     @Test
     public void testGetCluster() throws SQLException
     {
-        sharkImpl.getCluster("test");
+        sharkImpl.getCluster( "test" );
 
         // assertions
         assertNotNull( sharkImpl.getCluster( "test" ) );
         assertEquals( sharkClusterConfig, sharkImpl.getCluster( "test" ) );
     }
 
+
     @Test
     public void testGetClusterSetupStrategy()
     {
-        sharkImpl.getClusterSetupStrategy(trackerOperation, sharkClusterConfig, environment);
+        sharkImpl.getClusterSetupStrategy( trackerOperation, sharkClusterConfig, environment );
 
-        assertNotNull(sharkImpl.getClusterSetupStrategy(trackerOperation, sharkClusterConfig, environment));
+        assertNotNull( sharkImpl.getClusterSetupStrategy( trackerOperation, sharkClusterConfig, environment ) );
     }
+
 
     @Test
     public void testAddNode()
     {
-        UUID id = sharkImpl.addNode("test", "test");
+        UUID id = sharkImpl.addNode( "test", "test" );
 
         // asserts
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testDestroyNode()
     {
-        UUID id = sharkImpl.destroyNode("test", "test");
+        UUID id = sharkImpl.destroyNode( "test", "test" );
 
         // asserts
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testActualizeMasterIP()
     {
-        UUID id = sharkImpl.actualizeMasterIP("test");
+        UUID id = sharkImpl.actualizeMasterIP( "test" );
 
         // asserts
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
-
-
 }
