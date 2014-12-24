@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.safehaus.subutai</groupId>
     <artifactId>hbase-plugin-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.4</version>
   </parent>
 
   <artifactId>hbase-plugin-ui</artifactId>
@@ -20,18 +20,12 @@
       <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vaadin</groupId>
-      <artifactId>vaadin-server</artifactId>
-    </dependency>
-    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vaadin-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vaadin-custom</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -45,12 +39,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>hadoop-plugin-api</artifactId>
-      <version>${project.version}</version>
+      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.safehaus.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
