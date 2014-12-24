@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.safehaus.subutai</groupId>
   <artifactId>mongodb-plugin-parent</artifactId>
-  <version>2.1.1</version>
+  <version>2.0.4</version>
 
   <name>Subutai MongoDB Parent</name>
   <description>Subutai MongoDB Parent</description>
@@ -31,6 +31,7 @@
     <module>mongodb-ui</module>
     <module>mongodb-cli</module>
     <module>mongodb-rest</module>
+    <module>mongodb-kar</module>
   </modules>
 
   <dependencyManagement>
@@ -91,12 +92,6 @@
       </dependency>
 
       <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>hadoop-plugin-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <version>${maven.bundle.plugin.version}</version>
@@ -133,12 +128,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.apache.servicemix.bundles</groupId>
-        <artifactId>org.apache.servicemix.bundles.junit</artifactId>
-        <version>${servicemix.bundles.junit.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         <version>${jaxrs.version}</version>
@@ -155,27 +144,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.karaf.tooling</groupId>
-        <artifactId>karaf-maven-plugin</artifactId>
-        <version>3.0.2</version>
-        <extensions>true</extensions>
-        <configuration>
-          <startLevel>80</startLevel>
-          <aggregateFeatures>true</aggregateFeatures>
-        </configuration>
-        <executions>
-          <execution>
-            <id>create-kar</id>
-            <goals>
-              <goal>features-create-kar</goal>
-            </goals>
-            <configuration>
-              <featuresFile>features.xml</featuresFile>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -191,6 +159,19 @@
           <target>7</target>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
+        <inherited>true</inherited>
+        <extensions>true</extensions>
+        <configuration>
+          <manifestLocation>META-INF</manifestLocation>
+          <unpackBundle>true</unpackBundle>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

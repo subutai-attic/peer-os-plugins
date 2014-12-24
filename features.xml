@@ -1,9 +1,9 @@
 <features name="mongodb-plugin" version="2.0.0">
   <feature name="mongodb-plugin" version="2.0.0">
-    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-api/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-impl/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-ui/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-cli/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-rest/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-api/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-cli/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mongodb-plugin-rest/2.0.4</bundle>
   </feature>
 </features>
