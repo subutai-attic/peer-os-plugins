@@ -1,9 +1,9 @@
 <features name="flume-plugin" version="2.0.0">
   <feature name="flume-plugin" version="2.0.0">
-    <bundle> mvn:org.safehaus.subutai/flume-plugin-api/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/flume-plugin-impl/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/flume-plugin-ui/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/flume-plugin-cli/2.0.0</bundle>
-    <bundle> mvn:org.safehaus.subutai/flume-plugin-rest/2.0.0</bundle>
+    <bundle> mvn:org.safehaus.subutai/flume-plugin-api/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/flume-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/flume-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/flume-plugin-cli/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/flume-plugin-rest/2.0.4</bundle>
   </feature>
 </features>
