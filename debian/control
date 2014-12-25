@@ -7,6 +7,6 @@ Homepage: http://www.safehaus.org
 Pre-Depends: subutai-repo-hadoop-subutai-template (= 2.1.2)
 Build-Depends: debhelper (>= 8.0.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Version: 2.0.4
+Version: ${project.build.version}
 Maintainer: Subutai
 Description: This package contains kar file of Subutai Hadoop plugin that runs  on subutai server application.
