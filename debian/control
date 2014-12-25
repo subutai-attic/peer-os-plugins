@@ -5,8 +5,8 @@ Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-
 Package: flume-subutai-plugin
 Architecture: all
+Version: ${project.build.version}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Flume plugin that runs  on subutai server application.
