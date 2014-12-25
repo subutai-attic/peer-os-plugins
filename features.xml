@@ -1,5 +1,5 @@
-<features name="sqoop-plugin" version="2.0.0">
-  <feature name="sqoop-plugin" version="2.0.0">
+<features name="sqoop-plugin" version="2.0.4">
+  <feature name="sqoop-plugin" version="2.0.4git sttaus">
     <bundle> mvn:org.safehaus.subutai/sqoop-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/sqoop-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/sqoop-plugin-ui/2.0.4</bundle>
