@@ -1,5 +1,5 @@
-<features name="presto-plugin" version="2.0.0">
-  <feature name="presto-plugin" version="2.0.0">
+<features name="presto-plugin" version="2.0.4">
+  <feature name="presto-plugin" version="2.0.4">
     <bundle> mvn:org.safehaus.subutai/presto-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/presto-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/presto-plugin-ui/2.0.4</bundle>
