@@ -58,19 +58,19 @@ public class WelcomeStep extends Panel
             }
         } );
 
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.setId( "MahoutStartWithHadoop" );
-        next2.setStyleName( "default" );
-        next2.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                clickHandler( wizard, SetupType.WITH_HADOOP );
-            }
-        } );
-        grid.addComponent( next2, 5, 4, 5, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
+//        Button next2 = new Button( "Start with-Hadoop installation" );
+//        next2.setId( "MahoutStartWithHadoop" );
+//        next2.setStyleName( "default" );
+//        next2.addClickListener( new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( Button.ClickEvent event )
+//            {
+//                clickHandler( wizard, SetupType.WITH_HADOOP );
+//            }
+//        } );
+//        grid.addComponent( next2, 5, 4, 5, 4 );
+//        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }

@@ -1,31 +1,38 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
+import java.util.Set;
+import java.util.UUID;
 
-import java.util.Iterator;
-
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.Agent;
 import org.safehaus.subutai.common.protocol.ConfigBase;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.command.api.command.AgentResult;
-import org.safehaus.subutai.core.command.api.command.Command;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 class OverHadoopSetupStrategy extends MahoutSetupStrategy
 {
+    private static final Logger LOG = LoggerFactory.getLogger( OverHadoopSetupStrategy.class.getName() );
+    private Environment environment;
 
-    public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po )
+    public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po,
+                                    Environment environment )
     {
         super( manager, config, po );
     }
 
-
-    @Override
-    public ConfigBase setup() throws ClusterSetupException
+    private void check() throws ClusterSetupException
     {
 
         if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) || CollectionUtil
@@ -40,72 +47,103 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                     String.format( "Cluster with name '%s' already exists\nInstallation aborted",
                             config.getClusterName() ) );
         }
-
-        // Check if node agent is connected
-        for ( Iterator<Agent> it = config.getNodes().iterator(); it.hasNext(); )
+        //check nodes are connected
+        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        for ( ContainerHost host : nodes )
         {
-            Agent node = it.next();
-            if ( manager.getAgentManager().getAgentByHostname( node.getHostname() ) == null )
+            if ( !host.isConnected() )
             {
-                trackerOperation.addLog(
-                        String.format( "Node %s is not connected. Omitting this node from installation",
-                                node.getHostname() ) );
-                it.remove();
+                throw new ClusterSetupException( String.format( "Container %s is not connected", host.getHostname() ) );
             }
         }
-
-        if ( config.getNodes().isEmpty() )
+        //check hadoopcluster
+        HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+        if ( hc == null )
         {
-            throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
+            throw new ClusterSetupException( "Could not find Hadoop cluster " + config.getHadoopClusterName() );
+        }
+        if ( !hc.getAllNodes().containsAll( config.getNodes() ) )
+        {
+            throw new ClusterSetupException(
+                    "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
         trackerOperation.addLog( "Checking prerequisites..." );
-
-        // Check installed packages
-
-        Command checkInstalledCommand = manager.getCommands().getCheckInstalledCommand( config.getNodes() );
-        manager.getCommandRunner().runCommand( checkInstalledCommand );
-
-        if ( !checkInstalledCommand.hasCompleted() )
+        RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
+        for ( UUID uuid : config.getNodes() )
         {
-            throw new ClusterSetupException( "Failed to check presence of installed packages\nInstallation aborted" );
-        }
-
-        for ( Iterator<Agent> it = config.getNodes().iterator(); it.hasNext(); )
-        {
-            Agent node = it.next();
-            AgentResult result = checkInstalledCommand.getResults().get( node.getUuid() );
-
-            if ( result.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) )
+            ContainerHost node = environment.getContainerHostById( uuid );
+            try
             {
-                trackerOperation.addLog(
-                        String.format( "Node %s already has Mahout installed. Omitting this node from installation",
-                                node.getHostname() ) );
-                it.remove();
+                CommandResult result = node.execute( checkInstalledCommand );
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s already has Mahout installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+                else if ( !result.getStdOut()
+                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
             }
         }
-
         if ( config.getNodes().isEmpty() )
         {
             throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
         }
+    }
 
+
+    private void configure() throws ClusterSetupException
+    {
         trackerOperation.addLog( "Updating db..." );
-
-        // Save to db
+        config.setEnvironmentId( environment.getId() );
         manager.getPluginDAO().saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Mahout..." );
 
-        Command installCommand = manager.getCommands().getInstallCommand( config.getNodes() );
-        manager.getCommandRunner().runCommand( installCommand );
-        if ( installCommand.hasSucceeded() )
+        for ( UUID uuid : config.getNodes() )
         {
-            trackerOperation.addLog( "Installation succeeded" );
+            ContainerHost node = environment.getContainerHostById( uuid );
+            try
+            {
+                CommandResult result = node.execute( manager.getCommands().getInstallCommand() );
+                processResult( node, result );
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( String.format( "Failed to install %s on server node" ) );
+            }
         }
-        else
-        {
-            trackerOperation.addLogFailed( String.format( "Installation failed, %s", installCommand.getAllErrors() ) );
-        }
+        trackerOperation.addLog( "Configuring cluster..." );
+    }
 
+
+    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    {
+
+        if ( !result.hasSucceeded() )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
+    }
+
+
+    @Override
+    public ConfigBase setup() throws ClusterSetupException
+    {
+        check();
+        configure();
         return config;
     }
 }

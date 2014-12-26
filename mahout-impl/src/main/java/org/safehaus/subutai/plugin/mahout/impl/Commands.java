@@ -8,12 +8,10 @@ package org.safehaus.subutai.plugin.mahout.impl;
 
 import java.util.Set;
 
-import org.safehaus.subutai.common.enums.OutputRedirection;
-import org.safehaus.subutai.common.protocol.Agent;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.command.OutputRedirection;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.command.api.command.Command;
-import org.safehaus.subutai.core.command.api.command.CommandRunnerBase;
-import org.safehaus.subutai.common.protocol.RequestBuilder;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 
 import com.google.common.base.Preconditions;
@@ -23,38 +21,29 @@ public class Commands
 {
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + MahoutClusterConfig.PRODUCT_KEY.toLowerCase();
 
-    private final CommandRunnerBase commandRunnerBase;
 
-
-    public Commands( final CommandRunnerBase commandRunnerBase )
+    public RequestBuilder getInstallCommand()
     {
-        Preconditions.checkNotNull( commandRunnerBase, "Command Runner is null" );
-
-        this.commandRunnerBase = commandRunnerBase;
+        RequestBuilder rb = new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 360 )
+                                                                                                            .withStdOutRedirection(
+                                                                                                                    OutputRedirection.NO );
+        return rb;
     }
 
 
-    public Command getInstallCommand( Set<Agent> agents )
+    public RequestBuilder getUninstallCommand()
     {
-        return commandRunnerBase.createCommand( "Install Mahout",
-                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 360 )
-                                                                                                .withStdOutRedirection(
-                                                                                                        OutputRedirection.NO ),
-                agents );
+        RequestBuilder rb =
+                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 60 );
+        return rb;
+
     }
 
 
-    public Command getUninstallCommand( Set<Agent> agents )
+    public RequestBuilder getCheckInstalledCommand()
     {
-        return commandRunnerBase.createCommand( "Uninstall Mahout",
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 60 ),
-                agents );
-    }
-
-
-    public Command getCheckInstalledCommand( Set<Agent> agents )
-    {
-        return commandRunnerBase.createCommand( "Check installed subutai packages",
-                new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH ), agents );
+        RequestBuilder rb =
+                new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
+        return rb;
     }
 }

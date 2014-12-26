@@ -7,14 +7,8 @@
     <property name="password" value="" />
   </bean>
 
-  <reference id="commandRunner" availability="mandatory"
-             interface="org.safehaus.subutai.core.command.api.CommandRunner" />
-  <reference id="agentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.agent.api.AgentManager" />
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="containerManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.container.api.container.ContainerManager" />
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
@@ -22,13 +16,10 @@
 
   <bean id="mahout-impl" scope="singleton" class="org.safehaus.subutai.plugin.mahout.impl.MahoutImpl"
         init-method="init" destroy-method="destroy">
-    <property name="commandRunner" ref="commandRunner" />
-    <property name="agentManager" ref="agentManager" />
-    <property name="tracker" ref="tracker" />
-    <property name="environmentManager" ref="environmentManager" />
-    <property name="containerManager" ref="containerManager" />
-    <property name="hadoopManager" ref="hadoopManager" />
     <argument ref="dataSource" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+    <argument ref="hadoopManager" />
   </bean>
 
   <service ref="mahout-impl" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
