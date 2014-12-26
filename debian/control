@@ -5,7 +5,7 @@ Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-
+Version: ${project.build.version}
 Package: lucene-subutai-plugin
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
