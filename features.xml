@@ -1,0 +1,9 @@
+<features name="mahout-plugin" version="2.0.4">
+  <feature name="mahout-plugin" version="2.0.4">
+    <bundle> mvn:org.safehaus.subutai/mahout-plugin-api/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mahout-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mahout-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mahout-plugin-cli/2.0.4</bundle>
+    <bundle> mvn:org.safehaus.subutai/mahout-plugin-rest/2.0.4</bundle>
+  </feature>
+</features>
