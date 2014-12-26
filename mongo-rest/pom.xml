@@ -5,23 +5,24 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.safehaus.subutai</groupId>
-    <artifactId>mongodb-plugin-parent</artifactId>
+    <artifactId>mongo-plugin-parent</artifactId>
     <version>2.0.4</version>
   </parent>
 
-  <artifactId>mongodb-plugin-impl</artifactId>
+  <artifactId>mongo-plugin-rest</artifactId>
+  <name>Subutai Mongodb REST</name>
+  <description>Subutai Mongodb REST</description>
   <packaging>bundle</packaging>
-  <name>Subutai MongoDB Impl</name>
-  <description>Subutai MongoDB Impl</description>
 
   <dependencies>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>mongodb-plugin-api</artifactId>
+      <artifactId>mongo-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -29,34 +30,46 @@
       <artifactId>tracker-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>environment-manager-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>plugin-common</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--CXF-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
-      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.impl</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.rest</Bundle-SymbolicName>
+            <Export-Package>
+              {local-packages};version=${project.version};-noimport:=true
+            </Export-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
 </project>
