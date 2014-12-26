@@ -44,6 +44,7 @@ public class Manager
     public final static String START_BUTTON_CAPTION = "Start";
     public final static String STOP_BUTTON_CAPTION = "Stop";
     public final static String DESTROY_BUTTON_CAPTION = "Destroy";
+    public final static String REMOVE_BUTTON_CAPTION = "Remove Cluster";
     public final static String HOST_COLUMN_CAPTION = "Host";
     public final static String IP_COLUMN_CAPTION = "IP List";
     public final static String NODE_ROLE_COLUMN_CAPTION = "Node Role";
@@ -166,10 +167,17 @@ public class Manager
 
         Button destroyClusterButton = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterButton.setId( "HadoopDestroyCluster" );
+        destroyClusterButton.setDescription( "Destroy environment with containers" );
         destroyClusterButton.addStyleName( "default" );
         destroyClusterButton.addClickListener( managerListener.destroyClusterButtonListener() );
-
         controlsContent.addComponent( destroyClusterButton );
+
+        Button removeClusterButton = new Button( REMOVE_BUTTON_CAPTION );
+        removeClusterButton.setId( "HadoopRemoveCluster" );
+        removeClusterButton.setDescription( "Removes cluster info from DB" );
+        removeClusterButton.addStyleName( "default" );
+        removeClusterButton.addClickListener( managerListener.removeClusterButtonListener() );
+        controlsContent.addComponent( removeClusterButton );
 
         Button addNodeButton = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeButton.setId( "HadoopaddNode" );

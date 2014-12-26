@@ -79,6 +79,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     }
                 } );
                 break;
+            case REMOVE:
+                removeCluster();
+                break;
             case START_ALL:
             case STOP_ALL:
             case STATUS_ALL:
@@ -90,6 +93,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         }
     }
 
+    public void removeCluster()
+    {
+        HadoopClusterConfig config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster removed from database" );
+    }
 
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )

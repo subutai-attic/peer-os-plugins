@@ -60,7 +60,7 @@ public class VerificationStep extends VerticalLayout
         }
         cfgView.addStringCfg( "Slave Nodes (DataNode & TaskTracker)", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
 
-        Button install = new Button( "Install" );
+        Button install = new Button( "Configure" );
         install.setId( "HadoopBtnInstall" );
         install.addStyleName( "default" );
         install.addClickListener( new Button.ClickListener()
@@ -68,7 +68,7 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = hadoop.installCluster( wizard.getHadoopClusterConfig() );
+                UUID trackID = hadoop.configureEnvironmentCluster( wizard.getHadoopClusterConfig() );
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, HadoopClusterConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

@@ -143,6 +143,7 @@ public class ConfigurationStep extends VerticalLayout
                         nodes.add( host.getId() );
                     }
                     wizard.getHadoopClusterConfig().setDataNodes( new ArrayList<>( nodes ) );
+                    wizard.getHadoopClusterConfig().setTaskTrackers( new ArrayList<>( nodes ) );
                 }
             }
         } );

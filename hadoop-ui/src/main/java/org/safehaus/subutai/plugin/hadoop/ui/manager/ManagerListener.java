@@ -202,6 +202,50 @@ public class ManagerListener
     }
 
 
+    protected Button.ClickListener removeClusterButtonListener()
+    {
+        return new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
+            {
+                if ( hadoopManager.getHadoopCluster() != null )
+                {
+                    ConfirmationDialog alert = new ConfirmationDialog(
+                            String.format( "Do you want to destroy the %s cluster?",
+                                    hadoopManager.getHadoopCluster().getClusterName() ), "Yes", "No" );
+                    alert.getOk().addClickListener( new Button.ClickListener()
+                    {
+                        @Override
+                        public void buttonClick( Button.ClickEvent clickEvent )
+                        {
+                            UUID trackID = hadoopManager.getHadoop().removeCluster(
+                                    hadoopManager.getHadoopCluster().getClusterName() );
+                            ProgressWindow window =
+                                    new ProgressWindow( hadoopManager.getExecutorService(), hadoopManager.getTracker(),
+                                            trackID, HadoopClusterConfig.PRODUCT_KEY );
+                            window.getWindow().addCloseListener( new Window.CloseListener()
+                            {
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
+                                {
+                                    refreshClusterList();
+                                }
+                            } );
+                            hadoopManager.getContentRoot().getUI().addWindow( window.getWindow() );
+                        }
+                    } );
+                    hadoopManager.getContentRoot().getUI().addWindow( alert.getAlert() );
+                }
+                else
+                {
+                    hadoopManager.show( "Please, select cluster" );
+                }
+            }
+        };
+    }
+
+
     protected void refreshClusterList()
     {
         if ( hadoopManager.getHadoop() == null )
