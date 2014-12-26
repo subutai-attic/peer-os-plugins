@@ -16,10 +16,10 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
     public UUID uninstallCluster( HadoopClusterConfig config );
 
     /**
-     * This just removes cluster configuration from DB.
-     * This does NOT destroy hadoop containers.
-     * @param clusterName
-     * @return
+     * This just removes cluster configuration from DB,
+     * NOT destroys hadoop containers.
+     * @param clusterName cluster name
+     * @return uuid of operation
      */
     public UUID removeCluster( String clusterName );
 

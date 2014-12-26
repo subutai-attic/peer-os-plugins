@@ -37,20 +37,9 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends VerticalLayout
 {
-
-    private static final int MAX_NUMBER_OF_NODES_PER_SERVER = 5;
-    private static final String SUGGESTED_NUMBER_OF_NODES_CAPTION = " (Suggested)";
-//    private EnvironmentManager environmentManager;
-//    private EnvironmentWizard environmentWizard;
-
-
     public ConfigurationStep( final EnvironmentWizard wizard, HostRegistry hostRegistry,
                               final EnvironmentManager environmentManager )
-
     {
-//        this.environmentManager = environmentManager ;
-//        this.environmentWizard = wizard;
-
         setSizeFull();
         GridLayout content = new GridLayout( 1, 7 );
         content.setSizeFull();

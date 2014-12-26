@@ -20,11 +20,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class HadoopComponent extends CustomComponent
 {
-    private final Wizard wizard;
     private final Manager manager;
-    private final EnvironmentWizard environmentWizard;
-
-
 
     public HadoopComponent( ExecutorService executorService, Tracker tracker, Hadoop hadoop, EnvironmentManager environmentManager, HostRegistry hostRegistry ) throws NamingException
     {
@@ -38,18 +34,16 @@ public class HadoopComponent extends CustomComponent
         sheet.setSizeFull();
 
         manager = new Manager( executorService, tracker, hadoop, environmentManager );
-        wizard = new Wizard( executorService, hadoop, hostRegistry, tracker );
-        environmentWizard = new EnvironmentWizard( executorService, hadoop, hostRegistry, tracker, environmentManager );
+        final Wizard wizard = new Wizard( executorService, hadoop, hostRegistry, tracker );
+        final EnvironmentWizard environmentWizard =
+                new EnvironmentWizard( executorService, hadoop, hostRegistry, tracker, environmentManager );
 
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HadoopInstallTab" );
-
         sheet.addTab( environmentWizard.getContent(), "Configure Environment" );
         sheet.getTab( 1 ).setId( "HadoopEnvironmentTab" );
-
         sheet.addTab( manager.getContent(), "Manage" );
         sheet.getTab( 2 ).setId( "HadoopManageTab" );
-
         sheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override
@@ -63,8 +57,6 @@ public class HadoopComponent extends CustomComponent
                 }
             }
         } );
-
-
         verticalLayout.addComponent( sheet );
         setCompositionRoot( verticalLayout );
     }

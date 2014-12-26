@@ -128,14 +128,12 @@ public class Manager
                 refreshUI();
             }
         } );
-
         controlsContent.addComponent( clusterList );
 
         checkAllButton = new Button( CHECK_ALL_BUTTON_CAPTION );
         checkAllButton.setId( "HadoopCheckAll" );
         checkAllButton.addStyleName( "default" );
         checkAllButton.addClickListener( managerListener.checkAllButtonListener( checkAllButton ) );
-
         controlsContent.addComponent( checkAllButton );
 
 
@@ -183,7 +181,6 @@ public class Manager
         addNodeButton.setId( "HadoopaddNode" );
         addNodeButton.addStyleName( "default" );
         addNodeButton.addClickListener( managerListener.addNodeButtonListener() );
-
         controlsContent.addComponent( addNodeButton );
 
         HorizontalLayout configContent = new HorizontalLayout();
