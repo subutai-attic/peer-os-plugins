@@ -1,5 +1,5 @@
-<features name="pig-plugin" version="2.0.0">
-  <feature name="pig-plugin" version="2.0.0">
+<features name="pig-plugin" version="2.0.4">
+  <feature name="pig-plugin" version="2.0.4">
     <bundle> mvn:org.safehaus.subutai/pig-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/pig-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/pig-plugin-ui/2.0.4</bundle>
