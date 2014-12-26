@@ -59,7 +59,7 @@ public class EnvironmentWizard
             }
             case 2:
             {
-                component = new ConfigurationStep( this, hostRegistry, environmentManager, hadoop );
+                component = new ConfigurationStep( this, hostRegistry, environmentManager );
 
                 break;
             }
@@ -106,12 +106,6 @@ public class EnvironmentWizard
         step = 1;
         hadoopClusterConfig = new HadoopClusterConfig();
         putForm();
-    }
-
-
-    public HadoopClusterConfig getConfig()
-    {
-        return hadoopClusterConfig;
     }
 
 

@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.hadoop.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -46,6 +47,18 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Domain Name", wizard.getHadoopClusterConfig().getDomainName() );
         cfgView.addStringCfg( "Number of slave nodes", wizard.getHadoopClusterConfig().getCountOfSlaveNodes() + "" );
         cfgView.addStringCfg( "Replication factor", wizard.getHadoopClusterConfig().getReplicationFactor() + "" );
+
+        final Environment environment = wizard.getEnvironmentManager().getEnvironmentByUUID(
+                wizard.getHadoopClusterConfig().getEnvironmentId() );
+
+        cfgView.addStringCfg( "NameNode", environment.getContainerHostById( wizard.getHadoopClusterConfig().getNameNode() ).getHostname() + "" );
+        cfgView.addStringCfg( "JobTracker", environment.getContainerHostById( wizard.getHadoopClusterConfig().getJobTracker() ).getHostname() + "" );
+        cfgView.addStringCfg( "SecondaryNameNode", environment.getContainerHostById( wizard.getHadoopClusterConfig().getSecondaryNameNode() ).getHostname() + "" );
+        String selectedNodes = "";
+        for ( UUID uuid : wizard.getHadoopClusterConfig().getAllSlaveNodes() ){
+            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+        }
+        cfgView.addStringCfg( "Slave Nodes (DataNode & TaskTracker)", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
 
         Button install = new Button( "Install" );
         install.setId( "HadoopBtnInstall" );

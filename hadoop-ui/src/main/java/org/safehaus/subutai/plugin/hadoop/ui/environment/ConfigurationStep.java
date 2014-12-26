@@ -8,6 +8,7 @@ package org.safehaus.subutai.plugin.hadoop.ui.environment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,21 +40,19 @@ public class ConfigurationStep extends VerticalLayout
 
     private static final int MAX_NUMBER_OF_NODES_PER_SERVER = 5;
     private static final String SUGGESTED_NUMBER_OF_NODES_CAPTION = " (Suggested)";
-    private EnvironmentManager environmentManager;
-    private EnvironmentWizard environmentWizard;
-    private Hadoop hadoop;
+//    private EnvironmentManager environmentManager;
+//    private EnvironmentWizard environmentWizard;
 
 
     public ConfigurationStep( final EnvironmentWizard wizard, HostRegistry hostRegistry,
-                              final EnvironmentManager environmentManager, final Hadoop hadoop )
+                              final EnvironmentManager environmentManager )
 
     {
-        this.environmentManager = environmentManager ;
-        this.environmentWizard = wizard;
-        this.hadoop = hadoop;
+//        this.environmentManager = environmentManager ;
+//        this.environmentWizard = wizard;
 
         setSizeFull();
-        GridLayout content = new GridLayout( 2, 7 );
+        GridLayout content = new GridLayout( 1, 7 );
         content.setSizeFull();
         content.setSpacing( true );
         content.setMargin( true );
@@ -88,22 +87,66 @@ public class ConfigurationStep extends VerticalLayout
         }
 
 
-        final ComboBox nameNodeCombo = new ComboBox( "Choose NameNode" );
-        BeanItemContainer<Environment> eBeanNameNode = new BeanItemContainer<>( Environment.class );
-        eBeanNameNode.addAll( envList );
-        nameNodeCombo.setContainerDataSource( eBeanNameNode );
-        nameNodeCombo.setNullSelectionAllowed( false );
+        final ComboBox nameNodeCombo = getCombo( "Choose NameNode" );
         nameNodeCombo.setTextInputAllowed( false );
-        nameNodeCombo.setItemCaptionPropertyId( "name" );
         nameNodeCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                Environment e = ( Environment ) event.getProperty().getValue();
-                wizard.getConfig().setEnvironmentId( e.getId() );
+                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                wizard.getHadoopClusterConfig().setNameNode( host.getId() );
             }
         } );
+
+
+        final ComboBox jobTracker = getCombo( "Choose JobTracker" );
+        jobTracker.setTextInputAllowed( false );
+        jobTracker.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                wizard.getHadoopClusterConfig().setJobTracker( host.getId() );
+            }
+        } );
+
+
+        final ComboBox secNameNode = getCombo( "Choose Secondary NameNode" );
+        secNameNode.setTextInputAllowed( false );
+        secNameNode.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                wizard.getHadoopClusterConfig().setSecondaryNameNode( host.getId() );
+            }
+        } );
+
+
+        // all nodes
+        final TwinColSelect slaveNodes =
+                getTwinSelect( "Slave Nodes", "Available Nodes", "Selected Nodes", 4 );
+        slaveNodes.setId( "slaveNodes" );
+        slaveNodes.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                if ( event.getProperty().getValue() != null )
+                {
+                    Set<UUID> nodes = new HashSet<UUID>();
+                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
+                    for ( ContainerHost host : nodeList )
+                    {
+                        nodes.add( host.getId() );
+                    }
+                    wizard.getHadoopClusterConfig().setDataNodes( new ArrayList<>( nodes ) );
+                }
+            }
+        } );
+
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
@@ -118,62 +161,16 @@ public class ConfigurationStep extends VerticalLayout
             public void valueChange( Property.ValueChangeEvent event )
             {
                 Environment e = ( Environment ) event.getProperty().getValue();
-                wizard.getConfig().setEnvironmentId( e.getId() );
+                wizard.getHadoopClusterConfig().setEnvironmentId( e.getId() );
                 setComboDS( nameNodeCombo, e.getContainerHosts() );
-
+                setComboDS( jobTracker, e.getContainerHosts() );
+                setComboDS( secNameNode, e.getContainerHosts() );
+                for ( ContainerHost host : e.getContainerHosts() ){
+                    slaveNodes.addItem( host );
+                    slaveNodes.setItemCaption( host, (host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")") );
+                }
             }
         } );
-
-
-
-
-        //        // configuration servers number
-        //        List<String> slaveNodeCountList = new ArrayList<String>();
-        //        // TODO please do not count only local resource hosts since environments can span multiple peers
-        //        // remove host registry usage once this fix is applied
-        //        int connected_fai_count = hostRegistry.getResourceHostsInfo().size() - 1;
-        //        for ( int i = 1; i <= ( connected_fai_count ) * MAX_NUMBER_OF_NODES_PER_SERVER; i++ )
-        //        {
-        //            if ( i == connected_fai_count )
-        //            {
-        //                slaveNodeCountList.add( i + SUGGESTED_NUMBER_OF_NODES_CAPTION );
-        //            }
-        //            else
-        //            {
-        //                slaveNodeCountList.add( i + "" );
-        //            }
-        //        }
-
-        //        ComboBox slaveNodesComboBox = new ComboBox( "Choose number of slave nodes", slaveNodeCountList );
-        //        slaveNodesComboBox.setId( "HadoopSlavesNodeComboBox" );
-        //        slaveNodesComboBox.setImmediate( true );
-        //        slaveNodesComboBox.setTextInputAllowed( false );
-        //        slaveNodesComboBox.setNullSelectionAllowed( false );
-        //        slaveNodesComboBox.setValue( wizard.getHadoopClusterConfig().getCountOfSlaveNodes() );
-        //
-        //        // parse count of slave nodes input field
-        //        slaveNodesComboBox.addValueChangeListener( new Property.ValueChangeListener()
-        //        {
-        //            @Override
-        //            public void valueChange( Property.ValueChangeEvent event )
-        //            {
-        //                String slaveNodeComboBoxSelection = event.getProperty().getValue().toString();
-        //                int slaveNodeCount;
-        //                int suggestedNumberOfNodesCaptionStart =
-        //                        slaveNodeComboBoxSelection.indexOf( SUGGESTED_NUMBER_OF_NODES_CAPTION.charAt( 0 ) );
-        //                if ( suggestedNumberOfNodesCaptionStart < 0 )
-        //                {
-        //                    slaveNodeCount = Integer.parseInt( slaveNodeComboBoxSelection );
-        //                }
-        //                else
-        //                {
-        //                    slaveNodeCount = Integer.parseInt(
-        //                            slaveNodeComboBoxSelection.substring( 0, suggestedNumberOfNodesCaptionStart ) );
-        //                }
-        //                wizard.getHadoopClusterConfig().setCountOfSlaveNodes( slaveNodeCount );
-        //            }
-        //        } );
-
 
         //configuration replication factor
         ComboBox replicationFactorComboBox =
@@ -255,13 +252,24 @@ public class ConfigurationStep extends VerticalLayout
         content.addComponent( clusterNameTxtFld );
         content.addComponent( domain );
         content.addComponent( envCombo );
-        //        content.addComponent( slaveNodesComboBox );
+        //content.addComponent( slaveNodesComboBox );
         content.addComponent( replicationFactorComboBox );
         content.addComponent( nameNodeCombo );
-
+        content.addComponent( jobTracker );
+        content.addComponent( secNameNode );
+        content.addComponent( slaveNodes );
         content.addComponent( buttons );
-
         addComponent( layout );
+    }
+
+    public static ComboBox getCombo( String title )
+    {
+        ComboBox combo = new ComboBox( title );
+        combo.setImmediate( true );
+        combo.setTextInputAllowed( false );
+        combo.setRequired( true );
+        combo.setNullSelectionAllowed( false );
+        return combo;
     }
 
 
@@ -272,17 +280,11 @@ public class ConfigurationStep extends VerticalLayout
         target.setValue( null );
         for ( ContainerHost host : hosts )
         {
-            target.addItem( host.getId() );
-            target.setItemCaption( host.getId(), host.getHostname() );
+            target.addItem( host );
+            target.setItemCaption( host, host.getHostname() );
         }
     }
 
-
-    private ContainerHost getHost( UUID uuid )
-    {
-        return environmentManager.getEnvironmentByUUID( environmentWizard.getConfig().
-                getEnvironmentId() ).getContainerHostById( uuid );
-    }
 
     private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName ){
         for ( ContainerHost host: containerHosts ){
@@ -294,11 +296,10 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    public static TwinColSelect getTwinSelect( String title, String captionProperty, String leftTitle,
+    public static TwinColSelect getTwinSelect( String title, String leftTitle,
                                                String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
-        twinColSelect.setItemCaptionPropertyId( captionProperty );
         twinColSelect.setRows( rows );
         twinColSelect.setMultiSelect( true );
         twinColSelect.setImmediate( true );
