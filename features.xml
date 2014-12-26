@@ -1,5 +1,5 @@
-<features name="spark-plugin" version="2.0.0">
-  <feature name="spark-plugin" version="2.0.0">
+<features name="spark-plugin" version="2.0.4">
+  <feature name="spark-plugin" version="2.0.4">
     <bundle> mvn:org.safehaus.subutai/spark-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/spark-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/spark-plugin-ui/2.0.4</bundle>
