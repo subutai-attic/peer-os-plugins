@@ -35,6 +35,15 @@ public class SparkAlertListener implements AlertListener
     {
         //TODO implement here cluster scaling functionality
 
+        //figure out the offending resource type (the one which exceeds threshold - ???)
+
+        //figure out Spark process pid
+
+        //get Spark process offending resource usage by Spark pid
+
+        //confirm that Spark is causing the stress, otherwise no-op
+
+
         //find spark cluster by environment id
         List<SparkClusterConfig> clusters = spark.getClusters();
 
@@ -89,7 +98,6 @@ public class SparkAlertListener implements AlertListener
 
         if ( targetCluster.isAutoScaling() )
         {
-            // obtain current quotas and figure out which one is exceeded
             // check if a quota limit increase does it:
             //   yes -> increase quota limit
             //   no -> add new node (here if all nodes of underlying Hadoop are already used, then notify user)
