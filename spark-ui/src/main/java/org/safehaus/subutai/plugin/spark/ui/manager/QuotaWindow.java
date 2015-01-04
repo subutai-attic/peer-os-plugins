@@ -15,7 +15,7 @@ import com.vaadin.ui.Window;
 /**
  * Window for managing container resource quotas
  *
- * TODO might be useful to put this to vaadin custom module for sharing
+ * TODO This functionality should reside in Env Mgr UI instead of implementing it in each plugin
  */
 public class QuotaWindow extends Window
 {

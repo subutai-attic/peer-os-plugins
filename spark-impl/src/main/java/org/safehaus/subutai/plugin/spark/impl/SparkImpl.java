@@ -59,6 +59,12 @@ public class SparkImpl extends SparkBase implements Spark
     }
 
 
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( sparkAlertListener, environment );
+    }
+
+
     @Override
     public UUID installCluster( final SparkClusterConfig config )
     {
@@ -239,11 +245,5 @@ public class SparkImpl extends SparkBase implements Spark
         {
             throw new ClusterException( "Could not save cluster info" );
         }
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( sparkAlertListener, environment );
     }
 }
