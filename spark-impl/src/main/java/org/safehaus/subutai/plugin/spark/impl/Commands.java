@@ -3,8 +3,8 @@ package org.safehaus.subutai.plugin.spark.impl;
 
 import java.util.Set;
 
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -66,10 +66,11 @@ public class Commands
     }
 
 
-    //    public RequestBuilder getRestartClusterCommand()
-    //    {
-    //        return new RequestBuilder( "service spark-all stop && service spark-all start" ).withTimeout( 60 );
-    //    }
+    //TODO actualize the command
+    public RequestBuilder getObtainPidCommand()
+    {
+        return new RequestBuilder( "service spark pid" ).withTimeout( 60 );
+    }
 
 
     public RequestBuilder getStopMasterCommand()

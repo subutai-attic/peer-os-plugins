@@ -33,17 +33,6 @@ public class SparkAlertListener implements AlertListener
     @Override
     public void onAlert( final ContainerHostMetric metric )
     {
-        //TODO implement here cluster scaling functionality
-
-        //figure out the offending resource type (the one which exceeds threshold - ???)
-
-        //figure out Spark process pid
-
-        //get Spark process offending resource usage by Spark pid
-
-        //confirm that Spark is causing the stress, otherwise no-op
-
-
         //find spark cluster by environment id
         List<SparkClusterConfig> clusters = spark.getClusters();
 
@@ -94,8 +83,18 @@ public class SparkAlertListener implements AlertListener
             return;
         }
 
-        //if cluster has auto-scaling enabled:
 
+        //TODO find ways to determine which resource is offending
+        //figure out the offending resource type (the one which exceeds threshold - ???)
+
+        //figure out Spark process pid
+
+        //get Spark process offending resource usage by Spark pid
+
+        //confirm that Spark is causing the stress, otherwise no-op
+
+
+        //if cluster has auto-scaling enabled:
         if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it:
