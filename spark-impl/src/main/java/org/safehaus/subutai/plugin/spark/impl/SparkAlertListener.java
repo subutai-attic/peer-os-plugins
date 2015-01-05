@@ -103,6 +103,7 @@ public class SparkAlertListener implements AlertListener
         }
         else
         {
+            //TODO find ways to notify user
             //if auto-scaling disabled -> notify user
         }
     }
