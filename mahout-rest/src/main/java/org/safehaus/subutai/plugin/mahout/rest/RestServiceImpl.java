@@ -5,10 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
-
-import org.safehaus.subutai.common.protocol.Agent;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.agent.api.AgentManager;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.TrimmedMahoutClusterConfig;
@@ -21,7 +18,6 @@ public class RestServiceImpl implements RestService
 {
 
     private Mahout mahoutManager;
-    private AgentManager agentManager;
 
 
     public Mahout getMahoutManager()
@@ -35,17 +31,6 @@ public class RestServiceImpl implements RestService
         this.mahoutManager = mahoutManager;
     }
 
-
-    public AgentManager getAgentManager()
-    {
-        return agentManager;
-    }
-
-
-    public void setAgentManager( final AgentManager agentManager )
-    {
-        this.agentManager = agentManager;
-    }
 
 
     @Override
@@ -76,8 +61,8 @@ public class RestServiceImpl implements RestService
 
         for ( String node : tmcc.getNodes() )
         {
-            Agent agent = agentManager.getAgentByHostname( node );
-            mahoutConfig.getNodes().add( agent );
+
+            mahoutConfig.getNodes().add( UUID.fromString( node ) );
         }
 
         UUID uuid = mahoutManager.installCluster( mahoutConfig );
@@ -99,18 +84,14 @@ public class RestServiceImpl implements RestService
     @Override
     public Response startCluster( final String clusterName )
     {
-        UUID uuid = mahoutManager.startCluster( clusterName );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        return null;
     }
 
 
     @Override
     public Response stopCluster( final String clusterName )
     {
-        UUID uuid = mahoutManager.stopCluster( clusterName );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        return null;
     }
 
 
@@ -126,7 +107,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response destroyNode( final String clusterName, final String lxcHostname )
     {
-        UUID uuid = mahoutManager.destroyNode( clusterName, lxcHostname );
+        UUID uuid = mahoutManager.uninstalllNode( clusterName, lxcHostname );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }

@@ -7,6 +7,7 @@ package org.safehaus.subutai.plugin.mahout.ui.manager;
 
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -14,10 +15,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.protocol.Agent;
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.agent.api.AgentManager;
-import org.safehaus.subutai.core.command.api.CommandRunner;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -28,7 +28,6 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
 
-import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
@@ -55,26 +54,26 @@ public class Manager
     protected static final String BUTTON_STYLE_NAME = "default";
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final ExecutorService executorService;
-    private final Tracker tracker;
-    private final Hadoop hadoop;
-    private final AgentManager agentManager;
-    private final CommandRunner commandRunner;
     private final Mahout mahout;
     private GridLayout contentRoot;
     private ComboBox clusterCombo;
     private Table nodesTable;
     private MahoutClusterConfig config;
+    private final Tracker tracker;
+    private final Hadoop hadoop;
+    private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executorService, ServiceLocator serviceLocator ) throws NamingException
+    public Manager( final ExecutorService executorService, final Mahout mahout, final Tracker tracker, final Hadoop hadoop,
+                    final EnvironmentManager environmentManager )
+            throws NamingException
     {
 
         this.executorService = executorService;
-        this.mahout = serviceLocator.getService( Mahout.class );
-        this.tracker = serviceLocator.getService( Tracker.class );
-        this.hadoop = serviceLocator.getService( Hadoop.class );
-        this.agentManager = serviceLocator.getService( AgentManager.class );
-        this.commandRunner = serviceLocator.getService( CommandRunner.class );
+        this.mahout = mahout;
+        this.tracker = tracker;
+        this.hadoop = hadoop;
+        this.environmentManager = environmentManager;
 
         contentRoot = new GridLayout();
         contentRoot.setSpacing( true );
@@ -212,12 +211,14 @@ public class Manager
                         HadoopClusterConfig info = hadoop.getCluster( hn );
                         if ( info != null )
                         {
-                            HashSet<Agent> nodes = new HashSet<>( info.getAllNodes() );
+                            Set<UUID> nodes = new HashSet<>( info.getAllNodes() );
                             nodes.removeAll( config.getNodes() );
                             if ( !nodes.isEmpty() )
                             {
+                                Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() ).getContainerHostsByIds(
+                                        nodes );
                                 AddNodeWindow addNodeWindow =
-                                        new AddNodeWindow( mahout, executorService, tracker, config, nodes );
+                                        new AddNodeWindow( mahout, executorService, tracker, config, hosts );
                                 contentRoot.getUI().addWindow( addNodeWindow );
                                 addNodeWindow.addCloseListener( new Window.CloseListener()
                                 {
@@ -295,19 +296,28 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String lxcHostname =
+                    String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Agent lxcAgent = agentManager.getAgentByHostname( lxcHostname );
-                    if ( lxcAgent != null )
+                    Set<ContainerHost> containerHosts =
+                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Iterator iterator = containerHosts.iterator();
+                    ContainerHost containerHost = null;
+                    while ( iterator.hasNext() )
                     {
-                        TerminalWindow terminal =
-                                new TerminalWindow( Sets.newHashSet( lxcAgent ), executorService, commandRunner,
-                                        agentManager );
+                        containerHost = ( ContainerHost ) iterator.next();
+                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        {
+                            break;
+                        }
+                    }
+                    if ( containerHost != null )
+                    {
+                        TerminalWindow terminal = new TerminalWindow( containerHost );
                         contentRoot.getUI().addWindow( terminal.getWindow() );
                     }
                     else
                     {
-                        show( "Agent is not connected" );
+                        show( "Host not found" );
                     }
                 }
             }
@@ -325,7 +335,9 @@ public class Manager
     {
         if ( config != null )
         {
-            populateTable( nodesTable, config.getNodes() );
+            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
+            populateTable( nodesTable, hosts);
         }
         else
         {
@@ -334,13 +346,13 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<Agent> agents )
+    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
     {
         table.removeAllItems();
-        for ( final Agent agent : agents )
+        for ( final ContainerHost host : containerHosts )
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( agent.getListIP().get( 0 ) + "-mahoutDestroy" );
+            destroyBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-mahoutDestroy" );
             destroyBtn.addStyleName( "default" );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
@@ -350,15 +362,15 @@ public class Manager
             addGivenComponents( availableOperations, destroyBtn );
 
             table.addItem( new Object[] {
-                    agent.getHostname(), agent.getListIP().get( 0 ), availableOperations
+                    host.getHostname(), host.getIpByInterfaceName( "eth0" ), availableOperations
             }, null );
 
-            addClickListenerToDestroyButton( agent, destroyBtn );
+            addClickListenerToDestroyButton( host, destroyBtn );
         }
     }
 
 
-    private void addClickListenerToDestroyButton( final Agent agent, Button... buttons )
+    private void addClickListenerToDestroyButton( final ContainerHost host, Button... buttons )
     {
         getButton( DESTROY_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -366,13 +378,13 @@ public class Manager
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 ConfirmationDialog alert = new ConfirmationDialog(
-                        String.format( "Do you want to destroy the %s node?", agent.getHostname() ), "Yes", "No" );
+                        String.format( "Do you want to destroy the %s node?", host.getHostname() ), "Yes", "No" );
                 alert.getOk().addClickListener( new Button.ClickListener()
                 {
                     @Override
                     public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        UUID trackID = mahout.destroyNode( config.getClusterName(), agent.getHostname() );
+                        UUID trackID = mahout.uninstalllNode( config.getClusterName(), host.getHostname() );
                         ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                 MahoutClusterConfig.PRODUCT_KEY );
                         window.getWindow().addCloseListener( new Window.CloseListener()

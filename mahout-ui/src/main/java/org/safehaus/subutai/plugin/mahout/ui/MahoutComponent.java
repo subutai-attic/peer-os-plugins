@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutorService;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.ui.manager.Manager;
 import org.safehaus.subutai.plugin.mahout.ui.wizard.Wizard;
 
@@ -22,7 +26,7 @@ import com.vaadin.ui.VerticalLayout;
 public class MahoutComponent extends CustomComponent
 {
 
-    public MahoutComponent( ExecutorService executorService, ServiceLocator serviceLocator ) throws NamingException
+    public MahoutComponent( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 
@@ -33,8 +37,8 @@ public class MahoutComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
 
-        final Manager manager = new Manager( executorService, serviceLocator );
-        Wizard wizard = new Wizard( executorService, serviceLocator );
+        final Manager manager = new Manager( executorService, mahout, tracker, hadoop, environmentManager );
+        Wizard wizard = new Wizard( executorService, mahout, hadoop, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "MahoutInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );

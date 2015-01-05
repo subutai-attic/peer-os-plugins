@@ -3,17 +3,17 @@
 
   <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
 
-  <reference id="mahoutManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
-  <reference id="agentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.agent.api.AgentManager" />
-  <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="commandRunner" availability="mandatory"
-             interface="org.safehaus.subutai.core.command.api.CommandRunner" />
+  <reference id="mahout" availability="mandatory" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
+  <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.mahout.ui.MahoutPortalModule"
         init-method="init" destroy-method="destroy">
+    <argument ref="mahout" />
+    <argument ref="tracker" />
+    <argument ref="hadoop" />
+    <argument ref="environmentManager" />
   </bean>
 
 </blueprint>

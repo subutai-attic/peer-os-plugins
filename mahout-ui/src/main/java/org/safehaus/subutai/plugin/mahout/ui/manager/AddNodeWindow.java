@@ -5,9 +5,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.safehaus.subutai.common.protocol.Agent;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
@@ -34,7 +34,7 @@ public class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Mahout mahout, final ExecutorService executorService, final Tracker tracker,
-                          final MahoutClusterConfig config, Set<Agent> nodes )
+                          final MahoutClusterConfig config, Set<ContainerHost> nodes )
     {
         super( "Add New Node" );
         setModal( true );
@@ -61,7 +61,7 @@ public class AddNodeWindow extends Window
         hadoopNodes.setNullSelectionAllowed( false );
         hadoopNodes.setRequired( true );
         hadoopNodes.setWidth( 200, Unit.PIXELS );
-        for ( Agent node : nodes )
+        for ( ContainerHost node : nodes )
         {
             hadoopNodes.addItem( node );
             hadoopNodes.setItemCaption( node, node.getHostname() );
@@ -84,8 +84,8 @@ public class AddNodeWindow extends Window
             {
                 addNodeBtn.setEnabled( false );
                 showProgress();
-                Agent agent = ( Agent ) hadoopNodes.getValue();
-                final UUID trackID = mahout.addNode( config.getClusterName(), agent.getHostname() );
+                ContainerHost host = ( ContainerHost ) hadoopNodes.getValue();
+                final UUID trackID = mahout.addNode( config.getClusterName(), host.getHostname() );
 
                 ok.setEnabled( false );
                 executorService.execute( new Runnable()
@@ -105,7 +105,7 @@ public class AddNodeWindow extends Window
                                 {
 
                                     hideProgress();
-                                    ok.setEnabled( true );
+                                    //ok.setEnabled( true );
                                     break;
                                 }
                             }

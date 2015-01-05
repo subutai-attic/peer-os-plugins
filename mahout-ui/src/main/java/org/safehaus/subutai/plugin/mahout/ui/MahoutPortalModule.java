@@ -14,7 +14,10 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.server.ui.api.PortalModule;
 
@@ -25,13 +28,19 @@ public class MahoutPortalModule implements PortalModule
 {
     public static final String MODULE_IMAGE = "mahout.png";
     protected static final Logger LOG = Logger.getLogger( MahoutPortalModule.class.getName() );
-    private final ServiceLocator serviceLocator;
     private ExecutorService executor;
+    private Mahout mahout;
+    private Hadoop hadoop;
+    private Tracker tracker;
+    private EnvironmentManager environmentManager;
 
 
-    public MahoutPortalModule()
+    public MahoutPortalModule(Mahout mahout, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
     {
-        serviceLocator = new ServiceLocator();
+        this.mahout = mahout;
+        this.hadoop = hadoop;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
     }
 
 
@@ -71,7 +80,7 @@ public class MahoutPortalModule implements PortalModule
     {
         try
         {
-            return new MahoutComponent( executor, serviceLocator );
+            return new MahoutComponent( executor, mahout, hadoop, tracker, environmentManager );
         }
         catch ( NamingException e )
         {

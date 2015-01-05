@@ -13,23 +13,25 @@ import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public interface Mahout extends ApiBase<MahoutClusterConfig>
 {
+    public UUID installCluster( MahoutClusterConfig config, HadoopClusterConfig hadoopConfig );
 
-    UUID addNode( String clusterName, String lxcHostname );
+    public UUID uninstallCluster( MahoutClusterConfig config );
 
-    UUID destroyNode( String clusterName, String lxcHostname );
+    public UUID uninstalllNode( String clusterName, String lxcHostname );
 
-    UUID checkNode( String clustername, String lxchostname );
+    public UUID addNode( String clusterName, String lxcHostname );
 
-    UUID stopCluster( String clusterName );
+    public UUID checkNode( String clustername, String lxchostname );
 
-    UUID startCluster( String clusterName );
+    public UUID stopCluster( String clusterName );
 
-    ClusterSetupStrategy getClusterSetupStrategy( Environment environment, MahoutClusterConfig config,
+    public UUID startCluster( String clusterName );
+
+    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, MahoutClusterConfig config,
                                                   TrackerOperation po );
-
-    EnvironmentBuildTask getDefaultEnvironmentBlueprint( MahoutClusterConfig config );
 }

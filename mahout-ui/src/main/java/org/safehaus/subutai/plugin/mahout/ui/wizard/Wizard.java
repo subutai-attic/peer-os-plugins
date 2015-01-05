@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -28,19 +29,21 @@ public class Wizard
     private final Hadoop hadoop;
     private final ExecutorService executorService;
     private final Tracker tracker;
+    private final EnvironmentManager environmentManager;
     private final Mahout mahout;
     private int step = 1;
     private MahoutClusterConfig config = new MahoutClusterConfig();
-    private HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
+    private HadoopClusterConfig hadoopConfig;
 
 
-    public Wizard( ExecutorService executorService, ServiceLocator serviceLocator ) throws NamingException
+    public Wizard( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
-        this.hadoop = serviceLocator.getService( Hadoop.class );
-        this.tracker = serviceLocator.getService( Tracker.class );
-        this.mahout = serviceLocator.getService( Mahout.class );
+        this.mahout = mahout;
+        this.hadoop = hadoop;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
 
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
@@ -63,12 +66,12 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( hadoop, this );
+                component = new ConfigurationStep( hadoop, this, environmentManager );
                 break;
             }
             case 3:
             {
-                component = new VerificationStep( mahout, executorService, tracker, this );
+                component = new VerificationStep( mahout, executorService, tracker, environmentManager, this );
                 break;
             }
             default:
@@ -121,5 +124,11 @@ public class Wizard
     public MahoutClusterConfig getConfig()
     {
         return config;
+    }
+
+
+    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
+    {
+        this.hadoopConfig = hadoopConfig;
     }
 }

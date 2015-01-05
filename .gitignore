@@ -22,4 +22,4 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
-debian/hadoop-subutai-plugin
+debian/mahout-subutai-plugin
