@@ -47,6 +47,8 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
+import static org.safehaus.subutai.plugin.common.api.NodeType.*;
+
 
 public class ManagerListener
 {
@@ -427,15 +429,10 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener secondaryNameNodeCheckButtonListener( final Item row )
+    protected Button.ClickListener secondaryNameNodeCheckButtonListener( final ContainerHost containerHost, HorizontalLayout availableOperationsLayout,
+                                                                         HorizontalLayout statusGroupLayout )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
-        final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
 
@@ -448,7 +445,7 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, NodeType.SECONDARY_NAMENODE,
+                                containerHost, NodeOperationType.STATUS, SECONDARY_NAMENODE,
                                 new CompleteEvent()
                                 {
 
@@ -500,14 +497,9 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener jobTrackerStartStopButtonListener( final Item row )
+    protected Button.ClickListener jobTrackerStartStopButtonListener( final ContainerHost containerHost, HorizontalLayout availableOperationsLayout )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
         final Button startStopButton = hadoopManager.getStartStopButton( availableOperationsLayout );
 
         return new Button.ClickListener()
@@ -523,7 +515,7 @@ public class ManagerListener
                     startStopButton.setEnabled( false );
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.START, NodeType.JOBTRACKER,
+                                    clusterName, containerHost, NodeOperationType.START, JOBTRACKER,
                                     new CompleteEvent()
                                     {
                                         public void onComplete( NodeState state )
@@ -547,7 +539,7 @@ public class ManagerListener
                     startStopButton.setEnabled( false );
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STOP, NodeType.JOBTRACKER,
+                                    clusterName, containerHost, NodeOperationType.STOP, JOBTRACKER,
                                     new CompleteEvent()
                                     {
                                         public void onComplete( NodeState state )
@@ -563,15 +555,10 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener jobTrackerCheckButtonListener( final Item row )
+    protected Button.ClickListener jobTrackerCheckButtonListener( final ContainerHost containerHost, HorizontalLayout availableOperationsLayout,
+                                                                  HorizontalLayout statusGroupLayout )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
-        final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
         final Button startStopButton = hadoopManager.getStartStopButton( availableOperationsLayout );
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Label statusTaskTracker = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
@@ -586,7 +573,7 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, NodeType.JOBTRACKER, new CompleteEvent()
+                                containerHost, NodeOperationType.STATUS, JOBTRACKER, new CompleteEvent()
                         {
 
                             public void onComplete( NodeState state )
@@ -619,15 +606,10 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener nameNodeCheckButtonListener( final Item row )
+    protected Button.ClickListener nameNodeCheckButtonListener( final ContainerHost containerHost, HorizontalLayout availableOperationsLayout,
+                                                                HorizontalLayout statusGroupLayout )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
-        final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
         final Button startStopButton = hadoopManager.getStartStopButton( availableOperationsLayout );
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
@@ -642,7 +624,7 @@ public class ManagerListener
                 startStopButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, NodeType.NAMENODE, new CompleteEvent()
+                                containerHost, NodeOperationType.STATUS, NAMENODE, new CompleteEvent()
                         {
                             public void onComplete( NodeState state )
                             {
@@ -672,15 +654,9 @@ public class ManagerListener
         };
     }
 
-
-    protected Button.ClickListener nameNodeStartStopButtonListener( final Item row )
+    protected Button.ClickListener nameNodeStartStopButtonListener( final ContainerHost containerHost, HorizontalLayout availableOperationsLayout )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
         final Button startStopButton = hadoopManager.getStartStopButton( availableOperationsLayout );
 
         return new Button.ClickListener()
@@ -695,7 +671,7 @@ public class ManagerListener
                 {
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.START, NodeType.NAMENODE,
+                                    clusterName, containerHost, NodeOperationType.START, NAMENODE,
                                     new CompleteEvent()
                                     {
 
@@ -719,7 +695,7 @@ public class ManagerListener
                 {
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STOP, NodeType.NAMENODE,
+                                    clusterName, containerHost, NodeOperationType.STOP, NAMENODE,
                                     new CompleteEvent()
                                     {
 
@@ -751,7 +727,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener slaveNodeCheckButtonListener( final Item row )
+    protected Button.ClickListener taskTrakcerNodeCheckButtonListener( final Item row )
     {
         final ContainerHost host = hadoopManager.getHostByRow( row );
         final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
@@ -763,7 +739,6 @@ public class ManagerListener
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Button excludeIncludeNodeButton = hadoopManager.getExcludeIncludeButton( availableOperationsLayout );
         final Button destroyButton = hadoopManager.getDestroyButton( availableOperationsLayout );
-        final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
         final Label statusTaskTracker = hadoopManager.getStatusTaskTrackerLabel( statusGroupLayout );
 
         return new Button.ClickListener()
@@ -785,79 +760,112 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 excludeIncludeNodeButton.setEnabled( false );
                 destroyButton.setEnabled( false );
-                if ( hadoopManager.getHadoop().getCluster( hadoopManager.getHadoopCluster().getClusterName() )
-                                  .isDataNode( host.getId() ) )
-                {
-                    hadoopManager.enableProgressBar();
-                    hadoopManager.getExecutorService().execute(
-                            new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STATUS, NodeType.DATANODE,
-                                    new CompleteEvent()
-                                    {
-                                        public void onComplete( NodeState state )
-                                        {
-                                            if ( state == NodeState.RUNNING )
-                                            {
-                                                statusDatanode.setValue( "Datanode Running" );
-                                                excludeIncludeNodeButton.setEnabled( true );
-                                            }
-                                            else if ( state == NodeState.STOPPED )
-                                            {
-                                                statusDatanode.setValue( "Datanode Stopped" );
-                                                excludeIncludeNodeButton.setEnabled( true );
-                                            }
-                                            else
-                                            {
-                                                statusDatanode.setValue( "Not connected" );
-                                                excludeIncludeNodeButton.setCaption( "Not connected" );
-                                                excludeIncludeNodeButton.setEnabled( false );
-                                            }
 
-                                            if ( hadoopManager.getCheckAllButton().isEnabled() )
-                                            {
-                                                checkDecommissioningStatus( row, checkButton );
-                                            }
-                                            else
-                                            {
-                                                executeSlaveNodeCheckButtonFinishCommands( row, checkButton );
-                                            }
-                                        }
-                                    }, null ) );
-                }
-                if ( hadoopManager.getHadoop().getCluster( hadoopManager.getHadoopCluster().getClusterName() )
-                                  .isTaskTracker( host.getId() ) )
-                {
-                    hadoopManager.enableProgressBar();
-                    hadoopManager.getExecutorService().execute(
-                            new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STATUS, NodeType.TASKTRACKER,
-                                    new CompleteEvent()
-                                    {
+                hadoopManager.enableProgressBar();
+                hadoopManager.getExecutorService().execute(
+                    new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
+                        clusterName, containerHost, NodeOperationType.STATUS, TASKTRACKER,
+                        new CompleteEvent()
+                        {
 
-                                        public void onComplete( NodeState state )
-                                        {
-                                            if ( state == NodeState.RUNNING )
-                                            {
-                                                statusTaskTracker.setValue( "Tasktracker Running" );
-                                                excludeIncludeNodeButton.setEnabled( true );
-                                            }
-                                            else if ( state == NodeState.STOPPED )
-                                            {
-                                                statusTaskTracker.setValue( "Tasktracker Stopped" );
-                                                excludeIncludeNodeButton.setEnabled( true );
-                                            }
-                                            else
-                                            {
-                                                statusTaskTracker.setValue( "Not connected" );
-                                                excludeIncludeNodeButton.setCaption( "Not connected" );
-                                                excludeIncludeNodeButton.setEnabled( false );
-                                            }
-                                            checkButton.setEnabled( true );
-                                            hadoopManager.disableProgressBar();
-                                            enableCheckAllButton();
-                                        }
-                                    }, null ) );
+                            public void onComplete( NodeState state )
+                            {
+                                if ( state == NodeState.RUNNING )
+                                {
+                                    statusTaskTracker.setValue( "Tasktracker Running" );
+                                    excludeIncludeNodeButton.setEnabled( true );
+                                }
+                                else if ( state == NodeState.STOPPED )
+                                {
+                                    statusTaskTracker.setValue( "Tasktracker Stopped" );
+                                    excludeIncludeNodeButton.setEnabled( true );
+                                }
+                                else
+                                {
+                                    statusTaskTracker.setValue( "Not connected" );
+                                    excludeIncludeNodeButton.setCaption( "Not connected" );
+                                    excludeIncludeNodeButton.setEnabled( false );
+                                }
+                                checkButton.setEnabled( true );
+                                hadoopManager.disableProgressBar();
+                                enableCheckAllButton();
+                            }
+                        }, null ) );
+            }
+
+        };
+    }
+
+
+    protected Button.ClickListener dataNodeCheckButtonListener( final Item row )
+    {
+        final ContainerHost host = hadoopManager.getHostByRow( row );
+        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
+                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
+                                                         .getContainerHostById( host.getId() );
+        final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
+        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
+        final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
+        final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
+        final Button excludeIncludeNodeButton = hadoopManager.getExcludeIncludeButton( availableOperationsLayout );
+        final Button destroyButton = hadoopManager.getDestroyButton( availableOperationsLayout );
+        final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
+
+        return new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent clickEvent )
+            {
+
+                if ( hadoopManager.getHadoop().getCluster( hadoopManager.getHadoopCluster().getClusterName() )
+                                  .getBlockedAgentUUIDs().contains( host.getId() ) )
+                {
+                    excludeIncludeNodeButton.setCaption( Manager.INCLUDE_BUTTON_CAPTION );
                 }
+                else
+                {
+                    excludeIncludeNodeButton.setCaption( Manager.EXCLUDE_BUTTON_CAPTION );
+                }
+
+                checkButton.setEnabled( false );
+                excludeIncludeNodeButton.setEnabled( false );
+                destroyButton.setEnabled( false );
+
+                hadoopManager.enableProgressBar();
+                hadoopManager.getExecutorService().execute(
+                    new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
+                        clusterName, containerHost, NodeOperationType.STATUS, DATANODE,
+                        new CompleteEvent()
+                        {
+                            public void onComplete( NodeState state )
+                            {
+                                if ( state == NodeState.RUNNING )
+                                {
+                                    statusDatanode.setValue( "Datanode Running" );
+                                    excludeIncludeNodeButton.setEnabled( true );
+                                }
+                                else if ( state == NodeState.STOPPED )
+                                {
+                                    statusDatanode.setValue( "Datanode Stopped" );
+                                    excludeIncludeNodeButton.setEnabled( true );
+                                }
+                                else
+                                {
+                                    statusDatanode.setValue( "Not connected" );
+                                    excludeIncludeNodeButton.setCaption( "Not connected" );
+                                    excludeIncludeNodeButton.setEnabled( false );
+                                }
+
+                                if ( hadoopManager.getCheckAllButton().isEnabled() )
+                                {
+                                    checkDecommissioningStatus( row, checkButton );
+                                }
+                                else
+                                {
+                                    executeSlaveNodeCheckButtonFinishCommands( row, checkButton );
+                                }
+                            }
+                        }, null ) );
             }
         };
     }
