@@ -5,6 +5,6 @@ Architecture: all
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Build-Depends: debhelper (>= 8.0.0)
-Version: [[project.build.version]]
+Version: [[project.version]]
 Maintainer: Subutai
 Description: This package contains kar file of Subutai Mahout plugin that runs  on subutai server application.
