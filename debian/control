@@ -7,6 +7,5 @@ Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Architecture: all
 Pre-Depends: subutai-repo-storm-subutai-template (= 2.1.1)
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Version: ${project.build.version}
+Version: [[project.version]]
 Description: This package contains kar file of Subutai Storm plugin that runs  on subutai server application.
