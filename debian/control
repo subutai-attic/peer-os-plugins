@@ -7,6 +7,5 @@ Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Package: accumulo-subutai-plugin
 Architecture: all
-Version: ${project.build.version}
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Version: [[project.version]]
 Description: This package contains kar file of Subutai Accumulo plugin that runs  on subutai server application.
