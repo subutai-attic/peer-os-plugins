@@ -1,14 +1,20 @@
-package org.safehaus.subutai.plugin.spark.impl;
+package org.safehaus.subutai.plugin.spark.impl.alert;
 
 
 import java.util.List;
 import java.util.Set;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.metric.api.ResourceType;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
+import org.safehaus.subutai.plugin.spark.impl.SparkImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +28,7 @@ public class SparkAlertListener implements AlertListener
 
     public static final String SPARK_ALERT_LISTENER = "SPARK_ALERT_LISTENER";
     private SparkImpl spark;
+    private CommandUtil commandUtil = new CommandUtil();
 
 
     public SparkAlertListener( final SparkImpl spark )
@@ -30,8 +37,15 @@ public class SparkAlertListener implements AlertListener
     }
 
 
+    private void throwAlertException( String context, Exception e ) throws AlertException
+    {
+        LOG.error( context, e );
+        throw new AlertException( context, e );
+    }
+
+
     @Override
-    public void onAlert( final ContainerHostMetric metric )
+    public void onAlert( final ContainerHostMetric metric ) throws Exception
     {
         //find spark cluster by environment id
         List<SparkClusterConfig> clusters = spark.getClusters();
@@ -48,16 +62,15 @@ public class SparkAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            LOG.warn( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ) );
-            return;
+            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
+                    null );
         }
 
         //get cluster environment
         Environment environment = spark.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
         if ( environment == null )
         {
-            LOG.warn( String.format( "Environment not found by id %s", metric.getEnvironmentId() ) );
-            return;
+            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert's source host
@@ -73,9 +86,10 @@ public class SparkAlertListener implements AlertListener
         }
         if ( sourceHost == null )
         {
-            LOG.warn( String.format( "Alert source host %s not found in environment", metric.getHost() ) );
-            return;
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+                    null );
         }
+
         //check if source host belongs to found spark cluster
         if ( !targetCluster.getAllNodesIds().contains( sourceHost.getId() ) )
         {
@@ -84,10 +98,44 @@ public class SparkAlertListener implements AlertListener
         }
 
 
-        //TODO find ways to determine which resource is offending
-        //figure out the offending resource type (the one which exceeds threshold - ???)
+        //figure out the offending resource type
+        MonitoringSettings thresholds = spark.getAlertSettings();
+        ResourceType offendingResource = null;
+        if ( thresholds.getCpuAlertThreshold() > metric.getUsedCpu() )
+        {
+            //cpu is offending
+            offendingResource = ResourceType.CPU;
+        }
+        else if ( thresholds.getDiskAlertThreshold() > metric.getUsedDisk() )
+        {
+            //disk is offending
+            offendingResource = ResourceType.DISK;
+        }
+        else if ( thresholds.getRamAlertThreshold() > metric.getUsedRam() )
+        {
+            //ram is offending
+            offendingResource = ResourceType.RAM;
+        }
 
+        if ( offendingResource == null )
+        {
+            LOG.warn( String.format( "Could not determine offending resource type from %s", metric ) );
+            return;
+        }
+
+        int sparkPID;
         //figure out Spark process pid
+        try
+        {
+            CommandResult result = commandUtil.execute( spark.getCommands().getObtainPidCommand(), sourceHost );
+            //TODO actualize parsing of PID
+           sparkPID = Integer.parseInt( result.getStdOut());
+        }
+        catch ( CommandException e )
+        {
+            throwAlertException( "Error obtaining Spark process PID", e );
+        }
+
 
         //get Spark process offending resource usage by Spark pid
 

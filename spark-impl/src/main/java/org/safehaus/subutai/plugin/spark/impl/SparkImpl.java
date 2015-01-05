@@ -23,6 +23,7 @@ import org.safehaus.subutai.plugin.common.api.OperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.spark.api.Spark;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
+import org.safehaus.subutai.plugin.spark.impl.alert.SparkAlertListener;
 import org.safehaus.subutai.plugin.spark.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.spark.impl.handler.NodeOperationHandler;
 
@@ -44,6 +45,12 @@ public class SparkImpl extends SparkBase implements Spark
         //subscribe to alerts
         sparkAlertListener = new SparkAlertListener( this );
         monitor.addAlertListener( sparkAlertListener );
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
     }
 
 
