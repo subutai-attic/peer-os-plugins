@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutorService;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.exception.ClusterException;
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -80,7 +79,8 @@ public class Manager
     private Environment environment;
 
 
-    public Manager( final ExecutorService executor, final Spark spark, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executor, final Spark spark, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         Preconditions.checkNotNull( executor, "Executor is null" );
 
@@ -644,23 +644,26 @@ public class Manager
             final Button startBtn = new Button( START_BUTTON_CAPTION );
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            final Button quotaBtn = new Button( QUOTA_BUTTON_CAPTION );
+            //            final Button quotaBtn = new Button( QUOTA_BUTTON_CAPTION );
 
             checkBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkCheck" );
             startBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkStart" );
             stopBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkStop" );
             destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkDestroy" );
-            quotaBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkQuota" );
+            //            quotaBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sparkQuota" );
 
-            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn, quotaBtn );
-            enableButtons( startBtn, stopBtn, quotaBtn );
+            //            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn, quotaBtn );
+            //            enableButtons( startBtn, stopBtn, quotaBtn );
+            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+            enableButtons( startBtn, stopBtn );
             progressIcon.setVisible( false );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn, quotaBtn );
+            //            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn, quotaBtn );
+            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
 
             table.addItem( new Object[] {
                     node.getHostname(), node.getIpByInterfaceName( "eth0" ), checkIfMaster( node ), resultHolder,
@@ -672,7 +675,7 @@ public class Manager
             addClickListenerToStartButton( node, false, startBtn, stopBtn, checkBtn, destroyBtn );
             addClickListenerToStopButton( node, false, startBtn, stopBtn, checkBtn, destroyBtn );
             addClickListenerToDestroyButton( node, destroyBtn );
-            addClickListenerToQuotaButton( node, quotaBtn );
+            //            addClickListenerToQuotaButton( node, quotaBtn );
         }
 
         //add master here
@@ -680,15 +683,16 @@ public class Manager
         final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
         final Button startBtn = new Button( START_BUTTON_CAPTION );
         final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-        final Button quotaBtn = new Button( QUOTA_BUTTON_CAPTION );
+        //        final Button quotaBtn = new Button( QUOTA_BUTTON_CAPTION );
 
 
         checkBtn.setId( master.getIpByInterfaceName( "eth0" ) + "-sparkCheck" );
         startBtn.setId( master.getIpByInterfaceName( "eth0" ) + "-sparkStart" );
         stopBtn.setId( master.getIpByInterfaceName( "eth0" ) + "-sparkStop" );
-        quotaBtn.setId( master.getIpByInterfaceName( "eth0" ) + "-sparkQuota" );
+        //        quotaBtn.setId( master.getIpByInterfaceName( "eth0" ) + "-sparkQuota" );
 
-        addStyleNameToButtons( checkBtn, startBtn, stopBtn, quotaBtn );
+        //        addStyleNameToButtons( checkBtn, startBtn, stopBtn, quotaBtn );
+        addStyleNameToButtons( checkBtn, startBtn, stopBtn );
 
         disableButtons( stopBtn, startBtn );
         progressIcon.setVisible( false );
@@ -697,7 +701,8 @@ public class Manager
         availableOperations.addStyleName( "default" );
         availableOperations.setSpacing( true );
 
-        addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, quotaBtn );
+        //        addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, quotaBtn );
+        addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
 
         table.addItem( new Object[] {
                 master.getHostname(), master.getIpByInterfaceName( "eth0" ), checkIfMaster( master ), resultHolder,
@@ -707,7 +712,7 @@ public class Manager
         addClickListenerToMasterCheckButton( master, resultHolder, checkBtn, startBtn, stopBtn );
         addClickListenerToStartButton( master, true, checkBtn, startBtn, stopBtn );
         addClickListenerToStopButton( master, true, checkBtn, startBtn, stopBtn );
-        addClickListenerToQuotaButton( master, quotaBtn );
+        //        addClickListenerToQuotaButton( master, quotaBtn );
     }
 
 

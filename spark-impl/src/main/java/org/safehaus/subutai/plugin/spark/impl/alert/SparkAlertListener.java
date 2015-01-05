@@ -3,16 +3,18 @@ package org.safehaus.subutai.plugin.spark.impl.alert;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
-import org.safehaus.subutai.core.metric.api.ResourceType;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 import org.safehaus.subutai.plugin.spark.impl.SparkImpl;
 import org.slf4j.Logger;
@@ -82,6 +84,7 @@ public class SparkAlertListener implements AlertListener
             if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
             {
                 sourceHost = containerHost;
+                break;
             }
         }
         if ( sourceHost == null )
@@ -93,67 +96,102 @@ public class SparkAlertListener implements AlertListener
         //check if source host belongs to found spark cluster
         if ( !targetCluster.getAllNodesIds().contains( sourceHost.getId() ) )
         {
-            LOG.warn( String.format( "Alert source host %s does not belong to Spark cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Spark cluster", metric.getHost() ) );
             return;
         }
 
 
-        //figure out the offending resource type
-        MonitoringSettings thresholds = spark.getAlertSettings();
-        ResourceType offendingResource = null;
-        if ( thresholds.getCpuAlertThreshold() > metric.getUsedCpu() )
-        {
-            //cpu is offending
-            offendingResource = ResourceType.CPU;
-        }
-        else if ( thresholds.getDiskAlertThreshold() > metric.getUsedDisk() )
-        {
-            //disk is offending
-            offendingResource = ResourceType.DISK;
-        }
-        else if ( thresholds.getRamAlertThreshold() > metric.getUsedRam() )
-        {
-            //ram is offending
-            offendingResource = ResourceType.RAM;
-        }
-
-        if ( offendingResource == null )
-        {
-            LOG.warn( String.format( "Could not determine offending resource type from %s", metric ) );
-            return;
-        }
-
-        int sparkPID;
         //figure out Spark process pid
+        int sparkPID = 0;
         try
         {
             CommandResult result = commandUtil.execute( spark.getCommands().getObtainPidCommand(), sourceHost );
             //TODO actualize parsing of PID
-           sparkPID = Integer.parseInt( result.getStdOut());
+            sparkPID = Integer.parseInt( result.getStdOut() );
         }
-        catch ( CommandException e )
+        catch ( NumberFormatException | CommandException e )
         {
             throwAlertException( "Error obtaining Spark process PID", e );
         }
 
-
-        //get Spark process offending resource usage by Spark pid
+        //get Spark process resource usage by Spark pid
+        ProcessResourceUsage processResourceUsage = spark.getMonitor().getProcessResourceUsage( sourceHost, sparkPID );
 
         //confirm that Spark is causing the stress, otherwise no-op
 
+        MonitoringSettings thresholds = spark.getAlertSettings();
+        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double redLine = 0.9;
+        boolean cpuIsStressed = false;
+        boolean ramIsStressed = false;
+
+        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+        {
+            ramIsStressed = true;
+        }
+        else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
+        {
+            cpuIsStressed = true;
+        }
+
+        if ( !( ramIsStressed || cpuIsStressed ) )
+        {
+            LOG.info( "Spark cluster ok" );
+            return;
+        }
 
         //if cluster has auto-scaling enabled:
         if ( targetCluster.isAutoScaling() )
         {
-            // check if a quota limit increase does it:
-            //   yes -> increase quota limit
-            //   no -> add new node (here if all nodes of underlying Hadoop are already used, then notify user)
+            // check if a quota limit increase does it TODO implement checking if quota increase works
+
+            //   yes -> increase quota limit  TODO implement vertical scaling
+
+            //   no -> add new node
+            HadoopClusterConfig hadoopClusterConfig =
+                    spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
+            if ( hadoopClusterConfig == null )
+            {
+                throwAlertException(
+                        String.format( "Hadoop cluster %s not found", targetCluster.getHadoopClusterName() ), null );
+            }
+
+            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
+            availableNodes.removeAll( targetCluster.getAllNodesIds() );
+
+            //no available nodes -> notify user
+            if ( availableNodes.isEmpty() )
+            {
+                notifyUser();
+            }
+            //add first available node
+            else
+            {
+                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeHostName = null;
+                for ( ContainerHost containerHost : containers )
+                {
+                    if ( containerHost.getId().equals( newNodeId ) )
+                    {
+                        newNodeHostName = containerHost.getHostname();
+                        break;
+                    }
+                }
+
+                //launch node addition process
+                spark.addSlaveNode( targetCluster.getClusterName(), newNodeHostName );
+            }
         }
         else
         {
-            //TODO find ways to notify user
-            //if auto-scaling disabled -> notify user
+            notifyUser();
         }
+    }
+
+
+    protected void notifyUser()
+    {
+        //TODO implement me when user identity management is complete and we can figure out user email
     }
 
 
