@@ -6,6 +6,5 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Version: ${project.build.version}
+Version: [[project.version]]
 Description: This package contains kar file of Subutai Sqoop plugin that runs  on subutai server application.
