@@ -1,7 +1,7 @@
 package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.impl.HBaseImpl;
 
