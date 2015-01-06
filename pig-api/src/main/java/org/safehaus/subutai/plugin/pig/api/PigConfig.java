@@ -5,9 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.ConfigBase;
-import org.safehaus.subutai.common.settings.Common;
-;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
 public class PigConfig implements ConfigBase
@@ -34,6 +32,7 @@ public class PigConfig implements ConfigBase
         this.clusterName = clusterName;
         return this;
     }
+
 
     @Override
     public String getProductName()
@@ -91,6 +90,7 @@ public class PigConfig implements ConfigBase
         this.hadoopClusterName = hadoopClusterName;
         this.clusterName = hadoopClusterName;
     }
+
 
     public Set<UUID> getHadoopNodes()
     {
