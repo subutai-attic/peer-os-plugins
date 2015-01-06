@@ -1,11 +1,11 @@
 package org.safehaus.subutai.plugin.hive.impl;
 
 
-import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
-import org.safehaus.subutai.common.protocol.ConfigBase;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.api.SetupType;

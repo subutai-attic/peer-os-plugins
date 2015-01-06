@@ -3,7 +3,7 @@ package org.safehaus.subutai.plugin.hive.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ApiBase;
 
 
 public interface Hive extends ApiBase<HiveConfig>
