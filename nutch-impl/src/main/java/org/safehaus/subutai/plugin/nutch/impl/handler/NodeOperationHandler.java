@@ -3,9 +3,9 @@ package org.safehaus.subutai.plugin.nutch.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
 import org.safehaus.subutai.plugin.nutch.impl.Constants;
@@ -16,7 +16,8 @@ import java.util.Iterator;
 /**
  * Created by ebru on 12.11.2014.
  */
-public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, NutchConfig> {
+public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, NutchConfig>
+{
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
