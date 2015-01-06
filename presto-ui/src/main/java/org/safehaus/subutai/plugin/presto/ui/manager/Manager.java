@@ -9,13 +9,13 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.enums.NodeState;
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.NodeOperationTask;
@@ -541,7 +541,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( presto, tracker, config.getClusterName(), host, NodeOperationType.START,
-                                new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                new CompleteEvent()
                                 {
                                     @Override
                                     public void onComplete( NodeState nodeState )
@@ -569,7 +569,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( presto, tracker, config.getClusterName(), host, NodeOperationType.STOP,
-                                new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                new CompleteEvent()
                                 {
                                     @Override
                                     public void onComplete( NodeState nodeState )
@@ -597,7 +597,7 @@ public class Manager
                 PROGRESS_ICON.setVisible( true );
                 disableButtons( buttons );
                 executorService.execute( new NodeOperationTask( presto, tracker, config.getClusterName(), coordinator,
-                        NodeOperationType.STATUS, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                        NodeOperationType.STATUS, new CompleteEvent()
                 {
                     public void onComplete( NodeState nodeState )
                     {
@@ -637,7 +637,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( presto, tracker, config.getClusterName(), host, NodeOperationType.STATUS,
-                                new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                new CompleteEvent()
                                 {
                                     public void onComplete( NodeState nodeState )
                                     {
