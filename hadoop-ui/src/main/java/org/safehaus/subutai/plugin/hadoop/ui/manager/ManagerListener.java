@@ -787,6 +787,7 @@ public class ManagerListener
                                     excludeIncludeNodeButton.setEnabled( false );
                                 }
                                 checkButton.setEnabled( true );
+                                destroyButton.setEnabled( true );
                                 hadoopManager.disableProgressBar();
                                 enableCheckAllButton();
                             }
