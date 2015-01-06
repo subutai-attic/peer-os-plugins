@@ -5,9 +5,8 @@ Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-
+Version: [[project.version]]
 Package: elasticsearch-subutai-plugin
 Architecture: all
 Pre-Depends: subutai-repo-elasticsearch-subutai-template (= 2.1.1)
-Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Elasticsearch plugin that runs  on subutai server application.
