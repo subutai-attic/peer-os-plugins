@@ -87,6 +87,7 @@ public class SparkAlertListener implements AlertListener
                 break;
             }
         }
+
         if ( sourceHost == null )
         {
             throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
@@ -143,11 +144,20 @@ public class SparkAlertListener implements AlertListener
         //if cluster has auto-scaling enabled:
         if ( targetCluster.isAutoScaling() )
         {
-            // check if a quota limit increase does it TODO implement checking if quota increase works
+            // check if a quota limit increase does it
+            boolean canIncreaseQuota = false;
 
-            //   yes -> increase quota limit  TODO implement vertical scaling
+            //TODO implement checking if quota increase works
 
-            //   no -> add new node
+            //increase quota limit
+            if ( canIncreaseQuota )
+            {
+                //TODO implement vertical scaling
+                return;
+            }
+
+
+            // add new node
             HadoopClusterConfig hadoopClusterConfig =
                     spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
             if ( hadoopClusterConfig == null )
@@ -159,9 +169,10 @@ public class SparkAlertListener implements AlertListener
             List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
             availableNodes.removeAll( targetCluster.getAllNodesIds() );
 
-            //no available nodes -> notify user
-            if ( availableNodes.isEmpty() )
+            //no available nodes or master node is stressed -> notify user
+            if ( availableNodes.isEmpty() || targetCluster.getMasterNodeId().equals( sourceHost.getId() ) )
             {
+                //for master node we can use only vertical scaling, so we need to notify user
                 notifyUser();
             }
             //add first available node
@@ -176,6 +187,11 @@ public class SparkAlertListener implements AlertListener
                         newNodeHostName = containerHost.getHostname();
                         break;
                     }
+                }
+
+                if ( newNodeHostName == null )
+                {
+                    throwAlertException( "", null );
                 }
 
                 //launch node addition process
