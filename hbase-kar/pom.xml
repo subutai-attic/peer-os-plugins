@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>hbase-kar</artifactId>
+  <artifactId>hbase-subutai-plugin</artifactId>
 
   <build>
     <plugins>
@@ -31,6 +31,32 @@
             <phase>install</phase>
             <configuration>
               <featuresFile>features.xml</featuresFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>jdeb</artifactId>
+        <groupId>org.vafer</groupId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+            <configuration>
+              <controlDir>debian</controlDir>
+              <dataSet>
+                <data>
+                  <src>${project.basedir}/target/${project.build.finalName}.kar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/opt/subutai-management/deploy</prefix>
+                  </mapper>
+                </data>
+              </dataSet>
             </configuration>
           </execution>
         </executions>
