@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.enums.NodeState;
 import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
@@ -25,7 +24,9 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.NodeOperationTask;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
@@ -623,7 +624,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.STOP, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                NodeOperationType.STOP, new CompleteEvent()
                         {
                             @Override
                             public void onComplete( NodeState nodeState )
@@ -651,7 +652,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.START, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                NodeOperationType.START, new CompleteEvent()
                         {
                             @Override
                             public void onComplete( NodeState nodeState )
@@ -680,7 +681,7 @@ public class Manager
                 disableButtons( buttons );
                 executorService.execute(
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.STATUS, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                                NodeOperationType.STATUS, new CompleteEvent()
                         {
                             @Override
                             public void onComplete( NodeState nodeState )
@@ -751,7 +752,7 @@ public class Manager
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute(
                     new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                            NodeOperationType.STOP, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                            NodeOperationType.STOP, new CompleteEvent()
                     {
                         @Override
                         public void onComplete( NodeState nodeState )
@@ -777,7 +778,7 @@ public class Manager
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute(
                     new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                            NodeOperationType.START, new org.safehaus.subutai.common.protocol.CompleteEvent()
+                            NodeOperationType.START, new CompleteEvent()
                     {
                         @Override
                         public void onComplete( NodeState nodeState )

@@ -4,8 +4,8 @@ package org.safehaus.subutai.plugin.cassandra.api;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.ConfigBase;
 import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
 public class CassandraClusterConfig implements ConfigBase
