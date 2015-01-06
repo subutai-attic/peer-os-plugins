@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.oozie.impl;
 
 
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 

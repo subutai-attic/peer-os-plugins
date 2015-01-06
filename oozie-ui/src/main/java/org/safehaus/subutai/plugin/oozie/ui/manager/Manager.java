@@ -10,13 +10,12 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.enums.NodeState;
-
-import org.safehaus.subutai.common.protocol.CompleteEvent;
 import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.ui.BaseManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
