@@ -126,25 +126,25 @@ public class SparkAlertListener implements AlertListener
         MonitoringSettings thresholds = spark.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
-        boolean cpuIsStressed = false;
-        boolean ramIsStressed = false;
+        boolean cpuIsStressedBySpark = false;
+        boolean ramIsStressedBySpark = false;
 
         if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
         {
-            ramIsStressed = true;
+            ramIsStressedBySpark = true;
         }
         else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
         {
-            cpuIsStressed = true;
+            cpuIsStressedBySpark = true;
         }
 
-        if ( !( ramIsStressed || cpuIsStressed ) )
+        if ( !( ramIsStressedBySpark || cpuIsStressedBySpark ) )
         {
             LOG.info( "Spark cluster ok" );
             return;
         }
 
-        //if cluster has auto-scaling enabled:
+        //auto-scaling is enabled -> scale cluster
         if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it
@@ -158,7 +158,6 @@ public class SparkAlertListener implements AlertListener
                 //TODO implement vertical scaling
                 return;
             }
-
 
             // add new node
             HadoopClusterConfig hadoopClusterConfig =
@@ -194,7 +193,9 @@ public class SparkAlertListener implements AlertListener
 
                 if ( newNodeHostName == null )
                 {
-                    throwAlertException( "", null );
+                    throwAlertException(
+                            String.format( "Could not obtain available hadoop node from environment by id %s",
+                                    newNodeId ), null );
                 }
 
                 //launch node addition process
