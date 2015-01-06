@@ -1,5 +1,5 @@
-<features name="storm-plugin" version="2.0.0">
-  <feature name="storm-plugin" version="2.0.0">
+<features name="storm-plugin" version="2.0.4">
+  <feature name="storm-plugin" version="2.0.4">
     <bundle> mvn:org.safehaus.subutai/storm-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/storm-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/storm-plugin-ui/2.0.4</bundle>
