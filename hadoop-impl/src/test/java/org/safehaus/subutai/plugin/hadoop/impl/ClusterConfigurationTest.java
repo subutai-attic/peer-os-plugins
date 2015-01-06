@@ -2,11 +2,11 @@ package org.safehaus.subutai.plugin.hadoop.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.safehaus.subutai.common.exception.ClusterConfigurationException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import java.util.*;

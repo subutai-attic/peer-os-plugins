@@ -23,10 +23,10 @@ package org.safehaus.subutai.plugin.hadoop.ui.manager;
 import java.util.List;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.enums.NodeState;
-import org.safehaus.subutai.common.protocol.CompleteEvent;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.CheckDecommissionStatusTask;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;

@@ -1,7 +1,7 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
 
