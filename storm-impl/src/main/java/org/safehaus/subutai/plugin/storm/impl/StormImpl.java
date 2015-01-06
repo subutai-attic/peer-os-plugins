@@ -18,8 +18,11 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
+import org.safehaus.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
+
+import com.google.common.base.Preconditions;
 
 
 public class StormImpl extends StormBase
@@ -176,5 +179,13 @@ public class StormImpl extends StormBase
     {
 
         return new StormSetupStrategyDefault( this, config, environment, po, environmentManager );
+    }
+
+    public UUID configureEnvironmentCluster( final StormClusterConfiguration config )
+    {
+        Preconditions.checkNotNull( config, "Configuration is null" );
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 }

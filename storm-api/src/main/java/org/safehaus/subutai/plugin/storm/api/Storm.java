@@ -36,4 +36,6 @@ public interface Storm extends ApiBase<StormClusterConfiguration>
 
     public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, StormClusterConfiguration config,
                                                          TrackerOperation po );
+
+    UUID configureEnvironmentCluster( StormClusterConfiguration config );
 }
