@@ -1,9 +1,9 @@
 package org.safehaus.subutai.plugin.lucene.impl;
 
 
-import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 import org.safehaus.subutai.plugin.lucene.api.SetupType;
 
