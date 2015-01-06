@@ -16,6 +16,7 @@ import org.safehaus.subutai.plugin.accumulo.impl.handler.ClusterOperationHandler
 import org.safehaus.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.RemovePropertyOperationHandler;
 import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
