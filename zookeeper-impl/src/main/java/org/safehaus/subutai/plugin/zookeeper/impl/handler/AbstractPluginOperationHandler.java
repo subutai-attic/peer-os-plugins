@@ -7,19 +7,20 @@ import java.util.List;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
-import org.safehaus.subutai.common.protocol.ApiBase;
-import org.safehaus.subutai.common.protocol.ConfigBase;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 
-public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extends ConfigBase> extends AbstractOperationHandler<T, V>
+public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extends ConfigBase> extends
+        AbstractOperationHandler<T, V>
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( AbstractPluginOperationHandler.class );

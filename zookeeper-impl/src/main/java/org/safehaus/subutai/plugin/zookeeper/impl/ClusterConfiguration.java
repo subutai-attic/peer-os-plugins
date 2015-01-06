@@ -10,11 +10,11 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.exception.ClusterConfigurationException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.FileUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import com.google.common.base.Strings;
@@ -37,7 +37,8 @@ public class ClusterConfiguration
     }
 
 
-    public void configureCluster( final ZookeeperClusterConfig config, Environment environment ) throws ClusterConfigurationException
+    public void configureCluster( final ZookeeperClusterConfig config, Environment environment ) throws
+            ClusterConfigurationException
     {
 
         po.addLog( "Configuring cluster..." );

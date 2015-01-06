@@ -2,9 +2,9 @@ package org.safehaus.subutai.plugin.zookeeper.impl;
 
 
 import org.junit.Test;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.mock.TrackerMock;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.zookeeper.impl.handler.AddPropertyOperationHandler;
