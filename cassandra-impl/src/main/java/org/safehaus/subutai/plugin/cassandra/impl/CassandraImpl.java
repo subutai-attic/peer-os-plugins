@@ -16,6 +16,8 @@ import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.*;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;

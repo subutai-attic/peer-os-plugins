@@ -3,9 +3,9 @@ package org.safehaus.subutai.plugin.cassandra.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.CompleteEvent;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 

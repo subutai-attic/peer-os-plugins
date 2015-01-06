@@ -15,10 +15,8 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.hostregistry.api.Interface;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
@@ -81,7 +79,8 @@ public class Manager
     private CassandraClusterConfig config;
 
 
-    public Manager( final ExecutorService executorService, Cassandra cassandra, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Cassandra cassandra, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.cassandra = cassandra;
@@ -188,8 +187,8 @@ public class Manager
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
 
 
-
-        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn, addNodeBtn, removeCluster );
+        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn, addNodeBtn,
+                removeCluster );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
@@ -209,8 +208,8 @@ public class Manager
                 if ( config != null )
                 {
                     ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to add new node to the %s cluster?", config.getClusterName() ), "Yes",
-                            "No" );
+                            String.format( "Do you want to add new node to the %s cluster?", config.getClusterName() ),
+                            "Yes", "No" );
                     alert.getOk().addClickListener( new Button.ClickListener()
                     {
                         @Override
@@ -259,7 +258,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID track =  cassandra.removeCluster( config.getClusterName() );
+                            UUID track = cassandra.removeCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, track,
                                     CassandraClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -536,20 +535,23 @@ public class Manager
 
             String isSeed = checkIfSeed( containerHost.getId() );
 
-            if ( ! isSeed.toLowerCase().equals( "seed" ) ){
+            if ( !isSeed.toLowerCase().equals( "seed" ) )
+            {
                 addGivenComponents( availableOperations, checkButton, startButton, stopButton, destroyButton );
             }
-            else{
+            else
+            {
                 addGivenComponents( availableOperations, checkButton, startButton, stopButton );
             }
 
 
             table.addItem( new Object[] {
-                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), isSeed,
-                    resultHolder, availableOperations
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), isSeed, resultHolder,
+                    availableOperations
             }, null );
 
-            addClickListenerToCheckButton( containerHost, resultHolder, checkButton, startButton, stopButton, destroyButton );
+            addClickListenerToCheckButton( containerHost, resultHolder, checkButton, startButton, stopButton,
+                    destroyButton );
             addClickListenerToStartButton( containerHost, checkButton, startButton, stopButton, destroyButton );
             addClickListenerToStopButton( containerHost, checkButton, startButton, stopButton, destroyButton );
             addClickListenerToDestroyButton( containerHost, checkButton, startButton, stopButton, destroyButton );
@@ -750,8 +752,7 @@ public class Manager
                                                             .getContainerHostById( containerId );
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute(
-                    new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
+            executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
                             NodeOperationType.STOP, new CompleteEvent()
                     {
                         @Override
@@ -776,8 +777,7 @@ public class Manager
                                                             .getContainerHostById( containerId );
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute(
-                    new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
+            executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
                             NodeOperationType.START, new CompleteEvent()
                     {
                         @Override
@@ -846,7 +846,8 @@ public class Manager
         {
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             Set<ContainerHost> containerHosts = new HashSet<>();
-            for ( UUID uuid : config.getNodes() ){
+            for ( UUID uuid : config.getNodes() )
+            {
                 containerHosts.add( environment.getContainerHostById( uuid ) );
             }
             if ( environment != null )
