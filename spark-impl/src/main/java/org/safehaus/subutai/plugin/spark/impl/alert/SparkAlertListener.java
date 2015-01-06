@@ -4,6 +4,8 @@ package org.safehaus.subutai.plugin.spark.impl.alert;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -102,13 +104,15 @@ public class SparkAlertListener implements AlertListener
         }
 
 
+        boolean isMasterNode = targetCluster.getMasterNodeId().equals( sourceHost.getId() );
+
         //figure out Spark process pid
         int sparkPID = 0;
         try
         {
-            CommandResult result = commandUtil.execute( spark.getCommands().getObtainPidCommand(), sourceHost );
-            //TODO actualize parsing of PID
-            sparkPID = Integer.parseInt( result.getStdOut() );
+            CommandResult result = commandUtil.execute( isMasterNode ? spark.getCommands().getObtainMasterPidCommand() :
+                                                        spark.getCommands().getObtainSlavePidCommand(), sourceHost );
+            sparkPID = parsePid( result.getStdOut() );
         }
         catch ( NumberFormatException | CommandException e )
         {
@@ -119,7 +123,6 @@ public class SparkAlertListener implements AlertListener
         ProcessResourceUsage processResourceUsage = spark.getMonitor().getProcessResourceUsage( sourceHost, sparkPID );
 
         //confirm that Spark is causing the stress, otherwise no-op
-
         MonitoringSettings thresholds = spark.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
@@ -170,7 +173,7 @@ public class SparkAlertListener implements AlertListener
             availableNodes.removeAll( targetCluster.getAllNodesIds() );
 
             //no available nodes or master node is stressed -> notify user
-            if ( availableNodes.isEmpty() || targetCluster.getMasterNodeId().equals( sourceHost.getId() ) )
+            if ( availableNodes.isEmpty() || isMasterNode )
             {
                 //for master node we can use only vertical scaling, so we need to notify user
                 notifyUser();
@@ -202,6 +205,24 @@ public class SparkAlertListener implements AlertListener
         {
             notifyUser();
         }
+    }
+
+
+    protected int parsePid( String output ) throws AlertException
+    {
+        Pattern p = Pattern.compile( "pid\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
+
+        Matcher m = p.matcher( output );
+
+        if ( m.find() )
+        {
+            return Integer.parseInt( m.group( 1 ) );
+        }
+        else
+        {
+            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
+        }
+        return 0;
     }
 
 

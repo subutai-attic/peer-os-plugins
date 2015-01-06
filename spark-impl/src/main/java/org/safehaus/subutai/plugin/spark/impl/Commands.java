@@ -66,10 +66,15 @@ public class Commands
     }
 
 
-    //TODO actualize the command
-    public RequestBuilder getObtainPidCommand()
+    public RequestBuilder getObtainMasterPidCommand()
     {
-        return new RequestBuilder( "service spark pid" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-master status" ).withTimeout( 60 );
+    }
+
+
+    public RequestBuilder getObtainSlavePidCommand()
+    {
+        return new RequestBuilder( "service spark-slave status" ).withTimeout( 60 );
     }
 
 
