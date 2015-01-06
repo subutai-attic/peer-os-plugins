@@ -1,13 +1,11 @@
-Source: zookeeper-subutai-plugin
+Package: zookeeper-subutai-plugin
 Section: devel
 Priority: optional
 Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-
-Package: zookeeper-subutai-plugin
 Architecture: all
 Pre-Depends: subutai-repo-zookeeper-subutai-template (= 2.1.1)
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Version: [[project.version]]
 Description: This package contains kar file of Subutai Zookeeper plugin that runs  on subutai server application.
