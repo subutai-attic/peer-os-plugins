@@ -8,11 +8,9 @@ package org.safehaus.subutai.plugin.solr.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.CompleteEvent;
-import org.safehaus.subutai.common.tracker.OperationState;
-import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
@@ -39,6 +37,7 @@ public class NodeOperationTask extends AbstractNodeOperationTask implements Runn
         this.operationType = operationType;
         this.completeEvent = completeEvent;
     }
+
 
     @Override
     public UUID runTask()
