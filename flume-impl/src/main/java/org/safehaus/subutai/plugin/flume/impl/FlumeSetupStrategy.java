@@ -1,9 +1,9 @@
 package org.safehaus.subutai.plugin.flume.impl;
 
 
-import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.flume.api.SetupType;
 

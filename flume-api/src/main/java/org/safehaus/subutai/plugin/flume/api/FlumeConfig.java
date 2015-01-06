@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
 public class FlumeConfig implements ConfigBase
