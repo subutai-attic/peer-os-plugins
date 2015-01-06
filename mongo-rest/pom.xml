@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.safehaus.subutai</groupId>
-    <artifactId>mongodb-plugin-parent</artifactId>
+    <artifactId>mongo-plugin-parent</artifactId>
     <version>2.0.4</version>
   </parent>
 
-  <artifactId>mongodb-plugin-ui</artifactId>
-  <name>Subutai MongoDB UI</name>
-  <description>Subutai MongoDB UI</description>
+  <artifactId>mongo-plugin-rest</artifactId>
+  <name>Subutai Mongodb REST</name>
+  <description>Subutai Mongodb REST</description>
   <packaging>bundle</packaging>
 
   <dependencies>
@@ -22,20 +22,36 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-custom</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>mongodb-plugin-api</artifactId>
+      <artifactId>mongo-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tracker-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--CXF-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
     </dependency>
   </dependencies>
 
@@ -46,7 +62,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.ui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.rest</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>

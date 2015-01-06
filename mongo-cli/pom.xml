@@ -5,24 +5,23 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.safehaus.subutai</groupId>
-    <artifactId>mongodb-plugin-parent</artifactId>
+    <artifactId>mongo-plugin-parent</artifactId>
     <version>2.0.4</version>
   </parent>
 
-  <artifactId>mongodb-plugin-rest</artifactId>
-  <name>Subutai Mongodb REST</name>
-  <description>Subutai Mongodb REST</description>
+  <artifactId>mongo-plugin-cli</artifactId>
+  <name>Subutai Mongodb CLI</name>
+  <description>Subutai Mongodb CLI</description>
   <packaging>bundle</packaging>
 
   <dependencies>
-
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>mongodb-plugin-api</artifactId>
+      <artifactId>mongo-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -48,10 +47,9 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <!--CXF-->
     <dependency>
-      <groupId>org.apache.cxf</groupId>
-      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+      <groupId>org.apache.karaf.shell</groupId>
+      <artifactId>org.apache.karaf.shell.console</artifactId>
     </dependency>
   </dependencies>
 
@@ -62,7 +60,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.rest</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.mongodb.cli</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>
