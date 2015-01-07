@@ -3,11 +3,10 @@ package org.safehaus.subutai.plugin.hadoop.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.enums.NodeState;
-import org.safehaus.subutai.common.protocol.CompleteEvent;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
@@ -22,8 +21,8 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
 
 
     public HadoopNodeOperationTask( Hadoop hadoop, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                    NodeOperationType operationType, NodeType nodeType, CompleteEvent completeEvent,
-                                    UUID trackID )
+                                    NodeOperationType operationType, NodeType nodeType,
+                                    org.safehaus.subutai.plugin.common.api.CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, hadoop.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.hadoop = hadoop;
@@ -80,16 +79,14 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                 switch ( operationType )
                 {
                     case START:
-                        trackID = hadoop.startDataNode( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+                        trackID = hadoop.startDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                     case STOP:
-                        trackID = hadoop.stopDataNode( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+                        trackID = hadoop.stopDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                     case STATUS:
-                        trackID = hadoop.statusDataNode( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+                        trackID =
+                                hadoop.statusDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                 }
                 break;
@@ -101,8 +98,8 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                                 containerHost.getHostname() );
                         break;
                     case STOP:
-                        trackID = hadoop.stopTaskTracker( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+                        trackID =
+                                hadoop.stopTaskTracker( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                     case STATUS:
                         trackID = hadoop.statusTaskTracker( hadoop.getCluster( clusterName ),

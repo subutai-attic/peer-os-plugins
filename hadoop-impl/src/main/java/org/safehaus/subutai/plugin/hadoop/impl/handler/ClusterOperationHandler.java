@@ -5,11 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-import org.safehaus.subutai.common.enums.NodeState;
-import org.safehaus.subutai.common.exception.ClusterSetupException;
 import org.safehaus.subutai.common.command.CommandException;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -17,9 +13,13 @@ import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildExcep
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
@@ -79,6 +79,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     }
                 } );
                 break;
+            case REMOVE:
+                removeCluster();
+                break;
             case START_ALL:
             case STOP_ALL:
             case STATUS_ALL:
@@ -90,6 +93,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         }
     }
 
+    public void removeCluster()
+    {
+        HadoopClusterConfig config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster removed from database" );
+    }
 
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )

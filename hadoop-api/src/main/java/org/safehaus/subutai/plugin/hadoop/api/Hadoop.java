@@ -3,17 +3,25 @@ package org.safehaus.subutai.plugin.hadoop.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.ApiBase;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
 public interface Hadoop extends ApiBase<HadoopClusterConfig>
 {
 
     public UUID uninstallCluster( HadoopClusterConfig config );
+
+    /**
+     * This just removes cluster configuration from DB,
+     * NOT destroys hadoop containers.
+     * @param clusterName cluster name
+     * @return uuid of operation
+     */
+    public UUID removeCluster( String clusterName );
 
     public UUID startNameNode( HadoopClusterConfig hadoopClusterConfig );
 
@@ -58,4 +66,6 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
 
     public org.safehaus.subutai.common.protocol.EnvironmentBlueprint getDefaultEnvironmentBlueprint(
             final HadoopClusterConfig config ) throws ClusterSetupException;
+
+    public UUID configureEnvironmentCluster( HadoopClusterConfig config );
 }
