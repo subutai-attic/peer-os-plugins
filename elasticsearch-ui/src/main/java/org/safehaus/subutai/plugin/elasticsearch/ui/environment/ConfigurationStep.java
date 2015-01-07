@@ -14,6 +14,7 @@ import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfigu
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.server.Sizeable;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
@@ -79,34 +80,11 @@ public class ConfigurationStep extends VerticalLayout
 
         // all nodes
         final TwinColSelect allNodesSelect =
-                getTwinSelect( "Nodes to be configured", "hostname", "Available Nodes", "Selected Nodes", 4 );
+                getTwinSelect( "Nodes to be configured", "Available Nodes", "Selected Nodes", 4 );
         allNodesSelect.setId( "AllNodes" );
         allNodesSelect.setValue( null );
-
-        final ComboBox envCombo = new ComboBox( "Choose environment" );
-        BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
-        eBean.addAll( envList );
-        envCombo.setContainerDataSource( eBean );
-        envCombo.setNullSelectionAllowed( false );
-        envCombo.setTextInputAllowed( false );
-        envCombo.setItemCaptionPropertyId( "name" );
-        envCombo.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                Environment e = ( Environment ) event.getProperty().getValue();
-                environmentWizard.getConfig().setEnvironmentId( e.getId() );
-                allNodesSelect.setContainerDataSource(
-                        new BeanItemContainer<>( ContainerHost.class, e.getContainerHosts() ) );
-            }
-        } );
-
-
-        //add value change handler
         allNodesSelect.addValueChangeListener( new Property.ValueChangeListener()
         {
-
             public void valueChange( Property.ValueChangeEvent event )
             {
                 if ( event.getProperty().getValue() != null )
@@ -122,6 +100,30 @@ public class ConfigurationStep extends VerticalLayout
             }
         } );
 
+        final ComboBox envCombo = new ComboBox( "Choose environment" );
+        BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
+        eBean.addAll( envList );
+        envCombo.setContainerDataSource( eBean );
+        envCombo.setNullSelectionAllowed( false );
+        envCombo.setTextInputAllowed( false );
+        envCombo.setItemCaptionPropertyId( "name" );
+        envCombo.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                Environment e = ( Environment ) event.getProperty().getValue();
+                environmentWizard.getConfig().setEnvironmentId( e.getId() );
+
+                for ( ContainerHost host : e.getContainerHosts() ){
+                    allNodesSelect.addItem( host );
+                    allNodesSelect.setItemCaption( host, (host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")") );
+                }
+
+//                allNodesSelect.setContainerDataSource(
+//                        new BeanItemContainer<>( ContainerHost.class, e.getContainerHosts() ) );
+            }
+        } );
 
         Button next = new Button( "Next" );
         next.addStyleName( "default" );
@@ -189,20 +191,20 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    public static TwinColSelect getTwinSelect( String title, String captionProperty, String leftTitle,
+    public static TwinColSelect getTwinSelect( String title, String leftTitle,
                                                String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
-        twinColSelect.setItemCaptionPropertyId( captionProperty );
         twinColSelect.setRows( rows );
         twinColSelect.setMultiSelect( true );
         twinColSelect.setImmediate( true );
         twinColSelect.setLeftColumnCaption( leftTitle );
         twinColSelect.setRightColumnCaption( rightTitle );
-        twinColSelect.setWidth( 100, Unit.PERCENTAGE );
+        twinColSelect.setWidth( 100, Sizeable.Unit.PERCENTAGE );
         twinColSelect.setRequired( true );
         return twinColSelect;
     }
+
 
     private void show( String notification )
     {
