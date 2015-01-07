@@ -40,7 +40,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
     public void run()
     {
         trackerOperation = po;
-        po.addLog( "Building environment..." );
+        po.addLog( "Configuring environment..." );
 
         try
         {

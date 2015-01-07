@@ -9,10 +9,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
-//import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 
 import java.util.HashSet;
 import java.util.Set;

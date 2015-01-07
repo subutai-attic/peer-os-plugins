@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
 import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 
 import java.util.Iterator;
 import java.util.Set;

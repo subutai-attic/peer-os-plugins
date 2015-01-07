@@ -319,8 +319,6 @@ public class Manager
                 HorizontalLayout availableOperations = new HorizontalLayout();
                 HorizontalLayout statusGroup = new HorizontalLayout();
 
-
-
                 availableOperations.addStyleName( "default" );
                 availableOperations.setSpacing( true );
                 statusGroup.addStyleName( "default" );
@@ -388,18 +386,12 @@ public class Manager
                 checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopCheck" );
                 final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
                 destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopDestroy" );
-                final Button startStopButton = new Button( START_STOP_BUTTON_DEFAULT_CAPTION );
-                startStopButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStartStop" );
                 final Button excludeIncludeNodeButton = new Button( EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION );
                 excludeIncludeNodeButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopExcludeInclude" );
-                final Button urlButton = new Button( URL_BUTTON_CAPTION );
-                urlButton.setId( containerHost.getHostname() + "-hadoopUrl" );
 
                 checkButton.addStyleName( "default" );
-                startStopButton.addStyleName( "default" );
                 excludeIncludeNodeButton.addStyleName( "default" );
                 destroyButton.addStyleName( "default" );
-                urlButton.addStyleName( "default" );
 
                 // Labels to be added to statusGroup
                 final Label statusDatanode = new Label( "" );
