@@ -49,6 +49,7 @@ public class ConfigurationStep extends VerticalLayout
         content.setMargin( true );
 
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
+        clusterNameTxtFld.setId( "CassClusterNameTxtField" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
         clusterNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -62,6 +63,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField domainNameTxtFld = new TextField( "Enter domain name" );
+        domainNameTxtFld.setId( "CassDomainNameTxtField" );
         domainNameTxtFld.setInputPrompt( "Domain name" );
         domainNameTxtFld.setInputPrompt( "intra.lan" );
         domainNameTxtFld.setRequired( true );
@@ -76,6 +78,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField dataDirectoryTxtFld = new TextField( "Data directory" );
+        dataDirectoryTxtFld.setId( "CassDirectoryTxtField" );
         dataDirectoryTxtFld.setInputPrompt( "/var/lib/cassandra/data" );
         dataDirectoryTxtFld.setRequired( true );
         dataDirectoryTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -89,6 +92,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField commitLogDirectoryTxtFld = new TextField( "Commit log directory" );
+        commitLogDirectoryTxtFld.setId( "CassCommitLogDirectoryTxtField" );
         commitLogDirectoryTxtFld.setInputPrompt( "/var/lib/cassandra/commitlog" );
         commitLogDirectoryTxtFld.setRequired( true );
         commitLogDirectoryTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -102,6 +106,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField savedCachesDirectoryTxtFld = new TextField( "Saved caches directory" );
+        savedCachesDirectoryTxtFld.setId( "CassSavedCachesDirectoryTxtFld" );
         savedCachesDirectoryTxtFld.setInputPrompt( "/var/lib/cassandra/saved_caches" );
         savedCachesDirectoryTxtFld.setRequired( true );
         savedCachesDirectoryTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -138,6 +143,7 @@ public class ConfigurationStep extends VerticalLayout
         seedsSelect.setId( "Seeds" );
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
+        envCombo.setId( "envCombo" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( envList );
         envCombo.setContainerDataSource( eBean );
@@ -196,6 +202,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button next = new Button( "Next" );
+        next.setId( "CassConfNextBtn" );
         next.addStyleName( "default" );
         next.addClickListener( new Button.ClickListener()
         {
@@ -226,6 +233,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "CassConfBackBtn" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
@@ -273,6 +281,7 @@ public class ConfigurationStep extends VerticalLayout
                                                String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
+        twinColSelect.setId( "twinColSelect" );
         twinColSelect.setItemCaptionPropertyId( captionProperty );
         twinColSelect.setRows( rows );
         twinColSelect.setMultiSelect( true );
