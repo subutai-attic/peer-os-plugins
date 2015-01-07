@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.solr.api.Solr;
@@ -36,7 +35,7 @@ public class SolrComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
         final Manager manager = new Manager( executorService, solr, tracker, environmentManager );
-        Wizard wizard = new Wizard( executorService, solr, tracker );
+        Wizard wizard = new Wizard( executorService, solr, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "SolrInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );

@@ -3,14 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.safehaus.subutai.plugin.solr.ui.wizard;
+package org.safehaus.subutai.plugin.solr.ui.wizard_copy;
 
 
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.solr.api.Solr;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
@@ -27,16 +26,13 @@ public class Wizard
     private final ExecutorService executorService;
     private int step = 1;
     private SolrClusterConfig solrClusterConfig = new SolrClusterConfig();
-    private EnvironmentManager environmentManager;
 
 
-    public Wizard( ExecutorService executorService, Solr solr, Tracker tracker, final EnvironmentManager manager )
-            throws NamingException
+    public Wizard( ExecutorService executorService, Solr solr, Tracker tracker ) throws NamingException
     {
         this.executorService = executorService;
         this.solr = solr;
         this.tracker = tracker;
-        this.environmentManager = manager;
 
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
@@ -111,11 +107,5 @@ public class Wizard
     public SolrClusterConfig getSolrClusterConfig()
     {
         return solrClusterConfig;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 }
