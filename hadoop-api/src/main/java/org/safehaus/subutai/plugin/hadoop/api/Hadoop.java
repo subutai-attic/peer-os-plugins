@@ -15,6 +15,14 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
 
     public UUID uninstallCluster( HadoopClusterConfig config );
 
+    /**
+     * This just removes cluster configuration from DB,
+     * NOT destroys hadoop containers.
+     * @param clusterName cluster name
+     * @return uuid of operation
+     */
+    public UUID removeCluster( String clusterName );
+
     public UUID startNameNode( HadoopClusterConfig hadoopClusterConfig );
 
     public UUID stopNameNode( HadoopClusterConfig hadoopClusterConfig );
@@ -58,4 +66,6 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
 
     public org.safehaus.subutai.common.protocol.EnvironmentBlueprint getDefaultEnvironmentBlueprint(
             final HadoopClusterConfig config ) throws ClusterSetupException;
+
+    public UUID configureEnvironmentCluster( HadoopClusterConfig config );
 }

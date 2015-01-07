@@ -11,13 +11,14 @@ import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildExcep
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
+import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 
 import javax.sql.DataSource;
 import java.util.Set;

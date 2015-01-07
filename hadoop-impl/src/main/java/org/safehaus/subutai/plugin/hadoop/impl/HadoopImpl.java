@@ -11,7 +11,6 @@ import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -20,8 +19,11 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
+import org.safehaus.subutai.plugin.hadoop.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandler;
 import org.slf4j.Logger;
@@ -142,6 +144,15 @@ public class HadoopImpl implements Hadoop
         return operationHandler.getTrackerId();
     }
 
+
+    public UUID removeCluster( String clusterName ){
+        Preconditions.checkArgument( !Strings.isNullOrEmpty(clusterName ), "Cluster name is null or empty" );
+        HadoopClusterConfig hadoopClusterConfig = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, hadoopClusterConfig, ClusterOperationType.REMOVE, null );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
 
     @Override
     public List<HadoopClusterConfig> getClusters()
@@ -500,5 +511,14 @@ public class HadoopImpl implements Hadoop
         //        environmentBlueprint.setNodeGroups( nodeGroups );
 
         return environmentBlueprint;
+    }
+
+
+    public UUID configureEnvironmentCluster( final HadoopClusterConfig config )
+    {
+        Preconditions.checkNotNull( config, "Configuration is null" );
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 }
