@@ -31,8 +31,6 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
 
-import static org.safehaus.subutai.plugin.common.api.NodeType.*;
-
 
 public class Manager
 {
@@ -427,7 +425,7 @@ public class Manager
                                 statusGroup, availableOperations }, null );
 
 
-                        Item row = getAgentRow( table, containerHost, DATANODE.name() );
+                        Item row = getAgentRow( table, containerHost, NodeType.DATANODE.name() );
 
                         checkButton.addClickListener( managerListener.dataNodeCheckButtonListener( row ) );
                         excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row ) );
@@ -445,7 +443,7 @@ public class Manager
                                 statusGroup, availableOperations }, null );
 
 
-                        Item row1 = getAgentRow( table, containerHost, TASKTRACKER.name() );
+                        Item row1 = getAgentRow( table, containerHost, NodeType.TASKTRACKER.name() );
 
                         checkButton.addClickListener( managerListener.taskTrakcerNodeCheckButtonListener( row1 ) );
                         excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row1 ) );
@@ -499,23 +497,23 @@ public class Manager
     {
         if ( clusterConfig.isNameNode( containerHost.getId() ) )
         {
-            return NAMENODE;
+            return NodeType.NAMENODE;
         }
         else if ( clusterConfig.isSecondaryNameNode( containerHost.getId() ) )
         {
-            return SECONDARY_NAMENODE;
+            return NodeType.SECONDARY_NAMENODE;
         }
         else if ( clusterConfig.isJobTracker( containerHost.getId() ) )
         {
-            return JOBTRACKER;
+            return NodeType.JOBTRACKER;
         }
         else if ( clusterConfig.isDataNode( containerHost.getId() ) )
         {
-            return DATANODE;
+            return NodeType.DATANODE;
         }
         else
         {
-            return TASKTRACKER;
+            return NodeType.TASKTRACKER;
         }
     }
 
@@ -525,23 +523,23 @@ public class Manager
 
         if ( clusterConfig.isNameNode( containerHost.getId() ) )
         {
-            nodeRoles.add( NAMENODE );
+            nodeRoles.add( NodeType.NAMENODE );
         }
         if ( clusterConfig.isSecondaryNameNode( containerHost.getId() ) )
         {
-            nodeRoles.add( SECONDARY_NAMENODE );
+            nodeRoles.add( NodeType.SECONDARY_NAMENODE );
         }
         if ( clusterConfig.isJobTracker( containerHost.getId() ) )
         {
-            nodeRoles.add( JOBTRACKER );
+            nodeRoles.add( NodeType.JOBTRACKER );
         }
         if ( clusterConfig.isDataNode( containerHost.getId() ) )
         {
-            nodeRoles.add( DATANODE );
+            nodeRoles.add( NodeType.DATANODE );
         }
         if ( clusterConfig.isTaskTracker( containerHost.getId() ) )
         {
-            nodeRoles.add( TASKTRACKER );
+            nodeRoles.add( NodeType.TASKTRACKER );
         }
 
         return nodeRoles;

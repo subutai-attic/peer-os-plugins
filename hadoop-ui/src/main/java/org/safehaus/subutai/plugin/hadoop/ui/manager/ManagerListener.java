@@ -27,7 +27,6 @@ import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.CheckDecommissionStatusTask;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopNodeOperationTask;
@@ -35,8 +34,8 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.QuestionDialog;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
 
-import com.google.common.collect.Sets;
 import com.vaadin.data.Item;
 import com.vaadin.event.Action;
 import com.vaadin.event.ItemClickEvent;
@@ -47,7 +46,6 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
-import static org.safehaus.subutai.plugin.common.api.NodeType.*;
 
 
 public class ManagerListener
@@ -445,7 +443,7 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, SECONDARY_NAMENODE,
+                                containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.SECONDARY_NAMENODE,
                                 new CompleteEvent()
                                 {
 
@@ -515,7 +513,7 @@ public class ManagerListener
                     startStopButton.setEnabled( false );
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.START, JOBTRACKER,
+                                    clusterName, containerHost, NodeOperationType.START, org.safehaus.subutai.plugin.common.api.NodeType.JOBTRACKER,
                                     new CompleteEvent()
                                     {
                                         public void onComplete( NodeState state )
@@ -539,7 +537,7 @@ public class ManagerListener
                     startStopButton.setEnabled( false );
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STOP, JOBTRACKER,
+                                    clusterName, containerHost, NodeOperationType.STOP, org.safehaus.subutai.plugin.common.api.NodeType.JOBTRACKER,
                                     new CompleteEvent()
                                     {
                                         public void onComplete( NodeState state )
@@ -573,7 +571,7 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, JOBTRACKER, new CompleteEvent()
+                                containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.JOBTRACKER, new CompleteEvent()
                         {
 
                             public void onComplete( NodeState state )
@@ -624,7 +622,7 @@ public class ManagerListener
                 startStopButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, NAMENODE, new CompleteEvent()
+                                containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.NAMENODE, new CompleteEvent()
                         {
                             public void onComplete( NodeState state )
                             {
@@ -671,7 +669,7 @@ public class ManagerListener
                 {
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.START, NAMENODE,
+                                    clusterName, containerHost, NodeOperationType.START, org.safehaus.subutai.plugin.common.api.NodeType.NAMENODE,
                                     new CompleteEvent()
                                     {
 
@@ -695,7 +693,7 @@ public class ManagerListener
                 {
                     hadoopManager.getExecutorService().execute(
                             new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                                    clusterName, containerHost, NodeOperationType.STOP, NAMENODE,
+                                    clusterName, containerHost, NodeOperationType.STOP, org.safehaus.subutai.plugin.common.api.NodeType.NAMENODE,
                                     new CompleteEvent()
                                     {
 
@@ -764,7 +762,7 @@ public class ManagerListener
                 hadoopManager.enableProgressBar();
                 hadoopManager.getExecutorService().execute(
                     new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                        clusterName, containerHost, NodeOperationType.STATUS, TASKTRACKER,
+                        clusterName, containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.TASKTRACKER,
                         new CompleteEvent()
                         {
 
@@ -835,7 +833,7 @@ public class ManagerListener
                 hadoopManager.enableProgressBar();
                 hadoopManager.getExecutorService().execute(
                     new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                        clusterName, containerHost, NodeOperationType.STATUS, DATANODE,
+                        clusterName, containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.DATANODE,
                         new CompleteEvent()
                         {
                             public void onComplete( NodeState state )
