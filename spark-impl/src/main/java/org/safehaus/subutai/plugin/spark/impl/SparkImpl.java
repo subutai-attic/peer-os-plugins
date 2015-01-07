@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -38,9 +39,9 @@ public class SparkImpl extends SparkBase implements Spark
 
 
     public SparkImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
-                      final Hadoop hadoopManager, final Monitor monitor )
+                      final Hadoop hadoopManager, final Monitor monitor, final QuotaManager quotaManager )
     {
-        super( dataSource, tracker, environmentManager, hadoopManager, monitor );
+        super( dataSource, tracker, environmentManager, hadoopManager, monitor, quotaManager );
 
         //subscribe to alerts
         sparkAlertListener = new SparkAlertListener( this );

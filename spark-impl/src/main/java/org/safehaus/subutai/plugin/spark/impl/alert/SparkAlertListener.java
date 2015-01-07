@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
+import org.safehaus.subutai.common.quota.MemoryQuotaInfo;
+import org.safehaus.subutai.common.quota.PeerQuotaInfo;
+import org.safehaus.subutai.common.quota.QuotaType;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
@@ -33,6 +36,8 @@ public class SparkAlertListener implements AlertListener
     public static final String SPARK_ALERT_LISTENER = "SPARK_ALERT_LISTENER";
     private SparkImpl spark;
     private CommandUtil commandUtil = new CommandUtil();
+    private static int MAX_RAM_QUOTA_GB = 2;
+    private static String MAX_RAM_QUOTA_STR = "2G";
 
 
     public SparkAlertListener( final SparkImpl spark )
@@ -126,19 +131,19 @@ public class SparkAlertListener implements AlertListener
         MonitoringSettings thresholds = spark.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
-        boolean cpuIsStressedBySpark = false;
-        boolean ramIsStressedBySpark = false;
+        boolean isCpuStressedBySpark = false;
+        boolean isRamStressedBySpark = false;
 
         if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
         {
-            ramIsStressedBySpark = true;
+            isRamStressedBySpark = true;
         }
         else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
         {
-            cpuIsStressedBySpark = true;
+            isCpuStressedBySpark = true;
         }
 
-        if ( !( ramIsStressedBySpark || cpuIsStressedBySpark ) )
+        if ( !( isRamStressedBySpark || isCpuStressedBySpark ) )
         {
             LOG.info( "Spark cluster ok" );
             return;
@@ -148,14 +153,33 @@ public class SparkAlertListener implements AlertListener
         if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it
-            boolean canIncreaseQuota = false;
+            boolean quotaIncreased = false;
 
-            //TODO implement checking if quota increase works
-
-            //increase quota limit
-            if ( canIncreaseQuota )
+            if ( isRamStressedBySpark )
             {
-                //TODO implement vertical scaling
+                //read RAM quota
+                PeerQuotaInfo quotaInfo =
+                        spark.getQuotaManager().getQuota( sourceHost.getHostname(), QuotaType.QUOTA_MEMORY_QUOTA );
+
+                int ramQuotaInGb =
+                        Integer.parseInt( quotaInfo.getMemoryQuota().getQuotaValue() ) / ( 1024 * 1024 * 1024 );
+
+                if ( ramQuotaInGb < MAX_RAM_QUOTA_GB )
+                {
+                    //we can increase RAM quota
+                    spark.getQuotaManager()
+                         .setQuota( sourceHost.getHostname(), new MemoryQuotaInfo( MAX_RAM_QUOTA_STR ) );
+                    quotaIncreased = true;
+                }
+            }
+            else if ( isCpuStressedBySpark )
+            {
+
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
                 return;
             }
 
