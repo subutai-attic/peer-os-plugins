@@ -10,8 +10,7 @@
   <reference id="tracker" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
-  <bean id="elasticsearch-impl" scope="singleton"
-        class="org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl"
+  <bean id="elasticsearch-impl" scope="singleton" class="org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="dataSource" />
     <property name="tracker" ref="tracker" />

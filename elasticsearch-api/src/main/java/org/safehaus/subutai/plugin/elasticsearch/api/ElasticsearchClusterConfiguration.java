@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -15,7 +16,8 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     public static final String PRODUCT_KEY = "Elasticsearch";
     public static final String PRODUCT_NAME = "elasticsearch";
 
-    public static final String templateName = "elasticsearch";
+    public static final String TEMPLATE_NAME = "elasticsearch";
+    private String domainName = Common.DEFAULT_DOMAIN_NAME;
 
     private String clusterName = "";
     private int numberOfNodes;
@@ -34,7 +36,7 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 
     public String getTemplateName()
     {
-        return templateName;
+        return TEMPLATE_NAME;
     }
 
 
@@ -116,6 +118,18 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     public UUID getEnvironmentId()
     {
         return environmentId;
+    }
+
+
+    public String getDomainName()
+    {
+        return domainName;
+    }
+
+
+    public void setDomainName( final String domainName )
+    {
+        this.domainName = domainName;
     }
 
 
