@@ -28,6 +28,7 @@ public class Wizard
     private int step = 1;
     private SolrClusterConfig solrClusterConfig = new SolrClusterConfig();
     private EnvironmentManager environmentManager;
+    private boolean installOverEnvironment;
 
 
     public Wizard( ExecutorService executorService, Solr solr, Tracker tracker, final EnvironmentManager manager )
@@ -54,12 +55,14 @@ public class Wizard
         {
             case 1:
             {
+                installOverEnvironment = false;
                 component = new WelcomeStep( this );
                 break;
             }
             case 2:
             {
-                component = new ConfigurationStep( this );
+                component = installOverEnvironment ? new ConfigurationStepOverEnvironment( this ) :
+                            new ConfigurationStep( this );
                 break;
             }
             case 3:
@@ -83,6 +86,12 @@ public class Wizard
     public Component getContent()
     {
         return grid;
+    }
+
+
+    public void setInstallOverEnvironment( boolean installationType )
+    {
+        this.installOverEnvironment = installationType;
     }
 
 
@@ -117,5 +126,11 @@ public class Wizard
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
+    }
+
+
+    public boolean getInstallOverEnvironment()
+    {
+        return installOverEnvironment;
     }
 }

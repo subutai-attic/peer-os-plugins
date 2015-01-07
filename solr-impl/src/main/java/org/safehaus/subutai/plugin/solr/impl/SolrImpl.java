@@ -9,8 +9,6 @@ import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -21,7 +19,9 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.solr.api.Solr;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
@@ -91,6 +91,7 @@ public class SolrImpl implements Solr
         this.environmentManager = environmentManager;
     }
 
+
     public Tracker getTracker()
     {
         return tracker;
@@ -114,7 +115,8 @@ public class SolrImpl implements Solr
 
         Preconditions.checkNotNull( solrClusterConfig, "Configuration is null" );
 
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this, solrClusterConfig, ClusterOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, solrClusterConfig, ClusterOperationType.INSTALL );
 
         executor.execute( operationHandler );
 
@@ -132,9 +134,11 @@ public class SolrImpl implements Solr
     @Override
     public UUID uninstallCluster( final SolrClusterConfig config )
     {
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( config.getClusterName() ), "Cluster name is null or empty" );
+        Preconditions
+                .checkArgument( !Strings.isNullOrEmpty( config.getClusterName() ), "Cluster name is null or empty" );
 
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
 
         executor.execute( operationHandler );
 
@@ -177,7 +181,8 @@ public class SolrImpl implements Solr
         Preconditions.checkArgument( !Strings.isNullOrEmpty( hostName ), "Lxc hostname is null or empty" );
 
 
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.START );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.START );
 
         executor.execute( operationHandler );
 
@@ -191,7 +196,8 @@ public class SolrImpl implements Solr
         Preconditions.checkArgument( !Strings.isNullOrEmpty( hostName ), "Lxc hostname is null or empty" );
 
 
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.STOP );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.STOP );
 
         executor.execute( operationHandler );
 
@@ -205,12 +211,14 @@ public class SolrImpl implements Solr
         Preconditions.checkArgument( !Strings.isNullOrEmpty( hostName ), "Lxc hostname is null or empty" );
 
 
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.STATUS );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, hostName, NodeOperationType.STATUS );
 
         executor.execute( operationHandler );
 
         return operationHandler.getTrackerId();
     }
+
 
     @Override
     public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final SolrClusterConfig config,

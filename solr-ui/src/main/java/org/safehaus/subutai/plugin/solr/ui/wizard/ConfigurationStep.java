@@ -5,17 +5,9 @@
  */
 package org.safehaus.subutai.plugin.solr.ui.wizard;
 
-
-import java.util.List;
-
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
-import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
-
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -36,30 +28,6 @@ public class ConfigurationStep extends VerticalLayout
         content.setSizeFull();
         content.setSpacing( true );
         content.setMargin( true );
-
-        List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
-        for ( final Environment environment : environments )
-        {
-            boolean applicable = false;
-            for ( final ContainerHost containerHost : environment.getContainerHosts() )
-            {
-                if ( containerHost.getTemplateName().equalsIgnoreCase( SolrClusterConfig.PRODUCT_KEY ) )
-                {
-                    applicable = true;
-                }
-            }
-            if ( !applicable )
-            {
-                environments.remove( environment );
-            }
-        }
-
-        ComboBox envList = new ComboBox( "Select environment", environments );
-        envList.setImmediate( true );
-        envList.setNullSelectionAllowed( false );
-        envList.setTextInputAllowed( false );
-        envList.setNullSelectionAllowed( false );
-        envList.setWidth( 150, Unit.PIXELS );
 
         final TextField clusterNameTxtFld = new TextField( "Enter installation name" );
         clusterNameTxtFld.setId( "SlrClusterNameTxtFld" );
@@ -110,7 +78,7 @@ public class ConfigurationStep extends VerticalLayout
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing( true );
-        layout.addComponent( new Label( "Please, Talas specify installation settings" ) );
+        layout.addComponent( new Label( "Please, specify installation settings" ) );
         layout.addComponent( content );
 
         HorizontalLayout buttons = new HorizontalLayout();
@@ -119,7 +87,6 @@ public class ConfigurationStep extends VerticalLayout
 
         content.addComponent( clusterNameTxtFld );
         content.addComponent( buttons );
-        content.addComponent( envList );
 
         addComponent( layout );
     }
