@@ -54,9 +54,9 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Nimbus Node", nimbusNodeNode.getHostname() + "" );
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 
-        Button install = new Button( "Configure" );
-        install.addStyleName( "default" );
-        install.addClickListener( new Button.ClickListener()
+        Button configure = new Button( "Configure" );
+        configure.addStyleName( "default" );
+        configure.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
@@ -69,7 +69,7 @@ public class VerificationStep extends VerticalLayout
                     @Override
                     public void windowClose( Window.CloseEvent closeEvent )
                     {
-                        environmentWizard.init();
+//                        environmentWizard.init();
                     }
                 } );
                 getUI().addWindow( window.getWindow() );
@@ -90,7 +90,7 @@ public class VerificationStep extends VerticalLayout
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.addComponent( back );
-        buttons.addComponent( install );
+        buttons.addComponent( configure );
 
         grid.addComponent( confirmationLbl, 0, 0 );
 

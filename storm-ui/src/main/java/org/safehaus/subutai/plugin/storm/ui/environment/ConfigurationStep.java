@@ -7,16 +7,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
-import org.safehaus.subutai.plugin.storm.ui.wizard.Wizard;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -34,8 +35,15 @@ import com.vaadin.ui.VerticalLayout;
 public class ConfigurationStep extends VerticalLayout
 {
 
+    private EnvironmentManager environmentManager;
+    private EnvironmentWizard environmentWizard;
+
+
     public ConfigurationStep( final EnvironmentWizard environmentWizard, final Zookeeper zookeeper )
     {
+        environmentManager = environmentWizard.getEnvironmentManager();
+        this.environmentWizard = environmentWizard;
+
         removeAllComponents();
         setSizeFull();
 
@@ -58,7 +66,6 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField domainNameTxtFld = new TextField( "Enter domain name" );
-        domainNameTxtFld.setInputPrompt( "Domain name" );
         domainNameTxtFld.setInputPrompt( "intra.lan" );
         domainNameTxtFld.setRequired( true );
         domainNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -85,20 +92,37 @@ public class ConfigurationStep extends VerticalLayout
 
         // all nodes
         final TwinColSelect allNodesSelect =
-                getTwinSelect( "Nodes to be configured", "hostname", "Available Nodes", "Selected Nodes", 4 );
+                getTwinSelect( "Nodes to be configured as Supervisor", "Available Nodes", "Selected Nodes", 4 );
         allNodesSelect.setId( "AllNodes" );
         allNodesSelect.setValue( null );
 
-        // seeds
-        final TwinColSelect seedsSelect =
-                getTwinSelect( "Seeds", "hostname", "Available Nodes", "Selected Nodes", 4 );
-        seedsSelect.setId( "Seeds" );
+
+        final ComboBox nimbusNode = new ComboBox( "Choose Nimbus Node" );
+        nimbusNode.setNullSelectionAllowed( false );
+        nimbusNode.setTextInputAllowed( false );
+        nimbusNode.setImmediate( true );
+        nimbusNode.setRequired( true );
+        nimbusNode.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                Environment env = environmentManager.getEnvironmentByUUID( environmentWizard.getConfig().getEnvironmentId() );
+                fillUpComboBox( allNodesSelect, env );
+                UUID uuid = ( UUID ) event.getProperty().getValue();
+                ContainerHost containerHost = env.getContainerHostById( uuid );
+                environmentWizard.getConfig().setNimbus( containerHost.getId() );
+                allNodesSelect.removeItem( containerHost );
+
+            }
+        } );
+
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( envList );
         envCombo.setContainerDataSource( eBean );
-        envCombo.setNullSelectionAllowed( false );
+        envCombo.setNullSelectionAllowed( true );
         envCombo.setTextInputAllowed( false );
         envCombo.setItemCaptionPropertyId( "name" );
         envCombo.addValueChangeListener( new Property.ValueChangeListener()
@@ -106,10 +130,25 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                Environment e = ( Environment ) event.getProperty().getValue();
-                environmentWizard.getConfig().setEnvironmentId( e.getId() );
-                allNodesSelect.setContainerDataSource(
-                        new BeanItemContainer<>( ContainerHost.class, e.getContainerHosts() ) );
+                Environment environment = ( Environment ) event.getProperty().getValue();
+                if ( environment != null ){
+                    environmentWizard.getConfig().setEnvironmentId( environment.getId() );
+                    nimbusNode.removeAllItems();
+                    nimbusNode.setValue( null );
+
+                    for ( ContainerHost host : environment.getContainerHosts() ){
+                        allNodesSelect.addItem( host.getId() );
+                        allNodesSelect.setItemCaption( host.getId(),
+                                ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
+                        nimbusNode.addItem( host.getId() );
+                        nimbusNode.setItemCaption( host.getId(),
+                                ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
+                    }
+                }
+                else{
+                    allNodesSelect.removeAllItems();
+                    nimbusNode.removeAllItems();
+                }
             }
         } );
 
@@ -238,11 +277,30 @@ public class ConfigurationStep extends VerticalLayout
         content.addComponent( clusterNameTxtFld );
         content.addComponent( domainNameTxtFld );
         content.addComponent( envCombo );
+        content.addComponent( nimbusNode );
+        content.addComponent( nimbusElem );
         content.addComponent( allNodesSelect );
-        content.addComponent( seedsSelect );
         content.addComponent( buttons );
 
         addComponent( layout );
+    }
+
+
+    private void fillUpComboBox( TwinColSelect target, Environment environment ){
+        if ( environment != null ){
+            environmentWizard.getConfig().setEnvironmentId( environment.getId() );
+            target.removeAllItems();
+            target.setValue( null );
+
+            for ( ContainerHost host : environment.getContainerHosts() ){
+                target.addItem( host );
+                target.setItemCaption( host,
+                        ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
+            }
+        }
+        else{
+            target.removeAllItems();
+        }
     }
 
 
@@ -277,17 +335,16 @@ public class ConfigurationStep extends VerticalLayout
         return cb;
     }
 
-    public static TwinColSelect getTwinSelect( String title, String captionProperty, String leftTitle,
+    public static TwinColSelect getTwinSelect( String title, String leftTitle,
                                                String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
-        twinColSelect.setItemCaptionPropertyId( captionProperty );
         twinColSelect.setRows( rows );
         twinColSelect.setMultiSelect( true );
         twinColSelect.setImmediate( true );
         twinColSelect.setLeftColumnCaption( leftTitle );
         twinColSelect.setRightColumnCaption( rightTitle );
-        twinColSelect.setWidth( 100, Unit.PERCENTAGE );
+        twinColSelect.setWidth( 100, Sizeable.Unit.PERCENTAGE );
         twinColSelect.setRequired( true );
         return twinColSelect;
     }

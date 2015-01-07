@@ -5,7 +5,7 @@ import com.vaadin.data.Item;
 import com.vaadin.ui.TreeTable;
 
 
-class ConfigView
+public class ConfigView
 {
 
     private final TreeTable configTbl;

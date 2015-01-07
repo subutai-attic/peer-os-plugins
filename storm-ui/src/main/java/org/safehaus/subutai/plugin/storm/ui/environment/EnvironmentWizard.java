@@ -140,10 +140,11 @@ public class EnvironmentWizard
     }
 
 
-    public void init()
+    protected void init( boolean externalZookeeper )
     {
         step = 1;
         config = new StormClusterConfiguration();
+        config.setExternalZookeeper( externalZookeeper );
         putForm();
     }
 }
