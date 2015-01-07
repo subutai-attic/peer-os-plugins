@@ -77,6 +77,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox nameNodeCombo = getCombo( "Choose NameNode" );
+        nameNodeCombo.setId( "nameNodeCombo" );
         nameNodeCombo.setTextInputAllowed( false );
         nameNodeCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -90,6 +91,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox jobTracker = getCombo( "Choose JobTracker" );
+        jobTracker.setId( "jobTracker" );
         jobTracker.setTextInputAllowed( false );
         jobTracker.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -103,6 +105,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox secNameNode = getCombo( "Choose Secondary NameNode" );
+        secNameNode.setId( "secNameNode" );
         secNameNode.setTextInputAllowed( false );
         secNameNode.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -139,6 +142,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
+        envCombo.setId( "envCombo" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( envList );
         envCombo.setContainerDataSource( eBean );
