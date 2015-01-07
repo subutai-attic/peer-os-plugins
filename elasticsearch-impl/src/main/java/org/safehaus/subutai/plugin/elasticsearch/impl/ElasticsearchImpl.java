@@ -11,14 +11,16 @@ import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
+import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -274,6 +276,9 @@ public class ElasticsearchImpl implements Elasticsearch
     @Override
     public UUID configureEnvironmentCluster( final ElasticsearchClusterConfiguration config )
     {
-        return null;
+        Preconditions.checkNotNull( config, "Configuration is null" );
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 }

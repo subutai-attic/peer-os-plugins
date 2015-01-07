@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.elasticsearch.ui.Environment;
+package org.safehaus.subutai.plugin.elasticsearch.ui.environment;
 
 
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -68,7 +69,8 @@ public class ConfigurationStep extends VerticalLayout
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), "cassandra" );
+            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(),
+                    ElasticsearchClusterConfiguration.TEMPLATE_NAME );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
@@ -80,11 +82,6 @@ public class ConfigurationStep extends VerticalLayout
                 getTwinSelect( "Nodes to be configured", "hostname", "Available Nodes", "Selected Nodes", 4 );
         allNodesSelect.setId( "AllNodes" );
         allNodesSelect.setValue( null );
-
-        // seeds
-        final TwinColSelect seedsSelect =
-                getTwinSelect( "Seeds", "hostname", "Available Nodes", "Selected Nodes", 4 );
-        seedsSelect.setId( "Seeds" );
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
@@ -116,7 +113,6 @@ public class ConfigurationStep extends VerticalLayout
                 {
                     Set<UUID> nodes = new HashSet<UUID>();
                     Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    seedsSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, nodeList  ) );
                     for ( ContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
@@ -177,7 +173,6 @@ public class ConfigurationStep extends VerticalLayout
         content.addComponent( domainNameTxtFld );
         content.addComponent( envCombo );
         content.addComponent( allNodesSelect );
-        content.addComponent( seedsSelect );
         content.addComponent( buttons );
 
         addComponent( layout );

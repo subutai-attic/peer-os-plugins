@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.elasticsearch.ui.Environment;
+package org.safehaus.subutai.plugin.elasticsearch.ui.environment;
 
 
 import java.util.concurrent.ExecutorService;
@@ -22,18 +22,18 @@ public class EnvironmentWizard
     private final VerticalLayout verticalLayout;
     private final ExecutorService executorService;
     private final Tracker tracker;
-    private final Elasticsearch cassandra;
+    private final Elasticsearch elasticsearch;
     private EnvironmentManager environmentManager;
     private GridLayout grid;
     private int step = 1;
     private ElasticsearchClusterConfiguration config = new ElasticsearchClusterConfiguration();
 
 
-    public EnvironmentWizard( ExecutorService executorService, Elasticsearch cassandra, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public EnvironmentWizard( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
-        this.cassandra = cassandra;
+        this.elasticsearch = elasticsearch;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
 
@@ -66,7 +66,7 @@ public class EnvironmentWizard
             }
             case 3:
             {
-                verticalLayout.addComponent( new VerificationStep( cassandra, executorService, tracker, this ) );
+                verticalLayout.addComponent( new VerificationStep( elasticsearch, executorService, tracker, this ) );
                 break;
             }
             default:

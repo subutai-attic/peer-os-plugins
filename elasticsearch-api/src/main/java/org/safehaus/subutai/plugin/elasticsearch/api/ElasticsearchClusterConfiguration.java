@@ -16,7 +16,7 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     public static final String PRODUCT_KEY = "Elasticsearch";
     public static final String PRODUCT_NAME = "elasticsearch";
 
-    public static final String templateName = "elasticsearch";
+    public static final String TEMPLATE_NAME = "elasticsearch";
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
 
     private String clusterName = "";
@@ -36,7 +36,7 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 
     public String getTemplateName()
     {
-        return templateName;
+        return TEMPLATE_NAME;
     }
 
 

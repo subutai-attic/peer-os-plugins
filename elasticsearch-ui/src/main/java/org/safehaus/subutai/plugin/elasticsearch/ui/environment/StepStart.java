@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.elasticsearch.ui.Environment;
+package org.safehaus.subutai.plugin.elasticsearch.ui.environment;
 
 
 import org.safehaus.subutai.common.util.FileUtil;

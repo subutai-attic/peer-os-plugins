@@ -4,9 +4,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-/**
- * Created by ermek on 12/8/14.
- */
 public interface RestService
 {
     @GET

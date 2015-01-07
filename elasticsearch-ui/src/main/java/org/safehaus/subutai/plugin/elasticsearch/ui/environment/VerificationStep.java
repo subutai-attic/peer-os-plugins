@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.elasticsearch.ui.Environment;
+package org.safehaus.subutai.plugin.elasticsearch.ui.environment;
 
 
 import java.util.UUID;
@@ -22,7 +22,7 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends VerticalLayout
 {
 
-    public VerificationStep( final Elasticsearch cassandra, final ExecutorService executorService, final Tracker tracker,
+    public VerificationStep( final Elasticsearch elasticsearch, final ExecutorService executorService, final Tracker tracker,
                              final EnvironmentWizard environmentWizard )
     {
 
@@ -58,7 +58,7 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = cassandra.configureEnvironmentCluster( environmentWizard.getConfig() );
+                UUID trackID = elasticsearch.configureEnvironmentCluster( environmentWizard.getConfig() );
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, ElasticsearchClusterConfiguration.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
