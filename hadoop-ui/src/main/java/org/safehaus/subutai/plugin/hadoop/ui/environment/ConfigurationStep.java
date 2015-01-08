@@ -19,6 +19,7 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.hostregistry.api.HostRegistry;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -152,10 +153,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 Environment e = ( Environment ) event.getProperty().getValue();
                 wizard.getHadoopClusterConfig().setEnvironmentId( e.getId() );
-                setComboDS( nameNodeCombo, e.getContainerHosts() );
-                setComboDS( jobTracker, e.getContainerHosts() );
-                setComboDS( secNameNode, e.getContainerHosts() );
-                for ( ContainerHost host : e.getContainerHosts() ){
+                setComboDS( nameNodeCombo, filterEnvironmentContainers( e.getContainerHosts() ) );
+                setComboDS( jobTracker, filterEnvironmentContainers( e.getContainerHosts() ) );
+                setComboDS( secNameNode, filterEnvironmentContainers( e.getContainerHosts() ) );
+                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) ){
                     slaveNodes.addItem( host );
                     slaveNodes.setItemCaption( host, (host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")") );
                 }
@@ -242,7 +243,6 @@ public class ConfigurationStep extends VerticalLayout
         content.addComponent( clusterNameTxtFld );
         content.addComponent( domain );
         content.addComponent( envCombo );
-        //content.addComponent( slaveNodesComboBox );
         content.addComponent( replicationFactorComboBox );
         content.addComponent( nameNodeCombo );
         content.addComponent( jobTracker );
@@ -262,6 +262,16 @@ public class ConfigurationStep extends VerticalLayout
         return combo;
     }
 
+
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+        Set<ContainerHost> filteredSet = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts ){
+            if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) ){
+                filteredSet.add( containerHost );
+            }
+        }
+        return filteredSet;
+    }
 
 
     private void setComboDS( ComboBox target, Set<ContainerHost> hosts )
