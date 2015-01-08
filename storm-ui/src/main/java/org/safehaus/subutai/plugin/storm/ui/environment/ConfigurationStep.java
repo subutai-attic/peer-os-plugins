@@ -53,6 +53,7 @@ public class ConfigurationStep extends VerticalLayout
         content.setMargin( true );
 
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
+        clusterNameTxtFld.setId( "StormConfClusterName" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
         clusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
@@ -65,6 +66,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField domainNameTxtFld = new TextField( "Enter domain name" );
+        domainNameTxtFld.setId( "domainNameTxtFld" );
         domainNameTxtFld.setInputPrompt( "intra.lan" );
         domainNameTxtFld.setRequired( true );
         domainNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
@@ -113,6 +115,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox nimbusNode = new ComboBox( "Choose Nimbus Node" );
+        nimbusNode.setId( "nimbusNode" );
         nimbusNode.setNullSelectionAllowed( false );
         nimbusNode.setTextInputAllowed( false );
         nimbusNode.setImmediate( true );
@@ -134,6 +137,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
+        envCombo.setId( "envCombo" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( envList );
         envCombo.setContainerDataSource( eBean );
@@ -240,6 +244,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         Button next = new Button( "Next" );
+        next.setId( "StormConfNext" );
         next.addStyleName( "default" );
         next.addClickListener( new Button.ClickListener()
         {
@@ -270,6 +275,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "StormConfBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {

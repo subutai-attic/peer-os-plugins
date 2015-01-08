@@ -55,6 +55,7 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 
         Button configure = new Button( "Configure" );
+        configure.setId( "StormVerificationInstall" );
         configure.addStyleName( "default" );
         configure.addClickListener( new Button.ClickListener()
         {
@@ -77,6 +78,7 @@ public class VerificationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "StormVerificationBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
