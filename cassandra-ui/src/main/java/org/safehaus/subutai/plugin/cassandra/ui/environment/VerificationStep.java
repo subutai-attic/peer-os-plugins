@@ -61,6 +61,7 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 
         Button install = new Button( "Configure" );
+        install.setId( "CassConfigInstallBtn" );
         install.addStyleName( "default" );
         install.addClickListener( new Button.ClickListener()
         {
@@ -83,6 +84,7 @@ public class VerificationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "CassVerBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
