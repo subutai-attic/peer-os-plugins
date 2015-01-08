@@ -63,7 +63,15 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = mongo.installCluster( wizard.getMongoClusterConfig() );
+                UUID trackID;
+                if ( wizard.isInstallOverEnvironment() )
+                {
+                    trackID = mongo.configureEnvironmentCluster( wizard.getMongoClusterConfig() );
+                }
+                else
+                {
+                    trackID = mongo.installCluster( wizard.getMongoClusterConfig() );
+                }
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, MongoClusterConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

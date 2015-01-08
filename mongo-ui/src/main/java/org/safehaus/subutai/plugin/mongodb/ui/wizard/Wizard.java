@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -30,15 +30,19 @@ public class Wizard
     private final Tracker tracker;
     private final ExecutorService executorService;
     private int step = 1;
+    private boolean installOverEnvironment;
     private MongoClusterConfig mongoClusterConfig;// = new MongoClusterConfigImpl();
+    private EnvironmentManager environmentManager;
 
 
-    public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker ) throws NamingException
+    public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker,
+                   final EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.mongo = mongo;
         this.tracker = tracker;
         this.mongoClusterConfig = mongo.newMongoClusterConfigInstance();
+        this.environmentManager = environmentManager;
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
         grid.setSizeFull();
@@ -60,7 +64,8 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( this );
+                component = isInstallOverEnvironment() ? new EnvironmentConfigurationStep( this ) :
+                            new ConfigurationStep( this );
                 break;
             }
             case 3:
@@ -104,6 +109,7 @@ public class Wizard
     protected void init()
     {
         step = 1;
+        installOverEnvironment = false;
         mongoClusterConfig = mongo.newMongoClusterConfigInstance();// new MongoClusterConfigImpl();
         putForm();
     }
@@ -112,5 +118,29 @@ public class Wizard
     public MongoClusterConfig getMongoClusterConfig()
     {
         return mongoClusterConfig;
+    }
+
+
+    public boolean isInstallOverEnvironment()
+    {
+        return installOverEnvironment;
+    }
+
+
+    public void setInstallOverEnvironment( final boolean installOverEnvironment )
+    {
+        this.installOverEnvironment = installOverEnvironment;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 }

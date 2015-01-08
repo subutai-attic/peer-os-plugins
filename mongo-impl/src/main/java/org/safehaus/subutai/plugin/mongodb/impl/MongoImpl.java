@@ -33,6 +33,7 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.AddNodeOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.CheckNodeOperationHandler;
+import org.safehaus.subutai.plugin.mongodb.impl.handler.ConfigureEnvironmentOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.DestroyNodeOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.InstallOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.StartNodeOperationHandler;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -64,7 +67,7 @@ public class MongoImpl implements Mongo
     private PluginDAO pluginDAO;
     private DataSource dataSource;
     private PeerManager peerManager;
-    private Gson GSON = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
+    private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
 
 
     public MongoImpl( DataSource dataSource )
@@ -138,32 +141,39 @@ public class MongoImpl implements Mongo
         try
         {
 
-            //            GsonBuilder gsonBuilder = new GsonBuilder();
-            ////            gsonBuilder.registerTypeAdapter( MongoDataNode.class, new
-            // GsonInterfaceAdapter<MongoDataNode>() ).create();
-            ////            gsonBuilder.registerTypeAdapter( MongoConfigNode.class, new
-            // GsonInterfaceAdapter<MongoConfigNode>() )
-            ////                       .create();
-            ////            gsonBuilder.registerTypeAdapter( MongoRouterNode.class, new
-            // GsonInterfaceAdapter<MongoRouterNode>() )
-            ////                       .create();
-            //            gsonBuilder.setExclusionStrategies( new ExclusionStrategy()
-            //            {
-            //                @Override
-            //                public boolean shouldSkipField( final FieldAttributes f )
-            //                {
-            //                    return false;
-            //                }
-            //
-            //
-            //                @Override
-            //                public boolean shouldSkipClass( final Class<?> clazz )
-            //                {
-            //                    return clazz.isInterface();
-            //                }
-            //            } );
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            //            gsonBuilder.registerTypeAdapter( MongoDataNode.class, new
+            //            GsonInterfaceAdapter<MongoDataNode>() ).create();
+            //            gsonBuilder.registerTypeAdapter( MongoConfigNode.class, new
+            //            GsonInterfaceAdapter<MongoConfigNode>() )
+            //                       .create();
+            //            gsonBuilder.registerTypeAdapter( MongoRouterNode.class, new
+            //            GsonInterfaceAdapter<MongoRouterNode>() )
+            //                       .create();
+            gsonBuilder.setExclusionStrategies( new ExclusionStrategy()
+            {
+                @Override
+                public boolean shouldSkipField( final FieldAttributes f )
+                {
+                    switch ( f.getName() )
+                    {
+                        case "configServers":
+                        case "routerServers":
+                        case "dataNodes":
+                            return true;
+                    }
+                    return false;
+                }
 
-            //            GSON = gsonBuilder.serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
+
+                @Override
+                public boolean shouldSkipClass( final Class<?> clazz )
+                {
+                    return false;
+                }
+            } );
+
+            GSON = gsonBuilder.serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
             this.pluginDAO = new PluginDAO( dataSource );
         }
         catch ( SQLException e )
@@ -207,6 +217,19 @@ public class MongoImpl implements Mongo
 
 
         AbstractOperationHandler operationHandler = new UninstallOperationHandler( this, clusterName );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
+    }
+
+
+    public UUID configureEnvironmentCluster( MongoClusterConfig config )
+    {
+
+        Preconditions.checkNotNull( config, "Configuration is null" );
+
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentOperationHandler( this, config );
 
         executor.execute( operationHandler );
 

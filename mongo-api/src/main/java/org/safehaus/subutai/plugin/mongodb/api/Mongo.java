@@ -70,6 +70,7 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
      */
     public UUID checkNode( String clusterName, String lxcHostName );
 
+
     /**
      * Returns Mongo cluster setup strategy
      *
@@ -81,8 +82,13 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, MongoClusterConfig config,
                                                          TrackerOperation po );
 
+
     public org.safehaus.subutai.common.protocol.EnvironmentBlueprint getDefaultEnvironmentBlueprint(
             MongoClusterConfig config );
 
+
     public MongoClusterConfig newMongoClusterConfigInstance();
+
+
+    public UUID configureEnvironmentCluster( MongoClusterConfig config );
 }

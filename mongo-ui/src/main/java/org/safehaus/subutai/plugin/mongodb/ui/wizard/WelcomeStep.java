@@ -61,6 +61,23 @@ public class WelcomeStep extends VerticalLayout
             }
         } );
 
+        Button next2 = new Button( "Start over environment" );
+        next2.addStyleName( "default" );
+        next2.setWidth( 200, Unit.PIXELS );
+        grid.addComponent( next2, 7, 4, 7, 4 );
+        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
+
+        next2.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
+            {
+                wizard.init();
+                wizard.setInstallOverEnvironment( true );
+                wizard.next();
+            }
+        } );
+
         addComponent( grid );
     }
 }
