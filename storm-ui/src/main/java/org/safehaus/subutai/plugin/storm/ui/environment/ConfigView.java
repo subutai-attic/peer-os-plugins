@@ -5,9 +5,6 @@ import com.vaadin.data.Item;
 import com.vaadin.ui.TreeTable;
 
 
-/**
- * @author dilshat
- */
 public class ConfigView
 {
 
