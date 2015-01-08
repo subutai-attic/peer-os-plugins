@@ -40,6 +40,7 @@ public class ConfigurationStep extends VerticalLayout
         content.setMargin( true );
 
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
+        clusterNameTxtFld.setId( "ElasticSearchConfClusterName" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
         clusterNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
@@ -53,6 +54,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final TextField domainNameTxtFld = new TextField( "Enter domain name" );
+        domainNameTxtFld.setId( "domainNameTxtFld" );
         domainNameTxtFld.setInputPrompt( "Domain name" );
         domainNameTxtFld.setInputPrompt( "intra.lan" );
         domainNameTxtFld.setRequired( true );
@@ -101,6 +103,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
+        envCombo.setId( "envCombo" );
         BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( envList );
         envCombo.setContainerDataSource( eBean );
@@ -123,6 +126,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button next = new Button( "Next" );
+        next.setId( "ElasticSearchConfNext" );
         next.addStyleName( "default" );
         next.addClickListener( new Button.ClickListener()
         {
@@ -149,6 +153,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "ElasticSearchConfBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
