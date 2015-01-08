@@ -13,7 +13,7 @@ public class CassandraClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Cassandra";
     public static final String PRODUCT_NAME = "Cassandra";
-    private String templateName = "cassandra";
+    public static final String TEMPLATE_NAME = "cassandra";
     private String clusterName = "";
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private int numberOfSeeds;
@@ -38,15 +38,9 @@ public class CassandraClusterConfig implements ConfigBase
     }
 
 
-    public String getTemplateName()
+    public String getTEMPLATE_NAME()
     {
-        return templateName;
-    }
-
-
-    public void setTemplateName( final String templateName )
-    {
-        this.templateName = templateName;
+        return TEMPLATE_NAME;
     }
 
 

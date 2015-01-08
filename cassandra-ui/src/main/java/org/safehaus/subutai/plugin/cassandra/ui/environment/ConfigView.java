@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.cassandra.ui.Environment;
+package org.safehaus.subutai.plugin.cassandra.ui.environment;
 
 
 import com.vaadin.data.Item;

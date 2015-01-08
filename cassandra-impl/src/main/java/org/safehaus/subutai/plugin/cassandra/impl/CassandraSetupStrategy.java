@@ -52,7 +52,7 @@ public class CassandraSetupStrategy implements ClusterSetupStrategy
                 Strings.isNullOrEmpty( config.getSavedCachesDirectory() ) ||
                 Strings.isNullOrEmpty( config.getDomainName() ) ||
                 Strings.isNullOrEmpty( config.getProductName() ) ||
-                Strings.isNullOrEmpty( config.getTemplateName() ) )
+                Strings.isNullOrEmpty( config.getTEMPLATE_NAME() ) )
         {
             throw new ClusterSetupException( "Malformed cluster configuration" );
         }

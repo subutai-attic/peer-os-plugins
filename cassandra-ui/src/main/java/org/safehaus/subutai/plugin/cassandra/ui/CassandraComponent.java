@@ -5,12 +5,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
-import org.safehaus.subutai.plugin.cassandra.ui.Environment.EnvironmentWizard;
+import org.safehaus.subutai.plugin.cassandra.ui.environment.EnvironmentWizard;
 import org.safehaus.subutai.plugin.cassandra.ui.manager.Manager;
 import org.safehaus.subutai.plugin.cassandra.ui.wizard.Wizard;
 

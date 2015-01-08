@@ -1,20 +1,12 @@
-package org.safehaus.subutai.plugin.cassandra.ui.Environment;
+package org.safehaus.subutai.plugin.cassandra.ui.environment;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -25,7 +17,6 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -152,7 +143,7 @@ public class ConfigurationStep extends VerticalLayout
                 Environment e = ( Environment ) event.getProperty().getValue();
                 environmentWizard.getConfig().setEnvironmentId( e.getId() );
                 allNodesSelect.setContainerDataSource(
-                        new BeanItemContainer<>( ContainerHost.class, e.getContainerHosts() ) );
+                        new BeanItemContainer<>( ContainerHost.class, filterEnvironmentContainers( e.getContainerHosts() ) ) );
             }
         } );
 
@@ -258,6 +249,16 @@ public class ConfigurationStep extends VerticalLayout
         addComponent( layout );
     }
 
+
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+        Set<ContainerHost> filteredSet = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts ){
+            if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) ){
+                filteredSet.add( containerHost );
+            }
+        }
+        return filteredSet;
+    }
 
     private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName ){
         for ( ContainerHost host: containerHosts ){

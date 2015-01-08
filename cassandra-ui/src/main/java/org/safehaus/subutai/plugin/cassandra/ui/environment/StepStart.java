@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.cassandra.ui.Environment;
+package org.safehaus.subutai.plugin.cassandra.ui.environment;
 
 
 import org.safehaus.subutai.common.util.FileUtil;

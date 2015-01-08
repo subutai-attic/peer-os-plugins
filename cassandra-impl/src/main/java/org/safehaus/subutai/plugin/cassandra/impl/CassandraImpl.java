@@ -284,7 +284,7 @@ public class CassandraImpl implements Cassandra
         nodeGroup.setLinkHosts( true );
         nodeGroup.setExchangeSshKeys( true );
         nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        nodeGroup.setTemplateName( config.getTemplateName() );
+        nodeGroup.setTemplateName( config.getTEMPLATE_NAME() );
         nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
         nodeGroup.setNumberOfNodes( config.getNumberOfNodes() );
 
