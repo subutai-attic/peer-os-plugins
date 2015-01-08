@@ -50,7 +50,7 @@ public class VerificationStep extends VerticalLayout
         }
 
         ContainerHost nimbusNodeNode = environment.getContainerHostById( environmentWizard.getConfig().getNimbus() );
-        cfgView.addStringCfg( "Nodes to be configured", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+        cfgView.addStringCfg( "Nodes to be configured as supervisor", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
         cfgView.addStringCfg( "Nimbus Node", nimbusNodeNode.getHostname() + "" );
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 

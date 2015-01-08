@@ -55,7 +55,6 @@ public class ConfigurationStep extends VerticalLayout
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
-        clusterNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
         clusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -68,7 +67,6 @@ public class ConfigurationStep extends VerticalLayout
         final TextField domainNameTxtFld = new TextField( "Enter domain name" );
         domainNameTxtFld.setInputPrompt( "intra.lan" );
         domainNameTxtFld.setRequired( true );
-        domainNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
         domainNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -95,6 +93,23 @@ public class ConfigurationStep extends VerticalLayout
                 getTwinSelect( "Nodes to be configured as Supervisor", "Available Nodes", "Selected Nodes", 4 );
         allNodesSelect.setId( "AllNodes" );
         allNodesSelect.setValue( null );
+        allNodesSelect.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                if ( event.getProperty().getValue() != null )
+                {
+                    Set<UUID> nodes = new HashSet<UUID>();
+                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
+                    for ( ContainerHost host : nodeList )
+                    {
+                        nodes.add( host.getId() );
+                    }
+                    environmentWizard.getConfig().setSupervisors( nodes );
+                }
+            }
+        } );
 
 
         final ComboBox nimbusNode = new ComboBox( "Choose Nimbus Node" );
@@ -136,7 +151,7 @@ public class ConfigurationStep extends VerticalLayout
                     nimbusNode.removeAllItems();
                     nimbusNode.setValue( null );
 
-                    for ( ContainerHost host : environment.getContainerHosts() ){
+                    for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) ){
                         allNodesSelect.addItem( host.getId() );
                         allNodesSelect.setItemCaption( host.getId(),
                                 ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
@@ -292,7 +307,7 @@ public class ConfigurationStep extends VerticalLayout
             target.removeAllItems();
             target.setValue( null );
 
-            for ( ContainerHost host : environment.getContainerHosts() ){
+            for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) ){
                 target.addItem( host );
                 target.setItemCaption( host,
                         ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
@@ -301,6 +316,17 @@ public class ConfigurationStep extends VerticalLayout
         else{
             target.removeAllItems();
         }
+    }
+
+
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+        Set<ContainerHost> filteredSet = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts ){
+            if ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) ){
+                filteredSet.add( containerHost );
+            }
+        }
+        return filteredSet;
     }
 
 
