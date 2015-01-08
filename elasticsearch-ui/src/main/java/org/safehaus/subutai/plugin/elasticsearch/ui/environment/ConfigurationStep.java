@@ -115,13 +115,10 @@ public class ConfigurationStep extends VerticalLayout
                 Environment e = ( Environment ) event.getProperty().getValue();
                 environmentWizard.getConfig().setEnvironmentId( e.getId() );
 
-                for ( ContainerHost host : e.getContainerHosts() ){
+                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) ){
                     allNodesSelect.addItem( host );
                     allNodesSelect.setItemCaption( host, (host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")") );
                 }
-
-//                allNodesSelect.setContainerDataSource(
-//                        new BeanItemContainer<>( ContainerHost.class, e.getContainerHosts() ) );
             }
         } );
 
@@ -188,6 +185,17 @@ public class ConfigurationStep extends VerticalLayout
             }
         }
         return  false;
+    }
+
+
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+        Set<ContainerHost> filteredSet = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts ){
+            if ( containerHost.getTemplateName().equals( ElasticsearchClusterConfiguration.TEMPLATE_NAME ) ){
+                filteredSet.add( containerHost );
+            }
+        }
+        return filteredSet;
     }
 
 
