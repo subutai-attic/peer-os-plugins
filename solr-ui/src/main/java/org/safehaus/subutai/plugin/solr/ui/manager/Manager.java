@@ -195,7 +195,7 @@ public class Manager
         if ( solrClusterConfig != null )
         {
             Environment environment = environmentManager.getEnvironmentByUUID( solrClusterConfig.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHosts() );
+            populateTable( nodesTable, environment.getContainerHostsByIds( solrClusterConfig.getNodes() ) );
         }
         else
         {
