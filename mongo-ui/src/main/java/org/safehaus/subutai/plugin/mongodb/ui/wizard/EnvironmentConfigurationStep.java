@@ -6,18 +6,24 @@
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 
 import org.safehaus.subutai.common.util.StringUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
+import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
+import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanContainer;
+import com.vaadin.data.util.BeanItem;
 import com.vaadin.ui.AbstractSelect;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
@@ -25,6 +31,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
@@ -33,13 +40,19 @@ import com.vaadin.ui.VerticalLayout;
  */
 public class EnvironmentConfigurationStep extends VerticalLayout
 {
+    Logger LOGGER = LoggerFactory.getLogger( EnvironmentConfigurationStep.class );
+
+    private TwinColSelect configServerNodes;
+    private TwinColSelect routeServerNodes;
+    private TwinColSelect dataServerNodes;
+
 
     public EnvironmentConfigurationStep( final Wizard wizard )
     {
 
         setSizeFull();
 
-        GridLayout content = new GridLayout( 2, 7 );
+        GridLayout content = new GridLayout( 3, 7 );
         content.setSizeFull();
         content.setSpacing( true );
         content.setMargin( true );
@@ -61,52 +74,83 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         //configuration servers number
-        ComboBox cfgSrvsCombo =
-                new ComboBox( "Choose number of configuration servers (Recommended 3 nodes)", Arrays.asList( 1, 3 ) );
-        cfgSrvsCombo.setImmediate( true );
-        cfgSrvsCombo.setTextInputAllowed( false );
-        cfgSrvsCombo.setNullSelectionAllowed( false );
-        cfgSrvsCombo.setValue( wizard.getMongoClusterConfig().getNumberOfConfigServers() );
-
-        cfgSrvsCombo.addValueChangeListener( new Property.ValueChangeListener()
+        configServerNodes = createTwinColSelect( "Select configuration node servers", "Available server nodes",
+                "Selected server nodes", 0 );
+        configServerNodes.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
-            public void valueChange( Property.ValueChangeEvent event )
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                wizard.getMongoClusterConfig().setNumberOfConfigServers( ( Integer ) event.getProperty().getValue() );
+                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
+                                            .split( "," );
+                    BeanContainer<String, MongoConfigNode> container =
+                            ( BeanContainer<String, MongoConfigNode> ) configServerNodes.getContainerDataSource();
+                    Set<MongoConfigNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoConfigNode> mongoBean = container.getItem( node.trim() );
+                        MongoConfigNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setConfigServers( mongoDataNodes );
+                }
             }
         } );
 
         //routers number
-        ComboBox routersCombo =
-                new ComboBox( "Choose number of routers ( At least 2 recommended)", Arrays.asList( 1, 2, 3 ) );
-        routersCombo.setImmediate( true );
-        routersCombo.setTextInputAllowed( false );
-        routersCombo.setNullSelectionAllowed( false );
-        routersCombo.setValue( wizard.getMongoClusterConfig().getNumberOfRouters() );
-
-        routersCombo.addValueChangeListener( new Property.ValueChangeListener()
+        routeServerNodes =
+                createTwinColSelect( "Select route nodes.", "Available route nodes", "Selected route nodes", 0 );
+        routeServerNodes.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
-            public void valueChange( Property.ValueChangeEvent event )
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                wizard.getMongoClusterConfig().setNumberOfRouters( ( Integer ) event.getProperty().getValue() );
+                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
+                                            .split( "," );
+                    BeanContainer<String, MongoRouterNode> container =
+                            ( BeanContainer<String, MongoRouterNode> ) routeServerNodes.getContainerDataSource();
+                    Set<MongoRouterNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoRouterNode> mongoBean = container.getItem( node.trim() );
+                        MongoRouterNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setRouterServers( mongoDataNodes );
+                }
             }
         } );
 
         //datanodes number
-        ComboBox dataNodesCombo = new ComboBox( "Choose number of datanodes", Arrays.asList( 3, 5, 7 ) );
-        dataNodesCombo.setImmediate( true );
-        dataNodesCombo.setTextInputAllowed( false );
-        dataNodesCombo.setNullSelectionAllowed( false );
-        dataNodesCombo.setValue( wizard.getMongoClusterConfig().getNumberOfDataNodes() );
-
-        dataNodesCombo.addValueChangeListener( new Property.ValueChangeListener()
+        dataServerNodes = createTwinColSelect( "Select data server node.", "Available data server nodes",
+                "Selected data server nodes", 0 );
+        dataServerNodes.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
-            public void valueChange( Property.ValueChangeEvent event )
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                wizard.getMongoClusterConfig().setNumberOfDataNodes( ( Integer ) event.getProperty().getValue() );
+                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
+                                            .split( "," );
+                    BeanContainer<String, MongoDataNode> container =
+                            ( BeanContainer<String, MongoDataNode> ) dataServerNodes.getContainerDataSource();
+                    Set<MongoDataNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoDataNode> mongoBean = container.getItem( node.trim() );
+                        MongoDataNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setDataNodes( mongoDataNodes );
+                }
             }
         } );
 
@@ -234,18 +278,20 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
         content.addComponent( envList );
         content.addComponent( clusterNameTxtFld );
-        content.addComponent( cfgSrvsCombo );
         content.addComponent( replicaSetName );
-        content.addComponent( routersCombo );
         content.addComponent( domain );
-        content.addComponent( dataNodesCombo );
         content.addComponent( cfgSrvPort );
-        content.addComponent( new Label() );
         content.addComponent( routerPort );
-        content.addComponent( new Label() );
         content.addComponent( dataNodePort );
         content.addComponent( new Label() );
+        content.addComponent( new Label() );
+        content.addComponent( configServerNodes );
+        content.addComponent( routeServerNodes );
+        content.addComponent( dataServerNodes );
+        content.addComponent( new Label() );
         content.addComponent( buttons );
+        content.setComponentAlignment( buttons, Alignment.MIDDLE_CENTER );
+        content.addComponent( new Label() );
 
         addComponent( layout );
     }
@@ -253,34 +299,15 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
-        List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
-        for ( int i = 0; i < environments.size(); i++ )
-        {
-            boolean applicable = false;
-            for ( final ContainerHost containerHost : environments.get( i ).getContainerHosts() )
-            {
-                if ( containerHost.getTemplateName().equalsIgnoreCase( "mongo" ) )
-                {
-                    applicable = true;
-                }
-            }
-            if ( !applicable )
-            {
-                environments.remove( i );
-                i--;
-            }
-        }
+        List<MongoClusterConfig> environments = wizard.getMongo().getClusters();
 
-        BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
-        container.setBeanIdProperty( "id" );
+        final BeanContainer<String, MongoClusterConfig> container = new BeanContainer<>( MongoClusterConfig.class );
+        container.setBeanIdProperty( "clusterName" );
 
-        for ( final Environment environment : environments )
-        {
-            container.addBean( environment );
-        }
+        container.addAll( environments );
 
         ComboBox envList = new ComboBox( "Select environment" );
-        envList.setItemCaptionPropertyId( "name" );
+        envList.setItemCaptionPropertyId( "clusterName" );
         envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
         envList.setImmediate( true );
         envList.setNullSelectionAllowed( false );
@@ -293,12 +320,54 @@ public class EnvironmentConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
-                wizard.getMongoClusterConfig().setEnvironmentId( envId );
+                BeanItem<MongoClusterConfig> clusterConfig =
+                        container.getItem( valueChangeEvent.getProperty().getValue() );
+
+                MongoClusterConfig mongoClusterConfig = clusterConfig.getBean();
+                wizard.getMongoClusterConfig().setEnvironmentId( mongoClusterConfig.getEnvironmentId() );
+                wizard.getMongoClusterConfig().setCfgSrvPort( mongoClusterConfig.getCfgSrvPort() );
+                wizard.getMongoClusterConfig().setDataNodePort( mongoClusterConfig.getDataNodePort() );
+                wizard.getMongoClusterConfig().setRouterPort( mongoClusterConfig.getRouterPort() );
+                wizard.getMongoClusterConfig().setDomainName( mongoClusterConfig.getDomainName() );
+                wizard.getMongoClusterConfig().setReplicaSetName( mongoClusterConfig.getReplicaSetName() );
+                wizard.getMongoClusterConfig().setNumberOfConfigServers( 1 );
+                wizard.getMongoClusterConfig().setNumberOfDataNodes( 3 );
+                wizard.getMongoClusterConfig().setNumberOfRouters( 1 );
+
+
+                fillConfigServers( configServerNodes, mongoClusterConfig.getConfigServers(), MongoConfigNode.class );
+                fillConfigServers( routeServerNodes, mongoClusterConfig.getRouterServers(), MongoRouterNode.class );
+                fillConfigServers( dataServerNodes, mongoClusterConfig.getDataNodes(), MongoDataNode.class );
             }
         } );
 
         return envList;
+    }
+
+
+    private <T> void fillConfigServers( TwinColSelect twinColSelect, Set<T> configServers, Class<T> clazz )
+    {
+        BeanContainer<String, T> container = new BeanContainer<>( clazz );
+        container.setBeanIdProperty( "hostname" );
+        container.addAll( configServers );
+
+        twinColSelect.setContainerDataSource( container );
+    }
+
+
+    private TwinColSelect createTwinColSelect( String caption, String leftColumnCaption, String rightColumnCaption,
+                                               int rows )
+    {
+        TwinColSelect twinColSelect = new TwinColSelect( caption );
+
+        twinColSelect.setNullSelectionAllowed( false );
+        twinColSelect.setMultiSelect( true );
+        twinColSelect.setImmediate( true );
+        twinColSelect.setLeftColumnCaption( leftColumnCaption );
+        twinColSelect.setRightColumnCaption( rightColumnCaption );
+        twinColSelect.setRows( rows );
+        twinColSelect.setRequired( true );
+        return twinColSelect;
     }
 
 

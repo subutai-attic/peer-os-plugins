@@ -70,7 +70,9 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( mongo, executorService, tracker, this );
+                component = isInstallOverEnvironment() ?
+                            new EnvironmentVerificationStep( mongo, executorService, tracker, this ) :
+                            new VerificationStep( mongo, executorService, tracker, this );
                 break;
             }
             default:
@@ -142,5 +144,11 @@ public class Wizard
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
+    }
+
+
+    public Mongo getMongo()
+    {
+        return mongo;
     }
 }
