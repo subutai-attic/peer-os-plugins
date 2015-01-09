@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.ConfigBase;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 import com.google.common.collect.Sets;
 
