@@ -142,6 +142,7 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
         }
 
         ComboBox envList = new ComboBox( "Select environment" );
+        envList.setId( "envList" );
         envList.setItemCaptionPropertyId( "name" );
         envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
         envList.setImmediate( true );
