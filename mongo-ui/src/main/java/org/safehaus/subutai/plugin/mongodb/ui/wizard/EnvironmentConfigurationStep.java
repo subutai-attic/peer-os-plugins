@@ -14,7 +14,6 @@ import org.safehaus.subutai.common.util.StringUtil;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
-import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -336,9 +335,9 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 wizard.getMongoClusterConfig().setNumberOfRouters( 1 );
 
 
-                fillConfigServers( configServerNodes, mongoClusterConfig.getAllNodes(), MongoNode.class );
-                fillConfigServers( routeServerNodes, mongoClusterConfig.getAllNodes(), MongoNode.class );
-                fillConfigServers( dataServerNodes, mongoClusterConfig.getAllNodes(), MongoNode.class );
+                fillConfigServers( configServerNodes, mongoClusterConfig.getConfigServers(), MongoConfigNode.class );
+                fillConfigServers( routeServerNodes, mongoClusterConfig.getRouterServers(), MongoRouterNode.class );
+                fillConfigServers( dataServerNodes, mongoClusterConfig.getDataNodes(), MongoDataNode.class );
             }
         } );
 
