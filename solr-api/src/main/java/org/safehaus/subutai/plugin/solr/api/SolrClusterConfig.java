@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 import com.google.common.base.Objects;

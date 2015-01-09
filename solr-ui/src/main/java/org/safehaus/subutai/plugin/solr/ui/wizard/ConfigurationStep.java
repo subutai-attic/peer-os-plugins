@@ -5,7 +5,6 @@
  */
 package org.safehaus.subutai.plugin.solr.ui.wizard;
 
-
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Button;

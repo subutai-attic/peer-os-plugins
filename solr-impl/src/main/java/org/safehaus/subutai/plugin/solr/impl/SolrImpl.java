@@ -26,6 +26,7 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.solr.api.Solr;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 import org.safehaus.subutai.plugin.solr.impl.handler.ClusterOperationHandler;
+import org.safehaus.subutai.plugin.solr.impl.handler.EnvConfigOperationHandler;
 import org.safehaus.subutai.plugin.solr.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,6 +257,12 @@ public class SolrImpl implements Solr
 
     public UUID configureEnvironmentCluster( final SolrClusterConfig config )
     {
-        return null;
+        Preconditions.checkNotNull( config, "Configuration is null" );
+
+        AbstractOperationHandler operationHandler = new EnvConfigOperationHandler( this, config );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
     }
 }

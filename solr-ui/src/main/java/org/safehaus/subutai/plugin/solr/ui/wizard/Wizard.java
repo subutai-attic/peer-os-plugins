@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.solr.api.Solr;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
@@ -27,13 +27,17 @@ public class Wizard
     private final ExecutorService executorService;
     private int step = 1;
     private SolrClusterConfig solrClusterConfig = new SolrClusterConfig();
+    private EnvironmentManager environmentManager;
+    private boolean installOverEnvironment;
 
 
-    public Wizard( ExecutorService executorService, Solr solr, Tracker tracker ) throws NamingException
+    public Wizard( ExecutorService executorService, Solr solr, Tracker tracker, final EnvironmentManager manager )
+            throws NamingException
     {
         this.executorService = executorService;
         this.solr = solr;
         this.tracker = tracker;
+        this.environmentManager = manager;
 
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
@@ -51,12 +55,14 @@ public class Wizard
         {
             case 1:
             {
+                installOverEnvironment = false;
                 component = new WelcomeStep( this );
                 break;
             }
             case 2:
             {
-                component = new ConfigurationStep( this );
+                component = installOverEnvironment ? new ConfigurationStepOverEnvironment( this ) :
+                            new ConfigurationStep( this );
                 break;
             }
             case 3:
@@ -80,6 +86,12 @@ public class Wizard
     public Component getContent()
     {
         return grid;
+    }
+
+
+    public void setInstallOverEnvironment( boolean installationType )
+    {
+        this.installOverEnvironment = installationType;
     }
 
 
@@ -108,5 +120,17 @@ public class Wizard
     public SolrClusterConfig getSolrClusterConfig()
     {
         return solrClusterConfig;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public boolean getInstallOverEnvironment()
+    {
+        return installOverEnvironment;
     }
 }
