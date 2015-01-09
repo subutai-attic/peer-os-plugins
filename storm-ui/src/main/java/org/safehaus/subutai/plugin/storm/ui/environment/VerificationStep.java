@@ -69,7 +69,7 @@ public class VerificationStep extends VerticalLayout
                     @Override
                     public void windowClose( Window.CloseEvent closeEvent )
                     {
-//                        environmentWizard.init();
+                        environmentWizard.init( false );
                     }
                 } );
                 getUI().addWindow( window.getWindow() );

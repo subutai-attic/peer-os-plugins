@@ -18,6 +18,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
@@ -138,20 +139,24 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 commandResultList.addAll( addNode() );
                 break;
             case REMOVE:
-                commandResultList.addAll( removeNode() );
-
+                removeCluster();
                 break;
         }
         logResults( trackerOperation, commandResultList );
     }
 
 
-    private List<CommandResult> removeNode()
+    private void removeCluster()
     {
-        List<CommandResult> commandResults = new ArrayList<>();
-        Preconditions.checkNotNull( hostname, "Hostname of the node to be removed cannot be null!" );
-        trackerOperation.addLogFailed( "Removing node from cluster is not supported yet!" );
-        return commandResults;
+        StormClusterConfiguration config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        manager.getPluginDAO().deleteInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster removed from database" );
     }
 
 
