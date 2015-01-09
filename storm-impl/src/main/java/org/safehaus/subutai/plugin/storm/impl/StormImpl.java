@@ -137,6 +137,14 @@ public class StormImpl extends StormBase
     }
 
 
+    public UUID removeCluster( final String clusterName )
+    {
+        StormClusterConfiguration config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler = new StormClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
     @Override
     public EnvironmentBlueprint getDefaultEnvironmentBlueprint( StormClusterConfiguration config )
     {

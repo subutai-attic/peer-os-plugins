@@ -9,8 +9,9 @@ import javax.sql.DataSource;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.PluginDAO;
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.storm.api.Storm;
+import org.safehaus.subutai.plugin.storm.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
