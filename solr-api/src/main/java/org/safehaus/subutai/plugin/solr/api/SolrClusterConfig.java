@@ -20,7 +20,7 @@ public class SolrClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Solr";
     public static final String PRODUCT_NAME = "solr";
-    private String templateName = PRODUCT_NAME;
+    public static String TEMPLATE_NAME = PRODUCT_NAME;
     private String clusterName = "";
     private int numberOfNodes = 1;
     private Set<UUID> nodes = new HashSet<>();
@@ -56,14 +56,9 @@ public class SolrClusterConfig implements ConfigBase
 
     public String getTemplateName()
     {
-        return templateName;
+        return TEMPLATE_NAME;
     }
 
-
-    public void setTemplateName( final String templateName )
-    {
-        this.templateName = templateName;
-    }
 
 
     public int getNumberOfNodes()
@@ -93,7 +88,7 @@ public class SolrClusterConfig implements ConfigBase
     @Override
     public String toString()
     {
-        return Objects.toStringHelper( this ).add( "templateName", templateName ).add( "clusterName", clusterName )
+        return Objects.toStringHelper( this ).add( "templateName", TEMPLATE_NAME ).add( "clusterName", clusterName )
                       .add( "numberOfNodes", numberOfNodes ).add( "nodes", nodes ).add( "environmentId", environmentId )
                       .toString();
     }
