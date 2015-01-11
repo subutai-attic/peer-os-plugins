@@ -263,7 +263,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( Strings.isNullOrEmpty( wizard.getConfig().getClusterName() ) )
                     {
-                        show( "Please, prvide cluster name" );
+                        show( "Please, provide cluster name" );
                     }
                     else if ( Strings.isNullOrEmpty( wizard.getConfig().getHadoopClusterName() ) )
                     {

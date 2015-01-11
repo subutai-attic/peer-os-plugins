@@ -50,6 +50,13 @@ public class WelcomeStep extends Panel
         startStandalone.addStyleName( "default" );
         grid.addComponent( startStandalone, 4, 4, 4, 4 );
         grid.setComponentAlignment( startStandalone, Alignment.BOTTOM_RIGHT );
+
+        Button startStandaloneOverEnv = new Button( "Start standalone configuration over Environment" );
+        startStandaloneOverEnv.setId( "ZookeeperStartStandaloneOverEnv" );
+        startStandaloneOverEnv.addStyleName( "default" );
+        grid.addComponent( startStandaloneOverEnv, 4, 5, 4, 5 );
+        grid.setComponentAlignment( startStandaloneOverEnv, Alignment.BOTTOM_RIGHT );
+
         Button startOverHadoop = new Button( "Start over-Hadoop installation" );
         startOverHadoop.setId( "ZookeeperStartOverHadoop" );
         startOverHadoop.addStyleName( "default" );

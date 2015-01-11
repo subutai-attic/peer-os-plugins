@@ -92,6 +92,9 @@ public class ZookeeperClusterOperationHandler extends AbstractPluginOperationHan
             case INSTALL:
                 setupCluster();
                 break;
+            case INSTALL_OVER_ENV:
+                setupClusterOverEnvironment();
+                break;
             case UNINSTALL:
                 destroyCluster();
                 break;
@@ -223,6 +226,44 @@ public class ZookeeperClusterOperationHandler extends AbstractPluginOperationHan
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
         catch ( EnvironmentBuildException | ClusterSetupException e )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
+                            clusterName, e.getMessage() ) );
+        }
+    }
+
+
+    public void setupClusterOverEnvironment()
+    {
+        if ( Strings.isNullOrEmpty( zookeeperClusterConfig.getClusterName() ) )
+        {
+            trackerOperation.addLogFailed( "Malformed configuration" );
+            return;
+        }
+
+        if ( manager.getCluster( clusterName ) != null )
+        {
+            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
+            return;
+        }
+
+        try
+        {
+            Environment env = null;
+            if ( config.getSetupType() != SetupType.OVER_HADOOP )
+            {
+                env = manager.getEnvironmentManager().getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
+            }
+
+
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, zookeeperClusterConfig, trackerOperation );
+            clusterSetupStrategy.setup();
+
+            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+        }
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(), clusterName,

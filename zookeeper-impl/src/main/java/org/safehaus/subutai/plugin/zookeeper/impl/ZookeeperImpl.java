@@ -177,6 +177,19 @@ public class ZookeeperImpl implements Zookeeper
     }
 
 
+    public UUID configureEnvironmentCluster( ZookeeperClusterConfig config )
+    {
+        Preconditions.checkNotNull( config, "Configuration is null" );
+
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( this, config, ClusterOperationType.INSTALL_OVER_ENV );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
+    }
+
+
     public List<ZookeeperClusterConfig> getClusters()
     {
 
