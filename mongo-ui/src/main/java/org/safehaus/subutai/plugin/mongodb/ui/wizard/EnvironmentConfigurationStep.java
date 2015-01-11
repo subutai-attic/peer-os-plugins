@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.util.StringUtil;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -76,83 +77,14 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         //configuration servers number
         configServerNodes = createTwinColSelect( "Select configuration node servers", "Available server nodes",
                 "Selected server nodes", 0 );
-        configServerNodes.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
-                {
-                    String[] nodes =
-                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
-                                            .split( "," );
-                    BeanContainer<String, MongoConfigNode> container =
-                            ( BeanContainer<String, MongoConfigNode> ) configServerNodes.getContainerDataSource();
-                    Set<MongoConfigNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoConfigNode> mongoBean = container.getItem( node.trim() );
-                        MongoConfigNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setConfigServers( mongoDataNodes );
-                }
-            }
-        } );
 
         //routers number
         routeServerNodes =
                 createTwinColSelect( "Select route nodes.", "Available route nodes", "Selected route nodes", 0 );
-        routeServerNodes.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
-                {
-                    String[] nodes =
-                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
-                                            .split( "," );
-                    BeanContainer<String, MongoRouterNode> container =
-                            ( BeanContainer<String, MongoRouterNode> ) routeServerNodes.getContainerDataSource();
-                    Set<MongoRouterNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoRouterNode> mongoBean = container.getItem( node.trim() );
-                        MongoRouterNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setRouterServers( mongoDataNodes );
-                }
-            }
-        } );
 
         //datanodes number
         dataServerNodes = createTwinColSelect( "Select data server node.", "Available data server nodes",
                 "Selected data server nodes", 0 );
-        dataServerNodes.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                if ( !valueChangeEvent.getProperty().getValue().toString().equals( "[]" ) )
-                {
-                    String[] nodes =
-                            valueChangeEvent.getProperty().getValue().toString().replace( "[", "" ).replace( "]", "" )
-                                            .split( "," );
-                    BeanContainer<String, MongoDataNode> container =
-                            ( BeanContainer<String, MongoDataNode> ) dataServerNodes.getContainerDataSource();
-                    Set<MongoDataNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoDataNode> mongoBean = container.getItem( node.trim() );
-                        MongoDataNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setDataNodes( mongoDataNodes );
-                }
-            }
-        } );
 
         TextField replicaSetName = new TextField( "Enter replica set name" );
         replicaSetName.setInputPrompt( wizard.getMongoClusterConfig().getReplicaSetName() );
@@ -241,6 +173,81 @@ public class EnvironmentConfigurationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
+
+                LOGGER.info( configServerNodes.getValue().toString() );
+
+                if ( !configServerNodes.getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            configServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
+                    BeanContainer<String, MongoConfigNode> container =
+                            ( BeanContainer<String, MongoConfigNode> ) configServerNodes.getContainerDataSource();
+                    Set<MongoConfigNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoConfigNode> mongoBean = container.getItem( node.trim() );
+                        MongoConfigNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setConfigServers( mongoDataNodes );
+                }
+                else
+                {
+                    show( "Select at least one Config server." );
+                    return;
+                }
+
+                LOGGER.info( routeServerNodes.getValue().toString() );
+                if ( !routeServerNodes.getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            routeServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
+                    BeanContainer<String, MongoRouterNode> container =
+                            ( BeanContainer<String, MongoRouterNode> ) routeServerNodes.getContainerDataSource();
+                    Set<MongoRouterNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoRouterNode> mongoBean = container.getItem( node.trim() );
+                        MongoRouterNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setRouterServers( mongoDataNodes );
+                }
+                else
+                {
+                    show( "Select at least one router server." );
+                    return;
+                }
+
+                LOGGER.info( dataServerNodes.getValue().toString() );
+                if ( !dataServerNodes.getValue().toString().equals( "[]" ) )
+                {
+                    String[] nodes =
+                            dataServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
+
+                    if ( nodes.length < 3 )
+                    {
+                        show( "Data nodes number must be not less than 3." );
+                        return;
+                    }
+
+                    BeanContainer<String, MongoDataNode> container =
+                            ( BeanContainer<String, MongoDataNode> ) dataServerNodes.getContainerDataSource();
+                    Set<MongoDataNode> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<MongoDataNode> mongoBean = container.getItem( node.trim() );
+                        MongoDataNode dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode );
+                    }
+                    wizard.getMongoClusterConfig().setDataNodes( mongoDataNodes );
+                }
+                else
+                {
+                    show( "Select at least three data nodes." );
+                    return;
+                }
+
                 if ( envList.getValue() == null )
                 {
                     show( "Select environment to configure." );
@@ -299,12 +306,27 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
-        List<MongoClusterConfig> environments = wizard.getMongo().getClusters();
+        List<MongoClusterConfig> clusterConfigs = wizard.getMongo().getClusters();
 
         final BeanContainer<String, MongoClusterConfig> container = new BeanContainer<>( MongoClusterConfig.class );
         container.setBeanIdProperty( "clusterName" );
 
-        container.addAll( environments );
+        Set<UUID> mongoEnvironments = new HashSet<>();
+        for ( int i = 0; i < clusterConfigs.size(); i++ )
+        {
+            MongoClusterConfig clusterConfig = clusterConfigs.get( i );
+            if ( !mongoEnvironments.contains( clusterConfig.getEnvironmentId() ) )
+            {
+                mongoEnvironments.add( clusterConfig.getEnvironmentId() );
+            }
+            else
+            {
+                clusterConfigs.remove( i );
+                i--;
+            }
+        }
+
+        container.addAll( clusterConfigs );
 
         ComboBox envList = new ComboBox( "Select environment" );
         envList.setItemCaptionPropertyId( "clusterName" );

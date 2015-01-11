@@ -8,6 +8,7 @@ package org.safehaus.subutai.plugin.mongodb.api;
 
 import java.util.UUID;
 
+import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
@@ -83,7 +84,7 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
                                                          TrackerOperation po );
 
 
-    public org.safehaus.subutai.common.protocol.EnvironmentBlueprint getDefaultEnvironmentBlueprint(
+    public EnvironmentBlueprint getDefaultEnvironmentBlueprint(
             MongoClusterConfig config );
 
 
