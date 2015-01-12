@@ -7,6 +7,7 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -187,6 +188,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
         config.getNodeIds().add( node.getId() );
 
         manager.saveConfig( config );
+
+        //subscribe to alerts
+        try
+        {
+            manager.subscribeToAlerts( node );
+        }
+        catch ( MonitorException e )
+        {
+            throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+        }
     }
 
 
