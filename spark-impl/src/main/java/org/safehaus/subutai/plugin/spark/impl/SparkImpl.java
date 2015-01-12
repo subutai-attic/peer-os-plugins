@@ -119,7 +119,7 @@ public class SparkImpl extends SparkBase implements Spark
     @Override
     public UUID addNode( final String clusterName, final String agentHostName )
     {
-        return null;
+        return addSlaveNode( clusterName, agentHostName );
     }
 
 
