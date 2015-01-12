@@ -119,10 +119,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
         trackerOperation.addLog( "Updating db..." );
 
-        if ( !manager.getPluginDao().saveInfo( SharkClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
-        {
-            throw new ClusterException( "Could not update cluster info" );
-        }
+        manager.saveConfig( config );
     }
 
 
@@ -189,10 +186,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
         config.getNodeIds().add( node.getId() );
 
-        if ( !manager.getPluginDao().saveInfo( SharkClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
-        {
-            throw new ClusterException( "Could not update cluster info" );
-        }
+        manager.saveConfig( config );
     }
 
 

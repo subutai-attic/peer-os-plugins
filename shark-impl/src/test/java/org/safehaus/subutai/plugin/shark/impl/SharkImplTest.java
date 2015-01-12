@@ -22,6 +22,8 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -70,6 +72,10 @@ public class SharkImplTest
     ResultSet resultSet;
     @Mock
     PluginDAO pluginDAO;
+    @Mock
+    Monitor monitor;
+    @Mock
+    QuotaManager quotaManager;
 
 
     @Before
@@ -84,7 +90,7 @@ public class SharkImplTest
 
 
         uuid = new UUID( 50, 50 );
-        sharkImpl = new SharkImpl( tracker, environmentManager, spark, dataSource );
+        sharkImpl = new SharkImpl( tracker, environmentManager, spark, dataSource, monitor, quotaManager );
         //        sharkImpl.init();
         sharkImpl.setPluginDAO( pluginDAO );
 

@@ -13,6 +13,7 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.Spark;
@@ -26,6 +27,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -57,6 +59,8 @@ public class Manager
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
+
     private static final String MESSAGE = "No cluster is installed !";
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
@@ -68,13 +72,15 @@ public class Manager
     private final Shark shark;
     private final EnvironmentManager environmentManager;
     private Environment environment;
+    private CheckBox autoScaleBtn;
 
 
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private SharkClusterConfig config;
 
 
-    public Manager( final ExecutorService executorService, Shark shark, Spark spark, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, final Shark shark, Spark spark, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -149,6 +155,36 @@ public class Manager
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
         controlsContent.addComponent( PROGRESS_ICON );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    config.setAutoScaling( value );
+                    try
+                    {
+                        shark.saveConfig( config );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
@@ -307,6 +343,7 @@ public class Manager
         {
             environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodeIds() ) );
+            autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else
         {
@@ -398,7 +435,8 @@ public class Manager
             for ( SharkClusterConfig sharkClusterConfig : clustersInfo )
             {
                 clusterCombo.addItem( sharkClusterConfig );
-                clusterCombo.setItemCaption( sharkClusterConfig, sharkClusterConfig.getClusterName() + "(" + sharkClusterConfig.getSparkClusterName() + ")" );
+                clusterCombo.setItemCaption( sharkClusterConfig,
+                        sharkClusterConfig.getClusterName() + "(" + sharkClusterConfig.getSparkClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

@@ -40,5 +40,11 @@ public class Commands
                 String.format( ". /etc/profile && sharkConf.sh clear master ; sharkConf.sh master %s",
                         master.getHostname() ) ).withTimeout( 60 );
     }
+
+
+    public RequestBuilder getServiceStatusCommand()
+    {
+        return new RequestBuilder( "service shark status" );
+    }
 }
 

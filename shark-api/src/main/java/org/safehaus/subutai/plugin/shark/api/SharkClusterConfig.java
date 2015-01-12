@@ -4,7 +4,6 @@ package org.safehaus.subutai.plugin.shark.api;
 import java.util.Set;
 import java.util.UUID;
 
-
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 import com.google.common.collect.Sets;
@@ -19,6 +18,19 @@ public class SharkClusterConfig implements ConfigBase
     private String sparkClusterName = "";
     private Set<UUID> nodeIds = Sets.newHashSet();
     private UUID environmentId;
+    private boolean autoScaling;
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
+    }
 
 
     public UUID getEnvironmentId()
