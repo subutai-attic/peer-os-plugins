@@ -1,20 +1,20 @@
 package org.safehaus.subutai.plugin.oozie.impl.handler;
 
 
-import java.util.UUID;
-
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
+
+import java.util.UUID;
 
 
 public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClusterConfig>
@@ -40,11 +40,18 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
         return trackerOperation.getId();
     }
 
+    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
+    {
+        this.hadoopConfig = hadoopConfig;
+    }
+
 
     @Override
     public void run()
     {
-        Environment env = null;
+        try
+        {
+            Environment env = null;
 
         if ( config.getSetupType() == SetupType.WITH_HADOOP )
         {
@@ -74,6 +81,16 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
             }
             trackerOperation.addLog( "Environment preparation completed" );
         }
+        else
+        {
+            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+            if ( env == null )
+            {
+                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                        hadoopConfig.getEnvironmentId() ) );
+            }
+        }
+
 
         ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
         try
@@ -90,5 +107,11 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
         {
             trackerOperation.addLogFailed( "Failed to setup cluster: " + ex.getMessage() );
         }
+        }
+        catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Could not start all nodes : %s", e.getMessage() ) );
+        }
+
     }
 }
