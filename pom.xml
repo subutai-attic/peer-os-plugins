@@ -8,7 +8,6 @@
   <artifactId>presto-plugin-parent</artifactId>
   <version>2.0.4</version>
 
-
   <name>Subutai Presto Parent</name>
   <description>Subutai Presto Parent</description>
   <packaging>pom</packaging>
@@ -78,6 +77,16 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>tracker-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>metric-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>lxc-quota-manager-api</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 

@@ -12,6 +12,11 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -24,6 +29,7 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.SetupType;
+import org.safehaus.subutai.plugin.presto.impl.alert.PrestoAlertListener;
 import org.safehaus.subutai.plugin.presto.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.presto.impl.handler.NodeOperationHanler;
 import org.slf4j.Logger;
@@ -35,23 +41,63 @@ import com.google.common.base.Preconditions;
 public class PrestoImpl implements Presto
 {
     private static final Logger LOG = LoggerFactory.getLogger( PrestoImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+
     private Tracker tracker;
     private PluginDAO pluginDAO;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
     private DataSource dataSource;
     private ExecutorService executor;
+    private Monitor monitor;
+    private QuotaManager quotaManager;
+    private PrestoAlertListener prestoAlertListener;
     Commands commands;
 
 
     public PrestoImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
-                       final Hadoop hadoopManager )
+                       final Hadoop hadoopManager, final Monitor monitor, final QuotaManager quotaManager )
     {
 
         this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
+        this.monitor = monitor;
+        this.quotaManager = quotaManager;
+
+        prestoAlertListener = new PrestoAlertListener( this );
+        monitor.addAlertListener( prestoAlertListener );
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        monitor.startMonitoring( prestoAlertListener, environment, alertSettings );
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        monitor.activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        monitor.stopMonitoring( prestoAlertListener, environment );
     }
 
 
