@@ -92,7 +92,7 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
         }
 
 
-        ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
+        ClusterSetupStrategy s = manager.getClusterSetupStrategy( trackerOperation, config, env );
         try
         {
             if ( s == null )
