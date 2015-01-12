@@ -1,9 +1,9 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
 
-import org.safehaus.subutai.common.exception.ClusterSetupException;
-import org.safehaus.subutai.common.protocol.ClusterSetupStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.SetupType;
 

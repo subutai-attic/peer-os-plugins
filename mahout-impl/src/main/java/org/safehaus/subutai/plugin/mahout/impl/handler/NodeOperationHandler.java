@@ -5,10 +5,9 @@ import java.util.Iterator;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.impl.MahoutImpl;
@@ -24,6 +23,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
     private String hostname;
     private NodeOperationType operationType;
 
+
     public NodeOperationHandler( final MahoutImpl manager, String clusterName, final String hostname,
                                  NodeOperationType operationType )
     {
@@ -34,6 +34,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
         this.trackerOperation = manager.getTracker().createTrackerOperation( MahoutClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
+
 
     @Override
     public void run()
@@ -74,8 +75,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
                 uninstallProductOnNode( host );
                 break;
         }
-
     }
+
 
     private CommandResult installProductOnNode( ContainerHost host )
     {
@@ -88,12 +89,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
                 config.getNodes().add( host.getId() );
                 manager.getPluginDAO().saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
                 trackerOperation.addLogDone(
-                        MahoutClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
+                        MahoutClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
+                                + " successfully." );
             }
             else
             {
-                trackerOperation
-                        .addLogFailed( "Could not install " + MahoutClusterConfig.PRODUCT_KEY + " to node " + hostname );
+                trackerOperation.addLogFailed(
+                        "Could not install " + MahoutClusterConfig.PRODUCT_KEY + " to node " + hostname );
             }
         }
         catch ( CommandException e )
@@ -120,8 +122,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
             }
             else
             {
-                trackerOperation
-                        .addLogFailed( "Could not uninstall " + MahoutClusterConfig.PRODUCT_KEY + " from node " + hostname );
+                trackerOperation.addLogFailed(
+                        "Could not uninstall " + MahoutClusterConfig.PRODUCT_KEY + " from node " + hostname );
             }
         }
         catch ( CommandException e )
