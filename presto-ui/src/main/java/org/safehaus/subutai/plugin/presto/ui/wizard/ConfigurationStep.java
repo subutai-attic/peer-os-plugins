@@ -311,21 +311,7 @@ public class ConfigurationStep extends Panel
                         coordinatorNodeCombo.setValue( null );
                         coordinatorNodeCombo.addValueChangeListener( coordinatorComboChangeListener );
                     }
-                    /*HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
-                    List<Agent> hadoopNodes = hadoopInfo.getAllNodes();
-                    hadoopNodes.removeAll( config.getWorkers() );
-                    coordinatorNodeCombo.removeAllItems();
-                    for ( Agent agent : hadoopNodes )
-                    {
-                        coordinatorNodeCombo.addItem( agent );
-                        coordinatorNodeCombo.setItemCaption( agent, agent.getHostname() );
-                    }
-                    if ( config.getCoordinatorNode() != null )
-                    {
-                        coordinatorNodeCombo.removeValueChangeListener( coordinatorComboChangeListener );
-                        coordinatorNodeCombo.setValue( config.getCoordinatorNode() );
-                        coordinatorNodeCombo.addValueChangeListener( coordinatorComboChangeListener );
-                    }*/
+
                 }
             }
         };
