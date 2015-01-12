@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
@@ -68,6 +68,21 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
 
     @Expose
     private Set<MongoDataNodeImpl> dataNodesImpl = new HashSet<>();
+
+
+    //These three collections are explicitly used for mongo environment configuration
+    //feature {configServerNames, routerServerNames, dataServerNames}
+    @Expose
+    private Set<String> configServerNames = new HashSet<>();
+
+
+    @Expose
+    private Set<String> routerServerNames = new HashSet<>();
+
+
+    @Expose
+    private Set<String> dataServerNames = new HashSet<>();
+
 
     private transient Set<MongoConfigNode> configServers = new HashSet<>();
 
@@ -453,5 +468,44 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
             this.dataNodesImpl.add( ( MongoDataNodeImpl ) dataNode );
         }
         return this;
+    }
+
+
+    public Set<String> getConfigServerNames()
+    {
+        return configServerNames;
+    }
+
+
+    public void setConfigServerNames( final Set<String> configServerNames )
+    {
+        this.configServerNames.clear();
+        this.configServerNames.addAll( configServerNames );
+    }
+
+
+    public Set<String> getRouterServerNames()
+    {
+        return routerServerNames;
+    }
+
+
+    public void setRouterServerNames( final Set<String> routerServerNames )
+    {
+        this.routerServerNames.clear();
+        this.routerServerNames.addAll( routerServerNames );
+    }
+
+
+    public Set<String> getDataServerNames()
+    {
+        return dataServerNames;
+    }
+
+
+    public void setDataServerNames( final Set<String> dataServerNames )
+    {
+        this.dataServerNames.clear();
+        this.dataServerNames.addAll( dataServerNames );
     }
 }

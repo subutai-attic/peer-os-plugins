@@ -6,16 +6,17 @@
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.StringUtil;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
-import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
-import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,16 +181,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             configServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    BeanContainer<String, MongoConfigNode> container =
-                            ( BeanContainer<String, MongoConfigNode> ) configServerNodes.getContainerDataSource();
-                    Set<MongoConfigNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoConfigNode> mongoBean = container.getItem( node.trim() );
-                        MongoConfigNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setConfigServers( mongoDataNodes );
+                    wizard.getMongoClusterConfig().setConfigServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
@@ -202,16 +194,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             routeServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    BeanContainer<String, MongoRouterNode> container =
-                            ( BeanContainer<String, MongoRouterNode> ) routeServerNodes.getContainerDataSource();
-                    Set<MongoRouterNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoRouterNode> mongoBean = container.getItem( node.trim() );
-                        MongoRouterNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setRouterServers( mongoDataNodes );
+                    wizard.getMongoClusterConfig().setRouterServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
@@ -230,17 +213,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                         show( "Data nodes number must be not less than 3." );
                         return;
                     }
-
-                    BeanContainer<String, MongoDataNode> container =
-                            ( BeanContainer<String, MongoDataNode> ) dataServerNodes.getContainerDataSource();
-                    Set<MongoDataNode> mongoDataNodes = new HashSet<>();
-                    for ( final String node : nodes )
-                    {
-                        BeanItem<MongoDataNode> mongoBean = container.getItem( node.trim() );
-                        MongoDataNode dataNode = mongoBean.getBean();
-                        mongoDataNodes.add( dataNode );
-                    }
-                    wizard.getMongoClusterConfig().setDataNodes( mongoDataNodes );
+                    wizard.getMongoClusterConfig().setDataServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
@@ -307,29 +280,30 @@ public class EnvironmentConfigurationStep extends VerticalLayout
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
         List<MongoClusterConfig> clusterConfigs = wizard.getMongo().getClusters();
+        List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
 
-        final BeanContainer<String, MongoClusterConfig> container = new BeanContainer<>( MongoClusterConfig.class );
-        container.setBeanIdProperty( "clusterName" );
+        final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
+        container.setBeanIdProperty( "name" );
 
         Set<UUID> mongoEnvironments = new HashSet<>();
-        for ( int i = 0; i < clusterConfigs.size(); i++ )
+        for ( MongoClusterConfig clusterConfig : clusterConfigs )
         {
-            MongoClusterConfig clusterConfig = clusterConfigs.get( i );
-            if ( !mongoEnvironments.contains( clusterConfig.getEnvironmentId() ) )
+            mongoEnvironments.add( clusterConfig.getEnvironmentId() );
+        }
+
+        for ( int i = 0; i < environments.size(); i++ )
+        {
+            Environment environment = environments.get( i );
+            if ( mongoEnvironments.contains( environment.getId() ) )
             {
-                mongoEnvironments.add( clusterConfig.getEnvironmentId() );
-            }
-            else
-            {
-                clusterConfigs.remove( i );
-                i--;
+                environments.remove( i-- );
             }
         }
 
-        container.addAll( clusterConfigs );
+        container.addAll( environments );
 
         ComboBox envList = new ComboBox( "Select environment" );
-        envList.setItemCaptionPropertyId( "clusterName" );
+        envList.setItemCaptionPropertyId( "name" );
         envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
         envList.setImmediate( true );
         envList.setNullSelectionAllowed( false );
@@ -342,24 +316,26 @@ public class EnvironmentConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                BeanItem<MongoClusterConfig> clusterConfig =
-                        container.getItem( valueChangeEvent.getProperty().getValue() );
+                BeanItem<Environment> clusterConfig = container.getItem( valueChangeEvent.getProperty().getValue() );
 
-                MongoClusterConfig mongoClusterConfig = clusterConfig.getBean();
-                wizard.getMongoClusterConfig().setEnvironmentId( mongoClusterConfig.getEnvironmentId() );
-                wizard.getMongoClusterConfig().setCfgSrvPort( mongoClusterConfig.getCfgSrvPort() );
-                wizard.getMongoClusterConfig().setDataNodePort( mongoClusterConfig.getDataNodePort() );
-                wizard.getMongoClusterConfig().setRouterPort( mongoClusterConfig.getRouterPort() );
-                wizard.getMongoClusterConfig().setDomainName( mongoClusterConfig.getDomainName() );
-                wizard.getMongoClusterConfig().setReplicaSetName( mongoClusterConfig.getReplicaSetName() );
+                Environment environment = clusterConfig.getBean();
+                wizard.getMongoClusterConfig().setEnvironmentId( environment.getId() );
+                wizard.getMongoClusterConfig().setCfgSrvPort( 27019 );
+                wizard.getMongoClusterConfig().setDataNodePort( 27017 );
+                wizard.getMongoClusterConfig().setRouterPort( 27018 );
+                wizard.getMongoClusterConfig().setDomainName( Common.DEFAULT_DOMAIN_NAME );
+                wizard.getMongoClusterConfig().setReplicaSetName( "repl" );
                 wizard.getMongoClusterConfig().setNumberOfConfigServers( 1 );
                 wizard.getMongoClusterConfig().setNumberOfDataNodes( 3 );
                 wizard.getMongoClusterConfig().setNumberOfRouters( 1 );
 
 
-                fillConfigServers( configServerNodes, mongoClusterConfig.getConfigServers(), MongoConfigNode.class );
-                fillConfigServers( routeServerNodes, mongoClusterConfig.getRouterServers(), MongoRouterNode.class );
-                fillConfigServers( dataServerNodes, mongoClusterConfig.getDataNodes(), MongoDataNode.class );
+                fillConfigServers( configServerNodes, environment.getContainerHosts(), ContainerHost.class );
+                fillConfigServers( routeServerNodes, environment.getContainerHosts(), ContainerHost.class );
+                fillConfigServers( dataServerNodes, environment.getContainerHosts(), ContainerHost.class );
+                //                fillConfigServers( routeServerNodes, environment.getRouterServers(),
+                // MongoRouterNode.class );
+                //                fillConfigServers( dataServerNodes, environment.getDataNodes(), MongoDataNode.class );
             }
         } );
 

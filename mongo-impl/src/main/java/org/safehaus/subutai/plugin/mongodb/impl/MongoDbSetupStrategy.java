@@ -147,20 +147,20 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
         Set<MongoDataNode> dataNodes = new HashSet<>();
         for ( ContainerHost environmentContainer : mongoEnvironmentContainers )
         {
-            if ( NodeType.CONFIG_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            if ( config.getConfigServerNames().contains( environmentContainer.getHostname() ) )
             {
                 MongoConfigNode mongoConfigNode =
                         new MongoConfigNodeImpl( environmentContainer, config.getDomainName(), config.getCfgSrvPort() );
                 configServers.add( mongoConfigNode );
             }
-            else if ( NodeType.ROUTER_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            else if ( config.getRouterServerNames().contains( environmentContainer.getHostname() ) )
             {
                 MongoRouterNode mongoRouterNode =
                         new MongoRouterNodeImpl( environmentContainer, config.getDomainName(), config.getRouterPort(),
                                 config.getCfgSrvPort() );
                 routers.add( mongoRouterNode );
             }
-            else if ( NodeType.DATA_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            else if ( config.getDataServerNames().contains( environmentContainer.getHostname() ) )
             {
                 MongoDataNode mongoDataNode =
                         new MongoDataNodeImpl( environmentContainer, config.getDomainName(), config.getDataNodePort() );
