@@ -15,6 +15,7 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -42,6 +43,7 @@ public class PrestoImpl implements Presto
     private ExecutorService executor;
     Commands commands;
 
+
     public PrestoImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
                        final Hadoop hadoopManager )
     {
@@ -51,6 +53,7 @@ public class PrestoImpl implements Presto
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
     }
+
 
     public void init()
     {
@@ -66,6 +69,7 @@ public class PrestoImpl implements Presto
 
         executor = Executors.newCachedThreadPool();
     }
+
 
     public Commands getCommands()
     {
@@ -137,10 +141,12 @@ public class PrestoImpl implements Presto
     public UUID installCluster( final PrestoClusterConfig config )
     {
         Preconditions.checkNotNull( config, "Configuration is null" );
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
+
 
     @Override
     public UUID installCluster( PrestoClusterConfig config, HadoopClusterConfig hadoopConfig )
@@ -155,7 +161,8 @@ public class PrestoImpl implements Presto
     @Override
     public UUID uninstallCluster( final PrestoClusterConfig config )
     {
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this, config, ClusterOperationType.DESTROY );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.DESTROY );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -189,13 +196,12 @@ public class PrestoImpl implements Presto
     }
 
 
-
     @Override
     public UUID addWorkerNode( final String clusterName, final String lxcHostname )
     {
 
-        AbstractOperationHandler operationHandler = new NodeOperationHanler( this, clusterName, lxcHostname,
-                NodeOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -211,10 +217,12 @@ public class PrestoImpl implements Presto
         return operationHandler.getTrackerId();
     }
 
+
     @Override
     public UUID startNode( final String clusterName, final String lxcHostname )
     {
-        AbstractOperationHandler operationHandler = new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.START );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.START );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -223,7 +231,8 @@ public class PrestoImpl implements Presto
     @Override
     public UUID stopNode( final String clusterName, final String lxcHostname )
     {
-        AbstractOperationHandler operationHandler = new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.STOP );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.STOP );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -232,7 +241,8 @@ public class PrestoImpl implements Presto
     @Override
     public UUID checkNode( final String clusterName, final String lxcHostname )
     {
-        AbstractOperationHandler operationHandler = new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.STATUS );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHanler( this, clusterName, lxcHostname, NodeOperationType.STATUS );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -256,5 +266,17 @@ public class PrestoImpl implements Presto
         }*/
 
         return null;
+    }
+
+
+    @Override
+    public void saveConfig( final PrestoClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
     }
 }

@@ -45,7 +45,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
 
-
 public class Manager
 {
 
@@ -79,7 +78,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executorService, Presto presto, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Presto presto, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;

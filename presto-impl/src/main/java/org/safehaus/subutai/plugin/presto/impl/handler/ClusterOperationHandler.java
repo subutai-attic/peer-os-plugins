@@ -152,13 +152,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
             LOG.error( e.getMessage(), e );
         }
 
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
-
         try
         {
             trackerOperation.addLog( "Destroying environment..." );

@@ -13,6 +13,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -73,10 +74,10 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             return;
         }
         ContainerHost coordinator = environment.getContainerHostById( config.getCoordinatorNode() );
-        if( !coordinator.isConnected())
+        if ( !coordinator.isConnected() )
         {
-            trackerOperation.addLogFailed( String.format( "Coordinator node %s is not connected",
-                    coordinator.getHostname() ) );
+            trackerOperation
+                    .addLogFailed( String.format( "Coordinator node %s is not connected", coordinator.getHostname() ) );
             return;
         }
 
@@ -110,27 +111,26 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }
-
-
     }
+
 
     private CommandResult installProductOnNode( ContainerHost host )
     {
         CommandResult result = null;
         try
         {
-            if( !host.isConnected())
+            if ( !host.isConnected() )
             {
                 throw new ClusterSetupException( "New node is not connected" );
             }
-            if( config.getWorkers().contains( host.getId() ))
+            if ( config.getWorkers().contains( host.getId() ) )
             {
                 throw new ClusterSetupException( "Node already belongs to cluster" + clusterName );
             }
             result = host.execute( manager.getCommands().getCheckInstalledCommand() );
             String hadoopPackage = Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME;
             boolean skipInstall = false;
-            if( result.getStdOut().contains( manager.getCommands().PACKAGE_NAME ))
+            if ( result.getStdOut().contains( manager.getCommands().PACKAGE_NAME ) )
             {
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has Presto installed" );
@@ -139,16 +139,17 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             {
                 throw new ClusterSetupException( "Node has no Hadoop installation" );
             }
-            if( !skipInstall)
+            if ( !skipInstall )
             {
                 trackerOperation.addLog( "Installing Presto..." );
                 result = host.execute( manager.getCommands().getInstallCommand() );
-                if( result.hasSucceeded() )
+                if ( result.hasSucceeded() )
                 {
                     config.getWorkers().add( host.getId() );
-                    manager.getPluginDAO().saveInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+                    manager.saveConfig( config );
                     trackerOperation.addLogDone(
-                            PrestoClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
+                            PrestoClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
+                                    + " successfully." );
                 }
                 else
                 {
@@ -161,12 +162,13 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             sh.configureAsWorker( set );
             sh.startNodes( set );
         }
-        catch ( CommandException | ClusterSetupException e  )
+        catch ( CommandException | ClusterSetupException | ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }
         return result;
     }
+
 
     private CommandResult uninstallProductOnNode( ContainerHost host )
     {
@@ -177,9 +179,10 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             if ( result.hasSucceeded() )
             {
                 config.getWorkers().remove( host.getId() );
-                manager.getPluginDAO().saveInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLogDone( PrestoClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
-                        + " successfully." );
+                manager.saveConfig( config );
+                trackerOperation.addLogDone(
+                        PrestoClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+                                + " successfully." );
             }
             else
             {
@@ -187,19 +190,21 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                         "Could not uninstall " + PrestoClusterConfig.PRODUCT_KEY + " from node " + host.getHostname() );
             }
         }
-        catch ( CommandException e )
+        catch ( CommandException | ClusterException e )
         {
             e.printStackTrace();
         }
         return result;
     }
+
+
     public static void logStatusResults( TrackerOperation po, CommandResult result )
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
         String status = "UNKNOWN";
 
-        if( result.getExitCode() == 0 )
+        if ( result.getExitCode() == 0 )
         {
             status = result.getStdOut();
         }
@@ -211,5 +216,4 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         log.append( String.format( "%s", status ) );
         po.addLogDone( log.toString() );
     }
-
 }
