@@ -10,6 +10,8 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -19,6 +21,7 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
 import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
 //import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
@@ -46,6 +49,11 @@ public class HadoopImpl implements Hadoop
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private DataSource dataSource;
+    private Monitor monitor;
+
+
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private HadoopAlertListener hadoopAlertListener;
 
 
     public HadoopImpl( DataSource dataSource )
@@ -53,6 +61,11 @@ public class HadoopImpl implements Hadoop
         this.dataSource = dataSource;
     }
 
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
 
     public void init()
     {
@@ -117,6 +130,18 @@ public class HadoopImpl implements Hadoop
     public PluginDAO getPluginDAO()
     {
         return pluginDAO;
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
     }
 
 

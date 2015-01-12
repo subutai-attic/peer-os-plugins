@@ -14,6 +14,7 @@ public class Commands
         this.config = config;
     }
 
+    public static String getStatusAll() { return "service hadoop-all status"; }
 
     public static String getStatusNameNodeCommand()
     {
