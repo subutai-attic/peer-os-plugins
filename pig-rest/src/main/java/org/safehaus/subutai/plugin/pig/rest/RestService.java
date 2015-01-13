@@ -22,6 +22,8 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.pig.api.Pig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
 
+import com.google.common.collect.Lists;
+
 
 public class RestService
 {
@@ -30,10 +32,12 @@ public class RestService
 
     private Pig pigManager;
 
-    public void setPigManager( Pig pigManager )
+
+    public RestService( final Pig pigManager )
     {
         this.pigManager = pigManager;
     }
+
 
     //create cluster
     @POST
@@ -44,6 +48,7 @@ public class RestService
         TrimmedConfig trimmedConfig = JsonUtil.fromJson( config, TrimmedConfig.class );
         PigConfig pigConfig = new PigConfig();
         pigConfig.setClusterName( trimmedConfig.getClusterName() );
+        pigConfig.setHadoopClusterName( trimmedConfig.getHadoopClusterName() );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getNodes() ) )
         {
@@ -52,7 +57,7 @@ public class RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            pigConfig.setNodes( nodes );
+            pigConfig.getNodes().addAll( nodes );
         }
 
         UUID uuid = pigManager.installCluster( pigConfig );
@@ -82,7 +87,7 @@ public class RestService
     {
 
         List<PigConfig> configs = pigManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        ArrayList<String> clusterNames = Lists.newArrayList();
 
         for ( PigConfig config : configs )
         {

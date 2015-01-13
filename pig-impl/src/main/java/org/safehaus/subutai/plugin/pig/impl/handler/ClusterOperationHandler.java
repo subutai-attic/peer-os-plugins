@@ -2,17 +2,12 @@ package org.safehaus.subutai.plugin.pig.impl.handler;
 
 
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -20,9 +15,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
-import org.safehaus.subutai.plugin.pig.api.SetupType;
 import org.safehaus.subutai.plugin.pig.impl.Commands;
 import org.safehaus.subutai.plugin.pig.impl.PigImpl;
 import org.slf4j.Logger;
@@ -31,16 +24,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 05.11.2014.
- */
-public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, PigConfig> implements ClusterOperationHandlerInterface
+public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, PigConfig>
+        implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private PigConfig config;
-    private HadoopClusterConfig hadoopConfig;
-    private ExecutorService executor = Executors.newCachedThreadPool();
+
 
     public ClusterOperationHandler( final PigImpl manager, final PigConfig config,
                                     final ClusterOperationType operationType )
@@ -52,10 +42,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
 
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
 
     @Override
     public void run()
@@ -67,18 +53,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
                 setupCluster();
                 break;
             case DESTROY:
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    uninstallCluster();
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    destroyCluster();
-                }
-
+                uninstallCluster();
                 break;
         }
     }
+
 
     @Override
     public void runOperationOnContainers( final ClusterOperationType clusterOperationType )
@@ -92,41 +71,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
     {
         try
         {
-            Environment env = null;
-
-            if ( config.getSetupType() == SetupType.WITH_HADOOP )
-            {
-
-                if ( hadoopConfig == null )
-                {
-                    trackerOperation.addLogFailed( "No Hadoop configuration specified" );
-                    return;
-                }
-                hadoopConfig.setTemplateName( PigConfig.TEMPLATE_NAME );
-                try
-                {
-                    trackerOperation.addLog( "Building environment..." );
-                    EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint( hadoopConfig );
-                    env = manager.getEnvironmentManager().buildEnvironment( eb );
-                }
-                catch ( ClusterSetupException | EnvironmentBuildException ex )
-                {
-                    throw new ClusterException( "Failed to build environment: " + ex.getMessage() );
-                }
-
-                trackerOperation.addLog( "Environment built successfully" );
-            }
-            else
-            {
-                env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-                if ( env == null )
-                {
-                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId() ) );
-                }
-            }
-
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
+            ClusterSetupStrategy s = manager.getClusterSetupStrategy( config, trackerOperation );
             try
             {
                 if ( s == null )
@@ -146,7 +91,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
         {
             trackerOperation.addLogFailed( String.format( "Could not start all nodes : %s", e.getMessage() ) );
         }
-
     }
 
 
@@ -173,21 +117,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
             LOG.error( e.getMessage(), e );
         }
-
     }
 
-    public void uninstallCluster(){
+
+    public void uninstallCluster()
+    {
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Pig..." );
 
         for ( UUID uuid : config.getNodes() )
         {
-            ContainerHost containerHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostById(
-                    uuid );
-            CommandResult result = null;
+            ContainerHost containerHost =
+                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+                           .getContainerHostById( uuid );
             try
             {
-                result = containerHost.execute( new RequestBuilder( Commands.uninstallCommand ) );
+                CommandResult result = containerHost.execute( new RequestBuilder( Commands.uninstallCommand ) );
                 if ( !result.hasSucceeded() )
                 {
                     po.addLog( result.getStdErr() );

@@ -15,14 +15,12 @@ import org.safehaus.subutai.plugin.pig.impl.Commands;
 import org.safehaus.subutai.plugin.pig.impl.PigImpl;
 
 
-/**
- * Created by ebru on 06.11.2014.
- */
 public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigConfig>
 {
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
+
 
     public NodeOperationHandler( final PigImpl manager, String clusterName, final String hostname,
                                  NodeOperationType operationType )
@@ -31,9 +29,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         this.hostname = hostname;
         this.clusterName = clusterName;
         this.operationType = operationType;
-        this.trackerOperation = manager.getTracker()
-                                       .createTrackerOperation( PigConfig.PRODUCT_KEY,
-                                               String.format( "Creating %s tracker object...", clusterName ) );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( PigConfig.PRODUCT_KEY,
+                String.format( "Creating %s tracker object...", clusterName ) );
     }
 
 
@@ -48,6 +45,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         }
 
         Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
+        {
+            trackerOperation.addLogFailed( "Could not find cluster environment" );
+            return;
+        }
+
         Iterator iterator = environment.getContainerHosts().iterator();
         ContainerHost host = null;
         while ( iterator.hasNext() )
@@ -66,26 +70,24 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         }
 
 
-            switch ( operationType )
-            {
-                case INSTALL:
-                    installProductOnNode( host );
-                    break;
-                case UNINSTALL:
-                    uninstallProductOnNode( host );
-                    break;
-            }
-
-
-
+        switch ( operationType )
+        {
+            case INSTALL:
+                installProductOnNode( host );
+                break;
+            case UNINSTALL:
+                uninstallProductOnNode( host );
+                break;
+        }
     }
+
+
     private CommandResult installProductOnNode( ContainerHost host )
     {
         CommandResult result = null;
         try
         {
-            result = host.execute( new RequestBuilder(
-                    Commands.installCommand ).withTimeout( 600 ) );
+            result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
             if ( result.hasSucceeded() )
             {
                 config.getNodes().add( host.getId() );
@@ -111,8 +113,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         CommandResult result = null;
         try
         {
-            result = host.execute( new RequestBuilder(
-                    Commands.uninstallCommand ).withTimeout( 600 ) );
+            result = host.execute( new RequestBuilder( Commands.uninstallCommand ).withTimeout( 600 ) );
             if ( result.hasSucceeded() )
             {
                 config.getNodes().remove( host.getId() );
@@ -132,5 +133,4 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         }
         return result;
     }
-
 }

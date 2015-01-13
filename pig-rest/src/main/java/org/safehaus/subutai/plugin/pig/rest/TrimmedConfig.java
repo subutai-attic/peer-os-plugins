@@ -8,6 +8,13 @@ public class TrimmedConfig
 {
     private String clusterName;
     private Set<String> nodes;
+    private String hadoopClusterName;
+
+
+    public String getHadoopClusterName()
+    {
+        return hadoopClusterName;
+    }
 
 
     public String getClusterName()

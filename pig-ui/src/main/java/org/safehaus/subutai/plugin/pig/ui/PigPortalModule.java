@@ -30,7 +30,7 @@ public class PigPortalModule implements PortalModule
     private final EnvironmentManager environmentManager;
 
 
-    public PigPortalModule( Pig pig, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
+    public PigPortalModule( Pig pig, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.pig = pig;
         this.hadoop = hadoop;

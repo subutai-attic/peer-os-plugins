@@ -1,12 +1,15 @@
 package org.safehaus.subutai.plugin.pig.ui.manager;
 
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -15,7 +18,6 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.Pig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
-import org.safehaus.subutai.plugin.pig.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
@@ -58,7 +60,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( ExecutorService executorService, Pig pig, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( ExecutorService executorService, Pig pig, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         Preconditions.checkNotNull( executorService, "Executor is null" );
 
@@ -160,61 +163,43 @@ public class Manager
                 }
                 else
                 {
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+                    String hn = config.getHadoopClusterName();
+                    if ( hn == null || hn.isEmpty() )
                     {
-                        String hn = config.getHadoopClusterName();
-                        if ( hn == null || hn.isEmpty() )
+                        show( "Undefined Hadoop cluster name" );
+                        return;
+                    }
+                    HadoopClusterConfig info = hadoop.getCluster( hn );
+                    if ( info != null )
+                    {
+                        Set<UUID> nodes = new HashSet<>( info.getAllNodes() );
+                        nodes.removeAll( config.getNodes() );
+                        if ( !nodes.isEmpty() )
                         {
-                            show( "Undefined Hadoop cluster name" );
-                            return;
-                        }
-                        HadoopClusterConfig info = hadoop.getCluster( hn );
-                        if ( info != null )
-                        {
-                            Set<UUID> nodes = new HashSet<UUID>( info.getAllNodes() );
-                            nodes.removeAll( config.getNodes() );
-                            if ( !nodes.isEmpty() )
+                            Set<ContainerHost> hosts =
+                                    environmentManager.getEnvironmentByUUID( info.getEnvironmentId() )
+                                                      .getContainerHostsByIds( nodes );
+                            AddNodeWindow addNodeWindow =
+                                    new AddNodeWindow( pig, tracker, executorService, config, hosts );
+                            contentRoot.getUI().addWindow( addNodeWindow );
+                            addNodeWindow.addCloseListener( new Window.CloseListener()
                             {
-                                Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() ).getContainerHostsByIds(
-                                        nodes );
-                                AddNodeWindow addNodeWindow =
-                                        new AddNodeWindow( pig, tracker, executorService, config, hosts );
-                                contentRoot.getUI().addWindow( addNodeWindow );
-                                addNodeWindow.addCloseListener( new Window.CloseListener()
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    @Override
-                                    public void windowClose( Window.CloseEvent closeEvent )
-                                    {
-                                        refreshClustersInfo();
-                                    }
-                                } );
-                            }
-                            else
-                            {
-                                show( "All nodes in corresponding Hadoop cluster have Presto installed" );
-                            }
+                                    refreshClustersInfo();
+                                }
+                            } );
                         }
                         else
                         {
-                            show( "Hadoop cluster info not found" );
+                            show( "All nodes in corresponding Hadoop cluster have Presto installed" );
                         }
                     }
-                    else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+                    else
                     {
-                        ConfirmationDialog d = new ConfirmationDialog( "Add node to cluster", "OK", "Cancel" );
-                        d.getOk().addClickListener( new Button.ClickListener()
-                        {
-
-                            @Override
-                            public void buttonClick( Button.ClickEvent event )
-                            {
-                                UUID trackId = pig.addNode( config.getClusterName(), null );
-                                ProgressWindow w =
-                                        new ProgressWindow( executorService, tracker, trackId, PigConfig.PRODUCT_KEY );
-                                contentRoot.getUI().addWindow( w.getWindow() );
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( d.getAlert() );
+                        show( "Hadoop cluster info not found" );
                     }
                 }
             }
@@ -333,7 +318,7 @@ public class Manager
         {
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
-            populateTable( nodesTable, hosts);
+            populateTable( nodesTable, hosts );
         }
         else
         {
@@ -424,7 +409,8 @@ public class Manager
             for ( PigConfig pigClusterInfo : clustersInfo )
             {
                 clusterCombo.addItem( pigClusterInfo );
-                clusterCombo.setItemCaption( pigClusterInfo, pigClusterInfo.getClusterName() + "(" + pigClusterInfo.getHadoopClusterName() + ")" );
+                clusterCombo.setItemCaption( pigClusterInfo,
+                        pigClusterInfo.getClusterName() + "(" + pigClusterInfo.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

@@ -9,10 +9,11 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.Pig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
-import org.safehaus.subutai.plugin.pig.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -27,8 +28,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Pig pig, final ExecutorService executorService, final Tracker tracker,
-                             final EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Pig pig, final Hadoop hadoop, final ExecutorService executorService,
+                             final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -45,28 +46,20 @@ public class VerificationStep extends Panel
         // Display config values
 
         final PigConfig config = wizard.getConfig();
-        final HadoopClusterConfig hadoopClusterConfig = wizard.getHadoopConfig();
         ConfigView cfgView = new ConfigView( "Installation configuration" );
+        cfgView.addStringCfg( "Cluster name", config.getClusterName() );
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+
+        Environment hadoopEnvironment =
+                environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+        Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
+        for ( ContainerHost host : nodes )
         {
-            Environment hadoopEnvironment =
-                    environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-            Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
-            for ( ContainerHost host : nodes )
-            {
-                cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
-            }
+            cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
-        }
+
 
         // Install button
 
@@ -79,16 +72,7 @@ public class VerificationStep extends Panel
             public void buttonClick( Button.ClickEvent clickEvent )
             {
 
-                UUID trackId = null;
-
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = pig.installCluster( config, wizard.getHadoopConfig() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = pig.installCluster( config, wizard.getHadoopConfig() );
-                }
+                UUID trackId = pig.installCluster( config );
 
                 ProgressWindow window = new ProgressWindow( executorService, tracker, trackId, PigConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

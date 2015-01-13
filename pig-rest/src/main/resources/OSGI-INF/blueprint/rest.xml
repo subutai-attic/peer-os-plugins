@@ -14,7 +14,7 @@
   <reference id="pigManager" availability="mandatory" interface="org.safehaus.subutai.plugin.pig.api.Pig" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.pig.rest.RestService">
-    <property name="pigManager" ref="pigManager" />
+    <argument ref="pigManager" />
   </bean>
 
   <jaxrs:server address="/pig" id="pigRestService">
