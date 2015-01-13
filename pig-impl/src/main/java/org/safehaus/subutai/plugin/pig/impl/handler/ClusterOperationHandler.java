@@ -74,10 +74,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( config, trackerOperation );
             try
             {
-                if ( s == null )
-                {
-                    throw new ClusterSetupException( "No setup strategy" );
-                }
                 trackerOperation.addLog( "Installing cluster..." );
                 s.setup();
                 trackerOperation.addLogDone( "Installing cluster completed" );
