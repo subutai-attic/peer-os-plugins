@@ -1,10 +1,24 @@
 package org.safehaus.subutai.plugin.cassandra.impl.alert;
 
 
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.metric.ProcessResourceUsage;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.CassandraImpl;
+import org.safehaus.subutai.plugin.cassandra.impl.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +44,182 @@ public class CassandraAlertListener implements AlertListener
     }
 
 
-    @Override
-    public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
+    private void throwAlertException( String context, Exception e ) throws AlertException
     {
+        LOG.error( context, e );
+        throw new AlertException( context, e );
+    }
 
+
+    @Override
+    public void onAlert( final ContainerHostMetric metric ) throws Exception
+    {
+        //find cluster by environment id
+        List<CassandraClusterConfig> clusters = cassandra.getClusters();
+
+        CassandraClusterConfig targetCluster = null;
+        for ( CassandraClusterConfig cluster : clusters )
+        {
+            if ( cluster.getEnvironmentId().equals( metric.getEnvironmentId() ) )
+            {
+                targetCluster = cluster;
+                break;
+            }
+        }
+
+        if ( targetCluster == null )
+        {
+            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
+                    null );
+        }
+
+        //get cluster environment
+        Environment environment = cassandra.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
+        if ( environment == null )
+        {
+            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+        }
+
+        //get environment containers and find alert's source host
+        Set<ContainerHost> containers = environment.getContainerHosts();
+
+        ContainerHost sourceHost = null;
+        for ( ContainerHost containerHost : containers )
+        {
+            if ( containerHost.getId().equals( metric.getHostId() ) )
+            {
+                sourceHost = containerHost;
+                break;
+            }
+        }
+
+        if ( sourceHost == null )
+        {
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+                    null );
+        }
+
+        //check if source host belongs to found spark cluster
+        if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
+        {
+            LOG.info( String.format( "Alert source host %s does not belong to Spark cluster", metric.getHost() ) );
+            return;
+        }
+
+
+        //figure out process pid
+        int processPID = 0;
+        try
+        {
+            CommandResult result = commandUtil.execute( new RequestBuilder( Commands.statusCommand ), sourceHost );
+            processPID = parsePid( result.getStdOut() );
+        }
+        catch ( NumberFormatException | CommandException e )
+        {
+            throwAlertException( "Error obtaining process PID", e );
+        }
+
+        //get process resource usage by pid
+        ProcessResourceUsage processResourceUsage =
+                cassandra.getMonitor().getProcessResourceUsage( sourceHost, processPID );
+
+        //confirm that Cassandra is causing the stress, otherwise no-op
+        MonitoringSettings thresholds = cassandra.getAlertSettings();
+        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double redLine = 0.9;
+        boolean isCpuStressedBySpark = false;
+        boolean isRamStressedBySpark = false;
+
+        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+        {
+            isRamStressedBySpark = true;
+        }
+        else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
+        {
+            isCpuStressedBySpark = true;
+        }
+
+        if ( !( isRamStressedBySpark || isCpuStressedBySpark ) )
+        {
+            LOG.info( "Cassandra cluster ok" );
+            return;
+        }
+
+
+        //auto-scaling is enabled -> scale cluster
+        if ( targetCluster.isAutoScaling() )
+        {
+            // check if a quota limit increase does it
+            boolean quotaIncreased = false;
+
+            if ( isRamStressedBySpark )
+            {
+                //read current RAM quota
+                int ramQuota = cassandra.getQuotaManager().getRamQuota( sourceHost.getId() );
+
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+                    //we can increase RAM quota
+                    cassandra.getQuotaManager().setRamQuota( sourceHost.getId(),
+                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+
+                    quotaIncreased = true;
+                }
+            }
+            else if ( isCpuStressedBySpark )
+            {
+
+                //read current CPU quota
+                int cpuQuota = cassandra.getQuotaManager().getCpuQuota( sourceHost.getId() );
+
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
+                    //we can increase CPU quota
+                    cassandra.getQuotaManager().setCpuQuota( sourceHost.getId(),
+                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+
+                    quotaIncreased = true;
+                }
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
+                return;
+            }
+
+            //launch node addition process
+            cassandra.addNode( targetCluster.getClusterName() );
+        }
+        else
+        {
+            notifyUser();
+        }
+    }
+
+
+    protected int parsePid( String output ) throws AlertException
+    {
+        Pattern p = Pattern.compile( "pid\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
+
+        Matcher m = p.matcher( output );
+
+        if ( m.find() )
+        {
+            return Integer.parseInt( m.group( 1 ) );
+        }
+        else
+        {
+            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
+        }
+        return 0;
+    }
+
+
+    protected void notifyUser()
+    {
+        //TODO implement me when user identity management is complete and we can figure out user email
     }
 
 
