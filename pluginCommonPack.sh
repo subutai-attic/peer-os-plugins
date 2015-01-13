@@ -2,7 +2,7 @@
 set -e
 . /var/lib/jenkins/jobs/master.get_branch_repo/workspace/big-data/pack-funcs
 
-productName=plugin-common
+productName=common
 
 # 1) Check if the version is changed or not. If not changed, dont create a new debian.
 checkVersion $productName "plugin"
