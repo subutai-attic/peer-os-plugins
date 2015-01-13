@@ -145,7 +145,7 @@ public class ConfigurationStep extends Panel
         hadoopClustersCombo.setImmediate( true );
         hadoopClustersCombo.setTextInputAllowed( false );
         hadoopClustersCombo.setRequired( true );
-        hadoopClustersCombo.setNullSelectionAllowed( false );
+        hadoopClustersCombo.setNullSelectionAllowed( true );
 
         regionServers.setItemCaptionPropertyId( "hostname" );
         regionServers.setRows( 7 );
@@ -266,6 +266,12 @@ public class ConfigurationStep extends Panel
                     config.setQuorumPeers( new HashSet<UUID>() );
                     config.setBackupMasters( new HashSet<UUID>() );
                     config.setHbaseMaster( null );
+                }
+                else{
+                    regionServers.removeAllItems();
+                    quorumPeers.removeAllItems();
+                    backUpMasters.removeAllItems();
+                    masterNodeCombo.removeAllItems();
                 }
             }
         } );
@@ -446,12 +452,9 @@ public class ConfigurationStep extends Panel
         Set<ContainerHost> hadoopHosts = new HashSet<>();
         for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
         {
-            if ( host.getNodeGroupName().toLowerCase().contains( hadoopInfo.getProductName().toLowerCase() ) )
+            if ( hadoopInfo.getAllNodes().contains( host.getId() ) )
             {
-                if ( hadoopInfo.getAllNodes().contains( host.getId() ) )
-                {
-                    hadoopHosts.add( host );
-                }
+                hadoopHosts.add( host );
             }
         }
         return hadoopHosts;
