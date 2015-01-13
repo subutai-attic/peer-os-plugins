@@ -7,6 +7,7 @@ import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -39,4 +40,12 @@ public interface Cassandra extends ApiBase<CassandraClusterConfig>
     public EnvironmentBlueprint getDefaultEnvironmentBlueprint( CassandraClusterConfig config );
 
     UUID configureEnvironmentCluster( CassandraClusterConfig config );
+
+
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( CassandraClusterConfig config ) throws ClusterException;
 }

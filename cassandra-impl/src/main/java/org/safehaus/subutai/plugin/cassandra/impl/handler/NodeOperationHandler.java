@@ -17,6 +17,7 @@ import org.safehaus.subutai.plugin.cassandra.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.cassandra.impl.Commands;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 
 import com.google.common.base.Preconditions;
@@ -40,9 +41,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         this.hostname = hostname;
         this.clusterName = clusterName;
         this.operationType = operationType;
-        this.trackerOperation = manager.getTracker()
-                                       .createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
-                                               String.format( "Creating %s tracker object...", clusterName ) );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
+                String.format( "Creating %s tracker object...", clusterName ) );
     }
 
 
@@ -103,20 +103,21 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
     }
 
 
-    public void destroyNode( ContainerHost host ){
-        EnvironmentManager environmentManager  = manager.getEnvironmentManager();
+    public void destroyNode( ContainerHost host )
+    {
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
             CassandraClusterConfig config = manager.getCluster( clusterName );
             environmentManager.removeContainer( config.getEnvironmentId(), host.getId() );
             config.getNodes().remove( host.getId() );
-            manager.getPluginDAO().saveInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+            manager.saveConfig( config );
             // configure cluster again
-            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager);
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator.configureCluster( config, environmentManager.getEnvironmentByUUID( config
-                        .getEnvironmentId() ) );
+                configurator.configureCluster( config,
+                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
             }
             catch ( ClusterConfigurationException e )
             {
@@ -124,9 +125,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             }
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
-
         }
-        catch ( EnvironmentManagerException e )
+        catch ( EnvironmentManagerException | ClusterException e )
         {
             e.printStackTrace();
         }

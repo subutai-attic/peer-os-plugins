@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.cassandra.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.cassandra.impl.Commands;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -41,6 +42,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
+
 
     public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
                                     final ClusterOperationType operationType )
@@ -78,7 +80,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     }
 
 
-    public void addNode(){
+    public void addNode()
+    {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup();
@@ -92,7 +95,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        String ngJSON = gson.toJson(nodeGroup);
+        String ngJSON = gson.toJson( nodeGroup );
 
         try
         {
@@ -102,24 +105,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
 
-                if ( ! config.getNodes().contains( containerHost.getId() ) ){
+                if ( !config.getNodes().contains( containerHost.getId() ) )
+                {
                     config.getNodes().add( containerHost.getId() );
                 }
             }
-            manager.getPluginDAO().saveInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+            manager.saveConfig( config );
 
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator.configureCluster( config, environmentManager.getEnvironmentByUUID( config
-                            .getEnvironmentId() ) );
+                configurator.configureCluster( config,
+                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
             }
             catch ( ClusterConfigurationException e )
             {
                 e.printStackTrace();
             }
         }
-        catch ( EnvironmentBuildException e )
+        catch ( EnvironmentBuildException | ClusterException e )
         {
             e.printStackTrace();
         }
