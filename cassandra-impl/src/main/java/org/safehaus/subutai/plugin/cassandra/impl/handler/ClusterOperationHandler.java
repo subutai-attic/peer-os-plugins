@@ -11,6 +11,7 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -101,14 +102,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         {
             environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            ContainerHost newNode = null;
             // update cluster configuration on DB
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
 
                 if ( !config.getNodes().contains( containerHost.getId() ) )
                 {
+                    newNode = containerHost;
                     config.getNodes().add( containerHost.getId() );
+                    break;
                 }
+            }
+
+            if ( newNode == null )
+            {
+                throw new ClusterException( "Failed to obtain new node" );
             }
 
             manager.saveConfig( config );
@@ -122,6 +131,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             catch ( ClusterConfigurationException e )
             {
                 e.printStackTrace();
+            }
+
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( newNode );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
             }
         }
         catch ( EnvironmentBuildException | ClusterException e )
@@ -227,6 +246,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
             manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() );
             trackerOperation.addLogDone( "Cluster destroyed" );
+            try
+            {
+                manager.unsubscribeFromAlerts(
+                        manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
+            }
+            catch ( MonitorException e )
+            {
+                throw new EnvironmentDestroyException( e.getMessage() );
+            }
         }
         catch ( EnvironmentDestroyException e )
         {
