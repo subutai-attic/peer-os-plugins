@@ -19,13 +19,9 @@ import javax.ws.rs.core.Response;
 
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.safehaus.subutai.plugin.presto.api.SetupType;
 
 import com.google.common.collect.Sets;
 
@@ -84,49 +80,17 @@ public class RestService
     {
         TrimmedPrestoConfig trimmedPrestoConfig = JsonUtil.GSON.fromJson( config, TrimmedPrestoConfig.class );
 
-
-        HadoopClusterConfig hadoopClusterConfig =
-                hadoopManager.getCluster( trimmedPrestoConfig.getHadoopClusterName() );
-
-        if ( hadoopClusterConfig == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Hadoop cluster %s not found", trimmedPrestoConfig.getHadoopClusterName() ) )
-                           .build();
-        }
-
-        Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-
-        if ( environment == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Environment %s not found", hadoopClusterConfig.getEnvironmentId() ) ).build();
-        }
-
-        ContainerHost master = environment.getContainerHostByHostname( trimmedPrestoConfig.getCoordinatorHost() );
-        if ( master == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Master node %s not found", trimmedPrestoConfig.getCoordinatorHost() ) ).build();
-        }
-        Set<UUID> slaveIds = Sets.newHashSet();
-        for ( String slaveHostname : trimmedPrestoConfig.getWorkersHost() )
-        {
-            ContainerHost slave = environment.getContainerHostByHostname( slaveHostname );
-            if ( slave == null )
-            {
-                return Response.status( Response.Status.NOT_FOUND )
-                               .entity( String.format( "Slave node %s not found", slaveHostname ) ).build();
-            }
-            slaveIds.add( slave.getId() );
-        }
         //fill cluster config
         PrestoClusterConfig expandedConfig = new PrestoClusterConfig();
         expandedConfig.setClusterName( trimmedPrestoConfig.getClusterName() );
         expandedConfig.setHadoopClusterName( trimmedPrestoConfig.getHadoopClusterName() );
-        expandedConfig.setSetupType( SetupType.OVER_HADOOP );
-        expandedConfig.setCoordinatorNode( master.getId() );
-        expandedConfig.getWorkers().addAll( slaveIds );
+        expandedConfig.setCoordinatorNode( UUID.fromString( trimmedPrestoConfig.getCoordinatorHost() ) );
+        Set<UUID> workers = Sets.newHashSet();
+        for ( String workerId : trimmedPrestoConfig.getWorkersHost() )
+        {
+            workers.add( UUID.fromString( workerId ) );
+        }
+        expandedConfig.getWorkers().addAll( workers );
 
         String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.installCluster( expandedConfig ) );
 

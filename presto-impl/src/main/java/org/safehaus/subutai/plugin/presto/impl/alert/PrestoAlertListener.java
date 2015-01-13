@@ -243,7 +243,7 @@ public class PrestoAlertListener implements AlertListener
 
     protected int parsePid( String output ) throws AlertException
     {
-        Pattern p = Pattern.compile( "pid\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
+        Pattern p = Pattern.compile( "(\\d+)", Pattern.CASE_INSENSITIVE );
 
         Matcher m = p.matcher( output );
 

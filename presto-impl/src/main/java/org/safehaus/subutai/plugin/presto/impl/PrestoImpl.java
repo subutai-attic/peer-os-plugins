@@ -25,10 +25,8 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.safehaus.subutai.plugin.presto.api.SetupType;
 import org.safehaus.subutai.plugin.presto.impl.alert.PrestoAlertListener;
 import org.safehaus.subutai.plugin.presto.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.presto.impl.handler.NodeOperationHanler;
@@ -153,39 +151,15 @@ public class PrestoImpl implements Presto
     }
 
 
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
     }
 
 
-    public void setEnvironmentManager( EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public void setExecutor( final ExecutorService executor )
-    {
-        this.executor = executor;
-    }
-
-
     public PluginDAO getPluginDAO()
     {
         return pluginDAO;
-    }
-
-
-    public void setPluginDAO( PluginDAO pluginDAO )
-    {
-        this.pluginDAO = pluginDAO;
     }
 
 
@@ -197,16 +171,6 @@ public class PrestoImpl implements Presto
                 new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID installCluster( PrestoClusterConfig config, HadoopClusterConfig hadoopConfig )
-    {
-        ClusterOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        h.setHadoopConfig( hadoopConfig );
-        executor.execute( h );
-        return h.getTrackerId();
     }
 
 
@@ -244,7 +208,7 @@ public class PrestoImpl implements Presto
     @Override
     public UUID addNode( final String clusterName, final String agentHostName )
     {
-        return null;
+        return addWorkerNode( clusterName, agentHostName );
     }
 
 
@@ -301,23 +265,9 @@ public class PrestoImpl implements Presto
 
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( final TrackerOperation po, final PrestoClusterConfig config,
-                                                         final Environment environment )
+    public ClusterSetupStrategy getClusterSetupStrategy( final TrackerOperation po, final PrestoClusterConfig config )
     {
-
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            return new SetupStrategyOverHadoop( po, this, config, environment );
-        }
-
-        /*if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            SetupStrategyWithHadoop s = new SetupStrategyWithHadoop( po, this, config );
-            s.setEnvironment( environment );
-            return s;
-        }*/
-
-        return null;
+        return new SetupStrategyOverHadoop( po, this, config );
     }
 
 

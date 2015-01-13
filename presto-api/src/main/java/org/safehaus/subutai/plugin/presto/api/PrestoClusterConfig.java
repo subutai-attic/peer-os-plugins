@@ -15,11 +15,9 @@ public class PrestoClusterConfig implements ConfigBase
     public static final String TEMPLATE_NAME = "presto";
 
     private String clusterName = "";
-    private SetupType setupType;
     // over-Hadoop params
     private String hadoopClusterName = "";
     private Set<UUID> workers = new HashSet<>();
-    private Set<UUID> hadoopNodes = new HashSet<>();
     private UUID coordinatorNode;
     private UUID environmentId;
     private boolean autoScaling;
@@ -61,18 +59,6 @@ public class PrestoClusterConfig implements ConfigBase
     public void setClusterName( String clusterName )
     {
         this.clusterName = clusterName;
-    }
-
-
-    public SetupType getSetupType()
-    {
-        return setupType;
-    }
-
-
-    public void setSetupType( SetupType setupType )
-    {
-        this.setupType = setupType;
     }
 
 
@@ -144,17 +130,5 @@ public class PrestoClusterConfig implements ConfigBase
     public void setEnvironmentId( final UUID environmentId )
     {
         this.environmentId = environmentId;
-    }
-
-
-    public Set<UUID> getHadoopNodes()
-    {
-        return hadoopNodes;
-    }
-
-
-    public void setHadoopNodes( final Set<UUID> hadoopNodes )
-    {
-        this.hadoopNodes = hadoopNodes;
     }
 }

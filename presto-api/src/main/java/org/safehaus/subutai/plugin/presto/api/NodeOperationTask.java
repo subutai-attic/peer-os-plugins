@@ -10,9 +10,6 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
 
-/**
- * Created by ebru on 13.11.2014.
- */
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;

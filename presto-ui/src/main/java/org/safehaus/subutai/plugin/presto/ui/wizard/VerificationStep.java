@@ -10,10 +10,10 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.safehaus.subutai.plugin.presto.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -28,8 +28,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Presto presto, final ExecutorService executorService, final Tracker tracker,
-                             EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Presto presto, final Hadoop hadoop, final ExecutorService executorService,
+                             final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -44,30 +44,20 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final PrestoClusterConfig config = wizard.getConfig();
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", config.getClusterName() );
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        final HadoopClusterConfig hc = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
+        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
+        ContainerHost coordinator = hadoopEnvironment.getContainerHostById( wizard.getConfig().getCoordinatorNode() );
+        Set<ContainerHost> workers = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getWorkers() );
+        cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
+        cfgView.addStringCfg( "Master Node", coordinator.getHostname() );
+        for ( ContainerHost worker : workers )
         {
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
-            ContainerHost coordinator =
-                    hadoopEnvironment.getContainerHostById( wizard.getConfig().getCoordinatorNode() );
-            Set<ContainerHost> workers = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getWorkers() );
-            cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
-            cfgView.addStringCfg( "Master Node", coordinator.getHostname() );
-            for ( ContainerHost worker : workers )
-            {
-                cfgView.addStringCfg( "Slave nodes", worker.getHostname() + "" );
-            }
+            cfgView.addStringCfg( "Slave nodes", worker.getHostname() + "" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
-        }
+
 
         Button install = new Button( "Install" );
         install.setId( "PresVerInstall" );
@@ -77,15 +67,7 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackId = null;
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = presto.installCluster( config, hc );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = presto.installCluster( config, hc );
-                }
+                UUID trackId = presto.installCluster( config);
 
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackId, PrestoClusterConfig.PRODUCT_KEY );

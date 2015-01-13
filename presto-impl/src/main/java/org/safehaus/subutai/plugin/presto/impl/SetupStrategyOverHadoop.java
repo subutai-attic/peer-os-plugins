@@ -9,31 +9,28 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
 
 public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetupStrategy
 {
-    private static final Logger LOG = LoggerFactory.getLogger( SetupStrategyOverHadoop.class.getName() );
     private Environment environment;
     private Set<ContainerHost> nodesToInstallPresto;
 
 
-    public SetupStrategyOverHadoop( TrackerOperation po, PrestoImpl manager, PrestoClusterConfig config,
-                                    Environment environment )
+    public SetupStrategyOverHadoop( TrackerOperation po, PrestoImpl manager, PrestoClusterConfig config )
     {
         super( po, manager, config );
-        this.environment = environment;
     }
 
 
@@ -59,7 +56,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         {
             throw new ClusterSetupException( m + "Coordinator node is not specified" );
         }
-        if ( config.getWorkers() == null || config.getWorkers().isEmpty() )
+        if ( CollectionUtil.isCollectionEmpty( config.getWorkers() ) )
         {
             throw new ClusterSetupException( m + "No workers nodes" );
         }
@@ -74,6 +71,13 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         {
             throw new ClusterSetupException(
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
+        }
+
+        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+
+        if ( environment == null )
+        {
+            throw new ClusterSetupException( "Could not find Hadoop environment" );
         }
 
         checkConnected( environment );
@@ -123,7 +127,6 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
     {
         try
         {
-
             //install presto
             po.addLog( "Installing Presto..." );
             for ( ContainerHost node : nodesToInstallPresto )
@@ -148,8 +151,11 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
 
             po.addLog( "Installation succeeded" );
+
+            //subscribe to alerts
+            manager.subscribeToAlerts( environment );
         }
-        catch ( CommandException e )
+        catch ( CommandException | MonitorException e )
         {
             throw new ClusterSetupException(
                     String.format( "Error while installing Presto on container %s; ", e.getMessage() ) );

@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -22,7 +23,6 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.NodeOperationTask;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.safehaus.subutai.plugin.presto.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
@@ -295,61 +295,45 @@ public class Manager
                 }
                 else
                 {
-                    Set<ContainerHost> set = null;
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+
+                    String hn = config.getHadoopClusterName();
+                    if ( hn == null || hn.isEmpty() )
                     {
-                        String hn = config.getHadoopClusterName();
-                        if ( hn == null || hn.isEmpty() )
+                        show( "Undefined Hadoop cluster name" );
+                        return;
+                    }
+                    HadoopClusterConfig info = hadoop.getCluster( hn );
+                    if ( info != null )
+                    {
+                        List<UUID> availableNodes = info.getAllNodes();
+                        availableNodes.removeAll( config.getAllNodes() );
+
+                        if ( !CollectionUtil.isCollectionEmpty( availableNodes ) )
                         {
-                            show( "Undefined Hadoop cluster name" );
-                            return;
-                        }
-                        HadoopClusterConfig info = hadoop.getCluster( hn );
-                        if ( info != null )
-                        {
-                            set = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() )
-                                                    .getContainerHostsByIds( Sets.newHashSet( info.getAllNodes() ) );
-                            set.removeAll( config.getAllNodes() );
-                            if ( !set.isEmpty() )
+                            Set<ContainerHost> set = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() )
+                                                                       .getContainerHostsByIds(
+                                                                               Sets.newHashSet( availableNodes ) );
+                            AddNodeWindow addNodeWindow =
+                                    new AddNodeWindow( presto, executorService, tracker, config, set );
+                            contentRoot.getUI().addWindow( addNodeWindow );
+                            addNodeWindow.addCloseListener( new Window.CloseListener()
                             {
-                                AddNodeWindow addNodeWindow =
-                                        new AddNodeWindow( presto, executorService, tracker, config, set );
-                                contentRoot.getUI().addWindow( addNodeWindow );
-                                addNodeWindow.addCloseListener( new Window.CloseListener()
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    @Override
-                                    public void windowClose( Window.CloseEvent closeEvent )
-                                    {
-                                        refreshClustersInfo();
-                                    }
-                                } );
-                            }
-                            else
-                            {
-                                show( "All nodes in corresponding Hadoop cluster have Presto installed" );
-                            }
+                                    refreshClustersInfo();
+                                }
+                            } );
                         }
                         else
                         {
-                            show( "Hadoop cluster info not found" );
+                            show( "All nodes in corresponding Hadoop cluster have Presto installed" );
                         }
                     }
-                    else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+                    else
                     {
-                        ConfirmationDialog d = new ConfirmationDialog( "Add node to cluster", "OK", "Cancel" );
-                        d.getOk().addClickListener( new Button.ClickListener()
-                        {
-
-                            @Override
-                            public void buttonClick( Button.ClickEvent event )
-                            {
-                                UUID trackId = presto.addWorkerNode( config.getClusterName(), null );
-                                ProgressWindow w = new ProgressWindow( executorService, tracker, trackId,
-                                        PrestoClusterConfig.PRODUCT_KEY );
-                                contentRoot.getUI().addWindow( w.getWindow() );
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( d.getAlert() );
+                        show( "Hadoop cluster info not found" );
                     }
                 }
             }

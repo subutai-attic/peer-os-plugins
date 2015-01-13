@@ -70,16 +70,15 @@ public class SetupHelper
 
         for ( ContainerHost host : workerHosts )
         {
-            CommandResult result = null;
             try
             {
-                result = host.execute( manager.getCommands().getSetCoordinatorCommand( host ) );
+                CommandResult result = host.execute( manager.getCommands().getSetWorkerCommand( host ) );
                 processResult( host, result );
             }
             catch ( CommandException e )
             {
                 throw new ClusterSetupException(
-                        String.format( "Failed to configure workers Presto node(s): %s", result.getStdErr() ) );
+                        String.format( "Failed to configure workers Presto node(s): %s", e.getMessage() ) );
             }
         }
     }
@@ -90,16 +89,15 @@ public class SetupHelper
         po.addLog( "Starting Presto node(s)..." );
         for ( ContainerHost host : set )
         {
-            CommandResult result = null;
             try
             {
-                result = host.execute( manager.getCommands().getStartCommand() );
+                CommandResult result = host.execute( manager.getCommands().getStartCommand() );
                 processResult( host, result );
             }
             catch ( CommandException e )
             {
                 throw new ClusterSetupException(
-                        String.format( "Failed to start Presto node(s): %s", result.getStdErr() ) );
+                        String.format( "Failed to start Presto node(s): %s", e.getMessage() ) );
             }
             po.addLogDone( "Presto node(s) started successfully\nDone" );
         }
@@ -119,7 +117,6 @@ public class SetupHelper
 
     public ContainerHost getCoordinatorHost( Environment environment )
     {
-        ContainerHost host = environment.getContainerHostById( config.getCoordinatorNode() );
-        return host;
+        return environment.getContainerHostById( config.getCoordinatorNode() );
     }
 }

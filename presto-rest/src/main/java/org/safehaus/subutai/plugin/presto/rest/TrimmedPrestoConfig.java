@@ -4,9 +4,6 @@ package org.safehaus.subutai.plugin.presto.rest;
 import java.util.Set;
 
 
-/**
- * Created by talas on 9/8/14.
- */
 public class TrimmedPrestoConfig
 {
     private String clusterName;

@@ -16,19 +16,15 @@ public class Commands
 
     public RequestBuilder getInstallCommand()
     {
-        RequestBuilder rb =
-                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
-                                                                                                .withStdOutRedirection(
-                                                                                                        OutputRedirection.NO );
-        return rb;
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
+                                                                                        .withStdOutRedirection(
+                                                                                                OutputRedirection.NO );
     }
 
 
     public RequestBuilder getUninstallCommand()
     {
-        RequestBuilder rb =
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 600 );
-        return rb;
+        return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 600 );
     }
 
 
@@ -47,12 +43,6 @@ public class Commands
     public RequestBuilder getStopCommand()
     {
         return new RequestBuilder( "service presto stop" ).withTimeout( 60 );
-    }
-
-
-    public RequestBuilder getRestartCommand()
-    {
-        return new RequestBuilder( "service presto restart" ).withTimeout( 60 );
     }
 
 

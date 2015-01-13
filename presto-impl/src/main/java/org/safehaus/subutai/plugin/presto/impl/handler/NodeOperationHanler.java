@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.presto.impl.handler;
 
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -11,6 +9,7 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -18,15 +17,14 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
+import org.safehaus.subutai.plugin.presto.impl.Commands;
 import org.safehaus.subutai.plugin.presto.impl.PrestoImpl;
 import org.safehaus.subutai.plugin.presto.impl.SetupHelper;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 
-/**
- * Created by ebru on 13.11.2014.
- */
 public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, PrestoClusterConfig>
 {
     private String clusterName;
@@ -83,7 +81,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
 
         try
         {
-            CommandResult result = null;
+            CommandResult result;
             switch ( operationType )
             {
                 case START:
@@ -130,7 +128,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             result = host.execute( manager.getCommands().getCheckInstalledCommand() );
             String hadoopPackage = Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME;
             boolean skipInstall = false;
-            if ( result.getStdOut().contains( manager.getCommands().PACKAGE_NAME ) )
+            if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
             {
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has Presto installed" );
@@ -147,7 +145,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                 {
                     config.getWorkers().add( host.getId() );
                     manager.saveConfig( config );
-                    trackerOperation.addLogDone(
+                    trackerOperation.addLog(
                             PrestoClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
                                     + " successfully." );
                 }
@@ -157,10 +155,22 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                             "Could not install " + PrestoClusterConfig.PRODUCT_KEY + " to node " + host.getHostname() );
                 }
             }
-            Set<ContainerHost> set = new HashSet<>( Arrays.asList( host ) );
+            Set<ContainerHost> set = Sets.newHashSet( host );
             SetupHelper sh = new SetupHelper( trackerOperation, manager, config );
             sh.configureAsWorker( set );
             sh.startNodes( set );
+
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( host );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
+
+            trackerOperation.addLogDone( "Node configured" );
         }
         catch ( CommandException | ClusterSetupException | ClusterException e )
         {
