@@ -22,6 +22,19 @@ public class PrestoClusterConfig implements ConfigBase
     private Set<UUID> hadoopNodes = new HashSet<>();
     private UUID coordinatorNode;
     private UUID environmentId;
+    private boolean autoScaling;
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
+    }
 
 
     @Override

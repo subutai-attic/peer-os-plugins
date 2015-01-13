@@ -13,6 +13,7 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -34,6 +35,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -64,6 +66,7 @@ public class Manager
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
     private static final String MESSAGE = "No cluster is installed !";
     final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
@@ -76,9 +79,10 @@ public class Manager
     private final Tracker tracker;
     private PrestoClusterConfig config;
     private final EnvironmentManager environmentManager;
+    private CheckBox autoScaleBtn;
 
 
-    public Manager( final ExecutorService executorService, Presto presto, Hadoop hadoop, Tracker tracker,
+    public Manager( final ExecutorService executorService, final Presto presto, Hadoop hadoop, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
     {
 
@@ -164,6 +168,36 @@ public class Manager
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    config.setAutoScaling( value );
+                    try
+                    {
+                        presto.saveConfig( config );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
         addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn,
                 addNodeBtn );
@@ -794,6 +828,7 @@ public class Manager
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
                     environment.getContainerHostById( config.getCoordinatorNode() ) );
+            autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else
         {

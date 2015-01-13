@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.presto.impl.alert;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,6 +16,7 @@ import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.plugin.presto.impl.PrestoImpl;
 import org.slf4j.Logger;
@@ -22,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Created by dilshat on 1/12/15.
+ * Node resource threshold excess alert listener
  */
 public class PrestoAlertListener implements AlertListener
 {
@@ -118,11 +120,11 @@ public class PrestoAlertListener implements AlertListener
         }
 
 
-        //get Spark process resource usage by Spark pid
+        //get process resource usage by pid
         ProcessResourceUsage processResourceUsage =
                 presto.getMonitor().getProcessResourceUsage( sourceHost, prestoPID );
 
-        //confirm that Spark is causing the stress, otherwise no-op
+        //confirm that Presto is causing the stress, otherwise no-op
         MonitoringSettings thresholds = presto.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
@@ -140,13 +142,102 @@ public class PrestoAlertListener implements AlertListener
 
         if ( !( isRamStressedBySpark || isCpuStressedBySpark ) )
         {
-            LOG.info( "Spark cluster ok" );
+            LOG.info( "Presto cluster ok" );
             return;
         }
 
 
-        //TODO implement the rest, pay attention to coordinator node (see Spark master node)
+        //auto-scaling is enabled -> scale cluster
+        if ( targetCluster.isAutoScaling() )
+        {
+            // check if a quota limit increase does it
+            boolean quotaIncreased = false;
 
+            if ( isRamStressedBySpark )
+            {
+                //read current RAM quota
+                int ramQuota = presto.getQuotaManager().getRamQuota( sourceHost.getId() );
+
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+                    //we can increase RAM quota
+                    presto.getQuotaManager().setRamQuota( sourceHost.getId(),
+                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+
+                    quotaIncreased = true;
+                }
+            }
+            else if ( isCpuStressedBySpark )
+            {
+
+                //read current CPU quota
+                int cpuQuota = presto.getQuotaManager().getCpuQuota( sourceHost.getId() );
+
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
+                    //we can increase CPU quota
+                    presto.getQuotaManager().setCpuQuota( sourceHost.getId(),
+                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+
+                    quotaIncreased = true;
+                }
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
+                return;
+            }
+
+            // add new node
+            HadoopClusterConfig hadoopClusterConfig =
+                    presto.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
+            if ( hadoopClusterConfig == null )
+            {
+                throwAlertException(
+                        String.format( "Hadoop cluster %s not found", targetCluster.getHadoopClusterName() ), null );
+            }
+
+            boolean isCoordinator = sourceHost.getId().equals( targetCluster.getCoordinatorNode() );
+            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
+            availableNodes.removeAll( targetCluster.getAllNodes() );
+
+            //no available nodes or coordinator node is stressed -> notify user
+            if ( availableNodes.isEmpty() || isCoordinator )
+            {
+                //for coordinator node we can use only vertical scaling, so we need to notify user
+                notifyUser();
+            }
+            //add first available node
+            else
+            {
+                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeHostName = null;
+                for ( ContainerHost containerHost : containers )
+                {
+                    if ( containerHost.getId().equals( newNodeId ) )
+                    {
+                        newNodeHostName = containerHost.getHostname();
+                        break;
+                    }
+                }
+
+                if ( newNodeHostName == null )
+                {
+                    throwAlertException(
+                            String.format( "Could not obtain available hadoop node from environment by id %s",
+                                    newNodeId ), null );
+                }
+
+                //launch node addition process
+                presto.addWorkerNode( targetCluster.getClusterName(), newNodeHostName );
+            }
+        }
+        else
+        {
+            notifyUser();
+        }
     }
 
 

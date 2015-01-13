@@ -101,6 +101,12 @@ public class PrestoImpl implements Presto
     }
 
 
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
     public void init()
     {
         try
