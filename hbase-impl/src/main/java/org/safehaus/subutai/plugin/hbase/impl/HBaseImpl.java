@@ -5,6 +5,8 @@ import com.google.common.base.Preconditions;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -15,6 +17,7 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.api.SetupType;
+import org.safehaus.subutai.plugin.hbase.impl.alert.HBaseAlertListener;
 import org.safehaus.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hbase.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -39,11 +42,50 @@ public class HBaseImpl implements HBase
     private PluginDAO pluginDAO;
     private DataSource dataSource;
     private Commands commands;
+    private HBaseAlertListener hBaseAlertListener;
+    private Monitor monitor;
+
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public HBaseImpl( DataSource dataSource )
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public HBaseImpl( DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+                      final Hadoop hadoopManager, final Monitor monitor)
     {
         this.dataSource = dataSource;
+
+        //subscribe to alerts
+        hBaseAlertListener = new HBaseAlertListener( this );
+        monitor.addAlertListener( hBaseAlertListener );
+    }
+
+
+    public HBaseAlertListener gethBaseAlertListener()
+    {
+        return hBaseAlertListener;
+    }
+
+
+    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
+    {
+        this.hBaseAlertListener = hBaseAlertListener;
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
     }
 
 

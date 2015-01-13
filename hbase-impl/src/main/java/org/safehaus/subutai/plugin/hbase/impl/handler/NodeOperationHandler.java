@@ -21,9 +21,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-/**
- * Created by bahadyr on 11/17/14.
- */
 public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HBaseConfig>
 {
     private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
