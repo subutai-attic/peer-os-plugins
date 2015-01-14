@@ -91,6 +91,10 @@ public class VerificationStep extends Panel
                 {
                     trackID = zookeeper.installCluster( wizard.getConfig() );
                 }
+                else if ( wizard.getConfig().getSetupType() == SetupType.OVER_ENVIRONMENT )
+                {
+                    trackID = zookeeper.configureEnvironmentCluster( wizard.getConfig() );
+                }
                 else
                 {
                     trackID = zookeeper.installCluster( wizard.getConfig() );

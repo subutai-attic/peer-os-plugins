@@ -256,6 +256,7 @@ public class ZookeeperClusterOperationHandler extends AbstractPluginOperationHan
                 env = manager.getEnvironmentManager().getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
             }
 
+            Preconditions.checkNotNull( env, "Environment is null !!!" );
 
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, zookeeperClusterConfig, trackerOperation );

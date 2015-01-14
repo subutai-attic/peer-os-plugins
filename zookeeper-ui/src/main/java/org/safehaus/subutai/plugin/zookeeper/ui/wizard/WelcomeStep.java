@@ -54,8 +54,8 @@ public class WelcomeStep extends Panel
         Button startStandaloneOverEnv = new Button( "Start standalone configuration over Environment" );
         startStandaloneOverEnv.setId( "ZookeeperStartStandaloneOverEnv" );
         startStandaloneOverEnv.addStyleName( "default" );
-        grid.addComponent( startStandaloneOverEnv, 4, 5, 4, 5 );
-        grid.setComponentAlignment( startStandaloneOverEnv, Alignment.BOTTOM_RIGHT );
+        grid.addComponent( startStandaloneOverEnv, 5, 5, 5, 5 );
+        grid.setComponentAlignment( startStandaloneOverEnv, Alignment.MIDDLE_CENTER );
 
         Button startOverHadoop = new Button( "Start over-Hadoop installation" );
         startOverHadoop.setId( "ZookeeperStartOverHadoop" );
@@ -95,6 +95,16 @@ public class WelcomeStep extends Panel
             {
                 wizard.init();
                 wizard.getConfig().setSetupType( SetupType.WITH_HADOOP );
+                wizard.next();
+            }
+        } );
+        startStandaloneOverEnv.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent event )
+            {
+                wizard.init();
+                wizard.getConfig().setSetupType( SetupType.OVER_ENVIRONMENT );
                 wizard.next();
             }
         } );

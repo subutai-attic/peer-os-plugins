@@ -69,8 +69,9 @@ public class ClusterConfiguration
         }
 
         boolean isSuccesful = true;
-        for ( int i = 0 ; i < commandsResultList.size(); i++ ) {
-            if ( ! commandsResultList.get( i ).hasSucceeded() )
+        for ( CommandResult aCommandsResultList : commandsResultList )
+        {
+            if ( !aCommandsResultList.hasSucceeded() )
             {
                 isSuccesful = false;
             }
@@ -79,12 +80,10 @@ public class ClusterConfiguration
         {
             po.addLog( "Cluster configured\nRestarting cluster..." );
             //restart all other nodes with new configuration
-            String restartCommand = manager.getCommands().getRestartCommand( );
             commandsResultList = new ArrayList<>();
             while( iterator.hasNext() ) {
                 ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
-                configureClusterCommand = manager.getCommands().getConfigureClusterCommand(
-                        prepareConfiguration( containerHosts ), ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
+                String restartCommand = Commands.getRestartCommand();
                 CommandResult commandResult = null;
                 try
                 {
@@ -92,7 +91,7 @@ public class ClusterConfiguration
                 }
                 catch ( CommandException e )
                 {
-                    po.addLogFailed("Could not run command " + configureClusterCommand + ": " + e);
+                    po.addLogFailed( "Could not run command " + restartCommand + ": " + e );
                     e.printStackTrace();
                 }
                 commandsResultList.add( commandResult );

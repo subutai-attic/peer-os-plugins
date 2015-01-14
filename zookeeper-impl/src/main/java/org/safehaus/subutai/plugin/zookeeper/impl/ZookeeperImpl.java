@@ -332,6 +332,11 @@ public class ZookeeperImpl implements Zookeeper
             //this is a with-Hadoop ZK cluster setup
             return new ZookeeperWithHadoopSetupStrategy( environment, config, po, this );
         }
+        else if ( config.getSetupType() == SetupType.OVER_ENVIRONMENT )
+        {
+            //while installing zoo over existing environment
+            return new ZookeeperOverEnvironmentSetupStrategy( environment, config, po, this );
+        }
         else
         {
             //this is an over-Hadoop ZK cluster setup
