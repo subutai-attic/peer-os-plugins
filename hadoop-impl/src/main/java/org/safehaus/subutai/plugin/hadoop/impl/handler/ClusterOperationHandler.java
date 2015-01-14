@@ -2,7 +2,9 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -29,6 +31,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
@@ -106,7 +109,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setName( HadoopClusterConfig.PRODUCT_NAME );
+        String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
+        nodeGroup.setName( nodeGroupName );
         nodeGroup.setLinkHosts( true );
         nodeGroup.setExchangeSshKeys( true );
         nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
@@ -127,16 +131,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( ! config.getAllSlaveNodes().contains( containerHost.getId() ) ){
-                    config.getAllSlaveNodes().add( containerHost.getId() );
-                    newlyCreatedContainers.add( containerHost );
+                    if ( containerHost.getNodeGroupName().equals( nodeGroupName ) ){
+                        config.getDataNodes().add( containerHost.getId() );
+                        config.getTaskTrackers().add( containerHost.getId() );
+                        trackerOperation.addLog( containerHost.getHostname() + " is added as slave node." );
+                        newlyCreatedContainers.add( containerHost );
+                    }
                 }
             }
             manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
 
             // include newly created containers to existing hadoop cluster
             for ( ContainerHost containerHost : newlyCreatedContainers ){
+                trackerOperation.addLog( "Configuring " + containerHost.getHostname()   );
                 manager.includeNode( config, containerHost.getHostname()  );
             }
+            trackerOperation.addLogDone( "Finished." );
         }
         catch ( EnvironmentBuildException e )
         {
