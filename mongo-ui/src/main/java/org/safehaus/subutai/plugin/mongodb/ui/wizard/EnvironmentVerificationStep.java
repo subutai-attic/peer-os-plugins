@@ -26,11 +26,11 @@ import com.vaadin.ui.Window;
 /**
  * @author dilshat
  */
-public class VerificationStep extends VerticalLayout
+public class EnvironmentVerificationStep extends VerticalLayout
 {
 
-    public VerificationStep( final Mongo mongo, final ExecutorService executorService, final Tracker tracker,
-                             final Wizard wizard )
+    public EnvironmentVerificationStep( final Mongo mongo, final ExecutorService executorService, final Tracker tracker,
+                                        final Wizard wizard )
     {
 
         setSizeFull();
@@ -48,10 +48,31 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Cluster Name", wizard.getMongoClusterConfig().getClusterName() );
         cfgView.addStringCfg( "Replica Set Name", wizard.getMongoClusterConfig().getReplicaSetName() );
         cfgView.addStringCfg( "Domain Name", wizard.getMongoClusterConfig().getDomainName() );
+
         cfgView.addStringCfg( "Number of configuration servers",
                 wizard.getMongoClusterConfig().getNumberOfConfigServers() + "" );
+        String serverNames = "";
+        for ( final String configNodeName : wizard.getConfigServerNames() )
+        {
+            serverNames += configNodeName + ";";
+        }
+        cfgView.addStringCfg( "Configuration servers", serverNames );
+
         cfgView.addStringCfg( "Number of routers", wizard.getMongoClusterConfig().getNumberOfRouters() + "" );
+        serverNames = "";
+        for ( final String routerNodeName : wizard.getRouterServerNames() )
+        {
+            serverNames += routerNodeName + ";";
+        }
+        cfgView.addStringCfg( "Router servers", serverNames );
+
         cfgView.addStringCfg( "Number of data nodes", wizard.getMongoClusterConfig().getNumberOfDataNodes() + "" );
+        serverNames = "";
+        for ( final String dataNodeName : wizard.getDataServerNames() )
+        {
+            serverNames += dataNodeName + ";";
+        }
+        cfgView.addStringCfg( "Data nodes", serverNames );
         cfgView.addStringCfg( "Configuration servers port", wizard.getMongoClusterConfig().getCfgSrvPort() + "" );
         cfgView.addStringCfg( "Routers port", wizard.getMongoClusterConfig().getRouterPort() + "" );
         cfgView.addStringCfg( "Data nodes port", wizard.getMongoClusterConfig().getDataNodePort() + "" );
@@ -63,8 +84,7 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = mongo.installCluster( wizard.getMongoClusterConfig() );
-
+                UUID trackID = mongo.configureEnvironmentCluster( wizard.getMongoClusterConfig() );
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, MongoClusterConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

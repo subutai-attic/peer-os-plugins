@@ -6,11 +6,13 @@
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -30,15 +32,22 @@ public class Wizard
     private final Tracker tracker;
     private final ExecutorService executorService;
     private int step = 1;
+    private boolean installOverEnvironment;
     private MongoClusterConfig mongoClusterConfig;// = new MongoClusterConfigImpl();
+    private EnvironmentManager environmentManager;
+    private Set<String> configServerNames = new HashSet<>();
+    private Set<String> routerServerNames = new HashSet<>();
+    private Set<String> dataServerNames = new HashSet<>();
 
 
-    public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker ) throws NamingException
+    public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker,
+                   final EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.mongo = mongo;
         this.tracker = tracker;
         this.mongoClusterConfig = mongo.newMongoClusterConfigInstance();
+        this.environmentManager = environmentManager;
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
         grid.setSizeFull();
@@ -60,12 +69,15 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( this );
+                component = isInstallOverEnvironment() ? new EnvironmentConfigurationStep( this ) :
+                            new ConfigurationStep( this );
                 break;
             }
             case 3:
             {
-                component = new VerificationStep( mongo, executorService, tracker, this );
+                component = isInstallOverEnvironment() ?
+                            new EnvironmentVerificationStep( mongo, executorService, tracker, this ) :
+                            new VerificationStep( mongo, executorService, tracker, this );
                 break;
             }
             default:
@@ -104,6 +116,7 @@ public class Wizard
     protected void init()
     {
         step = 1;
+        installOverEnvironment = false;
         mongoClusterConfig = mongo.newMongoClusterConfigInstance();// new MongoClusterConfigImpl();
         putForm();
     }
@@ -112,5 +125,71 @@ public class Wizard
     public MongoClusterConfig getMongoClusterConfig()
     {
         return mongoClusterConfig;
+    }
+
+
+    public boolean isInstallOverEnvironment()
+    {
+        return installOverEnvironment;
+    }
+
+
+    public void setInstallOverEnvironment( final boolean installOverEnvironment )
+    {
+        this.installOverEnvironment = installOverEnvironment;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Mongo getMongo()
+    {
+        return mongo;
+    }
+
+
+    public Set<String> getConfigServerNames()
+    {
+        return configServerNames;
+    }
+
+
+    public void setConfigServerNames( final Set<String> configServerNames )
+    {
+        this.configServerNames = configServerNames;
+    }
+
+
+    public Set<String> getRouterServerNames()
+    {
+        return routerServerNames;
+    }
+
+
+    public void setRouterServerNames( final Set<String> routerServerNames )
+    {
+        this.routerServerNames = routerServerNames;
+    }
+
+
+    public Set<String> getDataServerNames()
+    {
+        return dataServerNames;
+    }
+
+
+    public void setDataServerNames( final Set<String> dataServerNames )
+    {
+        this.dataServerNames = dataServerNames;
     }
 }

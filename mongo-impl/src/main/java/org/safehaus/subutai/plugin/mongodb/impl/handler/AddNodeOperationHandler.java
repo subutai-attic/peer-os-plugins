@@ -155,7 +155,7 @@ public class AddNodeOperationHandler extends AbstractOperationHandler<MongoImpl,
     private boolean addDataNode( TrackerOperation po, final MongoClusterConfig config, MongoDataNode newDataNode )
     {
 
-        Set<Host> clusterMembers = new HashSet<Host>();
+        Set<Host> clusterMembers = new HashSet<>();
         for ( MongoNode mongoNode : config.getAllNodes() )
         {
             clusterMembers.add( mongoNode.getContainerHost() );

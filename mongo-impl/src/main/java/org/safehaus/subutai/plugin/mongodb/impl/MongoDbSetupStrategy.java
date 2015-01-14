@@ -5,14 +5,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.protocol.Criteria;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.protocol.Template;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
-import org.safehaus.subutai.core.peer.api.PeerException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -22,6 +22,7 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
+import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -86,9 +87,9 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
                 Strings.isNullOrEmpty( config.getDomainName() ) ||
                 Strings.isNullOrEmpty( config.getReplicaSetName() ) ||
                 Strings.isNullOrEmpty( config.getTemplateName() ) ||
-                !Sets.newHashSet( 1, 3 ).contains( config.getNumberOfConfigServers() ) ||
+                !Sets.newHashSet( 1, 2, 3 ).contains( config.getNumberOfConfigServers() ) ||
                 !Range.closed( 1, 3 ).contains( config.getNumberOfRouters() ) ||
-                !Sets.newHashSet( 3, 5, 7 ).contains( config.getNumberOfDataNodes() ) ||
+                !Sets.newHashSet( 1, 2, 3, 4, 5, 6, 7 ).contains( config.getNumberOfDataNodes() ) ||
                 !Range.closed( 1024, 65535 ).contains( config.getCfgSrvPort() ) ||
                 !Range.closed( 1024, 65535 ).contains( config.getRouterPort() ) ||
                 !Range.closed( 1024, 65535 ).contains( config.getDataNodePort() ) )
@@ -109,7 +110,8 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
 
         int totalNodesRequired =
                 config.getNumberOfRouters() + config.getNumberOfConfigServers() + config.getNumberOfDataNodes();
-        if ( environment.getContainerHosts().size() < totalNodesRequired )
+        if ( config.getConfigHostIds().size() + config.getRouterHostIds().size() + config.getDataHostIds().size()
+                < totalNodesRequired )
         {
             throw new ClusterSetupException(
                     String.format( "Environment needs to have %d but has %d nodes", totalNodesRequired,
@@ -118,28 +120,36 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
 
         Set<ContainerHost> mongoContainers = new HashSet<>();
         Set<ContainerHost> mongoEnvironmentContainers = new HashSet<>();
+
+        //Run through all environment container hosts
+        // to check if mongo is installed otherwise install it
         for ( ContainerHost container : environment.getContainerHosts() )
         {
             try
             {
-                Template t = container.getTemplate();
-                if ( t.getProducts().contains( Common.PACKAGE_PREFIX + MongoClusterConfig.PRODUCT_NAME ) )
+                CommandResult commandResult =
+                        container.execute( new RequestBuilder( Commands.checkIfMongoInstalled().getCommand() ) );
+
+                if ( !"install ok installed".equals( commandResult.getStdOut() ) )
                 {
-                    mongoContainers.add( container );
-                    mongoEnvironmentContainers.add( container );
+                    CommandResult installationResult =
+                            container.execute( new RequestBuilder( Commands.installMongoCommand().getCommand() ) );
+
+                    if ( !installationResult.hasSucceeded() )
+                    {
+                        throw new ClusterSetupException(
+                                String.format( "Couldn't install Mongo on container: %s-%s; errorMsg: %s",
+                                        container.getHostname(), container.getEnvironmentId(),
+                                        installationResult.getStdErr() ) );
+                    }
                 }
+                mongoContainers.add( container );
+                mongoEnvironmentContainers.add( container );
             }
-            catch ( PeerException e )
+            catch ( CommandException e )
             {
                 throw new ClusterSetupException( e.toString() );
             }
-        }
-
-        if ( mongoContainers.size() < totalNodesRequired )
-        {
-            throw new ClusterSetupException( String.format(
-                    "Environment needs to have %d with MongoDb installed but has only %d nodes with MongoDb installed",
-                    totalNodesRequired, mongoContainers.size() ) );
         }
 
         Set<MongoConfigNode> configServers = new HashSet<>();
@@ -147,20 +157,20 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
         Set<MongoDataNode> dataNodes = new HashSet<>();
         for ( ContainerHost environmentContainer : mongoEnvironmentContainers )
         {
-            if ( NodeType.CONFIG_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            if ( config.getConfigHostIds().contains( environmentContainer.getId() ) )
             {
                 MongoConfigNode mongoConfigNode =
                         new MongoConfigNodeImpl( environmentContainer, config.getDomainName(), config.getCfgSrvPort() );
                 configServers.add( mongoConfigNode );
             }
-            else if ( NodeType.ROUTER_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            if ( config.getRouterHostIds().contains( environmentContainer.getId() ) )
             {
                 MongoRouterNode mongoRouterNode =
                         new MongoRouterNodeImpl( environmentContainer, config.getDomainName(), config.getRouterPort(),
                                 config.getCfgSrvPort() );
                 routers.add( mongoRouterNode );
             }
-            else if ( NodeType.DATA_NODE.name().equalsIgnoreCase( environmentContainer.getNodeGroupName() ) )
+            if ( config.getDataHostIds().contains( environmentContainer.getId() ) )
             {
                 MongoDataNode mongoDataNode =
                         new MongoDataNodeImpl( environmentContainer, config.getDomainName(), config.getDataNodePort() );

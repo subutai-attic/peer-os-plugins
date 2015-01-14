@@ -85,4 +85,22 @@ public interface MongoClusterConfig extends ConfigBase
     void setEnvironmentId( UUID id );
 
     Object prepare();
+
+
+    Set<UUID> getConfigHostIds();
+
+
+    void setConfigHostIds( Set<UUID> configServerNames );
+
+
+    Set<UUID> getRouterHostIds();
+
+
+    void setRouterHostIds( Set<UUID> routerServerNames );
+
+
+    Set<UUID> getDataHostIds();
+
+
+    void setDataServerIds( Set<UUID> dataServerNames );
 }

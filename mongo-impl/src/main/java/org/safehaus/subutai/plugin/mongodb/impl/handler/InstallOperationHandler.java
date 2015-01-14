@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -50,6 +51,21 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
             Environment env = manager.getEnvironmentManager()
                                      .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
             config.setEnvironmentId( env.getId() );
+            for ( final ContainerHost containerHost : env.getContainerHosts() )
+            {
+                if ( config.getConfigHostIds().size() != config.getNumberOfConfigServers() )
+                {
+                    config.getConfigHostIds().add( containerHost.getId() );
+                }
+                else if ( config.getRouterHostIds().size() != config.getNumberOfRouters() )
+                {
+                    config.getRouterHostIds().add( containerHost.getId() );
+                }
+                else if ( config.getDataHostIds().size() != config.getNumberOfDataNodes() )
+                {
+                    config.getDataHostIds().add( containerHost.getId() );
+                }
+            }
             ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( env, config, po );
             clusterSetupStrategy.setup();
 

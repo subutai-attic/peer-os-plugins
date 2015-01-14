@@ -53,8 +53,8 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         //configuration servers number
-        ComboBox cfgSrvsCombo =
-                new ComboBox( "Choose number of configuration servers (Recommended 3 nodes)", Arrays.asList( 1, 3 ) );
+        ComboBox cfgSrvsCombo = new ComboBox( "Choose number of configuration servers (Recommended 3 nodes)",
+                Arrays.asList( 1, 2, 3 ) );
         cfgSrvsCombo.setImmediate( true );
         cfgSrvsCombo.setTextInputAllowed( false );
         cfgSrvsCombo.setNullSelectionAllowed( false );
@@ -87,7 +87,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         //datanodes number
-        ComboBox dataNodesCombo = new ComboBox( "Choose number of datanodes", Arrays.asList( 3, 5, 7 ) );
+        ComboBox dataNodesCombo = new ComboBox( "Choose number of datanodes", Arrays.asList( 1, 2, 3, 4, 5, 6, 7 ) );
         dataNodesCombo.setImmediate( true );
         dataNodesCombo.setTextInputAllowed( false );
         dataNodesCombo.setNullSelectionAllowed( false );

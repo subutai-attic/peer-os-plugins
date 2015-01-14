@@ -59,6 +59,23 @@ public class Commands
     }
 
 
+    public static CommandDef checkIfMongoInstalled()
+    {
+        return new CommandDef( "Check if mongo installed",
+                String.format( "dpkg-query -W -f='${Status}\\n' %s-%s", Common.PACKAGE_PREFIX,
+                        MongoClusterConfig.PRODUCT_NAME ), 60 );
+    }
+
+
+    public static CommandDef installMongoCommand()
+    {
+        return new CommandDef( String.format( "Update and install %s-%s package", Common.PACKAGE_PREFIX,
+                MongoClusterConfig.PRODUCT_NAME ),
+                String.format( "apt-get update && apt-get --yes --force-yes install %s%s", Common.PACKAGE_PREFIX,
+                        MongoClusterConfig.PRODUCT_NAME ), 900 );
+    }
+
+
     public CommandDef getAddIpHostToEtcHostsCommand( String domainName, Host containerHost, Set<MongoNode> others )
     {
         StringBuilder cleanHosts = new StringBuilder( "localhost|127.0.0.1|" );
