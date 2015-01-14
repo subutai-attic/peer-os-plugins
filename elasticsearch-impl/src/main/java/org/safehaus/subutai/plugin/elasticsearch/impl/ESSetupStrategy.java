@@ -1,13 +1,8 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl;
 
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -23,14 +18,11 @@ public class ESSetupStrategy implements ClusterSetupStrategy
     private final ElasticsearchClusterConfiguration config;
     private final ElasticsearchImpl elasticsearchManager;
     private final TrackerOperation po;
-    private final Environment environment;
 
 
-    public ESSetupStrategy( final Environment environment,
-                            final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration,
+    public ESSetupStrategy( final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration,
                             TrackerOperation po, ElasticsearchImpl elasticsearchManager )
     {
-        Preconditions.checkNotNull( environment, "Environment is null" );
         Preconditions.checkNotNull( elasticsearchClusterConfiguration, "Cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation tracker is null" );
         Preconditions.checkNotNull( elasticsearchManager, "elasticsearchManager manager is null" );
@@ -38,7 +30,6 @@ public class ESSetupStrategy implements ClusterSetupStrategy
         this.config = elasticsearchClusterConfiguration;
         this.po = po;
         this.elasticsearchManager = elasticsearchManager;
-        this.environment = environment;
     }
 
 
@@ -46,8 +37,7 @@ public class ESSetupStrategy implements ClusterSetupStrategy
     public ElasticsearchClusterConfiguration setup() throws ClusterSetupException
     {
         if ( Strings.isNullOrEmpty( config.getClusterName() ) ||
-                Strings.isNullOrEmpty( config.getTemplateName() ) ||
-                config.getNumberOfNodes() <= 0 )
+                config.getNodes().isEmpty() || config.getEnvironmentId() == null )
         {
             throw new ClusterSetupException( "Malformed configuration" );
         }
@@ -58,22 +48,22 @@ public class ESSetupStrategy implements ClusterSetupStrategy
                     String.format( "Cluster with name '%s' already exists", config.getClusterName() ) );
         }
 
-        if ( environment.getContainerHosts().size() < config.getNumberOfNodes() )
+        Environment environment =
+                elasticsearchManager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
         {
-            throw new ClusterSetupException( String.format( "Environment needs to have %d nodes but has only %d nodes",
-                    config.getNumberOfNodes(), environment.getContainerHosts().size() ) );
+            throw new ClusterSetupException( "Environment not found" );
         }
 
-        Set<UUID> esNodes = new HashSet<>();
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
+        if ( environment.getContainerHostsByIds( config.getNodes() ).size() < config.getNodes().size() )
         {
-            esNodes.add( containerHost.getId() );
+            throw new ClusterSetupException( "Fewer nodes found in environment than specified" );
         }
-        config.setNodes( esNodes );
 
         try
         {
-            new ClusterConfiguration( elasticsearchManager, po ).configureCluster( config , environment );
+            new ClusterConfiguration( elasticsearchManager, po ).configureCluster( config, environment );
         }
         catch ( ClusterConfigurationException ex )
         {

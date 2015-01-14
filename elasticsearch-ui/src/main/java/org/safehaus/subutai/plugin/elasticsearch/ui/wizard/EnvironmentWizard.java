@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
@@ -15,24 +16,28 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.VerticalLayout;
 
 
-public class Wizard
+public class EnvironmentWizard
 {
 
     private final VerticalLayout verticalLayout;
     private final ExecutorService executorService;
     private final Tracker tracker;
     private final Elasticsearch elasticsearch;
-    GridLayout grid;
+    private EnvironmentManager environmentManager;
+    private GridLayout grid;
     private int step = 1;
     private ElasticsearchClusterConfiguration config = new ElasticsearchClusterConfiguration();
 
 
-    public Wizard( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker ) throws NamingException
+    public EnvironmentWizard( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker,
+                              EnvironmentManager environmentManager ) throws NamingException
     {
 
-        this.elasticsearch = elasticsearch;
         this.executorService = executorService;
+        this.elasticsearch = elasticsearch;
         this.tracker = tracker;
+        this.environmentManager = environmentManager;
+
         verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
         grid = new GridLayout( 1, 1 );
@@ -75,6 +80,12 @@ public class Wizard
     }
 
 
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
     public Component getContent()
     {
         return grid;
@@ -95,16 +106,15 @@ public class Wizard
     }
 
 
-    protected void cancel()
-    {
-        step = 1;
-        putForm();
-    }
-
-
     public ElasticsearchClusterConfiguration getConfig()
     {
         return config;
+    }
+
+
+    public void clearConfig()
+    {
+        config = new ElasticsearchClusterConfiguration();
     }
 
 

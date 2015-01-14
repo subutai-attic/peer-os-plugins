@@ -3,9 +3,7 @@ package org.safehaus.subutai.plugin.elasticsearch.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
@@ -19,7 +17,7 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
 
     public UUID stopAllNodes( ElasticsearchClusterConfiguration config );
 
-    public UUID addNode( String clusterName, String lxcHostname );
+    public UUID addNode( String clusterName );
 
     public UUID checkNode( String clusterName, String lxcHostname );
 
@@ -31,11 +29,6 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
 
     public UUID uninstallCluster( ElasticsearchClusterConfiguration config );
 
-    ClusterSetupStrategy getClusterSetupStrategy( Environment environment,
-                                                  ElasticsearchClusterConfiguration elasticsearchClusterConfiguration,
+    ClusterSetupStrategy getClusterSetupStrategy( ElasticsearchClusterConfiguration elasticsearchClusterConfiguration,
                                                   TrackerOperation po );
-
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( ElasticsearchClusterConfiguration config );
-
-    UUID configureEnvironmentCluster( ElasticsearchClusterConfiguration config );
 }

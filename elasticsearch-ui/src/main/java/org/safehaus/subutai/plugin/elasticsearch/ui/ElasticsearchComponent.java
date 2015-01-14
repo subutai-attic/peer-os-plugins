@@ -8,9 +8,8 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
-import org.safehaus.subutai.plugin.elasticsearch.ui.environment.EnvironmentWizard;
+import org.safehaus.subutai.plugin.elasticsearch.ui.wizard.EnvironmentWizard;
 import org.safehaus.subutai.plugin.elasticsearch.ui.manager.Manager;
-import org.safehaus.subutai.plugin.elasticsearch.ui.wizard.Wizard;
 
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -19,13 +18,12 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ElasticsearchComponent extends CustomComponent
 {
-    private final Wizard wizard;
     private final Manager manager;
     private final EnvironmentWizard environmentWizard;
 
 
-    public ElasticsearchComponent( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker, EnvironmentManager environmentManager )
-            throws NamingException
+    public ElasticsearchComponent( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker,
+                                   EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 
@@ -37,15 +35,13 @@ public class ElasticsearchComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
         manager = new Manager( executorService, elasticsearch, tracker, environmentManager );
-        wizard = new Wizard( executorService, elasticsearch, tracker );
         environmentWizard = new EnvironmentWizard( executorService, elasticsearch, tracker, environmentManager );
 
-        sheet.addTab( wizard.getContent(), "Install" );
-        sheet.getTab( 0 ).setId( "ElasticSearchInstallTab" );
-        sheet.addTab( environmentWizard.getContent(), "Configure environment" );
-        sheet.getTab( 1 ).setId( "ElasticSearchConfigureEnvironmentTab" );
+
+        sheet.addTab( environmentWizard.getContent(), "Setup" );
+        sheet.getTab( 0 ).setId( "ElasticSearchConfigureEnvironmentTab" );
         sheet.addTab( manager.getContent(), "Manage" );
-        sheet.getTab( 2 ).setId( "ElasticSearchManageTab" );
+        sheet.getTab( 1 ).setId( "ElasticSearchManageTab" );
         sheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override

@@ -27,14 +27,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    public void configureCluster( final ConfigBase config, Environment environment ) throws
-            ClusterConfigurationException
+    public void configureCluster( final ConfigBase config, Environment environment )
+            throws ClusterConfigurationException
     {
+        //TODO install ES on those nodes which are missing it
+
         // es-conf.sh cluster_name test
         ElasticsearchClusterConfiguration esConfiguration = ( ElasticsearchClusterConfiguration ) config;
         String clusterConfigureCommand = Commands.configure + "cluster_name " + config.getClusterName();
 
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
+        for ( ContainerHost containerHost : environment
+                .getContainerHostsByIds( ( ( ElasticsearchClusterConfiguration ) config ).getNodes() ) )
         {
             try
             {

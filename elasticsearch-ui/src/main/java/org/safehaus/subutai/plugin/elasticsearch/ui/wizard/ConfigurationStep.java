@@ -1,10 +1,20 @@
 package org.safehaus.subutai.plugin.elasticsearch.ui.wizard;
 
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.server.Sizeable;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
@@ -12,14 +22,16 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
 public class ConfigurationStep extends VerticalLayout
 {
-    public ConfigurationStep( final Wizard wizard )
-    {
 
+    public ConfigurationStep( final EnvironmentWizard environmentWizard )
+    {
+        removeAllComponents();
         setSizeFull();
 
         GridLayout content = new GridLayout( 1, 3 );
@@ -27,34 +39,81 @@ public class ConfigurationStep extends VerticalLayout
         content.setSpacing( true );
         content.setMargin( true );
 
-        final TextField clusterNameTxtFld = new TextField( "Enter cluster name:" );
+        final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
         clusterNameTxtFld.setId( "ElasticSearchConfClusterName" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
-        clusterNameTxtFld.setMaxLength( 20 );
-        clusterNameTxtFld.setValue( wizard.getConfig().getClusterName() );
+        clusterNameTxtFld.setRequired( true );
+        clusterNameTxtFld.setValue( environmentWizard.getConfig().getClusterName() );
         clusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                wizard.getConfig().setClusterName( event.getProperty().getValue().toString().trim() );
+                environmentWizard.getConfig().setClusterName( event.getProperty().getValue().toString().trim() );
             }
         } );
 
-        final ComboBox nodesCountCombo =
-                new ComboBox( "Number of nodes:", Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ) );
-        nodesCountCombo.setId( "ElasticSearchConfNumNodes" );
-        nodesCountCombo.setImmediate( true );
-        nodesCountCombo.setTextInputAllowed( false );
-        nodesCountCombo.setNullSelectionAllowed( false );
-        nodesCountCombo.setValue( wizard.getConfig() );
+        final List<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
+        List<Environment> envList = new ArrayList<>();
+        for ( Environment anEnvironmentList : environmentList )
+        {
+            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(),
+                    ElasticsearchClusterConfiguration.TEMPLATE_NAME );
+            if ( exists )
+            {
+                envList.add( anEnvironmentList );
+            }
+        }
 
-        nodesCountCombo.addValueChangeListener( new Property.ValueChangeListener()
+        // all nodes
+        final TwinColSelect allNodesSelect =
+                getTwinSelect( "Nodes to be configured", "Available Nodes", "Selected Nodes", 4 );
+        allNodesSelect.setId( "AllNodes" );
+        allNodesSelect.setValue( environmentWizard.getConfig().getNodes() );
+        allNodesSelect.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                if ( event.getProperty().getValue() != null )
+                {
+                    Set<UUID> nodes = new HashSet<UUID>();
+                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
+                    for ( ContainerHost host : nodeList )
+                    {
+                        nodes.add( host.getId() );
+                    }
+                    environmentWizard.getConfig().getNodes().clear();
+                    environmentWizard.getConfig().getNodes().addAll( nodes );
+                }
+            }
+        } );
+
+        final ComboBox envCombo = new ComboBox( "Choose environment" );
+        envCombo.setId( "envCombo" );
+        BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
+        eBean.addAll( envList );
+        envCombo.setContainerDataSource( eBean );
+        envCombo.setNullSelectionAllowed( false );
+        envCombo.setTextInputAllowed( false );
+        envCombo.setItemCaptionPropertyId( "name" );
+        envCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                wizard.getConfig().setNumberOfNodes( ( Integer ) event.getProperty().getValue() );
+                Environment e = ( Environment ) event.getProperty().getValue();
+                environmentWizard.getConfig().setEnvironmentId( e.getId() );
+
+                allNodesSelect.setValue( null );
+                environmentWizard.getConfig().getNodes().clear();
+
+
+                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) )
+                {
+                    allNodesSelect.addItem( host );
+                    allNodesSelect.setItemCaption( host,
+                            ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
+                }
             }
         } );
 
@@ -66,17 +125,17 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                if ( Strings.isNullOrEmpty( wizard.getConfig().getClusterName() ) )
+                if ( Strings.isNullOrEmpty( environmentWizard.getConfig().getClusterName() ) )
                 {
-                    show( "Please provide cluster name" );
+                    show( "Please provide cluster name !" );
                 }
-                else if ( nodesCountCombo.getValue() == null )
+                else if ( environmentWizard.getConfig().getNodes().isEmpty() )
                 {
-                    show( "Please provide number of nodes !" );
+                    show( "Please select nodes to be configured !" );
                 }
                 else
                 {
-                    wizard.next();
+                    environmentWizard.next();
                 }
             }
         } );
@@ -89,7 +148,7 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                wizard.back();
+                environmentWizard.back();
             }
         } );
 
@@ -103,10 +162,52 @@ public class ConfigurationStep extends VerticalLayout
         buttons.addComponent( next );
 
         content.addComponent( clusterNameTxtFld );
-        content.addComponent( nodesCountCombo );
+        content.addComponent( envCombo );
+        content.addComponent( allNodesSelect );
         content.addComponent( buttons );
 
         addComponent( layout );
+    }
+
+
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    {
+        for ( ContainerHost host : containerHosts )
+        {
+            if ( host.getTemplateName().equals( templateName ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    {
+        Set<ContainerHost> filteredSet = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( containerHost.getTemplateName().equals( ElasticsearchClusterConfiguration.TEMPLATE_NAME ) )
+            {
+                filteredSet.add( containerHost );
+            }
+        }
+        return filteredSet;
+    }
+
+
+    public static TwinColSelect getTwinSelect( String title, String leftTitle, String rightTitle, int rows )
+    {
+        TwinColSelect twinColSelect = new TwinColSelect( title );
+        twinColSelect.setRows( rows );
+        twinColSelect.setMultiSelect( true );
+        twinColSelect.setImmediate( true );
+        twinColSelect.setLeftColumnCaption( leftTitle );
+        twinColSelect.setRightColumnCaption( rightTitle );
+        twinColSelect.setWidth( 100, Sizeable.Unit.PERCENTAGE );
+        twinColSelect.setRequired( true );
+        return twinColSelect;
     }
 
 

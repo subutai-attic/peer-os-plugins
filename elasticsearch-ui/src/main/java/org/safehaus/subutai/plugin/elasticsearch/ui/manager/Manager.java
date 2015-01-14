@@ -165,7 +165,7 @@ public class Manager
 
         /**  Add Node button  */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
-        addNodeBtn.setId( "ZookeeperMngAddNode" );
+        addNodeBtn.setId( "ElasticSearchMngAddNode" );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );

@@ -4,7 +4,9 @@ package org.safehaus.subutai.plugin.elasticsearch.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -22,10 +24,11 @@ public class VerificationStep extends VerticalLayout
 {
 
     public VerificationStep( final Elasticsearch elasticsearch, final ExecutorService executorService,
-                             final Tracker tracker, final Wizard wizard )
+                             final Tracker tracker, final EnvironmentWizard environmentWizard )
     {
 
         setSizeFull();
+
         GridLayout grid = new GridLayout( 1, 5 );
         grid.setSpacing( true );
         grid.setMargin( true );
@@ -36,18 +39,27 @@ public class VerificationStep extends VerticalLayout
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
-        cfgView.addStringCfg( "Cluster Name: ", wizard.getConfig().getClusterName() );
-        cfgView.addStringCfg( "Number of Nodes: ", "" + wizard.getConfig().getNumberOfNodes() );
+        cfgView.addStringCfg( "Cluster Name", environmentWizard.getConfig().getClusterName() );
 
-        Button installButton = new Button( "Install" );
-        installButton.setId( "ElasticSearchInstInstall" );
-        installButton.addStyleName( "default" );
-        installButton.addClickListener( new Button.ClickListener()
+        String selectedNodes = "";
+        final Environment environment = environmentWizard.getEnvironmentManager().getEnvironmentByUUID(
+                environmentWizard.getConfig().getEnvironmentId() );
+        for ( UUID uuid : environmentWizard.getConfig().getNodes() )
+        {
+            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+        }
+
+        cfgView.addStringCfg( "Nodes to be configured", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+        cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
+
+        Button install = new Button( "Configure" );
+        install.addStyleName( "default" );
+        install.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = elasticsearch.installCluster( wizard.getConfig() );
+                UUID trackID = elasticsearch.installCluster( environmentWizard.getConfig() );
                 ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                         ElasticsearchClusterConfiguration.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
@@ -55,7 +67,7 @@ public class VerificationStep extends VerticalLayout
                     @Override
                     public void windowClose( Window.CloseEvent closeEvent )
                     {
-                        wizard.init();
+                        environmentWizard.init();
                     }
                 } );
                 getUI().addWindow( window.getWindow() );
@@ -63,20 +75,20 @@ public class VerificationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
-        back.setId( "ElasticSearchInstBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                wizard.back();
+                environmentWizard.clearConfig();
+                environmentWizard.back();
             }
         } );
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.addComponent( back );
-        buttons.addComponent( installButton );
+        buttons.addComponent( install );
 
         grid.addComponent( confirmationLbl, 0, 0 );
 

@@ -1,12 +1,13 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -21,14 +22,15 @@ import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 
 /**
  * This class handles operations that are related to whole cluster.
  */
-public class ClusterOperationHandler extends AbstractOperationHandler<ElasticsearchImpl,ElasticsearchClusterConfiguration>
+public class ClusterOperationHandler
+        extends AbstractOperationHandler<ElasticsearchImpl, ElasticsearchClusterConfiguration>
         implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
@@ -40,7 +42,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<Elasticsea
     public ClusterOperationHandler( final ElasticsearchImpl manager, final ElasticsearchClusterConfiguration config,
                                     final ClusterOperationType operationType )
     {
-        super( manager, config.getClusterName() );
+        super( manager, config );
         this.operationType = operationType;
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY,
@@ -129,29 +131,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<Elasticsea
     @Override
     public void setupCluster()
     {
-        if ( Strings.isNullOrEmpty( config.getClusterName() ) )
-        {
-            trackerOperation.addLogFailed( "Malformed configuration" );
-            return;
-        }
-
-        if ( manager.getCluster( clusterName ) != null )
-        {
-            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
-            return;
-        }
-
         try
         {
-            Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
             ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+                    manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );

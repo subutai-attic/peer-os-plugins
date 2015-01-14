@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -17,27 +15,11 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     public static final String PRODUCT_NAME = "elasticsearch";
 
     public static final String TEMPLATE_NAME = "elasticsearch";
-    private String domainName = Common.DEFAULT_DOMAIN_NAME;
 
     private String clusterName = "";
-    private int numberOfNodes;
     private UUID environmentId;
 
     private Set<UUID> nodes = new HashSet<>();
-    private Set<UUID> masterNodes = new HashSet<>();
-    private Set<UUID> dataNodes = new HashSet<>();
-
-
-    public static PlacementStrategy getNodePlacementStrategy()
-    {
-        return new PlacementStrategy( "ROUND_ROBIN" );
-    }
-
-
-    public String getTemplateName()
-    {
-        return TEMPLATE_NAME;
-    }
 
 
     @Override
@@ -67,69 +49,14 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     }
 
 
-    public int getNumberOfNodes()
-    {
-        return numberOfNodes;
-    }
-
-
-    public void setNumberOfNodes( int numberOfNodes )
-    {
-        this.numberOfNodes = numberOfNodes;
-    }
-
-
     public Set<UUID> getNodes()
     {
         return nodes;
     }
 
-
-    public void setNodes( Set<UUID> nodes )
-    {
-        this.nodes = nodes;
-    }
-
-
-    public Set<UUID> getMasterNodes()
-    {
-        return masterNodes;
-    }
-
-
-    public void setMasterNodes( Set<UUID> nodes )
-    {
-        this.masterNodes = nodes;
-    }
-
-
-    public Set<UUID> getDataNodes()
-    {
-        return dataNodes;
-    }
-
-
-    public void setDataNodes( Set<UUID> nodes )
-    {
-        this.dataNodes = nodes;
-    }
-
-
     public UUID getEnvironmentId()
     {
         return environmentId;
-    }
-
-
-    public String getDomainName()
-    {
-        return domainName;
-    }
-
-
-    public void setDomainName( final String domainName )
-    {
-        this.domainName = domainName;
     }
 
 

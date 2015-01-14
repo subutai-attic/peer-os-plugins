@@ -16,14 +16,14 @@ import com.vaadin.ui.VerticalLayout;
 public class StepStart extends VerticalLayout
 {
 
-    public StepStart( final Wizard wizard )
+    public StepStart( final EnvironmentWizard environmentWizard )
     {
         setSizeFull();
 
         GridLayout gridLayout = new GridLayout( 10, 6 );
         gridLayout.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Elasticsearch Installation Wizard!</h2></center>" );
+        Label welcomeMsg = new Label( "<center><h2>Welcome to ElasticSearch Configuration Wizard!</h2></center>" );
         welcomeMsg.addStyleName( "h2" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         gridLayout.addComponent( welcomeMsg, 3, 1, 6, 2 );
@@ -47,7 +47,8 @@ public class StepStart extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                wizard.next();
+                environmentWizard.init();
+                environmentWizard.next();
             }
         } );
 
