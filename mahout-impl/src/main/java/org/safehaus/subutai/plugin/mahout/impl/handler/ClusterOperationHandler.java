@@ -33,7 +33,7 @@ import com.google.common.base.Preconditions;
  * Created by ebru on 25.12.2014.
  */
 public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl, MahoutClusterConfig>
-    implements ClusterOperationHandlerInterface
+        implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
@@ -66,28 +66,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
         {
             Environment env = null;
 
-            if ( config.getSetupType() == SetupType.WITH_HADOOP )
+            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+            if ( env == null )
             {
-
-                if ( hadoopConfig == null )
-                {
-                    trackerOperation.addLogFailed( "No Hadoop configuration specified" );
-                    return;
-                }
-
-                trackerOperation.addLog( "Building environment..." );
-                hadoopConfig.setTemplateName( MahoutClusterConfig.TEMPLATE_NAME );
-                env = build();
-                trackerOperation.addLog( "Environment preparation completed" );
-            }
-            else
-            {
-                env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-                if ( env == null )
-                {
-                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId() ) );
-                }
+                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                        hadoopConfig.getEnvironmentId() ) );
             }
 
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
