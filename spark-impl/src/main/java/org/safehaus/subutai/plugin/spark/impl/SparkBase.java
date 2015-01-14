@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 import javax.sql.DataSource;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -24,7 +23,6 @@ public abstract class SparkBase
     public PluginDAO pluginDAO;
     public DataSource dataSource;
     private Monitor monitor;
-    private QuotaManager quotaManager;
 
     Tracker tracker;
     EnvironmentManager environmentManager;
@@ -92,21 +90,14 @@ public abstract class SparkBase
     }
 
 
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
     protected SparkBase( final DataSource dataSource, final Tracker tracker,
-                         final EnvironmentManager environmentManager, final Hadoop hadoopManager, final Monitor monitor,
-                         final QuotaManager quotaManager )
+                         final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                         final Monitor monitor )
     {
         this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
-        this.quotaManager = quotaManager;
     }
 }

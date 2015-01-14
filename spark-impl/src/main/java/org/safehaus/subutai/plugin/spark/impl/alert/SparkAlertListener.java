@@ -124,7 +124,7 @@ public class SparkAlertListener implements AlertListener
         }
 
         //get Spark process resource usage by Spark pid
-        ProcessResourceUsage processResourceUsage = spark.getMonitor().getProcessResourceUsage( sourceHost, sparkPID );
+        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( sourceHost, sparkPID );
 
         //confirm that Spark is causing the stress, otherwise no-op
         MonitoringSettings thresholds = spark.getAlertSettings();
@@ -157,13 +157,13 @@ public class SparkAlertListener implements AlertListener
             if ( isRamStressedBySpark )
             {
                 //read current RAM quota
-                int ramQuota = spark.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota( sourceHost.getId() );
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    spark.getQuotaManager().setRamQuota( sourceHost.getId(),
+                    sourceHost.setRamQuota( sourceHost.getId(),
                             Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
@@ -173,12 +173,12 @@ public class SparkAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = spark.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota( sourceHost.getId() );
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    spark.getQuotaManager().setCpuQuota( sourceHost.getId(),
+                    sourceHost.setCpuQuota( sourceHost.getId(),
                             Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;

@@ -15,8 +15,6 @@
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="monitor" availability="mandatory"
              interface="org.safehaus.subutai.core.metric.api.Monitor" />
-  <reference id="quotaManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
 
   <bean id="spark-impl" scope="singleton" class="org.safehaus.subutai.plugin.spark.impl.SparkImpl"
         init-method="init" destroy-method="destroy">
@@ -25,7 +23,6 @@
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
     <argument ref="monitor" />
-    <argument ref="quotaManager" />
   </bean>
 
   <service ref="spark-impl" interface="org.safehaus.subutai.plugin.spark.api.Spark" />
