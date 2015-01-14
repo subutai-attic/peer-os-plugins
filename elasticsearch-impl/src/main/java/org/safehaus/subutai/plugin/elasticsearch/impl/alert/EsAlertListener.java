@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl.alert;
 
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -8,9 +9,11 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
@@ -103,7 +106,7 @@ public class EsAlertListener implements AlertListener
         }
 
 
-        //figure out Spark process pid
+        //figure out process pid
         int processPID = 0;
         try
         {
@@ -115,8 +118,104 @@ public class EsAlertListener implements AlertListener
             throwAlertException( "Error obtaining process PID", e );
         }
 
+        //get process resource usage by pid
+        ProcessResourceUsage processResourceUsage =
+                elasticsearch.getMonitor().getProcessResourceUsage( sourceHost, processPID );
+
+        //confirm that ES is causing the stress, otherwise no-op
+        MonitoringSettings thresholds = elasticsearch.getAlertSettings();
+        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double redLine = 0.9;
+        boolean isCpuStressedByES = false;
+        boolean isRamStressedByES = false;
+
+        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+        {
+            isRamStressedByES = true;
+        }
+        else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
+        {
+            isCpuStressedByES = true;
+        }
+
+        if ( !( isRamStressedByES || isCpuStressedByES ) )
+        {
+            LOG.info( "ES cluster ok" );
+            return;
+        }
 
 
+        //auto-scaling is enabled -> scale cluster
+        if ( targetCluster.isAutoScaling() )
+        {
+            // check if a quota limit increase does it
+            boolean quotaIncreased = false;
+
+            if ( isRamStressedByES )
+            {
+                //read current RAM quota
+                int ramQuota = elasticsearch.getQuotaManager().getRamQuota( sourceHost.getId() );
+
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+                    //we can increase RAM quota
+                    elasticsearch.getQuotaManager().setRamQuota( sourceHost.getId(),
+                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+
+                    quotaIncreased = true;
+                }
+            }
+            else if ( isCpuStressedByES )
+            {
+
+                //read current CPU quota
+                int cpuQuota = elasticsearch.getQuotaManager().getCpuQuota( sourceHost.getId() );
+
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
+                    //we can increase CPU quota
+                    elasticsearch.getQuotaManager().setCpuQuota( sourceHost.getId(),
+                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+
+                    quotaIncreased = true;
+                }
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
+                return;
+            }
+
+            // add new node
+
+            //filter out all nodes which already belong to ES cluster
+            for ( Iterator<ContainerHost> iterator = containers.iterator(); iterator.hasNext(); )
+            {
+                final ContainerHost containerHost = iterator.next();
+                if ( targetCluster.getNodes().contains( containerHost.getId() ) )
+                {
+                    iterator.remove();
+                }
+            }
+
+            //no available nodes -> notify user
+            if ( containers.isEmpty() )
+            {
+                notifyUser();
+            }
+            //add first available node
+            else
+            {
+                //launch node addition process
+                elasticsearch.addNode( targetCluster.getClusterName(), containers.iterator().next().getHostname() );
+            }
+        }
+        else
+        {
+            notifyUser();
+        }
     }
 
 

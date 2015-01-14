@@ -18,8 +18,20 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 
     private String clusterName = "";
     private UUID environmentId;
-
     private Set<UUID> nodes = new HashSet<>();
+    private boolean autoScaling;
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
+    }
 
 
     @Override

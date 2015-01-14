@@ -85,6 +85,12 @@ public class ElasticsearchImpl implements Elasticsearch
     }
 
 
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         getMonitor().startMonitoring( alertListener, environment, alertSettings );
