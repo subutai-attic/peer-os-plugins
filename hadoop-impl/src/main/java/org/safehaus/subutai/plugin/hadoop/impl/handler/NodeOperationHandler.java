@@ -148,22 +148,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                     ClusterOperationHandler.logStatusResults( trackerOperation, result, nodeType );
                     break;
                 case EXCLUDE:
-                    executor.execute( new Runnable()
-                    {
-                        public void run()
-                        {
-                            excludeNode();
-                        }
-                    } );
+                    excludeNode();
                     break;
                 case INCLUDE:
-                    executor.execute( new Runnable()
-                    {
-                        public void run()
-                        {
-                            includeNode();
-                        }
-                    } );
+                    includeNode();
                     break;
             }
         }

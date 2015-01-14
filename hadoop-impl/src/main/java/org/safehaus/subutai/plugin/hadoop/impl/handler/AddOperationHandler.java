@@ -1,9 +1,22 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
+import org.safehaus.subutai.common.protocol.NodeGroup;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, HadoopClusterConfig>
@@ -14,12 +27,10 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
     public AddOperationHandler( HadoopImpl manager, String clusterName, int nodeCount )
     {
-        //    public AddOperationHandler( HadoopImpl manager, String clusterName ) {
         super( manager, manager.getCluster( clusterName ) );
         this.nodeCount = nodeCount;
         trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %d node to cluster %s", nodeCount, clusterName ) );
-        //                String.format( "Adding node to cluster %s", clusterName ) );
     }
 
 
@@ -101,4 +112,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
         //            trackerOperation.addLogFailed( e.getMessage() );
         //        }
     }
+
+
+
 }

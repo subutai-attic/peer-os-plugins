@@ -13,6 +13,7 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -52,6 +53,7 @@ public class HadoopImpl implements Hadoop
     private DataSource dataSource;
     private Monitor monitor;
     private QuotaManager quotaManager;
+    private PeerManager peerManager;
 
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -85,6 +87,18 @@ public class HadoopImpl implements Hadoop
     public void setPluginDAO(final PluginDAO pluginDAO)
     {
         this.pluginDAO = pluginDAO;
+    }
+
+
+    public PeerManager getPeerManager()
+    {
+        return peerManager;
+    }
+
+
+    public void setPeerManager( final PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 
 
