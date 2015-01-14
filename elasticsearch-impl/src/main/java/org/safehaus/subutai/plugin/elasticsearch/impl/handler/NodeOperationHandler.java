@@ -34,7 +34,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
     public NodeOperationHandler( final ElasticsearchImpl manager, final String clusterName, final String hostname,
                                  NodeOperationType operationType )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.hostname = hostname;
         this.clusterName = clusterName;
         this.operationType = operationType;
@@ -100,7 +100,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
+        String status;
         if ( result.getExitCode() == 0 )
         {
             status = result.getStdOut();
