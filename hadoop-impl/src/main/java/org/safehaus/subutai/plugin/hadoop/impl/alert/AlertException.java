@@ -6,5 +6,8 @@ package org.safehaus.subutai.plugin.hadoop.impl.alert;
  */
 public class AlertException extends Exception
 {
-    public AlertException( final String context, final Exception e ) {}
+    public AlertException( final String message, final Throwable cause )
+    {
+        super( message, cause );
+    }
 }
