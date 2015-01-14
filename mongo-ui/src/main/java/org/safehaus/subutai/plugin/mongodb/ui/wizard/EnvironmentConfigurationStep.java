@@ -6,6 +6,7 @@
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.safehaus.subutai.common.util.StringUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +183,17 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             configServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    wizard.getMongoClusterConfig().setConfigServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
+                    BeanContainer<String, ContainerHost> container =
+                            ( BeanContainer<String, ContainerHost> ) configServerNodes.getContainerDataSource();
+                    Set<UUID> mongoConfigNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
+                        ContainerHost configNode = mongoBean.getBean();
+                        mongoConfigNodes.add( configNode.getId() );
+                    }
+                    wizard.getMongoClusterConfig().setConfigHostIds( mongoConfigNodes );
+                    wizard.setConfigServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
@@ -194,7 +206,17 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             routeServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    wizard.getMongoClusterConfig().setRouterServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
+                    BeanContainer<String, ContainerHost> container =
+                            ( BeanContainer<String, ContainerHost> ) routeServerNodes.getContainerDataSource();
+                    Set<UUID> mongoRouterNodes = new HashSet<>();
+                    for ( final String node : nodes )
+                    {
+                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
+                        ContainerHost dataNode = mongoBean.getBean();
+                        mongoRouterNodes.add( dataNode.getId() );
+                    }
+                    wizard.getMongoClusterConfig().setRouterHostIds( mongoRouterNodes );
+                    wizard.setRouterServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
@@ -208,16 +230,21 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                     String[] nodes =
                             dataServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
 
-                    if ( nodes.length < 3 )
+                    BeanContainer<String, ContainerHost> container =
+                            ( BeanContainer<String, ContainerHost> ) dataServerNodes.getContainerDataSource();
+                    Set<UUID> mongoDataNodes = new HashSet<>();
+                    for ( final String node : nodes )
                     {
-                        show( "Data nodes number must be not less than 3." );
-                        return;
+                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
+                        ContainerHost dataNode = mongoBean.getBean();
+                        mongoDataNodes.add( dataNode.getId() );
                     }
-                    wizard.getMongoClusterConfig().setDataServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
+                    wizard.getMongoClusterConfig().setDataServerIds( mongoDataNodes );
+                    wizard.setDataServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
                 {
-                    show( "Select at least three data nodes." );
+                    show( "Select at least one data node." );
                     return;
                 }
 
@@ -280,26 +307,20 @@ public class EnvironmentConfigurationStep extends VerticalLayout
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
         List<MongoClusterConfig> clusterConfigs = wizard.getMongo().getClusters();
+
+        final Set<UUID> mongoContainerHosts = new HashSet<>();
+        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
+        {
+            for ( final MongoNode mongoNode : clusterConfig.getAllNodes() )
+            {
+                mongoContainerHosts.add( mongoNode.getContainerHost().getId() );
+            }
+        }
+
         List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
 
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );
-
-        Set<UUID> mongoEnvironments = new HashSet<>();
-        for ( MongoClusterConfig clusterConfig : clusterConfigs )
-        {
-            mongoEnvironments.add( clusterConfig.getEnvironmentId() );
-        }
-
-        for ( int i = 0; i < environments.size(); i++ )
-        {
-            Environment environment = environments.get( i );
-            if ( mongoEnvironments.contains( environment.getId() ) )
-            {
-                environments.remove( i-- );
-            }
-        }
-
         container.addAll( environments );
 
         ComboBox envList = new ComboBox( "Select environment" );
@@ -326,16 +347,13 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 wizard.getMongoClusterConfig().setDomainName( Common.DEFAULT_DOMAIN_NAME );
                 wizard.getMongoClusterConfig().setReplicaSetName( "repl" );
                 wizard.getMongoClusterConfig().setNumberOfConfigServers( 1 );
-                wizard.getMongoClusterConfig().setNumberOfDataNodes( 3 );
+                wizard.getMongoClusterConfig().setNumberOfDataNodes( 1 );
                 wizard.getMongoClusterConfig().setNumberOfRouters( 1 );
 
 
-                fillConfigServers( configServerNodes, environment.getContainerHosts(), ContainerHost.class );
-                fillConfigServers( routeServerNodes, environment.getContainerHosts(), ContainerHost.class );
-                fillConfigServers( dataServerNodes, environment.getContainerHosts(), ContainerHost.class );
-                //                fillConfigServers( routeServerNodes, environment.getRouterServers(),
-                // MongoRouterNode.class );
-                //                fillConfigServers( dataServerNodes, environment.getDataNodes(), MongoDataNode.class );
+                fillConfigServers( configServerNodes, environment.getContainerHosts(), mongoContainerHosts );
+                fillConfigServers( routeServerNodes, environment.getContainerHosts(), mongoContainerHosts );
+                fillConfigServers( dataServerNodes, environment.getContainerHosts(), mongoContainerHosts );
             }
         } );
 
@@ -343,13 +361,24 @@ public class EnvironmentConfigurationStep extends VerticalLayout
     }
 
 
-    private <T> void fillConfigServers( TwinColSelect twinColSelect, Set<T> configServers, Class<T> clazz )
+    private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,
+                                    final Set<UUID> mongoContainerHosts )
     {
-        BeanContainer<String, T> container = new BeanContainer<>( clazz );
-        container.setBeanIdProperty( "hostname" );
-        container.addAll( configServers );
+        BeanContainer<String, ContainerHost> beanContainer = new BeanContainer<>( ContainerHost.class );
+        beanContainer.setBeanIdProperty( "hostname" );
 
-        twinColSelect.setContainerDataSource( container );
+        List<ContainerHost> environmentHosts = new ArrayList<>();
+        for ( final ContainerHost containerHost : containerHosts )
+        {
+            if ( !mongoContainerHosts.contains( containerHost.getId() ) )
+            {
+                environmentHosts.add( containerHost );
+            }
+        }
+
+        beanContainer.addAll( environmentHosts );
+
+        twinColSelect.setContainerDataSource( beanContainer );
     }
 
 

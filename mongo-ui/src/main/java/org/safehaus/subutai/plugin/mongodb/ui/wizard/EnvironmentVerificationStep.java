@@ -12,9 +12,6 @@ import java.util.concurrent.ExecutorService;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
-import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
-import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -55,25 +52,25 @@ public class EnvironmentVerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Number of configuration servers",
                 wizard.getMongoClusterConfig().getNumberOfConfigServers() + "" );
         String serverNames = "";
-        for ( final MongoConfigNode mongoConfigNode : wizard.getMongoClusterConfig().getConfigServers() )
+        for ( final String configNodeName : wizard.getConfigServerNames() )
         {
-            serverNames += mongoConfigNode.getContainerHost().getHostname() + ";";
+            serverNames += configNodeName + ";";
         }
         cfgView.addStringCfg( "Configuration servers", serverNames );
 
         cfgView.addStringCfg( "Number of routers", wizard.getMongoClusterConfig().getNumberOfRouters() + "" );
         serverNames = "";
-        for ( final MongoRouterNode mongoRouterNode : wizard.getMongoClusterConfig().getRouterServers() )
+        for ( final String routerNodeName : wizard.getRouterServerNames() )
         {
-            serverNames += mongoRouterNode.getContainerHost().getHostname() + ";";
+            serverNames += routerNodeName + ";";
         }
         cfgView.addStringCfg( "Router servers", serverNames );
 
         cfgView.addStringCfg( "Number of data nodes", wizard.getMongoClusterConfig().getNumberOfDataNodes() + "" );
         serverNames = "";
-        for ( final MongoDataNode mongoDataNode : wizard.getMongoClusterConfig().getDataNodes() )
+        for ( final String dataNodeName : wizard.getDataServerNames() )
         {
-            serverNames += mongoDataNode.getContainerHost().getHostname() + ";";
+            serverNames += dataNodeName + ";";
         }
         cfgView.addStringCfg( "Data nodes", serverNames );
         cfgView.addStringCfg( "Configuration servers port", wizard.getMongoClusterConfig().getCfgSrvPort() + "" );

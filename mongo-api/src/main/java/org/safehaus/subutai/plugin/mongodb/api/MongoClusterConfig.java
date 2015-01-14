@@ -87,20 +87,20 @@ public interface MongoClusterConfig extends ConfigBase
     Object prepare();
 
 
-    public Set<String> getConfigServerNames();
+    Set<UUID> getConfigHostIds();
 
 
-    public void setConfigServerNames( final Set<String> configServerNames );
+    void setConfigHostIds( Set<UUID> configServerNames );
 
 
-    public Set<String> getRouterServerNames();
+    Set<UUID> getRouterHostIds();
 
 
-    public void setRouterServerNames( final Set<String> routerServerNames );
+    void setRouterHostIds( Set<UUID> routerServerNames );
 
 
-    public Set<String> getDataServerNames();
+    Set<UUID> getDataHostIds();
 
 
-    public void setDataServerNames( final Set<String> dataServerNames );
+    void setDataServerIds( Set<UUID> dataServerNames );
 }

@@ -48,11 +48,11 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     @Expose
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     @Expose
-    private int numberOfConfigServers = 3;
+    private int numberOfConfigServers = 1;
     @Expose
-    private int numberOfRouters = 2;
+    private int numberOfRouters = 1;
     @Expose
-    private int numberOfDataNodes = 3;
+    private int numberOfDataNodes = 1;
     @Expose
     private int cfgSrvPort = 27019;
     @Expose
@@ -71,17 +71,17 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
 
 
     //These three collections are explicitly used for mongo environment configuration
-    //feature {configServerNames, routerServerNames, dataServerNames}
+    //feature {configHostIds, routerHostIds, dataHostIds}
     @Expose
-    private Set<String> configServerNames = new HashSet<>();
-
-
-    @Expose
-    private Set<String> routerServerNames = new HashSet<>();
+    private Set<UUID> configHostIds = new HashSet<>();
 
 
     @Expose
-    private Set<String> dataServerNames = new HashSet<>();
+    private Set<UUID> routerHostIds = new HashSet<>();
+
+
+    @Expose
+    private Set<UUID> dataHostIds = new HashSet<>();
 
 
     private transient Set<MongoConfigNode> configServers = new HashSet<>();
@@ -103,6 +103,7 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
                                                                         mongoConfigNode.getContainerHostId() ) ) );
 
             this.configServers.add( mongoConfigNode );
+            this.configHostIds.add( UUID.fromString( mongoConfigNode.getContainerHostId() ) );
         }
         for ( final MongoRouterNodeImpl mongoRouterNode : routerServersImpl )
         {
@@ -110,6 +111,7 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
                                                                 .getContainerHostById( UUID.fromString(
                                                                         mongoRouterNode.getContainerHostId() ) ) );
             this.routerServers.add( mongoRouterNode );
+            this.routerHostIds.add( UUID.fromString( mongoRouterNode.getContainerHostId() ) );
         }
         for ( final MongoDataNodeImpl mongoDataNode : dataNodesImpl )
         {
@@ -117,6 +119,7 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
                                                               .getContainerHostById( UUID.fromString(
                                                                       mongoDataNode.getContainerHostId() ) ) );
             this.dataNodes.add( mongoDataNode );
+            this.dataHostIds.add( UUID.fromString( mongoDataNode.getContainerHostId() ) );
         }
         return this;
     }
@@ -204,7 +207,6 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     {
         this.dataNodePort = dataNodePort;
     }
-
 
 
     public int getRouterPort()
@@ -458,54 +460,63 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
         for ( final MongoConfigNode configServer : configServers )
         {
             this.configServersImpl.add( ( MongoConfigNodeImpl ) configServer );
+            this.configHostIds.add( UUID.fromString( ( ( MongoConfigNodeImpl ) configServer ).getContainerHostId() ) );
         }
         for ( final MongoRouterNode routerServer : routerServers )
         {
             this.routerServersImpl.add( ( MongoRouterNodeImpl ) routerServer );
+            this.routerHostIds.add( UUID.fromString( ( ( MongoRouterNodeImpl ) routerServer ).getContainerHostId() ) );
         }
         for ( final MongoDataNode dataNode : dataNodes )
         {
             this.dataNodesImpl.add( ( MongoDataNodeImpl ) dataNode );
+            this.dataHostIds.add( UUID.fromString( ( ( MongoDataNodeImpl ) dataNode ).getContainerHostId() ) );
         }
         return this;
     }
 
 
-    public Set<String> getConfigServerNames()
+    @Override
+    public Set<UUID> getConfigHostIds()
     {
-        return configServerNames;
+        return configHostIds;
     }
 
 
-    public void setConfigServerNames( final Set<String> configServerNames )
+    @Override
+    public void setConfigHostIds( Set<UUID> configServerNames )
     {
-        this.configServerNames.clear();
-        this.configServerNames.addAll( configServerNames );
+        this.configHostIds.clear();
+        this.configHostIds.addAll( configServerNames );
     }
 
 
-    public Set<String> getRouterServerNames()
+    @Override
+    public Set<UUID> getRouterHostIds()
     {
-        return routerServerNames;
+        return routerHostIds;
     }
 
 
-    public void setRouterServerNames( final Set<String> routerServerNames )
+    @Override
+    public void setRouterHostIds( Set<UUID> routerServerNames )
     {
-        this.routerServerNames.clear();
-        this.routerServerNames.addAll( routerServerNames );
+        this.routerHostIds.clear();
+        this.routerHostIds.addAll( routerServerNames );
     }
 
 
-    public Set<String> getDataServerNames()
+    @Override
+    public Set<UUID> getDataHostIds()
     {
-        return dataServerNames;
+        return dataHostIds;
     }
 
 
-    public void setDataServerNames( final Set<String> dataServerNames )
+    @Override
+    public void setDataServerIds( Set<UUID> dataServerNames )
     {
-        this.dataServerNames.clear();
-        this.dataServerNames.addAll( dataServerNames );
+        this.dataHostIds.clear();
+        this.dataHostIds.addAll( dataServerNames );
     }
 }

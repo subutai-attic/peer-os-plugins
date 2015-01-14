@@ -6,6 +6,8 @@
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
@@ -33,6 +35,9 @@ public class Wizard
     private boolean installOverEnvironment;
     private MongoClusterConfig mongoClusterConfig;// = new MongoClusterConfigImpl();
     private EnvironmentManager environmentManager;
+    private Set<String> configServerNames = new HashSet<>();
+    private Set<String> routerServerNames = new HashSet<>();
+    private Set<String> dataServerNames = new HashSet<>();
 
 
     public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker,
@@ -150,5 +155,41 @@ public class Wizard
     public Mongo getMongo()
     {
         return mongo;
+    }
+
+
+    public Set<String> getConfigServerNames()
+    {
+        return configServerNames;
+    }
+
+
+    public void setConfigServerNames( final Set<String> configServerNames )
+    {
+        this.configServerNames = configServerNames;
+    }
+
+
+    public Set<String> getRouterServerNames()
+    {
+        return routerServerNames;
+    }
+
+
+    public void setRouterServerNames( final Set<String> routerServerNames )
+    {
+        this.routerServerNames = routerServerNames;
+    }
+
+
+    public Set<String> getDataServerNames()
+    {
+        return dataServerNames;
+    }
+
+
+    public void setDataServerNames( final Set<String> dataServerNames )
+    {
+        this.dataServerNames = dataServerNames;
     }
 }
