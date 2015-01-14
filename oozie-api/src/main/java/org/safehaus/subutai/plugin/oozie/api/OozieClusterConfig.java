@@ -1,12 +1,12 @@
 package org.safehaus.subutai.plugin.oozie.api;
 
 
+import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
 /**
@@ -16,6 +16,8 @@ public class OozieClusterConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Oozie";
+    public static final String TEMPLATE_NAME = "oozie";
+
     public static final String PRODUCT_NAME_CLIENT = "hadoopOozieClient";
     private String templateNameClient = PRODUCT_NAME_CLIENT;
     public static final String PRODUCT_NAME_SERVER = "hadoopOozieServer";
@@ -27,6 +29,8 @@ public class OozieClusterConfig implements ConfigBase
     private Set<UUID> clients;
     private String clusterName = "";
     private SetupType setupType;
+    private UUID environmentId;
+    private Set<UUID> nodes = new HashSet();
 
 
     public OozieClusterConfig()
@@ -194,6 +198,27 @@ public class OozieClusterConfig implements ConfigBase
         allAgents.addAll( clients );
         allAgents.add( server );
         return allAgents;
+    }
+
+    public UUID getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final UUID environmentId )
+    {
+        this.environmentId = environmentId;
+    }
+
+    public Set<UUID> getNodes()
+    {
+        return nodes;
+    }
+
+    public void setNodes( Set<UUID> nodes )
+    {
+        this.nodes = nodes;
     }
 
 

@@ -1,11 +1,9 @@
 package org.safehaus.subutai.plugin.oozie.impl;
 
 
-import java.util.Set;
-
 import org.safehaus.subutai.common.command.OutputRedirection;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 
@@ -26,9 +24,9 @@ public class Commands
     }
 
 
-    public static String make( CommandType type )
+    public static String make(CommandType type)
     {
-        switch ( type )
+        switch (type)
         {
             case STATUS:
                 return "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
@@ -40,20 +38,20 @@ public class Commands
                         + CLIENT_PACKAGE_NAME;
             case PURGE:
                 StringBuilder sb = new StringBuilder();
-                sb.append( "apt-get --force-yes --assume-yes " );
-                sb.append( type.toString().toLowerCase() ).append( " " );
-                sb.append( PACKAGE_NAME );
+                sb.append("apt-get --force-yes --assume-yes ");
+                sb.append(type.toString().toLowerCase()).append(" ");
+                sb.append(PACKAGE_NAME);
                 return sb.toString();
             case START:
             case STOP:
                 String s = "service oozie-ng " + type.toString().toLowerCase() + " agent";
-                if ( type == CommandType.START )
+                if (type == CommandType.START)
                 {
                     s += " &"; // TODO:
                 }
                 return s;
             default:
-                throw new AssertionError( type.name() );
+                throw new AssertionError(type.name());
         }
     }
 
@@ -63,8 +61,8 @@ public class Commands
 
         return
 
-                new RequestBuilder( "sleep 1; apt-get --force-yes --assume-yes install " + SERVER_PACKAGE_NAME )
-                        .withTimeout( 180 ).withStdOutRedirection( OutputRedirection.NO );
+                new RequestBuilder("sleep 1; apt-get --force-yes --assume-yes install " + SERVER_PACKAGE_NAME)
+                        .withTimeout(180).withStdOutRedirection(OutputRedirection.NO);
     }
 
 
@@ -73,44 +71,44 @@ public class Commands
 
         return
 
-                new RequestBuilder( "sleep 1; apt-get --force-yes --assume-yes install " + CLIENT_PACKAGE_NAME )
-                        .withTimeout( 180 ).withStdOutRedirection( OutputRedirection.NO );
+                new RequestBuilder("sleep 1; apt-get --force-yes --assume-yes install " + CLIENT_PACKAGE_NAME)
+                        .withTimeout(180).withStdOutRedirection(OutputRedirection.NO);
     }
 
 
     public RequestBuilder getStartServerCommand()
     {
-        return new RequestBuilder( "service oozie-server start &" );
+        return new RequestBuilder("service oozie-server start &");
     }
 
 
     public RequestBuilder getStopServerCommand()
     {
-        return new RequestBuilder( "service oozie-server stop" );
+        return new RequestBuilder("service oozie-server stop");
     }
 
 
     public RequestBuilder getStatusServerCommand()
     {
-        return new RequestBuilder( "service oozie-server status" );
+        return new RequestBuilder("service oozie-server status");
     }
 
 
-    public RequestBuilder getConfigureRootHostsCommand( String param )
+    public RequestBuilder getConfigureRootHostsCommand(String param)
     {
 
-        return new RequestBuilder( String.format(
+        return new RequestBuilder(String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.hosts %s", param ) );
+                        + ".root.hosts %s", param));
     }
 
 
     public RequestBuilder getConfigureRootGroupsCommand()
     {
 
-        return new RequestBuilder( String.format(
+        return new RequestBuilder(String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.groups '\\*' " ) );
+                        + ".root.groups '\\*' "));
     }
 
 
@@ -118,21 +116,36 @@ public class Commands
     {
         return
 
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + SERVER_PACKAGE_NAME ).withTimeout( 90 )
-                                                                                                     .withStdOutRedirection(
-                                                                                                             OutputRedirection.NO )
+                new RequestBuilder("apt-get --force-yes --assume-yes purge " + SERVER_PACKAGE_NAME).withTimeout(90)
+                        .withStdOutRedirection(
+                                OutputRedirection.NO)
 
                 ;
     }
 
+    public RequestBuilder getUninstallCommand()
+    {
+        RequestBuilder rb = new RequestBuilder("apt-get --force-yes --assume-yes purge " + PACKAGE_NAME).withTimeout
+                (600);
+        return rb;
+    }
+
+    public RequestBuilder getInstallCommand()
+    {
+        RequestBuilder rb =
+                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
+                        .withStdOutRedirection(
+                                OutputRedirection.NO );
+        return rb;
+    }
 
     public RequestBuilder getUninstallClientsCommand()
     {
         return
 
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + CLIENT_PACKAGE_NAME ).withTimeout( 90 )
-                                                                                                     .withStdOutRedirection(
-                                                                                                             OutputRedirection.NO )
+                new RequestBuilder("apt-get --force-yes --assume-yes purge " + CLIENT_PACKAGE_NAME).withTimeout(90)
+                        .withStdOutRedirection(
+                                OutputRedirection.NO)
 
                 ;
     }
@@ -140,6 +153,6 @@ public class Commands
 
     public RequestBuilder getCheckInstalledCommand()
     {
-        return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
+        return new RequestBuilder("dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH);
     }
 }

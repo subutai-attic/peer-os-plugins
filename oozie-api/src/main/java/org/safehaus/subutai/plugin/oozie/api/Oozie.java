@@ -1,13 +1,12 @@
 package org.safehaus.subutai.plugin.oozie.api;
 
 
-import java.util.UUID;
-
-import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
+import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+
+import java.util.UUID;
 
 
 /**
@@ -15,19 +14,26 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
  */
 public interface Oozie extends ApiBase<OozieClusterConfig>
 {
+    public UUID startNode( String clusterName, String lxcHostname );
 
-    UUID startServer( OozieClusterConfig config );
+    public UUID stopNode( String clusterName, String lxcHostname );
 
-    UUID stopServer( OozieClusterConfig config );
+    public UUID checkNode( String clusterName, String lxcHostname );
 
-    UUID checkServerStatus( OozieClusterConfig config );
+    public UUID addNode( String clusterName, String lxcHostname );
 
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, OozieClusterConfig config,
-                                                         TrackerOperation po );
 
-    public EnvironmentBuildTask getDefaultEnvironmentBlueprint( OozieClusterConfig config );
+//    UUID startServer(OozieClusterConfig config);
+//
+//    UUID stopServer(OozieClusterConfig config);
+//
+//    UUID checkServerStatus(OozieClusterConfig config);
 
-    UUID addNode( String clustername, String lxchostname, String nodetype );
+    public ClusterSetupStrategy getClusterSetupStrategy(TrackerOperation po, OozieClusterConfig config);
 
-    UUID destroyNode( final String clusterName, final String lxcHostname );
+    public EnvironmentBlueprint getDefaultEnvironmentBlueprint(OozieClusterConfig config);
+
+//    UUID addNode(String clustername, String lxchostname, String nodetype);
+
+    UUID destroyNode(final String clusterName, final String lxcHostname);
 }
