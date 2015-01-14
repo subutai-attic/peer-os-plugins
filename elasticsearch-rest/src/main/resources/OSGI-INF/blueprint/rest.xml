@@ -15,7 +15,7 @@
              interface="org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.elasticsearch.rest.RestServiceImpl">
-    <property name="elasticsearch" ref="elasticsearch" />
+    <argument ref="elasticsearch" />
   </bean>
 
   <jaxrs:server address="/elasticsearch" id="elasticsearchRestService">
