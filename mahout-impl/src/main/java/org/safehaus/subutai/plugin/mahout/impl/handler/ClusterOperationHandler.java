@@ -29,9 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 25.12.2014.
- */
 public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl, MahoutClusterConfig>
         implements ClusterOperationHandlerInterface
 {

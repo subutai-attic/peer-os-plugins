@@ -13,9 +13,7 @@ import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.impl.MahoutImpl;
 
 
-/**
- * Created by ebru on 25.12.2014.
- */
+
 public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, MahoutClusterConfig>
 {
 
