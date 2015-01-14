@@ -38,9 +38,9 @@ public class HadoopAlertListener implements AlertListener
     private CommandUtil commandUtil = new CommandUtil();
 
 
-    public HadoopAlertListener( final HadoopImpl spark )
+    public HadoopAlertListener( final HadoopImpl hadoop )
     {
-        this.hadoop = spark;
+        this.hadoop = hadoop;
     }
 
 
