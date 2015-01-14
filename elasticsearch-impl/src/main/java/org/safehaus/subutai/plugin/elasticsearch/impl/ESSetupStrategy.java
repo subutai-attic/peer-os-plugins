@@ -1,8 +1,12 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl;
 
 
+import java.util.List;
+import java.util.Set;
+
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -56,9 +60,21 @@ public class ESSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( "Environment not found" );
         }
 
-        if ( environment.getContainerHostsByIds( config.getNodes() ).size() < config.getNodes().size() )
+        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+
+        List<ElasticsearchClusterConfiguration> esClusters = elasticsearchManager.getClusters();
+
+        for ( ElasticsearchClusterConfiguration cluster : esClusters )
         {
-            throw new ClusterSetupException( "Fewer nodes found in environment than specified" );
+            for ( ContainerHost node : nodes )
+            {
+                if ( cluster.getNodes().contains( node.getId() ) )
+                {
+                    throw new ClusterSetupException(
+                            String.format( "Node %s already belongs to cluster %s", node.getHostname(),
+                                    cluster.getClusterName() ) );
+                }
+            }
         }
 
         try
@@ -69,12 +85,6 @@ public class ESSetupStrategy implements ClusterSetupStrategy
         {
             throw new ClusterSetupException( ex.getMessage() );
         }
-
-        po.addLog( "Saving cluster information to database..." );
-
-        elasticsearchManager.getPluginDAO()
-                            .saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
-        po.addLog( "Cluster information saved to database" );
 
         return config;
     }

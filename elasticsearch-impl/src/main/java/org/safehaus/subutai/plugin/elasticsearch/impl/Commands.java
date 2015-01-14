@@ -14,5 +14,6 @@ public class Commands
     public static String startCommand = "service elasticsearch start";
     public static String stopCommand = "service elasticsearch stop";
     public static String configure = ". /etc/profile && es-conf.sh";
-    public static String install = String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME );
+    public static String checkCommand = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
+    public static String installCommand = String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME );
 }
