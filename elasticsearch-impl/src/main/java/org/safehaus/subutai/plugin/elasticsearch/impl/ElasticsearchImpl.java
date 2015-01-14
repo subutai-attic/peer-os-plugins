@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
-import javax.ws.rs.NotSupportedException;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -97,9 +96,24 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
+    public UUID installCluster( final ElasticsearchClusterConfiguration config )
+    {
+        Preconditions.checkNotNull( config, "Configuration is null" );
+
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID uninstallCluster( String clusterName )
     {
-        return null;
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -121,55 +135,22 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
-    public UUID startAllNodes( final ElasticsearchClusterConfiguration config )
+    public UUID addNode( final String clusterName, final String hostname )
     {
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
     @Override
-    public UUID checkAllNodes( final ElasticsearchClusterConfiguration config )
+    public UUID destroyNode( final String clusterName, final String hostname )
     {
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STATUS_ALL );
+                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.UNINSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID stopAllNodes( final ElasticsearchClusterConfiguration config )
-    {
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID addNode( final String s, final String s1 )
-    {
-        throw new NotSupportedException();
-    }
-
-
-    @Override
-    public UUID addNode( final String clusterName )
-    {
-        // TODO
-        return null;
-    }
-
-
-    @Override
-    public UUID destroyNode( final String clusterName, final String lxcHostname )
-    {
-        // TODO
-        return null;
     }
 
 
@@ -204,16 +185,6 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
-    public UUID uninstallCluster( final ElasticsearchClusterConfiguration config )
-    {
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
     public ClusterSetupStrategy getClusterSetupStrategy(
             final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration, final TrackerOperation po )
     {
@@ -222,18 +193,6 @@ public class ElasticsearchImpl implements Elasticsearch
         Preconditions.checkNotNull( po, "Product operation is null" );
 
         return new ESSetupStrategy( elasticsearchClusterConfiguration, po, this );
-    }
-
-
-    @Override
-    public UUID installCluster( final ElasticsearchClusterConfiguration config )
-    {
-        Preconditions.checkNotNull( config, "Configuration is null" );
-
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
     }
 
 

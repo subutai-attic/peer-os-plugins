@@ -1,15 +1,15 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -23,7 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
@@ -37,6 +38,8 @@ public class ClusterOperationHandler
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
     private ExecutorService executor = Executors.newCachedThreadPool();
+    CommandUtil commandUtil = new CommandUtil();
+    Commands commands = new Commands();
 
 
     public ClusterOperationHandler( final ElasticsearchImpl manager, final ElasticsearchClusterConfiguration config,
@@ -73,11 +76,6 @@ public class ClusterOperationHandler
                     }
                 } );
                 break;
-            case START_ALL:
-            case STOP_ALL:
-            case STATUS_ALL:
-                runOperationOnContainers( operationType );
-                break;
         }
     }
 
@@ -85,44 +83,20 @@ public class ClusterOperationHandler
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        CommandResult result = null;
-        switch ( clusterOperationType )
-        {
-            case START_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.startCommand );
-                }
-                break;
-            case STOP_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.stopCommand );
-                }
-                break;
-            case STATUS_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.statusCommand );
-                }
-                break;
-        }
-        NodeOperationHandler.logResults( trackerOperation, result );
+        throw new NotImplementedException();
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    private CommandResult executeCommand( ContainerHost containerHost, RequestBuilder command )
     {
         CommandResult result = null;
         try
         {
-            result = containerHost.execute( new RequestBuilder( command ) );
+            result = commandUtil.execute( command, containerHost );
         }
         catch ( CommandException e )
         {
-            LOG.error( "Could not execute command correctly. ", command );
-            e.printStackTrace();
+            LOG.error( "Command failed", e );
         }
         return result;
     }
@@ -133,8 +107,7 @@ public class ClusterOperationHandler
     {
         try
         {
-            ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( config, trackerOperation );
+            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
@@ -157,18 +130,22 @@ public class ClusterOperationHandler
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
 
-        try
+        if ( environment == null )
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
         }
-        catch ( EnvironmentDestroyException e )
+
+        trackerOperation.addLog( "Uninstalling ES..." );
+        Set<ContainerHost> esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        for ( ContainerHost node : esNodes )
         {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
+            executeCommand( node, commands.getUninstallCommand() );
         }
+        manager.getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() );
+
+        trackerOperation.addLogDone( "Cluster destroyed" );
     }
 }

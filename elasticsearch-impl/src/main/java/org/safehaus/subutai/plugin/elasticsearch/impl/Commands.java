@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl;
 
 
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
@@ -10,10 +11,48 @@ public class Commands
     public static final String PACKAGE_NAME =
             Common.PACKAGE_PREFIX + ElasticsearchClusterConfiguration.PRODUCT_KEY.toLowerCase();
 
-    public static String statusCommand = "service elasticsearch status";
-    public static String startCommand = "service elasticsearch start";
-    public static String stopCommand = "service elasticsearch stop";
-    public static String configure = ". /etc/profile && es-conf.sh";
-    public static String checkCommand = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
-    public static String installCommand = String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME );
+
+    public RequestBuilder getStatusCommand()
+    {
+        return new RequestBuilder( "service elasticsearch status" );
+    }
+
+
+    public RequestBuilder getStartCommand()
+    {
+        return new RequestBuilder( "service elasticsearch start" );
+    }
+
+
+    public RequestBuilder getStopCommand()
+    {
+        return new RequestBuilder( "service elasticsearch stop" );
+    }
+
+
+    public RequestBuilder getConfigureCommand( String clusterName )
+    {
+        return new RequestBuilder( String.format( ". /etc/profile && es-conf.sh cluster.name %s", clusterName ) );
+    }
+
+
+    public RequestBuilder getInstallCommand()
+    {
+        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME ) )
+                .withTimeout( 600 );
+    }
+
+
+    public RequestBuilder getUninstallCommand()
+    {
+        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes purge %s", PACKAGE_NAME ) )
+                .withTimeout( 300 );
+    }
+
+
+    public RequestBuilder getCheckInstallationCommand()
+    {
+        return new RequestBuilder(
+                String.format( "dpkg -l | grep '^ii' | grep %s", Common.PACKAGE_PREFIX_WITHOUT_DASH ) );
+    }
 }

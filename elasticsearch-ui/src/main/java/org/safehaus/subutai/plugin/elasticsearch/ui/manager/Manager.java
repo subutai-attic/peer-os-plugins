@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
@@ -60,7 +59,6 @@ public class Manager
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
-    private static final Pattern ELASTICSEARCH_PATTERN = Pattern.compile( ".*(elasticsearch.+?g).*" );
     final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final Table nodesTable;
@@ -73,7 +71,8 @@ public class Manager
     private ElasticsearchClusterConfiguration config;
 
 
-    public Manager( final ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.elasticsearch = elasticsearch;
@@ -313,7 +312,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = elasticsearch.uninstallCluster( config );
+                            UUID trackID = elasticsearch.uninstallCluster( config.getClusterName() );
 
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     ElasticsearchClusterConfiguration.PRODUCT_KEY );

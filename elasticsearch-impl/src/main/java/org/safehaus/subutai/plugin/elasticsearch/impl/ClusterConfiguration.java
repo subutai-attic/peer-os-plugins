@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
@@ -23,6 +22,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private ElasticsearchImpl manager;
     private TrackerOperation po;
     CommandUtil commandUtil = new CommandUtil();
+    Commands commands = new Commands();
 
 
     public ClusterConfiguration( final ElasticsearchImpl manager, final TrackerOperation po )
@@ -39,7 +39,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         ElasticsearchClusterConfiguration clusterConfiguration = ( ElasticsearchClusterConfiguration ) config;
         Set<ContainerHost> esNodes = environment.getContainerHostsByIds( clusterConfiguration.getNodes() );
 
-        String clusterConfigureCommand = Commands.configure + " cluster.name " + config.getClusterName();
 
         for ( ContainerHost containerHost : esNodes )
         {
@@ -47,19 +46,19 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 po.addLog( "Checking ES installation..." );
                 CommandResult commandResult =
-                        commandUtil.execute( new RequestBuilder( Commands.checkCommand ), containerHost );
+                        commandUtil.execute( commands.getCheckInstallationCommand(), containerHost );
 
                 if ( !commandResult.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     //install ES on the node
                     po.addLog( String.format( "Installing ES on %s...", containerHost.getHostname() ) );
-                    commandUtil
-                            .execute( new RequestBuilder( Commands.installCommand ).withTimeout( 180 ), containerHost );
+                    commandUtil.execute( commands.getInstallCommand(), containerHost );
                 }
 
                 po.addLog( String.format( "Configuring node %s..." + containerHost.getHostname() ) );
                 // Setting cluster name
-                commandUtil.execute( new RequestBuilder( clusterConfigureCommand ), containerHost );
+                commandUtil.execute( commands.getConfigureCommand( clusterConfiguration.getClusterName() ),
+                        containerHost );
             }
             catch ( CommandException e )
             {
