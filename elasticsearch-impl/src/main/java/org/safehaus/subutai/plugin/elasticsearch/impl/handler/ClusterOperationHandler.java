@@ -9,6 +9,7 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -17,7 +18,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
-import org.safehaus.subutai.plugin.elasticsearch.impl.Commands;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,6 @@ public class ClusterOperationHandler
     private ElasticsearchClusterConfiguration config;
     private ExecutorService executor = Executors.newCachedThreadPool();
     CommandUtil commandUtil = new CommandUtil();
-    Commands commands = new Commands();
 
 
     public ClusterOperationHandler( final ElasticsearchImpl manager, final ElasticsearchClusterConfiguration config,
@@ -142,9 +141,18 @@ public class ClusterOperationHandler
         Set<ContainerHost> esNodes = environment.getContainerHostsByIds( config.getNodes() );
         for ( ContainerHost node : esNodes )
         {
-            executeCommand( node, commands.getUninstallCommand() );
+            executeCommand( node, manager.getCommands().getUninstallCommand() );
         }
         manager.getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() );
+
+        try
+        {
+            manager.unsubscribeFromAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            LOG.error( "Failed to unsubscribe from alerts", e );
+        }
 
         trackerOperation.addLogDone( "Cluster destroyed" );
     }

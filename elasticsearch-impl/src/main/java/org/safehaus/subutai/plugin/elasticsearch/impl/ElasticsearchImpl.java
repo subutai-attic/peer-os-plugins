@@ -11,6 +11,12 @@ import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -19,6 +25,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.alert.EsAlertListener;
 import org.safehaus.subutai.plugin.elasticsearch.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
@@ -32,16 +39,67 @@ import com.google.common.base.Strings;
 public class ElasticsearchImpl implements Elasticsearch
 {
     private static final Logger LOG = LoggerFactory.getLogger( ElasticsearchImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+
     private Tracker tracker;
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private DataSource dataSource;
+    private Monitor monitor;
+    private QuotaManager quotaManager;
+    private EsAlertListener alertListener;
+
+    Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( DataSource dataSource )
+    public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,
+                              final DataSource dataSource, final Monitor monitor, final QuotaManager quotaManager )
     {
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
         this.dataSource = dataSource;
+        this.monitor = monitor;
+        this.quotaManager = quotaManager;
+
+        alertListener = new EsAlertListener( this );
+        monitor.addAlertListener( alertListener );
+    }
+
+
+    public Commands getCommands()
+    {
+        return commands;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( alertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( alertListener, environment );
     }
 
 
@@ -54,18 +112,6 @@ public class ElasticsearchImpl implements Elasticsearch
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
     }
 
 
