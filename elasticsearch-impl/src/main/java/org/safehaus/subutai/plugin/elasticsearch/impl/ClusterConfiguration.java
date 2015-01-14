@@ -48,7 +48,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 CommandResult commandResult =
                         commandUtil.execute( commands.getCheckInstallationCommand(), containerHost );
 
-                if ( !commandResult.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                if ( !commandResult.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
                 {
                     //install ES on the node
                     po.addLog( String.format( "Installing ES on %s...", containerHost.getHostname() ) );

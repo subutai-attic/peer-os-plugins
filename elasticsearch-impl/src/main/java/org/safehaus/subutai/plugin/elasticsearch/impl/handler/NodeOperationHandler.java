@@ -99,7 +99,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
 
         //check if ES is installed
         CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), host );
-        if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+        if ( result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
         {
             //uninstall ES from the node
             trackerOperation.addLog( String.format( "Uninstalling ES from %s...", host.getHostname() ) );
@@ -131,7 +131,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
 
         //check if ES is installed
         CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), host );
-        if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+        if ( !result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
         {
             //install ES on the node
             trackerOperation.addLog( String.format( "Installing ES on %s...", host.getHostname() ) );

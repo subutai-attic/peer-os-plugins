@@ -8,8 +8,6 @@ import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfigu
 
 public class Commands
 {
-    public static final String PACKAGE_NAME =
-            Common.PACKAGE_PREFIX + ElasticsearchClusterConfiguration.PRODUCT_KEY.toLowerCase();
 
 
     public RequestBuilder getStatusCommand()
@@ -38,15 +36,15 @@ public class Commands
 
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME ) )
-                .withTimeout( 600 );
+        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes install %s",
+                ElasticsearchClusterConfiguration.PACKAGE_NAME ) ).withTimeout( 600 );
     }
 
 
     public RequestBuilder getUninstallCommand()
     {
-        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes purge %s", PACKAGE_NAME ) )
-                .withTimeout( 300 );
+        return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes purge %s",
+                ElasticsearchClusterConfiguration.PACKAGE_NAME ) ).withTimeout( 300 );
     }
 
 
