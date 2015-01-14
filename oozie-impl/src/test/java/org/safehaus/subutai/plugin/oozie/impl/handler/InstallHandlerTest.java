@@ -96,7 +96,7 @@ public class InstallHandlerTest
     {
         when(oozieImpl.getEnvironmentManager()).thenReturn(environmentManager);
         when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
-        when(oozieImpl.getClusterSetupStrategy(environment, oozieClusterConfig, trackerOperation)).thenReturn(clusterSetupStrategy);
+//        when(oozieImpl.getClusterSetupStrategy(environment, oozieClusterConfig, trackerOperation)).thenReturn(clusterSetupStrategy);
 
         installHandler.run();
 

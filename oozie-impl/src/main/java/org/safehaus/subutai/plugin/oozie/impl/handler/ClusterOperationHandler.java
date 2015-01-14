@@ -4,16 +4,12 @@ import com.google.common.base.Preconditions;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.*;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.CommandType;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
@@ -46,11 +42,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
                 String.format("Creating %s tracker object...", clusterName));
     }
 
-    public void setHadoopConfig(HadoopClusterConfig hadoopConfig)
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
-
     @Override
     public void runOperationOnContainers(ClusterOperationType clusterOperationType)
     {
@@ -62,53 +53,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
     {
         try
         {
-            Environment env = null;
-
-            if (config.getSetupType() == SetupType.WITH_HADOOP)
-            {
-
-                if (hadoopConfig == null)
-                {
-                    trackerOperation.addLogFailed("No Hadoop configuration specified");
-                    return;
-                }
-                hadoopConfig.setTemplateName(OozieClusterConfig.TEMPLATE_NAME);
-                try
-                {
-                    trackerOperation.addLog("Building environment...");
-                    EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint(hadoopConfig);
-                    env = manager.getEnvironmentManager().buildEnvironment(eb);
-                } catch (ClusterSetupException | EnvironmentBuildException ex)
-                {
-                    throw new ClusterException("Failed to build environment: " + ex.getMessage());
-                }
-
-                trackerOperation.addLog("Environment built successfully");
-            } else
-            {
-                env = manager.getEnvironmentManager().getEnvironmentByUUID(hadoopConfig.getEnvironmentId());
-                if (env == null)
-                {
-                    throw new ClusterException(String.format("Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId()));
-                }
-            }
-
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config, env);
+            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config);
             try
             {
-                if (s == null)
-                {
-                    throw new ClusterSetupException("No setup strategy");
-                }
-                trackerOperation.addLog("Installing cluster...");
+                trackerOperation.addLog( "Installing cluster..." );
                 s.setup();
-                trackerOperation.addLogDone("Installing cluster completed");
-            } catch (ClusterSetupException ex)
+                trackerOperation.addLogDone( "Installing cluster completed" );
+            }
+            catch (ClusterSetupException ex)
             {
                 throw new ClusterException("Failed to setup cluster: " + ex.getMessage());
             }
-        } catch (ClusterException e)
+        }
+        catch (ClusterException e)
         {
             trackerOperation.addLogFailed(String.format("Could not start all nodes : %s", e.getMessage()));
         }
@@ -130,7 +87,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
         {
             trackerOperation.addLog("Destroying environment...");
             manager.getEnvironmentManager().destroyEnvironment(config.getEnvironmentId());
-            manager.getPluginDAO().deleteInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName());
+            manager.getPluginDao().deleteInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName());
             trackerOperation.addLogDone("Cluster destroyed");
         } catch (EnvironmentDestroyException e)
         {
@@ -149,16 +106,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
             ContainerHost containerHost =
                     manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId())
                             .getContainerHostById(uuid);
-            if (containerHost.getHostname() == null)
-            {
-                po.addLogFailed(
-                        String.format("Node %s is not connected\nOperation aborted", containerHost.getHostname()));
-                return;
-            }
-            CommandResult result = null;
             try
             {
-                result = containerHost.execute(new RequestBuilder(Commands.make(CommandType.PURGE)));
+                CommandResult result = containerHost.execute(new RequestBuilder(Commands.make(CommandType.PURGE)));
                 if (!result.hasSucceeded())
                 {
                     po.addLog(result.getStdErr());
@@ -171,7 +121,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
             }
         }
         po.addLog("Updating db...");
-        manager.getPluginDAO().deleteInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName());
+        manager.getPluginDao().deleteInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName());
         po.addLogDone("Cluster info deleted from DB\nDone");
     }
 
@@ -186,14 +136,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
                 setupCluster();
                 break;
             case DESTROY:
-                if (config.getSetupType() == SetupType.OVER_HADOOP)
-                {
-                    uninstallCluster();
-                } else if (config.getSetupType() == SetupType.WITH_HADOOP)
-                {
-                    destroyCluster();
-                }
-
+                uninstallCluster();
                 break;
         }
 

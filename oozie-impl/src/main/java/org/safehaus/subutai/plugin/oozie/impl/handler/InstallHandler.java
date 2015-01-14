@@ -63,7 +63,7 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
             }
 
             trackerOperation.addLog( "Preparing environment..." );
-            hadoopConfig.setTemplateName( OozieClusterConfig.PRODUCT_NAME_SERVER );
+//            hadoopConfig.setTemplateName( OozieClusterConfig.PRODUCT_NAME_SERVER );
             try
             {
                 EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint( hadoopConfig );
@@ -92,7 +92,7 @@ public class InstallHandler extends AbstractOperationHandler<OozieImpl, OozieClu
         }
 
 
-        ClusterSetupStrategy s = manager.getClusterSetupStrategy( trackerOperation, config, env );
+        ClusterSetupStrategy s = manager.getClusterSetupStrategy( trackerOperation, config);
         try
         {
             if ( s == null )

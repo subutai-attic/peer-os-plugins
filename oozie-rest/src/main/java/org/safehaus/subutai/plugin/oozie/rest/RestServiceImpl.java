@@ -1,28 +1,23 @@
 package org.safehaus.subutai.plugin.oozie.rest;
 
 
-import java.util.Set;
-import java.util.UUID;
-
-import javax.ws.rs.core.Response;
-
+import com.google.common.base.Preconditions;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.SetupType;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 
 public class RestServiceImpl implements RestService
 {
+    private static final String OPERATION_ID = "OPERATION_ID";
 
     private Oozie oozieManager;
     private Hadoop hadoopManager;
@@ -41,141 +36,245 @@ public class RestServiceImpl implements RestService
         this.environmentManager = environmentManager;
     }
 
-
     @Override
-    public Response listClusters()
+    public Response getClusters()
     {
-        return Response.status( Response.Status.OK ).build();
+        List<OozieClusterConfig> configs = oozieManager.getClusters();
+        ArrayList<String> clusterNames = new ArrayList();
+
+        for ( OozieClusterConfig config : configs )
+        {
+            clusterNames.add( config.getClusterName() );
+        }
+
+        String clusters = JsonUtil.GSON.toJson( clusterNames );
+        return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
-
     @Override
-    public Response getCluster( final String clusterName )
+    public Response getCluster(String clusterName)
     {
-        return Response.status( Response.Status.OK ).build();
+        OozieClusterConfig config = oozieManager.getCluster( clusterName );
+
+        String cluster = JsonUtil.GSON.toJson( config );
+        return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
-
     @Override
-    public Response createCluster( final String config )
+    public Response installCluster(String clusterName, String nodes)
     {
+        OozieClusterConfig config = new OozieClusterConfig();
+        config.setSetupType( SetupType.OVER_HADOOP );
+        config.setClusterName( clusterName );
 
-        TrimmedOozieClusterConfig tocc = JsonUtil.fromJson( config, TrimmedOozieClusterConfig.class );
-
-        if ( Strings.isNullOrEmpty( tocc.getClusterName() ) )
+        String[] arr = nodes.split( "[,;]" );
+        for ( String node : arr )
         {
-            return Response.status( Response.Status.BAD_REQUEST ).entity( "Invalid cluster name" ).build();
-        }
-
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( tocc.getHadoopClusterName() );
-
-
-        if ( hadoopClusterConfig == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND )
-                           .entity( String.format( "Hadoop cluster %s not found", tocc.getHadoopClusterName() ) )
-                           .build();
-        }
-
-        Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-
-        if ( environment == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Environment %s not found", hadoopClusterConfig.getEnvironmentId() ) ).build();
-        }
-
-        ContainerHost serverHost = environment.getContainerHostByHostname( tocc.getServerHostname() );
-        if ( serverHost == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND )
-                           .entity( String.format( "Server node %s not found", tocc.getServerHostname() ) ).build();
-        }
-
-        Set<UUID> clientHosts = Sets.newHashSet();
-        for ( String clientHostName : tocc.getClientHostNames() )
-        {
-            ContainerHost clientHost = environment.getContainerHostByHostname( clientHostName );
-            if ( clientHost == null )
+            if ( UUID.fromString(node) != null )
             {
-                return Response.status( Response.Status.NOT_FOUND )
-                               .entity( String.format( "Client node %s not found", clientHostName ) ).build();
+                config.getNodes().add( UUID.fromString( node ) );
             }
-            clientHosts.add( clientHost.getId() );
         }
 
-        OozieClusterConfig occ = new OozieClusterConfig();
-        occ.setClusterName( tocc.getClusterName() );
-        occ.setHadoopClusterName( tocc.getHadoopClusterName() );
-        occ.setServer( serverHost.getId() );
-        occ.setSetupType( SetupType.OVER_HADOOP );
-        occ.setClients( clientHosts );
+        UUID uuid = oozieManager.installCluster( config );
 
-        UUID uuid = this.oozieManager.installCluster( occ );
-        String operationId = wrapUUID( uuid );
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
 
+    @Override
+    public Response install(String name, String hadoopName, String slaveNodesCount, String replFactor, String
+            domainName)
+    {
+        return null;
+    }
 
     @Override
-    public Response destroyCluster( final String clusterName )
+    public Response uninstallCluster(String clusterName)
     {
         UUID uuid = oozieManager.uninstallCluster( clusterName );
-        String operationId = wrapUUID( uuid );
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
-
 
     @Override
-    public Response startCluster( final String clusterName )
+    public Response addNode(String clusterName, String node)
     {
-        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
-        UUID uuid = oozieManager.startServer( occ );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+        UUID uuid = oozieManager.addNode( clusterName, node );
 
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
+        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+    }
 
     @Override
-    public Response stopCluster( final String clusterName )
+    public Response destroyNode(String clusterName, String node)
     {
-        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
-        UUID uuid = oozieManager.stopServer( occ );
-        String operationId = wrapUUID( uuid );
+        UUID uuid = oozieManager.destroyNode( clusterName, node );
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
-
 
     @Override
-    public Response addNode( final String clusterName, final String lxcHostname, final String nodeType )
+    public Response startNode(String clusterName, String node)
     {
-        UUID uuid = oozieManager.addNode( clusterName, lxcHostname, nodeType );
-        String operationId = wrapUUID( uuid );
+        UUID uuid = oozieManager.startNode( clusterName, node );
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
-
 
     @Override
-    public Response destroyNode( final String clusterName, final String lxcHostname )
+    public Response stopNode(String clusterName, String node)
     {
-        UUID uuid = oozieManager.destroyNode( clusterName, lxcHostname );
-        String operationId = wrapUUID( uuid );
+        UUID uuid = oozieManager.stopNode( clusterName, node );
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
-
 
     @Override
-    public Response checkNode( final String clusterName, final String lxcHostname )
+    public Response checkNode(String clusterName, String node)
     {
-        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
-        UUID uuid = oozieManager.checkServerStatus( occ );
-        String operationId = wrapUUID( uuid );
+        UUID uuid = oozieManager.checkNode( clusterName, node );
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
 
-
-    private String wrapUUID( UUID uuid )
-    {
-        return JsonUtil.toJson( "OPERATION_ID", uuid );
-    }
+//    @Override
+//    public Response listClusters()
+//    {
+//        return Response.status( Response.Status.OK ).build();
+//    }
+//
+//
+//    @Override
+//    public Response getCluster( final String clusterName )
+//    {
+//        return Response.status( Response.Status.OK ).build();
+//    }
+//
+//
+//    @Override
+//    public Response createCluster( final String config )
+//    {
+//
+//        TrimmedOozieClusterConfig tocc = JsonUtil.fromJson( config, TrimmedOozieClusterConfig.class );
+//
+//        if ( Strings.isNullOrEmpty( tocc.getClusterName() ) )
+//        {
+//            return Response.status( Response.Status.BAD_REQUEST ).entity( "Invalid cluster name" ).build();
+//        }
+//
+//        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( tocc.getHadoopClusterName() );
+//
+//
+//        if ( hadoopClusterConfig == null )
+//        {
+//            return Response.status( Response.Status.NOT_FOUND )
+//                    .entity( String.format( "Hadoop cluster %s not found", tocc.getHadoopClusterName() ) )
+//                    .build();
+//        }
+//
+//        Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+//        if ( environment == null )
+//        {
+//            return Response.status( Response.Status.NOT_FOUND ).entity(
+//                    String.format( "Environment %s not found", hadoopClusterConfig.getEnvironmentId() ) ).build();
+//        }
+//
+//        ContainerHost serverHost = environment.getContainerHostByHostname( tocc.getServerHostname() );
+//        if ( serverHost == null )
+//        {
+//            return Response.status( Response.Status.NOT_FOUND )
+//                    .entity( String.format( "Server node %s not found", tocc.getServerHostname() ) ).build();
+//        }
+//
+//        Set<UUID> clientHosts = Sets.newHashSet();
+//        for ( String clientHostName : tocc.getClientHostNames() )
+//        {
+//            ContainerHost clientHost = environment.getContainerHostByHostname( clientHostName );
+//            if ( clientHost == null )
+//            {
+//                return Response.status( Response.Status.NOT_FOUND )
+//                        .entity( String.format( "Client node %s not found", clientHostName ) ).build();
+//            }
+//            clientHosts.add( clientHost.getId() );
+//        }
+//
+//        OozieClusterConfig occ = new OozieClusterConfig();
+//        occ.setClusterName( tocc.getClusterName() );
+//        occ.setHadoopClusterName( tocc.getHadoopClusterName() );
+//        occ.setServer( serverHost.getId() );
+//        occ.setSetupType( SetupType.OVER_HADOOP );
+//        occ.setClients( clientHosts );
+//
+//        UUID uuid = this.oozieManager.installCluster( occ );
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+//    }
+//
+//
+//    @Override
+//    public Response destroyCluster( final String clusterName )
+//    {
+//        UUID uuid = oozieManager.uninstallCluster(clusterName);
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity( operationId ).build();
+//    }
+//
+//    @Override
+//    public Response startCluster( final String clusterName )
+//    {
+//        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
+//        UUID uuid = oozieManager.startServer( occ );
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity(operationId).build();
+//    }
+//
+//
+//    @Override
+//    public Response stopCluster( final String clusterName )
+//    {
+//        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
+//        UUID uuid = oozieManager.stopServer( occ );
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity( operationId ).build();
+//    }
+//
+//
+//    @Override
+//    public Response addNode( final String clusterName, final String lxcHostname, final String nodeType )
+//    {
+//        UUID uuid = oozieManager.addNode(clusterName, lxcHostname, nodeType);
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity( operationId ).build();
+//    }
+//
+//
+//    @Override
+//    public Response destroyNode( final String clusterName, final String lxcHostname )
+//    {
+//        UUID uuid = oozieManager.destroyNode( clusterName, lxcHostname );
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity( operationId ).build();
+//    }
+//
+//
+//    @Override
+//    public Response checkNode( final String clusterName, final String lxcHostname )
+//    {
+//        OozieClusterConfig occ = oozieManager.getCluster( clusterName );
+//        UUID uuid = oozieManager.checkServerStatus( occ );
+//        String operationId = wrapUUID( uuid );
+//        return Response.status( Response.Status.OK ).entity( operationId ).build();
+//    }
+//
+//
+//    private String wrapUUID( UUID uuid )
+//    {
+//        return JsonUtil.toJson( "OPERATION_ID", uuid );
+//    }
 }

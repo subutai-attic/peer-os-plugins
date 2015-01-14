@@ -36,6 +36,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
                 String.format("Checking %s cluster...", clusterName));
     }
 
+
     @Override
     public void run()
     {
@@ -47,6 +48,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         }
 
         Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId());
+
+        if ( environment == null )
+        {
+            trackerOperation.addLogFailed( "Could not find cluster environment" );
+            return;
+        }
+
         Iterator iterator = environment.getContainerHosts().iterator();
         ContainerHost host = null;
         while (iterator.hasNext())
@@ -102,11 +110,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         CommandResult result = null;
         try
         {
-            result = host.execute(manager.getCommands().getInstallCommand());
+            result = host.execute(new RequestBuilder(Commands.make(CommandType.INSTALL_CLIENT)));
             if (result.hasSucceeded())
             {
                 config.getNodes().add(host.getId());
-                manager.getPluginDAO().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
+                manager.getPluginDao().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
                 trackerOperation.addLogDone(
                         OozieClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " " +
                                 "successfully.");
@@ -132,7 +140,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
             if (result.hasSucceeded())
             {
                 config.getNodes().remove(host.getId());
-                manager.getPluginDAO().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
+                manager.getPluginDao().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
                 trackerOperation.addLogDone(OozieClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host
                         .getHostname()
                         + " successfully.");
@@ -156,10 +164,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         String status = "UNKNOWN";
         if (result.getExitCode() == 0)
         {
-            status = "Flume is running";
+            status = "Oozie is running";
         } else if (result.getExitCode() == 256 || result.getExitCode() == 1)
         {
-            status = "Flume is not running";
+            status = "Oozie is not running";
         } else
         {
             status = result.getStdOut();

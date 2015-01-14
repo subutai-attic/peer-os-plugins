@@ -16,10 +16,10 @@
 
   <bean id="oozie-impl" scope="singleton" class="org.safehaus.subutai.plugin.oozie.impl.OozieImpl"
         init-method="init" destroy-method="destroy">
-    <property name="tracker" ref="tracker" />
-    <property name="environmentManager" ref="environmentManager" />
-    <property name="hadoopManager" ref="hadoopManager" />
     <argument ref="dataSource" />
+    <argument ref="tracker" />
+      <argument ref="hadoopManager" />
+      <argument ref="environmentManager" />
   </bean>
 
   <service ref="oozie-impl" interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
