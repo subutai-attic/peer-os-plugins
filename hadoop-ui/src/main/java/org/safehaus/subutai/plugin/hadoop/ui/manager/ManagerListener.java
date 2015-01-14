@@ -725,7 +725,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener taskTrakcerNodeCheckButtonListener( final Item row )
+    protected Button.ClickListener slaveNodeCheckButtonListener( final Item row )
     {
         final ContainerHost host = hadoopManager.getHostByRow( row );
         final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
@@ -737,6 +737,7 @@ public class ManagerListener
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Button excludeIncludeNodeButton = hadoopManager.getExcludeIncludeButton( availableOperationsLayout );
         final Button destroyButton = hadoopManager.getDestroyButton( availableOperationsLayout );
+        final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
         final Label statusTaskTracker = hadoopManager.getStatusTaskTrackerLabel( statusGroupLayout );
 
         return new Button.ClickListener()
@@ -758,113 +759,81 @@ public class ManagerListener
                 checkButton.setEnabled( false );
                 excludeIncludeNodeButton.setEnabled( false );
                 destroyButton.setEnabled( false );
-
-                hadoopManager.enableProgressBar();
-                hadoopManager.getExecutorService().execute(
-                    new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                        clusterName, containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.TASKTRACKER,
-                        new CompleteEvent()
-                        {
-
-                            public void onComplete( NodeState state )
-                            {
-                                if ( state == NodeState.RUNNING )
-                                {
-                                    statusTaskTracker.setValue( "Tasktracker Running" );
-                                    excludeIncludeNodeButton.setEnabled( true );
-                                }
-                                else if ( state == NodeState.STOPPED )
-                                {
-                                    statusTaskTracker.setValue( "Tasktracker Stopped" );
-                                    excludeIncludeNodeButton.setEnabled( true );
-                                }
-                                else
-                                {
-                                    statusTaskTracker.setValue( "Not connected" );
-                                    excludeIncludeNodeButton.setCaption( "Not connected" );
-                                    excludeIncludeNodeButton.setEnabled( false );
-                                }
-                                checkButton.setEnabled( true );
-                                destroyButton.setEnabled( true );
-                                hadoopManager.disableProgressBar();
-                                enableCheckAllButton();
-                            }
-                        }, null ) );
-            }
-
-        };
-    }
-
-
-    protected Button.ClickListener dataNodeCheckButtonListener( final Item row )
-    {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
-        final ContainerHost containerHost = hadoopManager.getEnvironmentManager().
-                getEnvironmentByUUID( hadoopManager.getHadoopCluster().getEnvironmentId() )
-                                                         .getContainerHostById( host.getId() );
-        final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
-        final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
-        final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
-        final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
-        final Button excludeIncludeNodeButton = hadoopManager.getExcludeIncludeButton( availableOperationsLayout );
-        final Button destroyButton = hadoopManager.getDestroyButton( availableOperationsLayout );
-        final Label statusDatanode = hadoopManager.getStatusDatanodeLabel( statusGroupLayout );
-
-        return new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( final Button.ClickEvent clickEvent )
-            {
-
                 if ( hadoopManager.getHadoop().getCluster( hadoopManager.getHadoopCluster().getClusterName() )
-                                  .getBlockedAgentUUIDs().contains( host.getId() ) )
+                                  .isDataNode( host.getId() ) )
                 {
-                    excludeIncludeNodeButton.setCaption( Manager.INCLUDE_BUTTON_CAPTION );
+                    hadoopManager.enableProgressBar();
+                    hadoopManager.getExecutorService().execute(
+                            new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
+                                    clusterName, containerHost, NodeOperationType.STATUS,
+                                    org.safehaus.subutai.plugin.common.api.NodeType.DATANODE,
+                                    new CompleteEvent()
+                                    {
+                                        public void onComplete( NodeState state )
+                                        {
+                                            if ( state == NodeState.RUNNING )
+                                            {
+                                                statusDatanode.setValue( "Datanode Running" );
+                                                excludeIncludeNodeButton.setEnabled( true );
+                                            }
+                                            else if ( state == NodeState.STOPPED )
+                                            {
+                                                statusDatanode.setValue( "Datanode Stopped" );
+                                                excludeIncludeNodeButton.setEnabled( true );
+                                            }
+                                            else
+                                            {
+                                                statusDatanode.setValue( "Not connected" );
+                                                excludeIncludeNodeButton.setCaption( "Not connected" );
+                                                excludeIncludeNodeButton.setEnabled( false );
+                                            }
+
+                                            if ( hadoopManager.getCheckAllButton().isEnabled() )
+                                            {
+                                                checkDecommissioningStatus( row, checkButton );
+                                            }
+                                            else
+                                            {
+                                                executeSlaveNodeCheckButtonFinishCommands( row, checkButton );
+                                            }
+                                        }
+                                    }, null ) );
                 }
-                else
+                if ( hadoopManager.getHadoop().getCluster( hadoopManager.getHadoopCluster().getClusterName() )
+                                  .isTaskTracker( host.getId() ) )
                 {
-                    excludeIncludeNodeButton.setCaption( Manager.EXCLUDE_BUTTON_CAPTION );
+                    hadoopManager.enableProgressBar();
+                    hadoopManager.getExecutorService().execute(
+                            new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
+                                    clusterName, containerHost, NodeOperationType.STATUS,
+                                    org.safehaus.subutai.plugin.common.api.NodeType.TASKTRACKER,
+                                    new CompleteEvent()
+                                    {
+
+                                        public void onComplete( NodeState state )
+                                        {
+                                            if ( state == NodeState.RUNNING )
+                                            {
+                                                statusTaskTracker.setValue( "Tasktracker Running" );
+                                                excludeIncludeNodeButton.setEnabled( true );
+                                            }
+                                            else if ( state == NodeState.STOPPED )
+                                            {
+                                                statusTaskTracker.setValue( "Tasktracker Stopped" );
+                                                excludeIncludeNodeButton.setEnabled( true );
+                                            }
+                                            else
+                                            {
+                                                statusTaskTracker.setValue( "Not connected" );
+                                                excludeIncludeNodeButton.setCaption( "Not connected" );
+                                                excludeIncludeNodeButton.setEnabled( false );
+                                            }
+                                            checkButton.setEnabled( true );
+                                            hadoopManager.disableProgressBar();
+                                            enableCheckAllButton();
+                                        }
+                                    }, null ) );
                 }
-
-                checkButton.setEnabled( false );
-                excludeIncludeNodeButton.setEnabled( false );
-                destroyButton.setEnabled( false );
-
-                hadoopManager.enableProgressBar();
-                hadoopManager.getExecutorService().execute(
-                    new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(),
-                        clusterName, containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.DATANODE,
-                        new CompleteEvent()
-                        {
-                            public void onComplete( NodeState state )
-                            {
-                                if ( state == NodeState.RUNNING )
-                                {
-                                    statusDatanode.setValue( "Datanode Running" );
-                                    excludeIncludeNodeButton.setEnabled( true );
-                                }
-                                else if ( state == NodeState.STOPPED )
-                                {
-                                    statusDatanode.setValue( "Datanode Stopped" );
-                                    excludeIncludeNodeButton.setEnabled( true );
-                                }
-                                else
-                                {
-                                    statusDatanode.setValue( "Not connected" );
-                                    excludeIncludeNodeButton.setCaption( "Not connected" );
-                                    excludeIncludeNodeButton.setEnabled( false );
-                                }
-
-                                if ( hadoopManager.getCheckAllButton().isEnabled() )
-                                {
-                                    checkDecommissioningStatus( row, checkButton );
-                                }
-                                else
-                                {
-                                    executeSlaveNodeCheckButtonFinishCommands( row, checkButton );
-                                }
-                            }
-                        }, null ) );
             }
         };
     }

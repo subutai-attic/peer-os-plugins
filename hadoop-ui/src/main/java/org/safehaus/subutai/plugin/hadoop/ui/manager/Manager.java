@@ -247,8 +247,8 @@ public class Manager
         {
             Environment environment = environmentManager.getEnvironmentByUUID( hadoopCluster.getEnvironmentId() );
 
-            populateTable( masterNodesTable, getMasters( environment.getContainerHosts(), hadoopCluster ) );
-            populateTable( slaveNodesTable, getSlaves( environment.getContainerHosts(), hadoopCluster ) );
+            populateMastersTable( masterNodesTable, getMasters( environment.getContainerHosts(), hadoopCluster ) );
+            populateSlavesTable( slaveNodesTable, getSlaves( environment.getContainerHosts(), hadoopCluster ) );
 
             replicationFactor.setValue( hadoopCluster.getReplicationFactor().toString() );
             domainName.setValue( hadoopCluster.getDomainName() );
@@ -265,191 +265,180 @@ public class Manager
     }
 
 
-    protected void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    protected void populateMastersTable( final Table table, Set<ContainerHost> containerHosts )
     {
         table.removeAllItems();
         // Add UI components into relevant fields according to its role in cluster
         for ( final ContainerHost containerHost : containerHosts )
         {
-            addRowComponents( table, containerHost );
+            addMasterTableRowComponents( table, containerHost );
         }
     }
 
 
-    public void addRowComponents( Table table, final ContainerHost containerHost )
+    protected void populateSlavesTable( final Table table, Set<ContainerHost> containerHosts )
+    {
+        table.removeAllItems();
+        addSlavesTableRowComponents( table, containerHosts );
+    }
+
+
+    public void addSlavesTableRowComponents( Table table, final Set<ContainerHost> containerHosts )
     {
 
         final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
 
-        if ( table.getCaption().equals( MASTERS_TABLE_CAPTION ) ){
-            for ( NodeType nodeType : getNodeRoles( cluster, containerHost ) ){
+        for ( ContainerHost containerHost : containerHosts ){
 
-                // Buttons to be added to availableOperations
-                final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
-                checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopCheck" );
-                final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
-                destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopDestroy" );
-                final Button startStopButton = new Button( START_STOP_BUTTON_DEFAULT_CAPTION );
-                startStopButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStartStop" );
-                final Button excludeIncludeNodeButton = new Button( EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION );
-                excludeIncludeNodeButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopExcludeInclude" );
-                final Button urlButton = new Button( URL_BUTTON_CAPTION );
-                urlButton.setId( containerHost.getHostname() + "-hadoopUrl" );
+            // Buttons to be added to availableOperations
+            final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
+            checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopCheck" );
+            final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
+            destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopDestroy" );
+            final Button excludeIncludeNodeButton = new Button( EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION );
+            excludeIncludeNodeButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopExcludeInclude" );
 
-                checkButton.addStyleName( "default" );
-                startStopButton.addStyleName( "default" );
-                excludeIncludeNodeButton.addStyleName( "default" );
-                destroyButton.addStyleName( "default" );
-                urlButton.addStyleName( "default" );
+            checkButton.addStyleName( "default" );
+            excludeIncludeNodeButton.addStyleName( "default" );
+            destroyButton.addStyleName( "default" );
 
-                // Labels to be added to statusGroup
-                final Label statusDatanode = new Label( "" );
-                statusDatanode.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDataNode" );
-                final Label statusTaskTracker = new Label( "" );
-                statusTaskTracker.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusTaskTracker" );
-                final Label statusDecommission = new Label( "" );
-                statusDecommission.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDecommission" );
+            // Labels to be added to statusGroup
+            final Label statusDatanode = new Label( "" );
+            statusDatanode.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDataNode" );
+            final Label statusTaskTracker = new Label( "" );
+            statusTaskTracker.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusTaskTracker" );
+            final Label statusDecommission = new Label( "" );
+            statusDecommission.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDecommission" );
 
-                statusDatanode.addStyleName( "default" );
-                statusTaskTracker.addStyleName( "default" );
-                statusDecommission.addStyleName( "default" );
+            statusDatanode.addStyleName( "default" );
+            statusTaskTracker.addStyleName( "default" );
+            statusDecommission.addStyleName( "default" );
 
-                HorizontalLayout availableOperations = new HorizontalLayout();
-                HorizontalLayout statusGroup = new HorizontalLayout();
+            HorizontalLayout availableOperations = new HorizontalLayout();
+            HorizontalLayout statusGroup = new HorizontalLayout();
 
-                availableOperations.addStyleName( "default" );
-                availableOperations.setSpacing( true );
-                statusGroup.addStyleName( "default" );
-                statusGroup.setSpacing( true );
-
-                switch ( nodeType ){
-
-                    case NAMENODE:
-                        availableOperations.addComponent( checkButton );
-                        availableOperations.addComponent( startStopButton );
-                        availableOperations.addComponent( urlButton );
-                        statusGroup.addComponent( statusDatanode );
-                        urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
-
-                        table.addItem( new Object[] { containerHost.getHostname(),
-                                containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                                statusGroup, availableOperations }, null );
-
-                        urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
-                        break;
-                    case JOBTRACKER:
-                        availableOperations.addComponent( checkButton );
-                        availableOperations.addComponent( startStopButton );
-                        availableOperations.addComponent( urlButton );
-                        statusGroup.addComponent( statusTaskTracker );
-                        urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
-
-                        table.addItem( new Object[] { containerHost.getHostname(),
-                                containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                                statusGroup, availableOperations }, null );
+            availableOperations.addStyleName( "default" );
+            availableOperations.setSpacing( true );
+            statusGroup.addStyleName( "default" );
+            statusGroup.setSpacing( true );
 
 
-                        urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
-                        break;
-                    case SECONDARY_NAMENODE:
-                        availableOperations.addComponent( checkButton );
-                        availableOperations.addComponent( urlButton );
-                        statusGroup.addComponent( statusDatanode );
-                        urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        table.addItem( new Object[] { containerHost.getHostname(),
-                                containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                                statusGroup, availableOperations }, null );
+            availableOperations.addComponent( checkButton );
+            availableOperations.addComponent( excludeIncludeNodeButton );
+            availableOperations.addComponent( destroyButton );
+            statusGroup.addComponent( statusDatanode );
+            statusGroup.addComponent( statusTaskTracker );
+            statusGroup.addComponent( statusDecommission );
+
+            table.addItem( new Object[] { containerHost.getHostname(),
+                    containerHost.getIpByInterfaceName( "eth0" ), NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name(),
+                    statusGroup, availableOperations }, null );
 
 
-                        urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
-                        checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                        break;
-                }
-            }
+            Item row = getAgentRow( table, containerHost, NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name() );
+
+            checkButton.addClickListener( managerListener.slaveNodeCheckButtonListener( row ) );
+            excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row ) );
+            destroyButton.addClickListener( managerListener.slaveNodeDestroyButtonListener( row ) );
         }
-        else if ( table.getCaption().equals( SLAVES_TABLE_CAPTION ) ){
-            for ( NodeType nodeType : getNodeRoles( cluster, containerHost ) ){
+    }
 
-                // Buttons to be added to availableOperations
-                final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
-                checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopCheck" );
-                final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
-                destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopDestroy" );
-                final Button excludeIncludeNodeButton = new Button( EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION );
-                excludeIncludeNodeButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopExcludeInclude" );
+    public void addMasterTableRowComponents( Table table, final ContainerHost containerHost )
+    {
 
-                checkButton.addStyleName( "default" );
-                excludeIncludeNodeButton.addStyleName( "default" );
-                destroyButton.addStyleName( "default" );
+        final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
 
-                // Labels to be added to statusGroup
-                final Label statusDatanode = new Label( "" );
-                statusDatanode.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDataNode" );
-                final Label statusTaskTracker = new Label( "" );
-                statusTaskTracker.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusTaskTracker" );
-                final Label statusDecommission = new Label( "" );
-                statusDecommission.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDecommission" );
+        for ( NodeType nodeType : getNodeRoles( cluster, containerHost ) ){
 
-                statusDatanode.addStyleName( "default" );
-                statusTaskTracker.addStyleName( "default" );
-                statusDecommission.addStyleName( "default" );
+            // Buttons to be added to availableOperations
+            final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
+            checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopCheck" );
+            final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
+            destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopDestroy" );
+            final Button startStopButton = new Button( START_STOP_BUTTON_DEFAULT_CAPTION );
+            startStopButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStartStop" );
+            final Button excludeIncludeNodeButton = new Button( EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION );
+            excludeIncludeNodeButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopExcludeInclude" );
+            final Button urlButton = new Button( URL_BUTTON_CAPTION );
+            urlButton.setId( containerHost.getHostname() + "-hadoopUrl" );
 
-                HorizontalLayout availableOperations = new HorizontalLayout();
-                HorizontalLayout statusGroup = new HorizontalLayout();
+            checkButton.addStyleName( "default" );
+            startStopButton.addStyleName( "default" );
+            excludeIncludeNodeButton.addStyleName( "default" );
+            destroyButton.addStyleName( "default" );
+            urlButton.addStyleName( "default" );
 
-                availableOperations.addStyleName( "default" );
-                availableOperations.setSpacing( true );
-                statusGroup.addStyleName( "default" );
-                statusGroup.setSpacing( true );
+            // Labels to be added to statusGroup
+            final Label statusDatanode = new Label( "" );
+            statusDatanode.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDataNode" );
+            final Label statusTaskTracker = new Label( "" );
+            statusTaskTracker.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusTaskTracker" );
+            final Label statusDecommission = new Label( "" );
+            statusDecommission.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hadoopStatusDecommission" );
 
-                switch ( nodeType ){
+            statusDatanode.addStyleName( "default" );
+            statusTaskTracker.addStyleName( "default" );
+            statusDecommission.addStyleName( "default" );
 
-                    case DATANODE:
-                        availableOperations.addComponent( checkButton );
-                        availableOperations.addComponent( excludeIncludeNodeButton );
-                        availableOperations.addComponent( destroyButton );
-                        statusGroup.addComponent( statusDatanode );
-                        statusGroup.addComponent( statusDecommission );
+            HorizontalLayout availableOperations = new HorizontalLayout();
+            HorizontalLayout statusGroup = new HorizontalLayout();
 
-                        table.addItem( new Object[] { containerHost.getHostname(),
-                                containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                                statusGroup, availableOperations }, null );
+            availableOperations.addStyleName( "default" );
+            availableOperations.setSpacing( true );
+            statusGroup.addStyleName( "default" );
+            statusGroup.setSpacing( true );
+
+            switch ( nodeType ){
+
+                case NAMENODE:
+                    availableOperations.addComponent( checkButton );
+                    availableOperations.addComponent( startStopButton );
+                    availableOperations.addComponent( urlButton );
+                    statusGroup.addComponent( statusDatanode );
+                    urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
+
+                    table.addItem( new Object[] { containerHost.getHostname(),
+                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations }, null );
+
+                    urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
+                    break;
+                case JOBTRACKER:
+                    availableOperations.addComponent( checkButton );
+                    availableOperations.addComponent( startStopButton );
+                    availableOperations.addComponent( urlButton );
+                    statusGroup.addComponent( statusTaskTracker );
+                    urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
+
+                    table.addItem( new Object[] { containerHost.getHostname(),
+                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations }, null );
 
 
-                        Item row = getAgentRow( table, containerHost, NodeType.DATANODE.name() );
-
-                        checkButton.addClickListener( managerListener.dataNodeCheckButtonListener( row ) );
-                        excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row ) );
-                        destroyButton.addClickListener( managerListener.slaveNodeDestroyButtonListener( row ) );
-                        break;
-                    case TASKTRACKER:
-                        availableOperations.addComponent( checkButton );
-                        availableOperations.addComponent( excludeIncludeNodeButton );
-                        availableOperations.addComponent( destroyButton );
-                        statusGroup.addComponent( statusTaskTracker );
-                        statusGroup.addComponent( statusDecommission );
-
-                        table.addItem( new Object[] { containerHost.getHostname(),
-                                containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                                statusGroup, availableOperations }, null );
+                    urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
+                    break;
+                case SECONDARY_NAMENODE:
+                    availableOperations.addComponent( checkButton );
+                    availableOperations.addComponent( urlButton );
+                    statusGroup.addComponent( statusDatanode );
+                    urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    table.addItem( new Object[] { containerHost.getHostname(),
+                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations }, null );
 
 
-                        Item row1 = getAgentRow( table, containerHost, NodeType.TASKTRACKER.name() );
-
-                        checkButton.addClickListener( managerListener.taskTrakcerNodeCheckButtonListener( row1 ) );
-                        excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row1 ) );
-                        destroyButton.addClickListener( managerListener.slaveNodeDestroyButtonListener( row1 ) );
-                        break;
-                }
+                    urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
+                    checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    break;
             }
         }
     }
@@ -844,7 +833,7 @@ public class Manager
         {
             return null;
         }
-        return ( Label ) statusGroupLayout.getComponent( 0 );
+        return ( Label ) statusGroupLayout.getComponent( 1 );
     }
 
 
@@ -854,7 +843,7 @@ public class Manager
         {
             return null;
         }
-        return ( Label ) statusGroupLayout.getComponent( 1 );
+        return ( Label ) statusGroupLayout.getComponent( 2 );
     }
 
 

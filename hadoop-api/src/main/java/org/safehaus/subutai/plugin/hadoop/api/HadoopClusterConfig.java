@@ -8,11 +8,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 
 public class HadoopClusterConfig implements ConfigBase
@@ -29,6 +31,7 @@ public class HadoopClusterConfig implements ConfigBase
     private Integer replicationFactor = 1, countOfSlaveNodes = 1;
     private Set<UUID> blockedAgents;
     private UUID environmentId;
+    private boolean autoScaling;
 
 
     public HadoopClusterConfig()
@@ -37,6 +40,18 @@ public class HadoopClusterConfig implements ConfigBase
         dataNodes = new ArrayList<>();
         taskTrackers = new ArrayList<>();
         blockedAgents = new HashSet<>();
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
     }
 
 
@@ -382,6 +397,12 @@ public class HadoopClusterConfig implements ConfigBase
         return containerHost.getId().equals( getNameNode() ) ||
                 containerHost.getId().equals( getJobTracker() ) ||
                 containerHost.getId().equals( getSecondaryNameNode() );
+    }
+
+
+    public boolean isSlaveNode( ContainerHost containerHost )
+    {
+        return dataNodes.contains( containerHost.getId() ) || taskTrackers.contains( containerHost.getId() );
     }
 
 
