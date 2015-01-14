@@ -81,31 +81,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
         Environment env = null;
         try
         {
-            if ( config.getSetupType() == SetupType.WITH_HADOOP )
-            {
-                if ( hadoopConfig == null )
-                {
-                    throw new ClusterException( "Hadoop configuration not specified" );
-                }
-                hadoopConfig.setTemplateName( HipiConfig.TEMPLATE_NAME );
-                try
-                {
-                    trackerOperation.addLog( "Building environment..." );
-                    Hadoop hadoop = manager.getHadoopManager();
-                    EnvironmentBlueprint eb = hadoop.getDefaultEnvironmentBlueprint( hadoopConfig );
-                    env = manager.getEnvironmentManager().buildEnvironment( eb );
-
-                    ClusterSetupStrategy s = hadoop.getClusterSetupStrategy( env, hadoopConfig, trackerOperation );
-                    s.setup();
-                }
-                catch ( ClusterSetupException | EnvironmentBuildException ex )
-                {
-                    destroyEnvironment( env );
-                    throw new ClusterException( "Failed to build environment: " + ex.getMessage() );
-                }
-                trackerOperation.addLog( "Environment built successfully" );
-            }
-            else if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            if ( config.getSetupType() == SetupType.OVER_HADOOP )
             {
                 HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
                 if ( hc == null )
