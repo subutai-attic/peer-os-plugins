@@ -23,8 +23,7 @@ public interface RestService
     @POST
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @PathParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "numberOfNodes" ) int numberOfNodes );
+    public Response installCluster( @QueryParam( "config" ) String config );
 
     @DELETE
     @Path( "clusters/{clusterName}" )

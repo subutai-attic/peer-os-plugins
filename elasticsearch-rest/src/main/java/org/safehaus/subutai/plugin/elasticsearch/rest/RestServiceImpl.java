@@ -49,11 +49,20 @@ public class RestServiceImpl implements RestService
     }
 
 
-    //TODO
     @Override
-    public Response installCluster( final String clusterName, final int numberOfNodes )
+    public Response installCluster( final String config )
     {
-        return null;
+        TrimmedClusterConfig trimmedClusterConfig = JsonUtil.fromJson( config, TrimmedClusterConfig.class );
+
+        ElasticsearchClusterConfiguration fullConfig = new ElasticsearchClusterConfiguration();
+        fullConfig.setEnvironmentId( trimmedClusterConfig.getEnvironmentId() );
+        fullConfig.setClusterName( trimmedClusterConfig.getClusterName() );
+        fullConfig.getNodes().addAll( trimmedClusterConfig.getNodes() );
+
+
+        String operationId = JsonUtil.toJson( OPERATION_ID, elasticsearch.installCluster( fullConfig ) );
+
+        return Response.status( Response.Status.ACCEPTED ).entity( operationId ).build();
     }
 
 
