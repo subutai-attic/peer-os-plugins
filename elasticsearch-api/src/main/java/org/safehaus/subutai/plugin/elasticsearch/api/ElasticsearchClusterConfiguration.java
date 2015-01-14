@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -12,9 +13,8 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Elasticsearch";
-    public static final String PRODUCT_NAME = "elasticsearch";
 
-    public static final String TEMPLATE_NAME = "elasticsearch";
+    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_KEY.toLowerCase();
 
     private String clusterName = "";
     private UUID environmentId;
@@ -53,6 +53,7 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     {
         return nodes;
     }
+
 
     public UUID getEnvironmentId()
     {

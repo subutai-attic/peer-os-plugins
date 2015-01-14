@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.core.peer.api.PeerException;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 import com.google.common.base.Strings;
@@ -28,6 +30,9 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends VerticalLayout
 {
+    public static final String PACKAGE_NAME =
+            Common.PACKAGE_PREFIX + ElasticsearchClusterConfiguration.PRODUCT_KEY.toLowerCase();
+
 
     public ConfigurationStep( final EnvironmentWizard environmentWizard )
     {
@@ -57,8 +62,7 @@ public class ConfigurationStep extends VerticalLayout
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(),
-                    ElasticsearchClusterConfiguration.TEMPLATE_NAME );
+            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts() );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
@@ -170,13 +174,20 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts )
     {
         for ( ContainerHost host : containerHosts )
         {
-            if ( host.getTemplateName().equals( templateName ) )
+            try
             {
-                return true;
+                if ( host.getTemplate().getProducts().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
+                {
+                    return true;
+                }
+            }
+            catch ( PeerException e )
+            {
+                e.printStackTrace();
             }
         }
         return false;
@@ -188,9 +199,17 @@ public class ConfigurationStep extends VerticalLayout
         Set<ContainerHost> filteredSet = new HashSet<>();
         for ( ContainerHost containerHost : containerHosts )
         {
-            if ( containerHost.getTemplateName().equals( ElasticsearchClusterConfiguration.TEMPLATE_NAME ) )
+            try
             {
-                filteredSet.add( containerHost );
+                if ( containerHost.getTemplate().getProducts()
+                                  .contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
+                {
+                    filteredSet.add( containerHost );
+                }
+            }
+            catch ( PeerException e )
+            {
+                e.printStackTrace();
             }
         }
         return filteredSet;
