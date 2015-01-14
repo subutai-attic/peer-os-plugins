@@ -72,36 +72,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
         {
             Environment env = null;
 
-            if ( config.getSetupType() == SetupType.WITH_HADOOP )
+            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+            if ( env == null )
             {
-
-                if ( hadoopConfig == null )
-                {
-                    trackerOperation.addLogFailed( "No Hadoop configuration specified" );
-                    return;
-                }
-                hadoopConfig.setTemplateName( NutchConfig.TEMPLATE_NAME );
-                try
-                {
-                    trackerOperation.addLog( "Building environment..." );
-                    EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint( hadoopConfig );
-                    env = manager.getEnvironmentManager().buildEnvironment( eb );
-                }
-                catch ( ClusterSetupException | EnvironmentBuildException ex )
-                {
-                    throw new ClusterException( "Failed to build environment: " + ex.getMessage() );
-                }
-
-                trackerOperation.addLog( "Environment built successfully" );
-            }
-            else
-            {
-                env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-                if ( env == null )
-                {
-                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId() ) );
-                }
+                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                        hadoopConfig.getEnvironmentId() ) );
             }
 
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
