@@ -5,8 +5,7 @@ Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-Version: ${project.build.version}
+Version: [[project.version]]
 Package: hipi-subutai-plugin
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Hipi plugin that runs  on subutai server application.

@@ -65,10 +65,47 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
     @Override
     public void setupCluster()
     {
+        Environment env = null;
         try
         {
+            if ( config.getSetupType() == SetupType.WITH_HADOOP )
+            {
+                if ( hadoopConfig == null )
+                {
+                    throw new ClusterException( "Hadoop configuration not specified" );
+                }
+                hadoopConfig.setTemplateName( HipiConfig.TEMPLATE_NAME );
+                try
+                {
+                    trackerOperation.addLog( "Building environment..." );
+                    Hadoop hadoop = manager.getHadoopManager();
+                    EnvironmentBlueprint eb = hadoop.getDefaultEnvironmentBlueprint( hadoopConfig );
+                    env = manager.getEnvironmentManager().buildEnvironment( eb );
 
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy( config, trackerOperation );
+                    ClusterSetupStrategy s = hadoop.getClusterSetupStrategy( env, hadoopConfig, trackerOperation );
+                    s.setup();
+                }
+                catch ( ClusterSetupException | EnvironmentBuildException ex )
+                {
+                    destroyEnvironment( env );
+                    throw new ClusterException( "Failed to build environment: " + ex.getMessage() );
+                }
+                trackerOperation.addLog( "Environment built successfully" );
+            }
+            else if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            {
+                HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+                if ( hc == null )
+                {
+                    throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
+                }
+                env = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+                if ( env == null )
+                {
+                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                            hadoopConfig.getEnvironmentId() ) );
+                }
+            }
 
             trackerOperation.addLog( "Installing Hipi nodes..." );
             s.setup();
@@ -113,7 +150,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL ) );
             for ( ContainerHost node : nodes )
             {
-                try
+                RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL) );
+                for ( ContainerHost node : nodes )
                 {
                     commandUtil.execute( rb, node );
 
@@ -133,12 +171,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             {
                 throw new ClusterException( "Failed to delete installation info" );
             }
-            trackerOperation.addLogDone( "HIPI installation successfully removed" );
+            trackerOperation.addLogDone( "Sqoop installation successfully removed" );
         }
         catch ( ClusterException e )
         {
             LOG.error( "Error in destroyCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to uninstall cluster: %s", e.getMessage() ) );
+        }
+    }
+
+
+    private void destroyEnvironment( Environment environment )
+    {
+        if ( environment != null )
+        {
+            try
+            {
+                manager.getEnvironmentManager().destroyEnvironment( environment.getId() );
+            }
+            catch ( EnvironmentDestroyException ex )
+            {
+                LOG.error( String.format( "Failed to destroy environment: %s", environment.getId() ), ex );
+            }
         }
     }
 
