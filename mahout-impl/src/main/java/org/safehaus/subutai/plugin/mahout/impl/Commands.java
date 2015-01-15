@@ -6,15 +6,11 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
 
-import java.util.Set;
-
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 
-import com.google.common.base.Preconditions;
 
 
 public class Commands

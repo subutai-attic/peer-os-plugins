@@ -10,13 +10,10 @@
       <cxf:logging />
     </cxf:features>
   </cxf:bus>
-  <reference id="agentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.agent.api.AgentManager" />
 
   <reference id="mahoutManager" availability="mandatory" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.mahout.rest.RestServiceImpl">
-    <property name="agentManager" ref="agentManager" />
     <property name="mahoutManager" ref="mahoutManager" />
   </bean>
 
