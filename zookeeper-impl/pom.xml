@@ -30,6 +30,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>metric-api</artifactId>
+      <version>${metric.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>zookeeper-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>

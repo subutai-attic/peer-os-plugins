@@ -25,6 +25,7 @@ public class ZookeeperClusterConfig implements ConfigBase
     private SetupType setupType;
     private String hadoopClusterName;
     private UUID environmentId;
+    private boolean autoScaling;
 
 
     public UUID getEnvironmentId()
@@ -142,5 +143,17 @@ public class ZookeeperClusterConfig implements ConfigBase
                 ", setupType=" + setupType +
                 ", hadoopClusterName='" + hadoopClusterName + '\'' +
                 '}';
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
     }
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.PeerException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -76,7 +77,7 @@ public class ZookeeperWithHadoopSetupStrategy implements ClusterSetupStrategy
             try
             {
                 if ( containerHost.getTemplate().getProducts()
-                                         .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
+                                  .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
                 {
                     zookeeperNodes.add( containerHost );
                 }
@@ -96,7 +97,9 @@ public class ZookeeperWithHadoopSetupStrategy implements ClusterSetupStrategy
 
         Set<UUID> zookeeperIDs = new HashSet<>();
         for ( ContainerHost containerHost : zookeeperNodes )
+        {
             zookeeperIDs.add( containerHost.getId() );
+        }
         zookeeperClusterConfig.setNodes( zookeeperIDs );
 
         //check if node agent is connected
@@ -112,21 +115,21 @@ public class ZookeeperWithHadoopSetupStrategy implements ClusterSetupStrategy
         try
         {
             new ClusterConfiguration( zookeeperManager, po ).configureCluster( zookeeperClusterConfig, environment );
+
+            po.addLog( "Saving cluster information to database..." );
+
+            zookeeperClusterConfig.setEnvironmentId( environment.getId() );
+
+            zookeeperManager.getPluginDAO()
+                            .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
+                                    zookeeperClusterConfig );
+            po.addLog( "Cluster information saved to database" );
+            zookeeperManager.subscribeToAlerts( environment );
         }
-        catch ( ClusterConfigurationException e )
+        catch ( MonitorException | ClusterConfigurationException e )
         {
             throw new ClusterSetupException( e.getMessage() );
         }
-
-        po.addLog( "Saving cluster information to database..." );
-
-        zookeeperClusterConfig.setEnvironmentId( environment.getId() );
-
-        zookeeperManager.getPluginDAO()
-                        .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
-                                zookeeperClusterConfig );
-        po.addLog( "Cluster information saved to database" );
-
         return zookeeperClusterConfig;
     }
 }

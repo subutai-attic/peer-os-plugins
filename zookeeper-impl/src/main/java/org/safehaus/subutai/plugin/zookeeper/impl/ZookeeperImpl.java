@@ -15,6 +15,11 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -27,6 +32,7 @@ import org.safehaus.subutai.plugin.zookeeper.api.CommandType;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.safehaus.subutai.plugin.zookeeper.impl.alert.ZookeeperAlertListener;
 import org.safehaus.subutai.plugin.zookeeper.impl.handler.AddPropertyOperationHandler;
 import org.safehaus.subutai.plugin.zookeeper.impl.handler.RemovePropertyOperationHandler;
 import org.safehaus.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
@@ -43,21 +49,29 @@ import com.google.common.collect.Sets;
 public class ZookeeperImpl implements Zookeeper
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger( ZookeeperImpl.class );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
     private Commands commands;
+    private Monitor monitor;
     private ExecutorService executor;
     private PeerManager peerManager;
-    private static final Logger LOG = LoggerFactory.getLogger( ZookeeperImpl.class.getName() );
 
     private PluginDAO pluginDAO;
     private DataSource dataSource;
+    private ZookeeperAlertListener zookeeperAlertListener;
+    private QuotaManager quotaManager;
 
 
-    public ZookeeperImpl( DataSource dataSource )
+    public ZookeeperImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
+        this.monitor = monitor;
+        this.zookeeperAlertListener = new ZookeeperAlertListener( this );
+        this.monitor.addAlertListener( zookeeperAlertListener );
     }
 
 
@@ -88,6 +102,36 @@ public class ZookeeperImpl implements Zookeeper
     public Tracker getTracker()
     {
         return tracker;
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
     }
 
 
@@ -387,5 +431,17 @@ public class ZookeeperImpl implements Zookeeper
 
 
         return environmentBlueprint;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 }
