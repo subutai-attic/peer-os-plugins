@@ -20,7 +20,7 @@ public class CommandsTest
         String command = Commands.getInstallCommand();
 
         assertNotNull( command );
-        assertEquals( "apt-get --force-yes --assume-yes install " + Commands.PACKAGE_NAME, command );
+        assertEquals( "apt-get update && apt-get --force-yes --assume-yes install " + Commands.PACKAGE_NAME, command );
     }
 
 

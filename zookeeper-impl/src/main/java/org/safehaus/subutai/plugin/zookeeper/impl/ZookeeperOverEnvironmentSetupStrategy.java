@@ -1,18 +1,22 @@
 package org.safehaus.subutai.plugin.zookeeper.impl;
 
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
-import org.safehaus.subutai.core.peer.api.PeerException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import com.google.common.base.Strings;
@@ -25,24 +29,19 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
 {
 
     private final ZookeeperClusterConfig zookeeperClusterConfig;
-    private final ZookeeperImpl zookeeperManager;
+    private final ZookeeperImpl manager;
     private final TrackerOperation po;
-    private final Environment environment;
+    private Environment environment;
 
 
-    public ZookeeperOverEnvironmentSetupStrategy( final Environment environment, final ZookeeperClusterConfig config,
-                                                  final TrackerOperation po, final ZookeeperImpl zookeeper )
+    public ZookeeperOverEnvironmentSetupStrategy( final Environment environment,
+                                                  final ZookeeperClusterConfig zookeeperClusterConfig,
+                                                  final TrackerOperation po, final ZookeeperImpl zookeeperManager )
     {
-        this.zookeeperClusterConfig = config;
-        this.zookeeperManager = zookeeper;
+        this.zookeeperClusterConfig = zookeeperClusterConfig;
+        this.manager = zookeeperManager;
         this.po = po;
         this.environment = environment;
-    }
-
-
-    public static PlacementStrategy getNodePlacementStrategy()
-    {
-        return new PlacementStrategy( "ROUND_ROBIN" );
     }
 
 
@@ -50,52 +49,23 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
     public ZookeeperClusterConfig setup() throws ClusterSetupException
     {
         if ( Strings.isNullOrEmpty( zookeeperClusterConfig.getClusterName() ) ||
-                Strings.isNullOrEmpty( zookeeperClusterConfig.getTemplateName() ) ||
-                zookeeperClusterConfig.getNumberOfNodes() <= 0 )
+                zookeeperClusterConfig.getNodes() == null || zookeeperClusterConfig.getNodes().isEmpty() )
         {
             throw new ClusterSetupException( "Malformed configuration" );
         }
 
-        if ( zookeeperManager.getCluster( zookeeperClusterConfig.getClusterName() ) != null )
+        if ( manager.getCluster( zookeeperClusterConfig.getClusterName() ) != null )
         {
             throw new ClusterSetupException(
                     String.format( "Cluster with name '%s' already exists", zookeeperClusterConfig.getClusterName() ) );
         }
 
-        if ( environment.getContainerHosts().size() < zookeeperClusterConfig.getNumberOfNodes() )
+        if ( zookeeperClusterConfig.getSetupType() == SetupType.OVER_ENVIRONMENT )
         {
-            throw new ClusterSetupException( String.format( "Environment needs to have %d nodes but has only %d nodes",
-                    zookeeperClusterConfig.getNumberOfNodes(), environment.getContainerHosts().size() ) );
+            environment =
+                    manager.getEnvironmentManager().getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
         }
-
-        // Install zoo only on selected containers/apparently
-        // on those containers where it isn't installed
-        Set<ContainerHost> zookeeperNodes = new HashSet<>();
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
-        {
-            try
-            {
-                if ( containerHost.getTemplate().getProducts()
-                                  .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME )
-                        && zookeeperClusterConfig.getNodes().contains( containerHost.getId() ) )
-                {
-                    zookeeperNodes.add( containerHost );
-                }
-            }
-            catch ( PeerException e )
-            {
-                e.printStackTrace();
-            }
-        }
-
-        if ( zookeeperNodes.size() < zookeeperClusterConfig.getNumberOfNodes() )
-        {
-            throw new ClusterSetupException( String.format(
-                    "Environment needs to have %d nodes with ZK installed but has only %d nodes with Zk installed",
-                    zookeeperClusterConfig.getNumberOfNodes(), zookeeperNodes.size() ) );
-        }
-
-
+        Set<ContainerHost> zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
         //check if node agent is connected
         for ( ContainerHost node : zookeeperNodes )
         {
@@ -105,26 +75,103 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             }
         }
 
-        try
+        po.addLog( "Checking prerequisites..." );
+
+
+        //check installed subutai packages
+        String checkInstalledCommand = Commands.getCheckInstalledCommand();
+        List<CommandResult> commandResultList = runCommandOnContainers( checkInstalledCommand, zookeeperNodes );
+        if ( getFailedCommandResults( commandResultList ).size() != 0 )
         {
-
-            new ClusterConfiguration( zookeeperManager, po ).configureCluster( zookeeperClusterConfig, environment );
+            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
         }
-        catch ( ClusterConfigurationException ex )
+
+        Iterator<ContainerHost> iterator = zookeeperNodes.iterator();
+        int nodeIndex = 0;
+        while ( iterator.hasNext() )
         {
-            throw new ClusterSetupException( ex.getMessage() );
+            ContainerHost host = iterator.next();
+            CommandResult result = commandResultList.get( nodeIndex++ );
+
+            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Node %s already has Zookeeper installed", host.getHostname() ) );
+            }
         }
 
-        po.addLog( "Saving cluster information to database..." );
+        po.addLog( String.format( "Installing Zookeeper..." ) );
 
-        zookeeperClusterConfig.setEnvironmentId( environment.getId() );
+        //install
+        String installCommand = Commands.getInstallCommand();
+        commandResultList = runCommandOnContainers( installCommand, zookeeperNodes );
+        if ( getFailedCommandResults( commandResultList ).size() == 0 )
+        {
+            po.addLog( "Installation succeeded\nConfiguring cluster..." );
 
-        zookeeperManager.getPluginDAO()
-                        .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
-                                zookeeperClusterConfig );
-        po.addLog( "Cluster information saved to database" );
 
+            try
+            {
+                new ClusterConfiguration( manager, po ).configureCluster( zookeeperClusterConfig, environment );
+            }
+            catch ( ClusterConfigurationException e )
+            {
+                throw new ClusterSetupException( e.getMessage() );
+            }
+
+            po.addLog( "Saving cluster information to database..." );
+
+
+            zookeeperClusterConfig.setEnvironmentId( environment.getId() );
+
+            manager.getPluginDAO()
+                   .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
+                           zookeeperClusterConfig );
+            po.addLog( "Cluster information saved to database" );
+        }
+        else
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            for ( CommandResult commandResult : getFailedCommandResults( commandResultList ) )
+            {
+                stringBuilder.append( commandResult.getStdErr() );
+            }
+
+            throw new ClusterSetupException( String.format( "Installation failed, %s", stringBuilder ) );
+        }
 
         return zookeeperClusterConfig;
+    }
+
+
+    private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> zookeeperNodes )
+    {
+        List<CommandResult> commandResults = new ArrayList<>();
+        for ( ContainerHost containerHost : zookeeperNodes )
+        {
+            try
+            {
+                commandResults.add( containerHost.execute( new RequestBuilder( command ).withTimeout( 1800 ) ) );
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        return commandResults;
+    }
+
+
+    public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
+    {
+        List<CommandResult> failedCommands = new ArrayList<>();
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
+                failedCommands.add( commandResult );
+            }
+        }
+        return failedCommands;
     }
 }

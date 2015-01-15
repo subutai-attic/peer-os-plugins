@@ -464,8 +464,17 @@ public class ConfigurationStep extends Panel
             }
         } );
 
-        zookeeperEnvHostsSelection =
-                createTwinColSelect( "Environment container hosts", "Available hosts", "Selected hosts", 0 );
+        zookeeperEnvHostsSelection = new TwinColSelect( "Environments", new ArrayList<ContainerHost>() );
+        zookeeperEnvHostsSelection.setId( "ZookeeperConfHadoopNodesSelection" );
+        zookeeperEnvHostsSelection.setItemCaptionPropertyId( "hostname" );
+        zookeeperEnvHostsSelection.setRows( 0 );
+        zookeeperEnvHostsSelection.setMultiSelect( true );
+        zookeeperEnvHostsSelection.setImmediate( true );
+        zookeeperEnvHostsSelection.setLeftColumnCaption( "Available Nodes" );
+        zookeeperEnvHostsSelection.setRightColumnCaption( "Selected Nodes" );
+        zookeeperEnvHostsSelection.setWidth( 100, Unit.PERCENTAGE );
+        zookeeperEnvHostsSelection.setRequired( true );
+
         zookeeperEnvHostsSelection.addValueChangeListener( new Property.ValueChangeListener()
         {
 
@@ -489,7 +498,6 @@ public class ConfigurationStep extends Panel
                 new Label( "Please, specify installation settings for standalone cluster installation" ) );
         installationControls.addComponent( getEnvironmentList( wizard, zookeeper, environmentManager ) );
         installationControls.addComponent( clusterNameTxtFld );
-        installationControls.addComponent( nodesCountCombo );
         installationControls.addComponent( zookeeperEnvHostsSelection );
         installationControls.addComponent( buttons );
 
@@ -541,28 +549,9 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private TwinColSelect createTwinColSelect( String caption, String leftColumnCaption, String rightColumnCaption,
-                                               int rows )
-    {
-        TwinColSelect twinColSelect = new TwinColSelect( caption );
-
-        twinColSelect.setNullSelectionAllowed( false );
-        twinColSelect.setMultiSelect( true );
-        twinColSelect.setImmediate( true );
-        twinColSelect.setLeftColumnCaption( leftColumnCaption );
-        twinColSelect.setRightColumnCaption( rightColumnCaption );
-        twinColSelect.setRows( rows );
-        twinColSelect.setRequired( true );
-        return twinColSelect;
-    }
-
-
     private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,
                                     final Set<UUID> containerHostIds )
     {
-        BeanContainer<String, ContainerHost> beanContainer = new BeanContainer<>( ContainerHost.class );
-        beanContainer.setBeanIdProperty( "hostname" );
-
         List<ContainerHost> environmentHosts = new ArrayList<>();
         for ( final ContainerHost containerHost : containerHosts )
         {
@@ -571,10 +560,8 @@ public class ConfigurationStep extends Panel
                 environmentHosts.add( containerHost );
             }
         }
-
-        beanContainer.addAll( environmentHosts );
-
-        twinColSelect.setContainerDataSource( beanContainer );
+        twinColSelect.setValue( null );
+        twinColSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, environmentHosts ) );
     }
 
 

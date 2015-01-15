@@ -182,7 +182,7 @@ public class ZookeeperImpl implements Zookeeper
         Preconditions.checkNotNull( config, "Configuration is null" );
 
         AbstractOperationHandler operationHandler =
-                new ZookeeperClusterOperationHandler( this, config, ClusterOperationType.INSTALL_OVER_ENV );
+                new ZookeeperClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
 
         executor.execute( operationHandler );
 
@@ -317,7 +317,7 @@ public class ZookeeperImpl implements Zookeeper
     {
         Preconditions.checkNotNull( config, "Zookeeper cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation is null" );
-        if ( config.getSetupType() != SetupType.OVER_HADOOP )
+        if ( config.getSetupType() != SetupType.OVER_HADOOP && config.getSetupType() != SetupType.OVER_ENVIRONMENT )
         {
             Preconditions.checkNotNull( environment, "Environment is null" );
         }
