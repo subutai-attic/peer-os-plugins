@@ -22,6 +22,7 @@ import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyExc
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
+import org.safehaus.subutai.core.security.api.SecurityManagerException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -92,67 +93,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             case DECOMISSION_STATUS:
                 runOperationOnContainers( ClusterOperationType.DECOMISSION_STATUS );
                 break;
-            case ADD:
-                addNode();
-                break;
         }
     }
 
 
 
-    /**
-     * Steps:
-     *   1) Creates a new container from hadoop template
-     *   2) Include node
-     */
-    public void addNode(){
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
-        EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup();
-        String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
-        nodeGroup.setName( nodeGroupName );
-        nodeGroup.setLinkHosts( true );
-        nodeGroup.setExchangeSshKeys( true );
-        nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        nodeGroup.setTemplateName( HadoopClusterConfig.TEMPLATE_NAME );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes( 1 );
 
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
-        String ngJSON = gson.toJson(nodeGroup);
-
-        try
-        {
-            environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            // update cluster configuration on DB
-            Set<ContainerHost> newlyCreatedContainers = new HashSet<>();
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
-            {
-                if ( ! config.getAllSlaveNodes().contains( containerHost.getId() ) ){
-                    if ( containerHost.getNodeGroupName().equals( nodeGroupName ) ){
-                        config.getDataNodes().add( containerHost.getId() );
-                        config.getTaskTrackers().add( containerHost.getId() );
-                        trackerOperation.addLog( containerHost.getHostname() + " is added as slave node." );
-                        newlyCreatedContainers.add( containerHost );
-                    }
-                }
-            }
-            manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-
-            // include newly created containers to existing hadoop cluster
-            for ( ContainerHost containerHost : newlyCreatedContainers ){
-                trackerOperation.addLog( "Configuring " + containerHost.getHostname()   );
-                manager.includeNode( config, containerHost.getHostname()  );
-            }
-            trackerOperation.addLogDone( "Finished." );
-        }
-        catch ( EnvironmentBuildException e )
-        {
-            e.printStackTrace();
-        }
-    }
 
     public void removeCluster()
     {
@@ -319,7 +265,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         }
                         break;
                     case SLAVE_NODE:
-//                        nodeState = this.getDecommissionStatus( result.getStdOut() );
+                        //                        nodeState = this.getDecommissionStatus( result.getStdOut() );
                         trackerOperation.addLogDone( result.getStdOut() );
                         break;
                 }

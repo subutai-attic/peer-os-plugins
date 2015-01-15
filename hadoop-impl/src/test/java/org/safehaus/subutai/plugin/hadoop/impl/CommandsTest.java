@@ -93,21 +93,21 @@ public class CommandsTest
     @Test
     public void testGetStartDataNodeCommand()
     {
-        assertEquals(". /etc/profile && " + "hadoop-daemons.sh start datanode", commands.getStartDataNodeCommand());
+        assertEquals(". /etc/profile && " + "hadoop-daemon.sh start datanode", commands.getStartDataNodeCommand());
         assertNotNull(commands.getStartDataNodeCommand());
     }
 
     @Test
     public void testGetStopDataNodeCommand()
     {
-        assertEquals(". /etc/profile && " + "hadoop-daemons.sh stop datanode", commands.getStopDataNodeCommand());
+        assertEquals(". /etc/profile && " + "hadoop-daemon.sh stop datanode", commands.getStopDataNodeCommand());
         assertNotNull(commands.getStopDataNodeCommand());
     }
 
     @Test
     public void testGetStartTaskTrackerCommand()
     {
-        assertEquals(". /etc/profile && " + "hadoop-daemons.sh start tasktracker", commands
+        assertEquals(". /etc/profile && " + "hadoop-daemon.sh start tasktracker", commands
                 .getStartTaskTrackerCommand());
         assertNotNull(commands.getStartTaskTrackerCommand());
     }
@@ -115,7 +115,7 @@ public class CommandsTest
     @Test
     public void testGetStopTaskTrackerCommand()
     {
-        assertEquals(". /etc/profile && " + "hadoop-daemons.sh stop tasktracker", commands.getStopTaskTrackerCommand());
+        assertEquals(". /etc/profile && " + "hadoop-daemon.sh stop tasktracker", commands.getStopTaskTrackerCommand());
         assertNotNull(commands.getStopTaskTrackerCommand());
     }
 

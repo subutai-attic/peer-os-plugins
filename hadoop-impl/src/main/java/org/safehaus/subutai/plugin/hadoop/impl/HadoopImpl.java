@@ -15,6 +15,7 @@ import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.core.security.api.SecurityManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -54,6 +55,7 @@ public class HadoopImpl implements Hadoop
     private Monitor monitor;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
+    private SecurityManager securityManager;
 
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -99,6 +101,18 @@ public class HadoopImpl implements Hadoop
     public void setPeerManager( final PeerManager peerManager )
     {
         this.peerManager = peerManager;
+    }
+
+
+    public SecurityManager getSecurityManager()
+    {
+        return securityManager;
+    }
+
+
+    public void setSecurityManager( final SecurityManager securityManager )
+    {
+        this.securityManager = securityManager;
     }
 
 
@@ -437,12 +451,9 @@ public class HadoopImpl implements Hadoop
     @Override
     public UUID addNode( String clusterName, int nodeCount )
     {
-        HadoopClusterConfig hadoopClusterConfig = getCluster( clusterName );
-        Preconditions.checkNotNull( hadoopClusterConfig, "Configuration is null" );
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( hadoopClusterConfig.getClusterName() ),
-                "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, hadoopClusterConfig, ClusterOperationType.ADD, null );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+
+        AbstractOperationHandler operationHandler = new AddOperationHandler( this, clusterName, nodeCount );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
