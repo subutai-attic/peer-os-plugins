@@ -121,26 +121,25 @@ public class PrestoAlertListener implements AlertListener
 
 
         //get process resource usage by pid
-        ProcessResourceUsage processResourceUsage =
-                presto.getMonitor().getProcessResourceUsage( sourceHost, prestoPID );
+        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( prestoPID );
 
         //confirm that Presto is causing the stress, otherwise no-op
         MonitoringSettings thresholds = presto.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
-        boolean isCpuStressedBySpark = false;
-        boolean isRamStressedBySpark = false;
+        boolean isCpuStressed = false;
+        boolean isRamStressed = false;
 
         if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
         {
-            isRamStressedBySpark = true;
+            isRamStressed = true;
         }
         else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
         {
-            isCpuStressedBySpark = true;
+            isCpuStressed = true;
         }
 
-        if ( !( isRamStressedBySpark || isCpuStressedBySpark ) )
+        if ( !( isRamStressed || isCpuStressed ) )
         {
             LOG.info( "Presto cluster ok" );
             return;
@@ -153,32 +152,30 @@ public class PrestoAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRamStressedBySpark )
+            if ( isRamStressed )
             {
                 //read current RAM quota
-                int ramQuota = presto.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota();
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    presto.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedBySpark )
+            else if ( isCpuStressed )
             {
 
                 //read current CPU quota
-                int cpuQuota = presto.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    presto.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;
                 }

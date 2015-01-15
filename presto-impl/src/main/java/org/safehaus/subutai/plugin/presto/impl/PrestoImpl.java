@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -48,13 +47,12 @@ public class PrestoImpl implements Presto
     private DataSource dataSource;
     private ExecutorService executor;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private PrestoAlertListener prestoAlertListener;
     Commands commands;
 
 
     public PrestoImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
-                       final Hadoop hadoopManager, final Monitor monitor, final QuotaManager quotaManager )
+                       final Hadoop hadoopManager, final Monitor monitor )
     {
 
         this.dataSource = dataSource;
@@ -62,7 +60,6 @@ public class PrestoImpl implements Presto
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
-        this.quotaManager = quotaManager;
 
         prestoAlertListener = new PrestoAlertListener( this );
         monitor.addAlertListener( prestoAlertListener );
@@ -96,12 +93,6 @@ public class PrestoImpl implements Presto
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
         monitor.stopMonitoring( prestoAlertListener, environment );
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
     }
 
 
