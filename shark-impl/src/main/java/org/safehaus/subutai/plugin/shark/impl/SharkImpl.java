@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -49,28 +48,21 @@ public class SharkImpl implements Shark
     private PluginDAO pluginDAO;
     private DataSource dataSource;
     private Monitor monitor;
-    private QuotaManager quotaManager;
+
     protected Commands commands;
     private SharkAlertListener sharkAlertListener;
 
 
     public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, DataSource dataSource,
-                      Monitor monitor, QuotaManager quotaManager )
+                      Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.sparkManager = sparkManager;
         this.dataSource = dataSource;
         this.monitor = monitor;
-        this.quotaManager = quotaManager;
         sharkAlertListener = new SharkAlertListener( this );
         monitor.addAlertListener( sharkAlertListener );
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
     }
 
 

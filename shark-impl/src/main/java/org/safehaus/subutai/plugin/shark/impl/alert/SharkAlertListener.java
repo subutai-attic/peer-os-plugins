@@ -121,7 +121,7 @@ public class SharkAlertListener implements AlertListener
         }
 
         //get Shark process resource usage by Spark pid
-        ProcessResourceUsage processResourceUsage = shark.getMonitor().getProcessResourceUsage( sourceHost, sharkPID );
+        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( sharkPID );
 
         //confirm that Shark is causing the stress, otherwise no-op
         MonitoringSettings thresholds = shark.getAlertSettings();
@@ -155,14 +155,13 @@ public class SharkAlertListener implements AlertListener
             if ( isRamStressedByShark )
             {
                 //read current RAM quota
-                int ramQuota = shark.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota();
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    shark.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
                 }
@@ -171,13 +170,12 @@ public class SharkAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = shark.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    shark.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;
                 }
