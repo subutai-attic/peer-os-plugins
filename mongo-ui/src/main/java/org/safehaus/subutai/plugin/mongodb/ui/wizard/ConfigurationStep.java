@@ -39,6 +39,7 @@ public class ConfigurationStep extends VerticalLayout
         content.setMargin( true );
 
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
+        clusterNameTxtFld.setId( "clusterNameTxtFld" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
         clusterNameTxtFld.setMaxLength( 20 );
@@ -55,6 +56,7 @@ public class ConfigurationStep extends VerticalLayout
         //configuration servers number
         ComboBox cfgSrvsCombo = new ComboBox( "Choose number of configuration servers (Recommended 3 nodes)",
                 Arrays.asList( 1, 2, 3 ) );
+        cfgSrvsCombo.setId( "cfgSrvsCombo" );
         cfgSrvsCombo.setImmediate( true );
         cfgSrvsCombo.setTextInputAllowed( false );
         cfgSrvsCombo.setNullSelectionAllowed( false );
@@ -72,6 +74,7 @@ public class ConfigurationStep extends VerticalLayout
         //routers number
         ComboBox routersCombo =
                 new ComboBox( "Choose number of routers ( At least 2 recommended)", Arrays.asList( 1, 2, 3 ) );
+        routersCombo.setId( "routersCombo" );
         routersCombo.setImmediate( true );
         routersCombo.setTextInputAllowed( false );
         routersCombo.setNullSelectionAllowed( false );
@@ -88,6 +91,7 @@ public class ConfigurationStep extends VerticalLayout
 
         //datanodes number
         ComboBox dataNodesCombo = new ComboBox( "Choose number of datanodes", Arrays.asList( 1, 2, 3, 4, 5, 6, 7 ) );
+        dataNodesCombo.setId( "dataNodesCombo" );
         dataNodesCombo.setImmediate( true );
         dataNodesCombo.setTextInputAllowed( false );
         dataNodesCombo.setNullSelectionAllowed( false );
@@ -103,6 +107,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         TextField replicaSetName = new TextField( "Enter replica set name" );
+        replicaSetName.setId( "replicaSetName" );
         replicaSetName.setInputPrompt( wizard.getMongoClusterConfig().getReplicaSetName() );
         replicaSetName.setMaxLength( 20 );
         replicaSetName.addValueChangeListener( new Property.ValueChangeListener()
@@ -119,6 +124,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         TextField cfgSrvPort = new TextField( "Enter port for configuration servers" );
+        cfgSrvPort.setId( "cfgSrvPort" );
         cfgSrvPort.setInputPrompt( wizard.getMongoClusterConfig().getCfgSrvPort() + "" );
         cfgSrvPort.setMaxLength( 5 );
         cfgSrvPort.addValueChangeListener( new Property.ValueChangeListener()
@@ -135,6 +141,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         TextField routerPort = new TextField( "Enter port for routers" );
+        routerPort.setId( "routerPort" );
         routerPort.setInputPrompt( wizard.getMongoClusterConfig().getRouterPort() + "" );
         routerPort.setMaxLength( 5 );
         routerPort.addValueChangeListener( new Property.ValueChangeListener()
@@ -151,6 +158,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         TextField dataNodePort = new TextField( "Enter port for data nodes" );
+        dataNodePort.setId( "dataNodePort" );
         dataNodePort.setInputPrompt( wizard.getMongoClusterConfig().getDataNodePort() + "" );
         dataNodePort.setMaxLength( 5 );
         dataNodePort.addValueChangeListener( new Property.ValueChangeListener()
@@ -167,6 +175,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         TextField domain = new TextField( "Enter domain name" );
+        domain.setId( "domain" );
         domain.setInputPrompt( wizard.getMongoClusterConfig().getDomainName() );
         domain.setMaxLength( 20 );
         domain.addValueChangeListener( new Property.ValueChangeListener()
@@ -183,6 +192,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button next = new Button( "Next" );
+        next.setId( "next" );
         next.addStyleName( "default" );
         next.addClickListener( new Button.ClickListener()
         {
@@ -201,6 +211,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "configBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {

@@ -40,7 +40,9 @@ public class MongoComponent extends CustomComponent
         final Manager manager = new Manager( executorService, mongo, environmentManager, tracker );
         Wizard wizard = new Wizard( executorService, mongo, tracker, environmentManager );
         mongoSheet.addTab( wizard.getContent(), "Install" );
+        mongoSheet.getTab( 0 ).setId( "InstallTab" );
         mongoSheet.addTab( manager.getContent(), "Manage" );
+        mongoSheet.getTab( 1 ).setId( "ManageTab" );
         mongoSheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override

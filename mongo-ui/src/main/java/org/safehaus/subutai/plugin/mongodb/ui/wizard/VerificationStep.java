@@ -57,6 +57,7 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Data nodes port", wizard.getMongoClusterConfig().getDataNodePort() + "" );
 
         Button install = new Button( "Install" );
+        install.setId( "install" );
         install.addStyleName( "default" );
         install.addClickListener( new Button.ClickListener()
         {
@@ -80,6 +81,7 @@ public class VerificationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "verBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
