@@ -5,7 +5,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+
+import com.google.common.collect.Sets;
 
 
 public class CassandraClusterConfig implements ConfigBase
@@ -13,6 +16,8 @@ public class CassandraClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Cassandra";
     public static final String PRODUCT_NAME = "Cassandra";
+    public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase();
+
     public static final String TEMPLATE_NAME = "cassandra";
     private String clusterName = "";
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
@@ -146,6 +151,22 @@ public class CassandraClusterConfig implements ConfigBase
     public Set<UUID> getNodes()
     {
         return nodes;
+    }
+
+
+    public Set<UUID> getAllNodes()
+    {
+        Set<UUID> allNodes = Sets.newHashSet();
+        if ( !CollectionUtil.isCollectionEmpty( nodes ) )
+        {
+            allNodes.addAll( nodes );
+        }
+        if ( !CollectionUtil.isCollectionEmpty( seedNodes ) )
+        {
+            allNodes.addAll( seedNodes );
+        }
+
+        return allNodes;
     }
 
 

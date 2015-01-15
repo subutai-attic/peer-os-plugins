@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.Set;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -9,9 +11,9 @@ import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -43,6 +45,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
+    CommandUtil commandUtil = new CommandUtil();
 
 
     public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
@@ -240,26 +243,49 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
-        try
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
+        }
+
+
+        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
+
+
+        for ( ContainerHost node : nodes )
+        {
             try
             {
-                manager.unsubscribeFromAlerts(
-                        manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
+                commandUtil.execute( new RequestBuilder( Commands.uninstallCommand ), node );
             }
-            catch ( MonitorException e )
+            catch ( CommandException e )
             {
-                throw new EnvironmentDestroyException( e.getMessage() );
+                trackerOperation.addLog(
+                        String.format( "Failed to uninstall Cassandra from node %s: %s", node.getHostname(),
+                                e.getMessage() ) );
             }
         }
-        catch ( EnvironmentDestroyException e )
+
+        try
         {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
+            manager.unsubscribeFromAlerts(
+                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
+        }
+        catch ( MonitorException e )
+        {
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+        }
+
+        if ( manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
         }
     }
 }
