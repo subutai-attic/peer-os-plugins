@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.hive.impl.handler;
 
 
-import java.util.Iterator;
-
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -21,13 +19,10 @@ import com.google.common.base.Preconditions;
 
 /**
  * This class handles operations that are related to just one node.
- *
- * TODO: add nodes and delete node operation should be implemented.
  */
 public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, HiveConfig>
 {
 
-    private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
 
@@ -37,7 +32,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     {
         super( manager, manager.getCluster( clusterName ) );
         this.hostname = hostname;
-        this.clusterName = clusterName;
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( HiveConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
@@ -47,25 +41,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     @Override
     public void run()
     {
-        HiveConfig config = manager.getCluster( clusterName );
-        if ( config == null )
+
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
         {
-            trackerOperation.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
+            trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
-        {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostname ) )
-            {
-                break;
-            }
-        }
-
+        ContainerHost host = environment.getContainerHostByHostname( hostname );
         if ( host == null )
         {
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
@@ -107,42 +92,57 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
 
     public static void logResults( TrackerOperation po, CommandResult result )
     {
-        Preconditions.checkNotNull( result );
-        String status = "UNKNOWN";
-        if ( result.getExitCode() == 0 )
+        if ( result != null )
         {
-            status = result.getStdOut();
+            Preconditions.checkNotNull( result );
+            String status = "UNKNOWN";
+            if ( result.getExitCode() == 0 )
+            {
+                status = result.getStdOut();
+            }
+            else if ( result.getExitCode() == 768 )
+            {
+                status = "Hive Thrift Server is not running";
+            }
+
+            po.addLogDone( status );
         }
-        else if ( result.getExitCode() == 768 )
-        {
-            status = "Hive Thrift Server is not running";
-        }
-        po.addLogDone( status );
     }
 
 
     private CommandResult installProductOnNode( ContainerHost host )
     {
+
         CommandResult result = null;
-        try
+        if ( config.getAllNodes().contains( host.getId() ) )
         {
-            result = host.execute( new RequestBuilder(
-                    Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
-            if ( result.hasSucceeded() )
-            {
-                config.getClients().add( host.getId() );
-                manager.getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLog(
-                        HiveConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
-            }
-            else
-            {
-                trackerOperation.addLogFailed( "Could not install " + HiveConfig.PRODUCT_KEY + " to node " + hostname );
-            }
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster %s already contains node %s", clusterName, host.getHostname() ) );
         }
-        catch ( CommandException e )
+        else
         {
-            e.printStackTrace();
+            try
+            {
+                result = host.execute( new RequestBuilder(
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                if ( result.hasSucceeded() )
+                {
+                    config.getClients().add( host.getId() );
+                    manager.getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config );
+                    trackerOperation.addLog(
+                            HiveConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
+                }
+                else
+                {
+                    result = null;
+                    trackerOperation
+                            .addLogFailed( "Could not install " + HiveConfig.PRODUCT_KEY + " to node " + hostname );
+                }
+            }
+            catch ( CommandException e )
+            {
+                trackerOperation.addLogFailed( String.format( "Adding node failed: %s", e.getMessage() ) );
+            }
         }
         return result;
     }
@@ -151,26 +151,36 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     private CommandResult uninstallProductOnNode( ContainerHost host )
     {
         CommandResult result = null;
-        try
+
+        if ( !config.getAllNodes().contains( host.getId() ) )
         {
-            result = host.execute( new RequestBuilder(
-                    Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
-            if ( result.hasSucceeded() )
-            {
-                config.getClients().remove( host.getId() );
-                manager.getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLog(
-                        HiveConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname() + " successfully." );
-            }
-            else
-            {
-                trackerOperation
-                        .addLogFailed( "Could not uninstall " + HiveConfig.PRODUCT_KEY + " from node " + hostname );
-            }
+            trackerOperation.addLogFailed(
+                    String.format( "Node %s does not belong to cluster %s", host.getHostname(), clusterName ) );
         }
-        catch ( CommandException e )
+        else
         {
-            e.printStackTrace();
+            try
+            {
+                result = host.execute( new RequestBuilder(
+                        Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                if ( result.hasSucceeded() )
+                {
+                    config.getClients().remove( host.getId() );
+                    manager.getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config );
+                    trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+                            + " successfully." );
+                }
+                else
+                {
+                    result = null;
+                    trackerOperation
+                            .addLogFailed( "Could not uninstall " + HiveConfig.PRODUCT_KEY + " from node " + hostname );
+                }
+            }
+            catch ( CommandException e )
+            {
+                trackerOperation.addLogFailed( String.format( "Removing node failed: %s", e.getMessage() ) );
+            }
         }
         return result;
     }
