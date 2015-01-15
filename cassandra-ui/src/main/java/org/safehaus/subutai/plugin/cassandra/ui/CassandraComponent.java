@@ -10,7 +10,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.ui.environment.EnvironmentWizard;
 import org.safehaus.subutai.plugin.cassandra.ui.manager.Manager;
-import org.safehaus.subutai.plugin.cassandra.ui.wizard.Wizard;
 
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -20,12 +19,13 @@ import com.vaadin.ui.VerticalLayout;
 public class CassandraComponent extends CustomComponent
 {
 
-    private final Wizard wizard;
+    //    private final Wizard wizard;
     private final EnvironmentWizard environmentWizard;
     private final Manager manager;
 
 
-    public CassandraComponent( ExecutorService executorService, Cassandra cassandra, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public CassandraComponent( ExecutorService executorService, Cassandra cassandra, Tracker tracker,
+                               EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 
@@ -39,14 +39,14 @@ public class CassandraComponent extends CustomComponent
         sheet.setSizeFull();
 
         manager = new Manager( executorService, cassandra, tracker, environmentManager );
-        wizard = new Wizard( executorService, cassandra, tracker );
+        //        wizard = new Wizard( executorService, cassandra, tracker );
         environmentWizard = new EnvironmentWizard( executorService, cassandra, tracker, environmentManager );
-        sheet.addTab( wizard.getContent(), "Install" );
+        //        sheet.addTab( wizard.getContent(), "Install" );
+        //        sheet.getTab( 0 ).setId( "CassandraInstallTab" );
+        sheet.addTab( environmentWizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "CassandraInstallTab" );
-        sheet.addTab( environmentWizard.getContent(), "Configure environment" );
-        sheet.getTab( 1 ).setId( "CassandraConfigureEnviromentTab" );
         sheet.addTab( manager.getContent(), "Manage" );
-        sheet.getTab( 2 ).setId( "CassandraManageTab" );
+        sheet.getTab( 1 ).setId( "CassandraManageTab" );
         sheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override
