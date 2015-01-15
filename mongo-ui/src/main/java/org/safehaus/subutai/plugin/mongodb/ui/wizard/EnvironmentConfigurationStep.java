@@ -64,6 +64,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         final ComboBox envList = getEnvironmentList( wizard );
 
         final TextField clusterNameTxtFld = new TextField( "Enter cluster name" );
+        clusterNameTxtFld.setId( "clusterNameTxtFld" );
         clusterNameTxtFld.setInputPrompt( "Cluster name" );
         clusterNameTxtFld.setRequired( true );
         clusterNameTxtFld.setMaxLength( 20 );
@@ -80,16 +81,20 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         //configuration servers number
         configServerNodes = createTwinColSelect( "Select configuration node servers", "Available server nodes",
                 "Selected server nodes", 0 );
+        configServerNodes.setId( "configServerNodes" );
 
         //routers number
         routeServerNodes =
                 createTwinColSelect( "Select route nodes.", "Available route nodes", "Selected route nodes", 0 );
+        routeServerNodes.setId( "routeServerNodes" );
 
         //datanodes number
         dataServerNodes = createTwinColSelect( "Select data server node.", "Available data server nodes",
                 "Selected data server nodes", 0 );
+        dataServerNodes.setId( "dataServerNodes" );
 
         TextField replicaSetName = new TextField( "Enter replica set name" );
+        replicaSetName.setId( "replicaSetName" );
         replicaSetName.setInputPrompt( wizard.getMongoClusterConfig().getReplicaSetName() );
         replicaSetName.setMaxLength( 20 );
         replicaSetName.addValueChangeListener( new Property.ValueChangeListener()
@@ -106,6 +111,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         TextField cfgSrvPort = new TextField( "Enter port for configuration servers" );
+        cfgSrvPort.setId( "cfgSrvPort" );
         cfgSrvPort.setInputPrompt( wizard.getMongoClusterConfig().getCfgSrvPort() + "" );
         cfgSrvPort.setMaxLength( 5 );
         cfgSrvPort.addValueChangeListener( new Property.ValueChangeListener()
@@ -122,6 +128,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         TextField routerPort = new TextField( "Enter port for routers" );
+        cfgSrvPort.setId( "cfgSrvPort" );
         routerPort.setInputPrompt( wizard.getMongoClusterConfig().getRouterPort() + "" );
         routerPort.setMaxLength( 5 );
         routerPort.addValueChangeListener( new Property.ValueChangeListener()
@@ -138,6 +145,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         TextField dataNodePort = new TextField( "Enter port for data nodes" );
+        dataNodePort.setId( "dataNodePort" );
         dataNodePort.setInputPrompt( wizard.getMongoClusterConfig().getDataNodePort() + "" );
         dataNodePort.setMaxLength( 5 );
         dataNodePort.addValueChangeListener( new Property.ValueChangeListener()
@@ -154,6 +162,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         TextField domain = new TextField( "Enter domain name" );
+        domain.setId( "domain" );
         domain.setInputPrompt( wizard.getMongoClusterConfig().getDomainName() );
         domain.setMaxLength( 20 );
         domain.addValueChangeListener( new Property.ValueChangeListener()
@@ -170,6 +179,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         Button next = new Button( "Next" );
+        next.setId( "next" );
         next.addStyleName( "default" );
         next.addClickListener( new Button.ClickListener()
         {
@@ -264,6 +274,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "back" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
@@ -324,6 +335,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         container.addAll( environments );
 
         ComboBox envList = new ComboBox( "Select environment" );
+        envList.setId( "envList" );
         envList.setItemCaptionPropertyId( "name" );
         envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
         envList.setImmediate( true );
