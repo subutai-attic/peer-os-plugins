@@ -48,7 +48,7 @@ public class ZookeeperAlertListener implements AlertListener
     @Override
     public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
     {
-        //find shark cluster by environment id
+        //find zookeeper cluster by environment id
         List<ZookeeperClusterConfig> clusters = zookeeper.getClusters();
 
         ZookeeperClusterConfig targetCluster = null;
@@ -165,7 +165,7 @@ public class ZookeeperAlertListener implements AlertListener
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedByZookeeper )
+            if ( isCpuStressedByZookeeper )
             {
 
                 //read current CPU quota
@@ -238,7 +238,7 @@ public class ZookeeperAlertListener implements AlertListener
     @Override
     public String getSubscriberId()
     {
-        return null;
+        return ZOOKEEPER_ALERT_LISTENER;
     }
 
 
