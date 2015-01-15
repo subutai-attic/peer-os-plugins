@@ -128,7 +128,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         } );
 
         TextField routerPort = new TextField( "Enter port for routers" );
-        cfgSrvPort.setId( "cfgSrvPort" );
+        cfgSrvPort.setId( "routerPort" );
         routerPort.setInputPrompt( wizard.getMongoClusterConfig().getRouterPort() + "" );
         routerPort.setMaxLength( 5 );
         routerPort.addValueChangeListener( new Property.ValueChangeListener()
