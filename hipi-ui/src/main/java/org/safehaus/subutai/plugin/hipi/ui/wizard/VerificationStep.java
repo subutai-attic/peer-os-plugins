@@ -5,10 +5,9 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.hipi.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -44,21 +43,12 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+        for ( UUID nodeId : wizard.getConfig().getNodes() )
         {
-            for ( UUID nodeId : wizard.getConfig().getNodes() )
-            {
-                cfgView.addStringCfg( "Node to install", nodeId + "" );
-            }
+            cfgView.addStringCfg( "Node to install", nodeId + "" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
-        }
+
 
         // Install button
 
@@ -71,16 +61,7 @@ public class VerificationStep extends Panel
             public void buttonClick( Button.ClickEvent clickEvent )
             {
 
-                UUID trackId = null;
-
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = hipi.installCluster( config );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = hipi.installCluster( config, wizard.getHadoopConfig() );
-                }
+                UUID trackId = hipi.installCluster( config );
 
                 ProgressWindow window = new ProgressWindow( executorService, tracker, trackId, HipiConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

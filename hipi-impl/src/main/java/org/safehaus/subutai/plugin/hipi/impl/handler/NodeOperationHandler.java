@@ -9,11 +9,9 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.hipi.api.SetupType;
 import org.safehaus.subutai.plugin.hipi.impl.CommandFactory;
 import org.safehaus.subutai.plugin.hipi.impl.HipiImpl;
 
@@ -28,10 +26,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
     private NodeOperationType operationType;
 
 
-    public NodeOperationHandler( final HipiImpl manager, final HipiConfig config, String hostname,
+    public NodeOperationHandler( final HipiImpl manager, final String clusterName, String hostname,
                                  NodeOperationType operationType )
     {
-        super( manager, config );
+        super( manager, manager.getCluster( clusterName ) );
         this.hostName = hostname;
         this.operationType = operationType;
 
@@ -45,11 +43,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
     {
         try
         {
-            if ( manager.getCluster( clusterName ) == null )
-            {
-                throw new ClusterException( String.format( "Cluster with name %s does not exist", clusterName ) );
-            }
-
             Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
             if ( environment == null )
             {
@@ -90,40 +83,26 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
     }
 
 
-    private void addNode( ContainerHost node )
+    private void addNode( ContainerHost node ) throws ClusterException
     {
-        HipiConfig config = manager.getCluster( clusterName );
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
-            return;
-        }
-        try
-        {
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
-            {
-                setupHost( config, node );
-            }
 
-            config.getNodes().add( node.getId() );
 
-            trackerOperation.addLog( "Saving cluster info..." );
-            manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, clusterName, config );
-            trackerOperation.addLogDone( "Saved cluster info" );
-        }
-        catch ( ClusterSetupException ex )
-        {
-            trackerOperation.addLogFailed( "Add worker node failed with message " + ex.getMessage() );
-        }
+        setupHost( config, node );
+
+        config.getNodes().add( node.getId() );
+
+        trackerOperation.addLog( "Saving cluster info..." );
+        manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, clusterName, config );
+        trackerOperation.addLogDone( "Saved cluster info" );
     }
 
 
-    public void setupHost( HipiConfig config, ContainerHost node ) throws ClusterSetupException
+    public void setupHost( HipiConfig config, ContainerHost node ) throws ClusterException
     {
         //check if node is in the cluster
         if ( config.getNodes().contains( node.getId() ) )
         {
-            throw new ClusterSetupException( "Node already belongs to cluster" + clusterName );
+            throw new ClusterException( "Node already belongs to cluster" + clusterName );
         }
 
         trackerOperation.addLog( "Checking prerequisites..." );
@@ -135,7 +114,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
             String hadoopPack = Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME;
             if ( !checkCommandResult.hasCompleted() )
             {
-                throw new ClusterSetupException( "Failed to check installed packages" );
+                throw new ClusterException( "Failed to check installed packages" );
             }
 
             boolean skipInstall = false;
@@ -147,7 +126,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
             }
             if ( checkCommandResult.hasSucceeded() && !checkCommandResult.getStdOut().contains( hadoopPack ) )
             {
-                throw new ClusterSetupException( "Node has no Hadoop installation" );
+                throw new ClusterException( "Node has no Hadoop installation" );
             }
             if ( !skipInstall )
             {
@@ -161,26 +140,19 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
                 }
                 else
                 {
-                    throw new ClusterSetupException( "Installation failed: " + installCommandResult.getStdErr() );
+                    throw new ClusterException( "Installation failed: " + installCommandResult.getStdErr() );
                 }
             }
         }
         catch ( CommandException ex )
         {
-            throw new ClusterSetupException( ex );
+            throw new ClusterException( ex );
         }
     }
 
 
     private void removeNode( ContainerHost node )
     {
-        HipiConfig config = manager.getCluster( clusterName );
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist\nOperation aborted", clusterName ) );
-            return;
-        }
 
         if ( config.getNodes().size() == 1 )
         {
@@ -200,26 +172,24 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
         boolean ok = false;
         try
         {
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+            trackerOperation.addLog( "Uninstalling " + HipiConfig.PRODUCT_KEY );
+
+            String uninstallCommand = CommandFactory.build( NodeOperationType.UNINSTALL );
+            CommandResult uninstallCommandResult = node.execute( new RequestBuilder( uninstallCommand ) );
+
+            if ( uninstallCommandResult.hasSucceeded() )
             {
-                trackerOperation.addLog( "Uninstalling " + HipiConfig.PRODUCT_KEY );
-
-                String uninstallCommand = CommandFactory.build( NodeOperationType.UNINSTALL );
-                CommandResult uninstallCommandResult = node.execute( new RequestBuilder( uninstallCommand ) );
-
-                if ( uninstallCommandResult.hasSucceeded() )
-                {
-                    trackerOperation.addLog( HipiConfig.PRODUCT_KEY + " removed from " + node.getHostname() );
-                    ok = true;
-                }
-                else
-                {
-                    trackerOperation.addLog( "Uninstallation failed: " + uninstallCommandResult.getStdErr() );
-                    ok = false;
-                }
+                trackerOperation.addLog( HipiConfig.PRODUCT_KEY + " removed from " + node.getHostname() );
+                ok = true;
+            }
+            else
+            {
+                trackerOperation.addLog( "Uninstallation failed: " + uninstallCommandResult.getStdErr() );
+                ok = false;
             }
         }
-        catch (CommandException ex)
+        catch ( CommandException ex )
         {
             trackerOperation.addLogFailed( "Failed to remove with message " + ex.getMessage() );
         }

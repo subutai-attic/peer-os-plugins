@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.hipi.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.DELETE;
@@ -19,6 +19,8 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
 
+import com.google.common.collect.Sets;
+
 
 public class RestService
 {
@@ -28,7 +30,7 @@ public class RestService
     private Hipi hipiManager;
 
 
-    public void setHipiManager( Hipi hipiManager )
+    public RestService( final Hipi hipiManager )
     {
         this.hipiManager = hipiManager;
     }
@@ -41,7 +43,7 @@ public class RestService
     {
 
         List<HipiConfig> configs = hipiManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        Set<String> clusterNames = Sets.newHashSet();
 
         for ( HipiConfig config : configs )
         {

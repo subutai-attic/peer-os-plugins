@@ -16,10 +16,10 @@
 
   <bean id="hipi-impl" scope="singleton" class="org.safehaus.subutai.plugin.hipi.impl.HipiImpl"
         init-method="init" destroy-method="destroy">
-    <property name="tracker" ref="tracker" />
-    <property name="environmentManager" ref="environmentManager" />
-    <property name="hadoopManager" ref="hadoopManager" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
     <argument ref="dataSource" />
+    <argument ref="hadoopManager" />
   </bean>
 
   <service ref="hipi-impl" interface="org.safehaus.subutai.plugin.hipi.api.Hipi" />

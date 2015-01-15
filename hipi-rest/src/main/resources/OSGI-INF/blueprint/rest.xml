@@ -14,7 +14,7 @@
   <reference id="hipiManager" availability="mandatory" interface="org.safehaus.subutai.plugin.hipi.api.Hipi" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.hipi.rest.RestService">
-    <property name="hipiManager" ref="hipiManager" />
+    <argument ref="hipiManager" />
   </bean>
 
   <jaxrs:server address="/hipi" id="hipiRestService">

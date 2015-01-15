@@ -11,17 +11,14 @@ import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.hipi.api.SetupType;
 import org.safehaus.subutai.plugin.hipi.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.hipi.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hipi.impl.handler.NodeOperationHandler;
@@ -43,21 +40,19 @@ public class HipiImpl implements Hipi
     private Hadoop hadoopManager;
 
 
-    public HipiImpl( DataSource dataSource )
+    public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final DataSource dataSource,
+                     final Hadoop hadoopManager )
     {
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
         this.dataSource = dataSource;
+        this.hadoopManager = hadoopManager;
     }
 
 
     public Tracker getTracker()
     {
         return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
     }
 
 
@@ -76,30 +71,6 @@ public class HipiImpl implements Hipi
     public Hadoop getHadoopManager()
     {
         return hadoopManager;
-    }
-
-
-    public void setHadoopManager( final Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public ExecutorService getExecutor()
-    {
-        return executor;
-    }
-
-
-    public void setExecutor( final ExecutorService executor )
-    {
-        this.executor = executor;
     }
 
 
@@ -127,21 +98,9 @@ public class HipiImpl implements Hipi
     public UUID installCluster( final HipiConfig config )
     {
         Preconditions.checkNotNull( config, "Configuration is null" );
+
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID installCluster( final HipiConfig config, final HadoopClusterConfig hadoopClusterConfig )
-    {
-        Preconditions.checkNotNull( config, "Hipi Configuration is not specified" );
-        Preconditions.checkNotNull( hadoopClusterConfig, "Hadoop Configuration is not specified" );
-
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL, hadoopClusterConfig );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -175,7 +134,7 @@ public class HipiImpl implements Hipi
     public UUID addNode( final String clusterName, final String lxcHostname )
     {
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, getCluster( clusterName ), lxcHostname, NodeOperationType.INCLUDE );
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.INCLUDE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -185,20 +144,16 @@ public class HipiImpl implements Hipi
     public UUID destroyNode( final String clusterName, final String lxcHostname )
     {
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, getCluster( clusterName ), lxcHostname,
-                        NodeOperationType.CHECK_INSTALLATION.EXCLUDE );
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.EXCLUDE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment env, HipiConfig config, TrackerOperation po )
+    public ClusterSetupStrategy getClusterSetupStrategy( HipiConfig config, TrackerOperation po )
     {
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            return new OverHadoopSetupStrategy( this, config, env, po );
-        }
-        return new WithHadoopSetupStrategy( this, config, env, po );
+
+        return new HipiSetupStrategy( this, config, po );
     }
 }

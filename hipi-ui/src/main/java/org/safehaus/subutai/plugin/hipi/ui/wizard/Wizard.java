@@ -5,10 +5,8 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
 
@@ -26,7 +24,6 @@ public class Wizard
     private final Tracker tracker;
     private int step = 1;
     private HipiConfig config = new HipiConfig();
-    private HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
 
 
     public Wizard( ExecutorService executorService, Hipi hipi, Hadoop hadoop, Tracker tracker ) throws NamingException
@@ -110,17 +107,5 @@ public class Wizard
     public HipiConfig getConfig()
     {
         return config;
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
-    }
-
-
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
     }
 }

@@ -14,7 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -27,7 +26,6 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
 
-import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
@@ -65,7 +63,8 @@ public class Manager
     private HipiConfig config;
 
 
-    public Manager( final ExecutorService executorService, Hipi hipi, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Hipi hipi, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.hipi = hipi;
@@ -109,7 +108,7 @@ public class Manager
         /** Refresh Cluster button */
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         refreshClustersBtn.setId( "hipiRefresh" );
-        refreshClustersBtn.addStyleName( "default" );
+        refreshClustersBtn.addStyleName( BUTTON_STYLE_NAME );
         refreshClustersBtn.addClickListener( new Button.ClickListener()
         {
             @Override
@@ -123,7 +122,7 @@ public class Manager
         /** Destroy Cluster button */
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "hipiDestroy" );
-        destroyClusterBtn.addStyleName( "default" );
+        destroyClusterBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToDestorClusterButton();
         controlsContent.addComponent( destroyClusterBtn );
 
@@ -131,7 +130,7 @@ public class Manager
         /** Add Node button */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeBtn.setId( "hipiAddNode" );
-        addNodeBtn.addStyleName( "default" );
+        addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
 
@@ -152,10 +151,10 @@ public class Manager
                     HadoopClusterConfig hadoopConfig = hadoop.getCluster( config.getHadoopClusterName() );
                     if ( hadoopConfig != null )
                     {
+                        List<UUID> hadoopNodes = hadoopConfig.getAllNodes();
+                        hadoopNodes.removeAll( config.getNodes() );
                         Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-                        Set<ContainerHost> nodes =
-                                environment.getContainerHostsByIds( new HashSet<UUID>( hadoopConfig.getAllNodes() ) );
-                        nodes.removeAll( config.getNodes() );
+                        Set<ContainerHost> nodes = environment.getContainerHostsByIds( new HashSet<>( hadoopNodes ) );
                         if ( !nodes.isEmpty() )
                         {
                             AddNodeWindow addNodeWindow =
@@ -306,10 +305,10 @@ public class Manager
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-hipiDestroy" );
-            destroyBtn.addStyleName( "default" );
+            destroyBtn.addStyleName( BUTTON_STYLE_NAME );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.addStyleName( "default" );
+            availableOperations.addStyleName( BUTTON_STYLE_NAME );
             availableOperations.setSpacing( true );
 
             addGivenComponents( availableOperations, destroyBtn );
@@ -389,7 +388,8 @@ public class Manager
             for ( HipiConfig hipiClusterInfo : clustersInfo )
             {
                 clusterCombo.addItem( hipiClusterInfo );
-                clusterCombo.setItemCaption( hipiClusterInfo, hipiClusterInfo.getClusterName() + "(" + hipiClusterInfo.getHadoopClusterName() + ")" );
+                clusterCombo.setItemCaption( hipiClusterInfo,
+                        hipiClusterInfo.getClusterName() + "(" + hipiClusterInfo.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

@@ -11,16 +11,13 @@ import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 public class HipiConfig implements ConfigBase
 {
-    public static final String TEMPLATE_NAME = "hadoophipi";
     public static final String PRODUCT_KEY = "Hipi";
     public static final String PRODUCT_PACKAGE = ( Common.PACKAGE_PREFIX + PRODUCT_KEY ).toLowerCase();
 
     private String clusterName;
-    private SetupType setupType;
     private UUID environmentId;
     private Set<UUID> nodes = new HashSet<>();
     private String hadoopClusterName;
-    private Set<UUID> hadoopNodes = new HashSet<>();
 
 
     public String getClusterName()
@@ -56,28 +53,10 @@ public class HipiConfig implements ConfigBase
     }
 
 
-    public void setNodes( Set<UUID> nodes )
-    {
-        this.nodes = nodes;
-    }
-
-
     @Override
     public String toString()
     {
         return "Config{" + "clusterName=" + clusterName + ", nodes=" + nodes + '}';
-    }
-
-
-    public SetupType getSetupType()
-    {
-        return setupType;
-    }
-
-
-    public void setSetupType( SetupType setupType )
-    {
-        this.setupType = setupType;
     }
 
 
@@ -90,19 +69,6 @@ public class HipiConfig implements ConfigBase
     public void setHadoopClusterName( String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
-        this.clusterName = hadoopClusterName;
-    }
-
-
-    public Set<UUID> getHadoopNodes()
-    {
-        return hadoopNodes;
-    }
-
-
-    public void setHadoopNodes( final Set<UUID> hadoopNodes )
-    {
-        this.hadoopNodes = hadoopNodes;
     }
 
 
