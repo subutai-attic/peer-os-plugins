@@ -119,7 +119,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
 
             boolean skipInstall = false;
             if ( checkCommandResult.hasSucceeded() && checkCommandResult.getStdOut()
-                                                                        .contains( CommandFactory.PACKAGE_NAME ) )
+                                                                        .contains( HipiConfig.PRODUCT_PACKAGE ) )
             {
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has " + HipiConfig.PRODUCT_KEY + " installed" );

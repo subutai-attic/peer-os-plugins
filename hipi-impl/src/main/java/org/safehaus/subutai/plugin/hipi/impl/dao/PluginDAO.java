@@ -84,7 +84,7 @@ public class PluginDAO
         try
         {
             ResultSet rs = dbUtil.select( "select info from cluster_data where source = ?", source );
-            while ( rs != null && rs.next() )
+            while ( rs.next() )
             {
                 Clob infoClob = rs.getClob( "info" );
                 if ( infoClob != null && infoClob.length() > 0 )
@@ -94,11 +94,7 @@ public class PluginDAO
                 }
             }
         }
-        catch ( JsonSyntaxException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-        catch ( SQLException e )
+        catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
         }
@@ -125,7 +121,7 @@ public class PluginDAO
         {
 
             ResultSet rs = dbUtil.select( "select info from cluster_data where source = ? and id = ?", source, key );
-            if ( rs != null && rs.next() )
+            if ( rs.next() )
             {
                 Clob infoClob = rs.getClob( "info" );
                 if ( infoClob != null && infoClob.length() > 0 )
@@ -135,11 +131,7 @@ public class PluginDAO
                 }
             }
         }
-        catch ( JsonSyntaxException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-        catch ( SQLException e )
+        catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
         }

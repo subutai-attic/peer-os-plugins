@@ -3,13 +3,13 @@ package org.safehaus.subutai.plugin.hipi.impl;
 
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
 
 
 public class CommandFactory
 {
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + "hipi";
-    public static final String INSTALL = "apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
-    public static final String UNINSTALL = "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME;
+    public static final String INSTALL = "apt-get --force-yes --assume-yes install " + HipiConfig.PRODUCT_PACKAGE;
+    public static final String UNINSTALL = "apt-get --force-yes --assume-yes purge " + HipiConfig.PRODUCT_PACKAGE;
     public static final String CHECK = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
 
 

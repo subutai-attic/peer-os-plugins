@@ -124,6 +124,8 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                 throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
             }
         }
+
+        config.setEnvironmentId( hadoopClusterConfig.getEnvironmentId() );
     }
 
 
@@ -137,7 +139,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
             try
             {
                 CommandResult result = node.execute( new RequestBuilder( statusCommand ) );
-                if ( result.hasSucceeded() && result.getStdOut().contains( CommandFactory.PACKAGE_NAME ) )
+                if ( result.hasSucceeded() && result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) )
                 {
                     trackerOperation
                             .addLog( String.format( "Node %s has already Hipi installed.", node.getHostname() ) );
