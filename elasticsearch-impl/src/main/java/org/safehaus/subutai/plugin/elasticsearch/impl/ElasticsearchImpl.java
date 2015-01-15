@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -47,20 +46,18 @@ public class ElasticsearchImpl implements Elasticsearch
     private PluginDAO pluginDAO;
     private DataSource dataSource;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private EsAlertListener alertListener;
 
     Commands commands = new Commands();
 
 
     public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                              final DataSource dataSource, final Monitor monitor, final QuotaManager quotaManager )
+                              final DataSource dataSource, final Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.dataSource = dataSource;
         this.monitor = monitor;
-        this.quotaManager = quotaManager;
 
         alertListener = new EsAlertListener( this );
         monitor.addAlertListener( alertListener );
@@ -82,12 +79,6 @@ public class ElasticsearchImpl implements Elasticsearch
     public Monitor getMonitor()
     {
         return monitor;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
     }
 
 

@@ -119,8 +119,7 @@ public class EsAlertListener implements AlertListener
         }
 
         //get process resource usage by pid
-        ProcessResourceUsage processResourceUsage =
-                elasticsearch.getMonitor().getProcessResourceUsage( sourceHost, processPID );
+        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( processPID );
 
         //confirm that ES is causing the stress, otherwise no-op
         MonitoringSettings thresholds = elasticsearch.getAlertSettings();
@@ -154,14 +153,13 @@ public class EsAlertListener implements AlertListener
             if ( isRamStressedByES )
             {
                 //read current RAM quota
-                int ramQuota = elasticsearch.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota();
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    elasticsearch.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
                 }
@@ -170,13 +168,12 @@ public class EsAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = elasticsearch.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    elasticsearch.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;
                 }
