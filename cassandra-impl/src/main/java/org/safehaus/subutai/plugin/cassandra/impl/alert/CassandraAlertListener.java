@@ -99,7 +99,7 @@ public class CassandraAlertListener implements AlertListener
                     null );
         }
 
-        //check if source host belongs to found spark cluster
+        //check if source host belongs to found cluster
         if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
         {
             LOG.info( String.format( "Alert source host %s does not belong to Spark cluster", metric.getHost() ) );
@@ -120,26 +120,25 @@ public class CassandraAlertListener implements AlertListener
         }
 
         //get process resource usage by pid
-        ProcessResourceUsage processResourceUsage =
-                cassandra.getMonitor().getProcessResourceUsage( sourceHost, processPID );
+        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( processPID );
 
         //confirm that Cassandra is causing the stress, otherwise no-op
         MonitoringSettings thresholds = cassandra.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
-        boolean isCpuStressedBySpark = false;
-        boolean isRamStressedBySpark = false;
+        boolean isCpuStressed = false;
+        boolean isRamStressed = false;
 
         if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
         {
-            isRamStressedBySpark = true;
+            isRamStressed = true;
         }
         else if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
         {
-            isCpuStressedBySpark = true;
+            isCpuStressed = true;
         }
 
-        if ( !( isRamStressedBySpark || isCpuStressedBySpark ) )
+        if ( !( isRamStressed || isCpuStressed ) )
         {
             LOG.info( "Cassandra cluster ok" );
             return;
@@ -152,32 +151,30 @@ public class CassandraAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRamStressedBySpark )
+            if ( isRamStressed )
             {
                 //read current RAM quota
-                int ramQuota = cassandra.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota();
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    cassandra.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedBySpark )
+            else if ( isCpuStressed )
             {
 
                 //read current CPU quota
-                int cpuQuota = cassandra.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    cassandra.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;
                 }

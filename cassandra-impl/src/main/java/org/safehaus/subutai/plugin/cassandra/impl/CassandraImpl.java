@@ -17,7 +17,6 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -55,7 +54,6 @@ public class CassandraImpl implements Cassandra
     private DataSource dataSource;
     private PeerManager peerManager;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private CassandraAlertListener cassandraAlertListener;
 
@@ -63,6 +61,7 @@ public class CassandraImpl implements Cassandra
     public CassandraImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
+        this.monitor = monitor;
 
         cassandraAlertListener = new CassandraAlertListener( this );
         monitor.addAlertListener( cassandraAlertListener );
@@ -99,18 +98,6 @@ public class CassandraImpl implements Cassandra
     }
 
 
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
-    }
-
-
     public Tracker getTracker()
     {
         return tracker;
@@ -144,12 +131,6 @@ public class CassandraImpl implements Cassandra
     public void setPeerManager( final PeerManager peerManager )
     {
         this.peerManager = peerManager;
-    }
-
-
-    public void setPluginDAO( final PluginDAO pluginDAO )
-    {
-        this.pluginDAO = pluginDAO;
     }
 
 

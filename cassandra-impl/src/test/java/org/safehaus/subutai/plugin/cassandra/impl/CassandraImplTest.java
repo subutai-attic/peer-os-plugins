@@ -24,7 +24,6 @@ import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
@@ -86,8 +85,6 @@ public class CassandraImplTest
     ExecutorService executor;
     @Mock
     Monitor monitor;
-    @Mock
-    QuotaManager quotaManager;
 
 
     @Before
@@ -106,7 +103,6 @@ public class CassandraImplTest
         cassandraImpl.getTracker();
         cassandraImpl.setEnvironmentManager( environmentManager );
         cassandraImpl.getEnvironmentManager();
-        cassandraImpl.setQuotaManager( quotaManager );
 
         // mock InstallClusterHandler
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
