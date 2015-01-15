@@ -8,7 +8,6 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.server.ui.api.PortalModuleService;
@@ -28,12 +27,12 @@ public class Wizard
     private final Tracker tracker;
     private int step = 1;
     private HiveConfig config = new HiveConfig();
-    private HadoopClusterConfig hadoopConfig;
     private PortalModuleService portalModuleService;
 
 
-    public Wizard( ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker, EnvironmentManager
-            environmentManager, PortalModuleService portalModuleService ) throws NamingException
+    public Wizard( ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager, PortalModuleService portalModuleService )
+            throws NamingException
     {
 
         this.executorService = executorService;
@@ -69,7 +68,7 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( hive, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( hive, hadoop, executorService, tracker, environmentManager, this );
                 break;
             }
             default:
@@ -109,7 +108,6 @@ public class Wizard
     {
         step = 1;
         config = new HiveConfig();
-        hadoopConfig = new HadoopClusterConfig();
         putForm();
     }
 
@@ -118,17 +116,4 @@ public class Wizard
     {
         return config;
     }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
-    }
-
-
-    public void setHadoopConfig( final HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
-
 }

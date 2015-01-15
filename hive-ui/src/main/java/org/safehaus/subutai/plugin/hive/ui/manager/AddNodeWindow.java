@@ -9,7 +9,6 @@ import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 
@@ -36,8 +35,7 @@ class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Hive hive, final ExecutorService executorService, final Tracker tracker,
-                          final HiveConfig config, final HadoopClusterConfig hadoopClusterConfig,
-                          Set<ContainerHost> nodes )
+                          final HiveConfig config, Set<ContainerHost> nodes )
     {
         super( "Add New Node" );
         setModal( true );

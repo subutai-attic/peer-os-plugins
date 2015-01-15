@@ -13,33 +13,12 @@ public class HiveConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Hive";
-    public static final String TEMPLATE_NAME = "hadoophive";
 
-    private SetupType setupType;
     private String clusterName = "";
     private String hadoopClusterName = "";
     private UUID server;
-    private Set<UUID> clients = new HashSet();
-    private Set<UUID> hadoopNodes = new HashSet<>();
+    private Set<UUID> clients = new HashSet<>();
     private UUID environmentId;
-
-
-    public static String getTemplateName()
-    {
-        return TEMPLATE_NAME;
-    }
-
-
-    public SetupType getSetupType()
-    {
-        return setupType;
-    }
-
-
-    public void setSetupType( SetupType setupType )
-    {
-        this.setupType = setupType;
-    }
 
 
     public UUID getEnvironmentId()
@@ -51,12 +30,6 @@ public class HiveConfig implements ConfigBase
     public void setEnvironmentId( final UUID environmentId )
     {
         this.environmentId = environmentId;
-    }
-
-
-    public int getNumberOfNodes()
-    {
-        return clients.size() + 1;
     }
 
 
@@ -117,24 +90,6 @@ public class HiveConfig implements ConfigBase
     }
 
 
-    public void setClients( Set<UUID> clients )
-    {
-        this.clients = clients;
-    }
-
-
-    public Set<UUID> getHadoopNodes()
-    {
-        return hadoopNodes;
-    }
-
-
-    public void setHadoopNodes( Set<UUID> hadoopNodes )
-    {
-        this.hadoopNodes = hadoopNodes;
-    }
-
-
     public Set<UUID> getAllNodes()
     {
         Set<UUID> allNodes = new HashSet<>();
@@ -165,7 +120,7 @@ public class HiveConfig implements ConfigBase
         if ( obj instanceof HiveConfig )
         {
             HiveConfig o = ( HiveConfig ) obj;
-            return clusterName != null ? clusterName.equals( o.clusterName ) : false;
+            return clusterName != null && clusterName.equals( o.clusterName );
         }
         return false;
     }

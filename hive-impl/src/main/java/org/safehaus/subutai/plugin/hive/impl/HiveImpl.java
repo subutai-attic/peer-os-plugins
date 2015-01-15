@@ -9,15 +9,16 @@ import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.impl.handler.CheckInstallHandler;
@@ -38,9 +39,13 @@ public class HiveImpl implements Hive
     private Hadoop hadoopManager;
 
 
-    public HiveImpl( DataSource dataSource )
+    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final DataSource dataSource,
+                     final Hadoop hadoopManager )
     {
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
         this.dataSource = dataSource;
+        this.hadoopManager = hadoopManager;
     }
 
 
@@ -70,33 +75,15 @@ public class HiveImpl implements Hive
     }
 
 
-    public void setTracker( Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
     }
 
 
-    public void setEnvironmentManager( EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
     public Hadoop getHadoopManager()
     {
         return hadoopManager;
-    }
-
-
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
     }
 
 
@@ -109,7 +96,9 @@ public class HiveImpl implements Hive
     @Override
     public UUID installCluster( final HiveConfig config )
     {
-        return null;
+        AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+        executor.execute( h );
+        return h.getTrackerId();
     }
 
 
@@ -117,9 +106,7 @@ public class HiveImpl implements Hive
     public UUID uninstallCluster( final String hiveClusterName )
     {
         HiveConfig config = getCluster( hiveClusterName );
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( config.getHadoopClusterName() );
-        AbstractOperationHandler h =
-                new ClusterOperationHandler( this, config, hadoopClusterConfig, ClusterOperationType.UNINSTALL );
+        AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -136,17 +123,6 @@ public class HiveImpl implements Hive
     public HiveConfig getCluster( String clusterName )
     {
         return pluginDAO.getInfo( HiveConfig.PRODUCT_KEY, clusterName, HiveConfig.class );
-    }
-
-
-    @Override
-    public UUID installCluster( HiveConfig config, String hadoopClusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( hadoopClusterName );
-        AbstractOperationHandler h =
-                new ClusterOperationHandler( this, config, hadoopClusterConfig, ClusterOperationType.INSTALL );
-        executor.execute( h );
-        return h.getTrackerId();
     }
 
 
@@ -213,5 +189,13 @@ public class HiveImpl implements Hive
                                   .getContainerHostByHostname( hostname );
         CheckInstallHandler h = new CheckInstallHandler( containerHost );
         return h.check();
+    }
+
+
+    @Override
+    public ClusterSetupStrategy getClusterSetupStrategy( final HiveConfig config,
+                                                         final TrackerOperation trackerOperation )
+    {
+        return new HiveSetupStrategy( this, config, trackerOperation );
     }
 }

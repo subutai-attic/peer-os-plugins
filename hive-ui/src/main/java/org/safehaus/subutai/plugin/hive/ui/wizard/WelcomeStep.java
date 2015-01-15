@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.hive.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.plugin.hive.api.SetupType;
 import org.safehaus.subutai.plugin.hive.ui.HivePortalModule;
 
 import com.vaadin.server.FileResource;
@@ -38,19 +37,12 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start installation" );
         next.setId( "HiveStartOverHadoop" );
         next.addStyleName( "default" );
-        next.addClickListener( new NextClickHandler( wizard, SetupType.OVER_HADOOP ) );
+        next.addClickListener( new NextClickHandler( wizard ) );
         grid.addComponent( next, 4, 4, 4, 4 );
         grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.setId( "HiveStartWithHadoop" );
-        next2.addStyleName( "default" );
-        next2.addClickListener( new NextClickHandler( wizard, SetupType.WITH_HADOOP ) );
-        grid.addComponent( next2, 5, 4, 5, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }
@@ -60,13 +52,11 @@ public class WelcomeStep extends Panel
     {
 
         private final Wizard wizard;
-        private final SetupType type;
 
 
-        public NextClickHandler( Wizard wizard, SetupType type )
+        public NextClickHandler( Wizard wizard )
         {
             this.wizard = wizard;
-            this.type = type;
         }
 
 
@@ -74,7 +64,6 @@ public class WelcomeStep extends Panel
         public void buttonClick( Button.ClickEvent event )
         {
             wizard.init();
-            wizard.getConfig().setSetupType( type );
             wizard.next();
         }
     }

@@ -21,12 +21,12 @@ import com.vaadin.ui.VerticalLayout;
 public class HiveComponent extends CustomComponent
 {
 
-    private final Wizard wizard;
     private final Manager manager;
 
 
     public HiveComponent( ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker,
-                          EnvironmentManager environmentManager, PortalModuleService portalModuleService ) throws NamingException
+                          EnvironmentManager environmentManager, PortalModuleService portalModuleService )
+            throws NamingException
     {
         setSizeFull();
 
@@ -37,13 +37,8 @@ public class HiveComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
         manager = new Manager( executorService, hive, hadoop, tracker, environmentManager );
-        wizard = new Wizard( executorService, hive, hadoop, tracker, environmentManager, portalModuleService )
-        {
-            public void requestHadoopPlugin()
-            {
-
-            }
-        };
+        final Wizard wizard =
+                new Wizard( executorService, hive, hadoop, tracker, environmentManager, portalModuleService );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HiveInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );

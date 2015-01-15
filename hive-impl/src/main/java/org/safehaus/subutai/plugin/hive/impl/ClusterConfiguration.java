@@ -34,7 +34,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // configure hive server
         po.addLog( "Configuring server node: " + server.getHostname() );
-        executeCommand( server, Commands.configureClient( server ) );
+        executeCommand( server, Commands.configureHiveServer( server.getIpByInterfaceName( "eth0" ) ) );
 
 
         for ( ContainerHost containerHost : environment.getContainerHosts() )

@@ -7,7 +7,6 @@ import org.safehaus.subutai.core.peer.api.ContainerHost;
 
 public class Commands
 {
-    public static final String EXEC_PROFILE = ". /etc/profile";
 
     public static final String installCommand = "apt-get --force-yes --assume-yes install ";
 

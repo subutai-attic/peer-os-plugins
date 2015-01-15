@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.hive.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.DELETE;
@@ -16,21 +16,23 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
-import org.safehaus.subutai.plugin.hive.api.SetupType;
+
+import com.google.common.collect.Sets;
 
 
 public class RestService
 {
     private static final String OPERATION_ID = "OPERATION_ID";
     private Hive hiveManager;
-    private EnvironmentManager environmentManager;
-    private Hadoop hadoop;
+
+
+    public RestService( final Hive hiveManager )
+    {
+        this.hiveManager = hiveManager;
+    }
+
 
     @GET
     @Path( "clusters" )
@@ -39,7 +41,7 @@ public class RestService
     {
 
         List<HiveConfig> configs = hiveManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        Set<String> clusterNames = Sets.newHashSet();
 
         for ( HiveConfig config : configs )
         {
@@ -63,7 +65,7 @@ public class RestService
 
 
     @POST
-    @Path( "clusters" )
+    @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @PathParam( "clusterName" ) String clusterName,
                                     @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
@@ -71,70 +73,19 @@ public class RestService
     {
 
         HiveConfig config = new HiveConfig();
-        config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
-        ContainerHost serverAgent = environmentManager.getEnvironmentByUUID( hadoop.getCluster( hadoopClusterName )
-                .getEnvironmentId() ).getContainerHostByHostname( server );
-        // TODO fix here
-        config.setServer( serverAgent.getId() );
+        config.setServer( UUID.fromString( server ) );
 
         for ( String client : clients.split( "," ) )
         {
-            ContainerHost agent = environmentManager.getEnvironmentByUUID( hadoop.getCluster( hadoopClusterName )
-                                                                               .getEnvironmentId() ).getContainerHostByHostname( client );
-            // TODO fix here agent uuid
-            config.getClients().add( agent.getId() );
+            config.getClients().add( UUID.fromString( client ) );
         }
 
         UUID uuid = hiveManager.installCluster( config );
 
         String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
-    @POST
-    @Path( "clusters/{name}/{hadoopName}/{slaveNodesCount}/{replFactor}/{domainName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response install( @PathParam( "name" ) String name, @PathParam( "hadoopName" ) String hadoopName,
-                             @PathParam( "slaveNodesCount" ) String slaveNodesCount,
-                             @PathParam( "replFactor" ) String replFactor,
-                             @PathParam( "domainName" ) String domainName )
-    {
-
-        HiveConfig config = new HiveConfig();
-        config.setSetupType( SetupType.WITH_HADOOP );
-        config.setClusterName( name );
-        config.setHadoopClusterName( hadoopName );
-
-        HadoopClusterConfig hc = new HadoopClusterConfig();
-        hc.setClusterName( hadoopName );
-        if ( domainName != null )
-        {
-            hc.setDomainName( domainName );
-        }
-        try
-        {
-            int i = Integer.parseInt( slaveNodesCount );
-            hc.setCountOfSlaveNodes( i );
-        }
-        catch ( NumberFormatException ex )
-        {
-        }
-        try
-        {
-            int i = Integer.parseInt( replFactor );
-            hc.setReplicationFactor( i );
-        }
-        catch ( NumberFormatException ex )
-        {
-        }
-
-        UUID trackId = hiveManager.installCluster( config, hc.getClusterName() );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, trackId );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
 
@@ -172,22 +123,4 @@ public class RestService
         String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
-
-    public void setHiveManager( Hive hiveManager )
-    {
-        this.hiveManager = hiveManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public void setHadoop( final Hadoop hadoop )
-    {
-        this.hadoop = hadoop;
-    }
-
 }

@@ -16,6 +16,7 @@ import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.api.HiveNodeOperationTask;
@@ -61,7 +62,6 @@ public class Manager
     protected static final String IP_COLUMN_CAPTION = "IP List";
     protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
     protected static final String BUTTON_STYLE_NAME = "default";
-    private static final String MESSAGE = "No cluster is installed !";
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final ComboBox clusterCombo;
@@ -75,14 +75,14 @@ public class Manager
     private Hadoop hadoop;
 
 
-    public Manager( final ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.hive = hive;
         this.hadoop = hadoop;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-
 
 
         contentRoot = new GridLayout();
@@ -179,7 +179,13 @@ public class Manager
                     show( "Select cluster" );
                     return;
                 }
-                Set<UUID> set = new HashSet<>( config.getHadoopNodes() );
+                HadoopClusterConfig hc = hadoop.getCluster( config.getHadoopClusterName() );
+                if ( hc == null )
+                {
+                    show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
+                    return;
+                }
+                Set<UUID> set = new HashSet<>( hc.getAllNodes() );
                 set.remove( config.getServer() );
                 set.removeAll( config.getClients() );
                 if ( set.isEmpty() )
@@ -196,8 +202,7 @@ public class Manager
                                                      .getContainerHostById( uuid ) );
                 }
 
-                AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config,
-                        hadoop.getCluster( config.getHadoopClusterName() ), myHostSet );
+                AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config, myHostSet );
                 contentRoot.getUI().addWindow( w );
                 w.addCloseListener( new Window.CloseListener()
                 {
@@ -360,11 +365,11 @@ public class Manager
         if ( config != null )
         {
             populateTable( serverTable, getServers(
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                            config ) );
+                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
+                    config ) );
             populateTable( clientsTable, getClients(
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                            config ) );
+                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
+                    config ) );
         }
         else
         {
@@ -526,12 +531,6 @@ public class Manager
     }
 
 
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
     private void addClickListenerToStopButton( final ContainerHost containerHost, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -649,7 +648,8 @@ public class Manager
         for ( HiveConfig hiveConfig : clusters )
         {
             clusterCombo.addItem( hiveConfig );
-            clusterCombo.setItemCaption( hiveConfig, hiveConfig.getClusterName() + "(" + hiveConfig.getHadoopClusterName() + ")" );
+            clusterCombo.setItemCaption( hiveConfig,
+                    hiveConfig.getClusterName() + "(" + hiveConfig.getHadoopClusterName() + ")" );
         }
 
         if ( clusterInfo != null )
@@ -666,15 +666,6 @@ public class Manager
         else
         {
             clusterCombo.setValue( clusters.iterator().next() );
-        }
-    }
-
-
-    private void enableButtons( Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            b.setEnabled( true );
         }
     }
 

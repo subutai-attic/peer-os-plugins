@@ -9,10 +9,11 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
-import org.safehaus.subutai.plugin.hive.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -27,8 +28,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Hive hive, final ExecutorService executorService, final Tracker tracker,
-                             EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Hive hive, final Hadoop hadoop, final ExecutorService executorService,
+                             final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -43,29 +44,21 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final HiveConfig config = wizard.getConfig();
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
+        final HadoopClusterConfig hc = hadoop.getCluster( config.getHadoopClusterName() );
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", config.getClusterName() );
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
-            ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getServer() );
-            Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getClients() );
 
-            cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
-            cfgView.addStringCfg( "Server node", master.getHostname() );
-            for ( ContainerHost slave : slaves )
-            {
-                cfgView.addStringCfg( "Node(s) to install", slave.getHostname() );
-            }
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
+        ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getServer() );
+        Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getClients() );
+
+        cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
+        cfgView.addStringCfg( "Server node", master.getHostname() );
+        for ( ContainerHost slave : slaves )
         {
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
+            cfgView.addStringCfg( "Node(s) to install", slave.getHostname() );
         }
+
 
         Button install = new Button( "Install" );
         install.setId( "HiveVerInstall" );
@@ -75,15 +68,8 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackId = null;
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = hive.installCluster( config, hc.getClusterName() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = hive.installCluster( config, hc.getClusterName() );
-                }
+                UUID trackId = hive.installCluster( config );
+
                 ProgressWindow window = new ProgressWindow( executorService, tracker, trackId, HiveConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {

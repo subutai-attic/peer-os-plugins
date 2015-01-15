@@ -1,5 +1,6 @@
 package org.safehaus.subutai.plugin.hive.impl.handler;
 
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -41,11 +42,5 @@ public class CheckInstallHandler
             e.printStackTrace();
         }
         return false;
-    }
-
-
-    public ContainerHost getContainerHost()
-    {
-        return containerHost;
     }
 }

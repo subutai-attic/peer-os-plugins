@@ -1,9 +1,7 @@
 package org.safehaus.subutai.plugin.hive.impl.handler;
 
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -15,17 +13,12 @@ import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.impl.Commands;
 import org.safehaus.subutai.plugin.hive.impl.HiveImpl;
-import org.safehaus.subutai.plugin.hive.impl.SetupStrategyOverHadoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-//import org.safehaus.subutai.plugin.hive.impl.
 
 
 /**
@@ -37,18 +30,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private HiveConfig config;
-    private HadoopClusterConfig hadoopConfig;
-
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final HiveImpl manager, final HiveConfig config,
-                                    final HadoopClusterConfig hadoopConfig, final ClusterOperationType operationType )
+                                    final ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
-        this.hadoopConfig = hadoopConfig;
         trackerOperation = manager.getTracker().createTrackerOperation( HiveConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
@@ -56,7 +45,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
 
     public void run()
     {
-        Preconditions.checkNotNull( config, "Configuration is null !!!" );
         switch ( operationType )
         {
             case INSTALL:
@@ -124,17 +112,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
     public void setupCluster()
     {
 
-        Environment environment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-        SetupStrategyOverHadoop setupStrategyOverHadoop =
-                new SetupStrategyOverHadoop( environment, manager, config, hadoopConfig, trackerOperation );
+        ClusterSetupStrategy setupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
         try
         {
-            setupStrategyOverHadoop.setup();
+            setupStrategy.setup();
+
+            trackerOperation.addLogDone( "Cluster setup complete" );
         }
         catch ( ClusterSetupException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( String.format( "Failed to setup cluster: %s", e.getMessage() ) );
         }
     }
 
@@ -142,35 +129,33 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
     @Override
     public void destroyCluster()
     {
-        HiveConfig config = manager.getCluster( clusterName );
-        if ( config == null )
+
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        if ( environment == null )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
 
-        for ( UUID uuid : config.getAllNodes() )
+        Set<ContainerHost> hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        for ( ContainerHost host : hiveNodes )
         {
-            ContainerHost host = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
-                                        .getContainerHostById( uuid );
-            CommandResult result = null;
             try
             {
-                if ( uuid.equals( config.getServer() ) )
+                CommandResult result;
+                if ( host.getId().equals( config.getServer() ) )
                 {
-                    host.execute( new RequestBuilder(
+                    result = host.execute( new RequestBuilder(
                             Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY
                                     .toLowerCase() ) );
                     host.execute( new RequestBuilder( Commands.uninstallCommand + Common.PACKAGE_PREFIX + "derby" ) );
                 }
                 else
                 {
-                    host.execute( new RequestBuilder(
+                    result = host.execute( new RequestBuilder(
                             Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY
                                     .toLowerCase() ) );
                 }
-                result = host.execute( new RequestBuilder( Commands.uninstallCommand ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().remove( host.getId() );
@@ -179,16 +164,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
                 }
                 else
                 {
-                    trackerOperation.addLogFailed(
+                    trackerOperation.addLog(
                             "Could not uninstall " + HiveConfig.PRODUCT_KEY + " from node " + host.getHostname() );
                 }
             }
             catch ( CommandException e )
             {
-                e.printStackTrace();
+                trackerOperation.addLog( String.format( "Error uninstalling Hive from node %s", host.getHostname() ) );
             }
         }
         manager.getPluginDAO().deleteInfo( HiveConfig.PRODUCT_KEY, config.getClusterName() );
-        trackerOperation.addLogDone( "Hive is uninstalled from all nodes" );
+        trackerOperation.addLogDone( "Hive cluster is removed from database" );
     }
 }
