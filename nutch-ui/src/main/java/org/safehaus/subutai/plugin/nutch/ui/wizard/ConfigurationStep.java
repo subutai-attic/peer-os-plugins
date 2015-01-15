@@ -2,20 +2,18 @@ package org.safehaus.subutai.plugin.nutch.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
-import org.safehaus.subutai.plugin.nutch.api.SetupType;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -51,22 +49,13 @@ public class ConfigurationStep extends Panel
 
         setSizeFull();
 
-        GridLayout content = new GridLayout( 1, 3 );
+        GridLayout content = new GridLayout( 1, 4 );
         content.setSizeFull();
         content.setSpacing( true );
         content.setMargin( true );
 
+        addSettingsControls( content, wizard.getConfig() );
 
-        SetupType st = wizard.getConfig().getSetupType();
-
-        if ( st == SetupType.OVER_HADOOP )
-        {
-            addOverHadoopControls( content, wizard.getConfig() );
-        }
-        else if ( st == SetupType.WITH_HADOOP )
-        {
-            addWithHadoopControls( content, wizard.getConfig(), wizard.getHadoopConfig() );
-        }
 
         // --------------------------------------------------
         // Buttons
@@ -79,13 +68,20 @@ public class ConfigurationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                if ( Strings.isNullOrEmpty( wizard.getConfig().getHadoopClusterName() ) )
+                if ( Strings.isNullOrEmpty( wizard.getConfig().getClusterName() ) )
+                {
+                    show( "Please, enter cluster name" );
+                }
+                else if ( Strings.isNullOrEmpty( wizard.getConfig().getHadoopClusterName() ) )
                 {
                     show( "Please, enter Hadoop cluster" );
                 }
+                else if ( CollectionUtil.isCollectionEmpty( wizard.getConfig().getNodes() ) )
+                {
+                    show( "Please, select Hadoop nodes" );
+                }
                 else
                 {
-                    wizard.setHadoopConfig( hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ) );
                     wizard.next();
                 }
             }
@@ -118,8 +114,22 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void addOverHadoopControls( ComponentContainer parent, final NutchConfig config )
+    private void addSettingsControls( ComponentContainer parent, final NutchConfig config )
     {
+        TextField nameTxt = new TextField( "Cluster name" );
+        nameTxt.setId( "nutchClusterName" );
+        nameTxt.setRequired( true );
+        nameTxt.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            @Override
+            public void valueChange( Property.ValueChangeEvent e )
+            {
+                wizard.getConfig().setClusterName( e.getProperty().getValue().toString().trim() );
+            }
+        } );
+        nameTxt.setValue( wizard.getConfig().getClusterName() );
+
 
         final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
 
@@ -138,14 +148,12 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    config.setHadoopNodes( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    select.setValue( null );
+                    config.getNodes().clear();
                     hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
                     Set<ContainerHost> hadoopNodes =
                             hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
-                    select.setValue( null );
                     select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
-                    config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    config.getNodes().clear();
                 }
             }
         } );
@@ -170,7 +178,7 @@ public class ConfigurationStep extends Panel
                 hadoopClusters.setValue( info );
             }
         }
-        else if ( clusters != null && !clusters.isEmpty() )
+        else if ( !CollectionUtil.isCollectionEmpty( clusters ) )
         {
             hadoopClusters.setValue( clusters.iterator().next() );
         }
@@ -183,7 +191,7 @@ public class ConfigurationStep extends Panel
         select.setRightColumnCaption( "Selected Nodes" );
         select.setWidth( 100, Unit.PERCENTAGE );
         select.setRequired( true );
-        if ( config.getNodes() != null && !config.getNodes().isEmpty() )
+        if ( !CollectionUtil.isCollectionEmpty( config.getNodes() ) )
         {
             select.setValue( config.getNodes() );
         }
@@ -206,145 +214,14 @@ public class ConfigurationStep extends Panel
             }
         } );
 
+        parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
-    }
-
-
-    private void addWithHadoopControls( ComponentContainer content, final NutchConfig config,
-                                        final HadoopClusterConfig hadoopConfig )
-    {
-
-        Collection<Integer> col = Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 );
-
-        final TextField txtHadoopClusterName = new TextField( "Hadoop cluster name" );
-        txtHadoopClusterName.setRequired( true );
-        txtHadoopClusterName.setMaxLength( 20 );
-        if ( hadoopConfig.getClusterName() != null )
-        {
-            txtHadoopClusterName.setValue( hadoopConfig.getClusterName() );
-        }
-        txtHadoopClusterName.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                String name = event.getProperty().getValue().toString().trim();
-                config.setHadoopClusterName( name );
-                hadoopConfig.setClusterName( name );
-            }
-        } );
-
-        ComboBox cmbSlaveNodes = new ComboBox( "Number of Hadoop slave nodes", col );
-        cmbSlaveNodes.setImmediate( true );
-        cmbSlaveNodes.setTextInputAllowed( false );
-        cmbSlaveNodes.setNullSelectionAllowed( false );
-        cmbSlaveNodes.setValue( hadoopConfig.getCountOfSlaveNodes() );
-        cmbSlaveNodes.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                hadoopConfig.setCountOfSlaveNodes( ( Integer ) event.getProperty().getValue() );
-            }
-        } );
-
-        ComboBox cmbReplFactor = new ComboBox( "Replication factor for Hadoop slave nodes", col );
-        cmbReplFactor.setImmediate( true );
-        cmbReplFactor.setTextInputAllowed( false );
-        cmbReplFactor.setNullSelectionAllowed( false );
-        cmbReplFactor.setValue( hadoopConfig.getReplicationFactor() );
-        cmbReplFactor.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                hadoopConfig.setReplicationFactor( ( Integer ) event.getProperty().getValue() );
-            }
-        } );
-
-        TextField txtHadoopDomain = new TextField( "Hadoop cluster domain name" );
-        txtHadoopDomain.setInputPrompt( hadoopConfig.getDomainName() );
-        txtHadoopDomain.setValue( hadoopConfig.getDomainName() );
-        txtHadoopDomain.setMaxLength( 20 );
-        txtHadoopDomain.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                String val = event.getProperty().getValue().toString().trim();
-                if ( !val.isEmpty() )
-                {
-                    hadoopConfig.setDomainName( val );
-                }
-            }
-        } );
-
-        content.addComponent( new Label( "Hadoop settings" ) );
-        content.addComponent( txtHadoopClusterName );
-        content.addComponent( cmbSlaveNodes );
-        content.addComponent( cmbReplFactor );
-        content.addComponent( txtHadoopDomain );
     }
 
 
     private void show( String notification )
     {
         Notification.show( notification );
-    }
-
-
-    private void nextButtonClickHandler( Wizard wizard )
-    {
-        NutchConfig config = wizard.getConfig();
-        if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
-        {
-            show( "Enter installation name" );
-            return;
-        }
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            String name = config.getHadoopClusterName();
-            if ( name == null || name.isEmpty() )
-            {
-                show( "Select Hadoop cluster" );
-            }
-            else if ( config.getNodes() == null || config.getNodes().isEmpty() )
-            {
-                show( "Select target nodes" );
-            }
-            else
-            {
-                wizard.next();
-            }
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            if ( hc.getClusterName() == null || hc.getClusterName().isEmpty() )
-            {
-                show( "Enter Hadoop cluster name" );
-            }
-            else if ( hc.getCountOfSlaveNodes() <= 0 )
-            {
-                show( "Invalid number of Hadoop slave nodes" );
-            }
-            else if ( hc.getReplicationFactor() <= 0 )
-            {
-                show( "Invalid replication factor" );
-            }
-            else if ( hc.getDomainName() == null || hc.getDomainName().isEmpty() )
-            {
-                show( "Enter Hadoop domain name" );
-            }
-            else
-            {
-                wizard.next();
-            }
-        }
-        else
-        {
-            show( "Installation type not supported" );
-        }
     }
 }

@@ -1,7 +1,6 @@
 package org.safehaus.subutai.plugin.nutch.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +17,8 @@ import javax.ws.rs.core.Response;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.nutch.api.Nutch;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
-import org.safehaus.subutai.plugin.nutch.api.SetupType;
+
+import com.google.common.collect.Lists;
 
 
 public class RestService
@@ -27,7 +27,9 @@ public class RestService
     private static final String OPERATION_ID = "OPERATION_ID";
 
     private Nutch nutchManager;
-    public void setNutchManager( Nutch nutchManager )
+
+
+    public RestService( final Nutch nutchManager )
     {
         this.nutchManager = nutchManager;
     }
@@ -40,7 +42,7 @@ public class RestService
     {
 
         List<NutchConfig> configs = nutchManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        List<String> clusterNames = Lists.newArrayList();
 
         for ( NutchConfig config : configs )
         {
@@ -73,10 +75,9 @@ public class RestService
     {
 
         NutchConfig config = new NutchConfig();
-        config.setClusterName( clusterName );
-        config.setSetupType( SetupType.OVER_HADOOP );
-        config.setHadoopClusterName( hadoopClusterName );
 
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
 
         // BUG: Getting the params as list doesn't work. For example "List<String> nodes". To fix this we get a param
         // as plain string and use splitting.

@@ -1,47 +1,32 @@
 package org.safehaus.subutai.plugin.nutch.impl.handler;
 
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
-import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
-import org.safehaus.subutai.plugin.nutch.api.SetupType;
-import org.safehaus.subutai.plugin.nutch.impl.Constants;
+import org.safehaus.subutai.plugin.nutch.impl.Commands;
 import org.safehaus.subutai.plugin.nutch.impl.NutchImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 10.11.2014.
- */
 public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl, NutchConfig>
         implements ClusterOperationHandlerInterface
 {
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private NutchConfig config;
-    private HadoopClusterConfig hadoopConfig;
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    Commands commands = new Commands();
+    CommandUtil commandUtil = new CommandUtil();
+
 
     public ClusterOperationHandler( final NutchImpl manager, final NutchConfig config,
                                     final ClusterOperationType operationType )
@@ -53,10 +38,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
 
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
 
     @Override
     public void runOperationOnContainers( final ClusterOperationType clusterOperationType )
@@ -70,65 +51,51 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
     {
         try
         {
-            Environment env = null;
+            ClusterSetupStrategy s = manager.getClusterSetupStrategy( config, trackerOperation );
 
-            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-            if ( env == null )
-            {
-                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                        hadoopConfig.getEnvironmentId() ) );
-            }
-
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
-            try
-            {
-                if ( s == null )
-                {
-                    throw new ClusterSetupException( "No setup strategy" );
-                }
-                trackerOperation.addLog( "Installing cluster..." );
-                s.setup();
-                trackerOperation.addLogDone( "Installing cluster completed" );
-            }
-            catch ( ClusterSetupException ex )
-            {
-                throw new ClusterException( "Failed to setup cluster: " + ex.getMessage() );
-            }
+            trackerOperation.addLog( "Setting up cluster..." );
+            s.setup();
+            trackerOperation.addLogDone( "Cluster setup completed" );
         }
-        catch ( ClusterException e )
+        catch ( ClusterSetupException e )
         {
-            trackerOperation.addLogFailed( String.format( "Could not start all nodes : %s", e.getMessage() ) );
+            trackerOperation.addLogFailed( String.format( "Cluster setup failed : %s", e.getMessage() ) );
         }
-
-
     }
 
 
     @Override
     public void destroyCluster()
     {
-        NutchConfig config = manager.getCluster( clusterName );
-        if ( config == null )
+        trackerOperation.addLog( "Uninstalling Nutch..." );
+
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
+        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
 
-        try
+        for ( ContainerHost node : nodes )
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDao().deleteInfo( NutchConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
+            try
+            {
+                commandUtil.execute( commands.getUninstallCommand(), node );
+            }
+            catch ( CommandException e )
+            {
+                trackerOperation
+                        .addLog( String.format( "Failed to uninstall Nutch from node %s", node.getHostname() ) );
+            }
         }
 
+        trackerOperation.addLog( "Updating db..." );
+        manager.getPluginDao().deleteInfo( NutchConfig.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster info deleted from DB" );
     }
+
 
     @Override
     public void run()
@@ -140,48 +107,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
                 setupCluster();
                 break;
             case DESTROY:
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    uninstallCluster();
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    destroyCluster();
-                }
-
+                destroyCluster();
                 break;
         }
-
-    }
-
-
-    private void uninstallCluster()
-    {
-        TrackerOperation po = trackerOperation;
-        po.addLog( "Uninstalling Nutch..." );
-
-        for ( UUID uuid : config.getNodes() )
-        {
-            ContainerHost containerHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostById(
-                    uuid );
-            CommandResult result = null;
-            try
-            {
-                result = containerHost.execute( new RequestBuilder( Constants.UNINSTALL ) );
-                if ( !result.hasSucceeded() )
-                {
-                    po.addLog( result.getStdErr() );
-                    po.addLogFailed( "Uninstallation failed" );
-                    return;
-                }
-            }
-            catch ( CommandException e )
-            {
-                LOG.error( e.getMessage(), e );
-            }
-        }
-        po.addLog( "Updating db..." );
-        manager.getPluginDao().deleteInfo( NutchConfig.PRODUCT_KEY, config.getClusterName() );
-        po.addLogDone( "Cluster info deleted from DB\nDone" );
     }
 }

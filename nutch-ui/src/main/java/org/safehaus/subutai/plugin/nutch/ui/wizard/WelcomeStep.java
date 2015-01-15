@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.nutch.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.plugin.nutch.api.SetupType;
 import org.safehaus.subutai.plugin.nutch.ui.NutchPortalModule;
 
 import com.vaadin.server.FileResource;
@@ -38,7 +37,7 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 180, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start installation" );
         next.setId( "StartOverHadoop" );
         next.addStyleName( "default" );
         //		next.setWidth(100, Unit.PIXELS);
@@ -50,32 +49,17 @@ public class WelcomeStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                clickHandler( wizard, SetupType.OVER_HADOOP );
+                clickHandler( wizard );
             }
         } );
-
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.setId( "StartWithHadoop" );
-        next2.setStyleName( "default" );
-        next2.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                clickHandler( wizard, SetupType.WITH_HADOOP );
-            }
-        } );
-        grid.addComponent( next2, 5, 4, 5, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }
 
 
-    private void clickHandler( Wizard wizard, SetupType type )
+    private void clickHandler( Wizard wizard )
     {
         wizard.init();
-        wizard.getConfig().setSetupType( type );
         wizard.next();
     }
 }

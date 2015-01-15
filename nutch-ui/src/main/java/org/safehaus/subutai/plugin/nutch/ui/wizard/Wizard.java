@@ -8,7 +8,6 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.nutch.api.Nutch;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
 
@@ -27,10 +26,10 @@ public class Wizard
     private final EnvironmentManager environmentManager;
     private int step = 1;
     private NutchConfig config = new NutchConfig();
-    private HadoopClusterConfig hadoopConfig;
 
 
-    public Wizard( ExecutorService executorService,Nutch nutch, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Nutch nutch, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -65,7 +64,7 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( nutch, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( nutch, executorService, tracker, this );
                 break;
             }
             default:
@@ -112,17 +111,5 @@ public class Wizard
     public NutchConfig getConfig()
     {
         return config;
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
-    }
-
-
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
     }
 }

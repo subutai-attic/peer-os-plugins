@@ -64,7 +64,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executorService, Nutch nutch, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Nutch nutch, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.nutch = nutch;
@@ -109,7 +110,7 @@ public class Manager
         /** Refresh Cluster button */
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         refreshClustersBtn.setId( "refreshClustersBtn" );
-        refreshClustersBtn.addStyleName( "default" );
+        refreshClustersBtn.addStyleName( BUTTON_STYLE_NAME );
         refreshClustersBtn.addClickListener( new Button.ClickListener()
         {
             @Override
@@ -123,7 +124,7 @@ public class Manager
         /** Destroy Cluster button */
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "destroyClusterBtn" );
-        destroyClusterBtn.addStyleName( "default" );
+        destroyClusterBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToDestroyClusterButton();
         controlsContent.addComponent( destroyClusterBtn );
 
@@ -131,7 +132,7 @@ public class Manager
         /** Add Node button */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeBtn.setId( "addNodeBtn" );
-        addNodeBtn.addStyleName( "default" );
+        addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
 
@@ -156,8 +157,9 @@ public class Manager
                         nodes.removeAll( config.getNodes() );
                         if ( !nodes.isEmpty() )
                         {
-                            Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() ).getContainerHostsByIds(
-                                    nodes );
+                            Set<ContainerHost> hosts =
+                                    environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
+                                                      .getContainerHostsByIds( nodes );
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( nutch, tracker, executorService, config, hosts );
                             contentRoot.getUI().addWindow( addNodeWindow );
@@ -206,7 +208,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = nutch.uninstallCluster( config );
+                            UUID trackID = nutch.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
                                     new ProgressWindow( executorService, tracker, trackID, NutchConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -258,7 +260,8 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts =
+                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
 
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
@@ -315,10 +318,10 @@ public class Manager
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-nutchDestroy" );
-            destroyBtn.addStyleName( "default" );
+            destroyBtn.addStyleName( BUTTON_STYLE_NAME );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.addStyleName( "default" );
+            availableOperations.addStyleName( BUTTON_STYLE_NAME );
             availableOperations.setSpacing( true );
 
             addGivenComponents( availableOperations, destroyBtn );
@@ -398,7 +401,8 @@ public class Manager
             for ( NutchConfig nutchClusterInfo : clustersInfo )
             {
                 clusterCombo.addItem( nutchClusterInfo );
-                clusterCombo.setItemCaption( nutchClusterInfo, nutchClusterInfo.getClusterName() + "(" + nutchClusterInfo.getHadoopClusterName() + ")" );
+                clusterCombo.setItemCaption( nutchClusterInfo,
+                        nutchClusterInfo.getClusterName() + "(" + nutchClusterInfo.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

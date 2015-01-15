@@ -14,7 +14,7 @@
   <reference id="nutchManager" availability="mandatory" interface="org.safehaus.subutai.plugin.nutch.api.Nutch" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.nutch.rest.RestService">
-    <property name="nutchManager" ref="nutchManager" />
+    <argument ref="nutchManager" />
   </bean>
 
   <jaxrs:server address="/nutch" id="nutchRestService">

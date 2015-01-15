@@ -1,18 +1,13 @@
 package org.safehaus.subutai.plugin.nutch.ui.wizard;
 
 
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.nutch.api.Nutch;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
-import org.safehaus.subutai.plugin.nutch.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -28,7 +23,7 @@ public class VerificationStep extends Panel
 {
 
     public VerificationStep( final Nutch nutch, final ExecutorService executorService, final Tracker tracker,
-                             final EnvironmentManager environmentManager, final Wizard wizard )
+                             final Wizard wizard )
     {
 
         setSizeFull();
@@ -45,28 +40,15 @@ public class VerificationStep extends Panel
         // Display config values
 
         final NutchConfig config = wizard.getConfig();
-        final HadoopClusterConfig hadoopClusterConfig = wizard.getHadoopConfig();
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+        for ( UUID nodeId : config.getNodes() )
         {
-            Environment hadoopEnvironment =
-                    environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-            Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
-            for ( ContainerHost host : nodes )
-            {
-                cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
-            }
+            cfgView.addStringCfg( "Node to install", nodeId.toString() );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
-        }
+
 
         // Install button
 
@@ -79,16 +61,8 @@ public class VerificationStep extends Panel
             public void buttonClick( Button.ClickEvent clickEvent )
             {
 
-                UUID trackId = null;
+                UUID trackId = nutch.installCluster( config );
 
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = nutch.installCluster( config, wizard.getHadoopConfig() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = nutch.installCluster( config, wizard.getHadoopConfig() );
-                }
 
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackId, NutchConfig.PRODUCT_KEY );
