@@ -119,6 +119,19 @@ public class ConfigurationStep extends Panel
 
     private void addOverHadoopControls( ComponentContainer parent, final LuceneConfig config )
     {
+        TextField nameTxt = new TextField( "Cluster name" );
+        nameTxt.setId( "luceneClusterName" );
+        nameTxt.setRequired( true );
+        nameTxt.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            @Override
+            public void valueChange( Property.ValueChangeEvent e )
+            {
+                wizard.getConfig().setClusterName( e.getProperty().getValue().toString().trim() );
+            }
+        } );
+        nameTxt.setValue( wizard.getConfig().getClusterName() );
 
         final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
 
@@ -203,7 +216,7 @@ public class ConfigurationStep extends Panel
                 }
             }
         } );
-
+        parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
     }
