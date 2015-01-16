@@ -38,6 +38,10 @@ public class HBaseAlertListener implements AlertListener
     public static final String HBASE_ALERT_LISTENER = "HBASE_ALERT_LISTENER";
     private HBaseImpl hbase;
     private CommandUtil commandUtil = new CommandUtil();
+    private static int MAX_RAM_QUOTA_MB = 2048;
+    private static int RAM_QUOTA_INCREMENT_MB = 512;
+    private static int MAX_CPU_QUOTA_PERCENT = 80;
+    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
 
 
     public HBaseAlertListener( final HBaseImpl hbase )
@@ -158,19 +162,19 @@ public class HBaseAlertListener implements AlertListener
         }
 
 
-        boolean cpuIsStressedByHBase = false;
-        boolean ramIsStressedByHBase = false;
+        boolean isCPUStressedByHBase = false;
+        boolean isRAMStressedByHBase = false;
 
         if ( totalRamUsage >= ramLimit * redLine )
         {
-            ramIsStressedByHBase = true;
+            isRAMStressedByHBase = true;
         }
         else if ( totalCpuUsage >= thresholds.getCpuAlertThreshold() * redLine )
         {
-            cpuIsStressedByHBase = true;
+            isCPUStressedByHBase = true;
         }
 
-        if ( !( ramIsStressedByHBase || cpuIsStressedByHBase ) )
+        if ( !( isRAMStressedByHBase || isCPUStressedByHBase ) )
         {
             LOG.info( "HBase cluster ok" );
             return;
@@ -181,14 +185,40 @@ public class HBaseAlertListener implements AlertListener
         if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it
-            boolean canIncreaseQuota = false;
+            boolean quotaIncreased = false;
 
-            //TODO implement checking if quota increase works
-
-            //increase quota limit
-            if ( canIncreaseQuota )
+            if ( isRAMStressedByHBase )
             {
-                //TODO implement vertical scaling
+                //read current RAM quota
+                int ramQuota = sourceHost.getRamQuota();
+
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+                    //we can increase RAM quota
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+
+                    quotaIncreased = true;
+                }
+            }
+            else if ( isCPUStressedByHBase )
+            {
+
+                //read current CPU quota
+                int cpuQuota = sourceHost.getCpuQuota();
+
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
+                    //we can increase CPU quota
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+
+                    quotaIncreased = true;
+                }
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
                 return;
             }
 
