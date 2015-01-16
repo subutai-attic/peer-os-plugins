@@ -52,13 +52,13 @@ public class NodeOperationTask extends AbstractNodeOperationTask implements Runn
     @Override
     public String getProductStoppedIdentifier()
     {
-        return "Zookeeper is NOT Running";
+        return "Zookeeper Server is not running";
     }
 
 
     @Override
     public String getProductRunningIdentifier()
     {
-        return "Zookeeper is Running";
+        return "Zookeeper Server is running";
     }
 }

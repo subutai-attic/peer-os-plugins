@@ -19,6 +19,8 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.impl.Commands;
 import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -29,6 +31,7 @@ import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandler<ZookeeperImpl, ZookeeperClusterConfig>
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperNodeOperationHandler.class );
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
@@ -104,8 +107,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         }
         catch ( CommandException | MonitorException e )
         {
+            LOGGER.error( String.format( "Command failed for operationType: %s", operationType ), e );
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
-            e.printStackTrace();
         }
     }
 
