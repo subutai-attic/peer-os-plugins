@@ -166,7 +166,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
 
     /**
-     * Confi
+     * Configures new added slave node.
+     *
      * @param config hadoop configuration
      * @param containerHost node to be configured
      * @param environment environment in which given container reside

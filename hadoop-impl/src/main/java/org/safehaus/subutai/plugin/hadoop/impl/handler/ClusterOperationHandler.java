@@ -97,9 +97,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     }
 
 
-
-
-
     public void removeCluster()
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
@@ -112,6 +109,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
         trackerOperation.addLogDone( "Cluster removed from database" );
     }
+
 
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
