@@ -14,6 +14,7 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.Host;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
@@ -118,9 +119,10 @@ public class AddNodeOperationHandler extends AbstractOperationHandler<MongoImpl,
                     break;
             }
             config.addNode( mongoNode, nodeType );
+            manager.subscribeToAlerts( mongoNode.getContainerHost() );
             po.addLog( "Lxc container created successfully\nConfiguring cluster..." );
         }
-        catch ( EnvironmentManagerException | PeerException e )
+        catch ( EnvironmentManagerException | PeerException | MonitorException e )
         {
             po.addLogFailed( e.toString() );
             return;

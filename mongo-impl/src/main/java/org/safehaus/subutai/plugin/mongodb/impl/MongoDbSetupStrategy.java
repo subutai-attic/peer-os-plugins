@@ -12,6 +12,7 @@ import org.safehaus.subutai.common.protocol.Criteria;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -20,6 +21,7 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
+import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
@@ -231,6 +233,18 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
         config.setConfigServers( configServers );
         config.setRouterServers( routers );
         config.setDataNodes( dataNodes );
+
+        for ( final MongoNode mongoNode : config.getAllNodes() )
+        {
+            try
+            {
+                mongoManager.subscribeToAlerts( mongoNode.getContainerHost() );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterSetupException( e.getMessage() );
+            }
+        }
 
 
         try

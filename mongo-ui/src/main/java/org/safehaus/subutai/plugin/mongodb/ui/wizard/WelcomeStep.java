@@ -7,6 +7,7 @@ package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
+import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.ui.MongoPortalModule;
 
 import com.vaadin.server.FileResource;
@@ -57,6 +58,7 @@ public class WelcomeStep extends VerticalLayout
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 wizard.init();
+                wizard.getMongoClusterConfig().setInstallationType( InstallationType.STANDALONE );
                 wizard.next();
             }
         } );
@@ -74,6 +76,7 @@ public class WelcomeStep extends VerticalLayout
             {
                 wizard.init();
                 wizard.setInstallOverEnvironment( true );
+                wizard.getMongoClusterConfig().setInstallationType( InstallationType.OVER_ENVIRONMENT );
                 wizard.next();
             }
         } );

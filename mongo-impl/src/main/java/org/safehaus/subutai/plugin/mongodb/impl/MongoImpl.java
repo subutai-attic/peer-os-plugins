@@ -22,6 +22,11 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -30,6 +35,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
+import org.safehaus.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.AddNodeOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.CheckNodeOperationHandler;
@@ -68,11 +74,18 @@ public class MongoImpl implements Mongo
     private DataSource dataSource;
     private PeerManager peerManager;
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
+    private Monitor monitor;
+    private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private QuotaManager quotaManager;
+    private MongoAlertListener mongoAlertListener;
 
 
-    public MongoImpl( DataSource dataSource )
+    public MongoImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
+        this.monitor = monitor;
+        this.mongoAlertListener = new MongoAlertListener( this );
+        this.monitor.addAlertListener( mongoAlertListener );
     }
 
 
@@ -142,14 +155,6 @@ public class MongoImpl implements Mongo
         {
 
             GsonBuilder gsonBuilder = new GsonBuilder();
-            //            gsonBuilder.registerTypeAdapter( MongoDataNode.class, new
-            //            GsonInterfaceAdapter<MongoDataNode>() ).create();
-            //            gsonBuilder.registerTypeAdapter( MongoConfigNode.class, new
-            //            GsonInterfaceAdapter<MongoConfigNode>() )
-            //                       .create();
-            //            gsonBuilder.registerTypeAdapter( MongoRouterNode.class, new
-            //            GsonInterfaceAdapter<MongoRouterNode>() )
-            //                       .create();
             gsonBuilder.setExclusionStrategies( new ExclusionStrategy()
             {
                 @Override
@@ -275,7 +280,7 @@ public class MongoImpl implements Mongo
     @Override
     public UUID addNode( final String clusterName, final String agentHostName )
     {
-        return null;
+        throw new UnsupportedOperationException( "Unsupported operation exception." );
     }
 
 
@@ -404,9 +409,51 @@ public class MongoImpl implements Mongo
     }
 
 
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        //        getMonitor().startMonitoring( mongoAlertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        //        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        //        getMonitor().stopMonitoring( mongoAlertListener, environment );
+    }
+
+
     @Override
     public MongoClusterConfig newMongoClusterConfigInstance()
     {
         return new MongoClusterConfigImpl();
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public void setAlertSettings( final MonitoringSettings alertSettings )
+    {
+        this.alertSettings = alertSettings;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
     }
 }

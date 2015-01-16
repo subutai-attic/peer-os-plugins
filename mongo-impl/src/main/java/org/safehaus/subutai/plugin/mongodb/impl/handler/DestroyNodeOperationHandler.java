@@ -4,6 +4,8 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.Peer;
 import org.safehaus.subutai.core.peer.api.PeerException;
@@ -120,6 +122,10 @@ public class DestroyNodeOperationHandler extends AbstractOperationHandler<MongoI
                 config.setNumberOfRouters( config.getNumberOfRouters() - 1 );
                 config.getRouterServers().remove( node );
             }
+
+            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(
+                    UUID.fromString( node.getContainerHost().getEnvironmentId() ) );
+            manager.unsubscribeFromAlerts( environment );
             //destroy lxc
             po.addLog( "Destroying lxc container..." );
 
@@ -128,7 +134,7 @@ public class DestroyNodeOperationHandler extends AbstractOperationHandler<MongoI
             peer.destroyContainer( ( ContainerHost ) node );
             po.addLog( "Lxc container destroyed successfully" );
         }
-        catch ( PeerException | MongoException e )
+        catch ( PeerException | MongoException | MonitorException e )
         {
             po.addLog( String.format( "Could not destroy lxc container %s. Use LXC module to cleanup, skipping...",
                     e.getMessage() ) );
