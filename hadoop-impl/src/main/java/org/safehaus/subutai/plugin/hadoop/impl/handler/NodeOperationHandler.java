@@ -73,13 +73,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
             return;
         }
-
         runCommand( host, operationType, nodeType );
-        //        List<NodeType> roles = HadoopClusterConfig.getNodeRoles( config, host );
-        //        for ( NodeType role : roles )
-        //        {
-        //            runCommand( host, operationType, role );
-        //        }
     }
 
 
@@ -148,22 +142,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                     ClusterOperationHandler.logStatusResults( trackerOperation, result, nodeType );
                     break;
                 case EXCLUDE:
-                    executor.execute( new Runnable()
-                    {
-                        public void run()
-                        {
-                            excludeNode();
-                        }
-                    } );
+                    excludeNode();
                     break;
                 case INCLUDE:
-                    executor.execute( new Runnable()
-                    {
-                        public void run()
-                        {
-                            includeNode();
-                        }
-                    } );
+                    includeNode();
                     break;
             }
         }

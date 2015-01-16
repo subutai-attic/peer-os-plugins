@@ -167,13 +167,6 @@ public class Manager
         } );
         controlsContent.addComponent( stopAllBtn );
 
-        Button destroyClusterButton = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
-        destroyClusterButton.setId( "HadoopDestroyCluster" );
-        destroyClusterButton.setDescription( "Destroy environment with containers" );
-        destroyClusterButton.addStyleName( "default" );
-        destroyClusterButton.addClickListener( managerListener.destroyClusterButtonListener() );
-        controlsContent.addComponent( destroyClusterButton );
-
         Button removeClusterButton = new Button( REMOVE_BUTTON_CAPTION );
         removeClusterButton.setId( "HadoopRemoveCluster" );
         removeClusterButton.setDescription( "Removes cluster info from DB" );

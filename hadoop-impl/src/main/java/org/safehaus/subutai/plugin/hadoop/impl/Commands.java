@@ -78,25 +78,25 @@ public class Commands
 
     public static String getStartDataNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemons.sh start datanode";
+        return ". /etc/profile && " + "hadoop-daemon.sh start datanode";
     }
 
 
     public static String getStopDataNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemons.sh stop datanode";
+        return ". /etc/profile && " + "hadoop-daemon.sh stop datanode";
     }
 
 
     public static String getStartTaskTrackerCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemons.sh start tasktracker";
+        return ". /etc/profile && " + "hadoop-daemon.sh start tasktracker";
     }
 
 
     public static String getStopTaskTrackerCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemons.sh stop tasktracker";
+        return ". /etc/profile && " + "hadoop-daemon.sh stop tasktracker";
     }
 
 
@@ -173,25 +173,25 @@ public class Commands
     }
 
 
-    public String getConfigureJobTrackerCommand( String hostname )
+    public static String getConfigureJobTrackerCommand( String hostname )
     {
         return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
     }
 
 
-    public String getConfigureSecondaryNameNodeCommand( String hostname )
+    public static String getConfigureSecondaryNameNodeCommand( String hostname )
     {
         return ". /etc/profile && " + "hadoop-master-slave.sh masters " + hostname;
     }
 
 
-    public String getConfigureDataNodesCommand( String hostname )
+    public static String getConfigureDataNodesCommand( String hostname )
     {
         return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
     }
 
 
-    public String getConfigureTaskTrackersCommand( String hostname )
+    public static  String getConfigureTaskTrackersCommand( String hostname )
     {
         return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
     }
@@ -204,4 +204,13 @@ public class Commands
                 jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
                 config.getReplicationFactor();
     }
+
+    public static String getSetMastersCommand( String namenode, String jobtracker, int replicationFactor )
+    {
+        return ". /etc/profile && " + "hadoop-configure.sh " +
+                namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
+                jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
+                replicationFactor;
+    }
+
 }

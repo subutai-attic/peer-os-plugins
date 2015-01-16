@@ -45,7 +45,7 @@ public class VerificationStep extends VerticalLayout
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", wizard.getHadoopClusterConfig().getClusterName() );
         cfgView.addStringCfg( "Domain Name", wizard.getHadoopClusterConfig().getDomainName() );
-        cfgView.addStringCfg( "Number of slave nodes", wizard.getHadoopClusterConfig().getCountOfSlaveNodes() + "" );
+        cfgView.addStringCfg( "Number of slave nodes", wizard.getHadoopClusterConfig().getAllSlaveNodes().size() + "" );
         cfgView.addStringCfg( "Replication factor", wizard.getHadoopClusterConfig().getReplicationFactor() + "" );
 
         final Environment environment = wizard.getEnvironmentManager().getEnvironmentByUUID(
