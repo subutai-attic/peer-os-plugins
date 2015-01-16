@@ -38,12 +38,12 @@ public class HadoopComponent extends CustomComponent
         final EnvironmentWizard environmentWizard =
                 new EnvironmentWizard( executorService, hadoop, hostRegistry, tracker, environmentManager );
 
-        sheet.addTab( wizard.getContent(), "Install" );
-        sheet.getTab( 0 ).setId( "HadoopInstallTab" );
-        sheet.addTab( environmentWizard.getContent(), "Configure Environment" );
-        sheet.getTab( 1 ).setId( "HadoopEnvironmentTab" );
+//        sheet.addTab( wizard.getContent(), "Install" );
+//        sheet.getTab( 0 ).setId( "HadoopInstallTab" );
+        sheet.addTab( environmentWizard.getContent(), "Install" );
+        sheet.getTab( 0 ).setId( "HadoopEnvironmentTab" );
         sheet.addTab( manager.getContent(), "Manage" );
-        sheet.getTab( 2 ).setId( "HadoopManageTab" );
+        sheet.getTab( 1 ).setId( "HadoopManageTab" );
         sheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override

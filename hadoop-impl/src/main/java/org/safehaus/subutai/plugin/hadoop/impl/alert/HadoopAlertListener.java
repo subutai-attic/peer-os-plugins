@@ -128,34 +128,34 @@ public class HadoopAlertListener implements AlertListener
                 case NAMENODE:
                     CommandResult result = commandUtil.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ), sourceHost );
                     pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
-                    ProcessResourceUsage processResourceUsage = hadoop.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
                     break;
                 case SECONDARY_NAMENODE:
                     result = commandUtil.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ), sourceHost );
                     pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hadoop.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
                     break;
                 case JOBTRACKER:
                     result = commandUtil.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ), sourceHost );
                     pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hadoop.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
                     break;
                 case DATANODE:
                     result = commandUtil.execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ), sourceHost );
                     pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hadoop.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
                 case TASKTRACKER:
                     result = commandUtil.execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ), sourceHost );
                     pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hadoop.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
                     break;
@@ -206,14 +206,13 @@ public class HadoopAlertListener implements AlertListener
             if ( isRAMStressedByHadoop )
             {
                 //read current RAM quota
-                int ramQuota = hadoop.getQuotaManager().getRamQuota( sourceHost.getId() );
+                int ramQuota = sourceHost.getRamQuota();
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     //we can increase RAM quota
-                    hadoop.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
 
                     quotaIncreased = true;
                 }
@@ -222,13 +221,12 @@ public class HadoopAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = hadoop.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    hadoop.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
 
                     quotaIncreased = true;
                 }
