@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -18,6 +19,8 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.impl.Commands;
 import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -28,6 +31,7 @@ import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandler<ZookeeperImpl, ZookeeperClusterConfig>
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperNodeOperationHandler.class );
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
@@ -67,51 +71,51 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
 
         try
         {
-            List<CommandResult> commandResultList = new ArrayList<>(  );
+            List<CommandResult> commandResultList = new ArrayList<>();
             switch ( operationType )
             {
                 case START:
-                    commandResultList.add( containerHost.execute( new RequestBuilder(
-                            Commands.getStartCommand()) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ) ) );
                     break;
                 case STOP:
-                    commandResultList.add( containerHost.execute( new RequestBuilder(
-                            Commands.getStopCommand()) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
                     break;
                 case STATUS:
-                    commandResultList.add( containerHost.execute( new RequestBuilder(
-                            Commands.getStatusCommand()) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStatusCommand() ) ) );
                     break;
                 case DESTROY:
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP ) {
-                        commandResultList.add( containerHost.execute( new RequestBuilder(
-                                Commands.getUninstallCommand() ) ) );
+                    if ( config.getSetupType() == SetupType.OVER_HADOOP
+                            || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
+                    {
+                        commandResultList
+                                .add( containerHost.execute( new RequestBuilder( Commands.getUninstallCommand() ) ) );
                         boolean isRemoved = config.getNodes().remove( containerHost.getId() );
-                        if ( isRemoved ) {
+                        if ( isRemoved )
+                        {
                             manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
-                            manager.getPluginDAO()
-                                   .saveInfo( config.getProductKey(), config.getClusterName(), config );
+                            manager.getPluginDAO().saveInfo( config.getProductKey(), config.getClusterName(), config );
                         }
                     }
-                    else {
+                    else
+                    {
                         destroyNode( containerHost );
                     }
-
+                    getManager().unsubscribeFromAlerts( environment );
                     break;
             }
             logResults( trackerOperation, commandResultList );
         }
-        catch ( CommandException e )
+        catch ( CommandException | MonitorException e )
         {
+            LOGGER.error( String.format( "Command failed for operationType: %s", operationType ), e );
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
-            e.printStackTrace();
-
         }
     }
 
 
-    public void destroyNode( ContainerHost host ){
-        EnvironmentManager environmentManager  = manager.getEnvironmentManager();
+    public void destroyNode( ContainerHost host )
+    {
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
             ZookeeperClusterConfig config = manager.getCluster( clusterName );
@@ -121,8 +125,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             try
             {
-                configurator.configureCluster( config, environmentManager.getEnvironmentByUUID( config
-                        .getEnvironmentId() ) );
+                configurator.configureCluster( config,
+                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
             }
             catch ( ClusterConfigurationException e )
             {

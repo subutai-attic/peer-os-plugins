@@ -12,6 +12,7 @@ import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -34,7 +35,6 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
     private final TrackerOperation po;
     private final ZookeeperImpl manager;
     private Environment environment;
-
 
 
     public ZookeeperOverHadoopSetupStrategy( final Environment environment,
@@ -67,10 +67,11 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
                     String.format( "Cluster with name '%s' already exists", zookeeperClusterConfig.getClusterName() ) );
         }
 
-        if ( zookeeperClusterConfig.getSetupType() == SetupType.OVER_HADOOP ) {
+        if ( zookeeperClusterConfig.getSetupType() == SetupType.OVER_HADOOP )
+        {
             environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                    manager.getHadoopManager().getCluster( zookeeperClusterConfig
-                            .getHadoopClusterName() ).getEnvironmentId() );
+                    manager.getHadoopManager().getCluster( zookeeperClusterConfig.getHadoopClusterName() )
+                           .getEnvironmentId() );
         }
         Set<ContainerHost> zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
         //check if node agent is connected
@@ -100,8 +101,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
 
 
         //check installed subutai packages
-        String checkInstalledCommand =
-                manager.getCommands().getCheckInstalledCommand();
+        String checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
         List<CommandResult> commandResultList = runCommandOnContainers( checkInstalledCommand, zookeeperNodes );
         if ( getFailedCommandResults( commandResultList ).size() != 0 )
         {
@@ -130,42 +130,43 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         po.addLog( String.format( "Installing Zookeeper..." ) );
 
         //install
-        String installCommand = manager.getCommands().getInstallCommand( );
-        commandResultList = runCommandOnContainers( installCommand, zookeeperNodes );
-        if ( getFailedCommandResults( commandResultList ).size() == 0 )
+        try
         {
-            po.addLog( "Installation succeeded\nConfiguring cluster..." );
-
-
-            try
+            String installCommand = manager.getCommands().getInstallCommand();
+            commandResultList = runCommandOnContainers( installCommand, zookeeperNodes );
+            if ( getFailedCommandResults( commandResultList ).size() == 0 )
             {
+                po.addLog( "Installation succeeded\nConfiguring cluster..." );
+
                 new ClusterConfiguration( manager, po ).configureCluster( zookeeperClusterConfig, environment );
+
+                po.addLog( "Saving cluster information to database..." );
+
+                zookeeperClusterConfig.setEnvironmentId( environment.getId() );
+
+                manager.getPluginDAO()
+                       .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
+                               zookeeperClusterConfig );
+                po.addLog( "Cluster information saved to database" );
+                for ( final ContainerHost zookeeperNode : zookeeperNodes )
+                {
+                    manager.subscribeToAlerts( zookeeperNode );
+                }
             }
-            catch ( ClusterConfigurationException e )
+            else
             {
-                throw new ClusterSetupException( e.getMessage() );
+                StringBuilder stringBuilder = new StringBuilder();
+                for ( CommandResult commandResult : getFailedCommandResults( commandResultList ) )
+                {
+                    stringBuilder.append( commandResult.getStdErr() );
+                }
+
+                throw new ClusterSetupException( String.format( "Installation failed, %s", stringBuilder ) );
             }
-
-            po.addLog( "Saving cluster information to database..." );
-
-
-            zookeeperClusterConfig.setEnvironmentId( environment.getId() );
-
-            manager.getPluginDAO()
-                            .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
-                                    zookeeperClusterConfig );
-            po.addLog( "Cluster information saved to database" );
         }
-        else
+        catch ( MonitorException | ClusterConfigurationException e )
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            for ( CommandResult commandResult : getFailedCommandResults( commandResultList ) )
-            {
-                stringBuilder.append( commandResult.getStdErr() );
-            }
-
-            throw new ClusterSetupException(
-                    String.format( "Installation failed, %s", stringBuilder ) );
+            throw new ClusterSetupException( e.getMessage() );
         }
 
         return zookeeperClusterConfig;
@@ -175,7 +176,8 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
     private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> zookeeperNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
-        for ( ContainerHost containerHost : zookeeperNodes ) {
+        for ( ContainerHost containerHost : zookeeperNodes )
+        {
             try
             {
                 commandResults.add( containerHost.execute( new RequestBuilder( command ).withTimeout( 1800 ) ) );
@@ -189,13 +191,15 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-
     public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
     {
         List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList ) {
-            if ( ! commandResult.hasSucceeded() )
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
                 failedCommands.add( commandResult );
+            }
         }
         return failedCommands;
     }

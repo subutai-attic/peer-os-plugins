@@ -45,39 +45,18 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button startStandalone = new Button( "Start standalone installation" );
-        startStandalone.setId( "ZookeeperStartStandalone" );
-        startStandalone.addStyleName( "default" );
-        grid.addComponent( startStandalone, 4, 4, 4, 4 );
-        grid.setComponentAlignment( startStandalone, Alignment.BOTTOM_RIGHT );
-
-        Button startStandaloneOverEnv = new Button( "Start standalone configuration over Environment" );
+        Button startStandaloneOverEnv = new Button( "Start over Environment" );
         startStandaloneOverEnv.setId( "ZookeeperStartStandaloneOverEnv" );
         startStandaloneOverEnv.addStyleName( "default" );
-        grid.addComponent( startStandaloneOverEnv, 5, 5, 5, 5 );
-        grid.setComponentAlignment( startStandaloneOverEnv, Alignment.MIDDLE_CENTER );
+        grid.addComponent( startStandaloneOverEnv, 4, 4, 4, 4 );
+        grid.setComponentAlignment( startStandaloneOverEnv, Alignment.BOTTOM_RIGHT );
 
         Button startOverHadoop = new Button( "Start over-Hadoop installation" );
         startOverHadoop.setId( "ZookeeperStartOverHadoop" );
         startOverHadoop.addStyleName( "default" );
         grid.addComponent( startOverHadoop, 5, 4, 5, 4 );
         grid.setComponentAlignment( startOverHadoop, Alignment.BOTTOM_RIGHT );
-        Button startWithHadoop = new Button( "Start with-Hadoop installation" );
-        startWithHadoop.setId( "ZookeeperStartWithHadoop" );
-        startWithHadoop.addStyleName( "default" );
-//        grid.addComponent( startWithHadoop, 6, 4, 6, 4 );
-//        grid.setComponentAlignment( startWithHadoop, Alignment.BOTTOM_RIGHT );
 
-        startStandalone.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                wizard.init();
-                wizard.getConfig().setSetupType( SetupType.STANDALONE );
-                wizard.next();
-            }
-        } );
         startOverHadoop.addClickListener( new Button.ClickListener()
         {
             @Override
@@ -85,16 +64,6 @@ public class WelcomeStep extends Panel
             {
                 wizard.init();
                 wizard.getConfig().setSetupType( SetupType.OVER_HADOOP );
-                wizard.next();
-            }
-        } );
-        startWithHadoop.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                wizard.init();
-                wizard.getConfig().setSetupType( SetupType.WITH_HADOOP );
                 wizard.next();
             }
         } );
