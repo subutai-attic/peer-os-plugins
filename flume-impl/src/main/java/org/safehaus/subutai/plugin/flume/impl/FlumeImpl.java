@@ -106,7 +106,7 @@ public class FlumeImpl implements Flume
     public UUID uninstallCluster( final String clusterName )
     {
         ClusterOperationHandler h =
-                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.INSTALL );
+                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
     }
