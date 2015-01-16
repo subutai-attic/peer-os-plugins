@@ -3,11 +3,18 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 import java.util.List;
 
+import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -18,6 +25,11 @@ import com.google.common.base.Preconditions;
 public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends ConfigBase>
         extends org.safehaus.subutai.plugin.common.api.AbstractOperationHandler<T, V>
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( AbstractMongoOperationHandler.class );
+    private CommandUtil commandUtil = new CommandUtil();
+
+
     public AbstractMongoOperationHandler( final T manager, final V config )
     {
         super( manager, config );
@@ -48,5 +60,24 @@ public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends
         {
             po.addLogDone( "" );
         }
+    }
+
+
+    public CommandResult executeCommand( CommandDef commandBuilder, ContainerHost containerHost )
+    {
+        CommandResult commandResult = null;
+        try
+        {
+            commandResult = commandUtil.execute(
+                    new RequestBuilder( commandBuilder.getCommand() ).withTimeout( commandBuilder.getTimeout() ),
+                    containerHost );
+        }
+        catch ( CommandException e )
+        {
+            LOGGER.error(
+                    String.format( "Error executing command: %s on container host: %s", commandBuilder.getCommand(),
+                            containerHost.getHostname() ), e );
+        }
+        return commandResult;
     }
 }

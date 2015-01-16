@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -9,7 +10,7 @@ import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.Peer;
 import org.safehaus.subutai.core.peer.api.PeerException;
-import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
@@ -17,12 +18,13 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
+import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 
 
 /**
  * Handles destroy mongo node operation
  */
-public class DestroyNodeOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
+public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<MongoImpl, MongoClusterConfig>
 {
     private final TrackerOperation po;
     private final String lxcHostname;
@@ -73,12 +75,12 @@ public class DestroyNodeOperationHandler extends AbstractOperationHandler<MongoI
             po.addLogFailed( "This is the last configuration server in the cluster. Please, destroy cluster instead" );
             return;
         }
-        else if ( nodeType == NodeType.DATA_NODE && config.getDataNodes().size() == 1 )
+        if ( nodeType == NodeType.DATA_NODE && config.getDataNodes().size() == 1 )
         {
             po.addLogFailed( "This is the last data node in the cluster. Please, destroy cluster instead" );
             return;
         }
-        else if ( nodeType == NodeType.ROUTER_NODE && config.getRouterServers().size() == 1 )
+        if ( nodeType == NodeType.ROUTER_NODE && config.getRouterServers().size() == 1 )
         {
             po.addLogFailed( "This is the last router in the cluster. Please, destroy cluster instead" );
             return;
@@ -126,13 +128,23 @@ public class DestroyNodeOperationHandler extends AbstractOperationHandler<MongoI
             Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(
                     UUID.fromString( node.getContainerHost().getEnvironmentId() ) );
             manager.unsubscribeFromAlerts( environment );
-            //destroy lxc
-            po.addLog( "Destroying lxc container..." );
 
-            Peer peer = manager.getPeerManager().getPeer( node.getPeerId() );
+            if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
+            {
+                ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
+                po.addLog( "Purging subutai-hadoop from containers." );
+                logResults( po, Arrays.asList( executeCommand( Commands.getUninstallMongoCommand(), containerHost ) ) );
+            }
+            else if ( config.getInstallationType() == InstallationType.STANDALONE )
+            {
+                //destroy lxc
+                po.addLog( "Destroying lxc container..." );
 
-            peer.destroyContainer( ( ContainerHost ) node );
-            po.addLog( "Lxc container destroyed successfully" );
+                Peer peer = manager.getPeerManager().getPeer( node.getPeerId() );
+
+                peer.destroyContainer( ( ContainerHost ) node );
+                po.addLog( "Lxc container destroyed successfully" );
+            }
         }
         catch ( PeerException | MongoException | MonitorException e )
         {

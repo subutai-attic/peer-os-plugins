@@ -132,7 +132,7 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
                 CommandResult commandResult =
                         container.execute( new RequestBuilder( Commands.checkIfMongoInstalled().getCommand() ) );
 
-                if ( !"install ok installed".equals( commandResult.getStdOut() ) )
+                if ( !commandResult.getStdOut().contains( "install ok installed" ) )
                 {
                     CommandResult installationResult =
                             container.execute( new RequestBuilder( Commands.installMongoCommand().getCommand() ) );
@@ -275,12 +275,6 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
         po.addLog( "Configuring cluster..." );
         try
         {
-            for ( MongoDataNode dataNode : config.getDataNodes() )
-            {
-                po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
-                dataNode.setReplicaSetName( config.getReplicaSetName() );
-            }
-
             for ( MongoConfigNode configNode : config.getConfigServers() )
             {
                 po.addLog( "Starting config node: " + configNode.getHostname() );
@@ -293,6 +287,13 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
                 routerNode.setConfigServers( config.getConfigServers() );
                 routerNode.start( config );
             }
+
+            for ( MongoDataNode dataNode : config.getDataNodes() )
+            {
+                po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
+                dataNode.setReplicaSetName( config.getReplicaSetName() );
+            }
+
 
             for ( MongoDataNode dataNode : config.getDataNodes() )
             {
