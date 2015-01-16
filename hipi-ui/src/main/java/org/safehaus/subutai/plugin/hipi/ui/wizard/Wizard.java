@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
@@ -22,17 +23,20 @@ public class Wizard
     private final Hadoop hadoop;
     private final Hipi hipi;
     private final Tracker tracker;
+    private final EnvironmentManager environmentManager;
     private int step = 1;
     private HipiConfig config = new HipiConfig();
 
 
-    public Wizard( ExecutorService executorService, Hipi hipi, Hadoop hadoop, Tracker tracker ) throws NamingException
+    public Wizard( ExecutorService executorService, Hipi hipi, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
         this.hipi = hipi;
         this.hadoop = hadoop;
         this.tracker = tracker;
+        this.environmentManager = environmentManager;
 
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
@@ -55,7 +59,7 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( hadoop, this );
+                component = new ConfigurationStep( hadoop, this, environmentManager );
                 break;
             }
             case 3:

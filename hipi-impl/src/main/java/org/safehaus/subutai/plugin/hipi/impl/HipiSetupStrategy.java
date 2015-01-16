@@ -8,10 +8,13 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -24,10 +27,12 @@ import com.google.common.base.Strings;
 
 public class HipiSetupStrategy implements ClusterSetupStrategy
 {
+    private Environment environment;
     final HipiImpl manager;
     final HipiConfig config;
     final TrackerOperation trackerOperation;
     private Set<ContainerHost> nodes;
+    CommandUtil commandUtil = new CommandUtil();
 
 
     public HipiSetupStrategy( HipiImpl manager, HipiConfig config, TrackerOperation trackerOperation )
@@ -80,8 +85,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                     String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
         }
 
-        final Environment environment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+        environment =manager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
 
         if ( environment == null )
         {
@@ -90,7 +94,8 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
 
         if ( !hadoopClusterConfig.getAllNodes().containsAll( config.getNodes() ) )
         {
-            throw new ClusterSetupException( "Not all nodes belong to Hadoop cluster" );
+            throw new ClusterSetupException(
+                    String.format( "Not all nodes belong to Hadoop cluster %s", config.getHadoopClusterName() ));
         }
 
         nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -123,63 +128,75 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
             {
                 throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
             }
-        }
 
-        config.setEnvironmentId( hadoopClusterConfig.getEnvironmentId() );
+            try
+            {
+                RequestBuilder statusCommand = new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) );
+                CommandResult result = commandUtil.execute( statusCommand, node );
+                if ( result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s already has Hipi installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+                else if ( !result.getStdOut()
+                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
+            }
+        }
+        if ( config.getNodes().isEmpty() )
+        {
+            throw new ClusterSetupException( "No nodes eligible for installation" );
+        }
     }
+
 
 
     private void configure() throws ClusterSetupException
     {
-        trackerOperation.addLog( "Checking prerequisites..." );
-        String statusCommand = CommandFactory.build( NodeOperationType.CHECK_INSTALLATION );
-        for ( Iterator<ContainerHost> it = nodes.iterator(); it.hasNext(); )
+
+        trackerOperation.addLog( "Updating Hipi..." );
+        config.setEnvironmentId( environment.getId() );
+
+        try
         {
-            ContainerHost node = it.next();
-            try
-            {
-                CommandResult result = node.execute( new RequestBuilder( statusCommand ) );
-                if ( result.hasSucceeded() && result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) )
-                {
-                    trackerOperation
-                            .addLog( String.format( "Node %s has already Hipi installed.", node.getHostname() ) );
-                    it.remove();
-                }
-                else
-                {
-                    throw new ClusterSetupException( "Failed to check installed packages on " + node.getHostname() );
-                }
-            }
-            catch ( CommandException ex )
-            {
-                throw new ClusterSetupException( ex );
-            }
+            manager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
         }
 
-        trackerOperation.addLog( "Installing Hive..." );
-        String installCommand = CommandFactory.build( NodeOperationType.INSTALL );
+        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Hipi..." );
+
+
+
         for ( ContainerHost node : nodes )
         {
             try
             {
-                CommandResult result = node.execute( new RequestBuilder( installCommand ) );
-
-                if ( result.hasSucceeded() )
-                {
-                    trackerOperation.addLog( "Hipi installed on " + node.getHostname() );
-                }
-                else
-                {
-                    throw new ClusterSetupException( "Failed to install Hipi on " + node.getHostname() );
-                }
+                RequestBuilder installCommand = new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) )
+                        .withTimeout( 300 );
+                commandUtil.execute( installCommand, node );
             }
-            catch ( CommandException ex )
+            catch ( CommandException e )
             {
-                throw new ClusterSetupException( ex );
+                throw new ClusterSetupException(
+                        String.format( "Error while installing Hipi on container %s; %s", node.getHostname(),
+                                e.getMessage() ) );
             }
-        }
 
-        trackerOperation.addLog( "Saving to db..." );
+        }
         boolean saved = manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, config.getClusterName(), config );
 
         if ( saved )
