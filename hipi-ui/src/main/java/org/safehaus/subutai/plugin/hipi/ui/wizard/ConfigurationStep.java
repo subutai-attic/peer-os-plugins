@@ -95,16 +95,19 @@ public class ConfigurationStep extends Panel
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "hipiClusterName" );
         nameTxt.setRequired( true );
+        nameTxt.setValue( config.getClusterName() );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
 
             @Override
             public void valueChange( Property.ValueChangeEvent e )
             {
-                config.setClusterName( e.getProperty().getValue().toString().trim() );
+                if ( e.getProperty().getValue() != null )
+                {
+                    config.setClusterName( e.getProperty().getValue().toString().trim() );
+                }
             }
         } );
-        nameTxt.setValue( config.getClusterName() );
 
         final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<UUID>() );
 
