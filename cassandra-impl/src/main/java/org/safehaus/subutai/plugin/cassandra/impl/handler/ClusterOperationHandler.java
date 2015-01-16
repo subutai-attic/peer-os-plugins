@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
-import java.util.Set;
-
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -13,7 +11,6 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -45,13 +42,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
-    CommandUtil commandUtil = new CommandUtil();
 
 
     public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
                                     final ClusterOperationType operationType )
     {
-        super( manager, config.getClusterName() );
+        super( manager, config );
         this.operationType = operationType;
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
@@ -252,22 +248,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         }
 
 
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
-
-
-        for ( ContainerHost node : nodes )
-        {
-            try
-            {
-                commandUtil.execute( new RequestBuilder( Commands.uninstallCommand ), node );
-            }
-            catch ( CommandException e )
-            {
-                trackerOperation.addLog(
-                        String.format( "Failed to uninstall Cassandra from node %s: %s", node.getHostname(),
-                                e.getMessage() ) );
-            }
-        }
+        //        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        //
+        //
+        //        for ( ContainerHost node : nodes )
+        //        {
+        //            try
+        //            {
+        //                commandUtil.execute( new RequestBuilder( Commands.uninstallCommand ), node );
+        //            }
+        //            catch ( CommandException e )
+        //            {
+        //                trackerOperation.addLog(
+        //                        String.format( "Failed to uninstall Cassandra from node %s: %s", node.getHostname(),
+        //                                e.getMessage() ) );
+        //            }
+        //        }
 
         try
         {

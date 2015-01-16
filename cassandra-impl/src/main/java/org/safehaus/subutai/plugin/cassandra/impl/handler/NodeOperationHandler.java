@@ -8,7 +8,6 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -109,7 +108,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         try
         {
             CassandraClusterConfig config = manager.getCluster( clusterName );
-            environmentManager.removeContainer( config.getEnvironmentId(), host.getId() );
+            //            environmentManager.removeContainer( config.getEnvironmentId(), host.getId() );
             config.getNodes().remove( host.getId() );
             manager.saveConfig( config );
             // configure cluster again
@@ -126,7 +125,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
-        catch ( EnvironmentManagerException | ClusterException e )
+        catch ( ClusterException e )
         {
             e.printStackTrace();
         }
