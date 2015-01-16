@@ -37,7 +37,7 @@ public class HipiComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
         final Manager manager = new Manager( executorService, hipi, hadoop, tracker, environmentManager );
-        Wizard wizard = new Wizard( executorService, hipi, hadoop, tracker );
+        Wizard wizard = new Wizard( executorService, hipi, hadoop, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HipiInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );
