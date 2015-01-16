@@ -19,11 +19,7 @@ public class Commands
                 return "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
             case INSTALL:
             case PURGE:
-                StringBuilder sb = new StringBuilder();
-                sb.append( "apt-get --force-yes --assume-yes " );
-                sb.append( type.toString().toLowerCase() ).append( " " );
-                sb.append( PACKAGE_NAME );
-                return sb.toString();
+                return "apt-get --force-yes --assume-yes " + type.toString().toLowerCase() + " " + PACKAGE_NAME;
             case START:
             case STOP:
                 String s = "service flume-ng " + type.toString().toLowerCase() + " agent";

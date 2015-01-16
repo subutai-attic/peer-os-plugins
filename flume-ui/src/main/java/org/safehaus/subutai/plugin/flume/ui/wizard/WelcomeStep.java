@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.flume.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.plugin.flume.api.SetupType;
 import org.safehaus.subutai.plugin.flume.ui.FlumePortalModule;
 
 import com.vaadin.server.FileResource;
@@ -38,7 +37,7 @@ public class WelcomeStep extends VerticalLayout
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start installation" );
         next.setId( "FlumeStartOverHadoop" );
         next.addStyleName( "default" );
         grid.addComponent( next, 6, 4, 6, 4 );
@@ -49,32 +48,17 @@ public class WelcomeStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                clickHandler( wizard, SetupType.OVER_HADOOP );
+                clickHandler( wizard );
             }
         } );
-
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.setId( "FlumeStartWithHadoop" );
-        next2.setStyleName( "default" );
-        next2.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                clickHandler( wizard, SetupType.WITH_HADOOP );
-            }
-        } );
-        grid.addComponent( next2, 7, 4, 7, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         addComponent( grid );
     }
 
 
-    private void clickHandler( Wizard wizard, SetupType type )
+    private void clickHandler( Wizard wizard )
     {
         wizard.init();
-        wizard.getConfig().setSetupType( type );
         wizard.next();
     }
 }

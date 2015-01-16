@@ -10,7 +10,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.flume.api.Flume;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
@@ -27,10 +26,10 @@ public class Wizard
     private final EnvironmentManager environmentManager;
     private int step = 1;
     private FlumeConfig config = new FlumeConfig();
-    private HadoopClusterConfig hadoopConfig;
 
 
-    public Wizard( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -61,12 +60,12 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( hadoop, this, environmentManager  );
+                component = new ConfigurationStep( hadoop, this, environmentManager );
                 break;
             }
             case 3:
             {
-                component = new VerificationStep( flume, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( hadoop, flume, executorService, tracker, environmentManager, this );
                 break;
             }
             default:
@@ -106,7 +105,6 @@ public class Wizard
     {
         step = 1;
         config = new FlumeConfig();
-        hadoopConfig = new HadoopClusterConfig();
         putForm();
     }
 
@@ -114,15 +112,5 @@ public class Wizard
     public FlumeConfig getConfig()
     {
         return config;
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
-    }
-
-    public void setHadoopConfig(HadoopClusterConfig hadoopConfig) {
-        this.hadoopConfig = hadoopConfig;
     }
 }

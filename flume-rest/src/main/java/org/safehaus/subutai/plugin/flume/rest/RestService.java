@@ -1,7 +1,6 @@
 package org.safehaus.subutai.plugin.flume.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +18,8 @@ import javax.ws.rs.core.Response;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.flume.api.Flume;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
-import org.safehaus.subutai.plugin.flume.api.SetupType;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+
+import com.google.common.collect.Lists;
 
 
 public class RestService
@@ -30,7 +29,8 @@ public class RestService
 
     private Flume flumeManager;
 
-    public void setFlumeManager( Flume flumeManager )
+
+    public RestService( final Flume flumeManager )
     {
         this.flumeManager = flumeManager;
     }
@@ -43,7 +43,7 @@ public class RestService
     {
 
         List<FlumeConfig> configs = flumeManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        List<String> clusterNames = Lists.newArrayList();
 
         for ( FlumeConfig config : configs )
         {
@@ -71,71 +71,24 @@ public class RestService
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @PathParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
                                     @QueryParam( "nodes" ) String nodes )
     {
 
         FlumeConfig config = new FlumeConfig();
-        config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
+        config.setClusterName( hadoopClusterName );
 
         String[] arr = nodes.split( "[,;]" );
         for ( String node : arr )
         {
-            if ( UUID.fromString( node ) != null )
-            {
-                config.getNodes().add( UUID.fromString( node ) );
-            }
+
+            config.getNodes().add( UUID.fromString( node ) );
         }
 
         UUID uuid = flumeManager.installCluster( config );
 
         String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
-    @POST
-    @Path( "install/{name}/{hadoopName}/{slaveNodesCount}/{replFactor}/{domainName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response install( @PathParam( "name" ) String name, @PathParam( "hadoopName" ) String hadoopName,
-                             @PathParam( "slaveNodesCount" ) String slaveNodesCount,
-                             @PathParam( "replFactor" ) String replFactor,
-                             @PathParam( "domainName" ) String domainName )
-    {
-
-        FlumeConfig config = new FlumeConfig();
-        config.setClusterName( name );
-        config.setHadoopClusterName( hadoopName );
-        config.setSetupType( SetupType.WITH_HADOOP );
-
-        HadoopClusterConfig hc = new HadoopClusterConfig();
-        hc.setClusterName( hadoopName );
-        if ( domainName != null )
-        {
-            hc.setDomainName( domainName );
-        }
-        try
-        {
-            int i = Integer.parseInt( slaveNodesCount );
-            hc.setCountOfSlaveNodes( i );
-        }
-        catch ( NumberFormatException ex )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( ex.getMessage() ).build();
-        }
-        try
-        {
-            int i = Integer.parseInt( replFactor );
-            hc.setReplicationFactor( i );
-        }
-        catch ( NumberFormatException ex )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( ex.getMessage() ).build();
-        }
-
-        UUID trackId = flumeManager.installCluster( config, hc );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, trackId );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
 

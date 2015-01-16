@@ -70,7 +70,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -184,7 +185,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = flume.uninstallCluster( config );
+                            UUID trackID = flume.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
                                     new ProgressWindow( executorService, tracker, trackID, FlumeConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -623,15 +624,6 @@ public class Manager
     private void show( String notification )
     {
         Notification.show( notification );
-    }
-
-
-    private void disableButton( Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            b.setEnabled( false );
-        }
     }
 
 

@@ -15,7 +15,7 @@
              interface="org.safehaus.subutai.plugin.flume.api.Flume" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.flume.rest.RestService">
-    <property name="flumeManager" ref="flumeManager" />
+    <argument ref="flumeManager" />
   </bean>
 
   <jaxrs:server address="/flume" id="flumeRestService">

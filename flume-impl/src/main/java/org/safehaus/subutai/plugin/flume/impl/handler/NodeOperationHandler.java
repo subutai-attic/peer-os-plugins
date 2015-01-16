@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.flume.impl.handler;
 
 
-import java.util.Iterator;
-
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -19,9 +17,6 @@ import org.safehaus.subutai.plugin.flume.impl.FlumeImpl;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 09.11.2014.
- */
 public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
 {
 
@@ -53,16 +48,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         }
 
         Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
+
+        if ( environment == null )
         {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostName ) )
-            {
-                break;
-            }
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
         }
+
+        ContainerHost host = environment.getContainerHostByHostname( hostName );
 
         if ( host == null )
         {
@@ -72,7 +65,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
 
         try
         {
-            CommandResult result = null;
+            CommandResult result;
             switch ( operationType )
             {
                 case START:
@@ -88,13 +81,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
                     logStatusResults( trackerOperation, result );
                     break;
                 case INSTALL:
-                    result = installProductOnNode( host );
+                    installProductOnNode( host );
                     break;
                 case UNINSTALL:
-                    result = uninstallProductOnNode( host );
+                    uninstallProductOnNode( host );
                     break;
             }
-            //logStatusResults( trackerOperation, result );
         }
         catch ( CommandException e )
         {
@@ -161,7 +153,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
+        String status;
         if ( result.getExitCode() == 0 )
         {
             status = "Flume is running";

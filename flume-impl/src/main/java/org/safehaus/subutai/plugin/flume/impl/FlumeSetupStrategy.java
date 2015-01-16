@@ -1,19 +1,31 @@
 package org.safehaus.subutai.plugin.flume.impl;
 
 
+import java.util.UUID;
+
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
-import org.safehaus.subutai.plugin.flume.api.SetupType;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+
+import com.google.common.base.Strings;
 
 
-abstract class FlumeSetupStrategy implements ClusterSetupStrategy
+class FlumeSetupStrategy implements ClusterSetupStrategy
 {
-
     final FlumeImpl manager;
     final FlumeConfig config;
     final TrackerOperation po;
+
+    private Environment environment;
 
 
     public FlumeSetupStrategy( FlumeImpl manager, FlumeConfig config, TrackerOperation po )
@@ -24,11 +36,46 @@ abstract class FlumeSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    void checkConfig() throws ClusterSetupException
+    @Override
+    public ConfigBase setup() throws ClusterSetupException
+    {
+        check();
+        configure();
+        return config;
+    }
+
+
+    private void configure() throws ClusterSetupException
+    {
+        po.addLog( "Updating db..." );
+        //save to db
+        config.setEnvironmentId( environment.getId() );
+        manager.getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config );
+        po.addLog( "Cluster info saved to DB\nInstalling Flume..." );
+        //install pig,
+        String s = Commands.make( CommandType.INSTALL );
+        for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
+        {
+            try
+            {
+                CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
+                processResult( node, result );
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Error while installing Flume on container %s; %s", node.getHostname(),
+                                e.getMessage() ) );
+            }
+        }
+    }
+
+
+    private void check() throws ClusterSetupException
     {
         String m = "Invalid configuration: ";
 
-        if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
+        if ( Strings.isNullOrEmpty( config.getClusterName() ) )
         {
             throw new ClusterSetupException( m + "Cluster name not specified" );
         }
@@ -39,12 +86,66 @@ abstract class FlumeSetupStrategy implements ClusterSetupStrategy
                     m + String.format( "Cluster '%s' already exists", config.getClusterName() ) );
         }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+        if ( CollectionUtil.isCollectionEmpty( config.getNodes() ) )
         {
-            if ( config.getNodes() == null || config.getNodes().isEmpty() )
+            throw new ClusterSetupException( m + "Target nodes not specified" );
+        }
+        HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+        if ( hc == null )
+        {
+            throw new ClusterSetupException( "Could not find Hadoop cluster " + config.getHadoopClusterName() );
+        }
+        if ( !hc.getAllNodes().containsAll( config.getNodes() ) )
+        {
+            throw new ClusterSetupException(
+                    "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
+        }
+
+        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+
+        if ( environment == null )
+        {
+            throw new ClusterSetupException( "Hadoop environment not found" );
+        }
+
+
+        po.addLog( "Checking prerequisites..." );
+
+        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.make( CommandType.STATUS ) );
+        for ( UUID uuid : config.getNodes() )
+        {
+            ContainerHost node = environment.getContainerHostById( uuid );
+            try
             {
-                throw new ClusterSetupException( m + "Target nodes not specified" );
+                CommandResult result = node.execute( checkInstalledCommand );
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    po.addLog(
+                            String.format( "Node %s already has Flume installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
             }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
+            }
+        }
+        if ( config.getNodes().isEmpty() )
+        {
+            throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
+        }
+    }
+
+
+    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    {
+
+        if ( !result.hasSucceeded() )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
     }
 }

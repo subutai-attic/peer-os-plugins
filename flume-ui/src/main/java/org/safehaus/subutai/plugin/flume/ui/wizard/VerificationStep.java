@@ -9,9 +9,10 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.flume.api.Flume;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
-import org.safehaus.subutai.plugin.flume.api.SetupType;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
@@ -27,8 +28,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends VerticalLayout
 {
 
-    public VerificationStep( final Flume flume, final ExecutorService executorService, final Tracker tracker,
-                             final EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Hadoop hadoop, final Flume flume, final ExecutorService executorService,
+                             final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -43,28 +44,19 @@ public class VerificationStep extends VerticalLayout
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final FlumeConfig config = wizard.getConfig();
-        final HadoopClusterConfig hadoopClusterConfig = wizard.getHadoopConfig();
+        final HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation Name", wizard.getConfig().getClusterName() );
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+        Environment hadoopEnvironment =
+                environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+        Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
+        for ( ContainerHost host : nodes )
         {
-            Environment hadoopEnvironment =
-                    environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-            Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
-            for ( ContainerHost host : nodes )
-            {
-                cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
-            }
+            cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
-        }
+
 
         Button install = new Button( "Install" );
         install.setId( "FluVerInstall" );
@@ -74,15 +66,8 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackId = null;
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = flume.installCluster( config, wizard.getHadoopConfig() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = flume.installCluster( config, wizard.getHadoopConfig() );
-                }
+                UUID trackId = flume.installCluster( config );
+
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackId, FlumeConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
