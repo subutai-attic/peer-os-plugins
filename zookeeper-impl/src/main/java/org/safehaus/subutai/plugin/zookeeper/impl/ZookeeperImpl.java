@@ -119,19 +119,19 @@ public class ZookeeperImpl implements Zookeeper
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        //        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
     }
 
 
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
-        //        getMonitor().activateMonitoring( host, alertSettings );
+        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        //        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
+        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
     }
 
 

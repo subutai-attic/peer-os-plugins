@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -489,7 +488,8 @@ public class Manager
             {
                 if ( config != null )
                 {
-                    if ( config.getSetupType() == SetupType.STANDALONE )
+                    if ( config.getSetupType() == SetupType.STANDALONE
+                            || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
                     {
                         ConfirmationDialog alert = new ConfirmationDialog(
                                 String.format( "Do you want to add node to the %s cluster?", config.getClusterName() ),
