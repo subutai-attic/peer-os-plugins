@@ -76,6 +76,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             case ADD:
                 addNode();
                 break;
+            case REMOVE:
+                removeCluster();
+                break;
         }
     }
 
@@ -146,6 +149,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         {
             e.printStackTrace();
         }
+    }
+
+    public void removeCluster()
+    {
+        CassandraClusterConfig config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster removed from database" );
     }
 
 
