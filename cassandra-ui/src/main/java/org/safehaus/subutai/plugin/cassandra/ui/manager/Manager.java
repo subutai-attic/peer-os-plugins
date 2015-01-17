@@ -346,6 +346,7 @@ public class Manager
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
                                     refreshClustersInfo();
+                                    refreshUI();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );
