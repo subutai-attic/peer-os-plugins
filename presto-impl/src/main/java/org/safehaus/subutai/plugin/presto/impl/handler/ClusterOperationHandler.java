@@ -77,56 +77,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     @Override
     public void destroyCluster()
     {
-        PrestoClusterConfig config = manager.getCluster( clusterName );
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
-
-        try
-        {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDAO().deleteInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
-        }
-
-        try
-        {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDAO().deleteInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
-
-            try
-            {
-                manager.unsubscribeFromAlerts(
-                        manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
-            }
-            catch ( MonitorException e )
-            {
-                throw new EnvironmentDestroyException( e.getMessage() );
-            }
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
-        }
-    }
-
-
-    private void uninstallCluster()
-    {
         TrackerOperation po = trackerOperation;
-        po.addLog( "Uninstalling Flume..." );
+        po.addLog( "Uninstalling Presto..." );
 
         for ( UUID uuid : config.getAllNodes() )
         {
@@ -170,7 +122,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
                 setupCluster();
                 break;
             case DESTROY:
-                uninstallCluster();
+                destroyCluster();
                 break;
         }
     }

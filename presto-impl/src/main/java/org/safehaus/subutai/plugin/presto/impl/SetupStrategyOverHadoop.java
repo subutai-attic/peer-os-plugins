@@ -137,7 +137,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Configuring cluster..." );
             configureAsCoordinator( environment.getContainerHostById( config.getCoordinatorNode() ), environment );
             configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
-            startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
+            //startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
 
             po.addLog( "Saving cluster info..." );
             config.setEnvironmentId( environment.getId() );
