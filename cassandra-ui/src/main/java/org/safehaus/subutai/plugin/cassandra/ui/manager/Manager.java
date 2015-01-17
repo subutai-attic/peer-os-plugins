@@ -166,13 +166,13 @@ public class Manager
         controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
 
-        /** Destroy Cluster button */
-        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
-        destroyClusterBtn.setId( "CassDestroyClusterBtn" );
-        destroyClusterBtn.setDescription( "Destroy environment with containers" );
-        addClickListenerToDestroyClusterButton();
-        controlsContent.addComponent( destroyClusterBtn );
-        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+//        /** Destroy Cluster button */
+//        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
+//        destroyClusterBtn.setId( "CassDestroyClusterBtn" );
+//        destroyClusterBtn.setDescription( "Destroy environment with containers" );
+//        addClickListenerToDestroyClusterButton();
+//        controlsContent.addComponent( destroyClusterBtn );
+//        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Remove Cluster button */
