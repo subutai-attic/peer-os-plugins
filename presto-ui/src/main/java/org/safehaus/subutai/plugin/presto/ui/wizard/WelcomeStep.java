@@ -37,7 +37,7 @@ public class WelcomeStep extends Panel
         logoImg.setHeight( 63, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start Installation" );
         next.setId( "PresOverHadoop" );
         next.addStyleName( "default" );
         next.addClickListener( new NextClickHandler( wizard ) );
