@@ -116,7 +116,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl,
             case INSTALL:
                 setupCluster();
                 break;
-            case DESTROY:
+            case UNINSTALL:
                 destroyCluster();
                 break;
         }

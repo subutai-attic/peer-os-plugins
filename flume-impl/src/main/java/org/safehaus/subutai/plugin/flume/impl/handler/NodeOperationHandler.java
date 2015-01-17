@@ -70,15 +70,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             {
                 case START:
                     result = host.execute( new RequestBuilder( Commands.make( CommandType.START ) ) );
-                    logStatusResults( trackerOperation, result );
+                    logStatusResults( trackerOperation, result, operationType );
                     break;
                 case STOP:
                     result = host.execute( new RequestBuilder( Commands.make( CommandType.STOP ) ) );
-                    logStatusResults( trackerOperation, result );
+                    logStatusResults( trackerOperation, result, operationType );
                     break;
                 case STATUS:
                     result = host.execute( new RequestBuilder( Commands.make( CommandType.SERVICE_STATUS ) ) );
-                    logStatusResults( trackerOperation, result );
+                    logStatusResults( trackerOperation, result, operationType );
                     break;
                 case INSTALL:
                     installProductOnNode( host );
@@ -149,23 +149,25 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
     }
 
 
-    public static void logStatusResults( TrackerOperation po, CommandResult result )
+    public static void logStatusResults( TrackerOperation po, CommandResult result, NodeOperationType operationType )
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
         String status;
-        if ( result.getExitCode() == 0 )
+        String output = result.getStdOut();
+        if( operationType.equals( NodeOperationType.START ) && output.contains( "running as" ) )
         {
             status = "Flume is running";
         }
-        else if ( result.getExitCode() == 256 || result.getExitCode() == 1 )
+        else if( operationType.equals( NodeOperationType.STATUS ) && !result.getStdOut().equals( "" ))
         {
-            status = "Flume is not running";
+            status = "Flume is running";
         }
         else
         {
-            status = result.getStdOut();
+            status = "Flume is not running";
         }
+
         log.append( String.format( "%s", status ) );
         po.addLogDone( log.toString() );
     }
