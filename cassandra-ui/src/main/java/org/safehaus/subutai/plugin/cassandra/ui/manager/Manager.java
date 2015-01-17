@@ -22,6 +22,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.NodeOperationTask;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -36,6 +37,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -67,6 +69,8 @@ public class Manager
     protected static final String ADD_NODE_BUTTON_CAPTION = "Add Node";
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
+
     final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn, removeCluster;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final ExecutorService executorService;
@@ -77,9 +81,10 @@ public class Manager
     private GridLayout contentRoot;
     private ComboBox clusterCombo;
     private CassandraClusterConfig config;
+    private CheckBox autoScaleBtn;
 
 
-    public Manager( final ExecutorService executorService, Cassandra cassandra, Tracker tracker,
+    public Manager( final ExecutorService executorService, final Cassandra cassandra, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
     {
 
@@ -186,6 +191,35 @@ public class Manager
         controlsContent.addComponent( addNodeBtn );
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
 
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    config.setAutoScaling( value );
+                    try
+                    {
+                        cassandra.saveConfig( config );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
         addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn, addNodeBtn,
                 removeCluster );
@@ -753,18 +787,18 @@ public class Manager
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                            NodeOperationType.STOP, new CompleteEvent()
+                    NodeOperationType.STOP, new CompleteEvent()
+            {
+                @Override
+                public void onComplete( NodeState nodeState )
+                {
+                    synchronized ( PROGRESS_ICON )
                     {
-                        @Override
-                        public void onComplete( NodeState nodeState )
-                        {
-                            synchronized ( PROGRESS_ICON )
-                            {
-                                disableOREnableAllButtonsOnTable( nodesTable, true );
-                                checkAllNodes();
-                            }
-                        }
-                    }, null ) );
+                        disableOREnableAllButtonsOnTable( nodesTable, true );
+                        checkAllNodes();
+                    }
+                }
+            }, null ) );
         }
     }
 
@@ -778,18 +812,18 @@ public class Manager
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                            NodeOperationType.START, new CompleteEvent()
+                    NodeOperationType.START, new CompleteEvent()
+            {
+                @Override
+                public void onComplete( NodeState nodeState )
+                {
+                    synchronized ( PROGRESS_ICON )
                     {
-                        @Override
-                        public void onComplete( NodeState nodeState )
-                        {
-                            synchronized ( PROGRESS_ICON )
-                            {
-                                disableOREnableAllButtonsOnTable( nodesTable, true );
-                                checkAllNodes();
-                            }
-                        }
-                    }, null ) );
+                        disableOREnableAllButtonsOnTable( nodesTable, true );
+                        checkAllNodes();
+                    }
+                }
+            }, null ) );
         }
     }
 
@@ -844,6 +878,7 @@ public class Manager
     {
         if ( config != null )
         {
+            autoScaleBtn.setValue( config.isAutoScaling() );
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             Set<ContainerHost> containerHosts = new HashSet<>();
             for ( UUID uuid : config.getNodes() )

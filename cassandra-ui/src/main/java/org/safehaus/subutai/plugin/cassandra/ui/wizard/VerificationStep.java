@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;

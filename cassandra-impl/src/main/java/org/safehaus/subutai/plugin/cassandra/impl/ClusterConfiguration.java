@@ -10,9 +10,11 @@ import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 
 
 public class ClusterConfiguration
@@ -50,7 +52,8 @@ public class ClusterConfiguration
             ContainerHost containerHost = environment.getContainerHostById( uuid );
             sb.append( containerHost.getIpByMask( Common.IP_MASK ) ).append( "," );
         }
-        if ( ! sb.toString().isEmpty() ){
+        if ( !sb.toString().isEmpty() )
+        {
             sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
         }
         String seedsParam = "seeds " + sb.toString();
@@ -120,7 +123,26 @@ public class ClusterConfiguration
         }
 
         config.setEnvironmentId( environment.getId() );
-        cassandraManager.getPluginDAO().saveInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+        try
+        {
+            cassandraManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
+
         po.addLogDone( "Cassandra cluster data saved into database" );
+
+        //subscribe to alerts
+        try
+        {
+            cassandraManager.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
     }
 }

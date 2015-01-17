@@ -9,8 +9,8 @@ import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.cassandra.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.cassandra.impl.Commands;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -42,10 +43,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
 
+
     public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
                                     final ClusterOperationType operationType )
     {
-        super( manager, config.getClusterName() );
+        super( manager, config );
         this.operationType = operationType;
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
@@ -81,7 +83,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     }
 
 
-    public void addNode(){
+    public void addNode()
+    {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup();
@@ -95,34 +98,54 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        String ngJSON = gson.toJson(nodeGroup);
+        String ngJSON = gson.toJson( nodeGroup );
 
         try
         {
             environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
             Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            ContainerHost newNode = null;
             // update cluster configuration on DB
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
 
-                if ( ! config.getNodes().contains( containerHost.getId() ) ){
+                if ( !config.getNodes().contains( containerHost.getId() ) )
+                {
+                    newNode = containerHost;
                     config.getNodes().add( containerHost.getId() );
+                    break;
                 }
             }
-            manager.getPluginDAO().saveInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+            if ( newNode == null )
+            {
+                throw new ClusterException( "Failed to obtain new node" );
+            }
+
+            manager.saveConfig( config );
 
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator.configureCluster( config, environmentManager.getEnvironmentByUUID( config
-                            .getEnvironmentId() ) );
+                configurator.configureCluster( config,
+                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
             }
             catch ( ClusterConfigurationException e )
             {
                 e.printStackTrace();
             }
+
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( newNode );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
         }
-        catch ( EnvironmentBuildException e )
+        catch ( EnvironmentBuildException | ClusterException e )
         {
             e.printStackTrace();
         }
@@ -232,17 +255,49 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
+        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+
+        if ( environment == null )
+        {
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
+        }
+
+
+        //        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        //
+        //
+        //        for ( ContainerHost node : nodes )
+        //        {
+        //            try
+        //            {
+        //                commandUtil.execute( new RequestBuilder( Commands.uninstallCommand ), node );
+        //            }
+        //            catch ( CommandException e )
+        //            {
+        //                trackerOperation.addLog(
+        //                        String.format( "Failed to uninstall Cassandra from node %s: %s", node.getHostname(),
+        //                                e.getMessage() ) );
+        //            }
+        //        }
+
         try
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
+            manager.unsubscribeFromAlerts(
+                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
         }
-        catch ( EnvironmentDestroyException e )
+        catch ( MonitorException e )
         {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+        }
+
+        if ( manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
         }
     }
 }

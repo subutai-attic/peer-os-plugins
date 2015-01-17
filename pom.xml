@@ -82,6 +82,12 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
+        <artifactId>metric-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-datasource</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
