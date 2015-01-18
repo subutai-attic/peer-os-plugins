@@ -463,7 +463,7 @@ public class Manager
             startBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStart" );
 
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId(node.getContainerHost().getIpByInterfaceName( "eth0" ) + "mongoStop" );
+            stopBtn.setId(node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStop" );
 
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "mongoDestroy" );
