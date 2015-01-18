@@ -179,17 +179,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    private CommandResult executeCommand( ContainerHost containerHost, RequestBuilder commandRequest )
     {
         CommandResult result = null;
         try
         {
-            result = containerHost.execute( new RequestBuilder( command ) );
+            result = containerHost.execute( commandRequest );
         }
         catch ( CommandException e )
         {
-            LOG.error( "Could not execute command correctly. ", command );
-            e.printStackTrace();
+            LOG.error( "Could not execute command correctly. ", e );
         }
         return result;
     }

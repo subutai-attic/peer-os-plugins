@@ -15,11 +15,19 @@ public class Commands
     public static final RequestBuilder startCommand =
             new RequestBuilder( "/etc/init.d/accumulo start" ).withTimeout( 30 );
 
-    public static final String stopCommand = "/etc/init.d/accumulo stop";
+    public static final RequestBuilder stopCommand =
+            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 30 );
 
-    public static final String statusCommand = "/etc/init.d/accumulo status";
+    public static final RequestBuilder statusCommand =
+            new RequestBuilder( "/etc/init.d/accumulo status" ).withTimeout( 30 );
 
     public static final String checkIfInstalled = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
+
+
+    public static RequestBuilder getInstallCommand( String arg )
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + arg ).withTimeout( 1800 );
+    }
 
 
     public static RequestBuilder getAddMasterCommand( String hostname )
@@ -110,8 +118,8 @@ public class Commands
     }
 
 
-    public static String getRemoveAccumuloFromHFDSCommand()
+    public static RequestBuilder getRemoveAccumuloFromHFDSCommand()
     {
-        return ". /etc/profile && hadoop dfs -rmr /accumulo";
+        return new RequestBuilder( ". /etc/profile && hadoop dfs -rmr /accumulo" ).withTimeout( 30 );
     }
 }

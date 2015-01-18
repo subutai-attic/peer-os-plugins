@@ -121,9 +121,8 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
                 {
                     try
                     {
-                        result = host.execute( new RequestBuilder(
-                                Commands.installCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                                        .toLowerCase() ).withTimeout( 1800 ) );
+                        result = host.execute( Commands.getInstallCommand(
+                                Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
                         if ( result.hasSucceeded() )
                         {
                             trackerOperation.addLog(

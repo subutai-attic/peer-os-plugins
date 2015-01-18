@@ -58,7 +58,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         Preconditions.checkNotNull( clusterName, "Accumulo clusterName is null." );
         Preconditions.checkNotNull( hostname, "Hostname is null." );
         Preconditions.checkNotNull( operationType, "Node operation type is null." );
-        Preconditions.checkNotNull( nodeType, "Node type is null." );
+        //        Preconditions.checkNotNull( nodeType, "Node type is null." );
 
         this.hostname = hostname;
         this.clusterName = clusterName;
@@ -123,10 +123,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                     result = host.execute( Commands.startCommand );
                     break;
                 case STOP:
-                    result = host.execute( new RequestBuilder( Commands.stopCommand ) );
+                    result = host.execute( Commands.stopCommand );
                     break;
                 case STATUS:
-                    result = host.execute( new RequestBuilder( Commands.statusCommand ) );
+                    result = host.execute( Commands.statusCommand );
                     break;
                 case UNINSTALL:
                     result = uninstallProductOnNode( host, nodeType );
@@ -211,9 +211,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
         try
         {
-            result = environmentContainerHost.execute( new RequestBuilder(
-                    Commands.installCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() )
-                    .withTimeout( 1800 ) );
+            result = environmentContainerHost.execute( Commands.getInstallCommand(
+                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
             if ( result.hasSucceeded() )
             {
                 trackerOperation.addLog(
@@ -309,15 +308,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             return null;
         }
 
-        if ( !hadoopClusterConfig.getAllNodes().contains( additionalNode.getId() ) )
-        {
-            trackerOperation.addLog( String.format( "Container: %s isn't configured in hadoop cluster.",
-                    additionalNode.getHostname() ) );
-            trackerOperation.addLog(
-                    String.format( "Adding container: %s to hadoop cluster: %s", additionalNode.getHostname(),
-                            hadoopClusterConfig.getClusterName() ) );
-            hadoop.addNode( hadoopClusterConfig.getClusterName(), additionalNode.getHostname() );
-        }
         if ( !zookeeperClusterConfig.getNodes().contains( additionalNode.getId() ) )
         {
             trackerOperation.addLog( String.format( "Container: %s isn't configured in zookeeper cluster.",
@@ -331,9 +321,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
         try
         {
-            result = additionalNode.execute( new RequestBuilder(
-                    Commands.installCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() )
-                    .withTimeout( 1800 ) );
+            result = additionalNode.execute( Commands.getInstallCommand(
+                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
             if ( result.hasSucceeded() )
             {
                 trackerOperation.addLog(
@@ -380,9 +369,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         try
         {
 
-            result = host.execute( new RequestBuilder(
-                    Commands.installCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() )
-                    .withTimeout( 3600 ) );
+            result = host.execute( Commands.getInstallCommand(
+                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 3600 ) );
             if ( result.hasSucceeded() )
             {
                 switch ( nodeType )
