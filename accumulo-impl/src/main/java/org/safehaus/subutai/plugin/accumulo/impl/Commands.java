@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
 
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 
 
@@ -11,7 +12,8 @@ public class Commands
 
     public static final String uninstallCommand = "apt-get --force-yes --assume-yes purge ";
 
-    public static final String startCommand = "/etc/init.d/accumulo start";
+    public static final RequestBuilder startCommand =
+            new RequestBuilder( "/etc/init.d/accumulo start" ).withTimeout( 30 );
 
     public static final String stopCommand = "/etc/init.d/accumulo stop";
 
@@ -20,17 +22,27 @@ public class Commands
     public static final String checkIfInstalled = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
 
 
-    public static String getAddMasterCommand( String hostname )
+    public static RequestBuilder getAddMasterCommand( String hostname )
     {
-        return ". /etc/profile && accumuloMastersConf.sh masters clear && accumuloMastersConf.sh masters add "
-                + hostname;
+        return new RequestBuilder(
+                ". /etc/profile && accumuloMastersConf.sh masters clear && accumuloMastersConf.sh masters add "
+                        + hostname ).withTimeout( 30 );
     }
 
 
-    public static String getAddTracersCommand( String serializedHostNames )
+    public static RequestBuilder getAddTracersCommand( String serializedHostNames )
     {
-        return ". /etc/profile && accumuloMastersConf.sh tracers clear && accumuloMastersConf.sh tracers add "
-                + serializedHostNames;
+        return new RequestBuilder(
+                ". /etc/profile && accumuloMastersConf.sh tracers clear && accumuloMastersConf.sh tracers add "
+                        + serializedHostNames ).withTimeout( 30 );
+    }
+
+
+    public static RequestBuilder getListOfPackageInstalledWithPrefix( String prefix )
+    {
+        return new RequestBuilder(
+                String.format( "dpkg-query -W -f='${Package}\\t${Status}\\t${Version}\\n' '%s*'", prefix ) )
+                .withTimeout( 30 );
     }
 
 
@@ -40,23 +52,27 @@ public class Commands
     }
 
 
-    public static String getAddGCCommand( String hostname )
+    public static RequestBuilder getAddGCCommand( String hostname )
     {
-        return ". /etc/profile && accumuloMastersConf.sh gc clear && accumuloMastersConf.sh gc add " + hostname;
+        return new RequestBuilder(
+                ". /etc/profile && accumuloMastersConf.sh gc clear && accumuloMastersConf.sh gc add " + hostname )
+                .withTimeout( 30 );
     }
 
 
-    public static String getAddMonitorCommand( String hostname )
+    public static RequestBuilder getAddMonitorCommand( String hostname )
     {
-        return ". /etc/profile && accumuloMastersConf.sh monitor clear && accumuloMastersConf.sh monitor add "
-                + hostname;
+        return new RequestBuilder(
+                ". /etc/profile && accumuloMastersConf.sh monitor clear && accumuloMastersConf.sh monitor add "
+                        + hostname ).withTimeout( 30 );
     }
 
 
-    public static String getAddSlavesCommand( String serializedHostNames )
+    public static RequestBuilder getAddSlavesCommand( String serializedHostNames )
     {
-        return ". /etc/profile && accumuloSlavesConf.sh slaves clear && accumuloSlavesConf.sh slaves add "
-                + serializedHostNames;
+        return new RequestBuilder(
+                ". /etc/profile && accumuloSlavesConf.sh slaves clear && accumuloSlavesConf.sh slaves add "
+                        + serializedHostNames ).withTimeout( 30 );
     }
 
 
@@ -66,16 +82,19 @@ public class Commands
     }
 
 
-    public static String getBindZKClusterCommand( String zkNodesCommaSeparated )
+    public static RequestBuilder getBindZKClusterCommand( String zkNodesCommaSeparated )
     {
-        return ". /etc/profile && accumulo-conf.sh remove accumulo-site.xml instance.zookeeper.host && "
-                + "accumulo-conf.sh add accumulo-site.xml instance.zookeeper.host " + zkNodesCommaSeparated;
+        return new RequestBuilder(
+                ". /etc/profile && accumulo-conf.sh remove accumulo-site.xml instance.zookeeper.host && "
+                        + "accumulo-conf.sh add accumulo-site.xml instance.zookeeper.host " + zkNodesCommaSeparated )
+                .withTimeout( 30 );
     }
 
 
-    public static String getInitCommand( String instanceName, String password )
+    public static RequestBuilder getInitCommand( String instanceName, String password )
     {
-        return ". /etc/profile && accumulo-init.sh " + instanceName + " " + password;
+        return new RequestBuilder( ". /etc/profile && accumulo-init.sh " + instanceName + " " + password )
+                .withTimeout( 30 );
     }
 
 

@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
@@ -656,7 +655,7 @@ public class Manager
             availableOperations.setSpacing( true );
 
             // TODO: think about adding destroy button !!!
-            addGivenComponents( availableOperations, checkBtn );
+            addGivenComponents( availableOperations, checkBtn, destroyBtn );
             addStyleName( checkBtn, destroyBtn, availableOperations );
 
             final String nodeRole = findNodeRoles( containerHost );

@@ -6,7 +6,6 @@
 package org.safehaus.subutai.plugin.accumulo.ui.wizard;
 
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +19,8 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ContiguousSet;
@@ -32,7 +33,6 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
@@ -44,6 +44,8 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
     private Property.ValueChangeListener masterNodeComboChangeListener;
     private Property.ValueChangeListener gcNodeComboChangeListener;
     private EnvironmentManager environmentManager;
@@ -101,8 +103,25 @@ public class ConfigurationStep extends Panel
 
             //get existing hadoop clusters
             List<HadoopClusterConfig> hadoopClusters = hadoop.getClusters();
+
             //get existing zk clusters
-            final List<ZookeeperClusterConfig> zkClusters = zookeeper.getClusters();
+            // where already hadoop is installed according to environment
+            List<ZookeeperClusterConfig> allZkClusters = zookeeper.getClusters();
+            final Set<ZookeeperClusterConfig> zkClusters = new HashSet<>();
+
+            for ( final HadoopClusterConfig hadoopCluster : hadoopClusters )
+            {
+                LOGGER.warn( hadoopCluster.getClusterName() + " " + hadoopCluster.getEnvironmentId().toString() );
+                for ( final ZookeeperClusterConfig zkCluster : allZkClusters )
+                {
+                    LOGGER.warn( zkCluster.getClusterName() + " " + zkCluster.getEnvironmentId().toString() );
+                    if ( hadoopCluster.getEnvironmentId().toString()
+                                      .equalsIgnoreCase( zkCluster.getEnvironmentId().toString() ) )
+                    {
+                        zkClusters.add( zkCluster );
+                    }
+                }
+            }
 
 
             //fill zkClustersCombo with zk cluster infos
@@ -504,315 +523,6 @@ public class ConfigurationStep extends Panel
             content.addComponent( buttons );
 
             setContent( layout );
-        }
-        else
-        {
-            //Hadoop settings
-
-            final TextField hadoopClusterNameTxtFld = new TextField( "Enter Hadoop cluster name" );
-            hadoopClusterNameTxtFld.setId( "hadoopClusterNameTxtFld" );
-            hadoopClusterNameTxtFld.setInputPrompt( "Hadoop cluster name" );
-            hadoopClusterNameTxtFld.setRequired( true );
-            hadoopClusterNameTxtFld.setMaxLength( 20 );
-            if ( !Strings.isNullOrEmpty( wizard.getHadoopClusterConfig().getClusterName() ) )
-            {
-                hadoopClusterNameTxtFld.setValue( wizard.getHadoopClusterConfig().getClusterName() );
-            }
-            hadoopClusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getHadoopClusterConfig().setClusterName( event.getProperty().getValue().toString().trim() );
-                }
-            } );
-
-            ComboBox hadoopSlaveNodesComboBox = new ComboBox( "Choose number of Hadoop slave nodes", nodesCountRange );
-            hadoopSlaveNodesComboBox.setId( "hadoopSlaveNodesComboBox" );
-            hadoopSlaveNodesComboBox.setImmediate( true );
-            hadoopSlaveNodesComboBox.setTextInputAllowed( false );
-            hadoopSlaveNodesComboBox.setNullSelectionAllowed( false );
-            hadoopSlaveNodesComboBox.setValue( wizard.getHadoopClusterConfig().getCountOfSlaveNodes() );
-
-            hadoopSlaveNodesComboBox.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getHadoopClusterConfig().setCountOfSlaveNodes( ( Integer ) event.getProperty().getValue() );
-                }
-            } );
-
-            //configuration replication factor
-            ComboBox hadoopReplicationFactorComboBox =
-                    new ComboBox( "Choose replication factor for Hadoop slave nodes", nodesCountRange );
-            hadoopReplicationFactorComboBox.setId( "hadoopReplicationFactorComboBox" );
-            hadoopReplicationFactorComboBox.setImmediate( true );
-            hadoopReplicationFactorComboBox.setTextInputAllowed( false );
-            hadoopReplicationFactorComboBox.setNullSelectionAllowed( false );
-            hadoopReplicationFactorComboBox.setValue( wizard.getHadoopClusterConfig().getReplicationFactor() );
-
-            hadoopReplicationFactorComboBox.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getHadoopClusterConfig().setReplicationFactor( ( Integer ) event.getProperty().getValue() );
-                }
-            } );
-
-            TextField HadoopDomainTxtFld = new TextField( "Enter Hadoop cluster domain name" );
-            HadoopDomainTxtFld.setId( "HadoopDomainTxtFld" );
-            HadoopDomainTxtFld.setInputPrompt( wizard.getHadoopClusterConfig().getDomainName() );
-            HadoopDomainTxtFld.setValue( wizard.getHadoopClusterConfig().getDomainName() );
-            HadoopDomainTxtFld.setMaxLength( 20 );
-            HadoopDomainTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    String value = event.getProperty().getValue().toString().trim();
-                    wizard.getHadoopClusterConfig().setDomainName( value );
-                }
-            } );
-
-
-            //Zookeeper settings
-
-            final TextField zkClusterNameTxtFld = new TextField( "Enter Zookeeper cluster name" );
-            zkClusterNameTxtFld.setId( "zkClusterNameTxtFld" );
-            zkClusterNameTxtFld.setInputPrompt( "Zookeeper cluster name" );
-            zkClusterNameTxtFld.setRequired( true );
-            zkClusterNameTxtFld.setMaxLength( 20 );
-            zkClusterNameTxtFld.setValue( wizard.getZookeeperClusterConfig().getClusterName() );
-            zkClusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getZookeeperClusterConfig()
-                          .setClusterName( event.getProperty().getValue().toString().trim() );
-                }
-            } );
-
-            //number of nodes
-            ComboBox zkNodesCountCombo =
-                    new ComboBox( "Choose number of Zookeeper nodes", Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ) );
-            zkNodesCountCombo.setId( "zkNodesCountCombo" );
-            zkNodesCountCombo.setImmediate( true );
-            zkNodesCountCombo.setTextInputAllowed( false );
-            zkNodesCountCombo.setNullSelectionAllowed( false );
-            zkNodesCountCombo.setValue( wizard.getZookeeperClusterConfig().getNumberOfNodes() );
-
-            zkNodesCountCombo.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getZookeeperClusterConfig().setNumberOfNodes( ( Integer ) event.getProperty().getValue() );
-                }
-            } );
-
-            //Accumulo settings
-
-            final TextField accumuloClusterNameTxtFld = new TextField( "Enter Accumulo cluster name" );
-            accumuloClusterNameTxtFld.setId( "accumuloClusterNameTxtFld" );
-            accumuloClusterNameTxtFld.setInputPrompt( "Accumulo cluster name" );
-            accumuloClusterNameTxtFld.setRequired( true );
-            accumuloClusterNameTxtFld.setMaxLength( 20 );
-            accumuloClusterNameTxtFld.setValue( wizard.getConfig().getClusterName() );
-            accumuloClusterNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getConfig().setClusterName( event.getProperty().getValue().toString().trim() );
-                }
-            } );
-
-            final TextField accumuloInstanceNameTxtFld = new TextField( "Enter instance name" );
-            accumuloInstanceNameTxtFld.setId( "accumuloInstanceNameTxtFld" );
-            accumuloInstanceNameTxtFld.setInputPrompt( "Instance name" );
-            accumuloInstanceNameTxtFld.setRequired( true );
-            accumuloInstanceNameTxtFld.setMaxLength( 20 );
-            accumuloInstanceNameTxtFld.setValue( wizard.getConfig().getInstanceName() );
-            accumuloInstanceNameTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getConfig().setInstanceName( event.getProperty().getValue().toString().trim() );
-                }
-            } );
-
-            final TextField accumuloPasswordTxtFld = new TextField( "Enter password" );
-            accumuloPasswordTxtFld.setId( "accumuloPasswordTxtFld" );
-            accumuloPasswordTxtFld.setInputPrompt( "Password" );
-            accumuloPasswordTxtFld.setRequired( true );
-            accumuloPasswordTxtFld.setMaxLength( 20 );
-            accumuloPasswordTxtFld.setValue( wizard.getConfig().getPassword() );
-            accumuloPasswordTxtFld.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getConfig().setPassword( event.getProperty().getValue().toString().trim() );
-                }
-            } );
-
-
-            //number of tracers
-            ComboBox accumuloTracersCountCombo = new ComboBox( "Choose number of Accumulo tracers", nodesCountRange );
-            accumuloTracersCountCombo.setId( "accumuloTracersCountCombo" );
-            accumuloTracersCountCombo.setImmediate( true );
-            accumuloTracersCountCombo.setTextInputAllowed( false );
-            accumuloTracersCountCombo.setNullSelectionAllowed( false );
-            accumuloTracersCountCombo.setValue( wizard.getConfig().getNumberOfTracers() );
-            accumuloTracersCountCombo.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getConfig().setNumberOfTracers( ( Integer ) event.getProperty().getValue() );
-                }
-            } );
-
-            //number of slaves
-            ComboBox accumuloSlavesCountCombo = new ComboBox( "Choose number of Accumulo slaves", nodesCountRange );
-            accumuloSlavesCountCombo.setId( "accumuloSlavesCountCombo" );
-            accumuloSlavesCountCombo.setImmediate( true );
-            accumuloSlavesCountCombo.setTextInputAllowed( false );
-            accumuloSlavesCountCombo.setNullSelectionAllowed( false );
-            accumuloSlavesCountCombo.setValue( wizard.getConfig().getNumberOfSlaves() );
-            accumuloSlavesCountCombo.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    wizard.getConfig().setNumberOfSlaves( ( Integer ) event.getProperty().getValue() );
-                }
-            } );
-
-
-            Button back = new Button( "Back" );
-            back.setId( "confBack3" );
-            back.setId( "ConfBack" );
-            back.addStyleName( "default" );
-            back.addClickListener( new Button.ClickListener()
-            {
-                @Override
-                public void buttonClick( Button.ClickEvent event )
-                {
-                    wizard.back();
-                }
-            } );
-
-
-            Button next = new Button( "Next" );
-            next.setId( "confNext3" );
-            next.setId( "ConfNext" );
-            next.addStyleName( "default" );
-            next.addClickListener( new Button.ClickListener()
-            {
-                @Override
-                public void buttonClick( Button.ClickEvent event )
-                {
-                    wizard.getConfig().setHadoopClusterName( wizard.getHadoopClusterConfig().getClusterName() );
-                    wizard.getConfig().setZookeeperClusterName( wizard.getZookeeperClusterConfig().getClusterName() );
-
-                    if ( Strings.isNullOrEmpty( wizard.getZookeeperClusterConfig().getClusterName() ) )
-                    {
-                        show( "Please provide Zookeeper cluster name" );
-                    }
-                    else if ( wizard.getZookeeperClusterConfig().getNumberOfNodes() <= 0 )
-                    {
-                        show( "Please enter number of ZK nodes" );
-                    }
-                    else if ( wizard.getZookeeperClusterConfig().getNumberOfNodes()
-                            > HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + wizard.getHadoopClusterConfig()
-                                                                                               .getCountOfSlaveNodes() )
-                    {
-                        show( "Number of ZK nodes must not exceed total number of Hadoop nodes" );
-                    }
-                    else if ( Strings.isNullOrEmpty( wizard.getHadoopClusterConfig().getClusterName() ) )
-                    {
-                        show( "Please provide Hadoop cluster name" );
-                    }
-                    else if ( Strings.isNullOrEmpty( wizard.getHadoopClusterConfig().getDomainName() ) )
-                    {
-                        show( "Please provide Hadoop cluster domain name" );
-                    }
-                    else if ( wizard.getHadoopClusterConfig().getCountOfSlaveNodes() <= 0 )
-                    {
-                        show( "Please provide #  of Hadoop slave nodes" );
-                    }
-                    else if ( wizard.getHadoopClusterConfig().getReplicationFactor() <= 0 )
-                    {
-                        show( "Please provide Hadoop cluster replicaton factor" );
-                    }
-                    else if ( Strings.isNullOrEmpty( wizard.getConfig().getClusterName() ) )
-                    {
-                        show( "Please provide Accumulo cluster name" );
-                    }
-                    else if ( Strings.isNullOrEmpty( wizard.getConfig().getInstanceName() ) )
-                    {
-                        show( "Please provide Accumulo instance name" );
-                    }
-                    else if ( Strings.isNullOrEmpty( wizard.getConfig().getPassword() ) )
-                    {
-                        show( "Please provide Accumulo password" );
-                    }
-                    else if ( wizard.getConfig().getNumberOfTracers() <= 0 )
-                    {
-                        show( "Please enter number of Tracer nodes" );
-                    }
-                    else if ( wizard.getConfig().getNumberOfSlaves() <= 0 )
-                    {
-                        show( "Please enter number of Slave nodes" );
-                    }
-                    else if ( wizard.getConfig().getNumberOfTracers() + wizard.getConfig().getNumberOfSlaves()
-                            > HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + wizard.getHadoopClusterConfig()
-                                                                                               .getCountOfSlaveNodes() )
-                    {
-                        show( "Total number of tracers and slaves must not exceed total number of Hadoop nodes)" );
-                    }
-                    else
-                    {
-                        wizard.next();
-                    }
-                }
-            } );
-
-            HorizontalLayout buttons = new HorizontalLayout();
-            buttons.addComponent( back );
-            buttons.addComponent( next );
-
-            GridLayout withHadoopInstallationControls = new GridLayout( 1, 5 );
-            withHadoopInstallationControls.setSizeFull();
-            withHadoopInstallationControls.setSpacing( true );
-            withHadoopInstallationControls.setMargin( true );
-
-            withHadoopInstallationControls.addComponent( new Label(
-                    "Please, specify installation settings for combo Hadoop+Zookeeper+Accumulo clusters installation"
-            ) );
-            withHadoopInstallationControls.addComponent( new Label( "Zookeeper settings" ) );
-            withHadoopInstallationControls.addComponent( zkClusterNameTxtFld );
-            withHadoopInstallationControls.addComponent( zkNodesCountCombo );
-            withHadoopInstallationControls.addComponent( new Label( "Hadoop settings" ) );
-            withHadoopInstallationControls.addComponent( hadoopClusterNameTxtFld );
-            withHadoopInstallationControls.addComponent( hadoopSlaveNodesComboBox );
-            withHadoopInstallationControls.addComponent( hadoopReplicationFactorComboBox );
-            withHadoopInstallationControls.addComponent( HadoopDomainTxtFld );
-            withHadoopInstallationControls.addComponent( new Label( "Accumulo settings" ) );
-            withHadoopInstallationControls.addComponent( accumuloClusterNameTxtFld );
-            withHadoopInstallationControls.addComponent( accumuloInstanceNameTxtFld );
-            withHadoopInstallationControls.addComponent( accumuloPasswordTxtFld );
-            withHadoopInstallationControls.addComponent( accumuloTracersCountCombo );
-            withHadoopInstallationControls.addComponent( accumuloSlavesCountCombo );
-
-            withHadoopInstallationControls.addComponent( buttons );
-
-            setContent( withHadoopInstallationControls );
         }
     }
 
