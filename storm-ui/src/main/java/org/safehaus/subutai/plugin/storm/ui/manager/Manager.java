@@ -545,6 +545,12 @@ public class Manager
             final Button restartBtn = new Button( RESTART_BUTTON_CAPTION );
             final Button destroyBtn = new Button( DESTROY_NODE_BUTTON_CAPTION );
 
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormCheck" );
+            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormStart" );
+            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormStop" );
+            restartBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormRestart" );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormDestroy" );
+
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
 
 //            disableButtons( startBtn, stopBtn, restartBtn );
