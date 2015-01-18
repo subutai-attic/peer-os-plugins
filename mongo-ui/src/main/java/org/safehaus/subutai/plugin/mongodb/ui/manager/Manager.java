@@ -466,7 +466,7 @@ public class Manager
             stopBtn.setId(node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStop" );
 
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "mongoDestroy" );
+            destroyBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoDestroy" );
 
             stopBtn.setEnabled( false );
             startBtn.setEnabled( false );
