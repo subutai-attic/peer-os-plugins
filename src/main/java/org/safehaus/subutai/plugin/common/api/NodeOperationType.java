@@ -7,6 +7,7 @@ public enum NodeOperationType
     STOP,
     RESTART,
     STATUS,
+    ADD,
     DESTROY,
     INSTALL,
     UNINSTALL,
