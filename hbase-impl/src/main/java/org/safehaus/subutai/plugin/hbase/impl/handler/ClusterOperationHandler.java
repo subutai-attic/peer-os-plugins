@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 
 import java.util.Set;
-import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -15,9 +14,9 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 import org.safehaus.subutai.plugin.hbase.impl.Commands;
 import org.safehaus.subutai.plugin.hbase.impl.HBaseImpl;
+import org.safehaus.subutai.plugin.hbase.impl.HBaseSetupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,37 +134,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            if ( config.getSetupType() == SetupType.WITH_HADOOP )
-            {
-
-                /*if ( hadoopConfig == null )
-                {
-                    throw new ClusterSetupException( "No Hadoop configuration specified" );
-                }
-
-                trackerOperation.addLog( "Preparing environment..." );
-
-                //setup Hadoop cluster
-                hadoopConfig.setTemplateName( HBaseConfig.TEMPLATE_NAME );
-                EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint( hadoopConfig );
-                environment = manager.getEnvironmentManager().buildEnvironment( eb );
-                manager.getHadoopManager().getClusterSetupStrategy( environment, hadoopConfig, trackerOperation )
-                       .setup();
-
-                trackerOperation.addLog( "Environment built successfully" );
-*/
-            }
-            else
-            {
-                environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            }
-
+            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
             //setup HBase cluster
             trackerOperation.addLog( "Installing cluster..." );
-            manager.getClusterSetupStrategy( trackerOperation, config, environment ).setup();
+            HBaseSetupStrategy strategy = new HBaseSetupStrategy( manager, manager.getHadoopManager(),
+                    config, environment, trackerOperation );
+
+            strategy.setup();
             trackerOperation.addLogDone( "Installing cluster completed" );
         }
-        catch ( /*EnvironmentBuildException |*/ ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             LOG.error( "Error in setupCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to setup cluster : %s", e.getMessage() ) );

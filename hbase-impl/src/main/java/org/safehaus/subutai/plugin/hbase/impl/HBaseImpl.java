@@ -1,22 +1,24 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
-import com.google.common.base.Preconditions;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.sql.DataSource;
+
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-//import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 import org.safehaus.subutai.plugin.hbase.impl.alert.HBaseAlertListener;
 import org.safehaus.subutai.plugin.hbase.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
@@ -24,12 +26,9 @@ import org.safehaus.subutai.plugin.hbase.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+
+//import org.safehaus.subutai.plugin.common.PluginDAO;
 
 
 public class HBaseImpl implements HBase
@@ -204,22 +203,6 @@ public class HBaseImpl implements HBase
                 new NodeOperationHandler( this, config, hostname, NodeOperationType.EXCLUDE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( final TrackerOperation po, final HBaseConfig config,
-                                                         final Environment environment )
-    {
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-
-            return new OverHadoopSetupStrategy( this, config, environment, po );
-        }
-        else
-        {
-            return new WithHadoopSetupStrategy( this, config, environment, po );
-        }
     }
 
 

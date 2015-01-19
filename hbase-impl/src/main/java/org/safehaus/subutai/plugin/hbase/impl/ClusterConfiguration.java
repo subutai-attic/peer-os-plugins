@@ -1,6 +1,10 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Logger;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -9,10 +13,9 @@ import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-
-import java.util.UUID;
-import java.util.logging.Logger;
+import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
@@ -20,87 +23,89 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private static final Logger LOG = Logger.getLogger( ClusterConfiguration.class.getName() );
     private TrackerOperation po;
-    private HadoopImpl hadoopManager;
+    private HBaseImpl hBase;
+    private Hadoop hadoop;
 
-
-    public ClusterConfiguration( final TrackerOperation operation, final HadoopImpl cassandraManager )
+    public ClusterConfiguration( final TrackerOperation operation, final HBaseImpl hBase, final Hadoop hadoop )
     {
         this.po = operation;
-        this.hadoopManager = cassandraManager;
+        this.hBase = hBase;
+        this.hadoop = hadoop;
     }
 
 
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
+        HBaseConfig config = ( HBaseConfig ) configBase;
+        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+
+        // configure master
+        po.addLog( "Configuring hmaster... !" );
+        UUID hmaster = config.getHbaseMaster();
+        ContainerHost hmasterContainerHost = environment.getContainerHostById( hmaster );
+        ContainerHost namenode = environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
+
+        executeCommandOnAllContainer( config.getAllNodes(),
+                Commands.getConfigMasterCommand( namenode.getHostname(), hmasterContainerHost.getHostname() ), environment );
 
 
-        HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
-        Commands commands = new Commands( config );
-
-        ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-        ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
-        ContainerHost secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
-        po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
-
-        // Clear configuration files
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
+        // configure region servers
+        po.addLog( "Configuring region servers..." );
+        StringBuilder sb = new StringBuilder();
+        for ( UUID uuid : config.getRegionServers() )
         {
-            executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
-            executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
+            ContainerHost tmp = environment.getContainerHostById( uuid );
+            sb.append( tmp.getHostname() );
+            sb.append( " " );
         }
+        executeCommandOnAllContainer( config.getAllNodes(),
+                Commands.getConfigRegionCommand( sb.toString() ), environment );
 
-        // Configure NameNode
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
+        // configure quorum peers
+        po.addLog( "Configuring quorum peers..." );
+        sb = new StringBuilder();
+        for ( UUID uuid : config.getQuorumPeers() )
         {
-            executeCommandOnContainer( containerHost, commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
+            ContainerHost tmp = environment.getContainerHostById( uuid );
+            sb.append( tmp.getHostname() );
+            sb.append( " " );
         }
-
-        // Configure JobTracker
-        executeCommandOnContainer( jobtracker, commands.getConfigureJobTrackerCommand( jobtracker.getHostname() ) );
-
-
-        // Configure Secondary NameNode
-        executeCommandOnContainer( namenode, commands.getConfigureSecondaryNameNodeCommand( secondaryNameNode.getHostname() ) );
+        executeCommandOnAllContainer( config.getAllNodes(),
+                Commands.getConfigQuorumCommand( sb.toString() ), environment );
 
 
-        // Configure DataNodes
-        for ( UUID uuid : config.getDataNodes() )
+        // configure back up master
+        po.addLog( "Configuring backup masters..." );
+        sb = new StringBuilder();
+        for ( UUID uuid : config.getBackupMasters() )
         {
-            executeCommandOnContainer( namenode,
-                    commands.getConfigureDataNodesCommand( environment.getContainerHostById( uuid ).getHostname() ) );
+            ContainerHost tmp = environment.getContainerHostById( uuid );
+            sb.append( tmp.getHostname() );
+            sb.append( " " );
         }
-
-        // Configure TaskTrackers
-        for ( UUID uuid : config.getTaskTrackers() )
-        {
-            executeCommandOnContainer( jobtracker, commands.getConfigureTaskTrackersCommand( environment.getContainerHostById(
-                    uuid ).getHostname() ) );
-        }
-
-        // Format NameNode
-        executeCommandOnContainer( namenode, Commands.getFormatNameNodeCommand() );
-
-
-        // Start Hadoop cluster
-        executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
-        executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
+        executeCommandOnAllContainer( config.getAllNodes(),
+                Commands.getConfigBackupMastersCommand( sb.toString() ), environment );
 
 
         po.addLog( "Configuration is finished !" );
 
         config.setEnvironmentId( environment.getId() );
-        hadoopManager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
+        hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "Hadoop cluster data saved into database" );
     }
 
-    private void executeCommandOnContainer( ContainerHost containerHost, String command ){
-        try
-        {
-            containerHost.execute( new RequestBuilder( command ) );
-        }
-        catch ( CommandException e )
-        {
-            e.printStackTrace();
+
+    private void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command, Environment environment ){
+        for ( UUID uuid : allUUIDs ){
+            try
+            {
+                ContainerHost containerHost = environment.getContainerHostById( uuid );
+                containerHost.execute( command );
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
         }
     }
 }

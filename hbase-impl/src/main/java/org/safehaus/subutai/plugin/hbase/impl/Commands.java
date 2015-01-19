@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
@@ -58,25 +58,25 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigBackupMastersCommand( String backUpMasters )
+    public static RequestBuilder getConfigBackupMastersCommand( String backUpMasters )
     {
         return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh %s", backUpMasters ) );
     }
 
 
-    public RequestBuilder getConfigQuorumCommand( String quorumPeers )
+    public static RequestBuilder getConfigQuorumCommand( String quorumPeers )
     {
         return new RequestBuilder( String.format( ". /etc/profile && quorum.sh %s", quorumPeers ) );
     }
 
 
-    public RequestBuilder getConfigRegionCommand( String regionServers )
+    public static RequestBuilder getConfigRegionCommand( String regionServers )
     {
         return new RequestBuilder( String.format( ". /etc/profile && region.sh %s", regionServers ) );
     }
 
 
-    public RequestBuilder getConfigMasterCommand( String hadoopNameNodeHostname, String hMasterMachineHostname )
+    public static RequestBuilder getConfigMasterCommand( String hadoopNameNodeHostname, String hMasterMachineHostname )
     {
         return new RequestBuilder(
                 String.format( ". /etc/profile && master.sh %s %s", hadoopNameNodeHostname, hMasterMachineHostname ) );

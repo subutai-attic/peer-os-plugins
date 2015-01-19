@@ -2,15 +2,11 @@ package org.safehaus.subutai.plugin.hbase.api;
 
 
 import java.util.UUID;
-import java.util.regex.Pattern;
 
-import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
 

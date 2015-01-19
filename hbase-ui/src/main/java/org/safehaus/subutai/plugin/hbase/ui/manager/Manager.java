@@ -19,13 +19,10 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.HBaseNodeOperationTask;
 import org.safehaus.subutai.plugin.hbase.api.HBaseType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -71,7 +68,7 @@ public class Manager
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String TABLE_CAPTION = "All Nodes";
     protected static final String BUTTON_STYLE_NAME = "default";
-    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, destroyClusterBtn;
+    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final ExecutorService executor;
@@ -225,10 +222,10 @@ public class Manager
 
 
         /** Destroy All button */
-        destroyClusterBtn = new Button( REMOVE_CLUSTER_BUTTON_CAPTION );
-        destroyClusterBtn.setId( "HbaseMngDestroy" );
-        destroyClusterBtn.addStyleName( BUTTON_STYLE_NAME );
-        destroyClusterBtn.addClickListener( new Button.ClickListener()
+        removeClusterBtn = new Button( REMOVE_CLUSTER_BUTTON_CAPTION );
+        removeClusterBtn.setId( "HbaseMngDestroy" );
+        removeClusterBtn.addStyleName( BUTTON_STYLE_NAME );
+        removeClusterBtn.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
@@ -267,8 +264,8 @@ public class Manager
             }
         } );
 
-        controlsContent.addComponent( destroyClusterBtn );
-        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+        controlsContent.addComponent( removeClusterBtn );
+        controlsContent.setComponentAlignment( removeClusterBtn, Alignment.MIDDLE_CENTER );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
