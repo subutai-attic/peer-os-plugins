@@ -56,11 +56,27 @@ public class StepSetConfig extends Panel
 
         final HadoopClusterConfig hcc =
                 wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
+
+//        List<UUID> allHadoopNodes = hcc.getAllNodes();
+//        Set<UUID> allHadoopNodeSet = new HashSet<>();
+//        allHadoopNodeSet.addAll( allHadoopNodes );
+//
+//        Set<UUID> nodes = new HashSet<>(hcc.getAllNodes());
+//        Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
+//
+//        for (ContainerHost host : hosts)
+//        {
+//            cbServers.addItem( host );
+//            cbServers.setItemCaption( host, host.getHostname() );
+//        }
+
         for ( UUID agent : hcc.getAllNodes() )
         {
             cbServers.addItem( agent );
             cbServers.setItemCaption( agent, agent.toString() );
         }
+
+
 
         vl.addComponent( cbServers );
 

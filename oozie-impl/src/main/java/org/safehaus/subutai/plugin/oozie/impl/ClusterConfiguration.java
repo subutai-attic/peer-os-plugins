@@ -46,7 +46,7 @@ public class ClusterConfiguration
         while (iterator.hasNext())
         {
             ContainerHost hadoopNode = environment.getContainerHostById(iterator.next().getId());
-            RequestBuilder requestBuilder = Commands.getConfigureRootHostsCommand("10.10.10.10");
+            RequestBuilder requestBuilder = Commands.getConfigureRootHostsCommand(hadoopNode.getIpByInterfaceName("eth0"));
             RequestBuilder requestBuilder2 = Commands.getConfigureRootGroupsCommand();
             CommandResult commandResult = null;
             CommandResult commandResult2 = null;
