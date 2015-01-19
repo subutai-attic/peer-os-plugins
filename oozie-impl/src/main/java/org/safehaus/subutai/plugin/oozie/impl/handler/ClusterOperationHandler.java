@@ -1,15 +1,19 @@
 package org.safehaus.subutai.plugin.oozie.impl.handler;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.*;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
+import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.CommandType;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
@@ -51,23 +55,57 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
     @Override
     public void setupCluster()
     {
+//        try
+//        {
+//            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config);
+//            try
+//            {
+//                trackerOperation.addLog( "Installing cluster..." );
+//                s.setup();
+//                trackerOperation.addLogDone( "Installing cluster completed" );
+//            }
+//            catch (ClusterSetupException ex)
+//            {
+//                throw new ClusterException("Failed to setup cluster: " + ex.getMessage());
+//            }
+//        }
+//        catch (ClusterException e)
+//        {
+//            trackerOperation.addLogFailed(String.format("Could not start all nodes : %s", e.getMessage()));
+//        }
+        if ( Strings.isNullOrEmpty(config.getClusterName()) )
+        {
+            trackerOperation.addLogFailed( "Malformed configuration" );
+            return;
+        }
+
+        if ( manager.getCluster( clusterName ) != null )
+        {
+            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
+            return;
+        }
+
         try
         {
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config);
-            try
+            Environment env = null;
+            if ( config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
             {
-                trackerOperation.addLog( "Installing cluster..." );
-                s.setup();
-                trackerOperation.addLogDone( "Installing cluster completed" );
+                env = manager.getEnvironmentManager()
+                        .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
             }
-            catch (ClusterSetupException ex)
-            {
-                throw new ClusterException("Failed to setup cluster: " + ex.getMessage());
-            }
+
+
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+            clusterSetupStrategy.setup();
+
+            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch (ClusterException e)
+        catch ( EnvironmentBuildException | ClusterSetupException e )
         {
-            trackerOperation.addLogFailed(String.format("Could not start all nodes : %s", e.getMessage()));
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(),
+                            clusterName, e.getMessage() ) );
         }
 
     }

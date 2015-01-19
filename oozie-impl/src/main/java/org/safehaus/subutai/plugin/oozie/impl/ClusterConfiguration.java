@@ -1,75 +1,96 @@
 package org.safehaus.subutai.plugin.oozie.impl;
 
-
-import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
-import com.google.common.collect.Sets;
-
+import java.util.*;
 
 /**
- * Created by bahadyr on 9/1/14.
+ * Created by ermek on 1/18/15.
  */
 public class ClusterConfiguration
 {
 
-    private TrackerOperation po;
     private OozieImpl manager;
+    private TrackerOperation po;
 
-
-    public ClusterConfiguration( final TrackerOperation trackerOperation, final OozieImpl oozieManager )
+    public ClusterConfiguration(final OozieImpl manager, final TrackerOperation po)
     {
-
-        this.po = trackerOperation;
-        this.manager = oozieManager;
+        this.manager = manager;
+        this.po = po;
     }
 
 
-    public void configureCluster( OozieClusterConfig config ) throws ClusterConfigurationException
+    public void configureCluster(final OozieClusterConfig config, Environment environment) throws
+            ClusterConfigurationException
     {
 
-        /*po.addLog( "Configuring root hosts..." );
-        Agent server = config.getServer();
-        HadoopClusterConfig hadoopClusterConfig =
-                manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
-        //        Set<Agent> hadoopNodes = new HashSet<Agent>();
-        //        for ( String hadoopNode : config.ge) {
-        //            Agent hadoopNodeAgent = manager.getAgentManager().getAgentByHostname( hadoopNode );
-        //            hadoopNodes.add( hadoopNodeAgent );
-        //        }
+        po.addLog("Configuring cluster...");
 
-        Command configureRootHostsCommand = manager.getCommands().getConfigureRootHostsCommand(
-                Sets.newHashSet( hadoopClusterConfig.getAllNodes() ),
-                AgentUtil.getAgentIpByMask( server, Common.IP_MASK ) );
-        manager.getCommandRunner().runCommand( configureRootHostsCommand );
 
-        if ( configureRootHostsCommand.hasSucceeded() )
+        HadoopClusterConfig hadoopClusterConfig = manager.getHadoopManager().getCluster(config.getHadoopClusterName());
+        Set<UUID> nodeUUIDs = new HashSet<>(hadoopClusterConfig.getAllNodes());
+        Set<ContainerHost> containerHosts = environment.getContainerHostsByIds(nodeUUIDs);
+        Iterator<ContainerHost> iterator = containerHosts.iterator();
+
+        List<CommandResult> commandsResultList = new ArrayList<>();
+        List<CommandResult> commandsResultList2 = new ArrayList<>();
+
+        while (iterator.hasNext())
         {
-            po.addLog( "Configuring root hosts successful." );
+            ContainerHost hadoopNode = environment.getContainerHostById(iterator.next().getId());
+            RequestBuilder requestBuilder = Commands.getConfigureRootHostsCommand("10.10.10.10");
+            RequestBuilder requestBuilder2 = Commands.getConfigureRootGroupsCommand();
+            CommandResult commandResult = null;
+            CommandResult commandResult2 = null;
+            try
+            {
+                commandResult = hadoopNode.execute(requestBuilder.withTimeout(60));
+                commandResult2 = hadoopNode.execute(requestBuilder2.withTimeout(60));
+            } catch (CommandException e)
+            {
+                po.addLogFailed("Could not run command " + "configureRootHostsCommand" + ": " + e);
+                e.printStackTrace();
+            }
+            commandsResultList.add(commandResult);
+            commandsResultList2.add(commandResult2);
+        }
+
+        boolean isSuccesful = true;
+        for (CommandResult aCommandsResultList : commandsResultList)
+        {
+            if (!aCommandsResultList.hasSucceeded())
+            {
+                isSuccesful = false;
+            }
+        }
+
+        boolean isSuccesful2 = true;
+        for (CommandResult aCommandsResultList : commandsResultList2)
+        {
+            if (!aCommandsResultList.hasSucceeded())
+            {
+                isSuccesful = false;
+            }
+        }
+
+        if (isSuccesful && isSuccesful2)
+        {
+            po.addLog("Cluster configured\n");
         }
         else
         {
-            po.addLogFailed( String.format( "Configuration failed, %s", configureRootHostsCommand.getAllErrors() ) );
-            return;
-        }
 
-        po.addLog( "Configuring root groups..." );
-        Command configureRootGroupsCommand = manager.getCommands().getConfigureRootGroupsCommand(
-                Sets.newHashSet( hadoopClusterConfig.getAllNodes() ) );
-        manager.getCommandRunner().runCommand( configureRootGroupsCommand );
-
-        if ( configureRootGroupsCommand.hasSucceeded() )
-        {
-            po.addLog( "Configuring root groups successful." );
+            throw new ClusterConfigurationException(String.format("Cluster configuration failed"));
         }
-        else
-        {
-            po.addLogFailed( String.format( "Configuring failed, %s", configureRootGroupsCommand.getAllErrors() ) );
-            return;
-        }
-        po.addLogDone( "Oozie installation succeeded" );*/
     }
 }
+
+

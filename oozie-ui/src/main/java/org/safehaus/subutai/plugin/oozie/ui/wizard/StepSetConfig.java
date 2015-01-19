@@ -1,28 +1,14 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TwinColSelect;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+
+import java.util.*;
 
 
 public class StepSetConfig extends Panel
@@ -82,7 +68,7 @@ public class StepSetConfig extends Panel
 
         final TwinColSelect selectClients = new TwinColSelect( "", new ArrayList<String>() );
         selectClients.setId( "OozieConfClientNodes" );
-        selectClients.setItemCaptionPropertyId( "hostname" );
+//        selectClients.setItemCaptionPropertyId( "hostname" );
         selectClients.setRows( 7 );
         selectClients.setNullSelectionAllowed( true );
         selectClients.setMultiSelect( true );

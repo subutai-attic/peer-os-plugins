@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.oozie.api;
 
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
@@ -29,7 +30,7 @@ public interface Oozie extends ApiBase<OozieClusterConfig>
 //
 //    UUID checkServerStatus(OozieClusterConfig config);
 
-    public ClusterSetupStrategy getClusterSetupStrategy(TrackerOperation po, OozieClusterConfig config);
+    public ClusterSetupStrategy getClusterSetupStrategy(Environment environment, OozieClusterConfig config, TrackerOperation trackerOperation);
 
     public EnvironmentBlueprint getDefaultEnvironmentBlueprint(OozieClusterConfig config);
 

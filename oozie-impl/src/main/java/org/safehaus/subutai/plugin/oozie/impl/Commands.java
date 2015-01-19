@@ -94,7 +94,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigureRootHostsCommand(String param)
+    public static RequestBuilder getConfigureRootHostsCommand(String param)
     {
 
         return new RequestBuilder(String.format(
@@ -103,7 +103,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigureRootGroupsCommand()
+    public static RequestBuilder getConfigureRootGroupsCommand()
     {
 
         return new RequestBuilder(String.format(
