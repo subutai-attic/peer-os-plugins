@@ -18,6 +18,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.api.StormNodeOperationTask;
@@ -213,19 +214,30 @@ public class Manager
                     show( "Select cluster" );
                     return;
                 }
-                UUID trackId = storm.addNode( config.getClusterName() );
-                ProgressWindow pw =
-                        new ProgressWindow( executorService, tracker, trackId, StormClusterConfiguration.PRODUCT_NAME );
-                pw.getWindow().addCloseListener( new Window.CloseListener()
+                ConfirmationDialog alert = new ConfirmationDialog(
+                        String.format( "Do you want to add a new node to the %s cluster?",
+                                config.getClusterName() ), "Yes", "No" );
+                alert.getOk().addClickListener( new Button.ClickListener()
                 {
-
                     @Override
-                    public void windowClose( Window.CloseEvent e )
+                    public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        refreshClustersInfo();
+                        UUID trackId = storm.addNode( config.getClusterName() );
+                        ProgressWindow pw =
+                                new ProgressWindow( executorService, tracker, trackId, StormClusterConfiguration.PRODUCT_NAME );
+                        pw.getWindow().addCloseListener( new Window.CloseListener()
+                        {
+                            @Override
+                            public void windowClose( Window.CloseEvent e )
+                            {
+                                refreshClustersInfo();
+                                refreshUI();
+                            }
+                        } );
+                        contentRoot.getUI().addWindow( pw.getWindow() );
                     }
                 } );
-                contentRoot.getUI().addWindow( pw.getWindow() );
+                contentRoot.getUI().addWindow( alert.getAlert() );
             }
         } );
         controlsContent.addComponent( addNodeBtn );

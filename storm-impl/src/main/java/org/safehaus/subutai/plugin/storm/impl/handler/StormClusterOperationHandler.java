@@ -7,19 +7,25 @@ import java.util.List;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.protocol.NodeGroup;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
+import org.safehaus.subutai.plugin.storm.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
 import org.safehaus.subutai.plugin.storm.impl.StormImpl;
@@ -30,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 /**
@@ -136,7 +144,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 break;
             case ADD:
-                commandResultList.addAll( addNode() );
+                addNode();
                 break;
             case REMOVE:
                 removeCluster();
@@ -160,11 +168,123 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     }
 
 
-    private List<CommandResult> addNode()
+    /**
+     * It adds 1 node to cluster.
+     */
+    public void addNode(){
+        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+
+        /**
+         * first check if there are containers in environment that is not being used in storm cluster,
+         * if yes, then do NOT create new containers.
+         */
+        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+        boolean allContainersNotBeingUsed = false;
+        for ( ContainerHost containerHost : environment.getContainerHosts() ){
+            if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
+                allContainersNotBeingUsed = true;
+            }
+        }
+
+        try
+        {
+            if ( ( ! allContainersNotBeingUsed ) ){
+
+                NodeGroup nodeGroup = new NodeGroup();
+                nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
+                nodeGroup.setLinkHosts( true );
+                nodeGroup.setExchangeSshKeys( true );
+                nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
+                nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
+                nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
+                nodeGroup.setNumberOfNodes( 1 );
+
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+                String ngJSON = gson.toJson(nodeGroup);
+
+                trackerOperation.addLog( "Creating new containers..." );
+                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
+            }
+            else{
+                trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
+            }
+
+
+            // update cluster configuration on DB
+            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            for ( ContainerHost containerHost : environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts() )
+            {
+                if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
+                    config.getSupervisors().add( containerHost.getId() );
+                    trackerOperation.addLog( containerHost.getHostname() + " is added as supervisor node." );
+                }
+            }
+            manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
+
+            // configure ssh keys
+            /*
+                TODO: do we need to configure ssh keys of storm nodes?
+                Set<ContainerHost> allNodes = new HashSet<>();
+                allNodes.addAll( newlyCreatedContainers );
+                allNodes.addAll( environment.getContainerHosts() );
+                try
+                {
+                    manager.getSecurityManager().configHostsOnAgents( allNodes, Common.DEFAULT_DOMAIN_NAME );
+                }
+                catch ( SecurityManagerException e )
+                {
+                    e.printStackTrace();
+                }
+
+                // link hosts (/etc/hosts)
+                try
+                {
+                    manager.getSecurityManager().configSshOnAgents( allNodes );
+                }
+                catch ( SecurityManagerException e )
+                {
+                    e.printStackTrace();
+                }
+            */
+
+            // configure cluster
+            try
+            {
+                configureCluster( config, environment );
+            }
+            catch ( ClusterSetupException e )
+            {
+                e.printStackTrace();
+            }
+
+            trackerOperation.addLogDone( "Finished." );
+        }
+        catch ( EnvironmentBuildException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void configureCluster( StormClusterConfiguration config, Environment environment )
+            throws ClusterSetupException
     {
-        List<CommandResult> commandResults = new ArrayList<>();
-        trackerOperation.addLogFailed( "Adding node to cluster is not supported yet!" );
-        return commandResults;
+        trackerOperation.addLog( "Configuring cluster..." );
+        try
+        {
+            new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, environment );
+        }
+        catch ( ClusterSetupException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            throw new ClusterSetupException( e.getMessage() );
+
+        }
     }
 
 

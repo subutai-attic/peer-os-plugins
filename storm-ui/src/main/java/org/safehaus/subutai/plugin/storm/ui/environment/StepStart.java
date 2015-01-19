@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.storm.ui.environment;
 
 import org.safehaus.subutai.common.util.FileUtil;
 import org.safehaus.subutai.plugin.storm.ui.StormPortalModule;
-import org.safehaus.subutai.plugin.storm.ui.wizard.Wizard;
 
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;

@@ -137,6 +137,21 @@ public class StormClusterConfiguration implements ConfigBase
     }
 
 
+    public Set<UUID> getAllNodes()
+    {
+        Set<UUID> allAgents = new HashSet<>();
+        if ( nimbus != null )
+        {
+            allAgents.add( nimbus );
+        }
+        if ( supervisors != null )
+        {
+            allAgents.addAll( supervisors );
+        }
+        return allAgents;
+    }
+
+
     @Override
     public int hashCode()
     {

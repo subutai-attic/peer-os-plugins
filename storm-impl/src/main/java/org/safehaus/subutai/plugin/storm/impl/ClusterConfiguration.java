@@ -36,7 +36,7 @@ public class ClusterConfiguration
         environmentManager = stormManager.getEnvironmentManager();
     }
 
-    //TODO use host.getInterfaces instead of Agents
+
     public void configureCluster( StormClusterConfiguration config, Environment environment )
             throws ClusterConfigurationException, ClusterSetupException
     {
@@ -49,6 +49,7 @@ public class ClusterConfiguration
         Map<String, String> paramValues = new LinkedHashMap<>();
         paramValues.put( "storm.zookeeper.servers", zk_servers );
         paramValues.put( "storm.local.dir", "/var/lib/storm" );
+
         ContainerHost nimbusHost;
         if ( config.isExternalZookeeper() ) {
             ZookeeperClusterConfig zookeeperClusterConfig =

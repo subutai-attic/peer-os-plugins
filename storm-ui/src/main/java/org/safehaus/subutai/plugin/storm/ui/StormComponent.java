@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
@@ -40,12 +39,12 @@ public class StormComponent extends CustomComponent
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-        tabSheet.addTab( wizard.getContent(), "Install" );
-        tabSheet.getTab( 0 ).setId( "StormInstallTab" );
-        tabSheet.addTab( environmentWizard.getContent(), "Configure environment" );
-        tabSheet.getTab( 1 ).setId( "StormConfigureEnvironmentTab" );
+//        tabSheet.addTab( wizard.getContent(), "Install" );
+//        tabSheet.getTab( 0 ).setId( "StormInstallTab" );
+        tabSheet.addTab( environmentWizard.getContent(), "Install" );
+        tabSheet.getTab( 0 ).setId( "StormConfigureEnvironmentTab" );
         tabSheet.addTab( manager.getContent(), "Manage" );
-        tabSheet.getTab( 2 ).setId( "StormManageTab" );
+        tabSheet.getTab( 1 ).setId( "StormManageTab" );
 
         verticalLayout.addComponent( tabSheet );
         setCompositionRoot( verticalLayout );
