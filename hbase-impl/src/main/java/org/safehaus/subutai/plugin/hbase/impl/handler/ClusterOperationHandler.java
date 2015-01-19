@@ -24,9 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by bahadyr on 11/17/14.
- */
 public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl, HBaseConfig>
         implements ClusterOperationHandlerInterface
 {
@@ -86,27 +83,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     private void stopCluster()
     {
         environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Set<UUID> allNodes = config.getAllNodes();
-        for ( ContainerHost host : environment.getContainerHostsByIds( allNodes ) )
+        ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+        try
         {
-            try
+            CommandResult result = hmaster.execute( Commands.getStopCommand() );
+            if ( result.hasSucceeded() )
             {
-                CommandResult result = host.execute( Commands.getStopCommand() );
-                if ( result.hasSucceeded() )
-                {
-                    trackerOperation.addLog( result.getStdOut() );
-                }
-                else
-                {
-                    trackerOperation.addLogFailed( result.getStdErr() );
-                }
-                trackerOperation.addLogDone( "Stop cluster command executed" );
+                trackerOperation.addLog( result.getStdOut() );
             }
-            catch ( CommandException e )
+            else
             {
-                trackerOperation.addLogFailed( e.getMessage() );
-                LOG.error( e.getMessage(), e );
+                trackerOperation.addLogFailed( result.getStdErr() );
             }
+            trackerOperation.addLogDone( "Stop cluster command executed" );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLogFailed( e.getMessage() );
+            LOG.error( e.getMessage(), e );
         }
     }
 
@@ -114,27 +108,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     private void startCluster()
     {
         environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Set<UUID> allNodes = config.getAllNodes();
-        for ( ContainerHost host : environment.getContainerHostsByIds( allNodes ) )
+        ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+        try
         {
-            try
+            CommandResult result = hmaster.execute( Commands.getStartCommand() );
+            if ( result.hasSucceeded() )
             {
-                CommandResult result = host.execute( Commands.getStartCommand() );
-                if ( result.hasSucceeded() )
-                {
-                    trackerOperation.addLog( result.getStdOut() );
-                }
-                else
-                {
-                    trackerOperation.addLogFailed( result.getStdErr() );
-                }
-                trackerOperation.addLogDone( "Start cluster command executed" );
+                trackerOperation.addLog( result.getStdOut() );
             }
-            catch ( CommandException e )
+            else
             {
-                trackerOperation.addLogFailed( e.getMessage() );
-                LOG.error( e.getMessage(), e );
+                trackerOperation.addLogFailed( result.getStdErr() );
             }
+            trackerOperation.addLogDone( "Start cluster command executed" );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLogFailed( e.getMessage() );
+            LOG.error( e.getMessage(), e );
         }
     }
 

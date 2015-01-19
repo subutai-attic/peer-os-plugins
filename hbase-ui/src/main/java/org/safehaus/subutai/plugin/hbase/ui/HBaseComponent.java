@@ -53,12 +53,12 @@ public class HBaseComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
-//                    manager.checkAllNodes();
+                    manager.checkAllNodes();
                 }
             }
         } );
         verticalLayout.addComponent( sheet );
         setCompositionRoot( verticalLayout );
-//        manager.refreshClustersInfo();
+        manager.refreshClustersInfo();
     }
 }

@@ -35,7 +35,7 @@ class OverHadoopSetupStrategy extends HBaseSetupStrategy
 
         if ( nodes.size() < config.getAllNodes().size() )
         {
-            throw new ClusterSetupException( "Fewer nodes found in the encironment than expected" );
+            throw new ClusterSetupException( "Fewer nodes found in the environment than expected" );
         }
         for ( ContainerHost node : nodes )
         {

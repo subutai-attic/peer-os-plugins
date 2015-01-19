@@ -132,7 +132,7 @@ public class Manager
                 Object value = event.getProperty().getValue();
                 config = value != null ? ( HBaseConfig ) value : null;
                 refreshUI();
-                //                checkAllNodes();
+                checkAllNodes();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -412,35 +412,18 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     checkBtn.setEnabled( false );
-                    executor.execute( new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
-                            NodeOperationType.STATUS, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+                    executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), host.getHostname(), new CompleteEvent()
                     {
-                        public void onComplete( NodeState state )
+                        public void onComplete( String result )
                         {
-                            if ( state == NodeState.RUNNING )
+                            synchronized ( PROGRESS_ICON )
                             {
-
+                                resultHolder.setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
+                                PROGRESS_ICON.setVisible( false );
+                                checkBtn.setEnabled( true );
                             }
-                            else if ( state == NodeState.STOPPED )
-                            {
-
-                            }
-
                         }
-                    }, null ) );
-
-                    //                    executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), host.getHostname(), new CompleteEvent()
-                    //                    {
-                    //                        public void onComplete( String result )
-                    //                        {
-                    //                            synchronized ( PROGRESS_ICON )
-                    //                            {
-                    //                                resultHolder.setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
-                    //                                PROGRESS_ICON.setVisible( false );
-                    //                                checkBtn.setEnabled( true );
-                    //                            }
-                    //                        }
-                    //                    } ) );
+                    } ) );
                 }
             } );
         }
@@ -603,7 +586,7 @@ public class Manager
         {
             parsedResult.append( masterMatcher.group( 1 ) );
         }
-        return parsedResult.toString();
+        return parsedResult.toString() + "\n";
     }
 
 

@@ -6,11 +6,14 @@ import java.util.Iterator;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.impl.Commands;
 import org.safehaus.subutai.plugin.hbase.impl.HBaseImpl;
@@ -27,6 +30,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     private String hostname;
     private NodeOperationType operationType;
     private HBaseConfig config;
+    private ContainerHost node;
 
     public NodeOperationHandler( final HBaseImpl manager, final HBaseConfig config, final String hostname,
                                  NodeOperationType operationType )
@@ -37,6 +41,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         this.hostname = hostname;
         this.operationType = operationType;
         this.config = config;
+        this.node = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostByHostname( hostname );
         trackerOperation = manager.getTracker().createTrackerOperation( HBaseConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
@@ -106,68 +111,68 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-//    private void removeNode() throws ClusterException
-//    {
-//
-//        //check if node is in the cluster
-//        if ( !config.getAllNodes().contains( node.getId() ) )
-//        {
-//            throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
-//        }
-//
-//        if ( config.getAllNodes().size() == 1 )
-//        {
-//            throw new ClusterException( "This is the last node in the cluster. Please, destroy cluster instead" );
-//        }
-//
-//        trackerOperation.addLog( "Uninstalling HBase..." );
-//
-//        executeCommand( node, manager.getCommands().getUninstallCommand(), true );
-//
-//        config.getAllNodes().remove( node.getId() );
-//
-//        trackerOperation.addLog( "Updating db..." );
-//
-//        if ( !manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
-//        {
-//            throw new ClusterException( "Could not update cluster info" );
-//        }
-//    }
-//
-//
-//    private void addNode() throws ClusterException
-//    {
-//        //check if node is in the cluster
-//        if ( config.getAllNodes().contains( node.getId() ) )
-//        {
-//            throw new ClusterException( String.format( "Node %s already belongs to this cluster", hostname ) );
-//        }
-//
-//        CommandResult result = executeCommand( node, manager.getCommands().getCheckInstalledCommand() );
-//
-//        if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-//        {
-//            throw new ClusterException( "Node already has HBase installed" );
-//        }
-//
-//        config.getAllNodes().add( node.getId() );
-//
-//
-//        trackerOperation.addLog( "Installing HBase..." );
-//
-//        executeCommand( node, manager.getCommands().getInstallCommand() );
-//
-//        trackerOperation.addLog( "Setting Master IP..." );
-//
-//        //        executeCommand( node, manager.getCommands().getSetMasterIPCommand( sparkMaster ) );
-//
-//        trackerOperation.addLog( "Updating db..." );
-//
-//        if ( !manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
-//        {
-//            throw new ClusterException( "Could not update cluster info" );
-//        }
-//    }
+    private void removeNode() throws ClusterException
+    {
+
+        //check if node is in the cluster
+        if ( !config.getAllNodes().contains( node.getId() ) )
+        {
+            throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
+        }
+
+        if ( config.getAllNodes().size() == 1 )
+        {
+            throw new ClusterException( "This is the last node in the cluster. Please, destroy cluster instead" );
+        }
+
+        trackerOperation.addLog( "Uninstalling HBase..." );
+
+        executeCommand( node, manager.getCommands().getUninstallCommand(), true );
+
+        config.getAllNodes().remove( node.getId() );
+
+        trackerOperation.addLog( "Updating db..." );
+
+        if ( !manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not update cluster info" );
+        }
+    }
+
+
+    private void addNode() throws ClusterException
+    {
+        //check if node is in the cluster
+        if ( config.getAllNodes().contains( node.getId() ) )
+        {
+            throw new ClusterException( String.format( "Node %s already belongs to this cluster", hostname ) );
+        }
+
+        CommandResult result = executeCommand( node, manager.getCommands().getCheckInstalledCommand() );
+
+        if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+        {
+            throw new ClusterException( "Node already has HBase installed" );
+        }
+
+        config.getAllNodes().add( node.getId() );
+
+
+        trackerOperation.addLog( "Installing HBase..." );
+
+        executeCommand( node, manager.getCommands().getInstallCommand() );
+
+        trackerOperation.addLog( "Setting Master IP..." );
+
+        //        executeCommand( node, manager.getCommands().getSetMasterIPCommand( sparkMaster ) );
+
+        trackerOperation.addLog( "Updating db..." );
+
+        if ( !manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not update cluster info" );
+        }
+    }
 
 
     public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException

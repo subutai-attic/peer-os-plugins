@@ -230,6 +230,7 @@ public class HBaseImpl implements HBase
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
@@ -241,6 +242,7 @@ public class HBaseImpl implements HBase
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
@@ -250,7 +252,9 @@ public class HBaseImpl implements HBase
     {
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, config,
+                                    hostname, NodeOperationType.STATUS );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
@@ -262,6 +266,7 @@ public class HBaseImpl implements HBase
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
