@@ -3,16 +3,24 @@ package org.safehaus.subutai.plugin.accumulo.impl.alert;
 
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
+import org.safehaus.subutai.plugin.accumulo.impl.Commands;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +51,7 @@ public class AccumuloAlertListener implements AlertListener
     @Override
     public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
     {
-        //find zookeeper cluster by environment id
+        //find accumulo cluster by environment id
         List<AccumuloClusterConfig> clusters = accumulo.getClusters();
 
         AccumuloClusterConfig targetCluster = null;
@@ -92,145 +100,156 @@ public class AccumuloAlertListener implements AlertListener
                     null );
         }
 
-        //        //check if source host belongs to found zookeeper cluster
-        //        if ( !targetCluster.getAllNodeIds().contains( sourceHost.getId() ) )
-        //        {
-        //            LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster",
-        //                    containerHostMetric.getHost() ) );
-        //            return;
-        //        }
-        //
-        //        //figure out Mongo process pid
-        //        int zookeeperPid = 0;
-        //        try
-        //        {
-        //            CommandResult result = commandUtil
-        //                    .execute( new RequestBuilder( Commands.getMongodbServiceStatus().getCommand() ),
-        // sourceHost );
-        //            zookeeperPid = parsePid( result.getStdOut() );
-        //        }
-        //        catch ( NumberFormatException | CommandException e )
-        //        {
-        //            throw new Exception( "Error obtaining Mongo process PID", e );
-        //        }
-        //
-        //        //get Zookeeper process resource usage by Zookeeper pid
-        //        ProcessResourceUsage processResourceUsage =
-        //                mongo.getMonitor().getProcessResourceUsage( sourceHost, zookeeperPid );
-        //
-        //        //confirm that Mongo is causing the stress, otherwise no-op
-        //        MonitoringSettings thresholds = mongo.getAlertSettings();
-        //        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 );
-        // 0.8
-        //        double redLine = 0.9;
-        //        boolean cpuStressedByMongo = false;
-        //        boolean ramStressedByMongo = false;
-        //
-        //        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
-        //        {
-        //            ramStressedByMongo = true;
-        //        }
-        //        if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
-        //        {
-        //            cpuStressedByMongo = true;
-        //        }
-        //
-        //        if ( !ramStressedByMongo && !cpuStressedByMongo )
-        //        {
-        //            LOGGER.info( "Mongo cluster runs ok" );
-        //            return;
-        //        }
-        //
-        //
-        //        //auto-scaling is enabled -> scale cluster
-        //        if ( targetCluster.isAutoScaling() )
-        //        {
-        //            // check if a quota limit increase does it
-        //            boolean quotaIncreased = false;
-        //
-        //            if ( ramStressedByMongo )
-        //            {
-        //                //read current RAM quota
-        //                int ramQuota = mongo.getQuotaManager().getRamQuota( sourceHost.getId() );
-        //
-        //
-        //                if ( ramQuota < MAX_RAM_QUOTA_MB )
-        //                {
-        //                    //we can increase RAM quota
-        //                    mongo.getQuotaManager().setRamQuota( sourceHost.getId(),
-        //                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
-        //
-        //                    quotaIncreased = true;
-        //                }
-        //            }
-        //            if ( cpuStressedByMongo )
-        //            {
-        //
-        //                //read current CPU quota
-        //                int cpuQuota = mongo.getQuotaManager().getCpuQuota( sourceHost.getId() );
-        //
-        //                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-        //                {
-        //                    //we can increase CPU quota
-        //                    mongo.getQuotaManager().setCpuQuota( sourceHost.getId(),
-        //                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
-        //
-        //                    quotaIncreased = true;
-        //                }
-        //            }
-        //
-        //            //quota increase is made, return
-        //            if ( quotaIncreased )
-        //            {
-        //                return;
-        //            }
-        //
-        //            // add new node
-        //            MongoClusterConfig zookeeperClusterConfig = mongo.getCluster( targetCluster.getClusterName() );
-        //            if ( zookeeperClusterConfig == null )
-        //            {
-        //                throw new Exception( String.format( "Mongo cluster %s not found", targetCluster
-        // .getClusterName() ),
-        //                        null );
-        //            }
-        //
-        //            Set<UUID> availableNodes = zookeeperClusterConfig.getAllNodeIds();
-        //            availableNodes.removeAll( targetCluster.getAllNodeIds() );
-        //
-        //            //no available nodes -> notify user
-        //            if ( availableNodes.isEmpty() )
-        //            {
-        //                notifyUser();
-        //            }
-        //            //add first available node
-        //            else
-        //            {
-        //                UUID newNodeId = availableNodes.iterator().next();
-        //                String newNodeHostName = null;
-        //                for ( ContainerHost containerHost : containers )
-        //                {
-        //                    if ( containerHost.getId().equals( newNodeId ) )
-        //                    {
-        //                        newNodeHostName = containerHost.getHostname();
-        //                        break;
-        //                    }
-        //                }
-        //
-        //                if ( newNodeHostName == null )
-        //                {
-        //                    throw new Exception(
-        //                            String.format( "Could not obtain available spark node from environment by id %s",
-        //                                    newNodeId ), null );
-        //                }
-        //
-        //                //launch node addition process
-        //                mongo.addNode( targetCluster.getClusterName(), NodeType.valueOf( sourceHost.getNodeGroupName() ) );
-        //            }
-        //        }
-        //        else
-        //        {
-        //            notifyUser();
-        //        }
+        //check if source host belongs to found accumulo cluster
+        if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
+        {
+            LOGGER.info( String.format( "Alert source host %s does not belong to accumulo cluster",
+                    containerHostMetric.getHost() ) );
+            return;
+        }
+
+        //figure out accumulo process pid
+        int accumuloPid = 0;
+        try
+        {
+            CommandResult result = commandUtil.execute( Commands.statusCommand, sourceHost );
+            accumuloPid = parsePid( result.getStdOut() );
+        }
+        catch ( NumberFormatException | CommandException e )
+        {
+            throw new Exception( "Error obtaining accumulo process PID", e );
+        }
+
+        //get accumulo process resource usage by accumulo pid
+        ProcessResourceUsage processResourceUsage =
+                accumulo.getMonitor().getProcessResourceUsage( sourceHost, accumuloPid );
+
+        //confirm that accumulo is causing the stress, otherwise no-op
+        MonitoringSettings thresholds = accumulo.getAlertSettings();
+        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double redLine = 0.9;
+        boolean cpuStressedByMongo = false;
+        boolean ramStressedByMongo = false;
+
+        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+        {
+            ramStressedByMongo = true;
+        }
+        if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
+        {
+            cpuStressedByMongo = true;
+        }
+
+        if ( !ramStressedByMongo && !cpuStressedByMongo )
+        {
+            LOGGER.info( "Accumulo cluster runs ok" );
+            return;
+        }
+
+
+        //auto-scaling is enabled -> scale cluster
+        if ( targetCluster.isAutoScaling() )
+        {
+            // check if a quota limit increase does it
+            boolean quotaIncreased = false;
+
+            if ( ramStressedByMongo )
+            {
+                //read current RAM quota
+                int ramQuota = accumulo.getQuotaManager().getRamQuota( sourceHost.getId() );
+
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+                    //we can increase RAM quota
+                    accumulo.getQuotaManager().setRamQuota( sourceHost.getId(),
+                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+
+                    quotaIncreased = true;
+                }
+            }
+            if ( cpuStressedByMongo )
+            {
+
+                //read current CPU quota
+                int cpuQuota = accumulo.getQuotaManager().getCpuQuota( sourceHost.getId() );
+
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
+                    //we can increase CPU quota
+                    accumulo.getQuotaManager().setCpuQuota( sourceHost.getId(),
+                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+
+                    quotaIncreased = true;
+                }
+            }
+
+            //quota increase is made, return
+            if ( quotaIncreased )
+            {
+                return;
+            }
+
+            // add new node
+            AccumuloClusterConfig accumuloClusterConfig = accumulo.getCluster( targetCluster.getClusterName() );
+            if ( accumuloClusterConfig == null )
+            {
+                throw new Exception( String.format( "Accumulo cluster %s not found", targetCluster.getClusterName() ),
+                        null );
+            }
+
+            //Get nodes which are already configured in hadoop and zookeeper clusters
+            Set<UUID> hadoopNodes = new TreeSet<>(
+                    accumulo.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() ).getAllNodes() );
+            Set<UUID> zookeeperNodes =
+                    accumulo.getZkManager().getCluster( targetCluster.getZookeeperClusterName() ).getNodes();
+
+            Set<ContainerHost> environmentHosts = environment.getContainerHosts();
+            Set<UUID> availableNodes = new TreeSet<>();
+            for ( final ContainerHost environmentHost : environmentHosts )
+            {
+                if ( hadoopNodes.contains( environmentHost.getId() ) && zookeeperNodes
+                        .contains( environmentHost.getId() ) )
+                {
+                    availableNodes.add( environmentHost.getId() );
+                }
+            }
+            availableNodes.removeAll( targetCluster.getAllNodes() );
+
+            //no available nodes -> notify user
+            if ( availableNodes.isEmpty() )
+            {
+                notifyUser();
+            }
+            //add first available node
+            else
+            {
+                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeHostName = null;
+                for ( ContainerHost containerHost : containers )
+                {
+                    if ( containerHost.getId().equals( newNodeId ) )
+                    {
+                        newNodeHostName = containerHost.getHostname();
+                        break;
+                    }
+                }
+
+                if ( newNodeHostName == null )
+                {
+                    throw new Exception(
+                            String.format( "Could not obtain available spark node from environment by id %s",
+                                    newNodeId ), null );
+                }
+
+                //launch node addition process
+                accumulo.addNode( targetCluster.getClusterName(), NodeType.valueOf( sourceHost.getNodeGroupName() ) );
+            }
+        }
+        else
+        {
+            notifyUser();
+        }
     }
 
 

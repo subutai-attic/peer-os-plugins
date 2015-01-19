@@ -16,9 +16,16 @@ import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import org.safehaus.subutai.plugin.accumulo.impl.alert.AccumuloAlertListener;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.AddPropertyOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
@@ -51,11 +58,18 @@ public class AccumuloImpl implements Accumulo
     private ExecutorService executor;
     private PluginDAO pluginDAO;
     private DataSource dataSource;
+    private Monitor monitor;
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private QuotaManager quotaManager;
+    private AccumuloAlertListener accumuloAlertListener;
 
 
-    public AccumuloImpl( DataSource dataSource )
+    public AccumuloImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
+        this.monitor = monitor;
+        this.accumuloAlertListener = new AccumuloAlertListener( this );
+        this.monitor.addAlertListener( this.accumuloAlertListener );
     }
 
 
@@ -354,5 +368,53 @@ public class AccumuloImpl implements Accumulo
         environmentBuildTask.setEnvironmentBlueprint( environmentBlueprint );
 
         return environmentBuildTask;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( accumuloAlertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( accumuloAlertListener, environment );
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 }

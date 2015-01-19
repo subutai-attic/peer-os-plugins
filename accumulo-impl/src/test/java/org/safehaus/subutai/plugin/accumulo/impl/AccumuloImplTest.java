@@ -1,5 +1,17 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
+import javax.sql.DataSource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +21,7 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -20,19 +33,12 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,7 +97,8 @@ public class AccumuloImplTest
         when(resultSetMetaData.getColumnCount()).thenReturn(1);
 
         uuid = new UUID(50, 50);
-        accumuloImpl = new AccumuloImpl(dataSource);
+        Monitor monitor = mock( Monitor.class );
+        accumuloImpl = new AccumuloImpl( dataSource, monitor );
 //        accumuloImpl.init();
         accumuloImpl.setExecutor(executor);
         accumuloImpl.setEnvironmentManager(environmentManager);

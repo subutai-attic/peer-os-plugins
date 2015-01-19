@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -155,10 +156,11 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
         try
         {
+            accumuloManager.subscribeToAlerts( environment );
             new ClusterConfiguration( accumuloManager, trackerOperation )
                     .configureCluster( environment, accumuloClusterConfig, zookeeperClusterConfig );
         }
-        catch ( ClusterConfigurationException e )
+        catch ( ClusterConfigurationException | MonitorException e )
         {
             throw new ClusterSetupException( e.getMessage() );
         }
