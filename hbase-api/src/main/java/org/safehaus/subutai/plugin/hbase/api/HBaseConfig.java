@@ -1,13 +1,17 @@
 package org.safehaus.subutai.plugin.hbase.api;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 
 import com.google.common.collect.Sets;
 
@@ -29,6 +33,7 @@ public class HBaseConfig implements ConfigBase
     private UUID environmentId;
     private String hadoopClusterName;
     private UUID hadoopNameNode;
+    private boolean autoScaling;
 
 
     public HBaseConfig()
@@ -46,6 +51,18 @@ public class HBaseConfig implements ConfigBase
     public void setHadoopClusterName( final String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
     }
 
 
@@ -168,6 +185,24 @@ public class HBaseConfig implements ConfigBase
         return allNodes;
     }
 
+    public List<NodeType> getNodeRoles( HBaseConfig clusterConfig, final ContainerHost containerHost )
+    {
+        List<NodeType> nodeRoles = new ArrayList<>();
+
+        if ( hbaseMaster.equals ( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HMASTER );
+        }
+        if ( regionServers.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HREGIONSERVER );
+        }
+        if ( quorumPeers.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HQUORUMPEER );
+        }
+        return nodeRoles;
+    }
 
     public UUID getHbaseMaster()
     {

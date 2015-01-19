@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.hbase.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
@@ -44,28 +45,28 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final HBaseConfig config = wizard.getConfig();
-//        final Environment environment = wizard.getEnvironmentManager().getEnvironment( config.getEnvironmentId().toString() );
+        final Environment environment = wizard.getEnvironmentManager().getEnvironment( config.getEnvironmentId().toString() );
         final HadoopClusterConfig hc = wizard.getHadoopConfig();
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
-        cfgView.addStringCfg( "Cluster Name", wizard.getConfig().getClusterName() );
+        cfgView.addStringCfg( "HBase Cluster Name", wizard.getConfig().getClusterName() );
         if ( config.getSetupType() == SetupType.OVER_HADOOP )
         {
-//            cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
-            cfgView.addStringCfg( "Master Node", wizard.getConfig().getHbaseMaster().toString() );
+            cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
+            cfgView.addStringCfg( "Master Node", environment.getContainerHostById( wizard.getConfig().getHbaseMaster() ).getHostname() );
             for ( UUID host : wizard.getConfig().getRegionServers() )
             {
-                cfgView.addStringCfg( "Region Servers", host.toString() );
+                cfgView.addStringCfg( "Region Servers", environment.getContainerHostById( host ).getHostname() );
             }
 
             for ( UUID host : wizard.getConfig().getQuorumPeers() )
             {
-                cfgView.addStringCfg( "Quorum Peers", host.toString() );
+                cfgView.addStringCfg( "Quorum Peers", environment.getContainerHostById( host ).getHostname() );
             }
 
             for ( UUID host : wizard.getConfig().getBackupMasters() )
             {
-                cfgView.addStringCfg( "Backup Masters", host.toString() );
+                cfgView.addStringCfg( "Backup Masters", environment.getContainerHostById( host ).getHostname() );
             }
             cfgView.addStringCfg( "Environment ID", config.getEnvironmentId().toString() );
         }
@@ -78,6 +79,7 @@ public class VerificationStep extends Panel
         }
 
         Button install = new Button( "Install" );
+        install.addStyleName( "default" );
         install.setId( "HbaseVerificationInstall" );
         install.addClickListener( new Button.ClickListener()
         {
@@ -85,15 +87,7 @@ public class VerificationStep extends Panel
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 UUID trackId = null;
-//                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-//                {
-                    trackId = hbase.installCluster( config );
-//                }
-                /*else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = hbase.installCluster( config );
-                }*/
-
+                trackId = hbase.installCluster( config );
                 ProgressWindow window =
                         new ProgressWindow( executor, tracker, trackId, HBaseConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
@@ -109,6 +103,7 @@ public class VerificationStep extends Panel
         } );
 
         Button back = new Button( "Back" );
+        back.addStyleName( "default" );
         back.setId( "HbaseVerificationBack" );
         back.addClickListener( new Button.ClickListener()
         {

@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -36,7 +35,7 @@ public class HBaseComponent extends CustomComponent
 
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
-        final Manager manager = new Manager( executor, hBase, hadoop, tracker );
+        final Manager manager = new Manager( executor, hBase, hadoop, tracker, environmentManager );
         Wizard wizard = new Wizard( executor, hBase, hadoop, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HbaseInstallTab" );
@@ -59,6 +58,6 @@ public class HBaseComponent extends CustomComponent
         } );
         verticalLayout.addComponent( sheet );
         setCompositionRoot( verticalLayout );
-//        manager.refreshClustersInfo();
+        manager.refreshClustersInfo();
     }
 }

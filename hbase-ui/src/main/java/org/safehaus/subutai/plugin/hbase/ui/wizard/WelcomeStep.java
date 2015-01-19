@@ -32,7 +32,7 @@ public class WelcomeStep extends Panel
         grid.setMargin( true );
         grid.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Spark Installation Wizard!</h2>" );
+        Label welcomeMsg = new Label( "<center><h2>Welcome to HBase Installation Wizard!</h2>" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         grid.addComponent( welcomeMsg, 3, 1, 6, 2 );
 
@@ -43,19 +43,19 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 192, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start" );
         next.setId( "HbaseStartOverHadoop" );
         next.addStyleName( "default" );
         next.addClickListener( new NextClickHandler( wizard, SetupType.OVER_HADOOP ) );
         grid.addComponent( next, 4, 4, 4, 4 );
         grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
 
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.setId( "HbaseStartWithHadoop" );
-        next2.addStyleName( "default" );
-        next2.addClickListener( new NextClickHandler( wizard, SetupType.WITH_HADOOP ) );
-        grid.addComponent( next2, 5, 4, 5, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
+//        Button next2 = new Button( "Start with-Hadoop installation" );
+//        next2.setId( "HbaseStartWithHadoop" );
+//        next2.addStyleName( "default" );
+//        next2.addClickListener( new NextClickHandler( wizard, SetupType.WITH_HADOOP ) );
+//        grid.addComponent( next2, 5, 4, 5, 4 );
+//        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }

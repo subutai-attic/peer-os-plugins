@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
@@ -22,7 +22,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getInstallCommand()
+    public static RequestBuilder getInstallCommand()
     {
 
         return new RequestBuilder( "apt-get --assume-yes --force-yes install " + PACKAGE_NAME ).withTimeout( 360 )
@@ -58,33 +58,42 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigBackupMastersCommand( String backUpMasters )
+    public static RequestBuilder getConfigBackupMastersCommand( String backUpMasters )
     {
         return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh %s", backUpMasters ) );
     }
 
 
-    public RequestBuilder getConfigQuorumCommand( String quorumPeers )
+    public static RequestBuilder getConfigQuorumCommand( String quorumPeers )
     {
         return new RequestBuilder( String.format( ". /etc/profile && quorum.sh %s", quorumPeers ) );
     }
 
 
-    public RequestBuilder getConfigRegionCommand( String regionServers )
+    public static RequestBuilder getConfigRegionCommand( String regionServers )
     {
         return new RequestBuilder( String.format( ". /etc/profile && region.sh %s", regionServers ) );
     }
 
 
-    public RequestBuilder getConfigMasterCommand( String hadoopNameNodeHostname, String hMasterMachineHostname )
+    public static RequestBuilder getConfigMasterCommand( String hadoopNameNodeHostname, String hMasterMachineHostname )
     {
         return new RequestBuilder(
                 String.format( ". /etc/profile && master.sh %s %s", hadoopNameNodeHostname, hMasterMachineHostname ) );
     }
 
 
-    public RequestBuilder getCheckInstalledCommand()
+    public static RequestBuilder getCheckInstalledCommand()
     {
         return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
+    }
+
+
+    public static RequestBuilder getStartRegionServer(){
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh start regionserver " );
+    }
+
+    public static RequestBuilder getStopRegionServer(){
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh stop regionserver " );
     }
 }
