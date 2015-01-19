@@ -15,11 +15,17 @@ import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
+import org.safehaus.subutai.plugin.hbase.api.HBaseNodeOperationTask;
 import org.safehaus.subutai.plugin.hbase.api.HBaseType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -56,7 +62,7 @@ public class Manager
     protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
     protected static final String STOP_BUTTON_CAPTION = "Stop";
-    protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
+    protected static final String REMOVE_CLUSTER_BUTTON_CAPTION = "Remove Cluster";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
     protected static final String HOST_COLUMN_CAPTION = "Host";
     protected static final String IP_COLUMN_CAPTION = "IP List";
@@ -79,9 +85,11 @@ public class Manager
     private final Pattern QUORUM_PATTERN = Pattern.compile( ".*(HQuorumPeer.+?g).*" );
     private HBaseConfig config;
     private Table nodesTable = null;
+    private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executor, final HBase hbase,final Hadoop hadoop, final Tracker tracker ) throws NamingException
+    public Manager( final ExecutorService executor, final HBase hbase,final Hadoop hadoop, final Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         Preconditions.checkNotNull( executor, "Executor is null" );
 
@@ -89,6 +97,7 @@ public class Manager
         this.hadoop = hadoop;
         this.tracker = tracker;
         this.executor = executor;
+        this.environmentManager = environmentManager;
 
         contentRoot = new GridLayout();
         contentRoot.setSpacing( true );
@@ -123,7 +132,7 @@ public class Manager
                 Object value = event.getProperty().getValue();
                 config = value != null ? ( HBaseConfig ) value : null;
                 refreshUI();
-                checkAllNodes();
+                //                checkAllNodes();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -216,7 +225,7 @@ public class Manager
 
 
         /** Destroy All button */
-        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
+        destroyClusterBtn = new Button( REMOVE_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "HbaseMngDestroy" );
         destroyClusterBtn.addStyleName( BUTTON_STYLE_NAME );
         destroyClusterBtn.addClickListener( new Button.ClickListener()
@@ -365,9 +374,13 @@ public class Manager
     {
         for ( final UUID containerHost : containerHosts )
         {
+            Environment environment = environmentManager.getEnvironmentByUUID(
+                    hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+            final ContainerHost host = environment.getContainerHostById( containerHost );
+
             final Label resultHolder = new Label();
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            //            checkBtn.setId( containerHost.getListIP().get( 0 ) + "-hbaseCheck" );
+            checkBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-hbaseCheck" );
             checkBtn.addStyleName( BUTTON_STYLE_NAME );
             final Button startBtn = new Button( START_BUTTON_CAPTION );
             startBtn.addStyleName( BUTTON_STYLE_NAME );
@@ -388,7 +401,7 @@ public class Manager
 
 
             table.addItem( new Object[] {
-                    containerHost.toString(), /*containerHost.getListIP().get( 0 ),*/ findNodeRoles( containerHost ), resultHolder,
+                    host.getHostname(), host.getIpByInterfaceName( "eth0" ), findNodeRoles( containerHost ), resultHolder,
                     availableOperations
             }, null );
 
@@ -398,21 +411,36 @@ public class Manager
                 public void buttonClick( Button.ClickEvent event )
                 {
                     PROGRESS_ICON.setVisible( true );
-                    startBtn.setEnabled( false );
-                    stopBtn.setEnabled( false );
                     checkBtn.setEnabled( false );
-                    executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), containerHost, new CompleteEvent()
+                    executor.execute( new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
+                            NodeOperationType.STATUS, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
                     {
-                        public void onComplete( String result )
+                        public void onComplete( NodeState state )
                         {
-                            synchronized ( PROGRESS_ICON )
+                            if ( state == NodeState.RUNNING )
                             {
-                                resultHolder.setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
-                                PROGRESS_ICON.setVisible( false );
-                                checkBtn.setEnabled( true );
+
                             }
+                            else if ( state == NodeState.STOPPED )
+                            {
+
+                            }
+
                         }
-                    } ) );
+                    }, null ) );
+
+                    //                    executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), host.getHostname(), new CompleteEvent()
+                    //                    {
+                    //                        public void onComplete( String result )
+                    //                        {
+                    //                            synchronized ( PROGRESS_ICON )
+                    //                            {
+                    //                                resultHolder.setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
+                    //                                PROGRESS_ICON.setVisible( false );
+                    //                                checkBtn.setEnabled( true );
+                    //                            }
+                    //                        }
+                    //                    } ) );
                 }
             } );
         }

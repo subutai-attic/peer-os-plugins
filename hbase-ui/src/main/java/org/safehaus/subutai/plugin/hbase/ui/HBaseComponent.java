@@ -36,7 +36,7 @@ public class HBaseComponent extends CustomComponent
 
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
-        final Manager manager = new Manager( executor, hBase, hadoop, tracker );
+        final Manager manager = new Manager( executor, hBase, hadoop, tracker, environmentManager );
         Wizard wizard = new Wizard( executor, hBase, hadoop, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HbaseInstallTab" );
@@ -53,7 +53,7 @@ public class HBaseComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
-                    manager.checkAllNodes();
+//                    manager.checkAllNodes();
                 }
             }
         } );

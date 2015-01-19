@@ -14,17 +14,17 @@ public class CheckTask implements Runnable
 {
 
     private final String clusterName;
-    private final UUID hostId;
+    private final String hostname;
     private final CompleteEvent completeEvent;
     private final HBase hbase;
     private final Tracker tracker;
 
 
-    public CheckTask( final HBase hbase, final Tracker tracker, String clusterName, UUID hostId,
+    public CheckTask( final HBase hbase, final Tracker tracker, String clusterName, String hostname,
                       CompleteEvent completeEvent )
     {
         this.clusterName = clusterName;
-        this.hostId = hostId;
+        this.hostname = hostname;
         this.completeEvent = completeEvent;
         this.hbase = hbase;
         this.tracker = tracker;
@@ -34,7 +34,7 @@ public class CheckTask implements Runnable
     @Override
     public void run()
     {
-        UUID trackID = hbase.checkNode( clusterName, hostId );
+        UUID trackID = hbase.checkNode( clusterName, hostname );
 
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )

@@ -73,16 +73,12 @@ class OverHadoopSetupStrategy extends HBaseSetupStrategy
             ContainerHost node = it.next();
             try
             {
-                CommandResult result = node.execute( Commands.getStatusCommand() );
+                CommandResult result = node.execute( Commands.getCheckInstalledCommand() );
                 if ( result.hasSucceeded() && result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation
                             .addLog( String.format( "Node %s has already HBase installed.", node.getHostname() ) );
                     it.remove();
-                }
-                else
-                {
-                    throw new ClusterSetupException( "Failed to check installed packages on " + node.getHostname() );
                 }
             }
             catch ( CommandException ex )

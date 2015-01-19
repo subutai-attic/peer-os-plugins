@@ -83,7 +83,8 @@ public class Commands
     }
 
 
-    public RequestBuilder getCheckInstalledCommand()
+
+    public static RequestBuilder getCheckInstalledCommand()
     {
         return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
     }

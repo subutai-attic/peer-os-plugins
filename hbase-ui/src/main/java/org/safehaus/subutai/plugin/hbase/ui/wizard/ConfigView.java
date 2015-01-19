@@ -23,7 +23,7 @@ public class ConfigView
     {
         configTbl = new TreeTable();
         configTbl.setWidth( "100%" );
-        configTbl.setHeight( "350px" );
+        configTbl.setHeight( "500px" );
         configTbl.addContainerProperty( cfgCaption, String.class, "" );
     }
 

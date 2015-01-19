@@ -28,6 +28,6 @@ public interface HBase extends ApiBase<HBaseConfig>
 
     public UUID startCluster( String clusterName );
 
-    public UUID checkNode( String clusterName, UUID hostId );
+    public UUID checkNode( String clusterName, String hostname );
 
 }
