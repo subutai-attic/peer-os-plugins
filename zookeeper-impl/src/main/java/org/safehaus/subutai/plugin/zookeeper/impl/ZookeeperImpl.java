@@ -305,8 +305,7 @@ public class ZookeeperImpl implements Zookeeper
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
         ZookeeperClusterConfig zookeeperClusterConfig = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ZookeeperClusterOperationHandler( this, zookeeperClusterConfig, lxcHostname,
-                        ClusterOperationType.ADD );
+                new ZookeeperNodeOperationHandler( this, zookeeperClusterConfig, lxcHostname, NodeOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }

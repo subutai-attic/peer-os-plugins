@@ -48,6 +48,18 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
     private NodeOperationType operationType;
 
 
+    public ZookeeperNodeOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
+                                          final String hostname, NodeOperationType nodeOperationType )
+    {
+        super( manager, config );
+        this.clusterName = config.getClusterName();
+        this.hostname = hostname;
+        this.operationType = nodeOperationType;
+        this.trackerOperation = manager.getTracker().createTrackerOperation( ZookeeperClusterConfig.PRODUCT_NAME,
+                String.format( "Running %s operation on %s...", operationType, hostname ) );
+    }
+
+
     public ZookeeperNodeOperationHandler( final ZookeeperImpl manager, final String clusterName, final String hostname,
                                           NodeOperationType operationType )
     {
