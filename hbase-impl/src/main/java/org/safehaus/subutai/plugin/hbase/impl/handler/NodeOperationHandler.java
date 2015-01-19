@@ -84,7 +84,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
 
             if ( node == null )
             {
-                throw new ClusterException( String.format( "Node not found in environment by name %s", hostname ) );
+                node = environment.getContainerHostById( hostId );
+                if ( node == null )
+                {
+                    throw new ClusterException( String.format( "Node not found in environment by name %s", hostname ) );
+                }
             }
 
 
@@ -119,10 +123,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
 
     private void checkServiceStatus()
     {
-        ContainerHost host = environment.getContainerHostById( hostId );
         try
         {
-            CommandResult result = host.execute( Commands.getStatusCommand() );
+            CommandResult result = node.execute( Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
             {
                 trackerOperation.addLog( result.getStdOut() );
