@@ -88,7 +88,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     {
         try
         {
-            CommandResult result = host.execute( Commands.getStatusCommand() );
+            CommandResult result = node.execute( Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
             {
                 trackerOperation.addLog( result.getStdOut() );
