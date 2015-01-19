@@ -55,24 +55,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
     @Override
     public void setupCluster()
     {
-//        try
-//        {
-//            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config);
-//            try
-//            {
-//                trackerOperation.addLog( "Installing cluster..." );
-//                s.setup();
-//                trackerOperation.addLogDone( "Installing cluster completed" );
-//            }
-//            catch (ClusterSetupException ex)
-//            {
-//                throw new ClusterException("Failed to setup cluster: " + ex.getMessage());
-//            }
-//        }
-//        catch (ClusterException e)
-//        {
-//            trackerOperation.addLogFailed(String.format("Could not start all nodes : %s", e.getMessage()));
-//        }
         if ( Strings.isNullOrEmpty(config.getClusterName()) )
         {
             trackerOperation.addLogFailed( "Malformed configuration" );

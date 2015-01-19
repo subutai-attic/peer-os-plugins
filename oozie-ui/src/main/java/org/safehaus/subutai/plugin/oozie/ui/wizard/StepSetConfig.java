@@ -6,7 +6,10 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.oozie.api.Oozie;
 
 import java.util.*;
 
@@ -14,7 +17,7 @@ import java.util.*;
 public class StepSetConfig extends Panel
 {
 
-    public StepSetConfig( final Wizard wizard )
+    public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard ,EnvironmentManager environmentManager)
     {
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();

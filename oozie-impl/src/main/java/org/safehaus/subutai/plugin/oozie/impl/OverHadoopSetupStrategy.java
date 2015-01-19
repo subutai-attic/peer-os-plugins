@@ -164,8 +164,6 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        po.addLog("Checking prerequisites...");
-
 
         //check installed subutai packages
         List<CommandResult> commandResultList2 = runCommandOnContainers(Commands.make(CommandType.STATUS),

@@ -1,16 +1,13 @@
 package org.safehaus.subutai.plugin.oozie.ui.manager;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-
-import javax.naming.NamingException;
-
-import org.safehaus.subutai.common.util.ServiceLocator;
+import com.google.common.base.Preconditions;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.server.Sizeable;
+import com.vaadin.ui.*;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
@@ -25,20 +22,9 @@ import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
-import com.google.common.base.Preconditions;
-import com.vaadin.data.Item;
-import com.vaadin.data.Property;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.server.Sizeable;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.Window;
+import javax.naming.NamingException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 
 public class Manager extends BaseManager
@@ -66,20 +52,20 @@ public class Manager extends BaseManager
     private final ComboBox clusterCombo;
     private final Table serverTable;
     private final Table clientsTable;
-    private final Oozie oozieManager;
-    private final Hadoop hadoopManager;
+    private final Oozie oozie;
+    private final Hadoop hadoop;
     private final Tracker tracker;
     private final ExecutorService executorService;
     private OozieClusterConfig config;
 
 
-    public Manager( final ExecutorService executorService, final ServiceLocator serviceLocator ) throws NamingException
+    public Manager( final ExecutorService executorService, final Oozie oozie, final Hadoop hadoop, final Tracker tracker, EnvironmentManager environmentManager) throws NamingException
     {
         super();
         this.executorService = executorService;
-        this.tracker = serviceLocator.getService( Tracker.class );
-        this.hadoopManager = serviceLocator.getService( Hadoop.class );
-        this.oozieManager = serviceLocator.getService( Oozie.class );
+        this.tracker = tracker;
+        this.hadoop = hadoop;
+        this.oozie = oozie;
 
         contentRoot = new GridLayout();
         contentRoot.setSpacing( true );
@@ -166,7 +152,7 @@ public class Manager extends BaseManager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = oozieManager.uninstallCluster( config.getClusterName() );
+                            UUID trackID = oozie.uninstallCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     OozieClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -229,7 +215,7 @@ public class Manager extends BaseManager
                             show( "Undefined Hadoop cluster name" );
                             return;
                         }
-                        HadoopClusterConfig info = hadoopManager.getCluster( hadoopClusterName );
+                        HadoopClusterConfig info = hadoop.getCluster( hadoopClusterName );
                         if ( info != null )
                         {
                             HashSet<UUID> nodes = new HashSet<>( info.getAllNodes() );
@@ -267,7 +253,7 @@ public class Manager extends BaseManager
                             @Override
                             public void buttonClick( Button.ClickEvent event )
                             {
-                                UUID trackId = oozieManager.addNode( config.getClusterName(), null );
+                                UUID trackId = oozie.addNode( config.getClusterName(), null );
                                 ProgressWindow w =
                                         new ProgressWindow( executorService, tracker, trackId, config.getProductKey() );
                                 contentRoot.getUI().addWindow( w.getWindow() );
@@ -318,7 +304,7 @@ public class Manager extends BaseManager
 
     public void refreshClustersInfo()
     {
-        List<OozieClusterConfig> info = oozieManager.getClusters();
+        List<OozieClusterConfig> info = oozie.getClusters();
         OozieClusterConfig clusterInfo = ( OozieClusterConfig ) clusterCombo.getValue();
         clusterCombo.removeAllItems();
         if ( info != null && !info.isEmpty() )
@@ -546,7 +532,7 @@ public class Manager extends BaseManager
                     operationType = NodeOperationType.STOP;
                 }
                 /*executorService.execute(
-                        new OperationTask( oozieManager, tracker, operationType, NodeType.SERVER, config,
+                        new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
                                 startStopCheckCompleteEvent( row ), null, agent ) );*/
             }
         };
@@ -634,7 +620,7 @@ public class Manager extends BaseManager
                 destroyButton.setEnabled( false );
                 UUID agent = getAgentByRow( row );
 
-                UUID trackID = oozieManager.destroyNode( config.getClusterName(), agent.toString() );
+                UUID trackID = oozie.destroyNode( config.getClusterName(), agent.toString() );
 
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
@@ -681,7 +667,7 @@ public class Manager extends BaseManager
                     operationType = NodeOperationType.START;
 
                     /*executorService.execute(
-                            new OperationTask( oozieManager, tracker, operationType, NodeType.SERVER, config,
+                            new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
                                     startStopCheckCompleteEvent( row ), null, agent ) );*/
                 }
             }
@@ -716,7 +702,7 @@ public class Manager extends BaseManager
                     operationType = NodeOperationType.STOP;
 
                     /*executorService.execute(
-                            new OperationTask( oozieManager, tracker, operationType, NodeType.SERVER, config,
+                            new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
                                     startStopCheckCompleteEvent( row ), null, agent ) );*/
                 }
             }
@@ -745,7 +731,7 @@ public class Manager extends BaseManager
 
                 NodeOperationType operationType = NodeOperationType.STATUS;
                 /*executorService.execute(
-                        new OperationTask( oozieManager, tracker, operationType, NodeType.SERVER, config,
+                        new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
                                 startStopCheckCompleteEvent( row ), null, agent ) );*/
             }
         };
