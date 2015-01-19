@@ -22,7 +22,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getInstallCommand()
+    public static RequestBuilder getInstallCommand()
     {
 
         return new RequestBuilder( "apt-get --assume-yes --force-yes install " + PACKAGE_NAME ).withTimeout( 360 )
@@ -83,9 +83,17 @@ public class Commands
     }
 
 
-
     public static RequestBuilder getCheckInstalledCommand()
     {
         return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
+    }
+
+
+    public static RequestBuilder getStartRegionServer(){
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh start regionserver " );
+    }
+
+    public static RequestBuilder getStopRegionServer(){
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh stop regionserver " );
     }
 }

@@ -19,6 +19,7 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.AddNodeWindow;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
@@ -28,6 +29,8 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -68,7 +71,7 @@ public class Manager
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String TABLE_CAPTION = "All Nodes";
     protected static final String BUTTON_STYLE_NAME = "default";
-    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn;
+    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final ExecutorService executor;
@@ -221,6 +224,15 @@ public class Manager
         controlsContent.setComponentAlignment( stopAllNodesBtn, Alignment.MIDDLE_CENTER );
 
 
+        /** Add Node button */
+        addNodeBtn = new Button( ADD_NODE_CAPTION );
+        addNodeBtn.setId( "HbaseMngAddNode" );
+        addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
+        addClickListenerToAddNodeButton();
+        controlsContent.addComponent( addNodeBtn );
+        controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
+
+
         /** Destroy All button */
         removeClusterBtn = new Button( REMOVE_CLUSTER_BUTTON_CAPTION );
         removeClusterBtn.setId( "HbaseMngDestroy" );
@@ -240,6 +252,8 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
+                            // stop services before removing cluster !!!
+                            stopAllNodes();
                             UUID trackID = hbase.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
                                     new ProgressWindow( executor, tracker, trackID, HBaseConfig.PRODUCT_KEY );
@@ -296,6 +310,62 @@ public class Manager
                 }
             }
         }
+    }
+
+
+    public void addClickListenerToAddNodeButton()
+    {
+        addNodeBtn.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                    return;
+                }
+
+                Environment environment = environmentManager.getEnvironmentByUUID(
+                        hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+
+                Set<ContainerHost> set = null;
+
+                String hn = config.getHadoopClusterName();
+                if ( !Strings.isNullOrEmpty( hn ) )
+                {
+                    HadoopClusterConfig hci = hadoop.getCluster( hn );
+                    if ( hci != null )
+                    {
+                        set = environment.getContainerHostsByIds( Sets.newHashSet( hci.getAllNodes() ) );
+                    }
+                }
+
+                if ( set == null )
+                {
+                    show( "Hadoop cluster not found" );
+                    return;
+                }
+
+                set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodes() ) ) );
+                if ( set.isEmpty() )
+                {
+                    show( "All nodes in Hadoop cluster have HBase installed" );
+                    return;
+                }
+
+                AddNodeWindow w = new AddNodeWindow( hbase, executor, tracker, config, set );
+                contentRoot.getUI().addWindow( w );
+                w.addCloseListener( new Window.CloseListener()
+                {
+                    @Override
+                    public void windowClose( Window.CloseEvent closeEvent )
+                    {
+                        refreshClustersInfo();
+                    }
+                } );
+            }
+        } );
     }
 
 
@@ -383,6 +453,8 @@ public class Manager
             startBtn.addStyleName( BUTTON_STYLE_NAME );
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
             stopBtn.addStyleName( BUTTON_STYLE_NAME );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.addStyleName( BUTTON_STYLE_NAME );
 
             stopBtn.setEnabled( false );
             startBtn.setEnabled( false );
@@ -393,8 +465,13 @@ public class Manager
             availableOperations.setSpacing( true );
 
             availableOperations.addComponent( checkBtn );
-            //            availableOperations.addComponent( startBtn );
-            //            availableOperations.addComponent( stopBtn );
+            /*
+                TODO: We need to enable below buttons accordingly, for this we need separate
+                     implementations for start, stop and destroy operations
+             */
+            // availableOperations.addComponent( startBtn );
+            // availableOperations.addComponent( stopBtn );
+            // availableOperations.addComponent( destroyBtn );
 
 
             table.addItem( new Object[] {

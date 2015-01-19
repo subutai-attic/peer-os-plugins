@@ -10,10 +10,14 @@ import java.util.concurrent.Executors;
 import javax.sql.DataSource;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -44,6 +48,7 @@ public class HBaseImpl implements HBase
     private Commands commands;
     private HBaseAlertListener hBaseAlertListener;
     private Monitor monitor;
+    private QuotaManager quotaManager;
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
@@ -68,6 +73,11 @@ public class HBaseImpl implements HBase
         monitor.addAlertListener( hBaseAlertListener );
     }
 
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
 
 
     public HBaseAlertListener gethBaseAlertListener()
@@ -115,6 +125,18 @@ public class HBaseImpl implements HBase
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 
 
@@ -207,6 +229,16 @@ public class HBaseImpl implements HBase
 
 
     @Override
+    public UUID addNode( final String clusterName ){
+        Preconditions.checkNotNull( clusterName );
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+    @Override
     public UUID stopCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -272,13 +304,18 @@ public class HBaseImpl implements HBase
     @Override
     public UUID addNode( final String clusterName, final String nodeType )
     {
-        Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( nodeType );
-        HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, nodeType, NodeOperationType.INCLUDE );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
+        return addNode( clusterName );
+    }
+
+    @Override
+    public void saveConfig( final HBaseConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
     }
 }
 

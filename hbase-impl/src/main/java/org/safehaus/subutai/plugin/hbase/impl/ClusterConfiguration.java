@@ -91,7 +91,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         config.setEnvironmentId( environment.getId() );
         hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
-        po.addLogDone( "Hadoop cluster data saved into database" );
+        po.addLogDone( "HBase cluster data saved into database" );
     }
 
 

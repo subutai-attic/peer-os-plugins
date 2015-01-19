@@ -9,6 +9,8 @@ package org.safehaus.subutai.plugin.hbase.api;
 import java.util.UUID;
 
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
+
 
 public interface HBase extends ApiBase<HBaseConfig>
 {
@@ -22,5 +24,9 @@ public interface HBase extends ApiBase<HBaseConfig>
     public UUID startCluster( String clusterName );
 
     public UUID checkNode( String clusterName, String hostname );
+
+    public UUID addNode( String clusterName );
+
+    public void saveConfig( final HBaseConfig config ) throws ClusterException;;
 
 }
