@@ -9,6 +9,8 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -118,6 +120,9 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ) ) );
                     break;
+                case DESTROY:
+                    destroyNode();
+                    break;
             }
             logResults( trackerOperation, commandResultList );
         }
@@ -126,6 +131,30 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }
     }
+
+
+    public void destroyNode(){
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+        StormClusterConfiguration config = manager.getCluster( clusterName );
+        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+        ContainerHost host = environment.getContainerHostByHostname( hostname );
+
+        trackerOperation.addLog( "Removing " + hostname + " from cluster." );
+        config.getSupervisors().remove( host.getId() );
+        manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
+        try
+        {
+            trackerOperation.addLog( "Destroying " + hostname + " node." );
+            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname( hostname ).getId() );
+        }
+        catch ( EnvironmentManagerException e )
+        {
+            trackerOperation.addLogFailed( "Could not destroy container " + hostname +  ". " + e.getMessage() );
+            e.printStackTrace();
+        }
+        trackerOperation.addLogDone( "Container " + hostname + " is destroyed!" );
+    }
+
 
 
     public void logResults( TrackerOperation po, List<CommandResult> commandResultList )

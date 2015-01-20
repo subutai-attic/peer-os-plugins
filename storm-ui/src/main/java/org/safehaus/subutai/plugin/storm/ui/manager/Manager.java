@@ -18,6 +18,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.api.StormNodeOperationTask;
@@ -68,7 +69,7 @@ public class Manager
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
-    final Button refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn, removeCluster, addNodeBtn;
+    final Button refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, removeCluster, addNodeBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final Table masterTable, workersTable;
@@ -113,6 +114,7 @@ public class Manager
         clusterCombo = new ComboBox();
         clusterCombo.setId( "StormMngClusterCombo" );
         clusterCombo.setImmediate( true );
+        clusterCombo.setNullSelectionAllowed( false );
         clusterCombo.setTextInputAllowed( false );
         clusterCombo.setWidth( 200, Sizeable.Unit.PIXELS );
         clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
@@ -160,39 +162,6 @@ public class Manager
         controlsContent.addComponent( stopAllBtn );
 
 
-        /** Destroy Cluster Button */
-        destroyClusterBtn = new Button( "Destroy cluster" );
-        destroyClusterBtn.setId( "StormMngDestroy" );
-        destroyClusterBtn.addClickListener( new Button.ClickListener()
-        {
-
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                if ( config == null )
-                {
-                    show( "Select cluster" );
-                    return;
-                }
-
-                ConfirmationDialog alert = new ConfirmationDialog(
-                        String.format( "Do you want to destroy the %s cluster?", config.getClusterName() ), "Yes",
-                        "No" );
-                alert.getOk().addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent clickEvent )
-                    {
-                        destroyClusterHandler();
-                    }
-                } );
-
-                contentRoot.getUI().addWindow( alert.getAlert() );
-            }
-        } );
-        controlsContent.addComponent( destroyClusterBtn );
-
-
         /** Remove Cluster button */
         removeCluster = new Button( REMOVE_CLUSTER );
         removeCluster.setId( "StormRemoveClusterBtn" );
@@ -213,24 +182,36 @@ public class Manager
                     show( "Select cluster" );
                     return;
                 }
-                UUID trackId = storm.addNode( config.getClusterName() );
-                ProgressWindow pw =
-                        new ProgressWindow( executorService, tracker, trackId, StormClusterConfiguration.PRODUCT_NAME );
-                pw.getWindow().addCloseListener( new Window.CloseListener()
+                ConfirmationDialog alert = new ConfirmationDialog(
+                        String.format( "Do you want to add a new node to the %s cluster?",
+                                config.getClusterName() ), "Yes", "No" );
+                alert.getOk().addClickListener( new Button.ClickListener()
                 {
-
                     @Override
-                    public void windowClose( Window.CloseEvent e )
+                    public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        refreshClustersInfo();
+                        UUID trackId = storm.addNode( config.getClusterName() );
+                        ProgressWindow pw =
+                                new ProgressWindow( executorService, tracker, trackId, StormClusterConfiguration.PRODUCT_NAME );
+                        pw.getWindow().addCloseListener( new Window.CloseListener()
+                        {
+                            @Override
+                            public void windowClose( Window.CloseEvent e )
+                            {
+                                refreshClustersInfo();
+                                refreshUI();
+                                checkAllNodes();
+                            }
+                        } );
+                        contentRoot.getUI().addWindow( pw.getWindow() );
                     }
                 } );
-                contentRoot.getUI().addWindow( pw.getWindow() );
+                contentRoot.getUI().addWindow( alert.getAlert() );
             }
         } );
         controlsContent.addComponent( addNodeBtn );
 
-        addStyleNameToButtons( addNodeBtn, removeCluster, startAllBtn, stopAllBtn, checkAllBtn, refreshClustersBtn, destroyClusterBtn );
+        addStyleNameToButtons( addNodeBtn, removeCluster, startAllBtn, stopAllBtn, checkAllBtn, refreshClustersBtn );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
@@ -270,6 +251,8 @@ public class Manager
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
                                     refreshClustersInfo();
+                                    refreshUI();
+                                    checkAllNodes();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );
@@ -732,6 +715,7 @@ public class Manager
             public void buttonClick( Button.ClickEvent event )
             {
                 PROGRESS_ICON.setVisible( true );
+                resultHolder.setValue( "" );
                 disableButtons( buttons );
                 executorService.execute(
                         new StormNodeOperationTask( storm, tracker, config.getClusterName(), containerHost,
@@ -808,7 +792,28 @@ public class Manager
                 clusterCombo.addItem( ci );
                 clusterCombo.setItemCaption( ci, ci.getClusterName() );
             }
-            clusterCombo.setValue( current );
+            if ( current != null )
+            {
+                for ( StormClusterConfiguration ci : clustersInfo )
+                {
+                    if ( ci.getClusterName().equals( current.getClusterName() ) )
+                    {
+                        clusterCombo.setValue( ci );
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                for ( StormClusterConfiguration ci : clustersInfo )
+                {
+                    if ( ci.getNimbus() != null )
+                    {
+                        clusterCombo.setValue( ci );
+                        return;
+                    }
+                }
+            }
         }
     }
 

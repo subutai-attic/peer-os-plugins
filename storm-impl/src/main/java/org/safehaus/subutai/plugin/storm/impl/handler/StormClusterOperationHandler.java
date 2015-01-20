@@ -2,17 +2,26 @@ package org.safehaus.subutai.plugin.storm.impl.handler;
 
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.protocol.NodeGroup;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -30,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 /**
@@ -136,7 +147,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 break;
             case ADD:
-                commandResultList.addAll( addNode() );
+                addNode( 1 );
                 break;
             case REMOVE:
                 removeCluster();
@@ -160,11 +171,171 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     }
 
 
-    private List<CommandResult> addNode()
+    /**
+     * It adds 1 node to cluster.
+     */
+    public void addNode( int count ){
+        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+
+        /**
+         * first check if there are containers in environment that is not being used in storm cluster,
+         * if yes, then do NOT create new containers.
+         */
+        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+        boolean allContainersNotBeingUsed = false;
+        for ( ContainerHost containerHost : environment.getContainerHosts() ){
+            if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
+                allContainersNotBeingUsed = true;
+            }
+        }
+
+        try
+        {
+            if ( ( ! allContainersNotBeingUsed ) ){
+
+                NodeGroup nodeGroup = new NodeGroup();
+                nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
+                nodeGroup.setLinkHosts( true );
+                nodeGroup.setExchangeSshKeys( true );
+                nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
+                nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
+                nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
+                nodeGroup.setNumberOfNodes( 1 );
+
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+                String ngJSON = gson.toJson(nodeGroup);
+
+                trackerOperation.addLog( "Creating new containers..." );
+                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
+            }
+            else{
+                trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
+            }
+
+
+            // update cluster configuration on DB
+            ContainerHost newSupervisorNode = null;
+            int newNodeCount = 0;
+            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            for ( ContainerHost containerHost : environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts() )
+            {
+                if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
+                    if ( newNodeCount < count ){
+                        config.getSupervisors().add( containerHost.getId() );
+                        newSupervisorNode = containerHost;
+                        trackerOperation.addLog( containerHost.getHostname() + " is added as supervisor node." );
+                        newNodeCount++;
+                    }
+                }
+            }
+            manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
+
+            // configure ssh keys
+            /*
+                TODO: do we need to configure ssh keys of storm nodes?
+                Set<ContainerHost> allNodes = new HashSet<>();
+                allNodes.addAll( newlyCreatedContainers );
+                allNodes.addAll( environment.getContainerHosts() );
+                try
+                {
+                    manager.getSecurityManager().configHostsOnAgents( allNodes, Common.DEFAULT_DOMAIN_NAME );
+                }
+                catch ( SecurityManagerException e )
+                {
+                    e.printStackTrace();
+                }
+
+                // link hosts (/etc/hosts)
+                try
+                {
+                    manager.getSecurityManager().configSshOnAgents( allNodes );
+                }
+                catch ( SecurityManagerException e )
+                {
+                    e.printStackTrace();
+                }
+            */
+
+            // configure new supervisor node
+            configureNStart( newSupervisorNode, config, environment );
+
+            trackerOperation.addLogDone( "Finished." );
+        }
+        catch ( EnvironmentBuildException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void configureNStart( ContainerHost stormNode, StormClusterConfiguration config, Environment environment ){
+
+        String zk_servers = makeZookeeperServersList( config );
+        ContainerHost nimbusHost = environment.getContainerHostById( config.getNimbus() );
+        Map<String, String> paramValues = new LinkedHashMap<>();
+        paramValues.put( "storm.zookeeper.servers", zk_servers );
+        paramValues.put( "storm.local.dir", "/var/lib/storm" );
+        paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
+        for ( Map.Entry<String, String> entry : paramValues.entrySet() )
+        {
+            String s = Commands.configure( "add", "storm.xml", entry.getKey(), entry.getValue() );
+            try
+            {
+                CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
+                trackerOperation.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                        commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
+            }
+            catch ( CommandException exception )
+            {
+                trackerOperation.addLogFailed("Failed to configure " + stormNode + ": " + exception );
+                exception.printStackTrace();
+            }
+        }
+        // start supervisor node
+        try
+        {
+            stormNode.execute( new RequestBuilder( Commands.make( CommandType.KILL , StormService.SUPERVISOR) ) );
+            stormNode.execute( new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLog( "Failed to start new supervisor node !!!" );
+            e.printStackTrace();
+        }
+    }
+
+    private String makeZookeeperServersList( StormClusterConfiguration config )
     {
-        List<CommandResult> commandResults = new ArrayList<>();
-        trackerOperation.addLogFailed( "Adding node to cluster is not supported yet!" );
-        return commandResults;
+        if ( config.isExternalZookeeper() )
+        {
+            String zk_name = config.getZookeeperClusterName();
+            ZookeeperClusterConfig zk_config;
+            zk_config = manager.getZookeeperManager().getCluster( zk_name );
+            if ( zk_config != null )
+            {
+                StringBuilder sb = new StringBuilder();
+                Environment zookeeperEnvironment = manager.getEnvironmentManager().getEnvironmentByUUID(
+                        zk_config.getEnvironmentId() );
+                Set<ContainerHost> zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                for ( ContainerHost containerHost : zookeeperNodes )
+                {
+                    if ( sb.length() > 0 )
+                    {
+                        sb.append( "," );
+                    }
+                    sb.append( containerHost.getIpByInterfaceName( "eth0" ) );
+                }
+                return sb.toString();
+            }
+        }
+        else if ( config.getNimbus() != null )
+        {
+            ContainerHost nimbusHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostById( config.getNimbus() );
+            return nimbusHost.getIpByInterfaceName( "eth0" );
+        }
+        return null;
     }
 
 
