@@ -1,5 +1,12 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,8 +30,6 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
-import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -122,9 +127,8 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
         // assertions
         assertNotNull(accumuloImpl.getHadoopManager().getCluster(anyString()));
         assertNotNull(accumuloImpl.getZkManager().getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(
-                Commands.installCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                        .toLowerCase()).withTimeout(1800));
+        verify(containerHost).execute(Commands.getInstallCommand(
+                Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ));
         verify(trackerOperation).addLog(
                 AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + containerHost.getHostname());
         assertNotNull(accumuloOverZkNHadoopSetupStrategy.setup());

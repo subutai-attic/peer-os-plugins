@@ -49,10 +49,6 @@ public class WelcomeStep extends Panel
         startOverHadoopNZK.addStyleName( "default" );
         grid.addComponent( startOverHadoopNZK, 4, 4, 4, 4 );
         grid.setComponentAlignment( startOverHadoopNZK, Alignment.BOTTOM_RIGHT );
-        Button startWithHadoopNZK = new Button( "Start with Hadoop & ZK installation" );
-        startWithHadoopNZK.addStyleName( "default" );
-        grid.addComponent( startWithHadoopNZK, 5, 4, 5, 4 );
-        grid.setComponentAlignment( startWithHadoopNZK, Alignment.BOTTOM_RIGHT );
 
         startOverHadoopNZK.addClickListener( new Button.ClickListener()
         {
@@ -61,16 +57,6 @@ public class WelcomeStep extends Panel
             {
                 wizard.init();
                 wizard.getConfig().setSetupType( SetupType.OVER_HADOOP_N_ZK );
-                wizard.next();
-            }
-        } );
-        startWithHadoopNZK.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                wizard.init();
-                wizard.getConfig().setSetupType( SetupType.WITH_HADOOP_N_ZK );
                 wizard.next();
             }
         } );

@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -119,7 +120,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         }
         catch ( ClusterSetupException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error setting up accumulo cluster", e );
         }
     }
 
@@ -128,6 +129,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     public void destroyCluster()
     {
         AccumuloClusterConfig config = manager.getCluster( clusterName );
+        Environment environment =
+                manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
         if ( config == null )
         {
             trackerOperation.addLogFailed(
@@ -137,8 +140,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
 
         for ( UUID uuid : config.getAllNodes() )
         {
-            ContainerHost host = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
-                                        .getContainerHostById( uuid );
+            ContainerHost host = environment.getContainerHostById( uuid );
             CommandResult result;
             try
             {
@@ -160,14 +162,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             }
             catch ( CommandException e )
             {
-                e.printStackTrace();
+                LOG.error( "Error destroying cluster", e );
+                trackerOperation.addLog( "Error destroying cluster. " + e.getMessage() );
             }
         }
-        ContainerHost namenode = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
-                                        .getContainerHostById( hadoopConfig.getNameNode() );
+        ContainerHost namenode = environment.getContainerHostById( hadoopConfig.getNameNode() );
         CommandResult result = executeCommand( namenode, Commands.getRemoveAccumuloFromHFDSCommand() );
+
         if ( result.hasSucceeded() )
         {
+            try
+            {
+                manager.unsubscribeFromAlerts( environment );
+            }
+            catch ( MonitorException e )
+            {
+                LOG.error( "Error removing subscription for environment.", e );
+                trackerOperation.addLogFailed( "Error removing subscription for environment." );
+            }
             trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
         }
         else
@@ -179,17 +191,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    private CommandResult executeCommand( ContainerHost containerHost, RequestBuilder commandRequest )
     {
         CommandResult result = null;
         try
         {
-            result = containerHost.execute( new RequestBuilder( command ) );
+            result = containerHost.execute( commandRequest );
         }
         catch ( CommandException e )
         {
-            LOG.error( "Could not execute command correctly. ", command );
-            e.printStackTrace();
+            LOG.error( "Could not execute command correctly. ", e );
         }
         return result;
     }

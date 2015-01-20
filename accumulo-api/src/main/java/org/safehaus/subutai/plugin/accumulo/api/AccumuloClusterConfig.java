@@ -33,6 +33,7 @@ public class AccumuloClusterConfig implements ConfigBase
     private String zookeeperClusterName;
     private String templateName;
     private UUID environmentId;
+    private boolean autoScaling;
 
 
     public UUID getEnvironmentId()
@@ -277,5 +278,17 @@ public class AccumuloClusterConfig implements ConfigBase
                 ", zookeeperClusterName='" + zookeeperClusterName + '\'' +
                 ", templateName='" + templateName + '\'' +
                 '}';
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
     }
 }

@@ -21,7 +21,32 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
 
     public UUID checkNode( String clusterName, String lxcHostname );
 
+    /**
+     * Adds specified container to existing cluster. Checks if container already configured in cluster, if not, adds
+     * environment container first to hadoop cluster and zookeeper cluster, finally installs accumulo and triggers
+     * cluster configuration with new environment container.
+     *
+     * @param clusterName - user specified clusterName
+     * @param lxcHostname - user specified environment container name
+     * @param nodeType - new node role
+     *
+     * @return - trackerOperationViewId
+     */
     public UUID addNode( String clusterName, String lxcHostname, NodeType nodeType );
+
+
+    /**
+     * Add node to specified cluster, checks if there is environment containers with no accumulo installed, if there is,
+     * installs hadoop, zookeeper, accumulo on existing environment container otherwise creates environment container
+     * with hadoopManager, on top of it installs zookeeper, accumulo finally initializes accumulo cluster configuration
+     * procedure
+     *
+     * @param clusterName - user specified accumulo cluster
+     * @param nodeType - new node role
+     *
+     * @return - trackerOperationViewId
+     */
+    public UUID addNode( String clusterName, NodeType nodeType);
 
     public UUID destroyNode( String clusterName, String lxcHostname, NodeType nodeType );
 
