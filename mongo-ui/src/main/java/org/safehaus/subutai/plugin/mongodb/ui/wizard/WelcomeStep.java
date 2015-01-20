@@ -47,6 +47,7 @@ public class WelcomeStep extends VerticalLayout
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
         Button next2 = new Button( "Start over environment" );
+        next2.setId( "startOverEnvironment" );
         next2.addStyleName( "default" );
         next2.setWidth( 200, Unit.PIXELS );
         grid.addComponent( next2, 6, 4, 6, 4 );
@@ -58,7 +59,6 @@ public class WelcomeStep extends VerticalLayout
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 wizard.init();
-                wizard.setInstallOverEnvironment( true );
                 wizard.getMongoClusterConfig().setInstallationType( InstallationType.OVER_ENVIRONMENT );
                 wizard.next();
             }

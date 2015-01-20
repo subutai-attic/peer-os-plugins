@@ -78,6 +78,7 @@ public class EnvironmentVerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Data nodes port", wizard.getMongoClusterConfig().getDataNodePort() + "" );
 
         Button install = new Button( "Install" );
+        install.setId( "install" );
         install.addStyleName( "default" );
         install.addClickListener( new Button.ClickListener()
         {
@@ -100,6 +101,7 @@ public class EnvironmentVerificationStep extends VerticalLayout
         } );
 
         Button back = new Button( "Back" );
+        back.setId( "envVerBack" );
         back.addStyleName( "default" );
         back.addClickListener( new Button.ClickListener()
         {
