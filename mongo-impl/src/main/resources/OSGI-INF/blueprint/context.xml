@@ -13,12 +13,15 @@
              interface="org.safehaus.subutai.core.peer.api.PeerManager" />
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="monitor" availability="mandatory"
+             interface="org.safehaus.subutai.core.metric.api.Monitor" />
 
   <bean id="mongo-impl" scope="singleton" class="org.safehaus.subutai.plugin.mongodb.impl.MongoImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
     <property name="peerManager" ref="peerManager" />
     <property name="environmentManager" ref="environmentManager" />
+    <argument ref="monitor" />
     <argument ref="dataSource" />
   </bean>
 

@@ -4,7 +4,6 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
@@ -14,7 +13,7 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 /**
  * Handles check mongo node status operation
  */
-public class CheckNodeOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
+public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<MongoImpl, MongoClusterConfig>
 {
     private final TrackerOperation po;
     private final String lxcHostname;

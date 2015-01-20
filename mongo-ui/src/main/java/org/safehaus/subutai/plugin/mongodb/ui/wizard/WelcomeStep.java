@@ -7,6 +7,7 @@ package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
+import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.ui.MongoPortalModule;
 
 import com.vaadin.server.FileResource;
@@ -45,28 +46,11 @@ public class WelcomeStep extends VerticalLayout
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start" );
-        next.setId( "MongoWelStart" );
-        next.addStyleName( "default" );
-        next.setWidth( 100, Unit.PIXELS );
-        grid.addComponent( next, 6, 4, 6, 4 );
-        grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
-        next.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                wizard.init();
-                wizard.next();
-            }
-        } );
-
         Button next2 = new Button( "Start over environment" );
         next2.setId( "startOverEnvironment" );
         next2.addStyleName( "default" );
         next2.setWidth( 200, Unit.PIXELS );
-        grid.addComponent( next2, 7, 4, 7, 4 );
+        grid.addComponent( next2, 6, 4, 6, 4 );
         grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         next2.addClickListener( new Button.ClickListener()
@@ -75,7 +59,7 @@ public class WelcomeStep extends VerticalLayout
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 wizard.init();
-                wizard.setInstallOverEnvironment( true );
+                wizard.getMongoClusterConfig().setInstallationType( InstallationType.OVER_ENVIRONMENT );
                 wizard.next();
             }
         } );

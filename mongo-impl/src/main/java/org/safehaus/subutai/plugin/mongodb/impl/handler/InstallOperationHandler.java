@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -70,8 +71,9 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
             clusterSetupStrategy.setup();
 
             po.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            manager.subscribeToAlerts( env );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( EnvironmentBuildException | ClusterSetupException | MonitorException e )
         {
             po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
         }

@@ -59,6 +59,8 @@ public interface MongoClusterConfig extends ConfigBase
 
     void setConfigServers( Set<MongoConfigNode> configServers );
 
+    public Set<UUID> getAllNodeIds();
+
     Set<MongoNode> getAllNodes();
 
     Set<MongoDataNode> getDataNodes();
@@ -103,4 +105,10 @@ public interface MongoClusterConfig extends ConfigBase
 
 
     void setDataServerIds( Set<UUID> dataServerNames );
+
+    boolean isAutoScaling();
+
+    InstallationType getInstallationType();
+
+    void setInstallationType( InstallationType installationType );
 }

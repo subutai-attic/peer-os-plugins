@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
@@ -93,6 +94,12 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     @Expose
     private UUID environmentId;
 
+    @Expose
+    private boolean autoScaling;
+
+    @Expose
+    private InstallationType installationType;
+
 
     public MongoClusterConfigImpl init( final EnvironmentManager environmentManager )
     {
@@ -122,6 +129,18 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
             this.dataHostIds.add( UUID.fromString( mongoDataNode.getContainerHostId() ) );
         }
         return this;
+    }
+
+
+    public Set<UUID> getAllNodeIds()
+    {
+        Set<MongoNode> mongoNodes = getAllNodes();
+        Set<UUID> containerIds = new HashSet<>();
+        for ( final MongoNode mongoNode : mongoNodes )
+        {
+            containerIds.add( mongoNode.getContainerHost().getId() );
+        }
+        return containerIds;
     }
 
 
@@ -518,5 +537,26 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     {
         this.dataHostIds.clear();
         this.dataHostIds.addAll( dataServerNames );
+    }
+
+
+    @Override
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    @Override
+    public InstallationType getInstallationType()
+    {
+        return installationType;
+    }
+
+
+    @Override
+    public void setInstallationType( final InstallationType installationType )
+    {
+        this.installationType = installationType;
     }
 }

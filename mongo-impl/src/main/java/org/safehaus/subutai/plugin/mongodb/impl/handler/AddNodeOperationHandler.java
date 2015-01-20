@@ -14,11 +14,11 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.Host;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.core.peer.api.PeerException;
-import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
@@ -34,7 +34,7 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoRouterNodeImpl;
 /**
  * Handles add mongo node operation
  */
-public class AddNodeOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
+public class AddNodeOperationHandler extends AbstractMongoOperationHandler<MongoImpl, MongoClusterConfig>
 {
     private final TrackerOperation po;
     private final NodeType nodeType;
@@ -118,9 +118,10 @@ public class AddNodeOperationHandler extends AbstractOperationHandler<MongoImpl,
                     break;
             }
             config.addNode( mongoNode, nodeType );
+            manager.subscribeToAlerts( mongoNode.getContainerHost() );
             po.addLog( "Lxc container created successfully\nConfiguring cluster..." );
         }
-        catch ( EnvironmentManagerException | PeerException e )
+        catch ( EnvironmentManagerException | PeerException | MonitorException e )
         {
             po.addLogFailed( e.toString() );
             return;
