@@ -16,10 +16,9 @@ import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -88,7 +87,8 @@ public class Manager
             addTabletServerButton, addPropertyBtn, removePropertyBtn;
 
 
-    public Manager( final ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -872,7 +872,8 @@ public class Manager
             for ( AccumuloClusterConfig accumuloCluster : mongoClusterInfos )
             {
                 clusterCombo.addItem( accumuloCluster );
-                clusterCombo.setItemCaption( accumuloCluster, accumuloCluster.getClusterName() + "(" + accumuloCluster.getHadoopClusterName() + ")" );
+                clusterCombo.setItemCaption( accumuloCluster,
+                        accumuloCluster.getClusterName() + "(" + accumuloCluster.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {
