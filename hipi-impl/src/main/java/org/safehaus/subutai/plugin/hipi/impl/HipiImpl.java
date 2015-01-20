@@ -7,8 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
@@ -20,7 +18,7 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.hipi.impl.dao.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hipi.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hipi.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -37,16 +35,14 @@ public class HipiImpl implements Hipi
     private PluginDAO pluginDao;
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
-    private DataSource dataSource;
+    //private DataSource dataSource;
     private Hadoop hadoopManager;
 
 
-    public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final DataSource dataSource,
-                     final Hadoop hadoopManager )
+    public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-        this.dataSource = dataSource;
         this.hadoopManager = hadoopManager;
     }
 
@@ -79,7 +75,7 @@ public class HipiImpl implements Hipi
     {
         try
         {
-            this.pluginDao = new PluginDAO( dataSource );
+            this.pluginDao = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
