@@ -61,6 +61,12 @@ public class Commands
     }
 
 
+    public static String getZooNHadoopStatusCommand()
+    {
+        return "service zookeeper status & service hadoop-all status";
+    }
+
+
     public static String getConfigureClusterCommand( String zooCfgFileContents, String zooCfgFilePath, int id )
     {
         return String.format( ". /etc/profile && zookeeper-setID.sh %s && echo '%s' > %s", id,

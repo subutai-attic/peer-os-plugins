@@ -509,14 +509,31 @@ public class ConfigurationStep extends Panel
                                          EnvironmentManager environmentManager )
     {
         List<ZookeeperClusterConfig> clusterConfigs = zookeeper.getClusters();
-
         final Set<UUID> zookeeperContainerHosts = new HashSet<>();
         for ( final ZookeeperClusterConfig clusterConfig : clusterConfigs )
         {
             zookeeperContainerHosts.addAll( clusterConfig.getNodes() );
         }
 
-        List<Environment> environments = environmentManager.getEnvironments();
+        List<Environment> environments = new ArrayList<>( environmentManager.getEnvironments() );
+        for ( int i = 0; i < environments.size(); i++ )
+        {
+            Environment environment = environments.get( i );
+            Set<ContainerHost> envHosts = environment.getContainerHosts();
+            boolean allowEnv = true;
+            for ( final ContainerHost envHost : envHosts )
+            {
+                if ( !envHost.getTemplateName().equalsIgnoreCase( ZookeeperClusterConfig.PRODUCT_NAME ) )
+                {
+                    allowEnv = false;
+                    break;
+                }
+            }
+            if ( !allowEnv )
+            {
+                environments.remove( i-- );
+            }
+        }
 
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );
