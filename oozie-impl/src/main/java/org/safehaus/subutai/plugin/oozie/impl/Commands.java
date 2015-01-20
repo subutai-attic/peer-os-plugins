@@ -112,7 +112,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getUninstallServerCommand()
+    public static RequestBuilder getUninstallServerCommand()
     {
         return
 
@@ -139,7 +139,7 @@ public class Commands
         return rb;
     }
 
-    public RequestBuilder getUninstallClientsCommand()
+    public static RequestBuilder getUninstallClientsCommand()
     {
         return
 
