@@ -41,6 +41,7 @@ public class Commands
             case START:
             case STOP:
             case RESTART:
+            case KILL:
                 if ( service != null )
                 {
                     sb = new StringBuilder();

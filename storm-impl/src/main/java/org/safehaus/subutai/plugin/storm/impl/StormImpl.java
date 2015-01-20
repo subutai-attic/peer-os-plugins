@@ -128,10 +128,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID destroyNode( String clusterName, String hostname )
     {
-        StormClusterConfiguration zookeeperClusterConfig = getCluster( clusterName );
-
-        AbstractOperationHandler h = new StormClusterOperationHandler( this, zookeeperClusterConfig, hostname,
-                ClusterOperationType.ADD );
+        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
+                NodeOperationType.DESTROY );
         executor.execute( h );
         return h.getTrackerId();
     }

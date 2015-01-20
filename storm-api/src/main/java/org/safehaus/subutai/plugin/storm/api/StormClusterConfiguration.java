@@ -25,6 +25,19 @@ public class StormClusterConfiguration implements ConfigBase
     private Set<UUID> supervisors = new HashSet(); // worker nodes
     private UUID environmentId;
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
+    private boolean isAutoScaling;
+
+
+    public boolean isAutoScaling()
+    {
+        return isAutoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean isAutoScaling )
+    {
+        this.isAutoScaling = isAutoScaling;
+    }
 
 
     public UUID getEnvironmentId()

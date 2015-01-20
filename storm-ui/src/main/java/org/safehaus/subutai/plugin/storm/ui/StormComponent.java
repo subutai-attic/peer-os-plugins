@@ -21,7 +21,6 @@ import com.vaadin.ui.VerticalLayout;
 public class StormComponent extends CustomComponent
 {
 
-    private final Wizard wizard;
     private final Manager manager;
     private final EnvironmentWizard environmentWizard;
 
@@ -29,7 +28,6 @@ public class StormComponent extends CustomComponent
     public StormComponent( ExecutorService executorService, Storm storm, Zookeeper zookeeper,  Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
         manager = new Manager( executorService, storm, zookeeper, tracker, environmentManager );
-        wizard = new Wizard( executorService, storm, zookeeper, tracker, environmentManager );
         environmentWizard = new EnvironmentWizard( executorService, storm, zookeeper, tracker, environmentManager );
 
         setSizeFull();
@@ -39,8 +37,6 @@ public class StormComponent extends CustomComponent
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-//        tabSheet.addTab( wizard.getContent(), "Install" );
-//        tabSheet.getTab( 0 ).setId( "StormInstallTab" );
         tabSheet.addTab( environmentWizard.getContent(), "Install" );
         tabSheet.getTab( 0 ).setId( "StormConfigureEnvironmentTab" );
         tabSheet.addTab( manager.getContent(), "Manage" );

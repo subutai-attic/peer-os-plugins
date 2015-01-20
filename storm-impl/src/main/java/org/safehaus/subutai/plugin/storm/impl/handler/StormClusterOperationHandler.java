@@ -2,7 +2,10 @@ package org.safehaus.subutai.plugin.storm.impl.handler;
 
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -15,17 +18,17 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
-import org.safehaus.subutai.plugin.storm.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
 import org.safehaus.subutai.plugin.storm.impl.StormImpl;
@@ -144,7 +147,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 break;
             case ADD:
-                addNode();
+                addNode( 1 );
                 break;
             case REMOVE:
                 removeCluster();
@@ -171,7 +174,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     /**
      * It adds 1 node to cluster.
      */
-    public void addNode(){
+    public void addNode( int count ){
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
 
@@ -213,12 +216,18 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
 
             // update cluster configuration on DB
+            ContainerHost newSupervisorNode = null;
+            int newNodeCount = 0;
             environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
             for ( ContainerHost containerHost : environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts() )
             {
                 if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
-                    config.getSupervisors().add( containerHost.getId() );
-                    trackerOperation.addLog( containerHost.getHostname() + " is added as supervisor node." );
+                    if ( newNodeCount < count ){
+                        config.getSupervisors().add( containerHost.getId() );
+                        newSupervisorNode = containerHost;
+                        trackerOperation.addLog( containerHost.getHostname() + " is added as supervisor node." );
+                        newNodeCount++;
+                    }
                 }
             }
             manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
@@ -249,15 +258,8 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
             */
 
-            // configure cluster
-            try
-            {
-                configureCluster( config, environment );
-            }
-            catch ( ClusterSetupException e )
-            {
-                e.printStackTrace();
-            }
+            // configure new supervisor node
+            configureNStart( newSupervisorNode, config, environment );
 
             trackerOperation.addLogDone( "Finished." );
         }
@@ -268,23 +270,72 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     }
 
 
-    private void configureCluster( StormClusterConfiguration config, Environment environment )
-            throws ClusterSetupException
-    {
-        trackerOperation.addLog( "Configuring cluster..." );
+    private void configureNStart( ContainerHost stormNode, StormClusterConfiguration config, Environment environment ){
+
+        String zk_servers = makeZookeeperServersList( config );
+        ContainerHost nimbusHost = environment.getContainerHostById( config.getNimbus() );
+        Map<String, String> paramValues = new LinkedHashMap<>();
+        paramValues.put( "storm.zookeeper.servers", zk_servers );
+        paramValues.put( "storm.local.dir", "/var/lib/storm" );
+        paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
+        for ( Map.Entry<String, String> entry : paramValues.entrySet() )
+        {
+            String s = Commands.configure( "add", "storm.xml", entry.getKey(), entry.getValue() );
+            try
+            {
+                CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
+                trackerOperation.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                        commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
+            }
+            catch ( CommandException exception )
+            {
+                trackerOperation.addLogFailed("Failed to configure " + stormNode + ": " + exception );
+                exception.printStackTrace();
+            }
+        }
+        // start supervisor node
         try
         {
-            new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, environment );
+            stormNode.execute( new RequestBuilder( Commands.make( CommandType.KILL , StormService.SUPERVISOR) ) );
+            stormNode.execute( new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
         }
-        catch ( ClusterSetupException e )
+        catch ( CommandException e )
         {
+            trackerOperation.addLog( "Failed to start new supervisor node !!!" );
             e.printStackTrace();
         }
-        catch ( ClusterConfigurationException e )
-        {
-            throw new ClusterSetupException( e.getMessage() );
+    }
 
+    private String makeZookeeperServersList( StormClusterConfiguration config )
+    {
+        if ( config.isExternalZookeeper() )
+        {
+            String zk_name = config.getZookeeperClusterName();
+            ZookeeperClusterConfig zk_config;
+            zk_config = manager.getZookeeperManager().getCluster( zk_name );
+            if ( zk_config != null )
+            {
+                StringBuilder sb = new StringBuilder();
+                Environment zookeeperEnvironment = manager.getEnvironmentManager().getEnvironmentByUUID(
+                        zk_config.getEnvironmentId() );
+                Set<ContainerHost> zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                for ( ContainerHost containerHost : zookeeperNodes )
+                {
+                    if ( sb.length() > 0 )
+                    {
+                        sb.append( "," );
+                    }
+                    sb.append( containerHost.getIpByInterfaceName( "eth0" ) );
+                }
+                return sb.toString();
+            }
         }
+        else if ( config.getNimbus() != null )
+        {
+            ContainerHost nimbusHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostById( config.getNimbus() );
+            return nimbusHost.getIpByInterfaceName( "eth0" );
+        }
+        return null;
     }
 
 

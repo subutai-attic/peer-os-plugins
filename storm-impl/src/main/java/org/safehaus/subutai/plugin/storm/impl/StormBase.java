@@ -8,9 +8,14 @@ import java.util.concurrent.Executors;
 import javax.sql.DataSource;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
+import org.safehaus.subutai.plugin.storm.impl.alert.StormAlertListener;
 import org.safehaus.subutai.plugin.storm.impl.dao.PluginDAO;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.slf4j.Logger;
@@ -31,6 +36,33 @@ public abstract class StormBase implements Storm
     protected ExecutorService executor;
     protected DataSource dataSource;
     protected PeerManager peerManager;
+    protected Monitor monitor;
+    private StormAlertListener stormAlertListener;
+
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public StormAlertListener getStormAlertListener()
+    {
+        return stormAlertListener;
+    }
+
+
+    public void setStormAlertListener( final StormAlertListener stormAlertListener )
+    {
+        this.stormAlertListener = stormAlertListener;
+    }
 
 
     public void init()
@@ -45,6 +77,18 @@ public abstract class StormBase implements Storm
         }
 
         executor = Executors.newCachedThreadPool();
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
     }
 
 
