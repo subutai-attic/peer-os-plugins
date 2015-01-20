@@ -6,6 +6,8 @@
 package org.safehaus.subutai.plugin.accumulo.ui.wizard;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,18 +16,15 @@ import java.util.UUID;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
+import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.api.SetupType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -45,16 +44,14 @@ import com.vaadin.ui.VerticalLayout;
 public class ConfigurationStep extends Panel
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
-    private Property.ValueChangeListener masterNodeComboChangeListener;
-    private Property.ValueChangeListener gcNodeComboChangeListener;
     private EnvironmentManager environmentManager;
     private Wizard wizard;
     private Hadoop hadoop;
     private Zookeeper zookeeper;
+    private Accumulo accumulo;
 
 
-    public ConfigurationStep( final Hadoop hadoop, final Zookeeper zookeeper,
+    public ConfigurationStep( final Accumulo accumulo, final Hadoop hadoop, final Zookeeper zookeeper,
                               final EnvironmentManager environmentManager, final Wizard wizard )
     {
 
@@ -62,9 +59,7 @@ public class ConfigurationStep extends Panel
         this.wizard = wizard;
         this.hadoop = hadoop;
         this.zookeeper = zookeeper;
-
-        List<Integer> nodesCountRange =
-                ContiguousSet.create( Range.closed( 1, 50 ), DiscreteDomain.integers() ).asList();
+        this.accumulo = accumulo;
 
         if ( wizard.getConfig().getSetupType() == SetupType.OVER_HADOOP_N_ZK )
         {
@@ -104,85 +99,14 @@ public class ConfigurationStep extends Panel
             //get existing hadoop clusters
             List<HadoopClusterConfig> hadoopClusters = hadoop.getClusters();
 
-            //get existing zk clusters
-            // where already hadoop is installed according to environment
-            List<ZookeeperClusterConfig> allZkClusters = zookeeper.getClusters();
-            final Set<ZookeeperClusterConfig> zkClusters = new HashSet<>();
-
-            for ( final HadoopClusterConfig hadoopCluster : hadoopClusters )
-            {
-                LOGGER.warn( hadoopCluster.getClusterName() + " " + hadoopCluster.getEnvironmentId().toString() );
-                for ( final ZookeeperClusterConfig zkCluster : allZkClusters )
-                {
-                    LOGGER.warn( zkCluster.getClusterName() + " " + zkCluster.getEnvironmentId().toString() );
-                    if ( hadoopCluster.getEnvironmentId().toString()
-                                      .equalsIgnoreCase( zkCluster.getEnvironmentId().toString() ) )
-                    {
-                        zkClusters.add( zkCluster );
-                    }
-                }
-            }
-
-
-            //fill zkClustersCombo with zk cluster infos
-            if ( !zkClusters.isEmpty() )
-            {
-                for ( ZookeeperClusterConfig zookeeperClusterConfig : zkClusters )
-                {
-                    zkClustersCombo.addItem( zookeeperClusterConfig );
-                    zkClustersCombo.setItemCaption( zookeeperClusterConfig, zookeeperClusterConfig.getClusterName() );
-                }
-            }
-            //try to find zk cluster info based on one saved in the configuration
-            ZookeeperClusterConfig zookeeperClusterConfig = null;
-            if ( wizard.getConfig().getZookeeperClusterName() != null )
-            {
-                zookeeperClusterConfig = zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
-            }
-
-            //select if saved found
-            if ( zookeeperClusterConfig != null )
-            {
-                zkClustersCombo.setValue( zookeeperClusterConfig );
-                zkClustersCombo.setItemCaption( zookeeperClusterConfig, zookeeperClusterConfig.getClusterName() );
-            }
-            else if ( !zkClusters.isEmpty() )
-            {
-                //select first one if saved not found
-                zkClustersCombo.setValue( zkClusters.iterator().next() );
-            }
-
-            if ( zkClustersCombo.getValue() != null )
-            {
-                ZookeeperClusterConfig zkConfig = ( ZookeeperClusterConfig ) zkClustersCombo.getValue();
-                wizard.getConfig().setZookeeperClusterName( zkConfig.getClusterName() );
-            }
-
-            zkClustersCombo.addValueChangeListener( new Property.ValueChangeListener()
-            {
-                @Override
-                public void valueChange( Property.ValueChangeEvent event )
-                {
-                    if ( event.getProperty().getValue() != null )
-                    {
-                        ZookeeperClusterConfig zkConfig = ( ZookeeperClusterConfig ) event.getProperty().getValue();
-                        wizard.getConfig().setZookeeperClusterName( zkConfig.getClusterName() );
-                    }
-                }
-            } );
-
             //fill hadoopClustersCombo with hadoop cluster infos
-            if ( !hadoopClusters.isEmpty() )
+            for ( HadoopClusterConfig hadoopClusterInfo : hadoopClusters )
             {
-                for ( HadoopClusterConfig hadoopClusterInfo : hadoopClusters )
-                {
-                    hadoopClustersCombo.addItem( hadoopClusterInfo );
-                    hadoopClustersCombo.setItemCaption( hadoopClusterInfo, hadoopClusterInfo.getClusterName() );
-                }
+                hadoopClustersCombo.addItem( hadoopClusterInfo );
+                hadoopClustersCombo.setItemCaption( hadoopClusterInfo, hadoopClusterInfo.getClusterName() );
             }
 
             //try to find hadoop cluster info based on one saved in the configuration
-            HadoopClusterConfig hadoopClusterConfig = null;
             if ( wizard.getConfig().getHadoopClusterName() != null )
             {
                 hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
@@ -193,6 +117,8 @@ public class ConfigurationStep extends Panel
             {
                 //select first one if saved not found
                 hadoopClustersCombo.setValue( hadoopClusters.iterator().next() );
+                fillZookeeperComboBox( zkClustersCombo, zookeeper,
+                        hadoopClusters.iterator().next().getEnvironmentId() );
             }
 
 
@@ -203,9 +129,12 @@ public class ConfigurationStep extends Panel
 
                 wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
 
-                setComboDS( masterNodeCombo, hadoopInfo.getAllNodes() );
-                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes() );
-                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes() );
+                setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                //                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(),
+                //                        new HashSet<>( Arrays.asList( wizard.getConfig().getMasterNode() ) ) );
+                //                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<>(
+                //                        Arrays.asList( wizard.getConfig().getMasterNode(), wizard.getConfig()
+                // .getGcNode() ) ) );
                 setTwinSelectDS( tracersSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
                 setTwinSelectDS( slavesSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
             }
@@ -220,9 +149,10 @@ public class ConfigurationStep extends Panel
                     {
                         HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                         //reset relevant controls
-                        setComboDS( masterNodeCombo, hadoopInfo.getAllNodes() );
-                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes() );
-                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes() );
+                        setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<>( hadoopInfo.getAllNodes() ) );
+                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(),
+                                new HashSet<>( hadoopInfo.getAllNodes() ) );
 
                         setTwinSelectDS( tracersSelect,
                                 getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
@@ -235,6 +165,7 @@ public class ConfigurationStep extends Panel
                         wizard.getConfig().setTracers( null );
                         wizard.getConfig().setSlaves( null );
                         wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
+                        fillZookeeperComboBox( zkClustersCombo, zookeeper, hadoopInfo.getEnvironmentId() );
                     }
                 }
             } );
@@ -256,7 +187,7 @@ public class ConfigurationStep extends Panel
             }
 
             //add value change handler
-            masterNodeComboChangeListener = new Property.ValueChangeListener()
+            masterNodeCombo.addValueChangeListener( new Property.ValueChangeListener()
             {
                 public void valueChange( Property.ValueChangeEvent event )
                 {
@@ -266,28 +197,13 @@ public class ConfigurationStep extends Panel
                         wizard.getConfig().setMasterNode( masterNode );
                         HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
                         List<UUID> hadoopNodes = hadoopInfo.getAllNodes();
-                        //                        hadoopNodes.remove( masterNode );
-                        gcNodeCombo.removeValueChangeListener( gcNodeComboChangeListener );
-                        setComboDS( gcNodeCombo, hadoopNodes );
-                        // TODO: we need to edit here if we do not want master machine has some other roles such as
-                        // GC, Monitor
-                        /*
-                        if ( !masterNode.equals( wizard.getConfig().getGcNode() ) )
-                        {
-                            gcNodeCombo.setValue( wizard.getConfig().getGcNode() );
-                        }
-                        else
-                        {
-                            wizard.getConfig().setGcNode( null );
-                        }
-                        */
-                        gcNodeCombo.addValueChangeListener( gcNodeComboChangeListener );
+                        setComboDS( gcNodeCombo, hadoopNodes,
+                                new HashSet<>( Arrays.asList( wizard.getConfig().getMasterNode() ) ) );
                     }
                 }
-            };
-            masterNodeCombo.addValueChangeListener( masterNodeComboChangeListener );
+            } );
             //add value change handler
-            gcNodeComboChangeListener = new Property.ValueChangeListener()
+            gcNodeCombo.addValueChangeListener( new Property.ValueChangeListener()
             {
 
                 public void valueChange( Property.ValueChangeEvent event )
@@ -296,28 +212,13 @@ public class ConfigurationStep extends Panel
                     {
                         UUID gcNode = ( UUID ) event.getProperty().getValue();
                         wizard.getConfig().setGcNode( gcNode );
-                        HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
-                        List<UUID> hadoopNodes = hadoopInfo.getAllNodes();
-                        //                        hadoopNodes.remove( gcNode );
-                        masterNodeCombo.removeValueChangeListener( masterNodeComboChangeListener );
-                        // TODO: we need to edit here if we do not want master machine has some other roles such as
-                        // GC, Monitor
-                        /*
-                        setComboDS( masterNodeCombo, hadoopNodes );
-                        if ( !gcNode.equals( wizard.getConfig().getMasterNode() ) )
-                        {
-                            masterNodeCombo.setValue( wizard.getConfig().getMasterNode() );
-                        }
-                        else
-                        {
-                            wizard.getConfig().setMasterNode( null );
-                        }
-                        */
-                        masterNodeCombo.addValueChangeListener( masterNodeComboChangeListener );
+                        HadoopClusterConfig hadoopClusterConfig =
+                                hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
+                        setComboDS( monitorNodeCombo, hadoopClusterConfig.getAllNodes(), new HashSet<>(
+                                Arrays.asList( wizard.getConfig().getMasterNode(), wizard.getConfig().getGcNode() ) ) );
                     }
                 }
-            };
-            gcNodeCombo.addValueChangeListener( gcNodeComboChangeListener );
+            } );
             //add value change handler
             monitorNodeCombo.addValueChangeListener( new Property.ValueChangeListener()
             {
@@ -383,7 +284,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        Set<UUID> nodes = new HashSet<UUID>();
+                        Set<UUID> nodes = new HashSet<>();
                         Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
                         for ( ContainerHost host : nodeList )
                         {
@@ -400,7 +301,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        Set<UUID> nodes = new HashSet<UUID>();
+                        Set<UUID> nodes = new HashSet<>();
                         Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
                         for ( ContainerHost host : nodeList )
                         {
@@ -497,8 +398,8 @@ public class ConfigurationStep extends Panel
             HorizontalLayout masters = new HorizontalLayout();
             masters.setMargin( new MarginInfo( true, false, false, false ) );
             masters.setSpacing( true );
-            masters.addComponent( zkClustersCombo );
             masters.addComponent( hadoopClustersCombo );
+            masters.addComponent( zkClustersCombo );
             masters.addComponent( masterNodeCombo );
             masters.addComponent( gcNodeCombo );
             masters.addComponent( monitorNodeCombo );
@@ -527,14 +428,96 @@ public class ConfigurationStep extends Panel
     }
 
 
+    private void fillZookeeperComboBox( ComboBox zkClustersCombo, Zookeeper zookeeper, UUID environmentId )
+    {
+        zkClustersCombo.removeAllItems();
+        zkClustersCombo.setValue( null );
+
+        List<ZookeeperClusterConfig> zookeeperClusterConfigs = new ArrayList<>();
+        List<ZookeeperClusterConfig> zkClusters = zookeeper.getClusters();
+
+        //fill zkClustersCombo with zk cluster infos
+        for ( final ZookeeperClusterConfig zookeeperClusterConfig : zkClusters )
+        {
+            if ( zookeeperClusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                zkClustersCombo.addItem( zookeeperClusterConfig );
+                zkClustersCombo.setItemCaption( zookeeperClusterConfig, zookeeperClusterConfig.getClusterName() );
+                zookeeperClusterConfigs.add( zookeeperClusterConfig );
+            }
+        }
+        //try to find zk cluster info based on one saved in the configuration
+        ZookeeperClusterConfig zookeeperClusterConfig = null;
+        if ( wizard.getConfig().getZookeeperClusterName() != null )
+        {
+            zookeeperClusterConfig = zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+        }
+
+        //select if saved found
+        if ( zookeeperClusterConfig != null )
+        {
+            zkClustersCombo.setValue( zookeeperClusterConfig );
+            zkClustersCombo.setItemCaption( zookeeperClusterConfig, zookeeperClusterConfig.getClusterName() );
+        }
+        else if ( !zookeeperClusterConfigs.isEmpty() )
+        {
+            //select first one if saved not found
+            zkClustersCombo.setValue( zookeeperClusterConfigs.iterator().next() );
+        }
+
+        if ( zkClustersCombo.getValue() != null )
+        {
+            ZookeeperClusterConfig zkConfig = ( ZookeeperClusterConfig ) zkClustersCombo.getValue();
+            wizard.getConfig().setZookeeperClusterName( zkConfig.getClusterName() );
+        }
+
+        zkClustersCombo.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                if ( event.getProperty().getValue() != null )
+                {
+                    ZookeeperClusterConfig zkConfig = ( ZookeeperClusterConfig ) event.getProperty().getValue();
+                    wizard.getConfig().setZookeeperClusterName( zkConfig.getClusterName() );
+                }
+            }
+        } );
+    }
+
+
     private Set<ContainerHost> getSlaveContainerHosts( Set<UUID> slaves )
     {
         Set<ContainerHost> set = new HashSet<>();
-        for ( UUID uuid : slaves )
+        if ( wizard.getConfig().getHadoopClusterName() == null || wizard.getConfig().getZookeeperClusterName() == null )
         {
-            set.add( environmentManager.getEnvironmentByUUID(
-                    hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() )
-                                       .getContainerHostById( uuid ) );
+            return set;
+        }
+        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
+        ZookeeperClusterConfig zookeeperClusterConfig =
+                zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+        List<AccumuloClusterConfig> accumuloClusterConfigs = accumulo.getClusters();
+        List<UUID> allowedNodes = new ArrayList<>( slaves );
+
+        for ( final AccumuloClusterConfig accumuloClusterConfig : accumuloClusterConfigs )
+        {
+            for ( int i = 0; i < allowedNodes.size(); i++ )
+            {
+                UUID nodeId = allowedNodes.get( i );
+                if ( accumuloClusterConfig.getAllNodes().contains( nodeId ) )
+                {
+                    allowedNodes.remove( i-- );
+                }
+            }
+        }
+
+        for ( UUID uuid : allowedNodes )
+        {
+            if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
+            {
+                set.add( environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() )
+                                           .getContainerHostById( uuid ) );
+            }
         }
         return set;
     }
@@ -577,15 +560,40 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void setComboDS( ComboBox target, List<UUID> agents )
+    private void setComboDS( ComboBox target, List<UUID> agents, Set<UUID> excludeNodes )
     {
         target.removeAllItems();
         target.setValue( null );
-        for ( UUID agent : agents )
+        ZookeeperClusterConfig zookeeperClusterConfig =
+                zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+        if ( zookeeperClusterConfig == null )
+        {
+            return;
+        }
+
+        List<UUID> allowedNodes = new ArrayList<>( agents );
+        List<AccumuloClusterConfig> accumuloClusterConfigs = accumulo.getClusters();
+        for ( final AccumuloClusterConfig accumuloClusterConfig : accumuloClusterConfigs )
+        {
+            for ( int i = 0; i < allowedNodes.size(); i++ )
+            {
+                UUID nodeId = allowedNodes.get( i );
+                if ( accumuloClusterConfig.getAllNodes().contains( nodeId ) )
+                {
+                    allowedNodes.remove( i-- );
+                }
+            }
+        }
+
+        for ( UUID agent : allowedNodes )
         {
             ContainerHost host = getHost( agent );
-            target.addItem( host.getId() );
-            target.setItemCaption( host.getId(), host.getHostname() );
+            if ( host != null && zookeeperClusterConfig.getNodes().contains( agent ) && !excludeNodes
+                    .contains( agent ) )
+            {
+                target.addItem( host.getId() );
+                target.setItemCaption( host.getId(), host.getHostname() );
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -288,24 +288,49 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
 
         //get environment containers
-        Set<ContainerHost> environmentContainers = accumuloEnvironment.getContainerHosts();
+        List<ContainerHost> environmentContainers = new ArrayList<>( accumuloEnvironment.getContainerHosts() );
 
-        //get containers id
-        Set<UUID> accumuloEnvDiffContainers = new HashSet<>();
-        for ( final ContainerHost containerHost : environmentContainers )
+        //remove containers which in current accumulo cluster
+        Set<UUID> accumuloNodes = config.getAllNodes();
+        for ( int i = 0; i < environmentContainers.size(); i++ )
         {
-            accumuloEnvDiffContainers.add( containerHost.getId() );
+            ContainerHost containerHost = environmentContainers.get( i );
+            if ( accumuloNodes.contains( containerHost.getId() ) )
+            {
+                environmentContainers.remove( i-- );
+            }
         }
 
-        //remove containers which are not in current accumulo cluster
-        accumuloEnvDiffContainers.removeAll( config.getAllNodes() );
+        //remove hosts which are not configured in zookeeper cluster
+        Set<UUID> zookeeperClusterHostIds = zookeeperClusterConfig.getNodes();
+        for ( int i = 0; i < environmentContainers.size(); i++ )
+        {
+            ContainerHost containerHost = environmentContainers.get( i );
+            if ( !zookeeperClusterHostIds.contains( containerHost.getId() ) )
+            {
+                environmentContainers.remove( i-- );
+            }
+        }
+
+        //remove hosts hosts which are not configured in hadoop cluster
+        List<UUID> hadoopClusterHostIds = hadoopClusterConfig.getAllNodes();
+        for ( int i = 0; i < environmentContainers.size(); i++ )
+        {
+            ContainerHost containerHost = environmentContainers.get( i );
+            if ( !hadoopClusterHostIds.contains( containerHost.getId() ) )
+            {
+                environmentContainers.remove( i-- );
+            }
+        }
 
         //add new node if all environment containers are already in accumulo cluster
         //otherwise proceed with existing environment container
-        ContainerHost additionalNode = null;
-        if ( accumuloEnvDiffContainers.isEmpty() )
+        ContainerHost additionalNode;
+        if ( environmentContainers.isEmpty() )
         {
             //add new node and get its uuid
+            zookeeper.addNode( zookeeperClusterConfig.getClusterName() );
+
             hadoop.addNode( hadoopClusterConfig.getClusterName() );
             HadoopClusterConfig freshHadoopClusterConfig = hadoop.getCluster( hadoopClusterConfig.getClusterName() );
             List<UUID> freshContainerHostIds = freshHadoopClusterConfig.getAllNodes();
@@ -322,7 +347,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         }
         else
         {
-            additionalNode = accumuloEnvironment.getContainerHostById( accumuloEnvDiffContainers.iterator().next() );
+            additionalNode = environmentContainers.iterator().next();
         }
 
         if ( additionalNode == null )
