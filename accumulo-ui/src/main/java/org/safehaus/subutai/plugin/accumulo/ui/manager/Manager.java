@@ -16,14 +16,16 @@ import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
+import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
@@ -78,6 +80,7 @@ public class Manager
     private final Pattern TABLET_SERVER_PATTERN = Pattern.compile( ".*(Tablet Server.+?g).*" );
     private final Accumulo accumulo;
     private final Hadoop hadoop;
+    private final Zookeeper zookeeper;
     private final Tracker tracker;
     private final ExecutorService executorService;
     private final EnvironmentManager environmentManager;
@@ -87,13 +90,14 @@ public class Manager
             addTabletServerButton, addPropertyBtn, removePropertyBtn;
 
 
-    public Manager( final ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Tracker tracker,
-                    EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, final Zookeeper zookeeper,
+                    Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
         this.accumulo = accumulo;
         this.hadoop = hadoop;
+        this.zookeeper = zookeeper;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
 
@@ -332,8 +336,20 @@ public class Manager
                     return;
                 }
 
+
+                ZookeeperClusterConfig zookeeperClusterConfig =
+                        zookeeper.getCluster( accumuloClusterConfig.getZookeeperClusterName() );
+                Set<UUID> nodesWithHadoopNZoo = new HashSet<>();
+                for ( final UUID uuid : set )
+                {
+                    if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
+                    {
+                        nodesWithHadoopNZoo.add( uuid );
+                    }
+                }
+
                 Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : set )
+                for ( UUID uuid : nodesWithHadoopNZoo )
                 {
                     myHostSet.add( environmentManager.getEnvironmentByUUID(
                             hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
@@ -384,8 +400,25 @@ public class Manager
                     return;
                 }
 
+                ZookeeperClusterConfig zookeeperClusterConfig =
+                        zookeeper.getCluster( accumuloClusterConfig.getZookeeperClusterName() );
+                Set<UUID> nodesWithHadoopNZoo = new HashSet<>();
+                for ( final UUID uuid : set )
+                {
+                    if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
+                    {
+                        nodesWithHadoopNZoo.add( uuid );
+                    }
+                }
+
+                if ( nodesWithHadoopNZoo.isEmpty() )
+                {
+                    Notification.show( "None in Hadoop cluster have Zookeeper installed" );
+                    return;
+                }
+
                 Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : set )
+                for ( UUID uuid : nodesWithHadoopNZoo )
                 {
                     myHostSet.add( environmentManager.getEnvironmentByUUID(
                             hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
@@ -656,7 +689,7 @@ public class Manager
             availableOperations.setSpacing( true );
 
             // TODO: think about adding destroy button !!!
-            addGivenComponents( availableOperations, checkBtn );
+            addGivenComponents( availableOperations, checkBtn, destroyBtn );
             addStyleName( checkBtn, destroyBtn, availableOperations );
 
             final String nodeRole = findNodeRoles( containerHost );

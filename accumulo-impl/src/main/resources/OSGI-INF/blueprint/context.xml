@@ -11,6 +11,9 @@
   <reference id="hadoopManager" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="zkManager" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
   <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="monitor" availability="mandatory" interface="org.safehaus.subutai.core.metric.api.Monitor" />
+  <reference id="quotaManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
 
   <bean id="accumulo-impl" scope="singleton" class="org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl"
         init-method="init" destroy-method="destroy">
@@ -18,7 +21,9 @@
     <property name="environmentManager" ref="environmentManager" />
     <property name="hadoopManager" ref="hadoopManager" />
     <property name="zkManager" ref="zkManager" />
+    <property name="quotaManager" ref="quotaManager" />
     <argument ref="dataSource" />
+    <argument ref="monitor" />
   </bean>
 
   <service ref="accumulo-impl" interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />

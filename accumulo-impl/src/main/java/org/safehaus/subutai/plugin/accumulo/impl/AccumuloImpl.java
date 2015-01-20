@@ -1,16 +1,31 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import org.safehaus.subutai.common.protocol.*;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.sql.DataSource;
+
+import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
+import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
+import org.safehaus.subutai.common.protocol.NodeGroup;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import org.safehaus.subutai.plugin.accumulo.impl.alert.AccumuloAlertListener;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.AddPropertyOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
@@ -27,12 +42,9 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 public class AccumuloImpl implements Accumulo
@@ -46,17 +58,26 @@ public class AccumuloImpl implements Accumulo
     private ExecutorService executor;
     private PluginDAO pluginDAO;
     private DataSource dataSource;
+    private Monitor monitor;
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private QuotaManager quotaManager;
+    private AccumuloAlertListener accumuloAlertListener;
 
 
-    public AccumuloImpl( DataSource dataSource )
+    public AccumuloImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
+        this.monitor = monitor;
+        this.accumuloAlertListener = new AccumuloAlertListener( this );
+        this.monitor.addAlertListener( this.accumuloAlertListener );
     }
 
-    public void setPluginDAO(final PluginDAO pluginDAO)
+
+    public void setPluginDAO( final PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
+
 
     public PluginDAO getPluginDAO()
     {
@@ -267,6 +288,21 @@ public class AccumuloImpl implements Accumulo
     }
 
 
+    public UUID addNode( final String clusterName, final NodeType nodeType )
+    {
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        Preconditions.checkNotNull( nodeType, "Node type is null" );
+
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, hadoopManager, zkManager, clusterName, NodeOperationType.ADD,
+                        nodeType );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
+    }
+
+
     public UUID destroyNode( final String clusterName, final String lxcHostName, final NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
@@ -332,5 +368,53 @@ public class AccumuloImpl implements Accumulo
         environmentBuildTask.setEnvironmentBlueprint( environmentBlueprint );
 
         return environmentBuildTask;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( accumuloAlertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( accumuloAlertListener, environment );
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 }

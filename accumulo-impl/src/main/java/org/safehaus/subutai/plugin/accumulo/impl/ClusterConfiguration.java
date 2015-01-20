@@ -12,6 +12,8 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -22,7 +24,7 @@ import com.google.common.base.Preconditions;
 public class ClusterConfiguration
 {
 
-    private static final int TIMEOUT = 30;
+    private static final Logger LOGGER = LoggerFactory.getLogger( ClusterConfiguration.class );
     private TrackerOperation po;
     private AccumuloImpl accumuloManager;
 
@@ -116,15 +118,16 @@ public class ClusterConfiguration
     }
 
 
-    private void executeCommand( ContainerHost host, String commnad )
+    private void executeCommand( ContainerHost host, RequestBuilder commandBuilder )
     {
         try
         {
-            host.execute( new RequestBuilder( commnad ).withTimeout( TIMEOUT ) );
+            host.execute( commandBuilder );
         }
         catch ( CommandException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Error executing command.", e );
+            po.addLogFailed( "Error executing command. " + e.getMessage() );
         }
     }
 

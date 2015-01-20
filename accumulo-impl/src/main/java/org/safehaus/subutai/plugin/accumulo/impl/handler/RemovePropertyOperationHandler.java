@@ -84,8 +84,8 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
             ContainerHost master = environment.getContainerHostById( accumuloClusterConfig.getMasterNode() );
             try
             {
-                master.execute( new RequestBuilder( Commands.stopCommand ) );
-                master.execute( new RequestBuilder( Commands.startCommand ) );
+                master.execute( Commands.stopCommand );
+                master.execute( Commands.startCommand );
             }
             catch ( CommandException e )
             {

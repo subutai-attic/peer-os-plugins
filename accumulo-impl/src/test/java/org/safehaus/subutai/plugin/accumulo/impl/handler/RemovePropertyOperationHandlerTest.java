@@ -1,5 +1,10 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,13 +23,11 @@ import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
 import org.safehaus.subutai.plugin.accumulo.impl.Commands;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,8 +100,8 @@ public class RemovePropertyOperationHandlerTest
         assertNotNull(accumuloImpl.getCluster(anyString()));
         verify(containerHost).execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName")));
         verify(trackerOperation).addLog("Property removed successfully to node " + containerHost.getHostname());
-        verify(containerHost).execute(new RequestBuilder(Commands.stopCommand));
-        verify(containerHost).execute(new RequestBuilder( Commands.startCommand ));
+        verify( containerHost ).execute( Commands.stopCommand );
+        verify( containerHost ).execute( Commands.startCommand );
     }
 
     @Test
@@ -157,7 +160,7 @@ public class RemovePropertyOperationHandlerTest
                 .thenReturn(commandResult);
         when(commandResult.hasSucceeded()).thenReturn(true);
         when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(new RequestBuilder( Commands.stopCommand ))).thenThrow(CommandException.class);
+        when( containerHost.execute( Commands.stopCommand ) ).thenThrow( CommandException.class );
 
         removePropertyOperationHandler.run();
 

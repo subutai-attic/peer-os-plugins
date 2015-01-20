@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
@@ -39,7 +38,8 @@ public class AccumuloComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
 
-        final Manager manager = new Manager( executorService, accumulo, hadoop, tracker, environmentManager );
+        final Manager manager =
+                new Manager( executorService, accumulo, hadoop, zookeeper, tracker, environmentManager );
         Wizard wizard = new Wizard( executorService, accumulo, hadoop, zookeeper, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "AccumuloInstallTab" );

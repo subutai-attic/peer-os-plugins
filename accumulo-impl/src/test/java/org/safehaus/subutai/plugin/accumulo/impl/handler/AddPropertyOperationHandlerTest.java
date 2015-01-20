@@ -1,5 +1,10 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,12 +22,12 @@ import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
 import org.safehaus.subutai.plugin.accumulo.impl.Commands;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +98,8 @@ public class AddPropertyOperationHandlerTest
     {
         when(commandResult.hasSucceeded()).thenReturn(true);
         when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(new RequestBuilder(Commands.stopCommand))).thenReturn(commandResult);
-        when(containerHost.execute(new RequestBuilder(Commands.startCommand))).thenReturn(commandResult);
+        when( containerHost.execute( Commands.stopCommand ) ).thenReturn( commandResult );
+        when( containerHost.execute( Commands.startCommand ) ).thenReturn( commandResult );
 
 
         addPropertyOperationHandler.run();
@@ -105,8 +110,8 @@ public class AddPropertyOperationHandlerTest
                 "testPropertyValue")));
         assertTrue(commandResult.hasSucceeded());
         verify(trackerOperation).addLog("Property added successfully to node " + containerHost.getHostname());
-        verify(containerHost).execute(new RequestBuilder(Commands.stopCommand));
-        verify(containerHost).execute(new RequestBuilder( Commands.startCommand));
+        verify( containerHost ).execute( Commands.stopCommand );
+        verify( containerHost ).execute( Commands.startCommand );
         verify(trackerOperation).addLogDone( "Done" );
     }
     @Test
@@ -115,8 +120,8 @@ public class AddPropertyOperationHandlerTest
     {
         when(commandResult.hasSucceeded()).thenReturn(true);
         when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(new RequestBuilder(Commands.stopCommand))).thenThrow(CommandException.class);
-        when(containerHost.execute(new RequestBuilder(Commands.startCommand))).thenThrow(CommandException.class);
+        when( containerHost.execute( Commands.stopCommand ) ).thenThrow( CommandException.class );
+        when( containerHost.execute( Commands.startCommand ) ).thenThrow( CommandException.class );
 
 
         addPropertyOperationHandler.run();
