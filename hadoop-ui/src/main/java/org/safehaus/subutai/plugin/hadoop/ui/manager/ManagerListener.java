@@ -23,7 +23,7 @@ package org.safehaus.subutai.plugin.hadoop.ui.manager;
 import java.util.List;
 import java.util.UUID;
 
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
