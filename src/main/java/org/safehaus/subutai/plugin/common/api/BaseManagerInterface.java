@@ -1,7 +1,8 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+
+import org.safehaus.subutai.common.peer.ContainerHost;
 
 import com.vaadin.ui.Table;
 

@@ -4,7 +4,7 @@ package org.safehaus.subutai.plugin.common.ui;
 import java.util.List;
 import java.util.UUID;
 
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.BaseManagerInterface;
 
 import com.vaadin.data.Item;
