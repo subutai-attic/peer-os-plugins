@@ -9,7 +9,6 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -101,7 +100,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
 
 
         //check installed subutai packages
-        String checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
+        String checkInstalledCommand = Commands.getZooNHadoopStatusCommand();
         List<CommandResult> commandResultList = runCommandOnContainers( checkInstalledCommand, zookeeperNodes );
         if ( getFailedCommandResults( commandResultList ).size() != 0 )
         {
@@ -114,13 +113,17 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         {
             ContainerHost host = iterator.next();
             CommandResult result = commandResultList.get( nodeIndex++ );
-
-            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
+            //Here we check zookeeper service is not configured as a service
+            //this is the only way to correctly differentiate if zoo plugin is
+            //not installed and not configured, because in case with hadoop this piece
+            //doesn't work
+            String commandOutput = result.getStdOut() + "\n" + result.getStdErr();
+            if ( !commandOutput.contains( "zookeeper: unrecognized service" ) )
             {
                 throw new ClusterSetupException(
                         String.format( "Node %s already has Zookeeper installed", host.getHostname() ) );
             }
-            else if ( !result.getStdOut().contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME ) )
+            else if ( commandOutput.contains( "hadoop-all: unrecognized service" ) )
             {
                 throw new ClusterSetupException(
                         String.format( "Node %s has no Hadoop installed", host.getHostname() ) );
@@ -132,7 +135,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         //install
         try
         {
-            String installCommand = manager.getCommands().getInstallCommand();
+            String installCommand = Commands.getInstallCommand();
             commandResultList = runCommandOnContainers( installCommand, zookeeperNodes );
             if ( getFailedCommandResults( commandResultList ).size() == 0 )
             {
