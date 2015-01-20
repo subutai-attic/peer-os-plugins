@@ -46,27 +46,10 @@ public class WelcomeStep extends VerticalLayout
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start" );
-        next.addStyleName( "default" );
-        next.setWidth( 100, Unit.PIXELS );
-        grid.addComponent( next, 6, 4, 6, 4 );
-        grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
-        next.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                wizard.init();
-                wizard.getMongoClusterConfig().setInstallationType( InstallationType.STANDALONE );
-                wizard.next();
-            }
-        } );
-
         Button next2 = new Button( "Start over environment" );
         next2.addStyleName( "default" );
         next2.setWidth( 200, Unit.PIXELS );
-        grid.addComponent( next2, 7, 4, 7, 4 );
+        grid.addComponent( next2, 6, 4, 6, 4 );
         grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         next2.addClickListener( new Button.ClickListener()

@@ -80,14 +80,29 @@ public class Commands
     {
         return new CommandDef( String.format( "Update and install %s%s package", Common.PACKAGE_PREFIX,
                 MongoClusterConfig.PRODUCT_NAME ),
-                String.format( "apt-get update && apt-get --yes --force-yes install %s", PACKAGE_NAME ), 900 );
+                String.format( "apt-get --yes --force-yes install %s", PACKAGE_NAME ), 900 );
     }
 
 
     public static CommandDef getUninstallMongoCommand()
     {
         return new CommandDef( String.format( "Purge %s package", PACKAGE_NAME ),
-                "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME, 900 );
+                String.format( "apt-get --force-yes --assume-yes purge %s", PACKAGE_NAME ), 900 );
+    }
+
+
+    public static CommandDef getClearMongoConfigsCommand()
+    {
+        return new CommandDef( String.format( "Clear %s config files", PACKAGE_NAME ),
+                String.format( "rm -r %s %s", Constants.CONFIG_DIR, Constants.DATA_NODE_CONF_FILE ), 900 );
+    }
+
+
+    public static CommandDef getUninstallClearMongoConfigsCommand()
+    {
+        return new CommandDef( String.format( "Purge & clear config files for %s package", PACKAGE_NAME ),
+                String.format( "%s && %s", getUninstallMongoCommand().getCommand(),
+                        getClearMongoConfigsCommand().getCommand() ), 900 );
     }
 
 

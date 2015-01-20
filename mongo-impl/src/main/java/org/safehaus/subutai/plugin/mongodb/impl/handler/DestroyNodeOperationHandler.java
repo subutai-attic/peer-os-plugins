@@ -133,7 +133,8 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             {
                 ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
                 po.addLog( "Purging subutai-hadoop from containers." );
-                logResults( po, Arrays.asList( executeCommand( Commands.getUninstallMongoCommand(), containerHost ) ) );
+                logResults( po,
+                        Arrays.asList( executeCommand( Commands.getClearMongoConfigsCommand(), containerHost ) ) );
             }
             else if ( config.getInstallationType() == InstallationType.STANDALONE )
             {

@@ -317,7 +317,25 @@ public class EnvironmentConfigurationStep extends VerticalLayout
             }
         }
 
-        List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
+        List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
+        for ( int i = 0; i < environments.size(); i++ )
+        {
+            boolean allowToConfigure = true;
+            Environment environment = environments.get( i );
+            Set<ContainerHost> envHosts = environment.getContainerHosts();
+            for ( final ContainerHost envHost : envHosts )
+            {
+                if ( !envHost.getTemplateName().equalsIgnoreCase( MongoClusterConfig.PRODUCT_NAME ) )
+                {
+                    allowToConfigure = false;
+                    break;
+                }
+            }
+            if ( !allowToConfigure )
+            {
+                environments.remove( i-- );
+            }
+        }
 
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );

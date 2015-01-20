@@ -74,8 +74,8 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
                 List<CommandResult> commandResults = new ArrayList<>();
                 for ( final ContainerHost containerHost : containerHosts )
                 {
-                    commandResults.add( commandUtil
-                            .execute( new RequestBuilder( Commands.getUninstallMongoCommand().getCommand() ),
+                    commandResults.add( commandUtil.execute(
+                            new RequestBuilder( Commands.getUninstallClearMongoConfigsCommand().getCommand() ),
                                     containerHost ) );
                 }
                 logResults( po, commandResults );
