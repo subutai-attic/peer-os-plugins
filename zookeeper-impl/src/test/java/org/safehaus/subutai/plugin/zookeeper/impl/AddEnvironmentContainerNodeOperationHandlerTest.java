@@ -10,11 +10,13 @@ import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.mock.TrackerMock;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
+import org.safehaus.subutai.plugin.zookeeper.impl.handler.ZookeeperNodeOperationHandler;
 
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -37,11 +39,15 @@ public class AddEnvironmentContainerNodeOperationHandlerTest
         when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
         when( zookeeperMock.getCluster( anyString() ) ).thenReturn( null );
         when( config.getClusterName() ).thenReturn( "test" );
+        when( config.getSetupType() ).thenReturn( SetupType.WITH_HADOOP );
+
         AbstractOperationHandler operationHandler =
-                new ZookeeperClusterOperationHandler( zookeeperMock, config, ClusterOperationType.ADD );
+                new ZookeeperNodeOperationHandler( zookeeperMock, config.getClusterName(), "test",
+                        NodeOperationType.ADD );
         operationHandler.run();
 
-        assertTrue( operationHandler.getTrackerOperation().getLog().contains( "Not supported SetupType" ) );
+        assertTrue( operationHandler.getTrackerOperation().getLog()
+                                    .contains( String.format( "Cluster with name %s does not exist", "test" ) ) );
         assertEquals( operationHandler.getTrackerOperation().getState(), OperationState.FAILED );
     }
 

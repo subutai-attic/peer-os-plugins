@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -59,7 +58,7 @@ public class Wizard
             }
             case 2:
             {
-                component = new ConfigurationStep( hadoop, this, environmentManager );
+                component = new ConfigurationStep( zookeeper, hadoop, this, environmentManager );
                 break;
             }
             case 3:

@@ -27,7 +27,7 @@ public class Commands
 
     public static String getInstallCommand()
     {
-        return "apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
+        return "apt-get update && apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
     }
 
 
@@ -58,6 +58,12 @@ public class Commands
     public static String getStatusCommand()
     {
         return "service zookeeper status";
+    }
+
+
+    public static String getZooNHadoopStatusCommand()
+    {
+        return "service zookeeper status & service hadoop-all status";
     }
 
 

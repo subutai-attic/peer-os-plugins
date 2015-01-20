@@ -86,9 +86,19 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                UUID trackID = wizard.getConfig().getSetupType() == SetupType.WITH_HADOOP ?
-                               zookeeper.installCluster( wizard.getConfig() ) :
-                               zookeeper.installCluster( wizard.getConfig() );
+                UUID trackID = null;
+                if ( wizard.getConfig().getSetupType() == SetupType.WITH_HADOOP )
+                {
+                    trackID = zookeeper.installCluster( wizard.getConfig() );
+                }
+                else if ( wizard.getConfig().getSetupType() == SetupType.OVER_ENVIRONMENT )
+                {
+                    trackID = zookeeper.configureEnvironmentCluster( wizard.getConfig() );
+                }
+                else
+                {
+                    trackID = zookeeper.installCluster( wizard.getConfig() );
+                }
 
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, ZookeeperClusterConfig.PRODUCT_KEY );

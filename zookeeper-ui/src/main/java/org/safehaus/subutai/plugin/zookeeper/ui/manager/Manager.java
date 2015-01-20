@@ -9,15 +9,13 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.common.ui.AddNodeWindow;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.NodeOperationTask;
@@ -489,31 +487,51 @@ public class Manager
             {
                 if ( config != null )
                 {
-                    if ( config.getSetupType() == SetupType.STANDALONE )
+                    if ( config.getSetupType() == SetupType.STANDALONE
+                            || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
                     {
-                        ConfirmationDialog alert = new ConfirmationDialog(
-                                String.format( "Do you want to add node to the %s cluster?", config.getClusterName() ),
-                                "Yes", "No" );
-                        alert.getOk().addClickListener( new Button.ClickListener()
+                        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+                        Set<ContainerHost> environmentHosts = environment.getContainerHosts();
+                        Set<ContainerHost> zookeeperHosts = environment.getContainerHostsByIds( config.getNodes() );
+                        environmentHosts.removeAll( zookeeperHosts );
+                        AddNodeWindow addNodeWindow =
+                                new AddNodeWindow( zookeeper, executorService, tracker, config, environmentHosts );
+                        contentRoot.getUI().addWindow( addNodeWindow );
+                        addNodeWindow.addCloseListener( new Window.CloseListener()
                         {
                             @Override
-                            public void buttonClick( Button.ClickEvent clickEvent )
+                            public void windowClose( Window.CloseEvent closeEvent )
                             {
-                                UUID trackID = zookeeper.addNode( config.getClusterName() );
-                                ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                        ZookeeperClusterConfig.PRODUCT_KEY );
-                                window.getWindow().addCloseListener( new Window.CloseListener()
-                                {
-                                    @Override
-                                    public void windowClose( Window.CloseEvent closeEvent )
-                                    {
-                                        refreshClustersInfo();
-                                    }
-                                } );
-                                contentRoot.getUI().addWindow( window.getWindow() );
+                                refreshClustersInfo();
                             }
                         } );
-                        contentRoot.getUI().addWindow( alert.getAlert() );
+
+                        //                        ConfirmationDialog alert = new ConfirmationDialog(
+                        //                                String.format( "Do you want to add node to the %s
+                        // cluster?", config.getClusterName() ),
+                        //                                "Yes", "No" );
+                        //                        alert.getOk().addClickListener( new Button.ClickListener()
+                        //                        {
+                        //                            @Override
+                        //                            public void buttonClick( Button.ClickEvent clickEvent )
+                        //                            {
+                        //                                UUID trackID = zookeeper.addNode( config.getClusterName() );
+                        //                                ProgressWindow window = new ProgressWindow(
+                        // executorService, tracker, trackID,
+                        //                                        ZookeeperClusterConfig.PRODUCT_KEY );
+                        //                                window.getWindow().addCloseListener( new Window
+                        // .CloseListener()
+                        //                                {
+                        //                                    @Override
+                        //                                    public void windowClose( Window.CloseEvent closeEvent )
+                        //                                    {
+                        //                                        refreshClustersInfo();
+                        //                                    }
+                        //                                } );
+                        //                                contentRoot.getUI().addWindow( window.getWindow() );
+                        //                            }
+                        //                        } );
+                        //                        contentRoot.getUI().addWindow( alert.getAlert() );
                     }
                     else if ( config.getSetupType() == SetupType.OVER_HADOOP
                             || config.getSetupType() == SetupType.WITH_HADOOP )
