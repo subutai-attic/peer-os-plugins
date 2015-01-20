@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.hive.impl;
 
 
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 
 
 public class Commands
