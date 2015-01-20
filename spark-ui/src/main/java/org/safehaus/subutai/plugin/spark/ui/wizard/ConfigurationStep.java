@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;

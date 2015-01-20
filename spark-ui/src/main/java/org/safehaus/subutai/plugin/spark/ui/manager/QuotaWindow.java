@@ -1,7 +1,8 @@
 package org.safehaus.subutai.plugin.spark.ui.manager;
 
 
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+
+import org.safehaus.subutai.common.peer.ContainerHost;
 
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.Button;
