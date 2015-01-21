@@ -1,16 +1,18 @@
 package org.safehaus.subutai.plugin.oozie.impl.handler;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.*;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.impl.CommandType;
+import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 import org.slf4j.Logger;
@@ -51,23 +53,39 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
     @Override
     public void setupCluster()
     {
+        if ( Strings.isNullOrEmpty(config.getClusterName()) )
+        {
+            trackerOperation.addLogFailed( "Malformed configuration" );
+            return;
+        }
+
+        if ( manager.getCluster( clusterName ) != null )
+        {
+            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
+            return;
+        }
+
         try
         {
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy(trackerOperation, config);
-            try
+            Environment env = null;
+            if ( config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
             {
-                trackerOperation.addLog( "Installing cluster..." );
-                s.setup();
-                trackerOperation.addLogDone( "Installing cluster completed" );
+                env = manager.getEnvironmentManager()
+                        .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
             }
-            catch (ClusterSetupException ex)
-            {
-                throw new ClusterException("Failed to setup cluster: " + ex.getMessage());
-            }
+
+
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+            clusterSetupStrategy.setup();
+
+            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch (ClusterException e)
+        catch ( EnvironmentBuildException | ClusterSetupException e )
         {
-            trackerOperation.addLogFailed(String.format("Could not start all nodes : %s", e.getMessage()));
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(),
+                            clusterName, e.getMessage() ) );
         }
 
     }
@@ -99,20 +117,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
     private void uninstallCluster()
     {
         TrackerOperation po = trackerOperation;
-        po.addLog("Uninstalling Flume...");
+        po.addLog("Uninstalling Oozie client...");
 
-        for (UUID uuid : config.getNodes())
+        OozieClusterConfig config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+
+        for (UUID uuid : config.getClients())
         {
             ContainerHost containerHost =
                     manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId())
                             .getContainerHostById(uuid);
             try
             {
-                CommandResult result = containerHost.execute(new RequestBuilder(Commands.make(CommandType.PURGE)));
+                CommandResult result = containerHost.execute(Commands.getUninstallClientsCommand());
                 if (!result.hasSucceeded())
                 {
                     po.addLog(result.getStdErr());
-                    po.addLogFailed("Uninstallation failed");
+                    po.addLogFailed("Uninstallation of oozie client failed");
                     return;
                 }
             } catch (CommandException e)
@@ -120,6 +146,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
                 LOG.error(e.getMessage(), e);
             }
         }
+
+        po.addLog("Uninstalling Oozie server...");
+
+        ContainerHost containerHost = manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId()).getContainerHostById(config.getServer());
+        try
+        {
+            CommandResult result = containerHost.execute(Commands.getUninstallServerCommand());
+            if (!result.hasSucceeded())
+            {
+                po.addLog(result.getStdErr());
+                po .addLogFailed("Uninstallation of oozie server failed");
+                return;
+            }
+        }
+        catch (CommandException e)
+        {
+            LOG.error(e.getMessage(),e);
+        }
+
+
         po.addLog("Updating db...");
         manager.getPluginDao().deleteInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName());
         po.addLogDone("Cluster info deleted from DB\nDone");
@@ -135,7 +181,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
             case INSTALL:
                 setupCluster();
                 break;
-            case DESTROY:
+            case UNINSTALL:
                 uninstallCluster();
                 break;
         }
