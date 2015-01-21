@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -34,13 +33,11 @@ public class PigImpl implements Pig
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
     private PluginDAO pluginDao;
-    private DataSource dataSource;
 
 
-    public PigImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public PigImpl( final Tracker tracker, final EnvironmentManager environmentManager,
                     final Hadoop hadoopManager )
     {
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -63,7 +60,7 @@ public class PigImpl implements Pig
     {
         try
         {
-            this.pluginDao = new PluginDAO( dataSource );
+            this.pluginDao = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
