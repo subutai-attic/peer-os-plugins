@@ -60,16 +60,6 @@ public class SharkImplTest
     @Mock
     Spark spark;
     @Mock
-    PreparedStatement preparedStatement;
-    @Mock
-    Connection connection;
-    @Mock
-    ResultSetMetaData resultSetMetaData;
-    @Mock
-    DataSource dataSource;
-    @Mock
-    ResultSet resultSet;
-    @Mock
     PluginDAO pluginDAO;
     @Mock
     Monitor monitor;
@@ -79,15 +69,15 @@ public class SharkImplTest
     public void setUp() throws Exception
     {
         // mock init
-        when( dataSource.getConnection() ).thenReturn( connection );
-        when( connection.prepareStatement( any( String.class ) ) ).thenReturn( preparedStatement );
-        when( preparedStatement.executeQuery() ).thenReturn( resultSet );
-        when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
-        when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
+        //when( dataSource.getConnection() ).thenReturn( connection );
+        //when( connection.prepareStatement( any( String.class ) ) ).thenReturn( preparedStatement );
+        //when( preparedStatement.executeQuery() ).thenReturn( resultSet );
+        //when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
+        //when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
 
         uuid = new UUID( 50, 50 );
-        sharkImpl = new SharkImpl( tracker, environmentManager, spark, dataSource, monitor );
+        sharkImpl = new SharkImpl( tracker, environmentManager, spark,monitor );
         //        sharkImpl.init();
         sharkImpl.setPluginDAO( pluginDAO );
 
@@ -100,11 +90,11 @@ public class SharkImplTest
                 .thenReturn( sharkClusterConfig );
 
         // asserts
-        assertEquals( connection, dataSource.getConnection() );
-        assertEquals( preparedStatement, connection.prepareStatement( any( String.class ) ) );
-        assertEquals( resultSet, preparedStatement.executeQuery() );
-        assertEquals( resultSetMetaData, resultSet.getMetaData() );
-        assertNotNull( resultSetMetaData.getColumnCount() );
+        //assertEquals( connection, dataSource.getConnection() );
+        //assertEquals( preparedStatement, connection.prepareStatement( any( String.class ) ) );
+        //assertEquals( resultSet, preparedStatement.executeQuery() );
+        //assertEquals( resultSetMetaData, resultSet.getMetaData() );
+        //assertNotNull( resultSetMetaData.getColumnCount() );
     }
 
 
