@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -34,14 +33,12 @@ public class FlumeImpl implements Flume
     private PluginDAO pluginDao;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
-    private DataSource dataSource;
     private ExecutorService executor;
 
 
-    public FlumeImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
-                      final Hadoop hadoopManager )
+    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Hadoop hadoopManager )
     {
-        this.dataSource = dataSource;
+
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -76,7 +73,7 @@ public class FlumeImpl implements Flume
     {
         try
         {
-            this.pluginDao = new PluginDAO( dataSource );
+            this.pluginDao = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
