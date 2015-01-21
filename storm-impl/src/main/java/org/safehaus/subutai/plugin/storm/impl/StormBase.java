@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -16,7 +15,7 @@ import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.impl.alert.StormAlertListener;
-import org.safehaus.subutai.plugin.storm.impl.dao.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,6 @@ public abstract class StormBase implements Storm
 
     protected PluginDAO pluginDAO;
     protected ExecutorService executor;
-    protected DataSource dataSource;
     protected PeerManager peerManager;
     protected Monitor monitor;
     private StormAlertListener stormAlertListener;
@@ -69,7 +67,7 @@ public abstract class StormBase implements Storm
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
