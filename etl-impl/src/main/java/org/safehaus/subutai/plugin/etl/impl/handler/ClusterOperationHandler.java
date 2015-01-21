@@ -14,11 +14,9 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.etl.impl.SetupStrategyOverHadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
 import org.safehaus.subutai.plugin.etl.impl.CommandFactory;
 import org.safehaus.subutai.plugin.etl.impl.SqoopImpl;
@@ -84,20 +82,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
         Environment env = null;
         try
         {
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+            HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+            if ( hc == null )
             {
-                HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
-                if ( hc == null )
-                {
-                    throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
-                }
-                env = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
-                if ( env == null )
-                {
-                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId() ) );
-                }
+                throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
             }
+            env = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+            if ( env == null )
+            {
+                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                        hadoopConfig.getEnvironmentId() ) );
+            }
+
 
             SetupStrategyOverHadoop s = new SetupStrategyOverHadoop( manager, config, env, trackerOperation );
             if ( s == null )

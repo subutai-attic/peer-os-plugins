@@ -2,12 +2,10 @@ package org.safehaus.subutai.plugin.etl.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.etl.ui.SqoopPortalModule;
 
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
@@ -38,36 +36,23 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start" );
-        next.setId( "sqoopStartOverHadoop" );
-        next.addStyleName( "default" );
-        next.addClickListener( new ClickListerner( wizard, SetupType.OVER_HADOOP ) );
-        grid.addComponent( next, 4, 4, 4, 4 );
-        grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
         setContent( grid );
     }
 
 
     private class ClickListerner implements Button.ClickListener
     {
-
         final Wizard wizard;
-        final SetupType type;
 
-
-        public ClickListerner( Wizard wizard, SetupType type )
+        public ClickListerner( Wizard wizard  )
         {
             this.wizard = wizard;
-            this.type = type;
         }
-
 
         @Override
         public void buttonClick( Button.ClickEvent event )
         {
             wizard.init();
-            wizard.getConfig().setSetupType( type );
             wizard.next();
         }
     }

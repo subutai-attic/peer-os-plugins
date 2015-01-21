@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.etl.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +12,6 @@ import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
 
 import com.vaadin.data.Property;
@@ -220,22 +218,22 @@ public class NodeSelectionStep extends VerticalLayout
             return;
         }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            String name = config.getHadoopClusterName();
-            if ( name == null || name.isEmpty() )
-            {
-                show( "Select Hadoop cluster" );
-            }
-            else if ( config.getNodes() == null || config.getNodes().isEmpty() )
-            {
-                show( "Select target nodes" );
-            }
-            else
-            {
-                wizard.next();
-            }
-        }
+//        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+//        {
+//            String name = config.getHadoopClusterName();
+//            if ( name == null || name.isEmpty() )
+//            {
+//                show( "Select Hadoop cluster" );
+//            }
+//            else if ( config.getNodes() == null || config.getNodes().isEmpty() )
+//            {
+//                show( "Select target nodes" );
+//            }
+//            else
+//            {
+//                wizard.next();
+//            }
+//        }
         else
         {
             show( "Installation type not supported" );

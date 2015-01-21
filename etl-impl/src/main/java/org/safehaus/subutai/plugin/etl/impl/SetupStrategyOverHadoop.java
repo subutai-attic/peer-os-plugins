@@ -16,7 +16,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
 
@@ -166,12 +165,9 @@ public class SetupStrategyOverHadoop
             throw new ClusterSetupException( "Environment not specified" );
         }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        if ( config.getNodes() == null || config.getNodes().isEmpty() )
         {
-            if ( config.getNodes() == null || config.getNodes().isEmpty() )
-            {
-                throw new ClusterSetupException( m + "Target nodes not specified" );
-            }
+            throw new ClusterSetupException( m + "Target nodes not specified" );
         }
     }
 

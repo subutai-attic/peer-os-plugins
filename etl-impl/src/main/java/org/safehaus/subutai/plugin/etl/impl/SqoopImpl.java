@@ -6,14 +6,10 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
@@ -125,20 +121,5 @@ public class SqoopImpl extends SqoopBase
         executor.execute( h );
         return h.getTrackerId();
     }
-
-
-//    @Override
-//    public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation to )
-//    {
-//        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-//        {
-//            return new SetupStrategyOverHadoop( this, config, env, to );
-//        }
-//        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-//        {
-//            return new SetupStrategyWithHadoop( this, config, env, to );
-//        }
-//        return null;
-//    }
 }
 
