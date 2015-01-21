@@ -115,7 +115,7 @@ public class ConfigurationStep extends VerticalLayout
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), "cassandra" );
+            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), CassandraClusterConfig.TEMPLATE_NAME );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
