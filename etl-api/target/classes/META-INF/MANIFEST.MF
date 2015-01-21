@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1421834481074
+Build-Jdk: 1.7.0_65
+Built-By: salih
+Bundle-Description: Subutai ETL Api
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai ETL Api
+Bundle-SymbolicName: org.safehaus.subutai.plugin.pp.api
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.safehaus.subutai.plugin.etl.api.setting;uses:="org.s
+ afehaus.subutai.plugin.etl.api";version="2.0.4",org.safehaus.subutai.pl
+ ugin.etl.api;uses:="org.safehaus.subutai.common.tracker,org.safehaus.su
+ butai.core.environment.api.helper,org.safehaus.subutai.plugin.common.ap
+ i,org.safehaus.subutai.plugin.etl.api.setting,org.safehaus.subutai.plug
+ in.hadoop.api";version="2.0.4"
+Import-Package: org.safehaus.subutai.common.tracker;version="[2.0,3)",or
+ g.safehaus.subutai.core.environment.api.helper;version="[2.0,3)",org.sa
+ fehaus.subutai.plugin.common.api;version="[2.0,3)",org.safehaus.subutai
+ .plugin.hadoop.api;version="[2.0,3)"
+Tool: Bnd-2.1.0.20130426-122213

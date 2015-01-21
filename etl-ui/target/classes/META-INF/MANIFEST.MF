@@ -1,0 +1,45 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1421834484014
+Build-Jdk: 1.7.0_65
+Built-By: salih
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
+Bundle-Description: Subutai ETL UI
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai ETL UI
+Bundle-SymbolicName: org.safehaus.subutai.plugin.etl.ui
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.safehaus.subutai.plugin.etl.ui;uses:="com.vaadin.ui,
+ javax.naming,org.safehaus.subutai.core.environment.api,org.safehaus.sub
+ utai.core.tracker.api,org.safehaus.subutai.plugin.etl.api,org.safehaus.
+ subutai.plugin.etl.ui.manager,org.safehaus.subutai.plugin.hadoop.api,or
+ g.safehaus.subutai.server.ui.api";version="2.0.4",org.safehaus.subutai.
+ plugin.etl.ui.manager;uses:="com.vaadin.server,com.vaadin.ui,javax.nami
+ ng,org.safehaus.subutai.common.peer,org.safehaus.subutai.core.environme
+ nt.api,org.safehaus.subutai.core.tracker.api,org.safehaus.subutai.plugi
+ n.etl.api,org.safehaus.subutai.plugin.etl.api.setting,org.safehaus.subu
+ tai.plugin.etl.ui,org.safehaus.subutai.plugin.hadoop.api";version="2.0.
+ 4",org.safehaus.subutai.plugin.etl.ui.wizard;version="2.0.4";uses:="com
+ .vaadin.ui,javax.naming,org.safehaus.subutai.core.environment.api,org.s
+ afehaus.subutai.core.tracker.api,org.safehaus.subutai.plugin.etl.api,or
+ g.safehaus.subutai.plugin.hadoop.api"
+Export-Service: org.safehaus.subutai.server.ui.api.PortalModule
+Import-Package: com.vaadin.data;version="[7.3,8)",com.vaadin.data.util;v
+ ersion="[7.3,8)",com.vaadin.event;version="[7.3,8)",com.vaadin.server;v
+ ersion="[7.3,8)",com.vaadin.shared.ui.label;version="[7.3,8)",com.vaadi
+ n.ui;version="[7.3,8)",javax.naming,org.osgi.service.blueprint;version=
+ "[1.0.0,2.0.0)",org.safehaus.subutai.common.peer;version="[2.0,3)",org.
+ safehaus.subutai.common.tracker;version="[2.0,3)",org.safehaus.subutai.
+ common.util;version="[2.0,3)",org.safehaus.subutai.core.environment.api
+ ;version="[2.0,3)",org.safehaus.subutai.core.environment.api.helper;ver
+ sion="[2.0,3)",org.safehaus.subutai.core.tracker.api;version="[2.0,3)",
+ org.safehaus.subutai.plugin.common.api;version="[2.0,3)",org.safehaus.s
+ ubutai.plugin.etl.api;version="[2.0,3)",org.safehaus.subutai.plugin.etl
+ .api.setting;version="[2.0,3)",org.safehaus.subutai.plugin.hadoop.api;v
+ ersion="[2.0,3)",org.safehaus.subutai.server.ui.api;version="[2.0,3)",o
+ rg.safehaus.subutai.server.ui.component;version="[2.0,3)"
+Import-Service: org.safehaus.subutai.core.environment.api.EnvironmentMan
+ ager;multiple:=false,org.safehaus.subutai.core.tracker.api.Tracker;mult
+ iple:=false,org.safehaus.subutai.plugin.etl.api.Sqoop;multiple:=false,o
+ rg.safehaus.subutai.plugin.hadoop.api.Hadoop;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213

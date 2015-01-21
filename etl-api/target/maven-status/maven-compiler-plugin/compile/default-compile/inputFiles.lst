@@ -1,0 +1,9 @@
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/SqoopConfig.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/setting/ExportSetting.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/SetupType.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/Sqoop.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/setting/ImportSetting.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/setting/ImportParameter.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/setting/BasicSetting.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/DataSourceType.java
+/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-api/src/main/java/org/safehaus/subutai/plugin/etl/api/setting/CommonSetting.java

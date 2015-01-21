@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1421834482888
+Build-Jdk: 1.7.0_65
+Built-By: salih
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
+Bundle-Description: Subutai ETL Impl
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai ETL  Impl
+Bundle-SymbolicName: org.safehaus.subutai.plugin.sqoop.impl
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Service: org.safehaus.subutai.plugin.etl.api.Sqoop
+Import-Package: javax.sql,org.h2.jdbcx,org.osgi.service.blueprint;versio
+ n="[1.0.0,2.0.0)",org.safehaus.subutai.common.command;version="[2.0,3)"
+ ,org.safehaus.subutai.common.peer;version="[2.0,3)",org.safehaus.subuta
+ i.common.protocol;version="[2.0,3)",org.safehaus.subutai.common.tracker
+ ;version="[2.0,3)",org.safehaus.subutai.core.environment.api;version="[
+ 2.0,3)",org.safehaus.subutai.core.environment.api.exception;version="[2
+ .0,3)",org.safehaus.subutai.core.environment.api.helper;version="[2.0,3
+ )",org.safehaus.subutai.core.tracker.api;version="[2.0,3)",org.safehaus
+ .subutai.plugin.common;version="[2.0,3)",org.safehaus.subutai.plugin.co
+ mmon.api;version="[2.0,3)",org.safehaus.subutai.plugin.etl.api;version=
+ "[2.0,3)",org.safehaus.subutai.plugin.etl.api.setting;version="[2.0,3)"
+ ,org.safehaus.subutai.plugin.hadoop.api;version="[2.0,3)",org.slf4j;ver
+ sion="[1.7,2)"
+Import-Service: org.safehaus.subutai.core.environment.api.EnvironmentMan
+ ager;multiple:=false,org.safehaus.subutai.core.tracker.api.Tracker;mult
+ iple:=false,org.safehaus.subutai.plugin.hadoop.api.Hadoop;multiple:=fal
+ se
+Tool: Bnd-2.1.0.20130426-122213
