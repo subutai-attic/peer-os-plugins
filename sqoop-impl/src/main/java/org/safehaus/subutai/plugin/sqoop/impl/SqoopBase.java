@@ -5,8 +5,6 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -26,7 +24,7 @@ public abstract class SqoopBase implements Sqoop
     EnvironmentManager environmentManager;
 
     PluginDAO pluginDAO;
-    DataSource dataSource;
+
 
     protected ExecutorService executor;
 
@@ -35,7 +33,7 @@ public abstract class SqoopBase implements Sqoop
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {

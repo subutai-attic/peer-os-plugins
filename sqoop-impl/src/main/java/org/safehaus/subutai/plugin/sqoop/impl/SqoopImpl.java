@@ -4,7 +4,6 @@ package org.safehaus.subutai.plugin.sqoop.impl;
 import java.util.List;
 import java.util.UUID;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
@@ -24,9 +23,8 @@ import org.safehaus.subutai.plugin.sqoop.impl.handler.NodeOperationHandler;
 public class SqoopImpl extends SqoopBase
 {
 
-    public SqoopImpl( DataSource dataSource )
+    public SqoopImpl()
     {
-        this.dataSource = dataSource;
     }
 
 
