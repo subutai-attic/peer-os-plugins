@@ -8,7 +8,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
