@@ -17,8 +17,7 @@ import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
-import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
-//import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 
 import javax.sql.DataSource;
 import java.util.Set;
@@ -38,7 +37,6 @@ public class ClusterOperationHandlerTest
     ClusterOperationHandler clusterOperationHandler3;
     TrackerOperation trackerOperation;
     UUID uuid;
-    DataSource dataSource;
     ExecutorService executorService;
     HadoopClusterConfig hadoopClusterConfig;
     HadoopImpl hadoop;
@@ -60,7 +58,6 @@ public class ClusterOperationHandlerTest
         environment = mock(Environment.class);
         environmentManager = mock(EnvironmentManager.class);
         hadoopClusterConfig = mock(HadoopClusterConfig.class);
-        dataSource = mock(DataSource.class);
         executorService = mock(ExecutorService.class);
         trackerOperation = mock(TrackerOperation.class);
         commandResult = mock(CommandResult.class);

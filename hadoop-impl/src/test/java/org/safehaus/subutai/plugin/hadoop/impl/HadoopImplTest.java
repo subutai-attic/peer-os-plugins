@@ -14,11 +14,8 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
-//import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 
-import javax.sql.DataSource;
-import java.sql.*;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -33,8 +30,7 @@ public class HadoopImplTest
 {
     private HadoopImpl hadoopImpl;
     private UUID uuid;
-    @Mock
-    DataSource dataSource;
+
     @Mock
     ExecutorService executorService;
     @Mock
@@ -46,33 +42,25 @@ public class HadoopImplTest
     @Mock
     Commands commands;
     @Mock
-    PreparedStatement preparedStatement;
-    @Mock
-    Connection connection;
-    @Mock
     EnvironmentManager environmentManager;
     @Mock
     Environment environment;
-    @Mock
-    ResultSetMetaData resultSetMetaData;
-    @Mock
-    ResultSet resultSet;
     @Mock
     PluginDAO pluginDAO;
 
 
     @Before
-    public void setUp() throws SQLException
+    public void setUp()
     {
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
-        when(resultSetMetaData.getColumnCount()).thenReturn(1);
-        when(preparedStatement.executeUpdate()).thenReturn(5);
+        //when(dataSource.getConnection()).thenReturn(connection);
+        //when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
+        //when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        //when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+        //when(resultSetMetaData.getColumnCount()).thenReturn(1);
+        //when(preparedStatement.executeUpdate()).thenReturn(5);
 
 
-        hadoopImpl = new HadoopImpl(dataSource);
+        hadoopImpl = new HadoopImpl();
 //        hadoopImpl.init();
         hadoopImpl.setExecutor(executorService);
         hadoopImpl.setTracker(tracker);
@@ -86,12 +74,12 @@ public class HadoopImplTest
         when(hadoopClusterConfig.getClusterName()).thenReturn("test");
 
         // assertions
-        assertEquals(connection, dataSource.getConnection());
-        assertEquals(5, preparedStatement.executeUpdate());
+        //assertEquals(connection, dataSource.getConnection());
+        //assertEquals(5, preparedStatement.executeUpdate());
     }
 
     @Test
-    public void testInit() throws SQLException
+    public void testInit()
     {
         //hadoopImpl.init();
     }

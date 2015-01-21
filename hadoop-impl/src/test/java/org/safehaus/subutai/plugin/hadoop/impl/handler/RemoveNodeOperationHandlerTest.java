@@ -22,21 +22,19 @@ public class RemoveNodeOperationHandlerTest
     RemoveNodeOperationHandler removeNodeOperationHandler;
     TrackerOperation trackerOperation;
     UUID uuid;
-    DataSource dataSource;
     ExecutorService executorService;
 
 
     @Before
     public void setUp()
     {
-        dataSource = mock(DataSource.class);
         executorService = mock(ExecutorService.class);
         trackerOperation = mock(TrackerOperation.class);
         uuid = new UUID(50, 50);
         Tracker tracker = mock(Tracker.class);
         String clusterName = "test";
         String lxcHostName = "test";
-        HadoopImpl hadoop = new HadoopImpl(dataSource);
+        HadoopImpl hadoop = new HadoopImpl();
         when(trackerOperation.getId()).thenReturn( uuid );
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);
@@ -55,7 +53,7 @@ public class RemoveNodeOperationHandlerTest
     {
         Tracker tracker = mock(Tracker.class);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        HadoopImpl hadoop = new HadoopImpl(dataSource);
+        HadoopImpl hadoop = new HadoopImpl();
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);
