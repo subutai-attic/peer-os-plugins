@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -44,18 +43,16 @@ public class PrestoImpl implements Presto
     private PluginDAO pluginDAO;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
-    private DataSource dataSource;
     private ExecutorService executor;
     private Monitor monitor;
     private PrestoAlertListener prestoAlertListener;
     Commands commands;
 
 
-    public PrestoImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public PrestoImpl( final Tracker tracker, final EnvironmentManager environmentManager,
                        final Hadoop hadoopManager, final Monitor monitor )
     {
 
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -100,7 +97,7 @@ public class PrestoImpl implements Presto
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
