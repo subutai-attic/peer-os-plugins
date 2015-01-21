@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -21,7 +20,6 @@ public abstract class SparkBase
 
     private static final Logger LOG = LoggerFactory.getLogger( SparkBase.class.getName() );
     public PluginDAO pluginDAO;
-    public DataSource dataSource;
     private Monitor monitor;
 
     Tracker tracker;
@@ -36,7 +34,7 @@ public abstract class SparkBase
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
@@ -90,11 +88,10 @@ public abstract class SparkBase
     }
 
 
-    protected SparkBase( final DataSource dataSource, final Tracker tracker,
+    protected SparkBase( final Tracker tracker,
                          final EnvironmentManager environmentManager, final Hadoop hadoopManager,
                          final Monitor monitor )
     {
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
