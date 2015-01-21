@@ -18,18 +18,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class SqoopBase implements Sqoop
 {
-
-    static final Logger LOG = LoggerFactory.getLogger( SqoopImpl.class );
-
+    public static final Logger LOG = LoggerFactory.getLogger( SqoopImpl.class );
     Tracker tracker;
     Hadoop hadoopManager;
     EnvironmentManager environmentManager;
-
     PluginDAO pluginDAO;
     DataSource dataSource;
-
     protected ExecutorService executor;
-
 
     public void init()
     {
