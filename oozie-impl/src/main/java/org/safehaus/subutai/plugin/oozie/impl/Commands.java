@@ -94,7 +94,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigureRootHostsCommand(String param)
+    public static RequestBuilder getConfigureRootHostsCommand(String param)
     {
 
         return new RequestBuilder(String.format(
@@ -103,7 +103,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigureRootGroupsCommand()
+    public static RequestBuilder getConfigureRootGroupsCommand()
     {
 
         return new RequestBuilder(String.format(
@@ -112,7 +112,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getUninstallServerCommand()
+    public static RequestBuilder getUninstallServerCommand()
     {
         return
 
@@ -139,7 +139,7 @@ public class Commands
         return rb;
     }
 
-    public RequestBuilder getUninstallClientsCommand()
+    public static RequestBuilder getUninstallClientsCommand()
     {
         return
 

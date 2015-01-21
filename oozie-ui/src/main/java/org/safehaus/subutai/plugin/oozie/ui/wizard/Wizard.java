@@ -1,18 +1,16 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import java.util.concurrent.ExecutorService;
-
-import javax.naming.NamingException;
-
-import org.safehaus.subutai.common.util.ServiceLocator;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
-import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
+import javax.naming.NamingException;
+import java.util.concurrent.ExecutorService;
 
 
 public class Wizard
@@ -20,23 +18,27 @@ public class Wizard
 
     private final VerticalLayout vlayout;
     private final ExecutorService executor;
-    private final Oozie oozieManager;
+    private final Oozie oozie;
     private final Tracker tracker;
+    private final EnvironmentManager environmentManager;
     private int step = 1;
     private OozieClusterConfig config = new OozieClusterConfig();
-    private Hadoop hadoopManager;
+    private Hadoop hadoop;
 
 
-    public Wizard( final ExecutorService executorService, final ServiceLocator serviceLocator ) throws NamingException
+    public Wizard(final ExecutorService executorService, Oozie oozie, Hadoop hadoop, Tracker tracker,
+                  EnvironmentManager environmentManager) throws NamingException
     {
 
-        tracker = serviceLocator.getService( Tracker.class );
-        hadoopManager = serviceLocator.getService( Hadoop.class );
-        oozieManager = serviceLocator.getService( Oozie.class );
-        executor = executorService;
+//        tracker = serviceLocator.getService( Tracker.class );
+        this.hadoop = hadoop;
+        this.oozie = oozie;
+        this.executor = executorService;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
         vlayout = new VerticalLayout();
         vlayout.setSizeFull();
-        vlayout.setMargin( true );
+        vlayout.setMargin(true);
         putForm();
     }
 
@@ -44,32 +46,32 @@ public class Wizard
     private void putForm()
     {
         vlayout.removeAllComponents();
-        switch ( step )
+        switch (step)
         {
             case 1:
             {
-                vlayout.addComponent( new StepStart( this ) );
+                vlayout.addComponent(new StepStart(this));
                 break;
             }
             case 2:
             {
-                vlayout.addComponent( new ConfigurationStep( this ) );
+                vlayout.addComponent(new ConfigurationStep(this));
                 break;
             }
             case 3:
             {
-                vlayout.addComponent( new StepSetConfig( this ) );
+                vlayout.addComponent(new StepSetConfig(oozie, hadoop, this, environmentManager));
                 break;
             }
             case 4:
             {
-                vlayout.addComponent( new VerificationStep( this ) );
+                vlayout.addComponent(new VerificationStep(this, environmentManager));
                 break;
             }
             default:
             {
                 step = 1;
-                vlayout.addComponent( new StepStart( this ) );
+                vlayout.addComponent(new StepStart(this));
                 break;
             }
         }
@@ -119,7 +121,7 @@ public class Wizard
 
     public Hadoop getHadoopManager()
     {
-        return hadoopManager;
+        return hadoop;
     }
 
 
@@ -137,6 +139,6 @@ public class Wizard
 
     public Oozie getOozieManager()
     {
-        return oozieManager;
+        return oozie;
     }
 }

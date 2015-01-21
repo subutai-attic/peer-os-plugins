@@ -1,35 +1,28 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TwinColSelect;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.oozie.api.Oozie;
+
+import java.util.*;
 
 
 public class StepSetConfig extends Panel
 {
+    public EnvironmentManager environmentManager;
 
-    public StepSetConfig( final Wizard wizard )
+    public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard , final EnvironmentManager environmentManager)
     {
+        this.environmentManager = environmentManager;
+
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
         verticalLayout.setHeight( 100, Unit.PERCENTAGE );
@@ -67,11 +60,27 @@ public class StepSetConfig extends Panel
 
         final HadoopClusterConfig hcc =
                 wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
-        for ( UUID agent : hcc.getAllNodes() )
+
+        List<UUID> allHadoopNodes = hcc.getAllNodes();
+        Set<UUID> allHadoopNodeSet = new HashSet<>();
+        allHadoopNodeSet.addAll( allHadoopNodes );
+
+        Set<UUID> nodes = new HashSet<>(hcc.getAllNodes());
+        final Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
+
+        for (ContainerHost host : hosts)
         {
-            cbServers.addItem( agent );
-            cbServers.setItemCaption( agent, agent.toString() );
+            cbServers.addItem( host );
+            cbServers.setItemCaption( host, host.getHostname() );
         }
+
+//        for ( UUID agent : hcc.getAllNodes() )
+//        {
+//            cbServers.addItem( agent );
+//            cbServers.setItemCaption( agent, agent.toString() );
+//        }
+
+
 
         vl.addComponent( cbServers );
 
@@ -90,7 +99,7 @@ public class StepSetConfig extends Panel
         selectClients.setLeftColumnCaption( "Available nodes" );
         selectClients.setRightColumnCaption( "Client nodes" );
         selectClients.setWidth( 100, Unit.PERCENTAGE );
-        selectClients.setContainerDataSource( new BeanItemContainer<>( UUID.class, hcc.getAllNodes() ) );
+        selectClients.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hosts ) );
 
         if ( !CollectionUtil.isCollectionEmpty( wizard.getConfig().getClients() ) )
         {
@@ -109,15 +118,26 @@ public class StepSetConfig extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                wizard.getConfig().setServer( ( UUID ) cbServers.getValue() );
-                Set<UUID> clientNodes = new HashSet<>();
+                ContainerHost containerID = (ContainerHost) cbServers.getValue();
+                wizard.getConfig().setServer(containerID.getId());
+//                Set<UUID> clientNodes = new HashSet<>();
                 if ( selectClients.getValue() != null )
                 {
-                    for ( UUID node : ( Set<UUID> ) selectClients.getValue() )
+
+                    Set<ContainerHost> containerHosts =
+                            new HashSet<>( ( Collection<ContainerHost> ) selectClients.getValue() );
+                    Set<UUID> containerIDs = new HashSet<>();
+                    for ( ContainerHost containerHost : containerHosts )
                     {
-                        clientNodes.add( node );
+                        containerIDs.add( containerHost.getId() );
                     }
-                    wizard.getConfig().setClients( clientNodes );
+                    wizard.getConfig().setClients(containerIDs);
+
+//                    for ( UUID node : ( Set<UUID> ) selectClients.getValue() )
+//                    {
+//                        clientNodes.add( node );
+//                    }
+//                    wizard.getConfig().setClients( clientNodes );
                 }
 
                 if ( wizard.getConfig().getServer() == null )
@@ -152,13 +172,13 @@ public class StepSetConfig extends Panel
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                UUID selectedServerNode = ( UUID ) event.getProperty().getValue();
-                List<UUID> hadoopNodes = hcc.getAllNodes();
-                List<UUID> availableOozieClientNodes = new ArrayList<>();
+                ContainerHost selectedServerNode = ( ContainerHost ) event.getProperty().getValue();
+                Set<ContainerHost> hadoopNodes = hosts;
+                List<ContainerHost> availableOozieClientNodes = new ArrayList<>();
                 availableOozieClientNodes.addAll( hadoopNodes );
                 availableOozieClientNodes.remove( selectedServerNode );
                 selectClients
-                        .setContainerDataSource( new BeanItemContainer<>( UUID.class, availableOozieClientNodes ) );
+                        .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, availableOozieClientNodes ) );
                 selectClients.markAsDirty();
             }
         } );

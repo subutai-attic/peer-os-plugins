@@ -11,6 +11,7 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -20,6 +21,7 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
+import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -199,8 +201,21 @@ public class OozieImpl implements Oozie
         return h.getTrackerId();
     }
 
-    public ClusterSetupStrategy getClusterSetupStrategy(final TrackerOperation po, final OozieClusterConfig config)
+    public ClusterSetupStrategy getClusterSetupStrategy(final Environment environment,
+                                                        final OozieClusterConfig config,
+                                                        final TrackerOperation po )
     {
+        Preconditions.checkNotNull( config, "Oozie cluster config is null" );
+        Preconditions.checkNotNull( po, "Product operation is null" );
+        if ( config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
+        {
+            Preconditions.checkNotNull( environment, "Environment is null" );
+        }
+        else if ( config.getSetupType() == SetupType.OVER_HADOOP)
+        {
+            return new OverHadoopSetupStrategy( environment, config, po, this );
+        }
+
         return new OozieSetupStrategy(this, po, config);
     }
 
