@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.solr.impl.handler.mock;
 
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.plugin.common.mock.TrackerMock;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 import org.safehaus.subutai.plugin.solr.impl.Commands;
@@ -20,7 +18,7 @@ public class SolrImplMock extends SolrImpl
 
     public SolrImplMock()
     {
-        super( mock( DataSource.class ) );
+        super();
 
         setTracker( new TrackerMock() );
     }
