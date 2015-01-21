@@ -46,20 +46,17 @@ public class SharkImpl implements Shark
     private EnvironmentManager environmentManager;
     protected ExecutorService executor;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private Monitor monitor;
 
     protected Commands commands;
     private SharkAlertListener sharkAlertListener;
 
 
-    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, DataSource dataSource,
-                      Monitor monitor )
+    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager,Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.sparkManager = sparkManager;
-        this.dataSource = dataSource;
         this.monitor = monitor;
         sharkAlertListener = new SharkAlertListener( this );
         monitor.addAlertListener( sharkAlertListener );
@@ -124,7 +121,7 @@ public class SharkImpl implements Shark
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
