@@ -1,29 +1,28 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import java.util.UUID;
-
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.Window;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 
 public class VerificationStep extends Panel
 {
+    private EnvironmentManager environmentManager;
 
-    public VerificationStep( final Wizard wizard )
+    public VerificationStep( final Wizard wizard, final EnvironmentManager environmentManager )
     {
-
+        this.environmentManager = environmentManager;
         setSizeFull();
 
         GridLayout grid = new GridLayout( 1, 5 );
@@ -37,13 +36,25 @@ public class VerificationStep extends Panel
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", wizard.getConfig().getClusterName() );
-        cfgView.addStringCfg( "Server", wizard.getConfig().getServer().toString() + "\n" );
+        HadoopClusterConfig hcc =
+                wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
+
+        ContainerHost host = environmentManager.getEnvironmentByUUID(hcc.getEnvironmentId()).getContainerHostById(wizard.getConfig().getServer());
+        cfgView.addStringCfg( "Server", host.getHostname() + "\n" );
         if ( wizard.getConfig().getClients() != null )
         {
-            for ( UUID agent : wizard.getConfig().getClients() )
+            Set<UUID> nodes = new HashSet<>(wizard.getConfig().getClients());
+            Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
+
+            for ( ContainerHost containerHost : hosts)
             {
-                cfgView.addStringCfg( "Clients", agent.toString() + "\n" );
+                cfgView.addStringCfg( "Clients", containerHost.getHostname() + "\n" );
             }
+
+//            for ( UUID agent : wizard.getConfig().getClients() )
+//            {
+//                cfgView.addStringCfg( "Clients", agent.toString() + "\n" );
+//            }
         }
 
         Button install = new Button( "Install" );

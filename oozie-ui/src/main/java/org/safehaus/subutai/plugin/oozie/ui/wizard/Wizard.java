@@ -65,7 +65,7 @@ public class Wizard
             }
             case 4:
             {
-                vlayout.addComponent(new VerificationStep(this));
+                vlayout.addComponent(new VerificationStep(this, environmentManager));
                 break;
             }
             default:
