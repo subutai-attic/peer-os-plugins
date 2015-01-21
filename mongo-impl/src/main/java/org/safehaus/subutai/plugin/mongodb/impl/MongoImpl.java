@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
@@ -71,7 +70,6 @@ public class MongoImpl implements Mongo
     private ExecutorService executor;
     private Commands commands;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private PeerManager peerManager;
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
@@ -80,9 +78,8 @@ public class MongoImpl implements Mongo
     private MongoAlertListener mongoAlertListener;
 
 
-    public MongoImpl( DataSource dataSource, Monitor monitor )
+    public MongoImpl( Monitor monitor )
     {
-        this.dataSource = dataSource;
         this.monitor = monitor;
         this.mongoAlertListener = new MongoAlertListener( this );
         this.monitor.addAlertListener( mongoAlertListener );
@@ -179,7 +176,7 @@ public class MongoImpl implements Mongo
             } );
 
             GSON = gsonBuilder.serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
