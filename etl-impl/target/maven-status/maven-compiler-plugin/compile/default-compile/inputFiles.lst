@@ -1,9 +1,0 @@
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/CommandFactory.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/SqoopBase.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/ClusterConfiguration.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/handler/ClusterOperationHandler.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/SqoopSetupStrategy.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/SetupStrategyOverHadoop.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/handler/NodeOperationHandler.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/SetupStrategyWithHadoop.java
-/home/salih/workspace/projects/safehaus/subutai/plugins/etl-plugin/etl-impl/src/main/java/org/safehaus/subutai/plugin/etl/impl/SqoopImpl.java

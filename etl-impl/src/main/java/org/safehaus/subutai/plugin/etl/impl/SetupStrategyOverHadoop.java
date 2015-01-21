@@ -12,23 +12,31 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
 
 
-class SetupStrategyOverHadoop extends SqoopSetupStrategy
+public class SetupStrategyOverHadoop
 {
+    private SqoopImpl manager;
+    private SqoopConfig config;
+    private Environment environment;
+    private TrackerOperation trackerOperation;
 
-    public SetupStrategyOverHadoop( SqoopImpl manager, SqoopConfig config, Environment env, TrackerOperation po )
+    public SetupStrategyOverHadoop( SqoopImpl manager, SqoopConfig config, Environment env, TrackerOperation trackerOperation )
     {
-        super( manager, config, env, po );
+        this.manager = manager;
+        this.config = config;
+        this.environment = env;
+        this.trackerOperation = trackerOperation;
     }
 
 
-    @Override
     public ConfigBase setup() throws ClusterSetupException
     {
 
@@ -38,7 +46,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
         if ( nodes.size() < config.getNodes().size() )
         {
-            throw new ClusterSetupException( "Fewer nodes found in the encironment than expected" );
+            throw new ClusterSetupException( "Fewer nodes found in the environment than expected" );
         }
         for ( ContainerHost node : nodes )
         {
@@ -75,7 +83,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
                 {
                     if ( res.getStdOut().contains( CommandFactory.PACKAGE_NAME ) )
                     {
-                        to.addLog( String.format( "Node %s has already Sqoop installed.", node.getHostname() ) );
+                        trackerOperation.addLog( String.format( "Node %s has already Sqoop installed.", node.getHostname() ) );
                         it.remove();
                     }
                     else if ( res.getStdOut().contains( hadoop_pack ) )
@@ -109,7 +117,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
                 CommandResult res = node.execute( new RequestBuilder( s ) );
                 if ( res.hasSucceeded() )
                 {
-                    to.addLog( "Sqoop installed on " + node.getHostname() );
+                    trackerOperation.addLog( "Sqoop installed on " + node.getHostname() );
                 }
                 else
                 {
@@ -122,11 +130,11 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
             }
         }
 
-        to.addLog( "Saving to db..." );
+        trackerOperation.addLog( "Saving to db..." );
         boolean saved = manager.getPluginDao().saveInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName(), config );
         if ( saved )
         {
-            to.addLog( "Installation info successfully saved" );
+            trackerOperation.addLog( "Installation info successfully saved" );
             configure();
         }
         else
@@ -135,6 +143,49 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         }
 
         return config;
+    }
+
+    public void checkConfig() throws ClusterSetupException
+    {
+
+        String m = "Invalid configuration: ";
+
+        if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
+        {
+            throw new ClusterSetupException( m + "name is not specified" );
+        }
+
+        if ( manager.getCluster( config.getClusterName() ) != null )
+        {
+            throw new ClusterSetupException(
+                    m + String.format( "Sqoop installation already exists: %s", config.getClusterName() ) );
+        }
+
+        if ( environment == null )
+        {
+            throw new ClusterSetupException( "Environment not specified" );
+        }
+
+        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        {
+            if ( config.getNodes() == null || config.getNodes().isEmpty() )
+            {
+                throw new ClusterSetupException( m + "Target nodes not specified" );
+            }
+        }
+    }
+
+    void configure() throws ClusterSetupException
+    {
+        ClusterConfiguration cc = new ClusterConfiguration();
+        try
+        {
+            cc.configureCluster( config, environment );
+        }
+        catch ( ClusterConfigurationException ex )
+        {
+            throw new ClusterSetupException( ex );
+        }
     }
 }
 

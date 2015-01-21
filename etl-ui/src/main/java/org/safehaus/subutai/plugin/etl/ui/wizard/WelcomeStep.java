@@ -38,19 +38,12 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button next = new Button( "Start over-Hadoop installation" );
+        Button next = new Button( "Start" );
         next.setId( "sqoopStartOverHadoop" );
         next.addStyleName( "default" );
         next.addClickListener( new ClickListerner( wizard, SetupType.OVER_HADOOP ) );
         grid.addComponent( next, 4, 4, 4, 4 );
         grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
-        Button next2 = new Button( "Start with-Hadoop installation" );
-        next2.addStyleName( "default" );
-        next2.setId( "sqoopStartWithHadoop" );
-        next2.addClickListener( new ClickListerner( wizard, SetupType.WITH_HADOOP ) );
-        grid.addComponent( next2, 5, 4, 5, 4 );
-        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }

@@ -1,9 +1,0 @@
-org/safehaus/subutai/plugin/etl/api/setting/ImportParameter.class
-org/safehaus/subutai/plugin/etl/api/setting/ImportSetting.class
-org/safehaus/subutai/plugin/etl/api/SqoopConfig.class
-org/safehaus/subutai/plugin/etl/api/setting/BasicSetting.class
-org/safehaus/subutai/plugin/etl/api/Sqoop.class
-org/safehaus/subutai/plugin/etl/api/setting/ExportSetting.class
-org/safehaus/subutai/plugin/etl/api/SetupType.class
-org/safehaus/subutai/plugin/etl/api/setting/CommonSetting.class
-org/safehaus/subutai/plugin/etl/api/DataSourceType.class

@@ -127,18 +127,18 @@ public class SqoopImpl extends SqoopBase
     }
 
 
-    @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation to )
-    {
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            return new SetupStrategyOverHadoop( this, config, env, to );
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            return new SetupStrategyWithHadoop( this, config, env, to );
-        }
-        return null;
-    }
+//    @Override
+//    public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation to )
+//    {
+//        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+//        {
+//            return new SetupStrategyOverHadoop( this, config, env, to );
+//        }
+//        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+//        {
+//            return new SetupStrategyWithHadoop( this, config, env, to );
+//        }
+//        return null;
+//    }
 }
 

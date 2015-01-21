@@ -16,6 +16,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.etl.impl.SetupStrategyOverHadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.SetupType;
 import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
@@ -98,7 +99,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
                 }
             }
 
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
+            SetupStrategyOverHadoop s = new SetupStrategyOverHadoop( manager, config, env, trackerOperation );
             if ( s == null )
             {
                 throw new ClusterException( "No setup strategy" );
@@ -149,35 +150,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
 
             trackerOperation.addLog( "Uninstalling Sqoop..." );
 
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL, null ) );
+            for ( ContainerHost node : nodes )
             {
-                RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL, null ) );
-                for ( ContainerHost node : nodes )
+                try
                 {
-                    try
+                    CommandResult result = node.execute( rb );
+                    if ( result.hasSucceeded() )
                     {
-                        CommandResult result = node.execute( rb );
-                        if ( result.hasSucceeded() )
-                        {
-                            trackerOperation.addLog( "Sqoop uninstalled from " + node.getHostname() );
-                        }
-                        else
-                        {
-                            throw new ClusterException(
-                                    String.format( "Could not uninstall Sqoop from node %s : %s", node.getHostname(),
-                                            result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
-                        }
+                        trackerOperation.addLog( "Sqoop uninstalled from " + node.getHostname() );
                     }
-                    catch ( CommandException e )
+                    else
                     {
                         throw new ClusterException(
-                                String.format( "Failed to uninstall Sqoop on node %s", node.getHostname() ), e );
+                                String.format( "Could not uninstall Sqoop from node %s : %s", node.getHostname(),
+                                        result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
                     }
                 }
-            }
-            else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-            {
-                destroyEnvironment( env );
+                catch ( CommandException e )
+                {
+                    throw new ClusterException(
+                            String.format( "Failed to uninstall Sqoop on node %s", node.getHostname() ), e );
+                }
             }
 
             boolean deleted = manager.getPluginDao().deleteInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName() );

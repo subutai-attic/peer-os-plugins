@@ -64,7 +64,8 @@ public class Manager
     private Hadoop hadoop;
 
 
-    public Manager( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
+    public Manager( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
             throws NamingException
     {
 
