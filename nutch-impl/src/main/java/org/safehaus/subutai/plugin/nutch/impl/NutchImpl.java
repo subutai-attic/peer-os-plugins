@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -39,13 +38,11 @@ public class NutchImpl implements Nutch
     private ExecutorService executor;
     private PluginDAO pluginDao;
     private EnvironmentManager environmentManager;
-    private DataSource dataSource;
 
 
-    public NutchImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public NutchImpl( final Tracker tracker, final EnvironmentManager environmentManager,
                       final Hadoop hadoopManager )
     {
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -80,7 +77,7 @@ public class NutchImpl implements Nutch
     {
         try
         {
-            this.pluginDao = new PluginDAO( dataSource );
+            this.pluginDao = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
