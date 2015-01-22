@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
@@ -28,9 +27,9 @@ import com.google.common.base.Preconditions;
 public class StormImpl extends StormBase
 {
 
-    public StormImpl( DataSource dataSource )
+    public StormImpl()
     {
-        this.dataSource = dataSource;
+
     }
 
 
