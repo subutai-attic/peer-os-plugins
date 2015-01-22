@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
@@ -61,14 +60,12 @@ public class ZookeeperImpl implements Zookeeper
     private PeerManager peerManager;
 
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private ZookeeperAlertListener zookeeperAlertListener;
     private QuotaManager quotaManager;
 
 
-    public ZookeeperImpl( DataSource dataSource, Monitor monitor )
+    public ZookeeperImpl( Monitor monitor )
     {
-        this.dataSource = dataSource;
         this.monitor = monitor;
         this.zookeeperAlertListener = new ZookeeperAlertListener( this );
         this.monitor.addAlertListener( zookeeperAlertListener );
@@ -181,7 +178,7 @@ public class ZookeeperImpl implements Zookeeper
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
