@@ -4,7 +4,6 @@ package org.safehaus.subutai.plugin.spark.impl;
 import java.util.List;
 import java.util.UUID;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -37,10 +36,10 @@ public class SparkImpl extends SparkBase implements Spark
     private SparkAlertListener sparkAlertListener;
 
 
-    public SparkImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager,
                       final Hadoop hadoopManager, final Monitor monitor )
     {
-        super( dataSource, tracker, environmentManager, hadoopManager, monitor );
+        super( tracker, environmentManager, hadoopManager, monitor );
 
         //subscribe to alerts
         sparkAlertListener = new SparkAlertListener( this );
