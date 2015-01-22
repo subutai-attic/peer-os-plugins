@@ -31,7 +31,6 @@
     <module>etl-api</module>
     <module>etl-impl</module>
     <module>etl-ui</module>
-    <module>etl-cli</module>
     <module>etl-rest</module>
     <module>etl-kar</module>
   </modules>

@@ -2,7 +2,7 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="sqoop" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.etl.api.Sqoop" />
+             interface="org.safehaus.subutai.plugin.etl.api.ETL" />
   <reference id="hadoop" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"

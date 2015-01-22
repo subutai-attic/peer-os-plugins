@@ -1,25 +1,109 @@
 package org.safehaus.subutai.plugin.etl.impl;
 
 
-import java.util.List;
+import java.sql.SQLException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
-import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.etl.api.ETLConfig;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.ETLConfig;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
-import org.safehaus.subutai.plugin.etl.impl.handler.ClusterOperationHandler;
-import org.safehaus.subutai.plugin.etl.impl.handler.NodeOperationHandler;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public class SqoopImpl extends SqoopBase
+public class SqoopImpl implements ETL
 {
+    public static final Logger LOG = LoggerFactory.getLogger( SqoopImpl.class );
+
+    Tracker tracker;
+    Hadoop hadoopManager;
+    EnvironmentManager environmentManager;
+    PluginDAO pluginDAO;
+    DataSource dataSource;
+    protected ExecutorService executor;
+
+    public void init()
+    {
+        try
+        {
+            this.pluginDAO = new PluginDAO( dataSource );
+        }
+        catch ( SQLException e )
+        {
+            LOG.error( "Failed to init DAO", e );
+        }
+
+        executor = Executors.newCachedThreadPool();
+    }
+
+
+    public void destroy()
+    {
+        executor.shutdown();
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public PluginDAO getPluginDao()
+    {
+        return pluginDAO;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public ExecutorService getExecutor()
+    {
+        return executor;
+    }
+
+
+    public void setExecutor( ExecutorService executor )
+    {
+        this.executor = executor;
+    }
+
 
     public SqoopImpl( DataSource dataSource )
     {
@@ -28,72 +112,8 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public UUID installCluster( ETLConfig config )
+    public UUID isInstalled( final String clusterName, final String hostname )
     {
-        AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
-    public UUID installCluster( ETLConfig config, HadoopClusterConfig hadoopConfig )
-    {
-        ClusterOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        h.setHadoopConfig( hadoopConfig );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
-    public UUID uninstallCluster( String clusterName )
-    {
-        ETLConfig config = getCluster( clusterName );
-        AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
-    public List<ETLConfig> getClusters()
-    {
-        return pluginDAO.getInfo( ETLConfig.PRODUCT_KEY, ETLConfig.class );
-    }
-
-
-    @Override
-    public ETLConfig getCluster( String clusterName )
-    {
-        return pluginDAO.getInfo( ETLConfig.PRODUCT_KEY, clusterName, ETLConfig.class );
-    }
-
-
-    @Override
-    public UUID isInstalled( String clusterName, String hostname )
-    {
-        ETLConfig config = getCluster( clusterName );
-        AbstractOperationHandler h = new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
-    public UUID destroyNode( String clusterName, String hostname )
-    {
-        ETLConfig config = getCluster( clusterName );
-        AbstractOperationHandler h = new NodeOperationHandler( this, config, hostname, NodeOperationType.UNINSTALL );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
-    public UUID addNode( final String clusterName, final String lxcHostname )
-    {
-        // N/A for Sqoop installation
         return null;
     }
 
@@ -101,26 +121,14 @@ public class SqoopImpl extends SqoopBase
     @Override
     public UUID exportData( ExportSetting settings )
     {
-        ETLConfig config = getCluster( settings.getClusterName() );
-        NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
-                                                           NodeOperationType.EXPORT );
-        h.setExportSettings( settings );
-
-        executor.execute( h );
-        return h.getTrackerId();
+        return null;
     }
 
 
     @Override
     public UUID importData( ImportSetting settings )
     {
-        ETLConfig config = getCluster( settings.getClusterName() );
-        NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
-                                                           NodeOperationType.IMPORT );
-        h.setImportSettings( settings );
-
-        executor.execute( h );
-        return h.getTrackerId();
+        return null;
     }
 }
 

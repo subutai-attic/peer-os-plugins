@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.etl.api.Sqoop;
+import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 
 import com.vaadin.ui.AbstractTextField;
@@ -20,12 +20,12 @@ import com.vaadin.ui.HorizontalLayout;
 public class ExportPanel extends ImportExportBase
 {
 
-    private final Sqoop sqoop;
+    private final ETL sqoop;
     private final ExecutorService executorService;
     AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:", 300 );
 
 
-    public ExportPanel( Sqoop sqoop, ExecutorService executorService, Tracker tracker )
+    public ExportPanel( ETL sqoop, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
         this.sqoop = sqoop;

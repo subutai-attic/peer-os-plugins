@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.DataSourceType;
-import org.safehaus.subutai.plugin.etl.api.Sqoop;
+import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 
@@ -24,7 +24,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ImportPanel extends ImportExportBase
 {
 
-    private final Sqoop sqoop;
+    private final ETL sqoop;
     private final ExecutorService executorService;
     DataSourceType type;
     CheckBox chkImportAllTables = new CheckBox( "Import all tables" );
@@ -34,7 +34,7 @@ public class ImportPanel extends ImportExportBase
     AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:", 300 );
 
 
-    public ImportPanel( Sqoop sqoop, ExecutorService executorService, Tracker tracker )
+    public ImportPanel( ETL sqoop, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
         this.sqoop = sqoop;

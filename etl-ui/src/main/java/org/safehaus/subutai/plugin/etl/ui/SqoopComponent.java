@@ -7,11 +7,11 @@ import javax.naming.NamingException;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.extract.ETLExtractManager;
 import org.safehaus.subutai.plugin.etl.ui.load.ETLLoadManager;
 import org.safehaus.subutai.plugin.etl.ui.transform.ETLTransformManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.etl.api.Sqoop;
 import org.safehaus.subutai.plugin.etl.ui.manager.ExportPanel;
 import org.safehaus.subutai.plugin.etl.ui.manager.ImportExportBase;
 import org.safehaus.subutai.plugin.etl.ui.manager.ImportPanel;
@@ -31,7 +31,7 @@ public class SqoopComponent extends CustomComponent
     private final TabSheet sheet;
 
 
-    public SqoopComponent( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public SqoopComponent( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
         etlManager = new ETLExtractManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
         etlLoadManager = new ETLLoadManager( executorService, sqoop, hadoop, tracker, environmentManager, this );

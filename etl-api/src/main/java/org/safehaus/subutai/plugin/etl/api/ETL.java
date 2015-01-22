@@ -12,14 +12,10 @@ import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 
 
-public interface Sqoop extends ApiBase<ETLConfig>
+public interface ETL
 {
 
     public UUID isInstalled( String clusterName, String hostname );
-
-    public UUID installCluster( ETLConfig config, HadoopClusterConfig hadoopConfig );
-
-    public UUID destroyNode( String clusterName, String hostname );
 
     public UUID exportData( ExportSetting settings );
 

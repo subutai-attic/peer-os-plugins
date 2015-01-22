@@ -11,7 +11,7 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="sqoopManager" availability="mandatory" interface="org.safehaus.subutai.plugin.etl.api.Sqoop" />
+  <reference id="sqoopManager" availability="mandatory" interface="org.safehaus.subutai.plugin.etl.api.ETL" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.etl.rest.RestService">
     <property name="sqoopManager" ref="sqoopManager" />

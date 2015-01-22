@@ -11,7 +11,7 @@
 
   <artifactId>etl-plugin-impl</artifactId>
   <packaging>bundle</packaging>
-  <name>Subutai ETL  Impl</name>
+  <name>Subutai ETL Impl</name>
   <description>Subutai ETL Impl</description>
 
   <dependencies>

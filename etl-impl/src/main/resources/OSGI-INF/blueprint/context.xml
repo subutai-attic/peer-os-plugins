@@ -22,6 +22,6 @@
     <argument ref="dataSource" />
   </bean>
 
-  <service ref="sqoop-impl" interface="org.safehaus.subutai.plugin.etl.api.Sqoop" />
+  <service ref="sqoop-impl" interface="org.safehaus.subutai.plugin.etl.api.ETL" />
 
 </blueprint>

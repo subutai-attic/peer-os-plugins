@@ -8,8 +8,7 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.etl.api.ETLConfig;
-import org.safehaus.subutai.plugin.etl.api.Sqoop;
+import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.ui.SqoopComponent;
 import org.safehaus.subutai.plugin.etl.ui.manager.ExportPanel;
@@ -35,7 +34,7 @@ public class ETLExtractManager
     private final GridLayout contentRoot;
     private final ImportPanel importPanel;
     private final ExportPanel exportPanel;
-    private final Sqoop sqoop;
+    private final ETL sqoop;
     private final ExecutorService executorService;
     private final Tracker tracker;
     private final EnvironmentManager environmentManager;
@@ -46,7 +45,7 @@ public class ETLExtractManager
     private Hadoop hadoop;
 
 
-    public ETLExtractManager( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker,
+    public ETLExtractManager( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker,
                               EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
             throws NamingException
     {
