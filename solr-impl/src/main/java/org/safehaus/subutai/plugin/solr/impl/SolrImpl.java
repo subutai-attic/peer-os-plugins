@@ -7,8 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -44,12 +42,12 @@ public class SolrImpl implements Solr
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
 
 
-    public SolrImpl( DataSource dataSource )
+
+    public SolrImpl()
     {
-        this.dataSource = dataSource;
+
     }
 
 
@@ -63,7 +61,7 @@ public class SolrImpl implements Solr
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
