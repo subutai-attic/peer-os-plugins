@@ -29,7 +29,7 @@ public class PluginDAO
     private static final Logger LOG = LoggerFactory.getLogger( PluginDAO.class.getName() );
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
     //    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    protected DbUtil dbUtil;
+    //protected DbUtil dbUtil;
     private EmfUtil emfUtil = new EmfUtil();
 
     private PluginDataService dataService;
@@ -53,7 +53,7 @@ public class PluginDAO
 
     public PluginDAO( DataSource dataSource ) throws SQLException
     {
-        Preconditions.checkNotNull( dataSource, "DataSource is null" );
+        //Preconditions.checkNotNull( dataSource, "DataSource is null" );
         //        this.dbUtil = new DbUtil( dataSource );
         this.dataService = new PluginDataService( emfUtil.getEmf() );
         //        setupDb();
@@ -67,7 +67,7 @@ public class PluginDAO
 
     public PluginDAO( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
     {
-        Preconditions.checkNotNull( dataSource, "DataSource is null" );
+        //Preconditions.checkNotNull( dataSource, "DataSource is null" );
         Preconditions.checkNotNull( dataSource, "GsonBuilder is null" );
         //        this.dbUtil = new DbUtil( dataSource );
         //        gson = gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create();
@@ -80,9 +80,9 @@ public class PluginDAO
     protected void setupDb() throws SQLException
     {
 
-        String sql1 = "create table if not exists cluster_data (source varchar(100), id varchar(100), info clob, " +
-                "PRIMARY KEY (source, " + "id));";
-        dbUtil.update( sql1 );
+        //String sql1 = "create table if not exists cluster_data (source varchar(100), id varchar(100), info clob, " +
+        //        "PRIMARY KEY (source, " + "id));";
+        //dbUtil.update( sql1 );
     }
 
 
@@ -96,8 +96,6 @@ public class PluginDAO
         try
         {
             dataService.update( source, key, info );
-            //            dbUtil.update( "merge into cluster_data (source, id, info) values (? , ?, ?)", source, key,
-            //                    gson.toJson( info ) );
 
             return true;
         }
@@ -119,8 +117,6 @@ public class PluginDAO
         try
         {
             dataService.update( source, key, info );
-            //            dbUtil.update( "merge into cluster_data (source, id, info) values (? , ?, ?)", source, key,
-            //                    gson.toJson( info ) );
 
             return true;
         }
@@ -149,16 +145,6 @@ public class PluginDAO
         try
         {
             list = dataService.getInfo( source, clazz );
-            //            ResultSet rs = dbUtil.select( "select info from cluster_data where source = ?", source );
-            //            while ( rs != null && rs.next() )
-            //            {
-            //                Clob infoClob = rs.getClob( "info" );
-            //                if ( infoClob != null && infoClob.length() > 0 )
-            //                {
-            //                    String info = infoClob.getSubString( 1, ( int ) infoClob.length() );
-            //                    list.add( gson.fromJson( info, clazz ) );
-            //                }
-            //            }
         }
         catch ( JsonSyntaxException | SQLException e )
         {
