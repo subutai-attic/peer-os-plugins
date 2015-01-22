@@ -25,8 +25,7 @@ import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
-import org.safehaus.subutai.plugin.hadoop.impl.dao.PluginDAO;
-//import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ConfigureEnvironmentClusterHandler;
@@ -35,7 +34,7 @@ import org.safehaus.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandle
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -51,7 +50,6 @@ public class HadoopImpl implements Hadoop
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private Monitor monitor;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
@@ -62,9 +60,9 @@ public class HadoopImpl implements Hadoop
     private HadoopAlertListener hadoopAlertListener;
 
 
-    public HadoopImpl( DataSource dataSource )
+    public HadoopImpl()
     {
-        this.dataSource = dataSource;
+
     }
 
 
@@ -77,7 +75,7 @@ public class HadoopImpl implements Hadoop
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
