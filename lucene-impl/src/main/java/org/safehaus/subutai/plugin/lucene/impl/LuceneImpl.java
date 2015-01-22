@@ -7,8 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -45,14 +43,12 @@ public class LuceneImpl implements Lucene
     private Hadoop hadoopManager;
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
-    private DataSource dataSource;
     private PluginDAO pluginDao;
 
 
-    public LuceneImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public LuceneImpl(  final Tracker tracker, final EnvironmentManager environmentManager,
                        final Hadoop hadoopManager )
     {
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -117,7 +113,7 @@ public class LuceneImpl implements Lucene
     {
         try
         {
-            this.pluginDao = new PluginDAO( dataSource );
+            this.pluginDao = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
