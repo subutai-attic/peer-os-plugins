@@ -34,8 +34,6 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import sun.security.krb5.Config;
-
 
 /**
  * This class handles operations that are related to whole cluster.

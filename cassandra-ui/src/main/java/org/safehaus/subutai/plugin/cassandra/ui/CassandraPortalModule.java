@@ -44,12 +44,6 @@ public class CassandraPortalModule implements PortalModule
     }
 
 
-    /*public CassandraPortalModule( String ui )
-    {
-
-    }*/
-
-
     public void init()
     {
         executor = Executors.newCachedThreadPool();
