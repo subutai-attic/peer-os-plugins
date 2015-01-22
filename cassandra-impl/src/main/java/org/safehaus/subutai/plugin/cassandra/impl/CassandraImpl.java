@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
+
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
@@ -26,7 +26,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.alert.CassandraAlertListener;
-import org.safehaus.subutai.plugin.cassandra.impl.dao.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
@@ -51,17 +51,15 @@ public class CassandraImpl implements Cassandra
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private PeerManager peerManager;
     private Monitor monitor;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private CassandraAlertListener cassandraAlertListener;
 
 
-    public CassandraImpl( DataSource dataSource, Monitor monitor )
+    public CassandraImpl( Monitor monitor )
     {
-        this.dataSource = dataSource;
-        this.monitor = monitor;
+       this.monitor = monitor;
 
         cassandraAlertListener = new CassandraAlertListener( this );
         monitor.addAlertListener( cassandraAlertListener );
@@ -138,7 +136,7 @@ public class CassandraImpl implements Cassandra
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
@@ -154,7 +152,6 @@ public class CassandraImpl implements Cassandra
         this.tracker = null;
         this.environmentManager = null;
         this.pluginDAO = null;
-        this.dataSource = null;
         this.executor.shutdown();
         this.executor = null;
     }
@@ -214,6 +211,10 @@ public class CassandraImpl implements Cassandra
     public PluginDAO getPluginDAO()
     {
         return pluginDAO;
+    }
+    public void setPluginDAO(PluginDAO pluginDAO)
+    {
+        this.pluginDAO = pluginDAO;
     }
 
 
