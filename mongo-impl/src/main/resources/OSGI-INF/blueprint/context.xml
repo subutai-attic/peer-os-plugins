@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
-  <bean id="dataSource" class="org.h2.jdbcx.JdbcDataSource">
-    <property name="URL" value="jdbc:h2:~/mongo_plugin_data" />
-    <property name="user" value="sa" />
-    <property name="password" value="" />
-  </bean>
-
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="peerManager" availability="mandatory"
@@ -22,7 +16,6 @@
     <property name="peerManager" ref="peerManager" />
     <property name="environmentManager" ref="environmentManager" />
     <argument ref="monitor" />
-    <argument ref="dataSource" />
   </bean>
 
   <service ref="mongo-impl" interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
