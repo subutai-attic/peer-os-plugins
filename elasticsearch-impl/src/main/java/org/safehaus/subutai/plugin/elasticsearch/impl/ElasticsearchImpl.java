@@ -25,7 +25,7 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.alert.EsAlertListener;
-import org.safehaus.subutai.plugin.elasticsearch.impl.dao.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -44,19 +44,16 @@ public class ElasticsearchImpl implements Elasticsearch
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private Monitor monitor;
     private EsAlertListener alertListener;
 
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                              final DataSource dataSource, final Monitor monitor )
+    public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-        this.dataSource = dataSource;
         this.monitor = monitor;
 
         alertListener = new EsAlertListener( this );
@@ -104,6 +101,10 @@ public class ElasticsearchImpl implements Elasticsearch
     {
         return pluginDAO;
     }
+    public void setPluginDAO(PluginDAO pluginDAO)
+    {
+        this.pluginDAO = pluginDAO;
+    }
 
 
     public EnvironmentManager getEnvironmentManager()
@@ -122,7 +123,7 @@ public class ElasticsearchImpl implements Elasticsearch
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
