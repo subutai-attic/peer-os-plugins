@@ -10,9 +10,10 @@ import java.util.Set;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -109,7 +110,7 @@ public class NodeSelectionStep extends VerticalLayout
     }
 
 
-    private void addOverHadoopControls( ComponentContainer parent, final SqoopConfig config )
+    private void addOverHadoopControls( ComponentContainer parent, final ETLConfig config )
     {
         final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
         select.setId( "sqoopSlaveNodes" );
@@ -211,7 +212,7 @@ public class NodeSelectionStep extends VerticalLayout
 
     private void nextButtonClickHandler( Wizard wizard )
     {
-        SqoopConfig config = wizard.getConfig();
+        ETLConfig config = wizard.getConfig();
         if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
         {
             show( "Enter installation name" );

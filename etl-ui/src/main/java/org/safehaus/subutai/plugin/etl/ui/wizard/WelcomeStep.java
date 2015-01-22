@@ -6,6 +6,7 @@ import org.safehaus.subutai.plugin.etl.ui.SqoopPortalModule;
 
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
@@ -25,7 +26,7 @@ public class WelcomeStep extends Panel
         grid.setMargin( true );
         grid.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Sqoop Installation Wizard!</h2>" );
+        Label welcomeMsg = new Label( "<center><h2>Welcome to Subutai ETL Plugin </h2>" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         grid.addComponent( welcomeMsg, 3, 1, 6, 2 );
 
@@ -35,6 +36,13 @@ public class WelcomeStep extends Panel
         logoImg.setHeight( 150, Unit.PIXELS );
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
+
+        Button next = new Button( "Start" );
+        next.setId( "startETL" );
+        next.addStyleName( "default" );
+        next.addClickListener( new ClickListerner( wizard ) );
+        grid.addComponent( next, 4, 4, 4, 4 );
+        grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }

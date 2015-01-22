@@ -16,18 +16,19 @@ import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 
 public class SetupStrategyOverHadoop
 {
     private SqoopImpl manager;
-    private SqoopConfig config;
+    private ETLConfig config;
     private Environment environment;
     private TrackerOperation trackerOperation;
 
-    public SetupStrategyOverHadoop( SqoopImpl manager, SqoopConfig config, Environment env, TrackerOperation trackerOperation )
+    public SetupStrategyOverHadoop( SqoopImpl manager, ETLConfig config, Environment env, TrackerOperation trackerOperation )
     {
         this.manager = manager;
         this.config = config;
@@ -130,7 +131,7 @@ public class SetupStrategyOverHadoop
         }
 
         trackerOperation.addLog( "Saving to db..." );
-        boolean saved = manager.getPluginDao().saveInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName(), config );
+        boolean saved = manager.getPluginDao().saveInfo( ETLConfig.PRODUCT_KEY, config.getClusterName(), config );
         if ( saved )
         {
             trackerOperation.addLog( "Installation info successfully saved" );

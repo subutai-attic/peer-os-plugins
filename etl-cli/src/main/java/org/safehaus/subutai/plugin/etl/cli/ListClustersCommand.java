@@ -3,8 +3,9 @@ package org.safehaus.subutai.plugin.etl.cli;
 
 import java.util.List;
 
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -35,10 +36,10 @@ public class ListClustersCommand extends OsgiCommandSupport
     @Override
     protected Object doExecute()
     {
-        List<SqoopConfig> configList = sqoopManager.getClusters();
+        List<ETLConfig> configList = sqoopManager.getClusters();
         if ( !configList.isEmpty() )
         {
-            for ( SqoopConfig config : configList )
+            for ( ETLConfig config : configList )
             {
                 System.out.println( config.getClusterName() );
             }

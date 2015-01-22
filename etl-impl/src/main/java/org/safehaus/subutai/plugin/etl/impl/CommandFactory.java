@@ -3,7 +3,8 @@ package org.safehaus.subutai.plugin.etl.impl;
 
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.CommonSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportParameter;
@@ -13,7 +14,7 @@ import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 public class CommandFactory
 {
 
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + SqoopConfig.PRODUCT_KEY.toLowerCase();
+    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + ETLConfig.PRODUCT_KEY.toLowerCase();
     private static final String EXEC_PROFILE = ". /etc/profile";
 
 

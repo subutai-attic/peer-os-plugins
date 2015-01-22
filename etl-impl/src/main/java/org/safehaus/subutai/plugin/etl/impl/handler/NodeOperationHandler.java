@@ -9,7 +9,8 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 import org.safehaus.subutai.plugin.etl.impl.CommandFactory;
@@ -18,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, SqoopConfig>
+public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, ETLConfig>
 {
     private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
 
@@ -32,14 +33,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
     private ExportSetting exportSettings;
 
 
-    public NodeOperationHandler( SqoopImpl manager, SqoopConfig config, String hostname, NodeOperationType operationType )
+    public NodeOperationHandler( SqoopImpl manager, ETLConfig config, String hostname, NodeOperationType operationType )
     {
         super( manager, config );
         this.hostname = hostname;
         this.operationType = operationType;
 
         String desc = String.format( "Executing %s operation on node %s", operationType.name(), hostname );
-        this.trackerOperation = manager.getTracker().createTrackerOperation( SqoopConfig.PRODUCT_KEY, desc );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( ETLConfig.PRODUCT_KEY, desc );
     }
 
 
@@ -137,7 +138,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         config.getNodes().remove( node.getId() );
 
         trackerOperation.addLog( "Updating db..." );
-        boolean updated = manager.getPluginDao().saveInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName(), config );
+        boolean updated = manager.getPluginDao().saveInfo( ETLConfig.PRODUCT_KEY, config.getClusterName(), config );
         if ( updated )
         {
             trackerOperation.addLog( "Installation info successfully updated." );

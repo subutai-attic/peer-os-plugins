@@ -9,9 +9,10 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -41,7 +42,7 @@ public class VerificationStep extends Panel
                 + "(you may change them by clicking on Back button)</strong><br/>" );
         confirmationLbl.setContentMode( ContentMode.HTML );
 
-        final SqoopConfig config = wizard.getConfig();
+        final ETLConfig config = wizard.getConfig();
         final HadoopClusterConfig hc = wizard.getHadoopConfig();
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", wizard.getConfig().getClusterName() );
@@ -65,7 +66,7 @@ public class VerificationStep extends Panel
                 UUID trackId = null;
                 trackId = sqoop.installCluster( wizard.getConfig() );
                 ProgressWindow window
-                        = new ProgressWindow( executorService, tracker, trackId, SqoopConfig.PRODUCT_KEY );
+                        = new ProgressWindow( executorService, tracker, trackId, ETLConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {
                     @Override

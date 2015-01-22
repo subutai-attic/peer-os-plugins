@@ -15,16 +15,17 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.impl.SetupStrategyOverHadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.impl.CommandFactory;
 import org.safehaus.subutai.plugin.etl.impl.SqoopImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl, SqoopConfig>
+public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl, ETLConfig>
         implements ClusterOperationHandlerInterface
 {
 
@@ -33,13 +34,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
     private HadoopClusterConfig hadoopConfig;
 
 
-    public ClusterOperationHandler( SqoopImpl manager, SqoopConfig config, ClusterOperationType operationType )
+    public ClusterOperationHandler( SqoopImpl manager, ETLConfig config, ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
 
         String desc = String.format( "Executing %s operation on cluster %s", operationType.name(), clusterName );
-        this.trackerOperation = manager.getTracker().createTrackerOperation( SqoopConfig.PRODUCT_KEY, desc );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( ETLConfig.PRODUCT_KEY, desc );
     }
 
 
@@ -171,7 +172,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
                 }
             }
 
-            boolean deleted = manager.getPluginDao().deleteInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName() );
+            boolean deleted = manager.getPluginDao().deleteInfo( ETLConfig.PRODUCT_KEY, config.getClusterName() );
             if ( !deleted )
             {
                 throw new ClusterException( "Failed to delete installation info" );

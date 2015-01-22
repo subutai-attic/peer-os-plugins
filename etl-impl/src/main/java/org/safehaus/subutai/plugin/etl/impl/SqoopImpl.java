@@ -9,8 +9,9 @@ import javax.sql.DataSource;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 import org.safehaus.subutai.plugin.etl.impl.handler.ClusterOperationHandler;
@@ -27,7 +28,7 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public UUID installCluster( SqoopConfig config )
+    public UUID installCluster( ETLConfig config )
     {
         AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
         executor.execute( h );
@@ -36,7 +37,7 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public UUID installCluster( SqoopConfig config, HadoopClusterConfig hadoopConfig )
+    public UUID installCluster( ETLConfig config, HadoopClusterConfig hadoopConfig )
     {
         ClusterOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
         h.setHadoopConfig( hadoopConfig );
@@ -48,7 +49,7 @@ public class SqoopImpl extends SqoopBase
     @Override
     public UUID uninstallCluster( String clusterName )
     {
-        SqoopConfig config = getCluster( clusterName );
+        ETLConfig config = getCluster( clusterName );
         AbstractOperationHandler h = new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
@@ -56,23 +57,23 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public List<SqoopConfig> getClusters()
+    public List<ETLConfig> getClusters()
     {
-        return pluginDAO.getInfo( SqoopConfig.PRODUCT_KEY, SqoopConfig.class );
+        return pluginDAO.getInfo( ETLConfig.PRODUCT_KEY, ETLConfig.class );
     }
 
 
     @Override
-    public SqoopConfig getCluster( String clusterName )
+    public ETLConfig getCluster( String clusterName )
     {
-        return pluginDAO.getInfo( SqoopConfig.PRODUCT_KEY, clusterName, SqoopConfig.class );
+        return pluginDAO.getInfo( ETLConfig.PRODUCT_KEY, clusterName, ETLConfig.class );
     }
 
 
     @Override
     public UUID isInstalled( String clusterName, String hostname )
     {
-        SqoopConfig config = getCluster( clusterName );
+        ETLConfig config = getCluster( clusterName );
         AbstractOperationHandler h = new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
         executor.execute( h );
         return h.getTrackerId();
@@ -82,7 +83,7 @@ public class SqoopImpl extends SqoopBase
     @Override
     public UUID destroyNode( String clusterName, String hostname )
     {
-        SqoopConfig config = getCluster( clusterName );
+        ETLConfig config = getCluster( clusterName );
         AbstractOperationHandler h = new NodeOperationHandler( this, config, hostname, NodeOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
@@ -100,7 +101,7 @@ public class SqoopImpl extends SqoopBase
     @Override
     public UUID exportData( ExportSetting settings )
     {
-        SqoopConfig config = getCluster( settings.getClusterName() );
+        ETLConfig config = getCluster( settings.getClusterName() );
         NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
                                                            NodeOperationType.EXPORT );
         h.setExportSettings( settings );
@@ -113,7 +114,7 @@ public class SqoopImpl extends SqoopBase
     @Override
     public UUID importData( ImportSetting settings )
     {
-        SqoopConfig config = getCluster( settings.getClusterName() );
+        ETLConfig config = getCluster( settings.getClusterName() );
         NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
                                                            NodeOperationType.IMPORT );
         h.setImportSettings( settings );

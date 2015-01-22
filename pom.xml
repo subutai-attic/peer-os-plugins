@@ -69,7 +69,6 @@
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
-
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>tracker-api</artifactId>

@@ -17,8 +17,9 @@ import javax.ws.rs.core.Response;
 
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.etl.api.DataSourceType;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
@@ -46,10 +47,10 @@ public class RestService
     public Response getClusters()
     {
 
-        List<SqoopConfig> configs = sqoopManager.getClusters();
+        List<ETLConfig> configs = sqoopManager.getClusters();
         ArrayList<String> clusterNames = new ArrayList();
 
-        for ( SqoopConfig config : configs )
+        for ( ETLConfig config : configs )
         {
             clusterNames.add( config.getClusterName() );
         }
@@ -64,7 +65,7 @@ public class RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getCluster( @PathParam( "clusterName" ) String clusterName )
     {
-        SqoopConfig config = sqoopManager.getCluster( clusterName );
+        ETLConfig config = sqoopManager.getCluster( clusterName );
 
         String cluster = JsonUtil.GSON.toJson( config );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
@@ -77,7 +78,7 @@ public class RestService
     public Response installCluster( @QueryParam( "config" ) String config )
     {
 
-        SqoopConfig sqoopConfig = JsonUtil.fromJson( config, SqoopConfig.class );
+        ETLConfig sqoopConfig = JsonUtil.fromJson( config, ETLConfig.class );
 
         UUID uuid = sqoopManager.installCluster( sqoopConfig );
 

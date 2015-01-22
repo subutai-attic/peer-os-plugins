@@ -9,11 +9,10 @@ import java.util.UUID;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
-public class SqoopConfig implements ConfigBase
+public class ETLConfig implements ConfigBase
 {
 
-    public static final String PRODUCT_KEY = "Sqoop";
-    public static final String TEMPLATE_NAME = "hadoopsqoop";
+    public static final String PRODUCT_KEY = "ETL";
 
     private String clusterName = "";
     private UUID environmentId;
@@ -122,9 +121,9 @@ public class SqoopConfig implements ConfigBase
     @Override
     public boolean equals( Object obj )
     {
-        if ( obj instanceof SqoopConfig )
+        if ( obj instanceof ETLConfig )
         {
-            SqoopConfig other = ( SqoopConfig ) obj;
+            ETLConfig other = ( ETLConfig ) obj;
             return Objects.equals( this.clusterName, other.clusterName );
         }
         return false;

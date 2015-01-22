@@ -36,7 +36,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.pp.api</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.etl.api</Bundle-SymbolicName>
           </instructions>
         </configuration>
       </plugin>

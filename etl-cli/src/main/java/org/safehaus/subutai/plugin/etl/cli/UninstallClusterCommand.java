@@ -6,8 +6,9 @@ import java.util.UUID;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -59,7 +60,7 @@ public class UninstallClusterCommand extends OsgiCommandSupport
         int logSize = 0;
         while ( !Thread.interrupted() )
         {
-            TrackerOperationView po = tracker.getTrackerOperation( SqoopConfig.PRODUCT_KEY, uuid );
+            TrackerOperationView po = tracker.getTrackerOperation( ETLConfig.PRODUCT_KEY, uuid );
             if ( po != null )
             {
                 if ( logSize != po.getLog().length() )

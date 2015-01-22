@@ -15,7 +15,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.mock.TrackerOperationMock;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 
 @RunWith( MockitoJUnitRunner.class )
@@ -37,7 +38,7 @@ public class SqoopImplTest
         sqoop.executor = Mockito.mock( ExecutorService.class );
         trackOperation = new TrackerOperationMock();
 
-        SqoopConfig config = new SqoopConfig();
+        ETLConfig config = new ETLConfig();
         config.setClusterName( clusterName );
         Mockito.when( sqoop.getCluster( clusterName ) ).thenReturn( config );
 
@@ -62,30 +63,8 @@ public class SqoopImplTest
     @Test
     public void testGetCluster()
     {
-        SqoopConfig config = sqoop.getCluster( clusterName );
+        ETLConfig config = sqoop.getCluster( clusterName );
         Assert.assertEquals( clusterName, config.getClusterName() );
     }
-
-
-    @Test
-    public void testGetClusterSetupStrategy()
-    {
-//        // init real instance
-//        sqoop = new SqoopImpl( Mockito.mock( DataSource.class ) );
-//
-//        SqoopConfig config = new SqoopConfig();
-//        // no setup type
-//        ClusterSetupStrategy s = sqoop.getClusterSetupStrategy( new Environment( "environment" ), config, trackOperation );
-//        Assert.assertNull( s );
-//
-//        config.setSetupType( SetupType.OVER_HADOOP );
-//        s = sqoop.getClusterSetupStrategy( new Environment( "environment" ), config, trackOperation );
-//        Assert.assertTrue( s instanceof SetupStrategyOverHadoop );
-//
-//        config.setSetupType( SetupType.WITH_HADOOP );
-//        s = sqoop.getClusterSetupStrategy( new Environment( "environment" ), config, trackOperation );
-//        Assert.assertTrue( s instanceof SetupStrategyWithHadoop );
-    }
-
 }
 

@@ -7,13 +7,14 @@ import javax.naming.NamingException;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.ui.extract.ETLExtractManager;
+import org.safehaus.subutai.plugin.etl.ui.load.ETLLoadManager;
+import org.safehaus.subutai.plugin.etl.ui.transform.ETLTransformManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
 import org.safehaus.subutai.plugin.etl.ui.manager.ExportPanel;
 import org.safehaus.subutai.plugin.etl.ui.manager.ImportExportBase;
 import org.safehaus.subutai.plugin.etl.ui.manager.ImportPanel;
-import org.safehaus.subutai.plugin.etl.ui.manager.Manager;
-import org.safehaus.subutai.plugin.etl.ui.wizard.Wizard;
 
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -23,16 +24,19 @@ import com.vaadin.ui.VerticalLayout;
 public class SqoopComponent extends CustomComponent
 {
 
-    private final Wizard wizard;
-    private final Manager manager;
+    private final ETLExtractManager etlManager;
+    private final ETLLoadManager etlLoadManager;
+    private final ETLTransformManager etlTransformManager;
 
     private final TabSheet sheet;
 
 
     public SqoopComponent( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
-        manager = new Manager( executorService, sqoop, hadoop, tracker, environmentManager, this );
-        wizard = new Wizard( executorService, sqoop, hadoop, tracker, environmentManager );
+        etlManager = new ETLExtractManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
+        etlLoadManager = new ETLLoadManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
+        etlTransformManager = new ETLTransformManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
+
 
         setSizeFull();
         VerticalLayout verticalLayout = new VerticalLayout();
@@ -41,10 +45,15 @@ public class SqoopComponent extends CustomComponent
 
         sheet = new TabSheet();
         sheet.setSizeFull();
-        sheet.addTab( wizard.getContent(), "Install" );
-        sheet.getTab( 0 ).setId( "SqoopInstallTab" );
-        sheet.addTab( manager.getContent(), "Manage" );
-        sheet.getTab( 1 ).setId( "SqoopManageTab" );
+        sheet.addTab( etlManager.getContent(), "Extract" );
+        sheet.getTab( 0 ).setId( "etlExtractManagerTab" );
+
+        sheet.addTab( etlTransformManager.getContent(), "Transform" );
+        sheet.getTab( 1 ).setId( "etlTransformManagerTab" );
+
+        sheet.addTab( etlLoadManager.getContent(), "Load" );
+        sheet.getTab( 2 ).setId( "etlLoadManagerTab" );
+
         sheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
             @Override
@@ -52,16 +61,14 @@ public class SqoopComponent extends CustomComponent
             {
                 TabSheet tabsheet = event.getTabSheet();
                 String caption = tabsheet.getTab( event.getTabSheet().getSelectedTab() ).getCaption();
-                if ( caption.equals( "Manage" ) )
+                if ( caption.equals( "ETL" ) )
                 {
-                    manager.refreshClustersInfo();
                 }
             }
         } );
 
         verticalLayout.addComponent( sheet );
         setCompositionRoot( verticalLayout );
-        manager.refreshClustersInfo();
     }
 
 

@@ -13,9 +13,10 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.ui.SqoopComponent;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -59,7 +60,7 @@ public class Manager
     private final EnvironmentManager environmentManager;
     private final SqoopComponent sqoopComponent;
 
-    private SqoopConfig config;
+    private ETLConfig config;
     private Environment environment;
     private Hadoop hadoop;
 
@@ -108,7 +109,7 @@ public class Manager
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                config = ( SqoopConfig ) event.getProperty().getValue();
+                config = ( ETLConfig ) event.getProperty().getValue();
                 refreshUI();
             }
         } );
@@ -165,7 +166,7 @@ public class Manager
                         {
                             UUID trackID = sqoop.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
-                                    new ProgressWindow( executorService, tracker, trackID, SqoopConfig.PRODUCT_KEY );
+                                    new ProgressWindow( executorService, tracker, trackID, ETLConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
                             {
                                 @Override
@@ -352,7 +353,7 @@ public class Manager
                     {
                         UUID trackId = sqoop.destroyNode( config.getClusterName(), node.getHostname() );
                         ProgressWindow window =
-                                new ProgressWindow( executorService, tracker, trackId, SqoopConfig.PRODUCT_KEY );
+                                new ProgressWindow( executorService, tracker, trackId, ETLConfig.PRODUCT_KEY );
                         window.getWindow().addCloseListener( new Window.CloseListener()
                         {
                             @Override
@@ -373,8 +374,8 @@ public class Manager
 
     public void refreshClustersInfo()
     {
-        List<SqoopConfig> clusters = sqoop.getClusters();
-        SqoopConfig clusterInfo = ( SqoopConfig ) clusterCombo.getValue();
+        List<ETLConfig> clusters = sqoop.getClusters();
+        ETLConfig clusterInfo = ( ETLConfig ) clusterCombo.getValue();
         clusterCombo.removeAllItems();
 
         if ( clusters == null || clusters.isEmpty() )
@@ -382,7 +383,7 @@ public class Manager
             return;
         }
 
-        for ( SqoopConfig sqoopConfig : clusters )
+        for ( ETLConfig sqoopConfig : clusters )
         {
             clusterCombo.addItem( sqoopConfig );
             clusterCombo.setItemCaption( sqoopConfig, sqoopConfig.getClusterName() + "(" + sqoopConfig.getHadoopClusterName() + ")" );
@@ -390,7 +391,7 @@ public class Manager
 
         if ( clusterInfo != null )
         {
-            for ( SqoopConfig esConfig : clusters )
+            for ( ETLConfig esConfig : clusters )
             {
                 if ( esConfig.getClusterName().equals( clusterInfo.getClusterName() ) )
                 {

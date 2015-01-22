@@ -11,9 +11,10 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.common.util.FileUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.server.ui.api.PortalModule;
 
 import com.vaadin.ui.Component;
@@ -21,7 +22,7 @@ import com.vaadin.ui.Component;
 
 public class SqoopPortalModule implements PortalModule
 {
-    public static final String MODULE_IMAGE = "sqoop.png";
+    public static final String MODULE_IMAGE = "etl.png";
     protected static final Logger LOG = Logger.getLogger( SqoopPortalModule.class.getName() );
     private ExecutorService executor;
     private final Sqoop sqoop;
@@ -54,14 +55,14 @@ public class SqoopPortalModule implements PortalModule
     @Override
     public String getId()
     {
-        return SqoopConfig.PRODUCT_KEY;
+        return ETLConfig.PRODUCT_KEY;
     }
 
 
     @Override
     public String getName()
     {
-        return SqoopConfig.PRODUCT_KEY;
+        return ETLConfig.PRODUCT_KEY;
     }
 
 

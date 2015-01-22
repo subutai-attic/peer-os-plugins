@@ -7,10 +7,11 @@ import javax.naming.NamingException;
 
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.Sqoop;
-import org.safehaus.subutai.plugin.etl.api.SqoopConfig;
+import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
@@ -26,11 +27,12 @@ public class Wizard
     private final EnvironmentManager environmentManager;
     private final ExecutorService executorService;
     private int step = 1;
-    private SqoopConfig config = new SqoopConfig();
+    private ETLConfig config = new ETLConfig();
     private HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
 
 
-    public Wizard( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -70,6 +72,7 @@ public class Wizard
             }
             default:
             {
+                component = new WelcomeStep( this );
                 break;
             }
         }
@@ -104,13 +107,13 @@ public class Wizard
     protected void init()
     {
         step = 1;
-        config = new SqoopConfig();
+        config = new ETLConfig();
         hadoopConfig = new HadoopClusterConfig();
         putForm();
     }
 
 
-    public SqoopConfig getConfig()
+    public ETLConfig getConfig()
     {
         return config;
     }
