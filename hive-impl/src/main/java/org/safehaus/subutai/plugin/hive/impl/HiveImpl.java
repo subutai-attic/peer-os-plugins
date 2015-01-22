@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -35,16 +34,13 @@ public class HiveImpl implements Hive
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private Hadoop hadoopManager;
 
 
-    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final DataSource dataSource,
-                     final Hadoop hadoopManager )
+    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Hadoop hadoopManager )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-        this.dataSource = dataSource;
         this.hadoopManager = hadoopManager;
     }
 
@@ -53,7 +49,7 @@ public class HiveImpl implements Hive
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
