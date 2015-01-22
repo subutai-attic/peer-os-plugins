@@ -3,11 +3,6 @@ package org.safehaus.subutai.plugin.etl.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.plugin.common.api.ApiBase;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 
