@@ -49,7 +49,6 @@ public interface RestService
                                       @PathParam( "nodes" ) String nodes,
                                       @PathParam( "seeds" ) String seeds );
 
-
     //start cluster
     @PUT
     @Path("clusters/{clusterName}/start")

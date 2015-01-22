@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.UUID;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -31,6 +33,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import sun.security.krb5.Config;
 
 
 /**
@@ -67,8 +71,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                 destroyCluster();
                 break;
             case START_ALL:
+                startNStopCluster( config, ClusterOperationType.START_ALL );
                 break;
             case STOP_ALL:
+                startNStopCluster( config, ClusterOperationType.STOP_ALL );
                 break;
             case STATUS_ALL:
                 runOperationOnContainers( operationType );
@@ -80,6 +86,31 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                 removeCluster();
                 break;
         }
+    }
+
+
+    private void startNStopCluster( CassandraClusterConfig config, ClusterOperationType type ){
+        for ( UUID uuid : config.getNodes() ){
+            ContainerHost host = manager.getEnvironmentManager().getEnvironmentByUUID(
+                    config.getEnvironmentId() ).getContainerHostById( uuid );
+            try
+            {
+                switch ( type ){
+                    case START_ALL:
+                        host.execute( new RequestBuilder( Commands.startCommand ) );
+                        break;
+                    case STOP_ALL:
+                        host.execute( new RequestBuilder( Commands.stopCommand ) );
+                        break;
+                }
+            }
+            catch ( CommandException e )
+            {
+                trackerOperation.addLogFailed( "Failed to start " + config.getClusterName() + " cluster" );
+                e.printStackTrace();
+            }
+        }
+        trackerOperation.addLogDone( config.getClusterName() + " started successfully" );
     }
 
 
