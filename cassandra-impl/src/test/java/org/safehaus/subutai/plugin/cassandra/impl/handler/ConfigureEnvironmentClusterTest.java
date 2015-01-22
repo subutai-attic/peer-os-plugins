@@ -93,7 +93,7 @@ public class ConfigureEnvironmentClusterTest
         configureEnvironmentClusterHandler.run();
 
         // asserts
-        verify(trackerOperation).addLog("Building environment...");
+        verify(trackerOperation).addLog("Configuring environment...");
         assertEquals(environment,environmentManager.getEnvironmentByUUID(any(UUID.class)));
         assertEquals(clusterSetupStrategy,cassandraImpl.getClusterSetupStrategy(environment,cassandraClusterConfig,trackerOperation));
     }

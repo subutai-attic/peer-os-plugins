@@ -39,6 +39,16 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyCluster( @PathParam("clusterName") String clusterName );
 
+
+    //configure cluster
+    @POST
+    @Path( "configure_environment/{environmentId}/clusterName/{clusterName}/nodes/{nodes}/seeds/{seeds}" )
+    @Produces( {MediaType.APPLICATION_JSON } )
+    public Response configureCluster( @PathParam( "environmentId" ) String environmentId,
+                                      @PathParam( "clusterName" ) String clusterName,
+                                      @PathParam( "nodes" ) String nodes,
+                                      @PathParam( "seeds" ) String seeds );
+
     //start cluster
     @PUT
     @Path("clusters/{clusterName}/start")

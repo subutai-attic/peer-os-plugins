@@ -2,7 +2,9 @@ package org.safehaus.subutai.plugin.cassandra.rest;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
@@ -75,6 +77,32 @@ public class RestServiceImpl implements RestService
     public Response destroyCluster( final String clusterName )
     {
         UUID uuid = cassandraManager.uninstallCluster( clusterName );
+        String operationId = wrapUUID( uuid );
+        return Response.status( Response.Status.OK ).entity( operationId ).build();
+    }
+
+
+    @Override
+    public Response configureCluster( final String environmentId, final String clusterName,
+                                      final String nodes, final String seeds )
+    {
+        CassandraClusterConfig config = new CassandraClusterConfig();
+        config.setEnvironmentId( UUID.fromString( environmentId  ) );
+        config.setClusterName( clusterName );
+        Set<UUID> allNodes = new HashSet<>();
+        Set<UUID> allSeeds = new HashSet<>();
+        String[] configNodes = nodes.replaceAll("\\s+","").split( "," );
+        String[] configSeeds = seeds.replaceAll("\\s+","").split( "," );
+        for ( String node : configNodes ){
+            allNodes.add( UUID.fromString( node ) );
+        }
+        for ( String node : configSeeds ){
+            allSeeds.add( UUID.fromString( node ) );
+        }
+        config.setNodes( allNodes );
+        config.setSeedNodes( allSeeds );
+
+        UUID uuid = cassandraManager.configureEnvironmentCluster( config );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
