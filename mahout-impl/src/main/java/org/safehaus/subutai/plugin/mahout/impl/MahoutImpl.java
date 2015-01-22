@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
@@ -27,7 +26,7 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.SetupType;
-import org.safehaus.subutai.plugin.mahout.impl.dao.PluginDAO;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -46,21 +45,15 @@ public class MahoutImpl implements Mahout
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private Hadoop hadoopManager;
-    private DataSource dataSource;
 
-    public MahoutImpl( final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+
+    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager,
                        final Hadoop hadoopManager )
     {
-        this.dataSource = dataSource;
+
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public MahoutImpl( DataSource dataSource )
-    {
-        this.dataSource = dataSource;
     }
 
 
@@ -134,7 +127,7 @@ public class MahoutImpl implements Mahout
     {
         try
         {
-            this.pluginDAO = new PluginDAO( dataSource );
+            this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
