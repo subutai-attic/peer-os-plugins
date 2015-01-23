@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.etl.ui.manager;
+package org.safehaus.subutai.plugin.etl.ui;
 
 
 import java.util.ArrayList;
@@ -18,13 +18,14 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
 
 public class ImportPanel extends ImportExportBase
 {
 
-    private final ETL sqoop;
+    private final ETL etl;
     private final ExecutorService executorService;
     DataSourceType type;
     CheckBox chkImportAllTables = new CheckBox( "Import all tables" );
@@ -34,10 +35,10 @@ public class ImportPanel extends ImportExportBase
     AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:", 300 );
 
 
-    public ImportPanel( ETL sqoop, ExecutorService executorService, Tracker tracker )
+    public ImportPanel( ETL etl, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
-        this.sqoop = sqoop;
+        this.etl = etl;
         this.executorService = executorService;
 
         init();
@@ -89,54 +90,76 @@ public class ImportPanel extends ImportExportBase
     }
 
 
-    @Override
     final void init()
     {
         removeAllComponents();
 
-        if ( type == null )
+        if ( type == null ){
+            type = DataSourceType.HDFS;
+        }
+
+        VerticalLayout layout = new VerticalLayout();
+
+        layout.addComponent( UIUtil.getLabel( "Select data source type<br/>", 200 ) );
+
+        TabSheet tabsheet = new TabSheet();
+
+        VerticalLayout tab1 = new VerticalLayout();
+        tab1.setCaption( DataSourceType.HDFS.name() );
+
+        tabsheet.addTab(tab1);
+
+        VerticalLayout tab2 = new VerticalLayout();
+        tab2.setCaption( DataSourceType.HBASE.name() );
+        tabsheet.addTab(tab2);
+
+        VerticalLayout tab3 = new VerticalLayout();
+        tab3.setCaption( DataSourceType.HIVE.name() );
+        tabsheet.addTab(tab3);
+
+        switch ( type ){
+            case HDFS:
+               tabsheet.setSelectedTab( tab1 );
+                break;
+            case HBASE:
+                tabsheet.setSelectedTab( tab2 );
+                break;
+            case HIVE:
+                tabsheet.setSelectedTab( tab3 );
+                break;
+        }
+
+        tabsheet.addSelectedTabChangeListener( new TabSheet.SelectedTabChangeListener()
         {
-            VerticalLayout layout = new VerticalLayout();
-            layout.addComponent( UIUtil.getLabel( "Select data source type<br/>", 200 ) );
-            for ( final DataSourceType dst : DataSourceType.values() )
+            @Override
+            public void selectedTabChange( TabSheet.SelectedTabChangeEvent event )
             {
-                Button btn = UIUtil.getButton( dst.toString(), 100 );
-                btn.addClickListener( new Button.ClickListener()
+                TabSheet tabsheet = event.getTabSheet();
+                String caption = tabsheet.getTab( event.getTabSheet().getSelectedTab() ).getCaption();
+                if ( caption.equals( DataSourceType.HDFS.name() ) )
                 {
-
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        setType( dst );
-                    }
-                } );
-                layout.addComponent( btn );
-            }
-            Button btn = UIUtil.getButton( "Cancel", 100 );
-            btn.addClickListener( new Button.ClickListener()
-            {
-
-                @Override
-                public void buttonClick( Button.ClickEvent event )
-                {
-                    detachFromParent();
+                    type = DataSourceType.HDFS;
+                    init();
                 }
-            } );
-            layout.addComponent( UIUtil.getLabel( "</br>", 100 ) );
-            layout.addComponent( btn );
-            addComponent( layout );
-            return;
-        }
-        if ( host == null )
-        {
-            addComponent( UIUtil.getLabel( "<h1>No node selected</h1>", 200 ) );
-            return;
-        }
+                else if ( caption.equals( DataSourceType.HBASE.name() ) )
+                {
+                    type = DataSourceType.HBASE;
+                    init();
+                }
+                else if ( caption.equals( DataSourceType.HIVE.name() ) )
+                {
+                    type = DataSourceType.HIVE;
+                    init();
+                }
+            }
+        } );
+        layout.addComponent(tabsheet);
+
+        addComponent( layout );
 
         super.init();
         chkImportAllTables.addValueChangeListener( new Property.ValueChangeListener()
         {
-
             @Override
             public void valueChange( Property.ValueChangeEvent e )
             {
@@ -148,7 +171,6 @@ public class ImportPanel extends ImportExportBase
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.addComponent( UIUtil.getButton( "Import", 120, new Button.ClickListener()
         {
-
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
@@ -159,7 +181,7 @@ public class ImportPanel extends ImportExportBase
                 }
                 setFieldsEnabled( false );
                 ImportSetting sett = makeSettings();
-                final UUID trackId = sqoop.importData( sett );
+                final UUID trackId = etl.importData( sett );
 
                 OperationWatcher watcher = new OperationWatcher( trackId );
                 watcher.setCallback( new OperationCallback()
@@ -174,9 +196,9 @@ public class ImportPanel extends ImportExportBase
                 executorService.execute( watcher );
             }
         } ) );
+
         buttons.addComponent( UIUtil.getButton( "Back", 120, new Button.ClickListener()
         {
-
             @Override
             public void buttonClick( Button.ClickEvent event )
             {

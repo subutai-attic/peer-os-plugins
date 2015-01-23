@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.etl.ui.manager;
+package org.safehaus.subutai.plugin.etl.ui;
 
 
 import java.util.ArrayList;
@@ -35,6 +35,19 @@ public abstract class ImportExportBase extends VerticalLayout
     AbstractTextField passwordField = UIUtil.getTextField( "Password:", 300, true );
     AbstractTextField optionalParams = UIUtil.getTextField( "Optional parameters:", 300 );
     TextArea logTextArea = UIUtil.getTextArea( "Logs:", 600, 200 );
+    private String hostNameTitle = "";
+
+
+    public String getHostNameTitle()
+    {
+        return hostNameTitle;
+    }
+
+
+    public void setHostNameTitle( final String hostNameTitle )
+    {
+        this.hostNameTitle = hostNameTitle;
+    }
 
 
     protected ImportExportBase( final Tracker tracker )
@@ -101,7 +114,7 @@ public abstract class ImportExportBase extends VerticalLayout
     }
 
 
-    void addComponents( List<Component> components )
+    public GridLayout addComponents( List<Component> components )
     {
         GridLayout grid = new GridLayout( 2, components.size() );
         grid.setSpacing( true );
@@ -110,11 +123,9 @@ public abstract class ImportExportBase extends VerticalLayout
         {
             grid.addComponent( components.get( i ), 0, i );
         }
-        String title = "<h1>Hostname: " + host.getHostname() + "</h1>";
-        grid.addComponent( UIUtil.getLabel( title, 100, Unit.PERCENTAGE ), 1, 0 );
         grid.addComponent( logTextArea, 1, 1, 1, components.size() - 1 - 1 );
-
         addComponent( grid );
+        return grid;
     }
 
 

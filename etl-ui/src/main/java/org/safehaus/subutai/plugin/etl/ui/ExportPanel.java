@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.etl.ui.manager;
+package org.safehaus.subutai.plugin.etl.ui;
 
 
 import java.util.ArrayList;
@@ -20,15 +20,15 @@ import com.vaadin.ui.HorizontalLayout;
 public class ExportPanel extends ImportExportBase
 {
 
-    private final ETL sqoop;
+    private final ETL etl;
     private final ExecutorService executorService;
     AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:", 300 );
 
 
-    public ExportPanel( ETL sqoop, ExecutorService executorService, Tracker tracker )
+    public ExportPanel( ETL etl, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
-        this.sqoop = sqoop;
+        this.etl = etl;
         this.executorService = executorService;
 
         init();
@@ -64,11 +64,11 @@ public class ExportPanel extends ImportExportBase
     {
         removeAllComponents();
 
-        if ( host == null )
-        {
-            addComponent( UIUtil.getLabel( "<h1>No node selected</h1>", 200 ) );
-            return;
-        }
+//        if ( host == null )
+//        {
+//            addComponent( UIUtil.getLabel( "<h1>No node selected</h1>", 200 ) );
+//            return;
+//        }
 
         super.init();
         fields.add( hdfsPathField );
@@ -87,7 +87,7 @@ public class ExportPanel extends ImportExportBase
                 }
                 setFieldsEnabled( false );
                 ExportSetting es = makeSettings();
-                final UUID trackId = sqoop.exportData( es );
+                final UUID trackId = etl.exportData( es );
 
                 OperationWatcher watcher = new OperationWatcher( trackId );
                 watcher.setCallback( new OperationCallback()

@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.etl.ui.manager;
+package org.safehaus.subutai.plugin.etl.ui;
 
 
 import com.vaadin.server.Sizeable;
