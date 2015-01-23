@@ -1,90 +1,87 @@
 package org.safehaus.subutai.plugin.oozie.ui.manager;
 
 
-import com.google.common.base.Preconditions;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.*;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.common.ui.BaseManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.SetupType;
+import org.safehaus.subutai.plugin.oozie.api.OozieNodeOperationTask;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.safehaus.subutai.server.ui.component.TerminalWindow;
 
 import javax.naming.NamingException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+//import org.safehaus.subutai.common.protocol.Agent;
 
-public class Manager extends BaseManager
+
+public class Manager
 {
-
-    @Override
-    public void addRowComponents( final Table table, final ContainerHost containerHost )
-    {
-        Preconditions.checkNotNull( table, "Cannot add components to not existing table" );
-        Preconditions.checkNotNull( containerHost, "Cannot add null agent to the table" );
-        if ( table.getCaption().equals( SERVER_TABLE_CAPTION ) )
-        {
-            addServerRow( table, containerHost.getId() );
-        }
-        else
-        {
-            addClientRow( table, containerHost.getId() );
-        }
-    }
-
-
-    public final static String SERVER_TABLE_CAPTION = "Server";
-    public final static String CLIENT_TABLE_CAPTION = "Clients";
-
+    protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
+    protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
+    protected static final String CHECK_BUTTON_CAPTION = "Check";
+    protected static final String START_BUTTON_CAPTION = "Start";
+    protected static final String STOP_BUTTON_CAPTION = "Stop";
+    protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
+    protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
+    protected static final String ADD_NODE_BUTTON_CAPTION = "Add Node";
+    protected static final String SERVER_TABLE_CAPTION = "Server Nodes";
+    protected static final String CLIENT_TABLE_CAPTION = "Client Nodes";
+    protected static final String HOST_COLUMN_CAPTION = "Host";
+    protected static final String IP_COLUMN_CAPTION = "IP List";
+    protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
+    protected static final String BUTTON_STYLE_NAME = "default";
+    final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final ComboBox clusterCombo;
-    private final Table serverTable;
-    private final Table clientsTable;
+    private final Table serverTable, clientsTable;
     private final Oozie oozie;
-    private final Hadoop hadoop;
-    private final Tracker tracker;
     private final ExecutorService executorService;
+    private final EnvironmentManager environmentManager;
+    private final Tracker tracker;
+    private GridLayout contentRoot;
     private OozieClusterConfig config;
+    private Hadoop hadoop;
 
 
-    public Manager( final ExecutorService executorService, final Oozie oozie, final Hadoop hadoop, final Tracker tracker, EnvironmentManager environmentManager) throws NamingException
+    public Manager( final ExecutorService executorService, Oozie oozie, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
-        super();
         this.executorService = executorService;
-        this.tracker = tracker;
-        this.hadoop = hadoop;
         this.oozie = oozie;
+        this.hadoop = hadoop;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
+
 
         contentRoot = new GridLayout();
         contentRoot.setSpacing( true );
         contentRoot.setMargin( true );
         contentRoot.setSizeFull();
-        contentRoot.setRows( 11 );
+        contentRoot.setRows( 10 );
         contentRoot.setColumns( 1 );
 
         //tables go here
         serverTable = createTableTemplate( SERVER_TABLE_CAPTION );
-        serverTable.setId( "OozieMngServerTable" );
+        serverTable.setId( "HiveTable" );
         clientsTable = createTableTemplate( CLIENT_TABLE_CAPTION );
-        clientsTable.setId( "OozieMngClientsTable" );
-
-        /*
-        nodesTable = createTableTemplate(NODES_TABLE_CAPTION);
-        nodesTable.setId("OozieMngNodesTable");
-*/
-        //tables go here
+        clientsTable.setId( "HiveClientsTable" );
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
@@ -93,7 +90,7 @@ public class Manager extends BaseManager
         controlsContent.addComponent( clusterNameLabel );
 
         clusterCombo = new ComboBox();
-        clusterCombo.setId( "OozieMngClusterCombo" );
+        clusterCombo.setId( "HiveClusterCb" );
         clusterCombo.setImmediate( true );
         clusterCombo.setTextInputAllowed( false );
         clusterCombo.setWidth( 200, Sizeable.Unit.PIXELS );
@@ -104,14 +101,13 @@ public class Manager extends BaseManager
             {
                 config = ( OozieClusterConfig ) event.getProperty().getValue();
                 refreshUI();
+                //checkServer();
             }
         } );
 
-        controlsContent.addComponent( clusterCombo );
-
-        Button refreshClustersBtn = new Button( "Refresh clusters" );
-        refreshClustersBtn.setId( "OozieMngRefresh" );
-        refreshClustersBtn.addStyleName( "default" );
+        /** Refresh Cluster Button */
+        refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
+        refreshClustersBtn.setId( "hiveRefreshClusterBtn" );
         refreshClustersBtn.addClickListener( new Button.ClickListener()
         {
             @Override
@@ -121,290 +117,167 @@ public class Manager extends BaseManager
             }
         } );
 
-        controlsContent.addComponent( refreshClustersBtn );
 
-        /*Button checkAllBtn = new Button( "Check all" );
-        checkAllBtn.addStyleName( "default" );
-        checkAllBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                clickAllCheckButtons( serverTable );
-            }
-        } );*/
-
-        Button destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
-        destroyClusterBtn.setId( "OozieMngDestroy" );
-        destroyClusterBtn.addStyleName( "default" );
-        destroyClusterBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                if ( config != null )
-                {
-                    ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to destroy the %s cluster?", config.getClusterName() ), "Yes",
-                            "No" );
-                    alert.getOk().addClickListener( new Button.ClickListener()
-                    {
-                        @Override
-                        public void buttonClick( Button.ClickEvent clickEvent )
-                        {
-                            UUID trackID = oozie.uninstallCluster( config.getClusterName() );
-                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                    OozieClusterConfig.PRODUCT_KEY );
-                            window.getWindow().addCloseListener( new Window.CloseListener()
-                            {
-                                @Override
-                                public void windowClose( Window.CloseEvent closeEvent )
-                                {
-                                    refreshClustersInfo();
-                                }
-                            } );
-                            contentRoot.getUI().addWindow( window.getWindow() );
-                        }
-                    } );
-
-                    contentRoot.getUI().addWindow( alert.getAlert() );
-                }
-                else
-                {
-                    show( "Please, select cluster" );
-                }
-            }
-        } );
+        /** Destroy Cluster Button */
+        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
+        destroyClusterBtn.setId( "HiveDestroyClusterBtn" );
+        addClickListenerToDestroyClusterButton();
 
 
-        Button addNodeButton = new Button( ADD_NODE_BUTTON_CAPTION );
-        addNodeButton.setId( "OozieMngAddNode" );
-        addNodeButton.addStyleName( "default" );
-        addNodeButton.addClickListener( addNodeButtonListener() );
+        /** Add Node Button */
+        addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
+        addNodeBtn.setId( "HiveAddNodeBtn" );
+        //addClickListenerToAddNodeButton();
 
-        controlsContent.addComponent( addNodeButton );
-        controlsContent.addComponent( destroyClusterBtn );
-        controlsContent.addComponent( getProgressBar() );
 
+        addStyleNameToButtons( refreshClustersBtn, destroyClusterBtn, addNodeBtn );
+        addGivenComponents( controlsContent, clusterCombo, refreshClustersBtn, destroyClusterBtn, addNodeBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
+        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+        controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
+
+        VerticalLayout tablesLayout = new VerticalLayout();
+        tablesLayout.setSizeFull();
+        tablesLayout.setSpacing( true );
+
+        addGivenComponents( tablesLayout, serverTable );
+        addGivenComponents( tablesLayout, clientsTable );
+
+
+        PROGRESS_ICON.setVisible( false );
+        PROGRESS_ICON.setId( "indicator" );
+        controlsContent.addComponent( PROGRESS_ICON );
         contentRoot.addComponent( controlsContent, 0, 0 );
-        contentRoot.addComponent( serverTable, 0, 1, 0, 5 );
-        contentRoot.addComponent( clientsTable, 0, 6, 0, 10 );
-        //contentRoot.addComponent( nodesTable, 0, 1, 0, 5 );
-
+        contentRoot.addComponent( tablesLayout, 0, 1, 0, 9 );
     }
 
 
-    public Button.ClickListener addNodeButtonListener()
+//    private void addClickListenerToAddNodeButton()
+//    {
+//        addNodeBtn.addClickListener( new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( Button.ClickEvent clickEvent )
+//            {
+//                if ( config == null )
+//                {
+//                    show( "Select cluster" );
+//                    return;
+//                }
+//                HadoopClusterConfig hc = hadoop.getCluster( config.getHadoopClusterName() );
+//                if ( hc == null )
+//                {
+//                    show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
+//                    return;
+//                }
+//                Set<UUID> set = new HashSet<>( hc.getAllNodes() );
+//                set.remove( config.getServer() );
+//                set.removeAll( config.getClients() );
+//                if ( set.isEmpty() )
+//                {
+//                    show( "All nodes in Hadoop cluster have Hive installed" );
+//                    return;
+//                }
+//
+//                Set<ContainerHost> myHostSet = new HashSet<>();
+//                for ( UUID uuid : set )
+//                {
+//                    myHostSet.add( environmentManager.getEnvironmentByUUID(
+//                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+//                            .getContainerHostById( uuid ) );
+//                }
+//
+//                AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config, myHostSet );
+//                contentRoot.getUI().addWindow( w );
+//                w.addCloseListener( new Window.CloseListener()
+//                {
+//                    @Override
+//                    public void windowClose( Window.CloseEvent closeEvent )
+//                    {
+//                        refreshClustersInfo();
+//                        refreshUI();
+//                        checkServer();
+//                    }
+//                } );
+//            }
+//        } );
+//    }
+
+
+    private void addClickListenerToDestroyClusterButton()
     {
-        return new Button.ClickListener()
+        destroyClusterBtn.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 if ( config == null )
                 {
-                    show( "Please, select cluster" );
+                    show( "Select cluster" );
+                    return;
                 }
-                else
+                ConfirmationDialog alert = new ConfirmationDialog(
+                        String.format( "Cluster '%s' will be destroyed. Continue?", config.getClusterName() ), "Yes",
+                        "No" );
+                alert.getOk().addClickListener( new Button.ClickListener()
                 {
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP )
+                    @Override
+                    public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        String hadoopClusterName = config.getHadoopClusterName();
-                        if ( hadoopClusterName == null || hadoopClusterName.isEmpty() )
-                        {
-                            show( "Undefined Hadoop cluster name" );
-                            return;
-                        }
-                        HadoopClusterConfig info = hadoop.getCluster( hadoopClusterName );
-                        if ( info != null )
-                        {
-                            HashSet<UUID> nodes = new HashSet<>( info.getAllNodes() );
-                            nodes.removeAll( config.getAllOozieAgents() );
-                            if ( !nodes.isEmpty() )
-                            {
-                                /*AddNodeWindow addNodeWindow =
-                                        new AddNodeWindow( oozieManager, executorService, tracker, config, nodes );
-                                contentRoot.getUI().addWindow( addNodeWindow );
-                                addNodeWindow.addCloseListener( new Window.CloseListener()
-                                {
-                                    @Override
-                                    public void windowClose( Window.CloseEvent closeEvent )
-                                    {
-                                        refreshClustersInfo();
-                                    }
-                                } );*/
-                            }
-                            else
-                            {
-                                show( "All nodes in corresponding Hadoop cluster have Oozie installed" );
-                            }
-                        }
-                        else
-                        {
-                            show( "Hadoop cluster info not found" );
-                        }
+                        destroyClusterHandler();
                     }
-                    else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                    {
-                        ConfirmationDialog d = new ConfirmationDialog( "Add node to cluster", "OK", "Cancel" );
-                        d.getOk().addClickListener( new Button.ClickListener()
-                        {
+                } );
 
-                            @Override
-                            public void buttonClick( Button.ClickEvent event )
-                            {
-                                UUID trackId = oozie.addNode( config.getClusterName(), null );
-                                ProgressWindow w =
-                                        new ProgressWindow( executorService, tracker, trackId, config.getProductKey() );
-                                contentRoot.getUI().addWindow( w.getWindow() );
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( d.getAlert() );
-                    }
-                }
-            }
-        };
-    }
-
-
-    private void refreshUI()
-    {
-        if ( config != null )
-        {
-            populateServerTable( serverTable, config.getServer() );
-            populateClientsTable( clientsTable, config.getClients() );
-            clickAllCheckButtons( serverTable );
-        }
-        else
-        {
-            serverTable.removeAllItems();
-            clientsTable.removeAllItems();
-        }
-    }
-
-
-    private void populateServerTable( final Table table, final UUID agent )
-    {
-        List<UUID> agentList = new ArrayList<>();
-        agentList.add( agent );
-        //agentList.add(config.getServer());
-//        populateTable( table, agentList );
-    }
-
-
-    private void populateClientsTable( final Table table, Set<UUID> clientNodes )
-    {
-
-        table.removeAllItems();
-        List<UUID> agentList = new ArrayList<>();
-        agentList.addAll( clientNodes );
-//        populateTable( table, agentList );
-    }
-
-
-    public void refreshClustersInfo()
-    {
-        List<OozieClusterConfig> info = oozie.getClusters();
-        OozieClusterConfig clusterInfo = ( OozieClusterConfig ) clusterCombo.getValue();
-        clusterCombo.removeAllItems();
-        if ( info != null && !info.isEmpty() )
-        {
-            for ( OozieClusterConfig oozieConfig : info )
-            {
-                clusterCombo.addItem( oozieConfig );
-                clusterCombo.setItemCaption( oozieConfig, oozieConfig.getClusterName() );
-            }
-            if ( clusterInfo != null )
-            {
-                for ( OozieClusterConfig oozieInfo : info )
-                {
-                    if ( oozieInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
-                    {
-                        clusterCombo.setValue( oozieInfo );
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                clusterCombo.setValue( info.iterator().next() );
-            }
-        }
-    }
-
-
-    /*@Override
-    public void addRowComponents( Table table, final Agent agent )
-    {
-        Preconditions.checkNotNull( table, "Cannot add components to not existing table" );
-        Preconditions.checkNotNull( agent, "Cannot add null agent to the table" );
-        if ( table.getCaption().equals( SERVER_TABLE_CAPTION ) )
-        {
-            addServerRow( table, agent );
-        }
-        else
-        {
-            addClientRow( table, agent );
-        }
-    }*/
-
-
-    public Table createTableTemplate( String caption )
-    {
-
-        final Table table = new Table( caption );
-        table.addContainerProperty( HOST_COLUMN_CAPTION, String.class, null );
-        table.addContainerProperty( IP_COLUMN_CAPTION, String.class, null );
-        table.addContainerProperty( STATUS_COLUMN_CAPTION, HorizontalLayout.class, null );
-        table.addContainerProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION, HorizontalLayout.class, null );
-
-        table.setColumnExpandRatio( HOST_COLUMN_CAPTION, 0.1f );
-        table.setColumnExpandRatio( IP_COLUMN_CAPTION, 0.1f );
-        table.setColumnExpandRatio( STATUS_COLUMN_CAPTION, 0.40f );
-        table.setColumnExpandRatio( AVAILABLE_OPERATIONS_COLUMN_CAPTION, 0.40f );
-        table.setSizeFull();
-        table.setPageLength( 10 );
-        table.setSelectable( false );
-        table.setImmediate( true );
-
-        table.addItemClickListener( new ItemClickEvent.ItemClickListener()
-        {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                if ( event.isDoubleClick() )
-                {
-                    String lxcHostname =
-                            ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    /*UUID lxcAgent = agentManager.getAgentByHostname( lxcHostname );
-                    if ( lxcAgent != null )
-                    {
-                        *//*TerminalWindow terminal =
-                                new TerminalWindow( Sets.newHashSet( lxcAgent ), executorService, commandRunner,
-                                        agentManager );
-                        contentRoot.getUI().addWindow( terminal.getWindow() );*//*
-                    }
-                    else
-                    {
-                        show( "Agent is not connected" );
-                    }*/
-                }
+                contentRoot.getUI().addWindow( alert.getAlert() );
             }
         } );
-
-        return table;
     }
 
 
-    private void show( String notification )
+    private void destroyClusterHandler()
     {
-        Notification.show( notification );
+        hadoop.getCluster( config.getClusterName() );
+        UUID trackID = oozie.uninstallCluster( config.getClusterName() );
+
+        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
+        window.getWindow().addCloseListener( new Window.CloseListener()
+        {
+            @Override
+            public void windowClose( Window.CloseEvent closeEvent )
+            {
+                refreshUI();
+                refreshClustersInfo();
+            }
+        } );
+        contentRoot.getUI().addWindow( window.getWindow() );
+    }
+
+
+    public void checkServer()
+    {
+        if ( serverTable != null )
+        {
+            for ( Object o : serverTable.getItemIds() )
+            {
+                int rowId = ( Integer ) o;
+                Item row = serverTable.getItem( rowId );
+                HorizontalLayout availableOperationsLayout =
+                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
+                if ( availableOperationsLayout != null )
+                {
+                    Button checkBtn = getButton( availableOperationsLayout, CHECK_BUTTON_CAPTION );
+                    if ( checkBtn != null )
+                    {
+                        checkBtn.click();
+                    }
+                }
+            }
+        }
     }
 
 
     protected Button getButton( final HorizontalLayout availableOperationsLayout, String caption )
     {
-
         if ( availableOperationsLayout == null )
         {
             return null;
@@ -423,317 +296,367 @@ public class Manager extends BaseManager
     }
 
 
-    public Component getContent()
+    private Table createTableTemplate( String caption )
     {
-        return contentRoot;
+        final Table table = new Table( caption );
+        table.addContainerProperty( HOST_COLUMN_CAPTION, String.class, null );
+        table.addContainerProperty( IP_COLUMN_CAPTION, String.class, null );
+        table.addContainerProperty( NODE_ROLE_COLUMN_CAPTION, String.class, null );
+        table.addContainerProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION, HorizontalLayout.class, null );
+        table.setSizeFull();
+        table.setPageLength( 10 );
+        table.setSelectable( false );
+        table.setImmediate( true );
+        addClickListenerToTable( table );
+        return table;
     }
 
 
-    private void addServerRow( final Table table, final UUID agent )
+    private void addClickListenerToTable( final Table table )
     {
-        // Layouts to be added to table
-        final HorizontalLayout availableOperations = new HorizontalLayout();
-        final HorizontalLayout statusGroup = new HorizontalLayout();
-        availableOperations.addStyleName( "default" );
-        availableOperations.setSpacing( true );
-        statusGroup.addStyleName( "default" );
-        statusGroup.setSpacing( true );
-        // Layouts to be added to table
+        table.addItemClickListener( new ItemClickEvent.ItemClickListener()
+        {
+            @Override
+            public void itemClick( ItemClickEvent event )
+            {
+                String containerId =
+                        ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
+                ContainerHost containerHost = environmentManager
+                        .getEnvironmentByUUID( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                        .getContainerHostByHostname( containerId );
 
-        // Buttons to be added to availableOperations
-        final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
-//        checkButton.setId( agent.getListIP().get( 0 ) + "-oozieCheck" );
-        final Button startButton = new Button( START_BUTTON_CAPTION );
-//        startButton.setId( agent.getListIP().get( 0 ) + "-oozieStart" );
-        final Button stopButton = new Button( STOP_BUTTON_CAPTION );
-//        stopButton.setId( agent.getListIP().get( 0 ) + "-oozieStop" );
-
-        checkButton.addStyleName( "default" );
-        startButton.addStyleName( "default" );
-        stopButton.addStyleName( "default" );
-        // Buttons to be added to availableOperations
-
-        // Labels to be added to statusGroup
-        final Label statusLabel = new Label( "" );
-
-        statusLabel.addStyleName( "default" );
-        // Labels to be added to statusGroup
-
-        availableOperations.addComponent( checkButton );
-        availableOperations.addComponent( startButton );
-        availableOperations.addComponent( stopButton );
-        statusGroup.addComponent( statusLabel );
-
-        /*table.addItem( new Object[] {
-                agent.getHostname(), agent.getListIP().get( 0 ).toString(), statusGroup, availableOperations
-        }, null );*/
-
-        /*Item row = getAgentRow( table, agent );
-
-        checkButton.addClickListener( checkButtonListener( row ) );
-        startButton.addClickListener( startButtonListener( row ) );
-        stopButton.addClickListener( stopButtonListener( row ) );*/
+                if ( containerHost != null )
+                {
+                    TerminalWindow terminal = new TerminalWindow( containerHost );
+                    contentRoot.getUI().addWindow( terminal.getWindow() );
+                }
+                else
+                {
+                    show( "Host not found" );
+                }
+            }
+        } );
     }
 
 
-    private void addClientRow( final Table table, final UUID agent )
+    private void show( String notification )
     {
-        // Layouts to be added to table
-        final HorizontalLayout availableOperations = new HorizontalLayout();
-        final HorizontalLayout statusLayout = new HorizontalLayout();
-        availableOperations.addStyleName( "default" );
-        availableOperations.setSpacing( true );
-        // Layouts to be added to table
-
-        // Buttons to be added to availableOperations
-        final Button destroyButton = new Button( DESTROY_BUTTON_CAPTION );
-//        destroyButton.setId( agent.getListIP().get( 0 ) + "-oozieDestroy" );
-
-        destroyButton.addStyleName( "default" );
-        // Buttons to be added to availableOperations
-
-        availableOperations.addComponent( destroyButton );
-
-        /*table.addItem( new Object[] {
-                agent.getHostname(), agent.getListIP().get( 0 ).toString(), statusLayout, availableOperations
-        }, null );*/
-
-   /*     Item row = getAgentRow( table, agent );
-
-        destroyButton.addClickListener( destroyButtonListener( row ) );*/
+        Notification.show( notification );
     }
 
 
-    private Button.ClickListener startStopButtonListener( final Item row )
+    public void refreshUI()
     {
-        return new Button.ClickListener()
+        if ( config != null )
+        {
+            populateTable( serverTable, getServers(
+                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
+                    config ) );
+            populateTable( clientsTable, getClients(
+                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
+                    config ) );
+        }
+        else
+        {
+            serverTable.removeAllItems();
+            clientsTable.removeAllItems();
+        }
+    }
+
+
+    public Set<ContainerHost> getServers( Set<ContainerHost> containerHosts, OozieClusterConfig config )
+    {
+        Set<ContainerHost> list = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( config.getServer().equals( containerHost.getId() ) )
+            {
+                list.add( containerHost );
+            }
+        }
+        return list;
+    }
+
+
+    public Set<ContainerHost> getClients( Set<ContainerHost> containerHosts, OozieClusterConfig config )
+    {
+        Set<ContainerHost> list = new HashSet<>();
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( config.getClients().contains( containerHost.getId() ) )
+            {
+                list.add( containerHost );
+            }
+        }
+        return list;
+    }
+
+
+    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    {
+        table.removeAllItems();
+
+        for ( final ContainerHost containerHost : containerHosts )
+        {
+            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveCheck" );
+            final Button startBtn = new Button( START_BUTTON_CAPTION );
+            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveStart" );
+            final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
+            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveStop" );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveDestroy" );
+
+            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+            disableButtons( startBtn, stopBtn );
+
+            final HorizontalLayout availableOperations = new HorizontalLayout();
+            availableOperations.addStyleName( "default" );
+            availableOperations.setSpacing( true );
+
+            if ( isServer( containerHost ) )
+            {
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
+            }
+            else
+            {
+                addGivenComponents( availableOperations, destroyBtn );
+                destroyBtn.addClickListener( new Button.ClickListener()
+                {
+                    @Override
+                    public void buttonClick( Button.ClickEvent clickEvent )
+                    {
+                        ConfirmationDialog alert = new ConfirmationDialog(
+                                String.format( "Do you want to destroy node  %s?", containerHost.getHostname() ), "Yes",
+                                "No" );
+                        alert.getOk().addClickListener( new Button.ClickListener()
+                        {
+                            @Override
+                            public void buttonClick( Button.ClickEvent clickEvent )
+                            {
+                                UUID trackID = UUID.randomUUID();
+                                        //oozie.uninstallNode( config.getClusterName(), containerHost.getHostname() );
+                                ProgressWindow window =
+                                        new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
+                                window.getWindow().addCloseListener( new Window.CloseListener()
+                                {
+                                    @Override
+                                    public void windowClose( Window.CloseEvent closeEvent )
+                                    {
+                                        refreshClustersInfo();
+                                        refreshUI();
+//                                        checkServer();
+                                    }
+                                } );
+                                contentRoot.getUI().addWindow( window.getWindow() );
+                            }
+                        } );
+
+                        contentRoot.getUI().addWindow( alert.getAlert() );
+                    }
+                } );
+            }
+
+            table.addItem( new Object[] {
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                    checkNodeRole( containerHost ), availableOperations
+            }, null );
+
+            addClickListenerToCheckButton( containerHost, startBtn, stopBtn, checkBtn, destroyBtn );
+            addClickListenerToStartButton( containerHost, startBtn, stopBtn, checkBtn, destroyBtn );
+            addClickListenerToStopButton( containerHost, startBtn, stopBtn, checkBtn, destroyBtn );
+        }
+    }
+
+
+    public String checkNodeRole( ContainerHost agent )
+    {
+
+        if ( config.getServer().equals( agent.getId() ) )
+        {
+            return "Server";
+        }
+        else
+        {
+            return "Client";
+        }
+    }
+
+
+    private boolean isServer( ContainerHost agent )
+    {
+        return config.getServer().equals( agent.getId() );
+    }
+
+
+    private void addGivenComponents( Layout layout, Component... components )
+    {
+        for ( Component c : components )
+        {
+            layout.addComponent( c );
+        }
+    }
+
+
+    private void addStyleNameToButtons( Button... buttons )
+    {
+        for ( Button b : buttons )
+        {
+            b.addStyleName( BUTTON_STYLE_NAME );
+        }
+    }
+
+
+    private void disableButtons( Button... buttons )
+    {
+        for ( Button b : buttons )
+        {
+            b.setEnabled( false );
+        }
+    }
+
+
+    private void addClickListenerToStopButton( final ContainerHost containerHost, final Button... buttons )
+    {
+//        getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( Button.ClickEvent clickEvent )
+//            {
+//                executorService.execute(
+//                        new NodeOperationHandler( hive, tracker, config.getClusterName(), containerHost,
+//                                NodeOperationType.STOP, new CompleteEvent()
+//                        {
+//
+//                            @Override
+//                            public void onComplete( final NodeState state )
+//                            {
+//                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+//                                checkServer();
+//                            }
+//                        }, null ) );
+//            }
+//        } );
+    }
+
+
+    private void addClickListenerToStartButton( final ContainerHost containerHost, final Button... buttons )
+    {
+        getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                final Button startStopButton = clickEvent.getButton();
-                HorizontalLayout availableOperationsLayout = getAvailableOperationsLayout( row );
-                final Button checkButton = getCheckButton( availableOperationsLayout );
-
-                startStopButton.setEnabled( false );
-                boolean isRunning = startStopButton.getCaption().contains( STOP_BUTTON_CAPTION );
-                enableProgressBar();
-                startStopButton.setEnabled( false );
-                checkButton.setEnabled( false );
-                UUID agent = getAgentByRow( row );
-
-                NodeOperationType operationType;
-                if ( !isRunning )
-                {
-                    operationType = NodeOperationType.START;
-                }
-                else
-                {
-                    operationType = NodeOperationType.STOP;
-                }
-                /*executorService.execute(
-                        new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
-                                startStopCheckCompleteEvent( row ), null, agent ) );*/
+//                disableButtons( buttons );
+//                executorService.execute(
+//                        new HiveNodeOperationTask( hive, tracker, config.getClusterName(), containerHost,
+//                                NodeOperationType.START, new CompleteEvent()
+//                        {
+//
+//                            @Override
+//                            public void onComplete( final NodeState state )
+//                            {
+//                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+//                                checkServer();
+//                            }
+//                        }, null ) );
             }
-        };
+        } );
     }
 
 
-    private CompleteEvent startStopCheckCompleteEvent( Item row )
+    private void addClickListenerToCheckButton( final ContainerHost containerHost, final Button... buttons )
     {
-        HorizontalLayout availableOperationsLayout = getAvailableOperationsLayout( row );
-        final Button checkButton = getCheckButton( availableOperationsLayout );
-        final Button startButton = getStartButton( availableOperationsLayout );
-        final Button stopButton = getStopButton( availableOperationsLayout );
-        HorizontalLayout statusLayout = getStatusLayout( row );
-        final Label statusLabel = getStatusLabel( statusLayout );
-
-        return new CompleteEvent()
+        getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
-
-            public void onComplete( NodeState state )
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
             {
-                if ( state == NodeState.RUNNING )
-                {
-                    statusLabel.setValue( "Server is running" );
-                    //stopButton.setCaption( STOP_BUTTON_CAPTION );
-                    stopButton.setEnabled( true );
-                }
-                else if ( state == NodeState.STOPPED )
-                {
-                    statusLabel.setValue( "Server is stopped" );
-                    //startButton.setCaption( START_BUTTON_CAPTION );
-                    startButton.setEnabled( true );
-                }
-                else
-                {
-                    statusLabel.setValue( "Server is not connected" );
-                }
+                disableButtons( buttons );
+                PROGRESS_ICON.setVisible( true );
+                executorService.execute(
+                        new OozieNodeOperationTask( oozie, tracker, config.getClusterName(), containerHost,
+                                NodeOperationType.STATUS, new CompleteEvent()
+                        {
 
-                checkButton.setEnabled( true );
-                disableProgressBar();
+                            @Override
+                            public void onComplete( final NodeState state )
+                            {
+                                if ( state == NodeState.RUNNING )
+                                {
+                                    getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                    getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                }
+                                else if ( state == NodeState.STOPPED )
+                                {
+                                    getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                }
+                                PROGRESS_ICON.setVisible( false );
+                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                if ( getButton( DESTROY_BUTTON_CAPTION, buttons ) != null )
+                                {
+                                    getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                }
+                            }
+                        }, null ) );
             }
-        };
+        } );
     }
 
 
-    private Label getStatusLabel( final HorizontalLayout statusGroupLayout )
+    private Button getButton( String caption, Button... buttons )
     {
-        if ( statusGroupLayout == null )
+        for ( Button b : buttons )
         {
-            return null;
-        }
-        return ( Label ) statusGroupLayout.getComponent( 0 );
-    }
-
-
-    protected UUID getAgentByRow( final Item row )
-    {
-        if ( row == null )
-        {
-            return null;
-        }
-
-        Set<UUID> clusterNodeList = config.getAllOozieAgents();
-        String lxcHostname = row.getItemProperty( HOST_COLUMN_CAPTION ).getValue().toString();
-
-        for ( UUID agent : clusterNodeList )
-        {
-            /*if ( agent.getHostname().equals( lxcHostname ) )
+            if ( b.getCaption().equals( caption ) )
             {
-                return agent;
-            }*/
+                return b;
+            }
         }
         return null;
     }
 
 
-    private Button.ClickListener destroyButtonListener( final Item row )
+    public void refreshClustersInfo()
     {
-        return new Button.ClickListener()
+        List<OozieClusterConfig> clusters = oozie.getClusters();
+        OozieClusterConfig clusterInfo = ( OozieClusterConfig ) clusterCombo.getValue();
+        clusterCombo.removeAllItems();
+
+        if ( clusters == null || clusters.isEmpty() )
         {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                Button destroyButton = clickEvent.getButton();
-                //enableProgressBar();
-                destroyButton.setEnabled( false );
-                UUID agent = getAgentByRow( row );
+            PROGRESS_ICON.setVisible( false );
+            return;
+        }
 
-                UUID trackID = oozie.destroyNode( config.getClusterName(), agent.toString() );
-
-                ProgressWindow window =
-                        new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
-                window.getWindow().addCloseListener( new Window.CloseListener()
-                {
-                    @Override
-                    public void windowClose( Window.CloseEvent closeEvent )
-                    {
-                        refreshClustersInfo();
-                        refreshUI();
-                        //disableProgressBar();
-                    }
-                } );
-                contentRoot.getUI().addWindow( window.getWindow() );
-            }
-        };
-    }
-
-
-    private Button.ClickListener startButtonListener( final Item row )
-    {
-        return new Button.ClickListener()
+        for ( OozieClusterConfig hiveConfig : clusters )
         {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
+            clusterCombo.addItem( hiveConfig );
+            clusterCombo.setItemCaption( hiveConfig,
+                    hiveConfig.getClusterName() + "(" + hiveConfig.getHadoopClusterName() + ")" );
+        }
+
+        if ( clusterInfo != null )
+        {
+            for ( OozieClusterConfig config : clusters )
             {
-                final Button startButton = clickEvent.getButton();
-                final Button stopButton = clickEvent.getButton();
-                HorizontalLayout availableOperationsLayout = getAvailableOperationsLayout( row );
-                final Button checkButton = getCheckButton( availableOperationsLayout );
-
-                startButton.setEnabled( false );
-                stopButton.setEnabled( false );
-                boolean isRunning = startButton.isEnabled();
-                enableProgressBar();
-                startButton.setEnabled( false );
-                stopButton.setEnabled( false );
-                checkButton.setEnabled( false );
-                UUID agent = getAgentByRow( row );
-
-                NodeOperationType operationType;
-                if ( !isRunning )
+                if ( config.getClusterName().equals( clusterInfo.getClusterName() ) )
                 {
-                    operationType = NodeOperationType.START;
-
-                    /*executorService.execute(
-                            new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
-                                    startStopCheckCompleteEvent( row ), null, agent ) );*/
+                    clusterCombo.setValue( config );
+                    return;
                 }
             }
-        };
+        }
+        else
+        {
+            clusterCombo.setValue( clusters.iterator().next() );
+        }
     }
 
 
-    private Button.ClickListener stopButtonListener( final Item row )
+    public Component getContent()
     {
-        return new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                final Button startButton = clickEvent.getButton();
-                final Button stopButton = clickEvent.getButton();
-                HorizontalLayout availableOperationsLayout = getAvailableOperationsLayout( row );
-                final Button checkButton = getCheckButton( availableOperationsLayout );
-
-                startButton.setEnabled( false );
-                stopButton.setEnabled( false );
-                boolean isRunning = stopButton.isEnabled();
-                enableProgressBar();
-                startButton.setEnabled( false );
-                stopButton.setEnabled( false );
-                checkButton.setEnabled( false );
-                UUID agent = getAgentByRow( row );
-
-                NodeOperationType operationType;
-                if ( !isRunning )
-                {
-                    operationType = NodeOperationType.STOP;
-
-                    /*executorService.execute(
-                            new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
-                                    startStopCheckCompleteEvent( row ), null, agent ) );*/
-                }
-            }
-        };
-    }
-
-
-    private Button.ClickListener checkButtonListener( final Item row )
-    {
-        return new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-
-                final Button checkButton = clickEvent.getButton();
-                HorizontalLayout availableOperationsLayout = getAvailableOperationsLayout( row );
-                final Button startButton = getStartButton( availableOperationsLayout );
-                final Button stopButton = getStopButton( availableOperationsLayout );
-                checkButton.setEnabled( false );
-                enableProgressBar();
-                startButton.setEnabled( false );
-                stopButton.setEnabled( false );
-                checkButton.setEnabled( false );
-                UUID agent = getAgentByRow( row );
-
-                NodeOperationType operationType = NodeOperationType.STATUS;
-                /*executorService.execute(
-                        new OperationTask( oozie, tracker, operationType, NodeType.SERVER, config,
-                                startStopCheckCompleteEvent( row ), null, agent ) );*/
-            }
-        };
+        return contentRoot;
     }
 }

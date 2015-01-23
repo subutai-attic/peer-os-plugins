@@ -4,17 +4,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.SetupType;
-import org.safehaus.subutai.common.command.*;
 
 import java.util.*;
 
@@ -25,6 +25,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     private final TrackerOperation po;
     private final OozieImpl manager;
     private Environment environment;
+    private ContainerHost server;
+    private Set<ContainerHost> clients;
 
 
     public OverHadoopSetupStrategy(final Environment environment,
@@ -59,22 +61,6 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
                     String.format("Cluster with name '%s' already exists", oozieClusterConfig.getClusterName()));
         }
 
-        if (oozieClusterConfig.getSetupType() == SetupType.OVER_HADOOP)
-        {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                    manager.getHadoopManager().getCluster(oozieClusterConfig
-                            .getHadoopClusterName()).getEnvironmentId());
-        }
-        Set<ContainerHost> oozieClientNodes = environment.getContainerHostsByIds(oozieClusterConfig.getClients());
-        //check if node agent is connected
-        for (ContainerHost node : oozieClientNodes)
-        {
-            if (environment.getContainerHostByHostname(node.getHostname()) == null)
-            {
-                throw new ClusterSetupException(String.format("Node %s is not connected", node.getHostname()));
-            }
-        }
-
         HadoopClusterConfig hadoopClusterConfig =
                 manager.getHadoopManager().getCluster(oozieClusterConfig.getHadoopClusterName());
         if (hadoopClusterConfig == null)
@@ -83,26 +69,65 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
                     String.format("Hadoop cluster %s not found", oozieClusterConfig.getHadoopClusterName()));
         }
 
-        if (!hadoopClusterConfig.getAllNodes().containsAll(oozieClusterConfig.getClients()))
+        if (!hadoopClusterConfig.getAllNodes().containsAll(oozieClusterConfig.getAllNodes()))
         {
             throw new ClusterSetupException(String.format("Not all specified OozieClient nodes belong to %s Hadoop " +
                             "cluster",
                     hadoopClusterConfig.getClusterName()));
         }
 
+        environment = manager.getEnvironmentManager().getEnvironmentByUUID(hadoopClusterConfig.getEnvironmentId());
+
+        if ( environment == null)
+        {
+            throw new ClusterSetupException( "Hadoop environment not found" );
+        }
+
+
+        if ( oozieClusterConfig.getServer() == null )
+        {
+            throw new ClusterSetupException( "Server node not specified" );
+        }
+
+        if ( CollectionUtil.isCollectionEmpty(oozieClusterConfig.getClients()) )
+        {
+            throw new ClusterSetupException( "Target nodes not specified" );
+        }
 
         po.addLog("Checking prerequisites...");
+
+        Set<ContainerHost> oozieNodes = environment.getContainerHostsByIds( oozieClusterConfig.getAllNodes() );
+        if ( oozieNodes.size() < oozieClusterConfig.getAllNodes().size() )
+        {
+            throw new ClusterSetupException(
+                    String.format( "Only %d nodes found in environment whereas %d expected", oozieNodes.size(),
+                            oozieClusterConfig.getAllNodes().size() ) );
+        }
+
+
+        for ( ContainerHost hiveNode : oozieNodes )
+        {
+            if ( !hiveNode.isConnected() )
+            {
+                throw new ClusterSetupException( String.format( "Node %s is not connected", hiveNode.getHostname() ) );
+            }
+        }
+
+        server = environment.getContainerHostById( oozieClusterConfig.getServer() );
+
+        clients = environment.getContainerHostsByIds( oozieClusterConfig.getClients() );
 
 
         //check installed subutai packages
         List<CommandResult> commandResultList = runCommandOnContainers(Commands.make(CommandType.STATUS),
-                oozieClientNodes);
+                clients);
+
         if (getFailedCommandResults(commandResultList).size() != 0)
         {
             throw new ClusterSetupException("Failed to check presence of installed subutai packages");
         }
 
-        Iterator<ContainerHost> iterator = oozieClientNodes.iterator();
+        Iterator<ContainerHost> iterator = clients.iterator();
         int nodeIndex = 0;
         while (iterator.hasNext())
         {
@@ -120,7 +145,6 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             }
         }
 //======================================================================================================================
-
         // CHECKING for oozie - server
 //======================================================================================================================
         if (Strings.isNullOrEmpty(oozieClusterConfig.getClusterName()) ||
@@ -129,45 +153,13 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException("Malformed configuration");
         }
 
-        if (manager.getCluster(oozieClusterConfig.getClusterName()) != null)
-        {
-            throw new ClusterSetupException(
-                    String.format("Cluster with name '%s' already exists", oozieClusterConfig.getClusterName()));
-        }
-
-        if (oozieClusterConfig.getSetupType() == SetupType.OVER_HADOOP)
-        {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                    manager.getHadoopManager().getCluster(oozieClusterConfig
-                            .getHadoopClusterName()).getEnvironmentId());
-        }
-        ContainerHost oozieServerNode = environment.getContainerHostById(oozieClusterConfig.getServer());
         Set<ContainerHost> oozieServerNodes = new HashSet<>();
-        oozieClientNodes.add(oozieServerNode);
-
-
-        //check if node agent is connected
-        for (ContainerHost node : oozieClientNodes)
-        {
-            if (environment.getContainerHostByHostname(node.getHostname()) == null)
-            {
-                throw new ClusterSetupException(String.format("Node %s is not connected", node.getHostname()));
-            }
-        }
-
-
-        if (!hadoopClusterConfig.getAllNodes().contains(oozieClusterConfig.getServer()))
-        {
-            throw new ClusterSetupException(String.format("Not all specified OozieServer nodes belong to %s Hadoop " +
-                            "cluster",
-                    hadoopClusterConfig.getClusterName()));
-        }
-
-
+        oozieServerNodes.add(server);
 
         //check installed subutai packages
         List<CommandResult> commandResultList2 = runCommandOnContainers(Commands.make(CommandType.STATUS),
-                oozieClientNodes);
+                oozieServerNodes);
+
         if (getFailedCommandResults(commandResultList2).size() != 0)
         {
             throw new ClusterSetupException("Failed to check presence of installed subutai packages");
@@ -192,12 +184,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         }
 //======================================================================================================================
 
-
         po.addLog(String.format("Installing Oozie Server and Oozie Client..."));
 
         //install
         commandResultList2 = runCommandOnContainers(Commands.make(CommandType.INSTALL_SERVER), oozieServerNodes);
-        commandResultList = runCommandOnContainers(Commands.make(CommandType.INSTALL_CLIENT), oozieClientNodes);
+        commandResultList = runCommandOnContainers(Commands.make(CommandType.INSTALL_CLIENT), clients);
 
         if ((getFailedCommandResults(commandResultList2).size() == 0) && (getFailedCommandResults(commandResultList)
                 .size() == 0))
@@ -205,10 +196,13 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             po.addLog("Installation succeeded\nConfiguring cluster...");
 
 
+            po.addLog("Configuring cluster...");
+
             try
             {
                 new ClusterConfiguration(manager, po).configureCluster(oozieClusterConfig, environment);
-            } catch (ClusterConfigurationException e)
+            }
+            catch (ClusterConfigurationException e)
             {
                 throw new ClusterSetupException(e.getMessage());
             }

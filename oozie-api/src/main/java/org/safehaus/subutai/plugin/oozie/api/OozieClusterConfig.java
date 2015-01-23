@@ -192,12 +192,18 @@ public class OozieClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getAllOozieAgents()
+    public Set<UUID> getAllNodes()
     {
-        Set<UUID> allAgents = new HashSet<>();
-        allAgents.addAll( clients );
-        allAgents.add( server );
-        return allAgents;
+        Set<UUID> allNodes = new HashSet<>();
+        if ( clients != null)
+        {
+            allNodes.addAll( clients );
+        }
+        if ( server != null)
+        {
+            allNodes.add( server );
+        }
+        return allNodes;
     }
 
     public UUID getEnvironmentId()
