@@ -93,7 +93,9 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
         try
         {
             PrintWriter out = new PrintWriter( file );
-            out.print( "This is a sample query file." );
+            out.println( "Content of " + fileName + " file." );
+            out.println( "Write down your query inside text area, then");
+            out.println( "save changes and run your query.");
             out.close();
         }
         catch ( FileNotFoundException e )

@@ -30,9 +30,9 @@ public class SqoopComponent extends CustomComponent
 
     public SqoopComponent( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
-        etlExtractManager = new ETLExtractManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
-        etlLoadManager = new ETLLoadManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
-        etlTransformManager = new ETLTransformManager( executorService, sqoop, hadoop, tracker, environmentManager, this );
+        etlExtractManager = new ETLExtractManager( executorService, sqoop, hadoop, tracker, environmentManager );
+        etlLoadManager = new ETLLoadManager( executorService, sqoop, hadoop, tracker, environmentManager );
+        etlTransformManager = new ETLTransformManager( executorService, sqoop, hadoop, tracker, environmentManager );
 
 
         setSizeFull();

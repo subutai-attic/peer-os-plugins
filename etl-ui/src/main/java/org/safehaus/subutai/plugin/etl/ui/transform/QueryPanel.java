@@ -3,6 +3,9 @@ package org.safehaus.subutai.plugin.etl.ui.transform;
 
 import java.io.File;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.server.ui.component.QuestionDialog;
 
 import com.vaadin.event.Action;
@@ -23,6 +26,8 @@ public class QueryPanel extends GridLayout
 {
 
     private static final Action CREATE_FILE_ACTION = new Action( "Create new file" );
+    private ContainerHost containerHost;
+    private QueryType type;
 
     public QueryPanel( )
     {
@@ -44,7 +49,7 @@ public class QueryPanel extends GridLayout
 
         final QueryFileUploader receiver = new QueryFileUploader( uploadedFile );
 
-        final TextArea contentOfQueryFile = new TextArea( "Content of uploaded query file:" );
+        final TextArea contentOfQueryFile = new TextArea( "Content of query file:" );
         contentOfQueryFile.setWidth( "600px" );
         contentOfQueryFile.setHeight( "400px" );
 
@@ -139,12 +144,63 @@ public class QueryPanel extends GridLayout
         addComponent( buttonLayout, 1, 2 );
         setComponentAlignment( buttonLayout, Alignment.BOTTOM_CENTER );
 
-        Button runQuery = new Button( "Run" );
-        runQuery.addStyleName( "default" );
+        Button runQueryButton = new Button( "Run" );
+        runQueryButton.addStyleName( "default" );
+        runQueryButton.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent event )
+            {
+                switch ( type ){
+                    case HIVE:
+                        executeCommand( containerHost, "hive -f " + receiver.getFile().getAbsolutePath() );
+                        break;
+                    case PIG:
+                        executeCommand( containerHost, "pig -x mapreduce " + receiver.getFile().getAbsolutePath() );
+                        break;
+                }
+            }
+        } );
 
-        addComponent( runQuery, 6, 1  );
-        setComponentAlignment( runQuery, Alignment.MIDDLE_LEFT );
+        addComponent( runQueryButton, 6, 1 );
+        setComponentAlignment( runQueryButton, Alignment.MIDDLE_LEFT );
         addComponent( logs, 7, 1 );
     }
 
+
+    public ContainerHost getContainerHost()
+    {
+        return containerHost;
+    }
+
+
+    public void setContainerHost( final ContainerHost containerHost )
+    {
+        this.containerHost = containerHost;
+    }
+
+
+    public QueryType getType()
+    {
+        return type;
+    }
+
+
+    public void setType( final QueryType type )
+    {
+        this.type = type;
+    }
+
+
+    private void executeCommand( ContainerHost containerHost, String command ){
+
+        try
+        {
+            containerHost.execute( new RequestBuilder( command ) );
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
+    }
 }

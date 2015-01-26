@@ -194,7 +194,6 @@ public abstract class ImportExportBase extends VerticalLayout
 
     protected interface OperationCallback
     {
-
         void onComplete();
     }
 

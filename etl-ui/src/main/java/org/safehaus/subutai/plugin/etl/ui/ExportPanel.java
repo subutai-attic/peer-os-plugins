@@ -63,13 +63,6 @@ public class ExportPanel extends ImportExportBase
     final void init()
     {
         removeAllComponents();
-
-//        if ( host == null )
-//        {
-//            addComponent( UIUtil.getLabel( "<h1>No node selected</h1>", 200 ) );
-//            return;
-//        }
-
         super.init();
         fields.add( hdfsPathField );
 

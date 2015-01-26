@@ -40,7 +40,6 @@ public class ETLExtractManager
     private final ExecutorService executorService;
     private final Tracker tracker;
     private final EnvironmentManager environmentManager;
-    private final SqoopComponent sqoopComponent;
 
     private ETLConfig config;
     private Environment environment;
@@ -48,12 +47,11 @@ public class ETLExtractManager
 
 
     public ETLExtractManager( ExecutorService executorService, ETL etl, final Hadoop hadoop, Tracker tracker,
-                              final EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
+                              final EnvironmentManager environmentManager )
             throws NamingException
     {
 
         this.executorService = executorService;
-        this.sqoopComponent = sqoopComponent;
         this.etl = etl;
         this.hadoop = hadoop;
         this.tracker = tracker;

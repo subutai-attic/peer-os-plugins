@@ -44,7 +44,6 @@ public class ETLTransformManager
     private final ExecutorService executorService;
     private final Tracker tracker;
     private final EnvironmentManager environmentManager;
-    private final SqoopComponent sqoopComponent;
 
     private ETLConfig config;
     private Environment environment;
@@ -60,11 +59,10 @@ public class ETLTransformManager
 
 
     public ETLTransformManager( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker,
-                                EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
+                                EnvironmentManager environmentManager )
             throws NamingException
     {
         this.executorService = executorService;
-        this.sqoopComponent = sqoopComponent;
         this.sqoop = sqoop;
         this.hadoop = hadoop;
         this.tracker = tracker;
