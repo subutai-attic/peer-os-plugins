@@ -8,7 +8,9 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Peer;
 import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -125,7 +127,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 config.getRouterServers().remove( node );
             }
 
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(
+            Environment environment = manager.getEnvironmentManager().findEnvironment(
                     UUID.fromString( node.getContainerHost().getEnvironmentId() ) );
             manager.unsubscribeFromAlerts( environment );
 
@@ -147,10 +149,14 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 po.addLog( "Lxc container destroyed successfully" );
             }
         }
-        catch ( PeerException | MongoException | MonitorException e )
+        catch ( PeerException | MongoException | MonitorException | ContainerHostNotFoundException e )
         {
             po.addLog( String.format( "Could not destroy lxc container %s. Use LXC module to cleanup, skipping...",
                     e.getMessage() ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
         }
 
         //update db

@@ -4,7 +4,8 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -45,13 +46,13 @@ public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandl
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( env, config, po );
             clusterSetupStrategy.setup();
 
             po.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
             po.addLogFailed( String.format( "Failed to configure cluster %s : %s", clusterName, e.getMessage() ) );
         }

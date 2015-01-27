@@ -5,8 +5,9 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.util.UUIDUtil;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -49,8 +50,9 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
 
         try
         {
-            Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
+            Environment env = manager.getEnvironmentManager().createEnvironment(
+                    String.format( "%s-%s", MongoClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                    config.getTopology(), false );
             config.setEnvironmentId( env.getId() );
             for ( final ContainerHost containerHost : env.getContainerHosts() )
             {
@@ -73,7 +75,7 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
             po.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
             manager.subscribeToAlerts( env );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException | MonitorException e )
+        catch ( ClusterSetupException | MonitorException | EnvironmentCreationException e )
         {
             po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
         }
