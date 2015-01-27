@@ -22,25 +22,30 @@ import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 
 
-public class QueryPanel extends GridLayout
+public class QueryPanel extends VerticalLayout
 {
 
     private static final Action CREATE_FILE_ACTION = new Action( "Create new file" );
     private ContainerHost containerHost;
     private QueryType type;
+    ETLTransformManager etlTransformManager;
 
-    public QueryPanel( )
+
+
+    public QueryPanel( ETLTransformManager etlTransformManager )
     {
-        init();
+        this.etlTransformManager = etlTransformManager;
+        init( QueryType.HIVE );
     }
 
-    public void init(){
+    public void init( QueryType type ){
 
-        setSpacing( true );
-        setImmediate( true );
-        setSizeFull();
-        setRows( 4 );
-        setColumns( 12 );
+        final GridLayout gridLayout = new GridLayout();
+        gridLayout.setSpacing( true );
+        gridLayout.setMargin( true );
+        gridLayout.setSizeFull();
+        gridLayout.setRows( 4 );
+        gridLayout.setColumns( 12 );
 
         // Show uploaded file in this placeholder
         final Embedded uploadedFile = new Embedded("Uploaded Query File");
@@ -139,11 +144,12 @@ public class QueryPanel extends GridLayout
         buttonLayout.addComponent( newFileButton );
         buttonLayout.addComponent( saveButton );
 
-        addComponent( panel, 1, 0 );
-        addComponent( contentOfQueryFile, 1, 1 );
-        addComponent( buttonLayout, 1, 2 );
-        setComponentAlignment( buttonLayout, Alignment.BOTTOM_CENTER );
+        gridLayout.addComponent( panel, 0, 0 );
+        gridLayout.addComponent( contentOfQueryFile, 0, 1 );
+        gridLayout.addComponent( buttonLayout, 0, 2 );
+        gridLayout.setComponentAlignment( buttonLayout, Alignment.BOTTOM_CENTER );
 
+        final QueryType queryType = type;
         Button runQueryButton = new Button( "Run" );
         runQueryButton.addStyleName( "default" );
         runQueryButton.addClickListener( new Button.ClickListener()
@@ -151,7 +157,7 @@ public class QueryPanel extends GridLayout
             @Override
             public void buttonClick( final Button.ClickEvent event )
             {
-                switch ( type ){
+                switch ( queryType ){
                     case HIVE:
                         executeCommand( containerHost, "hive -f " + receiver.getFile().getAbsolutePath() );
                         break;
@@ -162,9 +168,11 @@ public class QueryPanel extends GridLayout
             }
         } );
 
-        addComponent( runQueryButton, 6, 1 );
-        setComponentAlignment( runQueryButton, Alignment.MIDDLE_LEFT );
-        addComponent( logs, 7, 1 );
+        gridLayout.addComponent( runQueryButton, 6, 1 );
+        gridLayout.setComponentAlignment( runQueryButton, Alignment.MIDDLE_LEFT );
+        gridLayout.addComponent( logs, 7, 1 );
+
+        addComponent( gridLayout );
     }
 
 

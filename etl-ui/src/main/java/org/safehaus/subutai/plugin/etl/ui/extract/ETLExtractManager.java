@@ -21,11 +21,15 @@ import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.etl.ui.ImportPanel;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
@@ -43,6 +47,8 @@ public class ETLExtractManager
     private ETLConfig config;
     private Environment environment;
     private Hadoop hadoop;
+    public Embedded progressIcon;
+    HorizontalLayout hadoopComboWithProgressIcon;
 
 
     public ETLExtractManager( ExecutorService executorService, ETL etl, final Hadoop hadoop, Tracker tracker,
@@ -62,10 +68,13 @@ public class ETLExtractManager
         contentRoot.setMargin( true );
         contentRoot.setSizeFull();
         contentRoot.setRows( 20 );
-        contentRoot.setColumns( 5 );
+        contentRoot.setColumns( 20 );
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+
+        hadoopComboWithProgressIcon = new HorizontalLayout();
+        hadoopComboWithProgressIcon.setSpacing( true );
 
         ComboBox hadoopClustersCombo = new ComboBox( "Select Hadoop Cluster" );
         hadoopClustersCombo.setNullSelectionAllowed( false );
@@ -73,9 +82,14 @@ public class ETLExtractManager
         hadoopClustersCombo.setTextInputAllowed( false );
         hadoopClustersCombo.setRequired( true );
 
+        hadoopComboWithProgressIcon.addComponent( hadoopClustersCombo );
 
+        progressIcon = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
+        hadoopComboWithProgressIcon.addComponent( progressIcon );
+        hadoopComboWithProgressIcon.setComponentAlignment( progressIcon, Alignment.BOTTOM_CENTER );
+        contentRoot.addComponent( hadoopComboWithProgressIcon, 0, 1 );
 
-        contentRoot.addComponent( hadoopClustersCombo, 0, 1 );
+        disableProgressBar();
 
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
 
@@ -96,7 +110,7 @@ public class ETLExtractManager
         contentRoot.addComponent( sqoopSelection, 0, 2 );
 
         importPanel = new ImportPanel( etl, executorService, tracker );
-        contentRoot.addComponent( importPanel, 1, 0, 1, 17 );
+        contentRoot.addComponent( importPanel, 1, 0, 19, 17 );
 
 
         // event listeners
@@ -107,6 +121,7 @@ public class ETLExtractManager
             {
                 if ( event.getProperty().getValue() != null )
                 {
+                    enableProgressBar();
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
                     Set<ContainerHost> hadoopNodes =
@@ -125,6 +140,7 @@ public class ETLExtractManager
                             sqoopSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
                         }
                     }
+                    disableProgressBar();
                 }
             }
         } );
@@ -154,7 +170,7 @@ public class ETLExtractManager
             {
                 CommandResult result = host.execute( new RequestBuilder( command ) );
                 if( result.hasSucceeded() ){
-                    if ( result.getStdOut().contains( "hadoop" ) ){
+                    if ( result.getStdOut().contains( SqoopConfig.PRODUCT_KEY.toLowerCase() ) ){
                         resultList.add( host );
                     }
                 }
@@ -167,6 +183,17 @@ public class ETLExtractManager
         return resultList;
     }
 
+
+    public void enableProgressBar()
+    {
+        progressIcon.setVisible( true );
+    }
+
+
+    public void disableProgressBar()
+    {
+        progressIcon.setVisible( false );
+    }
 
     public void show( String message ){
         Notification.show( message );

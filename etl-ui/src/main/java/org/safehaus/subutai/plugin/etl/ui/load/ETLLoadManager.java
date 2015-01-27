@@ -24,8 +24,11 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -44,6 +47,8 @@ public class ETLLoadManager
     private ETLConfig config;
     private Environment environment;
     private Hadoop hadoop;
+    public final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
+    HorizontalLayout hadoopComboWithProgressIcon;
 
 
     public ETLLoadManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Tracker tracker,
@@ -71,12 +76,22 @@ public class ETLLoadManager
 
         contentRoot.addComponent( controlsContent, 0, 0 );
 
+        hadoopComboWithProgressIcon = new HorizontalLayout();
+        hadoopComboWithProgressIcon.setSpacing( true );
+
         ComboBox hadoopClustersCombo = new ComboBox( "Select Hadoop Cluster" );
         hadoopClustersCombo.setNullSelectionAllowed( false );
         hadoopClustersCombo.setImmediate( true );
         hadoopClustersCombo.setTextInputAllowed( false );
         hadoopClustersCombo.setRequired( true );
-        contentRoot.addComponent( hadoopClustersCombo, 0, 1 );
+
+        hadoopComboWithProgressIcon.addComponent( hadoopClustersCombo );
+
+        hadoopComboWithProgressIcon.addComponent( PROGRESS_ICON );
+        hadoopComboWithProgressIcon.setComponentAlignment( PROGRESS_ICON, Alignment.BOTTOM_CENTER );
+        PROGRESS_ICON.setVisible( false );
+        contentRoot.addComponent( hadoopComboWithProgressIcon, 0, 1 );
+
 
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
 
@@ -97,7 +112,7 @@ public class ETLLoadManager
         contentRoot.addComponent( sqoopSelection, 0, 2 );
 
         exportPanel = new ExportPanel( etl, executorService, tracker );
-        contentRoot.addComponent( exportPanel, 1, 0, 1, 17 );
+        contentRoot.addComponent( exportPanel, 1, 0, 4, 17 );
 
 
         // event listeners
@@ -115,6 +130,7 @@ public class ETLLoadManager
 
                     sqoopSelection.setValue( null );
                     sqoopSelection.removeAllItems();
+                    enableProgressBar();
                     Set<ContainerHost> filteredHadoopNodes = filterSqoopInstalledNodes( hadoopNodes );
                     if ( filteredHadoopNodes.isEmpty() ){
                         show( "No node has subutai Sqoop package installed" );
@@ -126,6 +142,7 @@ public class ETLLoadManager
                             sqoopSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
                         }
                     }
+                    disableProgressBar();
                 }
             }
         } );
@@ -166,9 +183,22 @@ public class ETLLoadManager
     }
 
 
+    public synchronized void enableProgressBar()
+    {
+        PROGRESS_ICON.setVisible( true );
+    }
+
+
+    public synchronized void disableProgressBar()
+    {
+        PROGRESS_ICON.setVisible( false );
+    }
+
+
     public void show( String message ){
         Notification.show( message );
     }
+
 
     public Component getContent()
     {

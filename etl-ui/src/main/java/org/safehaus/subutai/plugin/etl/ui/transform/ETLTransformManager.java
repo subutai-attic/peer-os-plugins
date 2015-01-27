@@ -24,14 +24,14 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
@@ -47,14 +47,15 @@ public class ETLTransformManager
     private ETLConfig config;
     private Environment environment;
     private Hadoop hadoop;
-//    public final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
-    public ProgressBar progressBar;
+    public final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
     private int NODE_SELECTION_GRID_LAYOUT_COL_INDEX = 0;
     private int NODE_SELECTION_GRID_LAYOUT_ROW_INDEX = 2;
 
     QueryType type;
     HorizontalLayout hadoopComboWithProgressIcon;
+
+    private QueryPanel queryPanel;
 
 
     public ETLTransformManager( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker,
@@ -74,18 +75,15 @@ public class ETLTransformManager
         contentRoot.setRows( 20 );
         contentRoot.setColumns( 20 );
 
+        contentRoot.setCaption( this.getClass().getName() );
+
         init( contentRoot, type );
     }
 
 
     public void init( final GridLayout gridLayout, QueryType type ){
+
         gridLayout.removeAllComponents();
-
-        HorizontalLayout controlsContent = new HorizontalLayout();
-        controlsContent.setSpacing( true );
-
-        Label clusterNameLabel = new Label( "Select Sqoop installation:" );
-        controlsContent.addComponent( clusterNameLabel );
 
         hadoopComboWithProgressIcon = new HorizontalLayout();
         hadoopComboWithProgressIcon.setSpacing( true );
@@ -98,14 +96,10 @@ public class ETLTransformManager
 
         hadoopComboWithProgressIcon.addComponent( hadoopClustersCombo );
 
-        progressBar = new ProgressBar();
-        progressBar.setId( "indicator" );
-        progressBar.setIndeterminate( true );
-        progressBar.setVisible( true );
-
-        hadoopComboWithProgressIcon.addComponent( progressBar );
-        hadoopComboWithProgressIcon.setComponentAlignment( progressBar, Alignment.BOTTOM_CENTER );
-        contentRoot.addComponent( hadoopComboWithProgressIcon, 0, 1 );
+        hadoopComboWithProgressIcon.addComponent( PROGRESS_ICON );
+        hadoopComboWithProgressIcon.setComponentAlignment( PROGRESS_ICON, Alignment.BOTTOM_CENTER );
+        PROGRESS_ICON.setVisible( false );
+        gridLayout.addComponent( hadoopComboWithProgressIcon, 0, 1 );
 
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
         if ( !clusters.isEmpty() )
@@ -118,21 +112,23 @@ public class ETLTransformManager
         }
 
         final VerticalLayout layout = new VerticalLayout();
+
         layout.addComponent( UIUtil.getLabel( "Select query type<br/>", 200 ) );
 
         TabSheet tabsheet = new TabSheet();
 
-        VerticalLayout tab1 = new VerticalLayout();
+        final VerticalLayout tab1 = new VerticalLayout();
         tab1.setCaption( QueryType.HIVE.name() );
-        QueryPanel tab1Panel = new QueryPanel();
-        tab1.addComponent( tab1Panel );
         tabsheet.addTab(tab1);
 
-        VerticalLayout tab2 = new VerticalLayout();
+        final VerticalLayout tab2 = new VerticalLayout();
         tab2.setCaption( QueryType.PIG.name() );
-        QueryPanel tab2Panel = new QueryPanel();
-        tab2.addComponent( tab2Panel );
         tabsheet.addTab(tab2);
+
+        gridLayout.addComponent( tabsheet, 1, 0, 19, 0 );
+
+        queryPanel = new QueryPanel( this );
+        gridLayout.addComponent( queryPanel, 1, 1, 19, 19 );
 
         if ( type == null ){
             type = QueryType.HIVE;
@@ -152,12 +148,14 @@ public class ETLTransformManager
 
         switch ( type ){
             case HIVE:
+                gridLayout.addComponent( hiveSelection, NODE_SELECTION_GRID_LAYOUT_COL_INDEX,
+                        NODE_SELECTION_GRID_LAYOUT_ROW_INDEX );
                 tabsheet.setSelectedTab( tab1 );
-                contentRoot.addComponent( hiveSelection, NODE_SELECTION_GRID_LAYOUT_COL_INDEX, NODE_SELECTION_GRID_LAYOUT_ROW_INDEX );
                 break;
             case PIG:
+                gridLayout.addComponent( pigSelection, NODE_SELECTION_GRID_LAYOUT_COL_INDEX,
+                        NODE_SELECTION_GRID_LAYOUT_ROW_INDEX );
                 tabsheet.setSelectedTab( tab2 );
-                contentRoot.addComponent( pigSelection, NODE_SELECTION_GRID_LAYOUT_COL_INDEX, NODE_SELECTION_GRID_LAYOUT_ROW_INDEX );
                 break;
         }
 
@@ -178,7 +176,6 @@ public class ETLTransformManager
                 }
             }
         } );
-        layout.addComponent(tabsheet);
 
 
         // event listeners
@@ -243,9 +240,9 @@ public class ETLTransformManager
                 }
             }
         } );
-
-        gridLayout.addComponent( layout, 1, 0, 18, 17 );
     }
+
+
 
     public void show( String message ){
         Notification.show( message );
@@ -254,13 +251,13 @@ public class ETLTransformManager
 
 
     public void showProgress(){
-        progressBar.setVisible( true );
+        PROGRESS_ICON.setVisible( true );
     }
 
 
     public void hideProgress()
     {
-        progressBar.setVisible( false );
+        PROGRESS_ICON.setVisible( false );
     }
 
     private Set<ContainerHost> filterHadoopNodes( Set<ContainerHost> containerHosts, QueryType type ){
