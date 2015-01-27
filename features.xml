@@ -3,7 +3,5 @@
     <bundle> mvn:org.safehaus.subutai/etl-plugin-api/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/etl-plugin-impl/2.0.4</bundle>
     <bundle> mvn:org.safehaus.subutai/etl-plugin-ui/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/etl-plugin-cli/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/etl-plugin-rest/2.0.4</bundle>
   </feature>
 </features>

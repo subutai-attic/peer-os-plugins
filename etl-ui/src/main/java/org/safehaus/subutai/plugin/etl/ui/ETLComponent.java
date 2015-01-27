@@ -18,7 +18,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
 
-public class SqoopComponent extends CustomComponent
+public class ETLComponent extends CustomComponent
 {
 
     private final ETLExtractManager etlExtractManager;
@@ -28,7 +28,8 @@ public class SqoopComponent extends CustomComponent
     private final TabSheet sheet;
 
 
-    public SqoopComponent( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public ETLComponent( ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker,
+                         EnvironmentManager environmentManager ) throws NamingException
     {
         etlExtractManager = new ETLExtractManager( executorService, sqoop, hadoop, tracker, environmentManager );
         etlLoadManager = new ETLLoadManager( executorService, sqoop, hadoop, tracker, environmentManager );

@@ -27,19 +27,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>hadoop-plugin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.safehaus.subutai</groupId>
       <artifactId>subutai-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>plugin-common</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

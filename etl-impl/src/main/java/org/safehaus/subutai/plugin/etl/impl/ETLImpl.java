@@ -1,16 +1,12 @@
 package org.safehaus.subutai.plugin.etl.impl;
 
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
@@ -19,28 +15,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class SqoopImpl implements ETL
+public class ETLImpl implements ETL
 {
-    public static final Logger LOG = LoggerFactory.getLogger( SqoopImpl.class );
+    public static final Logger LOG = LoggerFactory.getLogger( ETLImpl.class );
 
     Tracker tracker;
     Hadoop hadoopManager;
     EnvironmentManager environmentManager;
-    PluginDAO pluginDAO;
-    DataSource dataSource;
     protected ExecutorService executor;
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( dataSource );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( "Failed to init DAO", e );
-        }
-
         executor = Executors.newCachedThreadPool();
     }
 
@@ -60,12 +45,6 @@ public class SqoopImpl implements ETL
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public PluginDAO getPluginDao()
-    {
-        return pluginDAO;
     }
 
 
@@ -102,12 +81,6 @@ public class SqoopImpl implements ETL
     public void setExecutor( ExecutorService executor )
     {
         this.executor = executor;
-    }
-
-
-    public SqoopImpl( DataSource dataSource )
-    {
-        this.dataSource = dataSource;
     }
 
 

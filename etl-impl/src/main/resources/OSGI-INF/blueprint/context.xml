@@ -14,12 +14,11 @@
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
-  <bean id="sqoop-impl" scope="singleton" class="org.safehaus.subutai.plugin.etl.impl.SqoopImpl"
+  <bean id="sqoop-impl" scope="singleton" class="org.safehaus.subutai.plugin.etl.impl.ETLImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="hadoopManager" ref="hadoopManager" />
-    <argument ref="dataSource" />
   </bean>
 
   <service ref="sqoop-impl" interface="org.safehaus.subutai.plugin.etl.api.ETL" />

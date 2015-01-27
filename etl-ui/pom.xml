@@ -29,10 +29,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>hadoop-plugin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>etl-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>

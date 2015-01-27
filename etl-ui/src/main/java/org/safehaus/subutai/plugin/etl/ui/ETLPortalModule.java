@@ -19,10 +19,10 @@ import org.safehaus.subutai.server.ui.api.PortalModule;
 import com.vaadin.ui.Component;
 
 
-public class SqoopPortalModule implements PortalModule
+public class ETLPortalModule implements PortalModule
 {
     public static final String MODULE_IMAGE = "etl.png";
-    protected static final Logger LOG = Logger.getLogger( SqoopPortalModule.class.getName() );
+    protected static final Logger LOG = Logger.getLogger( ETLPortalModule.class.getName() );
     private ExecutorService executor;
     private final ETL sqoop;
     private final Tracker tracker;
@@ -30,7 +30,7 @@ public class SqoopPortalModule implements PortalModule
     private Hadoop hadoop;
 
 
-    public SqoopPortalModule( ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
+    public ETLPortalModule( ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.sqoop = sqoop;
         this.hadoop = hadoop;
@@ -68,7 +68,7 @@ public class SqoopPortalModule implements PortalModule
     @Override
     public File getImage()
     {
-        return FileUtil.getFile( SqoopPortalModule.MODULE_IMAGE, this );
+        return FileUtil.getFile( ETLPortalModule.MODULE_IMAGE, this );
     }
 
 
@@ -77,7 +77,7 @@ public class SqoopPortalModule implements PortalModule
     {
         try
         {
-            return new SqoopComponent( executor, sqoop, hadoop, tracker, environmentManager );
+            return new ETLComponent( executor, sqoop, hadoop, tracker, environmentManager );
         }
         catch ( NamingException e )
         {

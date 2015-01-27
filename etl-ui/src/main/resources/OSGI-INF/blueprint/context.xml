@@ -11,7 +11,7 @@
              interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
 
-  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.etl.ui.SqoopPortalModule"
+  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.etl.ui.ETLPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="sqoop" />
     <argument ref="hadoop" />
