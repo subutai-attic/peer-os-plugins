@@ -13,7 +13,10 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.build.Topology;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
@@ -100,34 +103,41 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     @Expose
     private InstallationType installationType;
 
+    private Topology topology;
 
-    public MongoClusterConfigImpl init( final EnvironmentManager environmentManager )
+
+    public MongoClusterConfigImpl initTransientFields( final EnvironmentManager environmentManager )
+            throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
+
         for ( final MongoConfigNodeImpl mongoConfigNode : configServersImpl )
         {
-            mongoConfigNode.setContainerHost( environmentManager.getEnvironment( mongoConfigNode.getEnvironmentId() )
-                                                                .getContainerHostById( UUID.fromString(
-                                                                        mongoConfigNode.getContainerHostId() ) ) );
+            mongoConfigNode.setContainerHost(
+                    environmentManager.findEnvironment( UUID.fromString( mongoConfigNode.getEnvironmentId() ) )
+                                      .getContainerHostById(
+                                              UUID.fromString( mongoConfigNode.getContainerHostId() ) ) );
 
             this.configServers.add( mongoConfigNode );
             this.configHostIds.add( UUID.fromString( mongoConfigNode.getContainerHostId() ) );
         }
         for ( final MongoRouterNodeImpl mongoRouterNode : routerServersImpl )
         {
-            mongoRouterNode.setContainerHost( environmentManager.getEnvironment( mongoRouterNode.getEnvironmentId() )
-                                                                .getContainerHostById( UUID.fromString(
-                                                                        mongoRouterNode.getContainerHostId() ) ) );
+            mongoRouterNode.setContainerHost(
+                    environmentManager.findEnvironment( UUID.fromString( mongoRouterNode.getEnvironmentId() ) )
+                                      .getContainerHostById(
+                                              UUID.fromString( mongoRouterNode.getContainerHostId() ) ) );
             this.routerServers.add( mongoRouterNode );
             this.routerHostIds.add( UUID.fromString( mongoRouterNode.getContainerHostId() ) );
         }
         for ( final MongoDataNodeImpl mongoDataNode : dataNodesImpl )
         {
-            mongoDataNode.setContainerHost( environmentManager.getEnvironment( mongoDataNode.getEnvironmentId() )
-                                                              .getContainerHostById( UUID.fromString(
-                                                                      mongoDataNode.getContainerHostId() ) ) );
+            mongoDataNode.setContainerHost(
+                    environmentManager.findEnvironment( UUID.fromString( mongoDataNode.getEnvironmentId() ) )
+                                      .getContainerHostById( UUID.fromString( mongoDataNode.getContainerHostId() ) ) );
             this.dataNodes.add( mongoDataNode );
             this.dataHostIds.add( UUID.fromString( mongoDataNode.getContainerHostId() ) );
         }
+
         return this;
     }
 
@@ -343,11 +353,6 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
 
     public void setRouterServers( Set<MongoRouterNode> routerServers )
     {
-        //        Set<MongoRouterNodeImpl> routers = new HashSet<>();
-        //        for ( MongoRouterNode node : routerServers )
-        //        {
-        //            routers.add( new MongoRouterNodeImpl( node ) );
-        //        }
         this.routerServers = routerServers;
     }
 
@@ -548,6 +553,13 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
 
 
     @Override
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
+    }
+
+
+    @Override
     public InstallationType getInstallationType()
     {
         return installationType;
@@ -558,5 +570,19 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     public void setInstallationType( final InstallationType installationType )
     {
         this.installationType = installationType;
+    }
+
+
+    @Override
+    public Topology getTopology()
+    {
+        return topology;
+    }
+
+
+    @Override
+    public void setTopology( final Topology topology )
+    {
+        this.topology = topology;
     }
 }

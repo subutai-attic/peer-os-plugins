@@ -11,8 +11,10 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
@@ -58,13 +60,13 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
         try
         {
             po.addLog( "Removing subscription from environment." );
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             manager.unsubscribeFromAlerts( environment );
 
             if ( config.getInstallationType() == InstallationType.STANDALONE )
             {
                 po.addLog( "Destroying lxc containers" );
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
                 po.addLog( "Lxc containers successfully destroyed" );
             }
             else if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
@@ -76,12 +78,13 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
                 {
                     commandResults.add( commandUtil.execute(
                             new RequestBuilder( Commands.getUninstallClearMongoConfigsCommand().getCommand() ),
-                                    containerHost ) );
+                            containerHost ) );
                 }
                 logResults( po, commandResults );
             }
         }
-        catch ( EnvironmentDestroyException | MonitorException | CommandException ex )
+        catch ( ContainerHostNotFoundException | EnvironmentDestructionException | EnvironmentNotFoundException |
+                MonitorException | CommandException ex )
         {
             po.addLog( String.format( "%s, skipping...", ex.getMessage() ) );
         }

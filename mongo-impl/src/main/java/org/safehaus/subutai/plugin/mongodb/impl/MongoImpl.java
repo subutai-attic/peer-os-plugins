@@ -13,15 +13,16 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -244,11 +245,18 @@ public class MongoImpl implements Mongo
         List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
 
         List<MongoClusterConfigImpl> r = new ArrayList<>();
-        //                pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY, MongoClusterConfigImpl.class );
         for ( final String clusterData : clusterDataList )
         {
-            MongoClusterConfigImpl config =
-                    GSON.fromJson( clusterData, MongoClusterConfigImpl.class ).init( environmentManager );
+            MongoClusterConfigImpl config = null;
+            try
+            {
+                config = GSON.fromJson( clusterData, MongoClusterConfigImpl.class )
+                             .initTransientFields( environmentManager );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error retrieving mongo cluster info and initializing transient fields.", e );
+            }
             r.add( config );
         }
 
@@ -267,10 +275,16 @@ public class MongoImpl implements Mongo
         MongoClusterConfigImpl clusterConfig = GSON.fromJson( jsonString, MongoClusterConfigImpl.class );
         if ( clusterConfig != null )
         {
-            return clusterConfig.init( environmentManager );
+            try
+            {
+                return clusterConfig.initTransientFields( environmentManager );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error retrieving cluster info and initializing fields.", e );
+            }
         }
         return clusterConfig;
-        //        return pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY, clusterName, MongoClusterConfigImpl.class );
     }
 
 

@@ -12,7 +12,7 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -51,7 +51,7 @@ public class MongoAlertListener implements AlertListener
     @Override
     public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
     {
-        //find zookeeper cluster by environment id
+        //find mongo cluster by environment id
         List<MongoClusterConfig> clusters = mongo.getClusters();
 
         MongoClusterConfig targetCluster = null;
@@ -73,7 +73,7 @@ public class MongoAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                mongo.getEnvironmentManager().getEnvironmentByUUID( containerHostMetric.getEnvironmentId() );
+                mongo.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(
@@ -100,7 +100,7 @@ public class MongoAlertListener implements AlertListener
                     null );
         }
 
-        //check if source host belongs to found zookeeper cluster
+        //check if source host belongs to found mongo cluster
         if ( !targetCluster.getAllNodeIds().contains( sourceHost.getId() ) )
         {
             LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster",
@@ -121,7 +121,7 @@ public class MongoAlertListener implements AlertListener
             throw new Exception( "Error obtaining Mongo process PID", e );
         }
 
-        //get Zookeeper process resource usage by Zookeeper pid
+        //get Zookeeper process resource usage by Mongo pid
         ProcessResourceUsage processResourceUsage =
                 mongo.getMonitor().getProcessResourceUsage( sourceHost, zookeeperPid );
 
