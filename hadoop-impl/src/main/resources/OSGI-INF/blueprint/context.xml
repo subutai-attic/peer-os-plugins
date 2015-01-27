@@ -5,14 +5,13 @@
   <reference id="networkManager" interface="org.safehaus.subutai.core.network.api.NetworkManager" />
   <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory" interface="org.safehaus.subutai.core.peer.api.PeerManager" />
-  <reference id="securityManager" availability="mandatory" interface="org.safehaus.subutai.core.security.api.SecurityManager" />
 
   <bean id="hadoop-impl" scope="singleton" class="org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
-    <property name="securityManager" ref="securityManager" />
+    <property name="networkManager" ref="networkManager" />
   </bean>
 
   <service ref="hadoop-impl" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
