@@ -59,6 +59,7 @@ public class WelcomeStep extends VerticalLayout
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 wizard.init();
+                wizard.setInstallOverEnvironment( true );
                 wizard.getMongoClusterConfig().setInstallationType( InstallationType.OVER_ENVIRONMENT );
                 wizard.next();
             }

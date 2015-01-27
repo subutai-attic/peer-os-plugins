@@ -400,7 +400,9 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         List<ContainerHost> environmentHosts = new ArrayList<>();
         for ( final ContainerHost containerHost : containerHosts )
         {
-            if ( !mongoContainerHosts.contains( containerHost.getId() ) )
+            if ( !mongoContainerHosts.contains( containerHost.getId() ) && containerHost.getTemplateName()
+                                                                                        .equalsIgnoreCase(
+                                                                                                MongoClusterConfig.PRODUCT_NAME ) )
             {
                 environmentHosts.add( containerHost );
             }
