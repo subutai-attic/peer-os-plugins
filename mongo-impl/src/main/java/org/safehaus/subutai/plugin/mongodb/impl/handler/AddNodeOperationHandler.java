@@ -11,12 +11,15 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.exception.SubutaiException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
+import org.safehaus.subutai.common.peer.Peer;
 import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.protocol.Template;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.build.NodeGroup;
+import org.safehaus.subutai.core.env.api.build.Topology;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -38,12 +41,14 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 {
     private final TrackerOperation po;
     private final NodeType nodeType;
+    private final UUID peerId;
 
 
     public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType )
     {
         super( manager, clusterName );
         this.nodeType = nodeType;
+        this.peerId = null;
         po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %s to %s...", nodeType, clusterName ) );
     }
@@ -91,40 +96,48 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                 template = localPeer.getTemplate( template.getParentTemplateName() );
                 templates.add( 0, template );
             }
-            UUID hostId = manager.getEnvironmentManager()
-                                 .addContainer( config.getEnvironmentId(), config.getTemplateName(),
-                                         MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( nodeType ),
-                                         nodeType.name(), localPeer );
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            if ( environment == null )
-            {
-                throw new PeerException( "Could not obtain cluster environment" );
-            }
 
-            ContainerHost containerHost = environment.getContainerHostById( hostId );
+            Peer peer = manager.getPeerManager().getPeer( peerId );
+            NodeGroup nodeGroup =
+                    new NodeGroup( nodeType.name(), config.getTemplateName(), Common.DEFAULT_DOMAIN_NAME, 1, 1, 1,
+                            MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( nodeType ) );
+            Topology topology = new Topology();
+            topology.addNodeGroupPlacement( peer, nodeGroup );
+
+            //was creating topology by pre-configuring nodeGroup and blueprint
+            Set<ContainerHost> johnnyRawSet =
+                    manager.getEnvironmentManager().breedEnvironment( config.getEnvironmentId(), topology, false );
+            if ( johnnyRawSet.size() == 0 )
+            {
+                throw new PeerException( "Something went wrong breeding environment" );
+            }
+            ContainerHost johnnyRaw = johnnyRawSet.iterator().next();
             switch ( nodeType )
             {
                 case CONFIG_NODE:
-                    mongoNode =
-                            new MongoConfigNodeImpl( containerHost, config.getDomainName(), config.getCfgSrvPort() );
+                    mongoNode = new MongoConfigNodeImpl( johnnyRaw, config.getDomainName(), config.getCfgSrvPort() );
                     break;
                 case ROUTER_NODE:
-                    mongoNode = new MongoRouterNodeImpl( containerHost, config.getDomainName(), config.getRouterPort(),
+                    mongoNode = new MongoRouterNodeImpl( johnnyRaw, config.getDomainName(), config.getRouterPort(),
                             config.getCfgSrvPort() );
                     break;
                 case DATA_NODE:
-                    mongoNode =
-                            new MongoDataNodeImpl( containerHost, config.getDomainName(), config.getDataNodePort() );
+                    mongoNode = new MongoDataNodeImpl( johnnyRaw, config.getDomainName(), config.getDataNodePort() );
                     break;
             }
             config.addNode( mongoNode, nodeType );
             manager.subscribeToAlerts( mongoNode.getContainerHost() );
             po.addLog( "Lxc container created successfully\nConfiguring cluster..." );
         }
-        catch ( EnvironmentManagerException | PeerException | MonitorException e )
+        catch ( PeerException | MonitorException |
+                EnvironmentModificationException e )
         {
             po.addLogFailed( e.toString() );
             return;
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
         }
 
         boolean result = true;
