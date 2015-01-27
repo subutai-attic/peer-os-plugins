@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -14,12 +13,10 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.network.api.NetworkManagerException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
-import org.safehaus.subutai.core.security.api.SecurityManagerException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
 
@@ -133,19 +130,9 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             allNodes.addAll( environment.getContainerHosts() );
             try
             {
-                manager.getSecurityManager().configHostsOnAgents( allNodes, Common.DEFAULT_DOMAIN_NAME );
+                manager.getNetworkManager().exchangeSshKeys( allNodes );
             }
-            catch ( SecurityManagerException e )
-            {
-                e.printStackTrace();
-            }
-
-            // link hosts (/etc/hosts)
-            try
-            {
-                manager.getSecurityManager().configSshOnAgents( allNodes );
-            }
-            catch ( SecurityManagerException e )
+            catch ( NetworkManagerException e )
             {
                 e.printStackTrace();
             }

@@ -13,9 +13,9 @@ import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.network.api.NetworkManager;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.core.security.api.SecurityManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -53,7 +53,7 @@ public class HadoopImpl implements Hadoop
     private Monitor monitor;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
-    private SecurityManager securityManager;
+    private NetworkManager networkManager;
 
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -102,15 +102,15 @@ public class HadoopImpl implements Hadoop
     }
 
 
-    public SecurityManager getSecurityManager()
+    public NetworkManager getNetworkManager()
     {
-        return securityManager;
+        return networkManager;
     }
 
 
-    public void setSecurityManager( final SecurityManager securityManager )
+    public void setNetworkManager( final NetworkManager networkManager )
     {
-        this.securityManager = securityManager;
+        this.networkManager = networkManager;
     }
 
 
