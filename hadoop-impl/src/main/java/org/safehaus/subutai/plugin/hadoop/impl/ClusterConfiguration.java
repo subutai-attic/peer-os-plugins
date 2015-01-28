@@ -1,24 +1,25 @@
 package org.safehaus.subutai.plugin.hadoop.impl;
 
 
+import java.util.UUID;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
-import java.util.logging.Logger;
 
-
-public class ClusterConfiguration implements ClusterConfigurationInterface
+public class ClusterConfiguration
 {
 
-    private static final Logger LOG = Logger.getLogger( ClusterConfiguration.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class );
     private TrackerOperation po;
     private HadoopImpl hadoopManager;
 
@@ -37,9 +38,33 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
         Commands commands = new Commands( config );
 
-        ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-        ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
-        ContainerHost secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+        ContainerHost namenode = null;
+        try
+        {
+            namenode = environment.getContainerHostById( config.getNameNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting container host for name node.", e );
+        }
+        ContainerHost jobtracker = null;
+        try
+        {
+            jobtracker = environment.getContainerHostById( config.getJobTracker() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting container host for job tracker.", e );
+        }
+        ContainerHost secondaryNameNode = null;
+        try
+        {
+            secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting secondary container host", e );
+        }
         po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
 
         // Clear configuration files
@@ -52,29 +77,45 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // Configure NameNode
         for ( ContainerHost containerHost : environment.getContainerHosts() )
         {
-            executeCommandOnContainer( containerHost, commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
+            executeCommandOnContainer( containerHost,
+                    commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
         }
 
         // Configure JobTracker
-        executeCommandOnContainer( jobtracker, commands.getConfigureJobTrackerCommand( jobtracker.getHostname() ) );
+        executeCommandOnContainer( jobtracker, Commands.getConfigureJobTrackerCommand( jobtracker.getHostname() ) );
 
 
         // Configure Secondary NameNode
-        executeCommandOnContainer( namenode, commands.getConfigureSecondaryNameNodeCommand( secondaryNameNode.getHostname() ) );
+        executeCommandOnContainer( namenode,
+                Commands.getConfigureSecondaryNameNodeCommand( secondaryNameNode.getHostname() ) );
 
 
         // Configure DataNodes
         for ( UUID uuid : config.getDataNodes() )
         {
-            executeCommandOnContainer( namenode,
-                    commands.getConfigureDataNodesCommand( environment.getContainerHostById( uuid ).getHostname() ) );
+            try
+            {
+                executeCommandOnContainer( namenode, Commands.getConfigureDataNodesCommand(
+                        environment.getContainerHostById( uuid ).getHostname() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error executing command", e );
+            }
         }
 
         // Configure TaskTrackers
         for ( UUID uuid : config.getTaskTrackers() )
         {
-            executeCommandOnContainer( jobtracker, commands.getConfigureTaskTrackersCommand( environment.getContainerHostById(
-                    uuid ).getHostname() ) );
+            try
+            {
+                executeCommandOnContainer( jobtracker, Commands.getConfigureTaskTrackersCommand(
+                        environment.getContainerHostById( uuid ).getHostname() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error configuring task tracker.", e );
+            }
         }
 
         // Format NameNode
@@ -89,11 +130,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         po.addLog( "Configuration is finished !" );
 
         config.setEnvironmentId( environment.getId() );
-        hadoopManager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
+        hadoopManager.getPluginDAO()
+                     .saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "Hadoop cluster data saved into database" );
     }
 
-    private void executeCommandOnContainer( ContainerHost containerHost, String command ){
+
+    private void executeCommandOnContainer( ContainerHost containerHost, String command )
+    {
         try
         {
             containerHost.execute( new RequestBuilder( command ) );
