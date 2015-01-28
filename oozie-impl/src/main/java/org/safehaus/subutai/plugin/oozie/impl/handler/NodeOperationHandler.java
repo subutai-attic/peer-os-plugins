@@ -28,7 +28,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
     public NodeOperationHandler(final OozieImpl manager, final String clusterName, final String hostName,
                                 NodeOperationType operationType)
     {
-        super(manager, manager.getCluster(clusterName));
+        super(manager, clusterName);
         this.hostName = hostName;
         this.clusterName = clusterName;
         this.operationType = operationType;
@@ -49,9 +49,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
 
         Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId());
 
-        if ( environment == null )
+        if (environment == null)
         {
-            trackerOperation.addLogFailed( "Could not find cluster environment" );
+            trackerOperation.addLogFailed("Could not find cluster environment");
             return;
         }
 
@@ -78,16 +78,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
             switch (operationType)
             {
                 case START:
-                    result = host.execute(new RequestBuilder(Commands.make(CommandType.START)));
+                    result = host.execute(Commands.getStartServerCommand());
                     logStatusResults(trackerOperation, result);
                     break;
                 case STOP:
-                    result = host.execute(new RequestBuilder(Commands.make(CommandType.STOP)));
+                    result = host.execute(Commands.getStopServerCommand());
                     logStatusResults(trackerOperation, result);
                     break;
                 case STATUS:
-                    result = host.execute(new RequestBuilder(Commands.make(CommandType.STATUS)));
-                    logStatusResults(trackerOperation,result);
+                    result = host.execute(Commands.getStatusServerCommand());
+                    logStatusResults(trackerOperation, result);
+                    break;
                 case INSTALL:
                     result = installProductOnNode(host);
                     logStatusResults(trackerOperation, result);
@@ -113,7 +114,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
             result = host.execute(new RequestBuilder(Commands.make(CommandType.INSTALL_CLIENT)));
             if (result.hasSucceeded())
             {
-                config.getNodes().add(host.getId());
+                config.getClients().add(host.getId());
                 manager.getPluginDao().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
                 trackerOperation.addLogDone(
                         OozieClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " " +
@@ -136,10 +137,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         CommandResult result = null;
         try
         {
-            result = host.execute(new RequestBuilder(Commands.make(CommandType.PURGE)).withTimeout(600));
+            result = host.execute(Commands.getUninstallClientsCommand());
             if (result.hasSucceeded())
             {
-                config.getNodes().remove(host.getId());
+                config.getClients().remove(host.getId());
                 manager.getPluginDao().saveInfo(OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config);
                 trackerOperation.addLogDone(OozieClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host
                         .getHostname()
@@ -162,12 +163,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         Preconditions.checkNotNull(result);
         StringBuilder log = new StringBuilder();
         String status = "UNKNOWN";
-        if (result.getExitCode() == 0)
+        String cmdResult = result.getStdErr() + result.getStdOut();
+        if (cmdResult.contains("Oozie Server is running"))
         {
-            status = "Oozie is running";
-        } else if (result.getExitCode() == 256 || result.getExitCode() == 1)
+            status = "Oozie Server is running";
+        } else if (cmdResult.contains("Oozie Server is not running"))
         {
-            status = "Oozie is not running";
+            status = "Oozie Server is not running";
         } else
         {
             status = result.getStdOut();

@@ -13,7 +13,9 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.common.ui.AddNodeWindow;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieNodeOperationTask;
@@ -27,9 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-//import org.safehaus.subutai.common.protocol.Agent;
-
 
 public class Manager
 {
@@ -101,7 +100,7 @@ public class Manager
             {
                 config = ( OozieClusterConfig ) event.getProperty().getValue();
                 refreshUI();
-                //checkServer();
+                checkServer();
             }
         } );
 
@@ -127,7 +126,7 @@ public class Manager
         /** Add Node Button */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeBtn.setId( "HiveAddNodeBtn" );
-        //addClickListenerToAddNodeButton();
+        addClickListenerToAddNodeButton();
 
 
         addStyleNameToButtons( refreshClustersBtn, destroyClusterBtn, addNodeBtn );
@@ -152,56 +151,56 @@ public class Manager
     }
 
 
-//    private void addClickListenerToAddNodeButton()
-//    {
-//        addNodeBtn.addClickListener( new Button.ClickListener()
-//        {
-//            @Override
-//            public void buttonClick( Button.ClickEvent clickEvent )
-//            {
-//                if ( config == null )
-//                {
-//                    show( "Select cluster" );
-//                    return;
-//                }
-//                HadoopClusterConfig hc = hadoop.getCluster( config.getHadoopClusterName() );
-//                if ( hc == null )
-//                {
-//                    show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
-//                    return;
-//                }
-//                Set<UUID> set = new HashSet<>( hc.getAllNodes() );
-//                set.remove( config.getServer() );
-//                set.removeAll( config.getClients() );
-//                if ( set.isEmpty() )
-//                {
-//                    show( "All nodes in Hadoop cluster have Hive installed" );
-//                    return;
-//                }
-//
-//                Set<ContainerHost> myHostSet = new HashSet<>();
-//                for ( UUID uuid : set )
-//                {
-//                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-//                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-//                            .getContainerHostById( uuid ) );
-//                }
-//
-//                AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config, myHostSet );
-//                contentRoot.getUI().addWindow( w );
-//                w.addCloseListener( new Window.CloseListener()
-//                {
-//                    @Override
-//                    public void windowClose( Window.CloseEvent closeEvent )
-//                    {
-//                        refreshClustersInfo();
-//                        refreshUI();
-//                        checkServer();
-//                    }
-//                } );
-//            }
-//        } );
-//    }
+    private void addClickListenerToAddNodeButton()
+    {
+        addNodeBtn.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                    return;
+                }
+                HadoopClusterConfig hc = hadoop.getCluster( config.getHadoopClusterName() );
+                if ( hc == null )
+                {
+                    show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
+                    return;
+                }
+                Set<UUID> set = new HashSet<>( hc.getAllNodes() );
+                set.remove( config.getServer() );
+                set.removeAll( config.getClients() );
+                if ( set.isEmpty() )
+                {
+                    show( "All nodes in Hadoop cluster have Hive installed" );
+                    return;
+                }
+
+                Set<ContainerHost> myHostSet = new HashSet<>();
+                for ( UUID uuid : set )
+                {
+                    myHostSet.add( environmentManager.getEnvironmentByUUID(
+                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                            .getContainerHostById( uuid ) );
+                }
+
+                AddNodeWindow w = new AddNodeWindow( oozie, executorService, tracker, config, myHostSet );
+                contentRoot.getUI().addWindow( w );
+                w.addCloseListener( new Window.CloseListener()
+                {
+                    @Override
+                    public void windowClose( Window.CloseEvent closeEvent )
+                    {
+                        refreshClustersInfo();
+                        refreshUI();
+                        checkServer();
+                    }
+                } );
+            }
+        } );
+    }
 
 
     private void addClickListenerToDestroyClusterButton()
@@ -399,13 +398,13 @@ public class Manager
         for ( final ContainerHost containerHost : containerHosts )
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveCheck" );
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
             final Button startBtn = new Button( START_BUTTON_CAPTION );
-            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveStart" );
+            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveStop" );
+            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-hiveDestroy" );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
 
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
             disableButtons( startBtn, stopBtn );
@@ -435,7 +434,7 @@ public class Manager
                             public void buttonClick( Button.ClickEvent clickEvent )
                             {
                                 UUID trackID = UUID.randomUUID();
-                                        //oozie.uninstallNode( config.getClusterName(), containerHost.getHostname() );
+                                        oozie.destroyNode( config.getClusterName(), containerHost.getHostname() );
                                 ProgressWindow window =
                                         new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
                                 window.getWindow().addCloseListener( new Window.CloseListener()
@@ -445,7 +444,7 @@ public class Manager
                                     {
                                         refreshClustersInfo();
                                         refreshUI();
-//                                        checkServer();
+                                        checkServer();
                                     }
                                 } );
                                 contentRoot.getUI().addWindow( window.getWindow() );
@@ -518,25 +517,25 @@ public class Manager
 
     private void addClickListenerToStopButton( final ContainerHost containerHost, final Button... buttons )
     {
-//        getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
-//        {
-//            @Override
-//            public void buttonClick( Button.ClickEvent clickEvent )
-//            {
-//                executorService.execute(
-//                        new NodeOperationHandler( hive, tracker, config.getClusterName(), containerHost,
-//                                NodeOperationType.STOP, new CompleteEvent()
-//                        {
-//
-//                            @Override
-//                            public void onComplete( final NodeState state )
-//                            {
-//                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-//                                checkServer();
-//                            }
-//                        }, null ) );
-//            }
-//        } );
+        getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent clickEvent )
+            {
+                executorService.execute(
+                        new OozieNodeOperationTask( oozie, tracker, config.getClusterName(), containerHost,
+                                NodeOperationType.STOP, new CompleteEvent()
+                        {
+
+                            @Override
+                            public void onComplete( final NodeState state )
+                            {
+                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                checkServer();
+                            }
+                        }, null ) );
+            }
+        } );
     }
 
 
@@ -547,19 +546,19 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-//                disableButtons( buttons );
-//                executorService.execute(
-//                        new HiveNodeOperationTask( hive, tracker, config.getClusterName(), containerHost,
-//                                NodeOperationType.START, new CompleteEvent()
-//                        {
-//
-//                            @Override
-//                            public void onComplete( final NodeState state )
-//                            {
-//                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-//                                checkServer();
-//                            }
-//                        }, null ) );
+                disableButtons( buttons );
+                executorService.execute(
+                        new OozieNodeOperationTask( oozie, tracker, config.getClusterName(), containerHost,
+                                NodeOperationType.START, new CompleteEvent()
+                        {
+
+                            @Override
+                            public void onComplete( final NodeState state )
+                            {
+                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                checkServer();
+                            }
+                        }, null ) );
             }
         } );
     }
@@ -582,21 +581,24 @@ public class Manager
                             @Override
                             public void onComplete( final NodeState state )
                             {
-                                if ( state == NodeState.RUNNING )
+                                synchronized ( PROGRESS_ICON )
                                 {
-                                    getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                    getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                }
-                                else if ( state == NodeState.STOPPED )
-                                {
-                                    getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                }
-                                PROGRESS_ICON.setVisible( false );
-                                getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                if ( getButton( DESTROY_BUTTON_CAPTION, buttons ) != null )
-                                {
-                                    getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    if ( state == NodeState.RUNNING )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
+                                    else if ( state == NodeState.STOPPED )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                    }
+                                    PROGRESS_ICON.setVisible( false );
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    if ( getButton( DESTROY_BUTTON_CAPTION, buttons ) != null )
+                                    {
+                                        getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
                                 }
                             }
                         }, null ) );

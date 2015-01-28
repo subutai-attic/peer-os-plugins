@@ -43,7 +43,7 @@ public class OozieNodeOperationTask extends AbstractNodeOperationTask implements
                 trackID = oozie.stopNode( clusterName, containerHost.getHostname() );
                 break;
             case STATUS:
-//                trackID = oozie.( clusterName, containerHost.getHostname() );
+                trackID = oozie.checkNode( clusterName, containerHost.getHostname() );
                 break;
         }
         return trackID;
@@ -53,13 +53,13 @@ public class OozieNodeOperationTask extends AbstractNodeOperationTask implements
     @Override
     public String getProductStoppedIdentifier()
     {
-        return "oozie Thrift Server is not running";
+        return "oozie Server is not running";
     }
 
 
     @Override
     public String getProductRunningIdentifier()
     {
-        return "oozie Thrift Server is running";
+        return "oozie Server is running";
     }
 }

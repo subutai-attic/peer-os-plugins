@@ -76,19 +76,19 @@ public class Commands
     }
 
 
-    public RequestBuilder getStartServerCommand()
+    public static RequestBuilder getStartServerCommand()
     {
         return new RequestBuilder("service oozie-server start &");
     }
 
 
-    public RequestBuilder getStopServerCommand()
+    public static RequestBuilder getStopServerCommand()
     {
         return new RequestBuilder("service oozie-server stop");
     }
 
 
-    public RequestBuilder getStatusServerCommand()
+    public static RequestBuilder getStatusServerCommand()
     {
         return new RequestBuilder("service oozie-server status");
     }
