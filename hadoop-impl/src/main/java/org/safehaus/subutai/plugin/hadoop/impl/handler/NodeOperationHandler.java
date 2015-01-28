@@ -1,21 +1,23 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
+import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
-
-import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 /**
@@ -49,6 +51,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     @Override
     public void run()
     {
+
         HadoopClusterConfig config = manager.getCluster( clusterName );
         if ( config == null )
         {
@@ -56,24 +59,31 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
+        try
         {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostname ) )
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Iterator iterator = environment.getContainerHosts().iterator();
+            ContainerHost host = null;
+            while ( iterator.hasNext() )
             {
-                break;
+                host = ( ContainerHost ) iterator.next();
+                if ( host.getHostname().equals( hostname ) )
+                {
+                    break;
+                }
             }
-        }
 
-        if ( host == null )
-        {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
-            return;
+            if ( host == null )
+            {
+                trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+                return;
+            }
+            runCommand( host, operationType, nodeType );
         }
-        runCommand( host, operationType, nodeType );
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
     }
 
 
@@ -175,9 +185,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
 
             // refresh NameNode and JobTracker
-            ContainerHost namenode = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost namenode = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                             .getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost jobtracker = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                               .getContainerHostById( config.getJobTracker() );
 
             namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
@@ -186,6 +196,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
         catch ( CommandException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
 
         config.getBlockedAgents().add( host.getId() );
@@ -210,25 +224,34 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             return null;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
+        try
         {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostname ) )
+
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Iterator iterator = environment.getContainerHosts().iterator();
+
+            ContainerHost host = null;
+            while ( iterator.hasNext() )
             {
-                break;
+                host = ( ContainerHost ) iterator.next();
+                if ( host.getHostname().equals( hostname ) )
+                {
+                    break;
+                }
             }
-        }
 
-        if ( host == null )
+            if ( host == null )
+            {
+                trackerOperation.addLogFailed( String.format( "No Container Host" ) );
+                return null;
+            }
+            return host;
+        }
+        catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", host.getId() ) );
+            e.printStackTrace();
             return null;
         }
-        return host;
     }
 
 
@@ -240,9 +263,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
         try
         {
-            ContainerHost namenode = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost namenode = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                             .getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost jobtracker = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                               .getContainerHostById( config.getJobTracker() );
 
             /** DataNode Operations */
@@ -283,6 +306,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
         catch ( CommandException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
 
         config.getBlockedAgents().remove( host.getId() );

@@ -4,10 +4,11 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
@@ -38,29 +39,28 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
 
 
     /**
-     * Steps:
-     *   1) Exclude node from hadoop cluster
-     *   2) Destroy node
+     * Steps: 1) Exclude node from hadoop cluster 2) Destroy node
      */
-    public void removeNode(){
-        EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost host = environment.getContainerHostByHostname( lxcHostName );
-
-        trackerOperation.addLog( "Excluding " + lxcHostName + " from cluster" );
-        config.getDataNodes().remove( host.getId() );
-        config.getTaskTrackers().remove( host.getId() );
-        manager.excludeNode( config, lxcHostName );
-        config.getBlockedAgents().remove( host.getId() );
-        removeNodeFromConfigurationFiles( host );
-        manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+    public void removeNode()
+    {
         try
         {
-            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname( lxcHostName ).getId() );
+            EnvironmentManager environmentManager = manager.getEnvironmentManager();
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            ContainerHost host = environment.getContainerHostByHostname( lxcHostName );
+
+            trackerOperation.addLog( "Excluding " + lxcHostName + " from cluster" );
+            config.getDataNodes().remove( host.getId() );
+            config.getTaskTrackers().remove( host.getId() );
+            manager.excludeNode( config, lxcHostName );
+            config.getBlockedAgents().remove( host.getId() );
+            removeNodeFromConfigurationFiles( host );
+            manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+            environmentManager.destroyContainer( host, true, true );
         }
-        catch ( EnvironmentManagerException e )
+        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException | EnvironmentModificationException e )
         {
-            trackerOperation.addLogFailed( "Could not destroy container " + lxcHostName +  ". " + e.getMessage() );
+            trackerOperation.addLogFailed( "Could not destroy container " + lxcHostName + ". " + e.getMessage() );
             e.printStackTrace();
         }
         trackerOperation.addLogDone( "Container " + lxcHostName + " is destroyed!" );
@@ -72,9 +72,9 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
         HadoopClusterConfig config = manager.getCluster( clusterName );
         try
         {
-            ContainerHost namenode = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost namenode = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                             .getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
+            ContainerHost jobtracker = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
                                               .getContainerHostById( config.getJobTracker() );
 
             namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
@@ -83,6 +83,10 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
         catch ( CommandException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
     }
 }
