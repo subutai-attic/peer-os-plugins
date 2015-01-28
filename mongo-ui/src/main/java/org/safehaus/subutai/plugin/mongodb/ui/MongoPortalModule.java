@@ -15,6 +15,7 @@ import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.FileUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -34,13 +35,15 @@ public class MongoPortalModule implements PortalModule
     private final Tracker tracker;
     private final Mongo mongo;
     private final EnvironmentManager environmentManager;
+    private final PeerManager peerManager;
 
 
-    public MongoPortalModule( Mongo mongo,EnvironmentManager environmentManager, Tracker tracker )
+    public MongoPortalModule( Mongo mongo, EnvironmentManager environmentManager, PeerManager peerManager,
+                              Tracker tracker )
     {
-
         this.mongo = mongo;
         this.environmentManager = environmentManager;
+        this.peerManager = peerManager;
         this.tracker = tracker;
     }
 
@@ -80,7 +83,7 @@ public class MongoPortalModule implements PortalModule
     {
         try
         {
-            return new MongoComponent( executor, mongo, environmentManager, tracker );
+            return new MongoComponent( executor, mongo, environmentManager, peerManager, tracker );
         }
         catch ( NamingException e )
         {

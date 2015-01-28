@@ -118,10 +118,11 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response addNode( final String clusterName, final String nodeType )
+    public Response addNode( final String clusterName, final String nodeType, final String peerId )
     {
         NodeType mongoDbNodeType = NodeType.valueOf( nodeType );
-        String operationId = wrapUUID( mongodbManager.addNode( clusterName, mongoDbNodeType ) );
+        String operationId =
+                wrapUUID( mongodbManager.addNode( clusterName, mongoDbNodeType, UUID.fromString( peerId ) ) );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
 }

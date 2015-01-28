@@ -17,6 +17,7 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
+import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -84,16 +85,20 @@ public class Manager
     private final Tracker tracker;
     private final Mongo mongo;
     private final EnvironmentManager environmentManager;
+    private final PeerManager peerManager;
     private MongoClusterConfig mongoClusterConfig;
 
 
-    public Manager( final ExecutorService executorService, final Mongo mongo, final EnvironmentManager environmentManager, final Tracker tracker ) throws NamingException
+    public Manager( final ExecutorService executorService, final Mongo mongo,
+                    final EnvironmentManager environmentManager, final PeerManager peerManager, final Tracker tracker )
+            throws NamingException
     {
 
         this.executorService = executorService;
         this.mongo = mongo;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
+        this.peerManager = peerManager;
 
         contentRoot = new GridLayout();
         contentRoot.setSpacing( true );

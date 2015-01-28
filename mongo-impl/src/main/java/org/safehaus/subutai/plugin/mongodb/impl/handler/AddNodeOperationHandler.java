@@ -44,11 +44,11 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
     private final UUID peerId;
 
 
-    public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType )
+    public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType, UUID peerId )
     {
         super( manager, clusterName );
         this.nodeType = nodeType;
-        this.peerId = null;
+        this.peerId = peerId;
         po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %s to %s...", nodeType, clusterName ) );
     }
