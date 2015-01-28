@@ -8,6 +8,7 @@ package org.safehaus.subutai.plugin.hbase.ui.wizard;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,11 +16,14 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.api.SetupType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -41,6 +45,7 @@ public class ConfigurationStep extends Panel
 {
     private final Hadoop hadoop;
     private final Wizard wizard;
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard )
@@ -241,31 +246,40 @@ public class ConfigurationStep extends Panel
                 if ( event.getProperty().getValue() != null )
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
-                    Environment environment =
-                            wizard.getEnvironmentManager().getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-
-                    Set<ContainerHost> hadoopHosts = getHadoopContainerHosts( hadoopInfo );
-                    regionServers.setValue( null );
-                    regionServers.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
-
-                    quorumPeers.setValue( null );
-                    quorumPeers.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
-
-                    backUpMasters.setValue( null );
-                    backUpMasters.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
-
-                    masterNodeCombo.setValue( null );
-                    masterNodeCombo.removeAllItems();
-                    for ( ContainerHost host : hadoopHosts )
+                    try
                     {
-                        masterNodeCombo.addItem( host );
-                        masterNodeCombo.setItemCaption( host, host.getHostname() );
+                        Environment environment =
+                                wizard.getEnvironmentManager().findEnvironment( hadoopInfo.getEnvironmentId() );
+                        Set<ContainerHost> hadoopHosts = getHadoopContainerHosts( hadoopInfo );
+                        regionServers.setValue( null );
+                        regionServers
+                                .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
+
+                        quorumPeers.setValue( null );
+                        quorumPeers
+                                .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
+
+                        backUpMasters.setValue( null );
+                        backUpMasters
+                                .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopHosts ) );
+
+                        masterNodeCombo.setValue( null );
+                        masterNodeCombo.removeAllItems();
+                        for ( ContainerHost host : hadoopHosts )
+                        {
+                            masterNodeCombo.addItem( host );
+                            masterNodeCombo.setItemCaption( host, host.getHostname() );
+                        }
+                        config.setHadoopClusterName( hadoopInfo.getClusterName() );
+                        config.setRegionServers( new HashSet<UUID>() );
+                        config.setQuorumPeers( new HashSet<UUID>() );
+                        config.setBackupMasters( new HashSet<UUID>() );
+                        config.setHbaseMaster( null );
                     }
-                    config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    config.setRegionServers( new HashSet<UUID>() );
-                    config.setQuorumPeers( new HashSet<UUID>() );
-                    config.setBackupMasters( new HashSet<UUID>() );
-                    config.setHbaseMaster( null );
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Environment not found.", e );
+                    }
                 }
                 else{
                     regionServers.removeAllItems();
@@ -447,17 +461,25 @@ public class ConfigurationStep extends Panel
 
     private Set<ContainerHost> getHadoopContainerHosts( HadoopClusterConfig hadoopInfo )
     {
-        Environment hadoopEnvironment =
-                wizard.getEnvironmentManager().getEnvironment( hadoopInfo.getEnvironmentId().toString() );
-        Set<ContainerHost> hadoopHosts = new HashSet<>();
-        for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
+        Environment hadoopEnvironment = null;
+        try
         {
-            if ( hadoopInfo.getAllNodes().contains( host.getId() ) )
+            hadoopEnvironment = wizard.getEnvironmentManager().findEnvironment( hadoopInfo.getEnvironmentId() );
+            Set<ContainerHost> hadoopHosts = new HashSet<>();
+            for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
             {
-                hadoopHosts.add( host );
+                if ( hadoopInfo.getAllNodes().contains( host.getId() ) )
+                {
+                    hadoopHosts.add( host );
+                }
             }
+            return hadoopHosts;
         }
-        return hadoopHosts;
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return Collections.emptySet();
     }
 
 

@@ -16,8 +16,10 @@ import java.util.regex.Pattern;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.AddNodeWindow;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -27,6 +29,8 @@ import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -71,7 +75,8 @@ public class Manager
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String TABLE_CAPTION = "All Nodes";
     protected static final String BUTTON_STYLE_NAME = "default";
-    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn, addNodeBtn;
+    protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn,
+            addNodeBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final ExecutorService executor;
@@ -86,9 +91,10 @@ public class Manager
     private HBaseConfig config;
     private Table nodesTable = null;
     private final EnvironmentManager environmentManager;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
-    public Manager( final ExecutorService executor, final HBase hbase,final Hadoop hadoop, final Tracker tracker,
+    public Manager( final ExecutorService executor, final HBase hbase, final Hadoop hadoop, final Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
     {
         Preconditions.checkNotNull( executor, "Executor is null" );
@@ -326,8 +332,17 @@ public class Manager
                     return;
                 }
 
-                Environment environment = environmentManager.getEnvironmentByUUID(
-                        hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                Environment environment = null;
+                try
+                {
+                    environment = environmentManager
+                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                    return;
+                }
 
                 Set<ContainerHost> set = null;
 
@@ -337,7 +352,14 @@ public class Manager
                     HadoopClusterConfig hci = hadoop.getCluster( hn );
                     if ( hci != null )
                     {
-                        set = environment.getContainerHostsByIds( Sets.newHashSet( hci.getAllNodes() ) );
+                        try
+                        {
+                            set = environment.getContainerHostsByIds( Sets.newHashSet( hci.getAllNodes() ) );
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            LOGGER.error( "Container hosts not found by ids: " + hci.getAllNodes().toString(), e );
+                        }
                     }
                 }
 
@@ -347,7 +369,14 @@ public class Manager
                     return;
                 }
 
-                set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodes() ) ) );
+                try
+                {
+                    set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodes() ) ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    LOGGER.error( "Container hosts not found by ids: " + config.getAllNodes().toString(), e );
+                }
                 if ( set.isEmpty() )
                 {
                     show( "All nodes in Hadoop cluster have HBase installed" );
@@ -441,65 +470,79 @@ public class Manager
     {
         for ( final UUID containerHost : containerHosts )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID(
-                    hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
-            final ContainerHost host = environment.getContainerHostById( containerHost );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager
+                        .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                final ContainerHost host = environment.getContainerHostById( containerHost );
 
-            final Label resultHolder = new Label();
-            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-hbaseCheck" );
-            checkBtn.addStyleName( BUTTON_STYLE_NAME );
-            final Button startBtn = new Button( START_BUTTON_CAPTION );
-            startBtn.addStyleName( BUTTON_STYLE_NAME );
-            final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.addStyleName( BUTTON_STYLE_NAME );
-            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.addStyleName( BUTTON_STYLE_NAME );
+                final Label resultHolder = new Label();
+                final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+                checkBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-hbaseCheck" );
+                checkBtn.addStyleName( BUTTON_STYLE_NAME );
+                final Button startBtn = new Button( START_BUTTON_CAPTION );
+                startBtn.addStyleName( BUTTON_STYLE_NAME );
+                final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
+                stopBtn.addStyleName( BUTTON_STYLE_NAME );
+                final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+                destroyBtn.addStyleName( BUTTON_STYLE_NAME );
 
-            stopBtn.setEnabled( false );
-            startBtn.setEnabled( false );
-            PROGRESS_ICON.setVisible( false );
+                stopBtn.setEnabled( false );
+                startBtn.setEnabled( false );
+                PROGRESS_ICON.setVisible( false );
 
-            final HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.addStyleName( BUTTON_STYLE_NAME );
-            availableOperations.setSpacing( true );
+                final HorizontalLayout availableOperations = new HorizontalLayout();
+                availableOperations.addStyleName( BUTTON_STYLE_NAME );
+                availableOperations.setSpacing( true );
 
-            availableOperations.addComponent( checkBtn );
+                availableOperations.addComponent( checkBtn );
             /*
                 TODO: We need to enable below buttons accordingly, for this we need separate
                      implementations for start, stop and destroy operations
              */
-            // availableOperations.addComponent( startBtn );
-            // availableOperations.addComponent( stopBtn );
-            // availableOperations.addComponent( destroyBtn );
+                // availableOperations.addComponent( startBtn );
+                // availableOperations.addComponent( stopBtn );
+                // availableOperations.addComponent( destroyBtn );
 
 
-            table.addItem( new Object[] {
-                    host.getHostname(), host.getIpByInterfaceName( "eth0" ), findNodeRoles( containerHost ), resultHolder,
-                    availableOperations
-            }, null );
+                table.addItem( new Object[] {
+                        host.getHostname(), host.getIpByInterfaceName( "eth0" ), findNodeRoles( containerHost ),
+                        resultHolder, availableOperations
+                }, null );
 
-            checkBtn.addClickListener( new Button.ClickListener()
-            {
-                @Override
-                public void buttonClick( Button.ClickEvent event )
+                checkBtn.addClickListener( new Button.ClickListener()
                 {
-                    PROGRESS_ICON.setVisible( true );
-                    checkBtn.setEnabled( false );
-                    executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), host.getHostname(), new CompleteEvent()
+                    @Override
+                    public void buttonClick( Button.ClickEvent event )
                     {
-                        public void onComplete( String result )
-                        {
-                            synchronized ( PROGRESS_ICON )
-                            {
-                                resultHolder.setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
-                                PROGRESS_ICON.setVisible( false );
-                                checkBtn.setEnabled( true );
-                            }
-                        }
-                    } ) );
-                }
-            } );
+                        PROGRESS_ICON.setVisible( true );
+                        checkBtn.setEnabled( false );
+                        executor.execute( new CheckTask( hbase, tracker, config.getClusterName(), host.getHostname(),
+                                new CompleteEvent()
+                                {
+                                    public void onComplete( String result )
+                                    {
+                                        synchronized ( PROGRESS_ICON )
+                                        {
+                                            resultHolder
+                                                    .setValue( parseStatus( result, findNodeRoles( containerHost ) ) );
+                                            PROGRESS_ICON.setVisible( false );
+                                            checkBtn.setEnabled( true );
+                                        }
+                                    }
+                                } ) );
+                    }
+                } );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Container host not found", e );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Environment not found", e );
+            }
         }
     }
 
