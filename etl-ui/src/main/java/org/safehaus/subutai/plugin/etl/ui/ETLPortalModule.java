@@ -14,6 +14,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.server.ui.api.PortalModule;
 
 import com.vaadin.ui.Component;
@@ -24,16 +25,20 @@ public class ETLPortalModule implements PortalModule
     public static final String MODULE_IMAGE = "etl.png";
     protected static final Logger LOG = Logger.getLogger( ETLPortalModule.class.getName() );
     private ExecutorService executor;
-    private final ETL sqoop;
+
+    /** initialized by context.xml  */
+    private final ETL etl;
     private final Tracker tracker;
-    private final EnvironmentManager environmentManager;;
+    private final EnvironmentManager environmentManager;
     private Hadoop hadoop;
+    private Sqoop sqoop;
 
 
-    public ETLPortalModule( ETL sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
+    public ETLPortalModule( ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker, EnvironmentManager environmentManager )
     {
-        this.sqoop = sqoop;
+        this.etl = etl;
         this.hadoop = hadoop;
+        this.sqoop = sqoop;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
     }
@@ -77,7 +82,7 @@ public class ETLPortalModule implements PortalModule
     {
         try
         {
-            return new ETLComponent( executor, sqoop, hadoop, tracker, environmentManager );
+            return new ETLComponent( executor, etl, hadoop, sqoop, tracker, environmentManager );
         }
         catch ( NamingException e )
         {

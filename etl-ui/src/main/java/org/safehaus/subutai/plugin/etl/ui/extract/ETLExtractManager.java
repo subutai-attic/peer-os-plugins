@@ -15,6 +15,7 @@ import org.safehaus.subutai.plugin.etl.ui.ETLBaseManager;
 import org.safehaus.subutai.plugin.etl.ui.ImportPanel;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.ComboBox;
@@ -24,12 +25,13 @@ public class ETLExtractManager extends ETLBaseManager
 {
     private final ImportPanel importPanel;
 
-    public ETLExtractManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop, Tracker tracker,
+    public ETLExtractManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop,
+                              Sqoop sqoop, Tracker tracker,
                               final EnvironmentManager environmentManager )
             throws NamingException
     {
 
-        super( executorService, etl, hadoop, tracker, environmentManager );
+        super( executorService, etl, hadoop, sqoop, tracker, environmentManager );
 
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
 
@@ -49,7 +51,7 @@ public class ETLExtractManager extends ETLBaseManager
         sqoopSelection.setRequired( true );
         contentRoot.addComponent( sqoopSelection, 0, 2 );
 
-        importPanel = new ImportPanel( etl, executorService, tracker );
+        importPanel = new ImportPanel( etl, sqoop, executorService, tracker );
         contentRoot.addComponent( importPanel, 1, 0, 19, 17 );
 
         // event listeners

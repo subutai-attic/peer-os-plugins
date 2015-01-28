@@ -9,8 +9,8 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.etl.api.ETLConfig;
-import org.safehaus.subutai.plugin.etl.api.setting.CommonSetting;
+import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
+import org.safehaus.subutai.plugin.sqoop.api.setting.CommonSetting;
 
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
@@ -223,7 +223,7 @@ public abstract class ImportExportBase extends VerticalLayout
             String m = "";
             while ( true )
             {
-                TrackerOperationView po = tracker.getTrackerOperation( ETLConfig.PRODUCT_KEY, trackId );
+                TrackerOperationView po = tracker.getTrackerOperation( SqoopConfig.PRODUCT_KEY, trackId );
                 if ( po == null )
                 {
                     break;

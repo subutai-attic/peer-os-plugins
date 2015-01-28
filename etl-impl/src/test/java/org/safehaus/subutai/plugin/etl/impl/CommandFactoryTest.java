@@ -7,10 +7,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.etl.api.DataSourceType;
-import org.safehaus.subutai.plugin.etl.api.setting.CommonSetting;
-import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
+import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
+import org.safehaus.subutai.plugin.sqoop.api.setting.CommonSetting;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
 
 public class CommandFactoryTest

@@ -11,6 +11,8 @@
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="sqoop" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
@@ -19,6 +21,7 @@
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="hadoopManager" ref="hadoopManager" />
+    <property name="sqoop" ref="sqoop" />
   </bean>
 
   <service ref="sqoop-impl" interface="org.safehaus.subutai.plugin.etl.api.ETL" />

@@ -4,10 +4,10 @@ package org.safehaus.subutai.plugin.etl.impl;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.etl.api.ETLConfig;
-import org.safehaus.subutai.plugin.etl.api.setting.CommonSetting;
-import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportParameter;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
+import org.safehaus.subutai.plugin.sqoop.api.setting.CommonSetting;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
 
 public class CommandFactory

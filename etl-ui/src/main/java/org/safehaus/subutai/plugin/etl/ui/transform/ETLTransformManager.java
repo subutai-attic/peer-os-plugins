@@ -16,13 +16,12 @@ import org.safehaus.subutai.plugin.etl.ui.ETLBaseManager;
 import org.safehaus.subutai.plugin.etl.ui.UIUtil;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
@@ -31,11 +30,11 @@ public class ETLTransformManager extends ETLBaseManager
 {
     private QueryPanel queryPanel;
 
-    public ETLTransformManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Tracker tracker,
+    public ETLTransformManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
                                 EnvironmentManager environmentManager )
             throws NamingException
     {
-        super( executorService, etl, hadoop, tracker, environmentManager );
+        super( executorService, etl, hadoop, sqoop, tracker, environmentManager );
 
         init( contentRoot, type );
     }

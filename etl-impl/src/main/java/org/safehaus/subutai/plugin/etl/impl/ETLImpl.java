@@ -8,9 +8,8 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
-import org.safehaus.subutai.plugin.etl.api.setting.ExportSetting;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +20,7 @@ public class ETLImpl implements ETL
 
     Tracker tracker;
     Hadoop hadoopManager;
+    Sqoop sqoop;
     EnvironmentManager environmentManager;
     protected ExecutorService executor;
 
@@ -60,6 +60,18 @@ public class ETLImpl implements ETL
     }
 
 
+    public Sqoop getSqoop()
+    {
+        return sqoop;
+    }
+
+
+    public void setSqoop( final Sqoop sqoop )
+    {
+        this.sqoop = sqoop;
+    }
+
+
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
@@ -86,20 +98,6 @@ public class ETLImpl implements ETL
 
     @Override
     public UUID isInstalled( final String clusterName, final String hostname )
-    {
-        return null;
-    }
-
-
-    @Override
-    public UUID exportData( ExportSetting settings )
-    {
-        return null;
-    }
-
-
-    @Override
-    public UUID importData( ImportSetting settings )
     {
         return null;
     }

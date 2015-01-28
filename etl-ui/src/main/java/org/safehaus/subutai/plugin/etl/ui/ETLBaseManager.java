@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.transform.QueryType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
 import com.google.common.collect.Sets;
@@ -36,25 +37,28 @@ import com.vaadin.ui.UI;
 public class ETLBaseManager
 {
     public final GridLayout contentRoot;
-    public final ETL sqoop;
+    public final ETL etl;
     public final ExecutorService executorService;
     public final Tracker tracker;
     public final EnvironmentManager environmentManager;
 
-    public  Hadoop hadoop;
+    public Hadoop hadoop;
+    public Sqoop sqoop;
     public final Embedded progressIcon = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
     public QueryType type;
     public HorizontalLayout hadoopComboWithProgressIcon;
     public ComboBox hadoopClustersCombo;
 
-    public ETLBaseManager(  ExecutorService executorService, ETL sqoop, Hadoop hadoop, Tracker tracker,
-                            EnvironmentManager environmentManager )
+
+    public ETLBaseManager(  ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop,
+                            Tracker tracker, EnvironmentManager environmentManager )
             throws NamingException
     {
         this.executorService = executorService;
-        this.sqoop = sqoop;
+        this.etl = etl;
         this.hadoop = hadoop;
+        this.sqoop = sqoop;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
 

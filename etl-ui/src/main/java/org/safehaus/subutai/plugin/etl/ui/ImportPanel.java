@@ -7,10 +7,11 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.etl.api.DataSourceType;
 import org.safehaus.subutai.plugin.etl.api.ETL;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportParameter;
-import org.safehaus.subutai.plugin.etl.api.setting.ImportSetting;
+import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.AbstractTextField;
@@ -26,6 +27,7 @@ public class ImportPanel extends ImportExportBase
 {
 
     private final ETL etl;
+    private final Sqoop sqoop;
     private final ExecutorService executorService;
     DataSourceType type;
     CheckBox chkImportAllTables = new CheckBox( "Import all tables" );
@@ -35,10 +37,11 @@ public class ImportPanel extends ImportExportBase
     AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:", 300 );
 
 
-    public ImportPanel( ETL etl, ExecutorService executorService, Tracker tracker )
+    public ImportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
         this.etl = etl;
+        this.sqoop = sqoop;
         this.executorService = executorService;
 
         init();
@@ -181,8 +184,9 @@ public class ImportPanel extends ImportExportBase
                 }
                 setFieldsEnabled( false );
                 ImportSetting sett = makeSettings();
-                final UUID trackId = etl.importData( sett );
-
+                // TODO
+                sett.setClusterName( "test" );
+                final UUID trackId = sqoop.importData( sett );
                 OperationWatcher watcher = new OperationWatcher( trackId );
                 watcher.setCallback( new OperationCallback()
                 {
