@@ -3,10 +3,14 @@
     default-activation="eager"
     xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
-  <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
-  <reference id="hostRegistry" interface="org.safehaus.subutai.core.hostregistry.api.HostRegistry" />
+  <reference id="hadoop" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+  <reference id="hostRegistry"
+             interface="org.safehaus.subutai.core.hostregistry.api.HostRegistry" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.hadoop.ui.HadoopPortalModule"
         init-method="init" destroy-method="destroy">
