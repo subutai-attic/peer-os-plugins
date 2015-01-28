@@ -144,9 +144,9 @@ public class QueryPanel extends VerticalLayout
         buttonLayout.addComponent( newFileButton );
         buttonLayout.addComponent( saveButton );
 
-        gridLayout.addComponent( panel, 0, 0 );
-        gridLayout.addComponent( contentOfQueryFile, 0, 1 );
-        gridLayout.addComponent( buttonLayout, 0, 2 );
+        gridLayout.addComponent( panel, 0, 0, 11, 0 );
+        gridLayout.addComponent( contentOfQueryFile, 0, 1, 5, 1 );
+        gridLayout.addComponent( buttonLayout, 0, 2, 4, 2 );
         gridLayout.setComponentAlignment( buttonLayout, Alignment.BOTTOM_CENTER );
 
         final QueryType queryType = type;
@@ -171,7 +171,6 @@ public class QueryPanel extends VerticalLayout
         gridLayout.addComponent( runQueryButton, 6, 1 );
         gridLayout.setComponentAlignment( runQueryButton, Alignment.MIDDLE_LEFT );
         gridLayout.addComponent( logs, 7, 1 );
-
         addComponent( gridLayout );
     }
 
