@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -9,7 +10,9 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -29,6 +32,7 @@ public class HBaseSetupStrategy
     private Environment environment;
     private TrackerOperation trackerOperation;
 
+
     public HBaseSetupStrategy( HBaseImpl manager, Hadoop hadoop, HBaseConfig config, Environment environment,
                                TrackerOperation po )
     {
@@ -44,7 +48,15 @@ public class HBaseSetupStrategy
     {
         checkConfig();
 
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        Set<ContainerHost> nodes = new HashSet<>();
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( nodes.size() < config.getAllNodes().size() )
         {
@@ -106,12 +118,11 @@ public class HBaseSetupStrategy
         }
 
 
-        for ( Iterator<ContainerHost> it = nodes.iterator(); it.hasNext(); )
+        for ( ContainerHost node : nodes )
         {
-            ContainerHost node = it.next();
             try
             {
-                CommandResult result = node.execute(  manager.getCommands().getInstallCommand() );
+                CommandResult result = node.execute( Commands.getInstallCommand() );
 
                 if ( result.hasSucceeded() )
                 {
@@ -130,7 +141,7 @@ public class HBaseSetupStrategy
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             try
             {
                 new ClusterConfiguration( trackerOperation, manager, hadoop ).configureCluster( config, env );
@@ -140,17 +151,15 @@ public class HBaseSetupStrategy
                 throw new ClusterSetupException( e.getMessage() );
             }
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed( String.format( "Failed to setup cluster %s : %s",
-                    config.getClusterName(), e.getMessage() ) );
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup cluster %s : %s", config.getClusterName(), e.getMessage() ) );
         }
 
 
-
         trackerOperation.addLog( "Saving to db..." );
-        boolean saved =
-                manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config );
+        boolean saved = manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config );
 
         if ( saved )
         {
@@ -163,6 +172,7 @@ public class HBaseSetupStrategy
 
         return config;
     }
+
 
     void checkConfig() throws ClusterSetupException
     {

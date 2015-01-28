@@ -3,28 +3,30 @@ package org.safehaus.subutai.plugin.hbase.impl;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public class ClusterConfiguration implements ClusterConfigurationInterface
+public class ClusterConfiguration
 {
 
-    private static final Logger LOG = Logger.getLogger( ClusterConfiguration.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
     private TrackerOperation po;
     private HBaseImpl hBase;
     private Hadoop hadoop;
+
 
     public ClusterConfiguration( final TrackerOperation operation, final HBaseImpl hBase, final Hadoop hadoop )
     {
@@ -42,11 +44,32 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure master
         po.addLog( "Configuring hmaster... !" );
         UUID hmaster = config.getHbaseMaster();
-        ContainerHost hmasterContainerHost = environment.getContainerHostById( hmaster );
-        ContainerHost namenode = environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
+        ContainerHost hmasterContainerHost = null;
+        try
+        {
+            hmasterContainerHost = environment.getContainerHostById( hmaster );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting hmaster container host.", e );
+            po.addLogFailed( "Error getting hmaster container host." );
+            return;
+        }
+        ContainerHost namenode = null;
+        try
+        {
+            namenode = environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting nameNode container host.", e );
+            po.addLogFailed( "Error getting nameNode container host." );
+            return;
+        }
 
         executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigMasterCommand( namenode.getHostname(), hmasterContainerHost.getHostname() ), environment );
+                Commands.getConfigMasterCommand( namenode.getHostname(), hmasterContainerHost.getHostname() ),
+                environment );
 
 
         // configure region servers
@@ -54,24 +77,45 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         StringBuilder sb = new StringBuilder();
         for ( UUID uuid : config.getRegionServers() )
         {
-            ContainerHost tmp = environment.getContainerHostById( uuid );
-            sb.append( tmp.getHostname() );
-            sb.append( " " );
+            ContainerHost tmp = null;
+            try
+            {
+                tmp = environment.getContainerHostById( uuid );
+                sb.append( tmp.getHostname() );
+                sb.append( " " );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error getting container host by id for region servers", e );
+                po.addLogFailed( "Error getting container host by id for region servers" );
+                return;
+            }
         }
-        executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigRegionCommand( sb.toString() ), environment );
+        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigRegionCommand( sb.toString() ),
+                environment );
 
         // configure quorum peers
         po.addLog( "Configuring quorum peers..." );
         sb = new StringBuilder();
         for ( UUID uuid : config.getQuorumPeers() )
         {
-            ContainerHost tmp = environment.getContainerHostById( uuid );
-            sb.append( tmp.getHostname() );
-            sb.append( " " );
+            ContainerHost tmp = null;
+            try
+            {
+                tmp = environment.getContainerHostById( uuid );
+                sb.append( tmp.getHostname() );
+                sb.append( " " );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error getting container host for quorum peers", e );
+                po.addLogFailed( "Error getting container host for quorum peers" );
+                return;
+            }
+
         }
-        executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigQuorumCommand( sb.toString() ), environment );
+        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigQuorumCommand( sb.toString() ),
+                environment );
 
 
         // configure back up master
@@ -79,12 +123,22 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         sb = new StringBuilder();
         for ( UUID uuid : config.getBackupMasters() )
         {
-            ContainerHost tmp = environment.getContainerHostById( uuid );
-            sb.append( tmp.getHostname() );
-            sb.append( " " );
+            ContainerHost tmp = null;
+            try
+            {
+                tmp = environment.getContainerHostById( uuid );
+                sb.append( tmp.getHostname() );
+                sb.append( " " );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error getting container host for backup master", e );
+                po.addLogFailed( "Error getting container host for backup master" );
+                return;
+            }
         }
-        executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigBackupMastersCommand( sb.toString() ), environment );
+        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigBackupMastersCommand( sb.toString() ),
+                environment );
 
 
         po.addLog( "Configuration is finished !" );
@@ -95,8 +149,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command, Environment environment ){
-        for ( UUID uuid : allUUIDs ){
+    private void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command, Environment environment )
+    {
+        for ( UUID uuid : allUUIDs )
+        {
             try
             {
                 ContainerHost containerHost = environment.getContainerHostById( uuid );
@@ -104,7 +160,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( CommandException e )
             {
-                e.printStackTrace();
+                LOG.error( "Error executing command on container", e );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error getting container host by uuid: " + uuid.toString(), e );
             }
         }
     }
