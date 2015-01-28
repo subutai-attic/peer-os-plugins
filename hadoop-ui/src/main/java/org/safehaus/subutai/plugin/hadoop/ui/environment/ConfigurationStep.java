@@ -8,17 +8,15 @@ package org.safehaus.subutai.plugin.hadoop.ui.environment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.hostregistry.api.HostRegistry;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.google.common.base.Strings;
@@ -65,11 +63,12 @@ public class ConfigurationStep extends VerticalLayout
             }
         } );
 
-        final List<Environment> environmentList = wizard.getEnvironmentManager().getEnvironments();
+        final List<Environment> environmentList = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), HadoopClusterConfig.TEMPLATE_NAME );
+            boolean exists =
+                    isTemplateExists( anEnvironmentList.getContainerHosts(), HadoopClusterConfig.TEMPLATE_NAME );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
@@ -120,8 +119,7 @@ public class ConfigurationStep extends VerticalLayout
 
 
         // all nodes
-        final TwinColSelect slaveNodes =
-                getTwinSelect( "Slave Nodes", "Available Nodes", "Selected Nodes", 4 );
+        final TwinColSelect slaveNodes = getTwinSelect( "Slave Nodes", "Available Nodes", "Selected Nodes", 4 );
         slaveNodes.setId( "slaveNodes" );
         slaveNodes.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -129,7 +127,7 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
+                    Set<UUID> nodes = new HashSet<>();
                     Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
                     for ( ContainerHost host : nodeList )
                     {
@@ -160,16 +158,18 @@ public class ConfigurationStep extends VerticalLayout
                 setComboDS( nameNodeCombo, filterEnvironmentContainers( e.getContainerHosts() ) );
                 setComboDS( jobTracker, filterEnvironmentContainers( e.getContainerHosts() ) );
                 setComboDS( secNameNode, filterEnvironmentContainers( e.getContainerHosts() ) );
-                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) ){
+                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) )
+                {
                     slaveNodes.addItem( host );
-                    slaveNodes.setItemCaption( host, (host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")") );
+                    slaveNodes.setItemCaption( host,
+                            ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
                 }
             }
         } );
 
         //configuration replication factor
-        ComboBox replicationFactorComboBox =
-                new ComboBox( "Choose replication factor for slave nodes", Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ) );
+        ComboBox replicationFactorComboBox = new ComboBox( "Choose replication factor for slave nodes",
+                Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ) );
         replicationFactorComboBox.setId( "HadoopReplicationFactorComboBox" );
         replicationFactorComboBox.setImmediate( true );
         replicationFactorComboBox.setTextInputAllowed( false );
@@ -256,6 +256,7 @@ public class ConfigurationStep extends VerticalLayout
         addComponent( layout );
     }
 
+
     public static ComboBox getCombo( String title )
     {
         ComboBox combo = new ComboBox( title );
@@ -267,10 +268,13 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    {
         Set<ContainerHost> filteredSet = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts ){
-            if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) ){
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) )
+            {
                 filteredSet.add( containerHost );
             }
         }
@@ -290,18 +294,20 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName ){
-        for ( ContainerHost host: containerHosts ){
-            if ( host.getTemplateName().equals( templateName ) ){
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    {
+        for ( ContainerHost host : containerHosts )
+        {
+            if ( host.getTemplateName().equals( templateName ) )
+            {
                 return true;
             }
         }
-        return  false;
+        return false;
     }
 
 
-    public static TwinColSelect getTwinSelect( String title, String leftTitle,
-                                               String rightTitle, int rows )
+    public static TwinColSelect getTwinSelect( String title, String leftTitle, String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
         twinColSelect.setRows( rows );
@@ -313,6 +319,7 @@ public class ConfigurationStep extends VerticalLayout
         twinColSelect.setRequired( true );
         return twinColSelect;
     }
+
 
     private void show( String notification )
     {
