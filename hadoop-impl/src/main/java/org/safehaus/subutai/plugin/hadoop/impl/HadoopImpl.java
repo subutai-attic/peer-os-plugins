@@ -1,21 +1,26 @@
 package org.safehaus.subutai.plugin.hadoop.impl;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import org.safehaus.subutai.common.protocol.*;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.build.Blueprint;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.network.api.NetworkManager;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -25,7 +30,6 @@ import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ConfigureEnvironmentClusterHandler;
@@ -34,12 +38,9 @@ import org.safehaus.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandle
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 public class HadoopImpl implements Hadoop
@@ -71,6 +72,7 @@ public class HadoopImpl implements Hadoop
         return alertSettings;
     }
 
+
     public void init()
     {
         try
@@ -84,7 +86,8 @@ public class HadoopImpl implements Hadoop
         executor = Executors.newCachedThreadPool();
     }
 
-    public void setPluginDAO(final PluginDAO pluginDAO)
+
+    public void setPluginDAO( final PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
@@ -211,14 +214,16 @@ public class HadoopImpl implements Hadoop
     }
 
 
-    public UUID removeCluster( String clusterName ){
-        Preconditions.checkArgument( !Strings.isNullOrEmpty(clusterName ), "Cluster name is null or empty" );
+    public UUID removeCluster( String clusterName )
+    {
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         HadoopClusterConfig hadoopClusterConfig = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, hadoopClusterConfig, ClusterOperationType.REMOVE, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
+
 
     @Override
     public List<HadoopClusterConfig> getClusters()
@@ -532,29 +537,19 @@ public class HadoopImpl implements Hadoop
 
 
     @Override
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config )
+    public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config )
             throws ClusterSetupException
     {
 
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint
-                .setName( String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ) );
-        environmentBlueprint.setLinkHosts( true );
-        environmentBlueprint.setExchangeSshKeys( true );
-        environmentBlueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        //        Set<NodeGroup> nodeGroups = new HashSet<>( INITIAL_CAPACITY );
+        org.safehaus.subutai.core.env.api.build.NodeGroup nodeGroup =
+                new org.safehaus.subutai.core.env.api.build.NodeGroup( "Hadoop node group",
+                        HadoopClusterConfig.TEMPLATE_NAME, Common.DEFAULT_DOMAIN_NAME,
+                        HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(), 1, 1,
+                        new PlacementStrategy( "ROUND_ROBIN" ) );
 
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setName( "Hadoop node group" );
-        nodeGroup.setLinkHosts( true );
-        nodeGroup.setExchangeSshKeys( true );
-        nodeGroup.setTemplateName( config.getTemplateName() );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes(
-                HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes() );
-
-        environmentBlueprint.setNodeGroups( Sets.newHashSet( nodeGroup ) );
-
+        Blueprint blueprint = new Blueprint(
+                String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                Sets.newHashSet( nodeGroup ) );
 
         //        //hadoop master nodes
         //        NodeGroup mastersGroup = new NodeGroup();
@@ -576,7 +571,7 @@ public class HadoopImpl implements Hadoop
         //
         //        environmentBlueprint.setNodeGroups( nodeGroups );
 
-        return environmentBlueprint;
+        return blueprint;
     }
 
 
