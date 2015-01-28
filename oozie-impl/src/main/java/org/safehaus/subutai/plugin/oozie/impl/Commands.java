@@ -123,22 +123,6 @@ public class Commands
                 ;
     }
 
-    public RequestBuilder getUninstallCommand()
-    {
-        RequestBuilder rb = new RequestBuilder("apt-get --force-yes --assume-yes purge " + PACKAGE_NAME).withTimeout
-                (600);
-        return rb;
-    }
-
-    public RequestBuilder getInstallCommand()
-    {
-        RequestBuilder rb =
-                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
-                        .withStdOutRedirection(
-                                OutputRedirection.NO );
-        return rb;
-    }
-
     public static RequestBuilder getUninstallClientsCommand()
     {
         return
@@ -150,9 +134,4 @@ public class Commands
                 ;
     }
 
-
-    public RequestBuilder getCheckInstalledCommand()
-    {
-        return new RequestBuilder("dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH);
-    }
 }

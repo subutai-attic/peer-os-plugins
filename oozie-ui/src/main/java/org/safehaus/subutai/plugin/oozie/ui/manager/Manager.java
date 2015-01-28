@@ -13,7 +13,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.common.ui.AddNodeWindow;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
@@ -174,7 +173,7 @@ public class Manager
                 set.removeAll( config.getClients() );
                 if ( set.isEmpty() )
                 {
-                    show( "All nodes in Hadoop cluster have Hive installed" );
+                    show( "All nodes in Hadoop cluster have Oozie installed" );
                     return;
                 }
 
@@ -186,7 +185,8 @@ public class Manager
                             .getContainerHostById( uuid ) );
                 }
 
-                AddNodeWindow w = new AddNodeWindow( oozie, executorService, tracker, config, myHostSet );
+                org.safehaus.subutai.plugin.oozie.ui.manager.AddNodeWindow w = new org.safehaus.subutai.plugin.oozie
+                        .ui.manager.AddNodeWindow(oozie, executorService, tracker, config, myHostSet);
                 contentRoot.getUI().addWindow( w );
                 w.addCloseListener( new Window.CloseListener()
                 {
@@ -433,8 +433,7 @@ public class Manager
                             @Override
                             public void buttonClick( Button.ClickEvent clickEvent )
                             {
-                                UUID trackID = UUID.randomUUID();
-                                        oozie.destroyNode( config.getClusterName(), containerHost.getHostname() );
+                                UUID trackID = oozie.destroyNode(config.getClusterName(), containerHost.getHostname());
                                 ProgressWindow window =
                                         new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
                                 window.getWindow().addCloseListener( new Window.CloseListener()

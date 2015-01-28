@@ -31,24 +31,12 @@ public class OozieClusterConfig implements ConfigBase
     private SetupType setupType;
     private UUID environmentId;
     private Set<UUID> nodes = new HashSet();
+    private boolean autoScaling;
 
 
     public OozieClusterConfig()
     {
     }
-
-
-    public String getTemplateNameServer()
-    {
-        return templateNameServer;
-    }
-
-
-    public void setTemplateNameServer( final String templateNameServer )
-    {
-        this.templateNameServer = templateNameServer;
-    }
-
 
     public SetupType getSetupType()
     {
@@ -83,26 +71,6 @@ public class OozieClusterConfig implements ConfigBase
     public void setUuid( UUID uuid )
     {
         this.uuid = uuid;
-    }
-
-
-    public void reset()
-    {
-        this.server = null;
-        this.clients = null;
-        this.domainName = "";
-    }
-
-
-    public String getDomainName()
-    {
-        return domainName;
-    }
-
-
-    public void setDomainName( String domainName )
-    {
-        this.domainName = domainName;
     }
 
 
@@ -156,16 +124,6 @@ public class OozieClusterConfig implements ConfigBase
     }
 
 
-    /*public Set<String> getHadoopNodes() {
-        return hadoopNodes;
-    }
-
-
-    public void setHadoopNodes( Set<String> hadoopNodes ) {
-        this.hadoopNodes = hadoopNodes;
-    }*/
-
-
     @Override
     public String toString()
     {
@@ -179,16 +137,14 @@ public class OozieClusterConfig implements ConfigBase
                 '}';
     }
 
-
-    public String getTemplateNameClient()
+    public boolean isAutoScaling()
     {
-        return templateNameClient;
+        return autoScaling;
     }
 
-
-    public void setTemplateNameClient( final String templateNameClient )
+    public void setAutoScaling( final boolean autoScaling )
     {
-        this.templateNameClient = templateNameClient;
+        this.autoScaling = autoScaling;
     }
 
 
@@ -220,16 +176,5 @@ public class OozieClusterConfig implements ConfigBase
     public Set<UUID> getNodes()
     {
         return nodes;
-    }
-
-    public void setNodes( Set<UUID> nodes )
-    {
-        this.nodes = nodes;
-    }
-
-
-    public void removeClient( final UUID node )
-    {
-        clients.remove( node );
     }
 }

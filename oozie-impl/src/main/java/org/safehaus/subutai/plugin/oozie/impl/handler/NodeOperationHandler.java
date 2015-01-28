@@ -28,7 +28,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
     public NodeOperationHandler(final OozieImpl manager, final String clusterName, final String hostName,
                                 NodeOperationType operationType)
     {
-        super(manager, clusterName);
+        super(manager, manager.getCluster(clusterName));
         this.hostName = hostName;
         this.clusterName = clusterName;
         this.operationType = operationType;
