@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
@@ -33,7 +33,7 @@ public class HBasePortalModule implements PortalModule
     private HBase hBase;
     private Hadoop hadoop;
     private Tracker tracker;
-    private  EnvironmentManager environmentManager;
+    private EnvironmentManager environmentManager;
 
 
     public HBasePortalModule(HBase hBase, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
