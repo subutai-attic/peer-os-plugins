@@ -1,17 +1,21 @@
 package org.safehaus.subutai.plugin.hadoop.impl;
 
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.common.PluginDAO;
-
-
-
-import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -37,7 +41,7 @@ public class ClusterConfigurationTest
 
 
     @Test
-    public void testConfigureCluster() throws ClusterConfigurationException
+    public void testConfigureCluster() throws ClusterConfigurationException, ContainerHostNotFoundException
     {
         ContainerHost containerHost = mock(ContainerHost.class);
         ContainerHost containerHost2 = mock(ContainerHost.class);

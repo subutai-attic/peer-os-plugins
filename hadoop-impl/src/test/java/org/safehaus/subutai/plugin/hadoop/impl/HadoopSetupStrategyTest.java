@@ -1,6 +1,10 @@
 package org.safehaus.subutai.plugin.hadoop.impl;
 
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,14 +12,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.common.PluginDAO;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
@@ -55,7 +56,7 @@ public class HadoopSetupStrategyTest
 
 
     @Test
-    public void testSetup() throws ClusterSetupException
+    public void testSetup() throws ClusterSetupException, ContainerHostNotFoundException
     {
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add(containerHost);
