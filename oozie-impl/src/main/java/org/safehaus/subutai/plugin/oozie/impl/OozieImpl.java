@@ -43,14 +43,12 @@ public class OozieImpl implements Oozie
     private PluginDAO pluginDao;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
-    private DataSource dataSource;
     private ExecutorService executor;
 
 
-    public OozieImpl(final DataSource dataSource, final Tracker tracker, final EnvironmentManager environmentManager,
+    public OozieImpl(final Tracker tracker, final EnvironmentManager environmentManager,
                      final Hadoop hadoopManager)
     {
-        this.dataSource = dataSource;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
@@ -117,7 +115,7 @@ public class OozieImpl implements Oozie
     {
         try
         {
-            this.pluginDao = new PluginDAO(dataSource);
+            this.pluginDao = new PluginDAO(null);
         } catch (SQLException e)
         {
             LOG.error(e.getMessage(), e);
