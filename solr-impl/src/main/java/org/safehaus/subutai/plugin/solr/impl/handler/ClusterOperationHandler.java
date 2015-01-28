@@ -4,9 +4,8 @@ package org.safehaus.subutai.plugin.solr.impl.handler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -58,7 +57,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         try
         {
             Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
+                                     .createEnvironment( config.getClusterName(), config.getEnvironmentTopology(),
+                                             false );
+            //                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config
+            // ) );
 
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, config, trackerOperation );
@@ -66,7 +68,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentCreationException e )
         {
             String msg = String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() );
             trackerOperation.addLogFailed( msg );
@@ -87,29 +89,32 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         }
         manager.getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, config.getClusterName() );
         trackerOperation.addLogDone( "Cluster removed from database" );
-//        SolrClusterConfig solrClusterConfig = manager.getCluster( clusterName );
-//
-//        if ( solrClusterConfig == null )
-//        {
-//            trackerOperation.addLogFailed( String.format( "Installation with name %s does not exist", clusterName ) );
-//            return;
-//        }
-//        try
-//        {
-//            trackerOperation.addLog( "Destroying environment..." );
-//            manager.getEnvironmentManager().destroyEnvironment( solrClusterConfig.getEnvironmentId() );
-//            manager.getPluginDAO().deleteInfo( solrClusterConfig.PRODUCT_KEY, solrClusterConfig.getClusterName() );
-//            trackerOperation.addLogDone( "Cluster destroyed" );
-//        }
-//        catch ( EnvironmentDestroyException e )
-//        {
-//            trackerOperation.addLog( String.format( "%s, skipping...", e.getMessage() ) );
-//        }
-//
-//        trackerOperation.addLog( "Updating db..." );
-//
-//        manager.getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, solrClusterConfig.getClusterName() );
-//        trackerOperation.addLogDone( "Information updated in database" );
+        //        SolrClusterConfig solrClusterConfig = manager.getCluster( clusterName );
+        //
+        //        if ( solrClusterConfig == null )
+        //        {
+        //            trackerOperation.addLogFailed( String.format( "Installation with name %s does not exist",
+        // clusterName ) );
+        //            return;
+        //        }
+        //        try
+        //        {
+        //            trackerOperation.addLog( "Destroying environment..." );
+        //            manager.getEnvironmentManager().destroyEnvironment( solrClusterConfig.getEnvironmentId() );
+        //            manager.getPluginDAO().deleteInfo( solrClusterConfig.PRODUCT_KEY, solrClusterConfig
+        // .getClusterName() );
+        //            trackerOperation.addLogDone( "Cluster destroyed" );
+        //        }
+        //        catch ( EnvironmentDestroyException e )
+        //        {
+        //            trackerOperation.addLog( String.format( "%s, skipping...", e.getMessage() ) );
+        //        }
+        //
+        //        trackerOperation.addLog( "Updating db..." );
+        //
+        //        manager.getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, solrClusterConfig.getClusterName
+        // () );
+        //        trackerOperation.addLogDone( "Information updated in database" );
     }
 
 

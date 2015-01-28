@@ -3,7 +3,7 @@
 
 
   <reference id="tracker" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager" interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="solr-impl" scope="singleton" class="org.safehaus.subutai.plugin.solr.impl.SolrImpl"
         init-method="init" destroy-method="destroy">

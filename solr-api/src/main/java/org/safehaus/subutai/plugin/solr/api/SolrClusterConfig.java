@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.core.env.api.build.Topology;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 import com.google.common.base.Objects;
@@ -25,6 +26,7 @@ public class SolrClusterConfig implements ConfigBase
     private int numberOfNodes = 1;
     private Set<UUID> nodes = new HashSet<>();
     private UUID environmentId;
+    private Topology environmentTopology;
 
 
     public SolrClusterConfig setClusterName( String clusterName )
@@ -60,7 +62,6 @@ public class SolrClusterConfig implements ConfigBase
     }
 
 
-
     public int getNumberOfNodes()
     {
         return numberOfNodes;
@@ -82,6 +83,18 @@ public class SolrClusterConfig implements ConfigBase
     public void setNodes( final Set<UUID> nodes )
     {
         this.nodes = nodes;
+    }
+
+
+    public Topology getEnvironmentTopology()
+    {
+        return environmentTopology;
+    }
+
+
+    public void setEnvironmentTopology( final Topology environmentTopology )
+    {
+        this.environmentTopology = environmentTopology;
     }
 
 

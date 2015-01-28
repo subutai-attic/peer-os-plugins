@@ -8,7 +8,8 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
@@ -29,13 +30,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
     public NodeOperationHandler( final SolrImpl manager, final String clusterName, final String hostName,
                                  NodeOperationType operationType )
     {
-        super( manager, manager.getCluster( clusterName) );
+        super( manager, manager.getCluster( clusterName ) );
         this.hostName = hostName;
         this.clusterName = clusterName;
         this.operationType = operationType;
-        this.trackerOperation = manager.getTracker()
-                                       .createTrackerOperation( SolrClusterConfig.PRODUCT_KEY,
-                                               String.format( "Checking %s cluster...", clusterName ) );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( SolrClusterConfig.PRODUCT_KEY,
+                String.format( "Checking %s cluster...", clusterName ) );
     }
 
 
@@ -49,26 +49,26 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
-        {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostName ) )
-            {
-                break;
-            }
-        }
-
-        if ( host == null )
-        {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostName ) );
-            return;
-        }
-
         try
         {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Iterator iterator = environment.getContainerHosts().iterator();
+            ContainerHost host = null;
+            while ( iterator.hasNext() )
+            {
+                host = ( ContainerHost ) iterator.next();
+                if ( host.getHostname().equals( hostName ) )
+                {
+                    break;
+                }
+            }
+
+            if ( host == null )
+            {
+                trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostName ) );
+                return;
+            }
+
             CommandResult result = null;
             switch ( operationType )
             {
@@ -84,7 +84,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
             }
             logStatusResults( trackerOperation, result );
         }
-        catch ( CommandException e )
+        catch ( CommandException | EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }

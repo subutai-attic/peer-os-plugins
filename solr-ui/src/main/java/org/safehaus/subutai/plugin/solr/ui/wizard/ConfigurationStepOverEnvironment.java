@@ -6,11 +6,12 @@
 package org.safehaus.subutai.plugin.solr.ui.wizard;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 
 import com.google.common.base.Strings;
@@ -115,7 +116,7 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
 
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
-        List<Environment> environments = wizard.getEnvironmentManager().getEnvironments();
+        List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
         for ( int i = 0; i < environments.size(); i++ )
         {
             boolean applicable = false;

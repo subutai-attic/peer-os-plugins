@@ -15,8 +15,10 @@ import java.util.concurrent.ExecutorService;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -27,6 +29,8 @@ import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -48,6 +52,8 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
@@ -72,7 +78,8 @@ public class Manager
     private SolrClusterConfig solrClusterConfig;
 
 
-    public Manager( final ExecutorService executorService, Solr solr, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, Solr solr, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -194,8 +201,16 @@ public class Manager
     {
         if ( solrClusterConfig != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( solrClusterConfig.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHostsByIds( solrClusterConfig.getNodes() ) );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( solrClusterConfig.getEnvironmentId() );
+                populateTable( nodesTable, environment.getContainerHostsByIds( solrClusterConfig.getNodes() ) );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Error in Manager UI while getting environment by id", e );
+            }
         }
         else
         {
@@ -235,7 +250,8 @@ public class Manager
 
 
             table.addItem( new Object[] {
-                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), resultHolder, availableOperations
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), resultHolder,
+                    availableOperations
             }, null );
 
             addCheckButtonClickListener( containerHost, resultHolder, startBtn, stopBtn, checkBtn );
@@ -281,7 +297,8 @@ public class Manager
     }
 
 
-    private void addCheckButtonClickListener( final ContainerHost containerHost, final Label resultHolder, final Button... buttons )
+    private void addCheckButtonClickListener( final ContainerHost containerHost, final Label resultHolder,
+                                              final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -447,8 +464,16 @@ public class Manager
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( solrClusterConfig.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts = environmentManager.findEnvironment( solrClusterConfig.getEnvironmentId() )
+                                                           .getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id.", e );
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )

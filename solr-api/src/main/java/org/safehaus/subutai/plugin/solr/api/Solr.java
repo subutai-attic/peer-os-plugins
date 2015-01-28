@@ -8,9 +8,9 @@ package org.safehaus.subutai.plugin.solr.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.build.Blueprint;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
@@ -36,7 +36,7 @@ public interface Solr extends ApiBase<SolrClusterConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final SolrClusterConfig config,
                                                          final TrackerOperation po );
 
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config );
+    public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config );
 
     UUID configureEnvironmentCluster( SolrClusterConfig config );
 }

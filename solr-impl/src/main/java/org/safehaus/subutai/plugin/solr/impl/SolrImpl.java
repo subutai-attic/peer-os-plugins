@@ -7,14 +7,14 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.build.Blueprint;
+import org.safehaus.subutai.core.env.api.build.NodeGroup;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -42,7 +42,6 @@ public class SolrImpl implements Solr
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private PluginDAO pluginDAO;
-
 
 
     public SolrImpl()
@@ -231,25 +230,17 @@ public class SolrImpl implements Solr
 
 
     @Override
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config )
+    public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config )
     {
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint
-                .setName( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ) );
-
-        environmentBlueprint.setLinkHosts( true );
-        environmentBlueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        environmentBlueprint.setExchangeSshKeys( true );
-
         //1 node group
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setTemplateName( config.getTemplateName() );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes( config.getNumberOfNodes() );
+        NodeGroup nodeGroup = new NodeGroup(
+                String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                config.getTemplateName(), Common.DEFAULT_DOMAIN_NAME, config.getNumberOfNodes(), 1, 1,
+                new PlacementStrategy( "ROUND_ROBIN" ) );
 
-        environmentBlueprint.setNodeGroups( Sets.newHashSet( nodeGroup ) );
 
-        return environmentBlueprint;
+        return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                Sets.newHashSet( nodeGroup ) );
     }
 
 
