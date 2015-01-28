@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -75,13 +75,15 @@ public class HBaseAlertListener implements AlertListener
         {
             throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
                     null );
+            return;
         }
 
         //get cluster environment
-        Environment environment = hbase.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
+        Environment environment = hbase.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+            return;
         }
 
         //get environment containers and find alert's source host
@@ -101,6 +103,7 @@ public class HBaseAlertListener implements AlertListener
         {
             throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
                     null );
+            return;
         }
 
         //check if source host belongs to found hbase cluster

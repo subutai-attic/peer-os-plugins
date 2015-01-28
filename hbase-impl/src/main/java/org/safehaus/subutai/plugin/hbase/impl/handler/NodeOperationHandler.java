@@ -7,7 +7,9 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -38,7 +40,21 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         this.hostname = hostname;
         this.operationType = operationType;
         this.config = config;
-        this.node = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostByHostname( hostname );
+        try
+        {
+            this.node = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                               .getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
         trackerOperation = manager.getTracker().createTrackerOperation( HBaseConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
@@ -47,24 +63,33 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     @Override
     public void run()
     {
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
-        while ( iterator.hasNext() )
+        Environment environment = null;
+        try
         {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostname ) )
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Iterator iterator = environment.getContainerHosts().iterator();
+            ContainerHost host = null;
+            while ( iterator.hasNext() )
             {
-                break;
+                host = ( ContainerHost ) iterator.next();
+                if ( host.getHostname().equals( hostname ) )
+                {
+                    break;
+                }
             }
-        }
 
-        if ( host == null )
-        {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
-            return;
+            if ( host == null )
+            {
+                trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+                return;
+            }
+            runCommand( host, operationType );
         }
-        runCommand( host, operationType );
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
     }
 
 
@@ -144,7 +169,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             throw new ClusterException( String.format( "Node %s already belongs to this cluster", hostname ) );
         }
 
-        CommandResult result = executeCommand( node, manager.getCommands().getCheckInstalledCommand() );
+        CommandResult result = executeCommand( node, Commands.getCheckInstalledCommand() );
 
         if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
         {
@@ -156,7 +181,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
 
         trackerOperation.addLog( "Installing HBase..." );
 
-        executeCommand( node, manager.getCommands().getInstallCommand() );
+        executeCommand( node, Commands.getInstallCommand() );
 
         trackerOperation.addLog( "Setting Master IP..." );
 

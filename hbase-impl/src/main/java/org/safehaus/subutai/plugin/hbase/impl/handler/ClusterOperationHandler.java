@@ -10,8 +10,9 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -19,7 +20,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 import org.safehaus.subutai.plugin.hbase.impl.ClusterConfiguration;
@@ -47,7 +47,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         this( manager, hbaseConfig );
         Preconditions.checkNotNull( hbaseConfig );
         this.operationType = operationType;
-        this.environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        try
+        {
+            this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
+        }
         this.trackerOperation = manager.getTracker().createTrackerOperation( HBaseConfig.PRODUCT_KEY,
                 String.format( "Executing %s operation on cluster %s", operationType.name(), clusterName ) );
     }
@@ -118,7 +126,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         ContainerHost newNode = null;
 
         if ( iterator.hasNext() ){
-            newNode = environment.getContainerHostById( ( UUID ) iterator.next() );
+            try
+            {
+                newNode = environment.getContainerHostById( ( UUID ) iterator.next() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Couldn't retrieve container host by id: " + hadoopNodes.iterator().next().toString(), e );
+            }
         }
 
         assert newNode != null;
@@ -179,10 +194,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     }
     private void stopCluster()
     {
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
         try
         {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStopCommand() );
             if ( result.hasSucceeded() )
             {
@@ -199,15 +214,25 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             trackerOperation.addLogFailed( e.getMessage() );
             LOG.error( e.getMessage(), e );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
     }
 
 
     private void startCluster()
     {
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
         try
         {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStartCommand() );
             if ( result.hasSucceeded() )
             {
@@ -224,6 +249,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             trackerOperation.addLogFailed( e.getMessage() );
             LOG.error( e.getMessage(), e );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
     }
 
 
@@ -232,7 +267,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             //setup HBase cluster
             trackerOperation.addLog( "Installing cluster..." );
             HBaseSetupStrategy strategy = new HBaseSetupStrategy( manager, manager.getHadoopManager(),
@@ -246,6 +281,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Error in setupCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to setup cluster : %s", e.getMessage() ) );
         }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
     }
 
 
@@ -254,7 +293,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             if ( environment == null )
             {
                 throw new ClusterException(
@@ -300,13 +339,23 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Error in destroyCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to destroy cluster : %s", e.getMessage() ) );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
     }
 
 
     private void configureCluster(){
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             try
             {
                 new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() ).configureCluster( config, env );
@@ -320,6 +369,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             trackerOperation.addLogFailed( String.format( "Failed to setup cluster %s : %s",
                     config.getClusterName(), e.getMessage() ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found", e );
+            trackerOperation.addLogFailed( "Environment not found" );
         }
     }
 
