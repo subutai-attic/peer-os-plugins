@@ -10,9 +10,11 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -100,7 +102,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     {
         try
         {
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
             ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
             ContainerHost secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
@@ -157,6 +159,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         catch ( CommandException e )
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -283,7 +293,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
+                                     .createEnvironment( config.getClusterName(), config.getTopology(), false );
             ClusterSetupStrategy setupStrategy = manager.getClusterSetupStrategy( env, config, trackerOperation );
             setupStrategy.setup();
 
@@ -294,7 +304,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup Hadoop cluster %s : %s", clusterName, e.getMessage() ) );
         }
-        catch ( EnvironmentBuildException e )
+        catch ( EnvironmentCreationException e )
         {
             e.printStackTrace();
         }
@@ -315,11 +325,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
             manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( EnvironmentDestroyException e )
+        catch ( EnvironmentNotFoundException | EnvironmentDestructionException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
             LOG.error( e.getMessage(), e );

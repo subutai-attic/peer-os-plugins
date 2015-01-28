@@ -4,7 +4,8 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -44,7 +45,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             try
             {
                 new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
@@ -54,7 +55,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
                 throw new ClusterSetupException( e.getMessage() );
             }
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
             po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
         }
