@@ -66,7 +66,7 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( sqoop, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( sqoop, hadoop, executorService, tracker, environmentManager, this );
                 break;
             }
             default:

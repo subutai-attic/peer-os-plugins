@@ -9,8 +9,8 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.sqoop.api.SetupType;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -27,7 +27,7 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Sqoop sqoop, final ExecutorService executorService, final Tracker tracker,
+    public VerificationStep( final Sqoop sqoop, final Hadoop hadoop, final ExecutorService executorService, final Tracker tracker,
                              EnvironmentManager environmentManager, final Wizard wizard )
     {
 
@@ -43,24 +43,16 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final SqoopConfig config = wizard.getConfig();
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
+        final HadoopClusterConfig hc = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", wizard.getConfig().getClusterName() );
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+        Environment hadoopEnv = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
+
+        Set<ContainerHost> hosts = hadoopEnv.getContainerHostsByIds( config.getNodes() );
+        for ( ContainerHost host : hosts )
         {
-            Environment hadoopEnv = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
-            Set<ContainerHost> hosts = hadoopEnv.getContainerHostsByIds( config.getNodes() );
-            for ( ContainerHost host : hosts )
-            {
-                cfgView.addStringCfg( "Node(s) to install", host.getHostname() );
-            }
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
+            cfgView.addStringCfg( "Node(s) to install", host.getHostname() );
         }
 
         Button install = new Button( "Install" );
@@ -72,17 +64,8 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-
                 UUID trackId = null;
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = sqoop.installCluster( wizard.getConfig() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = sqoop.installCluster( config, hc );
-                }
-
+                trackId = sqoop.installCluster( wizard.getConfig() );
                 ProgressWindow window
                         = new ProgressWindow( executorService, tracker, trackId, SqoopConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

@@ -38,7 +38,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
         if ( nodes.size() < config.getNodes().size() )
         {
-            throw new ClusterSetupException( "Fewer nodes found in the encironment than expected" );
+            throw new ClusterSetupException( "Fewer nodes found in the environment than expected" );
         }
         for ( ContainerHost node : nodes )
         {
@@ -78,7 +78,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
                         to.addLog( String.format( "Node %s has already Sqoop installed.", node.getHostname() ) );
                         it.remove();
                     }
-                    else if ( res.getStdOut().contains( hadoop_pack ) )
+                    else if ( ! res.getStdOut().contains( hadoop_pack ) )
                     {
                         throw new ClusterSetupException( "Hadoop not installed on node " + node.getHostname() );
                     }

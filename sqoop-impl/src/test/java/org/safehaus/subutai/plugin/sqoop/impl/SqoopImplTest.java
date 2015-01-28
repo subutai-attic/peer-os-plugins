@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.sqoop.impl;
 
 import java.util.concurrent.ExecutorService;
 
-import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -15,10 +14,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.mock.TrackerOperationMock;
-import org.safehaus.subutai.plugin.sqoop.api.SetupType;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
 
