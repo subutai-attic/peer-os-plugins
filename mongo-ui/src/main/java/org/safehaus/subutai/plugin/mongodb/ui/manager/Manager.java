@@ -263,7 +263,9 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.ROUTER_NODE );
+                            //TODO add comboBox representing available peers
+                            UUID trackID =
+                                    mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.ROUTER_NODE, null );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -305,7 +307,9 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.DATA_NODE );
+                            //TODO add comboBox representing available peers
+                            UUID trackID =
+                                    mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.DATA_NODE, null );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
