@@ -1,6 +1,10 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
+import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,22 +15,24 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
-import org.safehaus.subutai.plugin.common.PluginDAO;
-
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NodeOperationHandlerTest
@@ -60,14 +66,14 @@ public class NodeOperationHandlerTest
 
 
     @Before
-    public void setUp() throws CommandException
+    public void setUp() throws CommandException, EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         when(commandResult.getStdOut()).thenReturn("NameNode");
         Set<ContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
         mySet.add(containerHost2);
         when(hadoopImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
         when(environment.getId()).thenReturn(uuid);
         when(environment.getContainerHosts()).thenReturn(mySet);
         Iterator<ContainerHost> iterator = mock(Iterator.class);
@@ -95,14 +101,14 @@ public class NodeOperationHandlerTest
 
 
     @Test
-    public void testRun()
+    public void testRun() throws EnvironmentNotFoundException
     {
         Set<ContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
         mySet.add(containerHost2);
 
         when(hadoopImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
         when(environment.getId()).thenReturn(uuid);
 
         when(environment.getContainerHosts()).thenReturn(mySet);

@@ -1,5 +1,10 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
+
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.safehaus.subutai.common.command.CommandException;
@@ -7,27 +12,29 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.build.Topology;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
-import org.safehaus.subutai.plugin.common.PluginDAO;
-
-import javax.sql.DataSource;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ClusterOperationHandlerTest
 {
@@ -47,7 +54,8 @@ public class ClusterOperationHandlerTest
     CommandResult commandResult;
 
     @Before
-    public void setUp() throws ClusterSetupException, EnvironmentBuildException
+    public void setUp() throws ClusterSetupException, EnvironmentBuildException, EnvironmentNotFoundException,
+            ContainerHostNotFoundException, EnvironmentCreationException
     {
         containerHost = mock(ContainerHost.class);
         containerHost2 = mock(ContainerHost.class);
@@ -68,10 +76,10 @@ public class ClusterOperationHandlerTest
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         when(hadoop.getTracker()).thenReturn(tracker);
         when(hadoop.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(uuid)).thenReturn(environment);
+        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
         when(environment.getContainerHostById( uuid )).thenReturn(containerHost);
 
-        when(environmentManager.buildEnvironment(hadoop.getDefaultEnvironmentBlueprint(hadoopClusterConfig)))
+        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyBoolean() ) )
                 .thenReturn(environment);
         when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
 
@@ -109,14 +117,14 @@ public class ClusterOperationHandlerTest
     }
 
     @Test
-    public void testRunOperationOnContainers() throws CommandException
+    public void testRunOperationOnContainers() throws CommandException, EnvironmentNotFoundException
     {
         when(hadoopClusterConfig.getEnvironmentId()).thenReturn(uuid);
         when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
         when(hadoopClusterConfig.getJobTracker()).thenReturn(uuid);
         when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn(uuid);
         when(hadoop.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
 
         // NodeType.NAMENODE
