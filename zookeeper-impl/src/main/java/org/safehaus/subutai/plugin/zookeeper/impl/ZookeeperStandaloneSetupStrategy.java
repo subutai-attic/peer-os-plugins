@@ -10,6 +10,8 @@ import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -107,18 +109,18 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
         }
         zookeeperClusterConfig.setNodes( zookeeperIDs );
 
-
-        //check if node agent is connected
-        for ( ContainerHost node : zookeeperNodes )
-        {
-            if ( environment.getContainerHostByHostname( node.getHostname() ) == null )
-            {
-                throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
-            }
-        }
-
         try
         {
+
+            //check if node agent is connected
+            for ( ContainerHost node : zookeeperNodes )
+            {
+                if ( environment.getContainerHostByHostname( node.getHostname() ) == null )
+                {
+                    throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
+                }
+            }
+
             new ClusterConfiguration( zookeeperManager, po ).configureCluster( zookeeperClusterConfig, environment );
 
             po.addLog( "Saving cluster information to database..." );
@@ -131,7 +133,7 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
             po.addLog( "Cluster information saved to database" );
             zookeeperManager.subscribeToAlerts( environment );
         }
-        catch ( MonitorException | ClusterConfigurationException ex )
+        catch ( MonitorException | ClusterConfigurationException | ContainerHostNotFoundException ex )
         {
             throw new ClusterSetupException( ex.getMessage() );
         }

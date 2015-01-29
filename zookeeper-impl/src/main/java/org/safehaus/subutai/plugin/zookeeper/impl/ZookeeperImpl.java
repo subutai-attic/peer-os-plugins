@@ -12,6 +12,8 @@ import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -113,7 +115,7 @@ public class ZookeeperImpl implements Zookeeper
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
+        //        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
     }
 
 
@@ -125,7 +127,7 @@ public class ZookeeperImpl implements Zookeeper
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
+        //        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
     }
 
 

@@ -13,6 +13,8 @@ import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.FileUtil;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
@@ -36,8 +38,8 @@ public class ClusterConfiguration
     }
 
 
-    public void configureCluster( final ZookeeperClusterConfig config, Environment environment ) throws
-            ClusterConfigurationException
+    public void configureCluster( final ZookeeperClusterConfig config, Environment environment )
+            throws ClusterConfigurationException
     {
 
         po.addLog( "Configuring cluster..." );
@@ -45,26 +47,37 @@ public class ClusterConfiguration
 
         String configureClusterCommand;
         Set<UUID> nodeUUIDs = config.getNodes();
-        Set<ContainerHost> containerHosts = environment.getContainerHostsByIds( nodeUUIDs );
+        Set<ContainerHost> containerHosts = null;
+        try
+        {
+            containerHosts = environment.getContainerHostsByIds( nodeUUIDs );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            po.addLogFailed( "Error getting container hosts by ids" );
+            return;
+        }
         Iterator<ContainerHost> iterator = containerHosts.iterator();
 
-        int nodeNumber=0;
+        int nodeNumber = 0;
         List<CommandResult> commandsResultList = new ArrayList<>();
-        while( iterator.hasNext() ) {
-            ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
-            configureClusterCommand = Commands.getConfigureClusterCommand(
-                    prepareConfiguration( containerHosts ), ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
-            CommandResult commandResult = null;
+        while ( iterator.hasNext() )
+        {
+            configureClusterCommand = Commands.getConfigureClusterCommand( prepareConfiguration( containerHosts ),
+                    ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
             try
             {
-                commandResult = zookeeperNode.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+                ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
+                CommandResult commandResult = null;
+                commandResult =
+                        zookeeperNode.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+                commandsResultList.add( commandResult );
             }
-            catch ( CommandException e )
+            catch ( CommandException | ContainerHostNotFoundException e )
             {
-                po.addLogFailed("Could not run command " + configureClusterCommand + ": " + e);
+                po.addLogFailed( "Could not run command " + configureClusterCommand + ": " + e );
                 e.printStackTrace();
             }
-            commandsResultList.add( commandResult );
         }
 
         boolean isSuccesful = true;
@@ -80,15 +93,16 @@ public class ClusterConfiguration
             po.addLog( "Cluster configured\nRestarting cluster..." );
             //restart all other nodes with new configuration
             commandsResultList = new ArrayList<>();
-            while( iterator.hasNext() ) {
-                ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
+            while ( iterator.hasNext() )
+            {
                 String restartCommand = Commands.getRestartCommand();
                 CommandResult commandResult = null;
                 try
                 {
+                    ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
                     commandResult = zookeeperNode.execute( new RequestBuilder( restartCommand ).withTimeout( 60 ) );
                 }
-                catch ( CommandException e )
+                catch ( CommandException | ContainerHostNotFoundException e )
                 {
                     po.addLogFailed( "Could not run command " + restartCommand + ": " + e );
                     e.printStackTrace();
@@ -150,9 +164,12 @@ public class ClusterConfiguration
     public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
     {
         List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList ) {
-            if ( ! commandResult.hasSucceeded() )
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
                 failedCommands.add( commandResult );
+            }
         }
         return failedCommands;
     }
