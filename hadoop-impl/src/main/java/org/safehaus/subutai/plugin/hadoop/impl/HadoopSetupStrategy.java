@@ -6,9 +6,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -108,6 +108,7 @@ public class HadoopSetupStrategy implements ClusterSetupStrategy
         catch ( EnvironmentCreationException e )
         {
             LOG.error( "Error setting up Hadoop cluster", e );
+            trackerOperation.addLogFailed( "Error setting up Hadoop cluster" );
         }
         return hadoopClusterConfig;
     }

@@ -7,13 +7,14 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Blueprint;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.build.Blueprint;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -541,15 +542,10 @@ public class HadoopImpl implements Hadoop
             throws ClusterSetupException
     {
 
-        org.safehaus.subutai.core.env.api.build.NodeGroup nodeGroup =
-                new org.safehaus.subutai.core.env.api.build.NodeGroup( "Hadoop node group",
+        NodeGroup nodeGroup = new NodeGroup( "Hadoop node group",
                         HadoopClusterConfig.TEMPLATE_NAME, Common.DEFAULT_DOMAIN_NAME,
                         HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(), 1, 1,
                         new PlacementStrategy( "ROUND_ROBIN" ) );
-
-        Blueprint blueprint = new Blueprint(
-                String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
-                Sets.newHashSet( nodeGroup ) );
 
         //        //hadoop master nodes
         //        NodeGroup mastersGroup = new NodeGroup();
@@ -571,7 +567,9 @@ public class HadoopImpl implements Hadoop
         //
         //        environmentBlueprint.setNodeGroups( nodeGroups );
 
-        return blueprint;
+        return new Blueprint(
+                String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                Sets.newHashSet( nodeGroup ) );
     }
 
 
