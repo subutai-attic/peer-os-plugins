@@ -26,4 +26,5 @@ public interface Sqoop extends ApiBase<SqoopConfig>
     public UUID importData( ImportSetting settings );
 
     public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation po );
+
 }

@@ -76,7 +76,7 @@ public class CommandFactory
                 }
                 appendOption( sb, "connect", settings.getConnectionString() );
                 appendOption( sb, "username", settings.getUsername() );
-                appendOption( sb, "password", settings.getPassword() );
+//                appendOption( sb, "password", settings.getPassword() );
                 if ( !all )
                 {
                     appendOption( sb, "table", settings.getTableName() );
