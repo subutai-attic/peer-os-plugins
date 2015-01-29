@@ -1,7 +1,7 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.Environment;
 
 
 public interface ClusterConfigurationInterface<T extends ConfigBase>
