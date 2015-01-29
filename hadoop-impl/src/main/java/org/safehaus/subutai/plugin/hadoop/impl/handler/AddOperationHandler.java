@@ -6,16 +6,16 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentModificationException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.environment.NodeGroup;
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.build.NodeGroup;
-import org.safehaus.subutai.core.env.api.build.Topology;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.network.api.NetworkManagerException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -145,7 +145,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             }
             catch ( NetworkManagerException e )
             {
-                e.printStackTrace();
+                logExceptionWithMessage( "Error exchanging with keys", e );
+                return;
             }
 
             // include newly created containers to existing hadoop cluster
@@ -159,7 +160,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
         }
         catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Error executing operations with environment", e );
         }
     }
 
@@ -188,7 +189,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
         }
         catch ( ContainerHostNotFoundException e )
         {
-            LOGGER.error( "Error while configuring slave node and getting container host by id", e );
+            logExceptionWithMessage( "Error while configuring slave node and getting container host by id", e );
         }
     }
 
@@ -201,7 +202,14 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
         }
         catch ( CommandException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Error executing command: " + command, e );
         }
+    }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
+        trackerOperation.addLogFailed( message );
     }
 }

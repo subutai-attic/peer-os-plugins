@@ -3,20 +3,22 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.Environment;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler<HadoopImpl, HadoopClusterConfig>
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigureEnvironmentClusterHandler.class );
     private HadoopClusterConfig config;
     private TrackerOperation po;
 
@@ -58,6 +60,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
         catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
             po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
+            LOGGER.error( String.format( "Failed to setup cluster %s", clusterName ), e );
         }
     }
 }
