@@ -5,10 +5,10 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.Environment;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -39,7 +39,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
         Commands commands = new Commands( config );
 
-        ContainerHost namenode = null;
+        ContainerHost namenode;
         try
         {
             namenode = environment.getContainerHostById( config.getNameNode() );
@@ -50,7 +50,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Error getting container host for name node." );
             throw new ClusterConfigurationException( e );
         }
-        ContainerHost jobtracker = null;
+        ContainerHost jobtracker;
         try
         {
             jobtracker = environment.getContainerHostById( config.getJobTracker() );
@@ -61,7 +61,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Error getting container host for name node." );
             throw new ClusterConfigurationException( e );
         }
-        ContainerHost secondaryNameNode = null;
+        ContainerHost secondaryNameNode;
         try
         {
             secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
@@ -69,6 +69,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         catch ( ContainerHostNotFoundException e )
         {
             LOG.error( "Error getting secondary container host", e );
+            po.addLogFailed( "Error getting secondary container host" );
+            throw new ClusterConfigurationException( e );
         }
         po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
 
