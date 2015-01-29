@@ -16,4 +16,6 @@
 
   <service ref="cassandra-impl" interface="org.safehaus.subutai.plugin.cassandra.api.Cassandra" />
 
+  <service ref="cassandra-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 </blueprint>
