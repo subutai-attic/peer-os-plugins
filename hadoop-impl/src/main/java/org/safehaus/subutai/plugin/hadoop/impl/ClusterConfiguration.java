@@ -10,13 +10,14 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class ClusterConfiguration
+public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class );
@@ -46,6 +47,8 @@ public class ClusterConfiguration
         catch ( ContainerHostNotFoundException e )
         {
             LOG.error( "Error getting container host for name node.", e );
+            po.addLogFailed( "Error getting container host for name node." );
+            throw new ClusterConfigurationException( e );
         }
         ContainerHost jobtracker = null;
         try
@@ -55,6 +58,8 @@ public class ClusterConfiguration
         catch ( ContainerHostNotFoundException e )
         {
             LOG.error( "Error getting container host for job tracker.", e );
+            po.addLogFailed( "Error getting container host for name node." );
+            throw new ClusterConfigurationException( e );
         }
         ContainerHost secondaryNameNode = null;
         try

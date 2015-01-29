@@ -103,9 +103,45 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
-            ContainerHost secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+            ContainerHost namenode = null;
+            try
+            {
+                namenode = environment.getContainerHostById( config.getNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( String.format( "Container host with id: %s not found", config.getNameNode().toString() ),
+                        e );
+                trackerOperation.addLogFailed(
+                        String.format( "Container host with id: %s not found", config.getNameNode().toString() ) );
+                return;
+            }
+            ContainerHost jobtracker = null;
+            try
+            {
+                jobtracker = environment.getContainerHostById( config.getJobTracker() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( String.format( "Container host with id: %s not found", config.getJobTracker().toString() ),
+                        e );
+                trackerOperation.addLogFailed(
+                        String.format( "Container host with id: %s not found", config.getJobTracker().toString() ) );
+                return;
+            }
+            ContainerHost secondaryNameNode = null;
+            try
+            {
+                secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( String.format( "Container host with id: %s not found",
+                        config.getSecondaryNameNode().toString() ), e );
+                trackerOperation.addLogFailed( String.format( "Container host with id: %s not found",
+                                config.getSecondaryNameNode().toString() ) );
+                return;
+            }
 
             CommandResult result = null;
             switch ( clusterOperationType )
@@ -159,10 +195,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         catch ( CommandException e )
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            e.printStackTrace();
         }
         catch ( EnvironmentNotFoundException e )
         {
