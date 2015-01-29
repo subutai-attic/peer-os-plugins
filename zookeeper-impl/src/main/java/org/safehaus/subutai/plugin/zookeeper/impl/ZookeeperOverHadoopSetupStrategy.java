@@ -5,12 +5,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -67,17 +71,42 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
 
         if ( zookeeperClusterConfig.getSetupType() == SetupType.OVER_HADOOP )
         {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                    manager.getHadoopManager().getCluster( zookeeperClusterConfig.getHadoopClusterName() )
-                           .getEnvironmentId() );
+            UUID envId = manager.getHadoopManager().getCluster( zookeeperClusterConfig.getHadoopClusterName() )
+                                .getEnvironmentId();
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( envId );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Couldn't get environment with id: %s", envId.toString() ) );
+            }
         }
-        Set<ContainerHost> zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+        Set<ContainerHost> zookeeperNodes = null;
+        try
+        {
+            zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException(
+                    String.format( "Nodes with ids not found: %s", zookeeperClusterConfig.getNodes().toString() ) );
+        }
         //check if node agent is connected
         for ( ContainerHost node : zookeeperNodes )
         {
-            if ( environment.getContainerHostByHostname( node.getHostname() ) == null )
+            try
             {
-                throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
+                if ( environment.getContainerHostByHostname( node.getHostname() ) == null )
+                {
+                    throw new ClusterSetupException( String.format( "Node %s is not connected", node.getHostname() ) );
+                }
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Couldn't find container host with name: %s", node.getHostname() ) );
             }
         }
 
