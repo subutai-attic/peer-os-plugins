@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -357,18 +358,31 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     @Override
     public void onContainerDestroyed( final Environment environment, final UUID uuid )
     {
+        LOG.info( String.format( "Cassandra environment event: Container destroyed: %s", uuid ) );
         List<CassandraClusterConfig> clusters = getClusters();
         for ( CassandraClusterConfig clusterConfig : clusters )
         {
             if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
             {
+                LOG.info( String.format( "Cassandra environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
                 if ( clusterConfig.getAllNodes().contains( uuid ) )
                 {
-                    clusterConfig.getNodes().remove( uuid );
-                    clusterConfig.getSeedNodes().remove( uuid );
+                    LOG.info( String.format( "Cassandra environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSeedNodes() ) )
+                    {
+                        clusterConfig.getSeedNodes().remove( uuid );
+                    }
                     try
                     {
                         saveConfig( clusterConfig );
+                        LOG.info( String.format( "Cassandra environment event: After: %s", clusterConfig ) );
                     }
                     catch ( ClusterException e )
                     {
@@ -384,14 +398,21 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     @Override
     public void onEnvironmentDestroyed( final UUID uuid )
     {
+        LOG.info( String.format( "Cassandra environment event: Environment destroyed: %s", uuid ) );
+
         List<CassandraClusterConfig> clusters = getClusters();
         for ( CassandraClusterConfig clusterConfig : clusters )
         {
             if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
             {
+                LOG.info( String.format( "Cassandra environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
                 try
                 {
                     deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Cassandra environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
                 {
