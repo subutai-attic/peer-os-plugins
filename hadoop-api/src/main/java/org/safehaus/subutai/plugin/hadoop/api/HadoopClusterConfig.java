@@ -295,7 +295,7 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public void removeNode( ContainerHost agent )
+    public void removeNode( UUID agent )
     {
         if ( dataNodes.contains( agent ) )
         {
