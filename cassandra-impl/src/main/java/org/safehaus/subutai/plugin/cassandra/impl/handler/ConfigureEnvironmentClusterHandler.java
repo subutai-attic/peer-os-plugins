@@ -3,8 +3,9 @@ package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.CassandraImpl;
 import org.safehaus.subutai.plugin.cassandra.impl.ClusterConfiguration;
@@ -44,7 +45,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
 
             try
             {
@@ -55,7 +56,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
                 throw new ClusterSetupException( e.getMessage() );
             }
         }
-        catch ( ClusterSetupException e )
+        catch ( EnvironmentNotFoundException | ClusterSetupException e )
         {
             po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
         }

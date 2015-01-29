@@ -83,26 +83,28 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response configureCluster( final String environmentId, final String clusterName,
-                                      final String nodes, final String seeds )
+    public Response configureCluster( final String environmentId, final String clusterName, final String nodes,
+                                      final String seeds )
     {
         CassandraClusterConfig config = new CassandraClusterConfig();
-        config.setEnvironmentId( UUID.fromString( environmentId  ) );
+        config.setEnvironmentId( UUID.fromString( environmentId ) );
         config.setClusterName( clusterName );
         Set<UUID> allNodes = new HashSet<>();
         Set<UUID> allSeeds = new HashSet<>();
-        String[] configNodes = nodes.replaceAll("\\s+","").split( "," );
-        String[] configSeeds = seeds.replaceAll("\\s+","").split( "," );
-        for ( String node : configNodes ){
+        String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
+        String[] configSeeds = seeds.replaceAll( "\\s+", "" ).split( "," );
+        for ( String node : configNodes )
+        {
             allNodes.add( UUID.fromString( node ) );
         }
-        for ( String node : configSeeds ){
+        for ( String node : configSeeds )
+        {
             allSeeds.add( UUID.fromString( node ) );
         }
         config.setNodes( allNodes );
         config.setSeedNodes( allSeeds );
 
-        UUID uuid = cassandraManager.configureEnvironmentCluster( config );
+        UUID uuid = cassandraManager.installCluster( config );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }

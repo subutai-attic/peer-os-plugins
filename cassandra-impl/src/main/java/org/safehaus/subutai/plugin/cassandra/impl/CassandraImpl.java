@@ -3,21 +3,16 @@ package org.safehaus.subutai.plugin.cassandra.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
-
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -26,10 +21,9 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.alert.CassandraAlertListener;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
-import org.safehaus.subutai.plugin.cassandra.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -40,10 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 
-public class CassandraImpl implements Cassandra
+public class CassandraImpl implements Cassandra, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( CassandraImpl.class.getName() );
@@ -59,7 +52,7 @@ public class CassandraImpl implements Cassandra
 
     public CassandraImpl( Monitor monitor )
     {
-       this.monitor = monitor;
+        this.monitor = monitor;
 
         cassandraAlertListener = new CassandraAlertListener( this );
         monitor.addAlertListener( cassandraAlertListener );
@@ -212,7 +205,9 @@ public class CassandraImpl implements Cassandra
     {
         return pluginDAO;
     }
-    public void setPluginDAO(PluginDAO pluginDAO)
+
+
+    public void setPluginDAO( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
@@ -322,41 +317,6 @@ public class CassandraImpl implements Cassandra
 
 
     @Override
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( final CassandraClusterConfig config )
-    {
-
-        EnvironmentBlueprint blueprint = new EnvironmentBlueprint();
-        blueprint.setName( String.format( "%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID() ) );
-
-        blueprint.setLinkHosts( true );
-        blueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        blueprint.setExchangeSshKeys( true );
-
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setName( CassandraClusterConfig.PRODUCT_NAME );
-        nodeGroup.setLinkHosts( true );
-        nodeGroup.setExchangeSshKeys( true );
-        nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        nodeGroup.setTemplateName( config.getTEMPLATE_NAME() );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes( config.getNumberOfNodes() );
-
-        blueprint.setNodeGroups( Sets.newHashSet( nodeGroup ) );
-
-        return blueprint;
-    }
-
-
-    public UUID configureEnvironmentCluster( final CassandraClusterConfig config )
-    {
-        Preconditions.checkNotNull( config, "Configuration is null" );
-        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
     public void saveConfig( final CassandraClusterConfig config ) throws ClusterException
     {
         Preconditions.checkNotNull( config );
@@ -365,5 +325,33 @@ public class CassandraImpl implements Cassandra
         {
             throw new ClusterException( "Could not save cluster info" );
         }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        //TODO
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        //TODO
     }
 }

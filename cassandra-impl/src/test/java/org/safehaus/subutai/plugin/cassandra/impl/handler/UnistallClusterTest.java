@@ -1,34 +1,32 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.CassandraImpl;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class UnistallClusterTest
 {
     private ClusterOperationHandler uninstallClusterHandler;
@@ -56,39 +54,42 @@ public class UnistallClusterTest
     @Mock
     PluginDAO pluginDAO;
 
+
     @Before
     public void setup()
     {
-        uuid = new UUID(50,50);
-        when(cassandraImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(),anyString())).thenReturn(trackerOperation);
-        when(cassandraClusterConfig.getClusterName()).thenReturn("test");
+        uuid = new UUID( 50, 50 );
+        when( cassandraImpl.getTracker() ).thenReturn( tracker );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
-        uninstallClusterHandler = new ClusterOperationHandler(cassandraImpl, cassandraClusterConfig, ClusterOperationType.UNINSTALL );
+        uninstallClusterHandler =
+                new ClusterOperationHandler( cassandraImpl, cassandraClusterConfig, ClusterOperationType.UNINSTALL );
     }
 
 
     @Test
-    public void testRun() throws EnvironmentDestroyException
+    public void testRun() throws Exception
     {
         // mock run method
-        when(cassandraImpl.getCluster(anyString())).thenReturn(cassandraClusterConfig);
-        when(cassandraImpl.getEnvironmentManager()).thenReturn(environmentManager);
-//        when(environmentManager.destroyEnvironment(any(UUID.class))).thenReturn(true);
-        when(cassandraImpl.getPluginDAO()).thenReturn(pluginDAO);
-        when(pluginDAO.deleteInfo(anyString(),anyString())).thenReturn(true);
+        when( cassandraImpl.getCluster( anyString() ) ).thenReturn( cassandraClusterConfig );
+        when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        //        when(environmentManager.destroyEnvironment(any(UUID.class))).thenReturn(true);
+        when( cassandraImpl.getPluginDAO() ).thenReturn( pluginDAO );
+        when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
         uninstallClusterHandler.run();
 
         // asserts
-//        assertTrue(environmentManager.destroyEnvironment( any( UUID.class ) ));
+        //        assertTrue(environmentManager.destroyEnvironment( any( UUID.class ) ));
         assertTrue( pluginDAO.deleteInfo( anyString(), anyString() ) );
-
     }
 
+
     @Test
-    public void testRunWhenCassandraClusterConfigIsNull() {
-        when(cassandraImpl.getCluster(anyString())).thenReturn(null);
+    public void testRunWhenCassandraClusterConfigIsNull()
+    {
+        when( cassandraImpl.getCluster( anyString() ) ).thenReturn( null );
 
         uninstallClusterHandler.run();
     }

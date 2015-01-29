@@ -6,10 +6,11 @@ import java.util.Iterator;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.CassandraImpl;
 import org.safehaus.subutai.plugin.cassandra.impl.ClusterConfiguration;
@@ -55,7 +56,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Cluster environment not found" );
+            return;
+        }
         Iterator iterator = environment.getContainerHosts().iterator();
         ContainerHost host = null;
         while ( iterator.hasNext() )
@@ -115,10 +125,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator.configureCluster( config,
-                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
             }
-            catch ( ClusterConfigurationException e )
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
                 e.printStackTrace();
             }
