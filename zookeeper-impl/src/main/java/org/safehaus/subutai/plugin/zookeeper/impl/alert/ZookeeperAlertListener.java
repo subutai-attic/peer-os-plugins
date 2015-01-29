@@ -12,6 +12,7 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -69,7 +70,7 @@ public class ZookeeperAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                zookeeper.getEnvironmentManager().getEnvironmentByUUID( containerHostMetric.getEnvironmentId() );
+                zookeeper.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(

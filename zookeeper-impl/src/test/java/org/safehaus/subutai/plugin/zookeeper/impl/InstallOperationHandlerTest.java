@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.zookeeper.impl;
 
 import org.junit.Test;
 import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.mock.TrackerMock;
