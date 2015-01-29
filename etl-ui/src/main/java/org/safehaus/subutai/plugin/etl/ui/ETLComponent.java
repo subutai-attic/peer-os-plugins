@@ -12,6 +12,8 @@ import org.safehaus.subutai.plugin.etl.ui.extract.ETLExtractManager;
 import org.safehaus.subutai.plugin.etl.ui.load.ETLLoadManager;
 import org.safehaus.subutai.plugin.etl.ui.transform.ETLTransformManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hive.api.Hive;
+import org.safehaus.subutai.plugin.pig.api.Pig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 
 import com.vaadin.ui.CustomComponent;
@@ -25,8 +27,8 @@ public class ETLComponent extends CustomComponent
     private final TabSheet sheet;
 
 
-    public ETLComponent( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
-                         EnvironmentManager environmentManager ) throws NamingException
+    public ETLComponent( ExecutorService executorService, ETL etl, Hadoop hadoop, Hive hive, Pig pig, Sqoop sqoop,
+                         Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
         final ETLExtractManager etlExtractManager =
                 new ETLExtractManager( executorService, etl, hadoop, sqoop, tracker, environmentManager );
@@ -35,7 +37,7 @@ public class ETLComponent extends CustomComponent
                 new ETLLoadManager( executorService, etl, hadoop, sqoop, tracker, environmentManager );
 
         final ETLTransformManager etlTransformManager =
-                new ETLTransformManager( executorService, etl, hadoop, sqoop, tracker, environmentManager );
+                new ETLTransformManager( executorService, etl, hadoop, sqoop, tracker, hive, pig, environmentManager );
 
 
         setSizeFull();

@@ -14,6 +14,8 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.api.ETLConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hive.api.Hive;
+import org.safehaus.subutai.plugin.pig.api.Pig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.server.ui.api.PortalModule;
 
@@ -32,13 +34,18 @@ public class ETLPortalModule implements PortalModule
     private final EnvironmentManager environmentManager;
     private Hadoop hadoop;
     private Sqoop sqoop;
+    private Hive hive;
+    private Pig pig;
 
 
-    public ETLPortalModule( ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker, EnvironmentManager environmentManager )
+    public ETLPortalModule( ETL etl, Hadoop hadoop, Sqoop sqoop,
+                            Hive hive, Pig pig, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.etl = etl;
         this.hadoop = hadoop;
         this.sqoop = sqoop;
+        this.hive = hive;
+        this.pig = pig;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
     }
@@ -82,7 +89,7 @@ public class ETLPortalModule implements PortalModule
     {
         try
         {
-            return new ETLComponent( executor, etl, hadoop, sqoop, tracker, environmentManager );
+            return new ETLComponent( executor, etl, hadoop, hive, pig, sqoop, tracker, environmentManager );
         }
         catch ( NamingException e )
         {

@@ -12,6 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.peer.ContainerHost;
+
 import com.vaadin.server.FileResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Embedded;
@@ -29,6 +33,7 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
     public QueryFileUploader( Embedded queryFile ){
         this.queryFile = queryFile;
     }
+
 
     @Override
     public OutputStream receiveUpload( String filename, String mimeType )
@@ -78,7 +83,7 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
             out.print( "" );
             out.print( content );
             out.close();
-            showUploadedText( area, file );
+//            showUploadedText( area, file );
         }
         catch ( FileNotFoundException e )
         {
@@ -123,10 +128,31 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
     }
 
 
+    public void copyFile( ContainerHost containerHost, File file ) throws IOException
+    {
+        executeCommand( containerHost, "mkdir -p " + UPLOAD_PATH );
+        executeCommand( containerHost, "touch " + UPLOAD_PATH + file.getName() );
+        executeCommand( containerHost, "echo " + "\"" + new String( readFile( file.toPath(), Charset.defaultCharset() ) ) + "\"  > " + UPLOAD_PATH + file.getName() );
+    }
+
+
     public void uploadSucceeded(Upload.SucceededEvent event) {
         // Show the uploaded file in the queryFile viewer
         queryFile.setVisible( true );
         queryFile.setCaption( "File uploaded to " + file.getAbsolutePath() );
         queryFile.setSource( new FileResource( file ) );
+    }
+
+
+    private void executeCommand( ContainerHost containerHost, String command ){
+
+        try
+        {
+            containerHost.execute( new RequestBuilder( command ) );
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
     }
 }

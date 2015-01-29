@@ -16,6 +16,10 @@ import org.safehaus.subutai.plugin.etl.ui.ETLBaseManager;
 import org.safehaus.subutai.plugin.etl.ui.UIUtil;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hive.api.Hive;
+import org.safehaus.subutai.plugin.hive.api.HiveConfig;
+import org.safehaus.subutai.plugin.pig.api.Pig;
+import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 
 import com.google.common.collect.Sets;
@@ -29,12 +33,16 @@ import com.vaadin.ui.VerticalLayout;
 public class ETLTransformManager extends ETLBaseManager
 {
     private QueryPanel queryPanel;
+    private Hive hive;
+    private Pig pig;
 
     public ETLTransformManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
-                                EnvironmentManager environmentManager )
+                                Hive hive, Pig pig, EnvironmentManager environmentManager )
             throws NamingException
     {
         super( executorService, etl, hadoop, sqoop, tracker, environmentManager );
+        this.hive = hive;
+        this.pig = pig;
 
         init( contentRoot, type );
     }
@@ -93,12 +101,15 @@ public class ETLTransformManager extends ETLBaseManager
 
         switch ( type ){
             case HIVE:
+                hadoopClustersCombo.setValue( null );
                 gridLayout.addComponent( hiveSelection, 0, 2 );
                 tabsheet.setSelectedTab( tab1 );
                 break;
             case PIG:
+                hadoopClustersCombo.setValue( null );
                 gridLayout.addComponent( pigSelection, 0, 2 );
                 tabsheet.setSelectedTab( tab2 );
+
                 break;
         }
 
@@ -140,22 +151,31 @@ public class ETLTransformManager extends ETLBaseManager
                     hiveSelection.removeAllItems();
                     pigSelection.removeAllItems();
 
-                    enableProgressBar();
-                    Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( hadoopNodes, queryType );
-                    if ( filteredHadoopNodes.isEmpty() ){
-                        show( "No node has subutai " + queryType.name() + " package installed" );
-                    }
-                    else {
-                        for ( ContainerHost hadoopNode : filterHadoopNodes( hadoopNodes, queryType ) )
-                        {
-                            hiveSelection.addItem( hadoopNode );
-                            hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+                    for ( ContainerHost hadoopNode : hadoopNodes )
+                    {
+                        hiveSelection.addItem( hadoopNode );
+                        hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
 
-                            pigSelection.addItem( hadoopNode );
-                            pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
-                        }
+                        pigSelection.addItem( hadoopNode );
+                        pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
                     }
-                    disableProgressBar();
+
+//                    enableProgressBar();
+//                    Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( hadoopNodes, queryType );
+//                    if ( filteredHadoopNodes.isEmpty() ){
+//                        show( "No node has subutai " + queryType.name() + " package installed" );
+//                    }
+//                    else {
+//                        for ( ContainerHost hadoopNode : filterHadoopNodes( hadoopNodes, queryType ) )
+//                        {
+//                            hiveSelection.addItem( hadoopNode );
+//                            hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+//
+//                            pigSelection.addItem( hadoopNode );
+//                            pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+//                        }
+//                    }
+//                    disableProgressBar();
                 }
             }
         } );
@@ -168,6 +188,11 @@ public class ETLTransformManager extends ETLBaseManager
                 if ( event.getProperty().getValue() != null )
                 {
                     ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
+                    HiveConfig config = findHiveConfigOfContainerHost( hive.getClusters(), containerHost );
+                    queryPanel.setContainerHost( containerHost );
+                    if ( config != null ){
+                        queryPanel.setClusterName( config.getClusterName() );
+                    }
                 }
             }
         } );
@@ -180,6 +205,11 @@ public class ETLTransformManager extends ETLBaseManager
                 if ( event.getProperty().getValue() != null )
                 {
                     ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
+                    PigConfig config = findPigConfigOfContainerHost( pig.getClusters(), containerHost );
+                    queryPanel.setContainerHost( containerHost );
+                    if ( config != null ){
+                        queryPanel.setClusterName( config.getClusterName() );
+                    }
                 }
             }
         } );

@@ -16,6 +16,7 @@ import org.safehaus.subutai.plugin.etl.ui.ExportPanel;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
+import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.ComboBox;
@@ -25,7 +26,7 @@ public class ETLLoadManager extends ETLBaseManager
 {
     private final ExportPanel exportPanel;
 
-    public ETLLoadManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop, Sqoop sqoop,
+    public ETLLoadManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop, final Sqoop sqoop,
                            Tracker tracker, final EnvironmentManager environmentManager )
             throws NamingException
     {
@@ -81,6 +82,8 @@ public class ETLLoadManager extends ETLBaseManager
                 {
                     ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
                     exportPanel.setHost( containerHost );
+                    SqoopConfig config = findSqoopConfigOfContainerHost( sqoop.getClusters(), containerHost );
+                    exportPanel.setClusterName( config.getClusterName() );
                 }
             }
         } );

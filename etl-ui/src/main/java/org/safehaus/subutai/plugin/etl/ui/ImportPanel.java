@@ -184,8 +184,6 @@ public class ImportPanel extends ImportExportBase
                 }
                 setFieldsEnabled( false );
                 ImportSetting sett = makeSettings();
-                // TODO
-                sett.setClusterName( "test" );
                 final UUID trackId = sqoop.importData( sett );
                 OperationWatcher watcher = new OperationWatcher( trackId );
                 watcher.setCallback( new OperationCallback()

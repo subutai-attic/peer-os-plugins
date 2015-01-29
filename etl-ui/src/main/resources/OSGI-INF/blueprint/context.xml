@@ -5,6 +5,10 @@
              interface="org.safehaus.subutai.plugin.etl.api.ETL" />
   <reference id="sqoop" availability="mandatory"
              interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
+  <reference id="hive" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hive.api.Hive" />
+  <reference id="pig" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.pig.api.Pig" />
   <reference id="hadoop" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
@@ -16,6 +20,8 @@
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.etl.ui.ETLPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="sqoop"/>
+    <argument ref="hive"/>
+    <argument ref="pig"/>
     <argument ref="etl" />
     <argument ref="hadoop" />
     <argument ref="tracker" />

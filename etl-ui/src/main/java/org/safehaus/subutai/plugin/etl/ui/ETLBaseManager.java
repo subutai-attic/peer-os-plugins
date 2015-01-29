@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.etl.ui;
 
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -15,10 +16,13 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.transform.QueryType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hive.api.HiveConfig;
+import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
@@ -206,6 +210,86 @@ public class ETLBaseManager
     public void setHadoop( final Hadoop hadoop )
     {
         this.hadoop = hadoop;
+    }
+
+
+    public SqoopConfig findSqoopConfigOfContainerHost( List<SqoopConfig> configs, ContainerHost host ){
+        for ( SqoopConfig config : configs )
+        {
+            HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            {
+                if ( containerHost.getId().equals( host.getId() ) )
+                {
+                    return config;
+                }
+            }
+        }
+        return null;
+    }
+
+    public HiveConfig findHiveConfigOfContainerHost( List<HiveConfig> configs, ContainerHost host ){
+        for ( HiveConfig config : configs )
+        {
+            HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            {
+                if ( containerHost.getId().equals( host.getId() ) )
+                {
+                    return config;
+                }
+            }
+        }
+        return null;
+    }
+
+    public PigConfig findPigConfigOfContainerHost( List<PigConfig> configs, ContainerHost host ){
+        for ( PigConfig config : configs )
+        {
+            HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            {
+                if ( containerHost.getId().equals( host.getId() ) )
+                {
+                    return config;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    public ConfigBase findConfigOfContainerHost( List<ConfigBase> configs, ContainerHost host ){
+        for ( ConfigBase config : configs )
+        {
+            HadoopClusterConfig hadoopClusterConfig = null;
+            switch ( config.getProductKey() ){
+                case SqoopConfig.PRODUCT_KEY:
+                    SqoopConfig sqoopConfig = ( SqoopConfig ) config;
+                    hadoopClusterConfig = hadoop.getCluster( sqoopConfig.getHadoopClusterName() );
+                    break;
+                case HiveConfig.PRODUCT_KEY:
+                    HiveConfig hiveConfig = ( HiveConfig ) config;
+                    hadoopClusterConfig = hadoop.getCluster( hiveConfig.getHadoopClusterName() );
+                    break;
+                case PigConfig.PRODUCT_KEY:
+                    PigConfig pigConfig = ( PigConfig ) config;
+                    hadoopClusterConfig = hadoop.getCluster( pigConfig.getHadoopClusterName() );
+                    break;
+            }
+            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            {
+                if ( containerHost.getId().equals( host.getId() ) )
+                {
+                    return config;
+                }
+            }
+        }
+        return null;
     }
 }
 
