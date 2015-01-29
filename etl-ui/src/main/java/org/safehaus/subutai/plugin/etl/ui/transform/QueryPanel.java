@@ -38,6 +38,7 @@ public class QueryPanel extends VerticalLayout
     private String clusterName;
     private QueryType type;
     ETLTransformManager etlTransformManager;
+    private final int rowSize = 30;
 
 
 
@@ -78,7 +79,7 @@ public class QueryPanel extends VerticalLayout
 
         final TextArea contentOfQueryFile = new TextArea( "Content of query file:" );
         contentOfQueryFile.setSizeFull();
-        contentOfQueryFile.setRows( 20 );
+        contentOfQueryFile.setRows( 10 );
         contentOfQueryFile.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -169,11 +170,12 @@ public class QueryPanel extends VerticalLayout
 
         final TextArea std_logs = new TextArea();
         std_logs.setSizeFull();
-        std_logs.setRows( 20 );
+        std_logs.setRows( rowSize );
+
 
         final TextArea std_err_logs = new TextArea();
         std_err_logs.setSizeFull();
-        std_err_logs.setRows( 20 );
+        std_err_logs.setRows( rowSize );
 
 
         final QueryType queryType = type;
@@ -291,9 +293,6 @@ public class QueryPanel extends VerticalLayout
         left.addComponent( buttonLayout );
         left.setComponentAlignment( buttonLayout, Alignment.MIDDLE_CENTER );
 
-        right.addComponent( new Label( "" ) );
-        right.addComponent( new Label( "" ) );
-        right.addComponent( new Label( "" ) );
         right.addComponent( tabsheet );
         right.addComponent( clearLogs );
         right.setComponentAlignment( clearLogs, Alignment.MIDDLE_CENTER );
