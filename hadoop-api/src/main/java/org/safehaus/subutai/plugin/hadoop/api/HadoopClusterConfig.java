@@ -7,15 +7,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.env.api.build.Topology;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 
 public class HadoopClusterConfig implements ConfigBase
