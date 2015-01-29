@@ -329,6 +329,18 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
 
 
     @Override
+    public void deleteConfig( final CassandraClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
     public void onEnvironmentCreated( final Environment environment )
     {
         //not needed
@@ -345,13 +357,48 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     @Override
     public void onContainerDestroyed( final Environment environment, final UUID uuid )
     {
-        //TODO
+        List<CassandraClusterConfig> clusters = getClusters();
+        for ( CassandraClusterConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                {
+                    clusterConfig.getNodes().remove( uuid );
+                    clusterConfig.getSeedNodes().remove( uuid );
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
     }
 
 
     @Override
     public void onEnvironmentDestroyed( final UUID uuid )
     {
-        //TODO
+        List<CassandraClusterConfig> clusters = getClusters();
+        for ( CassandraClusterConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                try
+                {
+                    deleteConfig( clusterConfig );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
     }
 }

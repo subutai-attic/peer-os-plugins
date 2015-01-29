@@ -43,4 +43,6 @@ public interface Cassandra extends ApiBase<CassandraClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( CassandraClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( CassandraClusterConfig config ) throws ClusterException;
 }
