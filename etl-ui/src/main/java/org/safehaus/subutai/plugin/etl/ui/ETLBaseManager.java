@@ -26,16 +26,13 @@ import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
-import com.google.common.collect.Sets;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.UI;
+import com.vaadin.ui.ProgressBar;
 
 
 public class ETLBaseManager
@@ -48,7 +45,7 @@ public class ETLBaseManager
 
     public Hadoop hadoop;
     public Sqoop sqoop;
-    public final Embedded progressIcon = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
+    public ProgressBar progressIcon;
 
     public QueryType type;
     public HorizontalLayout hadoopComboWithProgressIcon;
@@ -83,7 +80,9 @@ public class ETLBaseManager
         hadoopClustersCombo.setRequired( true );
         hadoopComboWithProgressIcon.addComponent( hadoopClustersCombo );
 
-
+        progressIcon = new ProgressBar();
+        progressIcon.setId( "indicator" );
+        progressIcon.setIndeterminate( true );
         progressIcon.setVisible( false );
         hadoopComboWithProgressIcon.addComponent( progressIcon );
         hadoopComboWithProgressIcon.setComponentAlignment( progressIcon, Alignment.BOTTOM_CENTER );
@@ -153,45 +152,6 @@ public class ETLBaseManager
     public void disableProgressBar()
     {
         progressIcon.setVisible( false );
-    }
-
-
-    public class FilterThread extends Thread {
-        HadoopClusterConfig hadoopInfo;
-        ComboBox comboBox;
-        Set<ContainerHost> resultList = new HashSet<>();
-
-        public FilterThread( HadoopClusterConfig hadoopInfo, ComboBox comboBox ){
-            this.hadoopInfo = hadoopInfo;
-            this.comboBox = comboBox;
-        }
-
-        @Override
-        public void run() {
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-            final Set<ContainerHost> hadoopNodes =
-                    hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
-            UI.getCurrent().access(new Runnable() {
-                @Override
-                public void run() {
-                    enableProgressBar();
-                    Set<ContainerHost> filteredNodes = filterSqoopInstalledNodes( hadoopNodes );
-
-                    if ( filteredNodes.isEmpty() ){
-                        show( "No node has subutai Sqoop package installed" );
-                    }
-                    else {
-                        for ( ContainerHost hadoopNode : filteredNodes )
-                        {
-                            comboBox.addItem( hadoopNode );
-                            comboBox.setItemCaption( hadoopNode, hadoopNode.getHostname() );
-                        }
-                    };
-                    resultList = filteredNodes;
-                    disableProgressBar();
-                }
-            });
-        }
     }
 
 

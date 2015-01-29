@@ -143,39 +143,35 @@ public class ETLTransformManager extends ETLBaseManager
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    Set<ContainerHost> hadoopNodes =
+                    final Set<ContainerHost> hadoopNodes =
                             hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
-
                     hiveSelection.setValue( null );
                     pigSelection.setValue( null );
                     hiveSelection.removeAllItems();
                     pigSelection.removeAllItems();
-
-                    for ( ContainerHost hadoopNode : hadoopNodes )
+                    enableProgressBar();
+                    executorService.execute( new Runnable()
                     {
-                        hiveSelection.addItem( hadoopNode );
-                        hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+                        @Override
+                        public void run()
+                        {
+                            Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( hadoopNodes, queryType );
+                            if ( filteredHadoopNodes.isEmpty() ){
+                                show( "No node has subutai " + queryType.name() + " package installed" );
+                            }
+                            else {
+                                for ( ContainerHost hadoopNode : filterHadoopNodes( hadoopNodes, queryType ) )
+                                {
+                                    hiveSelection.addItem( hadoopNode );
+                                    hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
 
-                        pigSelection.addItem( hadoopNode );
-                        pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
-                    }
-
-//                    enableProgressBar();
-//                    Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( hadoopNodes, queryType );
-//                    if ( filteredHadoopNodes.isEmpty() ){
-//                        show( "No node has subutai " + queryType.name() + " package installed" );
-//                    }
-//                    else {
-//                        for ( ContainerHost hadoopNode : filterHadoopNodes( hadoopNodes, queryType ) )
-//                        {
-//                            hiveSelection.addItem( hadoopNode );
-//                            hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
-//
-//                            pigSelection.addItem( hadoopNode );
-//                            pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
-//                        }
-//                    }
-//                    disableProgressBar();
+                                    pigSelection.addItem( hadoopNode );
+                                    pigSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+                                }
+                            }
+                            disableProgressBar();
+                        }
+                    } );
                 }
             }
         } );

@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.etl.ui.extract;
 
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
@@ -18,8 +19,10 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
+import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.UI;
 
 
 public class ETLExtractManager extends ETLBaseManager
@@ -64,15 +67,39 @@ public class ETLExtractManager extends ETLBaseManager
                 progressIcon.setVisible( true );
                 if ( event.getProperty().getValue() != null )
                 {
-                    HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
-                    Environment hadoopEnvironment = environmentManager
-                            .getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-
+                    final HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     sqoopSelection.setValue( null );
                     sqoopSelection.removeAllItems();
+                    executorService.execute( new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
+                            final Set<ContainerHost> hadoopNodes =
+                                    hadoopEnvironment.getContainerHostsByIds( Sets
+                                            .newHashSet( hadoopInfo.getAllNodes() ) );
+                            UI.getCurrent().access(new Runnable() {
+                                @Override
+                                public void run() {
 
-                    FilterThread filterThread = new FilterThread( hadoopInfo, sqoopSelection );
-                    executorService.execute( filterThread );
+                                    Set<ContainerHost> filteredNodes = filterSqoopInstalledNodes( hadoopNodes );
+
+                                    if ( filteredNodes.isEmpty() ){
+                                        show( "No node has subutai Sqoop package installed" );
+                                    }
+                                    else {
+                                        for ( ContainerHost hadoopNode : filteredNodes )
+                                        {
+                                            sqoopSelection.addItem( hadoopNode );
+                                            sqoopSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
+                                        }
+                                    };
+                                    disableProgressBar();
+                                }
+                            });
+                        }
+                    } );
                 }
             }
         } );
