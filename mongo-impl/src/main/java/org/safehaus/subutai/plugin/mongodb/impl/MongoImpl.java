@@ -295,13 +295,13 @@ public class MongoImpl implements Mongo
     }
 
 
-    public UUID addNode( final String clusterName, final NodeType nodeType, UUID peerId )
+    public UUID addNode( final String clusterName, final NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkNotNull( nodeType, "Node type is null" );
 
 
-        AbstractOperationHandler operationHandler = new AddNodeOperationHandler( this, clusterName, nodeType, peerId );
+        AbstractOperationHandler operationHandler = new AddNodeOperationHandler( this, clusterName, nodeType );
 
         executor.execute( operationHandler );
 

@@ -229,8 +229,7 @@ public class MongoAlertListener implements AlertListener
                 }
 
                 //launch node addition process
-                mongo.addNode( targetCluster.getClusterName(), NodeType.valueOf( sourceHost.getNodeGroupName() ),
-                        mongo.getPeerManager().getLocalPeer().getId() );
+                mongo.addNode( targetCluster.getClusterName(), NodeType.valueOf( sourceHost.getNodeGroupName() ) );
             }
         }
         else

@@ -26,11 +26,10 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
      *
      * @param clusterName - name of cluster
      * @param nodeType - type of node to add
-     * @param peerId - peer Identity
      *
      * @return - UUID of operation to track
      */
-    public UUID addNode( String clusterName, NodeType nodeType, UUID peerId );
+    public UUID addNode( String clusterName, NodeType nodeType );
 
     /**
      * destroys node in the specified cluster

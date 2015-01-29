@@ -11,14 +11,11 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.exception.SubutaiException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
-import org.safehaus.subutai.common.peer.Peer;
 import org.safehaus.subutai.common.peer.PeerException;
-import org.safehaus.subutai.common.protocol.Template;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.build.NodeGroup;
-import org.safehaus.subutai.core.env.api.build.Topology;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
@@ -29,9 +26,11 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoConfigNodeImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoDataNodeImpl;
-import org.safehaus.subutai.plugin.mongodb.impl.MongoDbSetupStrategy;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoRouterNodeImpl;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 /**
@@ -41,14 +40,12 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 {
     private final TrackerOperation po;
     private final NodeType nodeType;
-    private final UUID peerId;
 
 
-    public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType, UUID peerId )
+    public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType )
     {
         super( manager, clusterName );
         this.nodeType = nodeType;
-        this.peerId = peerId;
         po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %s to %s...", nodeType, clusterName ) );
     }
@@ -88,30 +85,25 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 
         try
         {
-            List<Template> templates = new ArrayList();
-            Template template = localPeer.getTemplate( config.getTemplateName() );
-            templates.add( template );
-            while ( !"master".equals( template.getTemplateName() ) )
-            {
-                template = localPeer.getTemplate( template.getParentTemplateName() );
-                templates.add( 0, template );
-            }
-
-            Peer peer = manager.getPeerManager().getPeer( peerId );
-            NodeGroup nodeGroup =
-                    new NodeGroup( nodeType.name(), config.getTemplateName(), Common.DEFAULT_DOMAIN_NAME, 1, 1, 1,
-                            MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( nodeType ) );
-            Topology topology = new Topology();
-            topology.addNodeGroupPlacement( peer, nodeGroup );
 
             //was creating topology by pre-configuring nodeGroup and blueprint
-            Set<ContainerHost> johnnyRawSet =
-                    manager.getEnvironmentManager().breedEnvironment( config.getEnvironmentId(), topology, false );
-            if ( johnnyRawSet.size() == 0 )
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            List<ContainerHost> envContainerHosts = new ArrayList<>( environment.getContainerHosts() );
+            envContainerHosts.removeAll( environment.getContainerHostsByIds( config.getAllNodeIds() ) );
+
+            for ( int i = 0; i < envContainerHosts.size(); i++ )
+            {
+                ContainerHost host = envContainerHosts.get( i );
+                if ( !host.getTemplateName().equalsIgnoreCase( MongoClusterConfig.PRODUCT_NAME ) )
+                {
+                    envContainerHosts.remove( i );
+                }
+            }
+            if ( envContainerHosts.size() == 0 )
             {
                 throw new PeerException( "Something went wrong breeding environment" );
             }
-            ContainerHost johnnyRaw = johnnyRawSet.iterator().next();
+            ContainerHost johnnyRaw = envContainerHosts.iterator().next();
             switch ( nodeType )
             {
                 case CONFIG_NODE:
@@ -125,19 +117,16 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                     mongoNode = new MongoDataNodeImpl( johnnyRaw, config.getDomainName(), config.getDataNodePort() );
                     break;
             }
+            //            mongoNode.start( config );
             config.addNode( mongoNode, nodeType );
             manager.subscribeToAlerts( mongoNode.getContainerHost() );
             po.addLog( "Lxc container created successfully\nConfiguring cluster..." );
         }
-        catch ( PeerException | MonitorException |
-                EnvironmentModificationException e )
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | PeerException |
+                MonitorException e )
         {
             po.addLogFailed( e.toString() );
             return;
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            e.printStackTrace();
         }
 
         boolean result = true;
@@ -155,7 +144,8 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         {
             po.addLog( "Updating cluster information in database..." );
 
-            String json = manager.getGSON().toJson( config.prepare() );
+            Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
+            String json = GSON.toJson( config.prepare() );
             manager.getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), json );
             po.addLogDone( "Cluster information updated in database" );
         }

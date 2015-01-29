@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutorService;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -36,21 +35,19 @@ public class Wizard
     private boolean installOverEnvironment;
     private MongoClusterConfig mongoClusterConfig;// = new MongoClusterConfigImpl();
     private EnvironmentManager environmentManager;
-    private PeerManager peerManager;
     private Set<String> configServerNames = new HashSet<>();
     private Set<String> routerServerNames = new HashSet<>();
     private Set<String> dataServerNames = new HashSet<>();
 
 
     public Wizard( ExecutorService executorService, Mongo mongo, Tracker tracker,
-                   final EnvironmentManager environmentManager, final PeerManager peerManager ) throws NamingException
+                   final EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.mongo = mongo;
         this.tracker = tracker;
         this.mongoClusterConfig = mongo.newMongoClusterConfigInstance();
         this.environmentManager = environmentManager;
-        this.peerManager = peerManager;
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
         grid.setSizeFull();
@@ -152,18 +149,6 @@ public class Wizard
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
-    }
-
-
-    public PeerManager getPeerManager()
-    {
-        return peerManager;
-    }
-
-
-    public void setPeerManager( final PeerManager peerManager )
-    {
-        this.peerManager = peerManager;
     }
 
 

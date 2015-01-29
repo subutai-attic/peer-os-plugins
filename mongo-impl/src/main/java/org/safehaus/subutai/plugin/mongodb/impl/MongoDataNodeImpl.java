@@ -31,7 +31,7 @@ public class MongoDataNodeImpl extends MongoNodeImpl implements MongoDataNode
         try
         {
             CommandDef commandDef = Commands.getStartDataNodeCommandLine( port );
-            CommandResult commandResult = execute( commandDef.build( true ).withTimeout( 10 ) );
+            CommandResult commandResult = execute( commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
 
 
             if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )

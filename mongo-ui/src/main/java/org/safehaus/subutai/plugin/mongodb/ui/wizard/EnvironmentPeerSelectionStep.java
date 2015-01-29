@@ -57,7 +57,7 @@ public class EnvironmentPeerSelectionStep extends VerticalLayout
     public EnvironmentPeerSelectionStep( final Wizard wizard )
     {
         this.wizard = wizard;
-        this.peers.addAll( wizard.getPeerManager().getPeers() );
+        //        this.peers.addAll( wizard.getPeerManager().getPeers() );
         editableHeights();
     }
 
