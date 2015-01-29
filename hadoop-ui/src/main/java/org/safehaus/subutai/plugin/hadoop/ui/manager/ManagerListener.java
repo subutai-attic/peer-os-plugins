@@ -23,9 +23,9 @@ package org.safehaus.subutai.plugin.hadoop.ui.manager;
 import java.util.List;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -112,7 +112,7 @@ public class ManagerListener
                 if ( hadoopManager.getHadoopCluster() != null )
                 {
                     final QuestionDialog questionDialog =
-                            new QuestionDialog<Integer>( ADD_ITEM_ACTION, "How many nodes do you want to add?",
+                            new QuestionDialog<>( ADD_ITEM_ACTION, "How many nodes do you want to add?",
                                     Integer.class, "Next", "Cancel" );
                     questionDialog.getOk().setId( "addNodeOk" );
                     questionDialog.getCancel().setId( "addNodeCancel" );
