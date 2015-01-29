@@ -10,6 +10,10 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -76,38 +80,46 @@ public class ZookeeperClusterOperationHandler
     {
         Environment environment;
         List<CommandResult> commandResultList = new ArrayList<>();
-        switch ( clusterOperationType )
+        try
         {
-            case INSTALL:
-                setupCluster();
-                break;
-            case UNINSTALL:
-                destroyCluster();
-                break;
-            case START_ALL:
-                environment = manager.getEnvironmentManager()
-                                     .getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
-                }
-                break;
-            case STOP_ALL:
-                environment = manager.getEnvironmentManager()
-                                     .getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
-                }
-                break;
-            case STATUS_ALL:
-                environment = manager.getEnvironmentManager()
-                                     .getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
-                }
-                break;
+            switch ( clusterOperationType )
+            {
+                case INSTALL:
+                    setupCluster();
+                    break;
+                case UNINSTALL:
+                    destroyCluster();
+                    break;
+                case START_ALL:
+                    environment = manager.getEnvironmentManager()
+                                         .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
+                    }
+                    break;
+                case STOP_ALL:
+                    environment = manager.getEnvironmentManager()
+                                         .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
+                    }
+                    break;
+                case STATUS_ALL:
+                    environment = manager.getEnvironmentManager()
+                                         .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
+                    }
+                    break;
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Environment with id: %s not found",
+                    zookeeperClusterConfig.getEnvironmentId().toString() ) );
         }
         logResults( trackerOperation, commandResultList );
     }
@@ -131,11 +143,6 @@ public class ZookeeperClusterOperationHandler
         try
         {
             Environment env = null;
-            if ( config.getSetupType() != SetupType.OVER_HADOOP && config.getSetupType() != SetupType.OVER_ENVIRONMENT )
-            {
-                env = manager.getEnvironmentManager()
-                             .buildEnvironment( manager.getDefaultEnvironmentBlueprint( zookeeperClusterConfig ) );
-            }
 
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, zookeeperClusterConfig, trackerOperation );
@@ -143,7 +150,7 @@ public class ZookeeperClusterOperationHandler
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
@@ -173,7 +180,7 @@ public class ZookeeperClusterOperationHandler
 
                 trackerOperation.addLog( "Uninstalling zookeeper from nodes" );
                 Environment zookeeperEnvironment =
-                        manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+                        manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
                 for ( ContainerHost containerHost : zookeeperEnvironment.getContainerHostsByIds( config.getNodes() ) )
                 {
                     commandResultList
@@ -184,15 +191,16 @@ public class ZookeeperClusterOperationHandler
             else
             {
                 trackerOperation.addLog( "Destroying environment..." );
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
             }
 
             manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
             manager.unsubscribeFromAlerts(
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
+                    manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() ) );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( CommandException | EnvironmentDestroyException | MonitorException e )
+        catch ( CommandException | MonitorException | ContainerHostNotFoundException |
+                EnvironmentDestructionException | EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
             LOG.error( e.getMessage(), e );

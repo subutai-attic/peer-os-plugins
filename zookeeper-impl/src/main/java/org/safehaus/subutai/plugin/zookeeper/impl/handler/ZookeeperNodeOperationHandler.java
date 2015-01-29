@@ -9,11 +9,12 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -26,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
 /**
@@ -79,17 +78,17 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost containerHost = environment.getContainerHostByHostname( hostname );
-
-        if ( containerHost == null )
-        {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
-            return;
-        }
-
         try
         {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost containerHost = environment.getContainerHostByHostname( hostname );
+
+            if ( containerHost == null )
+            {
+                trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+                return;
+            }
+
             List<CommandResult> commandResultList = new ArrayList<>();
             switch ( operationType )
             {
@@ -145,85 +144,67 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             LOGGER.error( String.format( "Command failed for operationType: %s", operationType ), e );
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( String.format( "Container host not found with name: %s", hostname ), e );
+            trackerOperation.addLogFailed( String.format( "Container host not found with name: %s", hostname ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( String.format( "Got a blank environment for id: %s, right place to start from scratch.",
+                    config.getEnvironmentId().toString() ), e );
+            trackerOperation.addLogFailed( String.format( "Couldn't retrieve environment with id: %s",
+                    config.getEnvironmentId().toString() ) );
+        }
     }
 
 
     public void addNode()
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
 
         if ( config.getSetupType() == SetupType.OVER_HADOOP )
         {
             HadoopClusterConfig hadoopCluster = manager.getHadoopManager().
                     getCluster( config.getHadoopClusterName() );
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopCluster.getEnvironmentId() );
-
-            trackerOperation.addLog( "Validating node addition." );
             List<UUID> hadoopContainerHostIds = hadoopCluster.getAllNodes();
-            List<UUID> zookeeperContainerHosts = new ArrayList<>( config.getNodes() );
-            //Check does hadoop have nodes where zk is not installed
-            for ( int i = 0; i < hadoopContainerHostIds.size(); i++ )
-            {
-                UUID hadoopContainerId = hadoopContainerHostIds.get( i );
-                if ( zookeeperContainerHosts.contains( hadoopContainerId ) )
-                {
-                    hadoopContainerHostIds.remove( i-- );
-                }
-            }
-            if ( hadoopContainerHostIds.isEmpty() )
-            {
-                manager.getHadoopManager().addNode( config.getHadoopClusterName() );
-                trackerOperation.addLogFailed( "Adding hadoop node." );
-            }
-            ContainerHost newNode = hadoopEnvironment.getContainerHostById( hadoopContainerHostIds.get( 0 ) );
-            addNode( newNode.getHostname() );
-        }
-        else
-        {
-
-            NodeGroup nodeGroup = new NodeGroup();
-            nodeGroup.setName( ZookeeperClusterConfig.PRODUCT_NAME );
-            nodeGroup.setLinkHosts( true );
-            nodeGroup.setExchangeSshKeys( true );
-            nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-            nodeGroup.setTemplateName( config.getTemplateName() );
-            nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-            nodeGroup.setNumberOfNodes( 1 );
-
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            String ngJSON = gson.toJson( nodeGroup );
-
-            trackerOperation.addLog( "Adding node to environment." );
             try
             {
-                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
-                Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-                // update cluster configuration on DB
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
+                Environment hadoopEnvironment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+
+                trackerOperation.addLog( "Validating node addition." );
+
+                List<UUID> zookeeperContainerHosts = new ArrayList<>( config.getNodes() );
+                //Check does hadoop have nodes where zk is not installed
+                for ( int i = 0; i < hadoopContainerHostIds.size(); i++ )
                 {
-                    if ( !config.getNodes().contains( containerHost.getId() ) )
+                    UUID hadoopContainerId = hadoopContainerHostIds.get( i );
+                    if ( zookeeperContainerHosts.contains( hadoopContainerId ) )
                     {
-                        config.getNodes().add( containerHost.getId() );
+                        hadoopContainerHostIds.remove( i-- );
                     }
                 }
-                manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-
-                ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
-                try
+                if ( hadoopContainerHostIds.isEmpty() )
                 {
-                    configurator.configureCluster( config,
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
+                    manager.getHadoopManager().addNode( config.getHadoopClusterName() );
+                    trackerOperation.addLogFailed( "Adding hadoop node." );
                 }
-                catch ( ClusterConfigurationException e )
-                {
-                    LOGGER.error( "Error while adding node to environment: " + environment.getId(), e );
-                }
+                ContainerHost newNode = hadoopEnvironment.getContainerHostById( hadoopContainerHostIds.get( 0 ) );
+                addNode( newNode.getHostname() );
             }
-            catch ( EnvironmentBuildException e )
+            catch ( ContainerHostNotFoundException e )
             {
-                LOGGER.error( "Couldn't create additional container.", e );
+                LOGGER.error( String.format( "Container host not found for one of these ids: %s",
+                        hadoopContainerHostIds.toString() ), e );
+                trackerOperation.addLogFailed( String.format( "Container host not found for one of these ids: %s",
+                        hadoopContainerHostIds.toString() ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( String.format( "Got a blank environment for id: %s, right place to start from scratch.",
+                        config.getEnvironmentId().toString() ), e );
+                trackerOperation.addLogFailed( String.format( "Couldn't retrieve environment with id: %s",
+                        hadoopCluster.getEnvironmentId().toString() ) );
             }
         }
     }
@@ -234,30 +215,29 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         Preconditions.checkNotNull( hostName, "Hostname is null" );
 
         List<CommandResult> commandResultList = new ArrayList<>();
-        Environment zookeeperEnvironment = manager.getEnvironmentManager().
-                getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost newNode = zookeeperEnvironment.getContainerHostByHostname( hostName );
-        if ( config.getNodes().contains( newNode.getId() ) && config.getSetupType() == SetupType.OVER_ENVIRONMENT )
-        {
-            trackerOperation
-                    .addLogFailed( String.format( "%s already in zookeeper environment.", newNode.getHostname() ) );
-            return commandResultList;
-        }
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            HadoopClusterConfig hadoopCluster = manager.getHadoopManager().
-                    getCluster( config.getHadoopClusterName() );
-            if ( !hadoopCluster.getAllNodes().contains( newNode.getId() ) )
-            {
-                trackerOperation.addLogFailed(
-                        String.format( "%s node doesn't have hadoop installed, add it to hadoop environment.",
-                                newNode.getHostname() ) );
-                return commandResultList;
-            }
-        }
-
         try
         {
+            Environment zookeeperEnvironment =
+                    manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost newNode = zookeeperEnvironment.getContainerHostByHostname( hostName );
+            if ( config.getNodes().contains( newNode.getId() ) && config.getSetupType() == SetupType.OVER_ENVIRONMENT )
+            {
+                trackerOperation
+                        .addLogFailed( String.format( "%s already in zookeeper environment.", newNode.getHostname() ) );
+                return commandResultList;
+            }
+            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            {
+                HadoopClusterConfig hadoopCluster = manager.getHadoopManager().
+                        getCluster( config.getHadoopClusterName() );
+                if ( !hadoopCluster.getAllNodes().contains( newNode.getId() ) )
+                {
+                    trackerOperation.addLogFailed(
+                            String.format( "%s node doesn't have hadoop installed, add it to hadoop environment.",
+                                    newNode.getHostname() ) );
+                    return commandResultList;
+                }
+            }
             String command = Commands.getInstallCommand();
             if ( !newNode.isConnected() )
             {
@@ -281,6 +261,18 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         {
             LOGGER.error( "Error adding node", e );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( String.format( "Container host %s not found", hostName ), e );
+            trackerOperation.addLogFailed( String.format( "Container host %s not found", hostName ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error(
+                    String.format( "Environment with id: %s doesn't exist", config.getEnvironmentId().toString() ), e );
+            trackerOperation.addLogFailed(
+                    String.format( "Environment with id: %s doesn't exist", config.getEnvironmentId().toString() ) );
+        }
         return commandResultList;
     }
 
@@ -291,14 +283,14 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         try
         {
             ZookeeperClusterConfig config = manager.getCluster( clusterName );
-            environmentManager.removeContainer( config.getEnvironmentId(), host.getId() );
+            environmentManager.destroyContainer( host, true, true );
             config.getNodes().remove( host.getId() );
             manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             try
             {
-                configurator.configureCluster( config,
-                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
             }
             catch ( ClusterConfigurationException e )
             {
@@ -307,9 +299,19 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
-        catch ( EnvironmentManagerException e )
+        catch ( EnvironmentModificationException e )
         {
-            e.printStackTrace();
+            LOGGER.error( String.format( "Error clearing database records for environment with id: %s.",
+                    host.getEnvironmentId() ) );
+            trackerOperation.addLogFailed(
+                    String.format( "Error clearing database records for environment with id: %s.",
+                            host.getEnvironmentId() ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ), e );
+            trackerOperation
+                    .addLogFailed( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
         }
     }
 }

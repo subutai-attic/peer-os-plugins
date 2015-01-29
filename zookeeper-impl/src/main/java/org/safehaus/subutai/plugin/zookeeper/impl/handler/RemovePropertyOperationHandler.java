@@ -10,8 +10,12 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.safehaus.subutai.plugin.zookeeper.impl.Commands;
 import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 
 import com.google.common.base.Strings;
@@ -63,12 +67,29 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
 
         trackerOperation.addLog( "Removing property..." );
 
-        String removePropertyCommand =
-                manager.getCommands().getRemovePropertyCommand( fileName, propertyName );
+        String removePropertyCommand = Commands.getRemovePropertyCommand( fileName, propertyName );
 
-        Environment environment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Set<ContainerHost> zookeeperNodes = environment.getContainerHostsByIds( config.getNodes() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation
+                    .addLogFailed( "Couldn't retrieve cluster with id: " + config.getEnvironmentId().toString() );
+            return;
+        }
+        Set<ContainerHost> zookeeperNodes = null;
+        try
+        {
+            zookeeperNodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "ContainerHosts not found for ids: " + config.getNodes().toString() );
+            return;
+        }
         List<CommandResult> commandResultList = new ArrayList<>();
         for ( ContainerHost zookeeperNode : zookeeperNodes ) {
             try
