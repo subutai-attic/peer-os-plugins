@@ -4,6 +4,7 @@ package org.safehaus.subutai.plugin.oozie.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -12,6 +13,10 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -22,12 +27,12 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.SetupType;
+import org.safehaus.subutai.plugin.oozie.impl.alert.OozieAlertListener;
 import org.safehaus.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +44,12 @@ public class OozieImpl implements Oozie
 {
 
     private static final Logger LOG = LoggerFactory.getLogger(OozieImpl.class.getName());
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin(45);
+
+    private Monitor monitor;
+    private OozieAlertListener oozieAlertListener;
+    private QuotaManager quotaManager;
+
     private Tracker tracker;
     private PluginDAO pluginDao;
     private EnvironmentManager environmentManager;
@@ -47,11 +58,14 @@ public class OozieImpl implements Oozie
 
 
     public OozieImpl(final Tracker tracker, final EnvironmentManager environmentManager,
-                     final Hadoop hadoopManager)
+                     final Hadoop hadoopManager, final Monitor monitor)
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
+        this.monitor = monitor;
+        this.oozieAlertListener = new OozieAlertListener(this);
+        this.monitor.addAlertListener(oozieAlertListener);
     }
 
 
@@ -108,6 +122,18 @@ public class OozieImpl implements Oozie
     public ExecutorService getExecutor()
     {
         return executor;
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
     }
 
 
@@ -203,17 +229,16 @@ public class OozieImpl implements Oozie
 
     public ClusterSetupStrategy getClusterSetupStrategy(final Environment environment,
                                                         final OozieClusterConfig config,
-                                                        final TrackerOperation po )
+                                                        final TrackerOperation po)
     {
-        Preconditions.checkNotNull( config, "Oozie cluster config is null" );
-        Preconditions.checkNotNull( po, "Product operation is null" );
-        if ( config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
+        Preconditions.checkNotNull(config, "Oozie cluster config is null");
+        Preconditions.checkNotNull(po, "Product operation is null");
+        if (config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
         {
-            Preconditions.checkNotNull( environment, "Environment is null" );
-        }
-        else if ( config.getSetupType() == SetupType.OVER_HADOOP)
+            Preconditions.checkNotNull(environment, "Environment is null");
+        } else if (config.getSetupType() == SetupType.OVER_HADOOP)
         {
-            return new OverHadoopSetupStrategy( environment, config, po, this );
+            return new OverHadoopSetupStrategy(environment, config, po, this);
         }
 
         return new OozieSetupStrategy(this, po, config);
@@ -248,4 +273,34 @@ public class OozieImpl implements Oozie
         executor.execute(h);
         return h.getTrackerId();
     }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
+    }
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( oozieAlertListener, environment );
+    }
+
+
 }

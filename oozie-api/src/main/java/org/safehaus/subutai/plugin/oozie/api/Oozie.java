@@ -23,18 +23,9 @@ public interface Oozie extends ApiBase<OozieClusterConfig>
 
     public UUID addNode( String clusterName, String lxcHostname );
 
-
-//    UUID startServer(OozieClusterConfig config);
-//
-//    UUID stopServer(OozieClusterConfig config);
-//
-//    UUID checkServerStatus(OozieClusterConfig config);
-
     public ClusterSetupStrategy getClusterSetupStrategy(Environment environment, OozieClusterConfig config, TrackerOperation trackerOperation);
 
     public EnvironmentBlueprint getDefaultEnvironmentBlueprint(OozieClusterConfig config);
 
-//    UUID addNode(String clustername, String lxchostname, String nodetype);
-
-    UUID destroyNode(final String clusterName, final String lxcHostname);
+    public UUID destroyNode(final String clusterName, final String lxcHostname);
 }

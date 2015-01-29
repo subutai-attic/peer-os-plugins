@@ -5,10 +5,8 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import java.util.HashSet;
@@ -50,11 +48,6 @@ public class VerificationStep extends Panel
             {
                 cfgView.addStringCfg( "Clients", containerHost.getHostname() + "\n" );
             }
-
-//            for ( UUID agent : wizard.getConfig().getClients() )
-//            {
-//                cfgView.addStringCfg( "Clients", agent.toString() + "\n" );
-//            }
         }
 
         Button install = new Button( "Install" );
@@ -68,41 +61,12 @@ public class VerificationStep extends Panel
                 UUID trackID = wizard.getOozieManager().installCluster( wizard.getConfig() );
                 final ProgressWindow window = new ProgressWindow( wizard.getExecutor(), wizard.getTracker(), trackID,
                         OozieClusterConfig.PRODUCT_KEY );
-                final ConfirmationDialog alert = new ConfirmationDialog(
-                        String.format( "Do you want to restart the %s hadoop cluster for changes to take effect?",
-                                wizard.getConfig().getHadoopClusterName() ), "Yes", "No" );
-
-                alert.getOk().addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        Hadoop hadoopManager = wizard.getHadoopManager();
-                        String hadoopClusterName = wizard.getConfig().getHadoopClusterName();
-                        HadoopClusterConfig cluster = hadoopManager.getCluster( hadoopClusterName );
-//                        UUID trackID = hadoopManager.restartNameNode( cluster );
-                        /*ProgressWindow window = new ProgressWindow( wizard.getExecutor(), wizard.getTracker(), trackID,
-                                HadoopClusterConfig.PRODUCT_KEY );
-                        getUI().addWindow( window.getWindow() );*/
-                    }
-                } );
-
-
-                alert.getAlert().addCloseListener( new Window.CloseListener()
-                {
-                    @Override
-                    public void windowClose( final Window.CloseEvent e )
-                    {
-                        wizard.init();
-                    }
-                } );
-
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {
                     @Override
                     public void windowClose( Window.CloseEvent closeEvent )
                     {
-                        getUI().addWindow( alert.getAlert() );
+                        wizard.init();
                     }
                 } );
                 getUI().addWindow( window.getWindow() );

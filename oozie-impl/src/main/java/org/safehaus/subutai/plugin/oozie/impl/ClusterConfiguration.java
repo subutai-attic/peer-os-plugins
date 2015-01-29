@@ -31,10 +31,6 @@ public class ClusterConfiguration
     public void configureCluster(final OozieClusterConfig config, Environment environment) throws
             ClusterConfigurationException
     {
-
-        po.addLog("Configuring cluster...");
-
-
         HadoopClusterConfig hadoopClusterConfig = manager.getHadoopManager().getCluster(config.getHadoopClusterName());
         Set<UUID> nodeUUIDs = new HashSet<>(hadoopClusterConfig.getAllNodes());
         Set<ContainerHost> containerHosts = environment.getContainerHostsByIds(nodeUUIDs);
@@ -54,7 +50,8 @@ public class ClusterConfiguration
             {
                 commandResult = hadoopNode.execute(requestBuilder.withTimeout(60));
                 commandResult2 = hadoopNode.execute(requestBuilder2.withTimeout(60));
-            } catch (CommandException e)
+            }
+            catch (CommandException e)
             {
                 po.addLogFailed("Could not run command " + "configureRootHostsCommand" + ": " + e);
                 e.printStackTrace();
@@ -77,7 +74,7 @@ public class ClusterConfiguration
         {
             if (!aCommandsResultList.hasSucceeded())
             {
-                isSuccesful = false;
+                isSuccesful2 = false;
             }
         }
 
