@@ -6,17 +6,19 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
+import org.safehaus.subutai.common.protocol.NodeGroup;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.environment.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -26,13 +28,16 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.SetupType;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class MahoutImpl implements Mahout
@@ -168,10 +173,7 @@ public class MahoutImpl implements Mahout
     @Override
     public UUID uninstallCluster( final MahoutClusterConfig config )
     {
-        ClusterOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.DESTROY );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
+        return null;
     }
 
 
@@ -187,7 +189,12 @@ public class MahoutImpl implements Mahout
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        return null;
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterName), "Cluster name is null or empty");
+        MahoutClusterConfig mahoutClusterConfig = getCluster(clusterName);
+        ClusterOperationHandler operationHandler =
+                new ClusterOperationHandler( this, mahoutClusterConfig, ClusterOperationType.DESTROY );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -250,5 +257,26 @@ public class MahoutImpl implements Mahout
         }
         return null;
     }
+
+    public EnvironmentBlueprint getDefaultEnvironmentBlueprint(MahoutClusterConfig config)
+    {
+        EnvironmentBlueprint blueprint = new EnvironmentBlueprint();
+
+        blueprint.setName(String.format("%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID()));
+        blueprint.setExchangeSshKeys(true);
+        blueprint.setLinkHosts(true);
+        blueprint.setDomainName(Common.DEFAULT_DOMAIN_NAME);
+
+        NodeGroup ng = new NodeGroup();
+        ng.setName("Default");
+        ng.setNumberOfNodes(config.getNodes().size()); // master +slaves
+        ng.setTemplateName(MahoutClusterConfig.TEMPLATE_NAME);
+        ng.setPlacementStrategy(new PlacementStrategy("MORE_RAM"));
+        blueprint.setNodeGroups(Sets.newHashSet(ng));
+
+        return blueprint;
+
+    }
+
 
 }

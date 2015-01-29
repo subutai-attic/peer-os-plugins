@@ -1,10 +1,8 @@
 package org.safehaus.subutai.plugin.mahout.impl.handler;
 
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.peer.ContainerHost;
@@ -13,12 +11,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
-import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.*;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.SetupType;
@@ -26,7 +19,9 @@ import org.safehaus.subutai.plugin.mahout.impl.MahoutImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl, MahoutClusterConfig>
@@ -59,33 +54,41 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
     @Override
     public void setupCluster()
     {
+        if ( Strings.isNullOrEmpty(config.getClusterName()) )
+        {
+            trackerOperation.addLogFailed( "Malformed configuration" );
+            return;
+        }
+
+        if ( manager.getCluster( clusterName ) != null )
+        {
+            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
+            return;
+        }
+
         try
         {
             Environment env = null;
-
-            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-            if ( env == null )
+            if ( config.getSetupType() != SetupType.OVER_HADOOP)
             {
-                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                        hadoopConfig.getEnvironmentId() ) );
+                env = manager.getEnvironmentManager()
+                        .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
             }
 
-            ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
-            if ( s == null )
-            {
-                throw new ClusterSetupException( "No setup strategy" );
-            }
-            s.setup();
-            trackerOperation.addLogDone( "Done" );
+
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+            clusterSetupStrategy.setup();
+
+            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( ClusterSetupException ex )
+        catch ( EnvironmentBuildException | ClusterSetupException e )
         {
-            trackerOperation.addLogFailed( "Failed to setup cluster: " + ex.getMessage() );
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(),
+                            clusterName, e.getMessage() ) );
         }
-        catch ( ClusterException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Could not start all nodes : %s", e.getMessage() ) );
-        }
+
 
     }
 
@@ -172,6 +175,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
     {
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Mahout..." );
+
+        MahoutClusterConfig config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
 
         for ( UUID uuid : config.getNodes() )
         {
