@@ -9,16 +9,34 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.TrimmedCassandraClusterConfig;
+import org.safehaus.subutai.plugin.common.api.NodeState;
+
+import com.google.common.base.Preconditions;
 
 
 public class RestServiceImpl implements RestService
 {
 
     private Cassandra cassandraManager;
+    private Tracker tracker;
+
+
+    public Tracker getTracker(){
+        return tracker;
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
 
 
     public Cassandra getCassandraManager()
@@ -147,14 +165,59 @@ public class RestServiceImpl implements RestService
     @Override
     public Response checkNode( final String clusterName, final String hostname )
     {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hostname );
         UUID uuid = cassandraManager.checkNode( clusterName, hostname );
+
+        TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
         String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        OperationState state = waitUntilOperationFinish( uuid );
+        if ( state == OperationState.FAILED ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED ){
+            return Response.status( Response.Status.OK ).entity( operationId ).build();
+        }
+        else {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+        }
     }
 
 
     private String wrapUUID( UUID uuid )
     {
         return JsonUtil.toJson( "OPERATION_ID", uuid );
+    }
+
+
+    private OperationState waitUntilOperationFinish( UUID uuid ){
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+
+            TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+        return state;
     }
 }
