@@ -16,11 +16,17 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -48,6 +54,7 @@ public class ConfigurationStep extends Panel
     private HorizontalLayout buttons;
     private ComboBox nodesCountCombo;
     private TwinColSelect zookeeperEnvHostsSelection;
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
 
     public ConfigurationStep( final Zookeeper zookeeper, final Hadoop hadoop, final Wizard wizard,
@@ -317,8 +324,26 @@ public class ConfigurationStep extends Panel
         List<UUID> allHadoopNodes = hadoopInfo.getAllNodes();
         Set<UUID> allHadoopNodeSet = new HashSet<>();
         allHadoopNodeSet.addAll( allHadoopNodes );
-        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-        final Set<ContainerHost> hadoopNodes = hadoopEnvironment.getContainerHostsByIds( allHadoopNodeSet );
+        Environment hadoopEnvironment = null;
+        final Set<ContainerHost> hadoopNodes;
+        try
+        {
+            hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+            hadoopNodes = hadoopEnvironment.getContainerHostsByIds( allHadoopNodeSet );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error(
+                    String.format( "Environment with id:%s not found(.", hadoopInfo.getEnvironmentId().toString() ),
+                    e );
+            return;
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( String.format( "Some container hosts with ids: %s not found", allHadoopNodeSet.toString() ),
+                    e );
+            return;
+        }
 
         if ( hadoopClustersCombo.getValue() != null )
         {

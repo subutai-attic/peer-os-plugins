@@ -6,16 +6,23 @@
 package org.safehaus.subutai.plugin.zookeeper.ui.wizard;
 
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -28,6 +35,9 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Zookeeper zookeeper, final ExecutorService executorService, final Tracker tracker,
                              final Wizard wizard, EnvironmentManager environmentManager )
@@ -52,15 +62,30 @@ public class VerificationStep extends Panel
         }
         else if ( wizard.getConfig().getSetupType() == SetupType.OVER_HADOOP )
         {
-            Environment hadoopEnvironment =
-                    environmentManager.getEnvironmentByUUID( wizard.getHadoopClusterConfig().getEnvironmentId() );
-            Set<ContainerHost> zookeeperNodes = hadoopEnvironment.getContainerHostsByIds(
-                    wizard.getConfig().getNodes() );
-            cfgView.addStringCfg( "Hadoop cluster name", wizard.getConfig().getHadoopClusterName() );
-            for ( ContainerHost node : zookeeperNodes )
+            Set<ContainerHost> zookeeperNodes = new HashSet<>();
+            try
             {
+                Environment hadoopEnvironment =
+                        environmentManager.findEnvironment( wizard.getHadoopClusterConfig().getEnvironmentId() );
+                zookeeperNodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
+                cfgView.addStringCfg( "Hadoop cluster name", wizard.getConfig().getHadoopClusterName() );
+                for ( ContainerHost node : zookeeperNodes )
+                {
 
-                cfgView.addStringCfg( "Nodes to install", node.getHostname() );
+                    cfgView.addStringCfg( "Nodes to install", node.getHostname() );
+                }
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( String.format( "Environment with id:%s not found(.",
+                        wizard.getHadoopClusterConfig().getEnvironmentId().toString() ), e );
+                return;
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error( String.format( "Some container hosts with ids: %s not found", zookeeperNodes.toString() ),
+                        e );
+                return;
             }
         }
         else if ( wizard.getConfig().getSetupType() == SetupType.WITH_HADOOP )
