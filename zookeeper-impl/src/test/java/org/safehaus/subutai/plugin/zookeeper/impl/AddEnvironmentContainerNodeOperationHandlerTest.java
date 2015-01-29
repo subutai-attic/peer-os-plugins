@@ -4,8 +4,6 @@ package org.safehaus.subutai.plugin.zookeeper.impl;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.safehaus.subutai.common.tracker.OperationState;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
