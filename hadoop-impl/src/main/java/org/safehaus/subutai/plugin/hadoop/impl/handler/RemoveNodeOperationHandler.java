@@ -3,21 +3,23 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentModificationException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentModificationException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopImpl, HadoopClusterConfig>
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( RemoveNodeOperationHandler.class );
     private String lxcHostName;
 
 
@@ -57,13 +59,13 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
             removeNodeFromConfigurationFiles( host );
             manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
             environmentManager.destroyContainer( host, true, true );
+            trackerOperation.addLogDone( "Container " + lxcHostName + " is destroyed!" );
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException | EnvironmentModificationException e )
         {
-            trackerOperation.addLogFailed( "Could not destroy container " + lxcHostName + ". " + e.getMessage() );
-            e.printStackTrace();
+            trackerOperation.addLogFailed( "Could not destroy container " + lxcHostName );
+            LOGGER.error( "Could not destroy container " + lxcHostName, e );
         }
-        trackerOperation.addLogDone( "Container " + lxcHostName + " is destroyed!" );
     }
 
 
@@ -82,7 +84,8 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
         }
         catch ( CommandException e )
         {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
+            trackerOperation.addLogFailed( String.format( "Error running command" ) );
+            LOGGER.error( "Error running command", e );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
