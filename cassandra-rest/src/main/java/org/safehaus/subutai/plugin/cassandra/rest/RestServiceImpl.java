@@ -47,10 +47,11 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getCluster( final String clusterName )
     {
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
+        if ( config == null ){
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + " cluster not found." ).build();
         }
-        String cluster = JsonUtil.toJson( cassandraManager.getCluster( clusterName ) );
+        String cluster = JsonUtil.toJson( config );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -80,7 +81,6 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-
         UUID uuid = cassandraManager.uninstallCluster( clusterName );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
@@ -90,6 +90,10 @@ public class RestServiceImpl implements RestService
     @Override
     public Response removeCluster( final String clusterName ){
         Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.removeCluster( clusterName );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
