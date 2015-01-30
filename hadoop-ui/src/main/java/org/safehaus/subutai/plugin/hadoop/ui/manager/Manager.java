@@ -18,6 +18,8 @@ import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -83,6 +85,8 @@ public class Manager
     private String decommissionStatus;
     private ManagerListener managerListener;
 
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
     public Manager( ExecutorService executorService, Tracker tracker, Hadoop hadoop,
                     EnvironmentManager environmentManager ) throws NamingException
@@ -251,7 +255,7 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Some error.", e );
             }
         }
         else
@@ -838,7 +842,7 @@ public class Manager
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Some error", e );
         }
 
         return null;
