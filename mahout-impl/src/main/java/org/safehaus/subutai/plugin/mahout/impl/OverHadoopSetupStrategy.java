@@ -1,5 +1,6 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,11 +27,14 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
     private static final Logger LOG = LoggerFactory.getLogger( OverHadoopSetupStrategy.class.getName() );
     private Environment environment;
 
+
     public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po,
                                     Environment environment )
     {
         super( manager, config, po );
+        this.environment = environment;
     }
+
 
     private void check() throws ClusterSetupException
     {
@@ -47,15 +51,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                     String.format( "Cluster with name '%s' already exists\nInstallation aborted",
                             config.getClusterName() ) );
         }
-        //check nodes are connected
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
-        for ( ContainerHost host : nodes )
-        {
-            if ( !host.isConnected() )
-            {
-                throw new ClusterSetupException( String.format( "Container %s is not connected", host.getHostname() ) );
-            }
-        }
+
         //check hadoopcluster
         HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
         if ( hc == null )
@@ -67,6 +63,24 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
             throw new ClusterSetupException(
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
+
+        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+
+        if ( environment == null )
+        {
+            throw new ClusterSetupException( "Hadoop environment not found" );
+        }
+
+        //check nodes are connected
+        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        for ( ContainerHost host : nodes )
+        {
+            if ( !host.isConnected() )
+            {
+                throw new ClusterSetupException( String.format( "Container %s is not connected", host.getHostname() ) );
+            }
+        }
+
 
         trackerOperation.addLog( "Checking prerequisites..." );
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
