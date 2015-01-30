@@ -14,9 +14,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -265,7 +265,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            //TODO add comboBox representing available peers
+                            //TODO add comboBox representing available peers and nodes
                             UUID trackID =
                                     mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.ROUTER_NODE);
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
@@ -663,6 +663,7 @@ public class Manager
                 clusterCombo.setValue( mongoClusterInfos.iterator().next() );
             }
         }
+        checkAllNodes();
     }
 
 

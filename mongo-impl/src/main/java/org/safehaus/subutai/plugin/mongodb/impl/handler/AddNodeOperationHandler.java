@@ -9,10 +9,14 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentModificationException;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.environment.NodeGroup;
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.exception.SubutaiException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
@@ -84,8 +88,6 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 
         try
         {
-
-            //was creating topology by pre-configuring nodeGroup and blueprint
             Environment environment = null;
             try
             {
@@ -111,6 +113,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                 return;
             }
 
+            //remove container hosts cloned not from mongo template
             for ( int i = 0; i < envContainerHosts.size(); i++ )
             {
                 ContainerHost host = envContainerHosts.get( i );
@@ -119,6 +122,33 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                     envContainerHosts.remove( i );
                 }
             }
+
+            if ( envContainerHosts.size() == 0 )
+            {
+                try
+                {
+                    Topology topology = config.getTopology();
+                    if ( topology == null )
+                    {
+                        NodeGroup nodeGroup = new NodeGroup( nodeType.name(), MongoClusterConfig.TEMPLATE_NAME,
+                                Common.DEFAULT_DOMAIN_NAME, 1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                        topology = new Topology();
+                        topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
+                    }
+                    envContainerHosts.addAll( manager.getEnvironmentManager()
+                                                     .growEnvironment( config.getEnvironmentId(), topology, false ) );
+                }
+                catch ( EnvironmentModificationException e )
+                {
+                    logExceptionWithMessage( "Error growing environment", e );
+                    return;
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    logExceptionWithMessage( "Error getting environment", e );
+                }
+            }
+
             ContainerHost johnnyRaw = envContainerHosts.iterator().next();
             switch ( nodeType )
             {

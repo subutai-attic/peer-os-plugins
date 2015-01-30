@@ -23,6 +23,9 @@ import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 
 /**
  * Handles destroy mongo node operation
@@ -135,7 +138,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
                 trackerOperation.addLog( "Purging subutai-hadoop from containers." );
                 logResults( trackerOperation,
-                        Arrays.asList( executeCommand( Commands.getClearMongoConfigsCommand(), containerHost ) ) );
+                        Arrays.asList( executeCommand( Commands.getStopMongodbService(), containerHost ) ) );
             }
             else if ( config.getInstallationType() == InstallationType.STANDALONE )
             {
@@ -164,7 +167,8 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
 
         //update db
         trackerOperation.addLog( "Updating cluster information in database..." );
-        String json = manager.getGSON().toJson( config.prepare() );
+        Gson gson = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
+        String json = gson.toJson( config.prepare() );
         manager.getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), json );
         trackerOperation.addLogDone( "Cluster information updated in database" );
     }
