@@ -176,7 +176,7 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
         else if ( state == OperationState.SUCCEEDED ){
-            return Response.status( Response.Status.OK ).entity( operationId ).build();
+            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
         else {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
