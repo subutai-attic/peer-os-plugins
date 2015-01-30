@@ -14,15 +14,13 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.server.ui.api.PortalModule;
 
 import com.vaadin.ui.Component;
-
 
 
 public class CassandraPortalModule implements PortalModule
@@ -36,7 +34,7 @@ public class CassandraPortalModule implements PortalModule
     private EnvironmentManager environmentManager;
 
 
-    public CassandraPortalModule(Cassandra cassandra, Tracker tracker, EnvironmentManager environmentManager)
+    public CassandraPortalModule( Cassandra cassandra, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.cassandra = cassandra;
         this.tracker = tracker;

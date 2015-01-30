@@ -10,14 +10,11 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-/*import org.safehaus.subutai.common.protocol.Agent;
-import org.safehaus.subutai.core.agent.api.AgentManager;*/
-
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "cassandra", name = "describe-cluster", description = "Shows the details of the Cassandra cluster.")
+@Command( scope = "cassandra", name = "describe-cluster", description = "Shows the details of the Cassandra cluster." )
 public class DescribeClusterCommand extends OsgiCommandSupport
 {
 

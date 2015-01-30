@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 import com.google.common.base.Strings;
@@ -111,11 +111,12 @@ public class ConfigurationStep extends VerticalLayout
             }
         } );
 
-        final List<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
+        final Set<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), CassandraClusterConfig.TEMPLATE_NAME );
+            boolean exists =
+                    isTemplateExists( anEnvironmentList.getContainerHosts(), CassandraClusterConfig.TEMPLATE_NAME );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
@@ -129,8 +130,7 @@ public class ConfigurationStep extends VerticalLayout
         allNodesSelect.setValue( null );
 
         // seeds
-        final TwinColSelect seedsSelect =
-                getTwinSelect( "Seeds", "hostname", "Available Nodes", "Selected Nodes", 4 );
+        final TwinColSelect seedsSelect = getTwinSelect( "Seeds", "hostname", "Available Nodes", "Selected Nodes", 4 );
         seedsSelect.setId( "Seeds" );
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
@@ -148,8 +148,8 @@ public class ConfigurationStep extends VerticalLayout
             {
                 Environment e = ( Environment ) event.getProperty().getValue();
                 environmentWizard.getConfig().setEnvironmentId( e.getId() );
-                allNodesSelect.setContainerDataSource(
-                        new BeanItemContainer<>( ContainerHost.class, filterEnvironmentContainers( e.getContainerHosts() ) ) );
+                allNodesSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class,
+                        filterEnvironmentContainers( e.getContainerHosts() ) ) );
             }
         } );
 
@@ -164,7 +164,7 @@ public class ConfigurationStep extends VerticalLayout
                 {
                     Set<UUID> nodes = new HashSet<UUID>();
                     Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    seedsSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, nodeList  ) );
+                    seedsSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, nodeList ) );
                     for ( ContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
@@ -258,23 +258,30 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    {
         Set<ContainerHost> filteredSet = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts ){
-            if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) ){
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) )
+            {
                 filteredSet.add( containerHost );
             }
         }
         return filteredSet;
     }
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName ){
-        for ( ContainerHost host: containerHosts ){
-            if ( host.getTemplateName().equals( templateName ) ){
+
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    {
+        for ( ContainerHost host : containerHosts )
+        {
+            if ( host.getTemplateName().equals( templateName ) )
+            {
                 return true;
             }
         }
-        return  false;
+        return false;
     }
 
 
@@ -293,6 +300,7 @@ public class ConfigurationStep extends VerticalLayout
         twinColSelect.setRequired( true );
         return twinColSelect;
     }
+
 
     private void show( String notification )
     {

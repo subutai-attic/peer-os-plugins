@@ -9,10 +9,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -65,12 +65,12 @@ public class StartClusterTest
 
 
     @Test
-    public void testRun() throws CommandException
+    public void testRun() throws Exception
     {
         // mock run method
         when(cassandraImpl.getCluster("test")).thenReturn(cassandraClusterConfig);
         when(cassandraImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
         when(environment.getContainerHosts()).thenReturn(mySet);
         when(mySet.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);
@@ -82,7 +82,7 @@ public class StartClusterTest
 
         // asserts
         assertNotNull(cassandraImpl.getCluster("test"));
-        assertEquals(environment, environmentManager.getEnvironmentByUUID(any(UUID.class)));
+        assertEquals(environment, environmentManager.findEnvironment( any( UUID.class ) ));
         assertTrue(commandResult.hasSucceeded());
 
     }
@@ -96,12 +96,12 @@ public class StartClusterTest
     }
 
     @Test
-    public void testRunWhenCommandResultNotSucceeded() throws CommandException
+    public void testRunWhenCommandResultNotSucceeded() throws Exception
     {
         // mock run method
         when(cassandraImpl.getCluster("test")).thenReturn(cassandraClusterConfig);
         when(cassandraImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
         when(environment.getContainerHosts()).thenReturn(mySet);
         when(mySet.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);

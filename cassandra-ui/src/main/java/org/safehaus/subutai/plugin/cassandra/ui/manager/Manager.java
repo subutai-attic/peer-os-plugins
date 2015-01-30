@@ -15,9 +15,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -127,8 +129,15 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( CassandraClusterConfig ) event.getProperty().getValue();
-                refreshUI();
-                checkAllNodes();
+                try
+                {
+                    refreshUI();
+                    checkAllNodes();
+                }
+                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                {
+                    show( e.getMessage() );
+                }
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -409,7 +418,14 @@ public class Manager
                         }
                         else
                         {
-                            startAllNodes();
+                            try
+                            {
+                                startAllNodes();
+                            }
+                            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                            {
+                                show( e.getMessage() );
+                            }
                         }
                     }
                 } );
@@ -426,7 +442,14 @@ public class Manager
                         }
                         else
                         {
-                            stopAllNodes();
+                            try
+                            {
+                                stopAllNodes();
+                            }
+                            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                            {
+                                show( e.getMessage() );
+                            }
                         }
                     }
                 } );
@@ -497,8 +520,17 @@ public class Manager
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        show( "Environment not found" );
+                        return;
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
@@ -778,12 +810,12 @@ public class Manager
     }
 
 
-    private void stopAllNodes()
+    private void stopAllNodes() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         for ( UUID containerId : config.getNodes() )
         {
-            ContainerHost containerHost = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() )
-                                                            .getContainerHostById( containerId );
+            ContainerHost containerHost =
+                    environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( containerId );
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
@@ -803,12 +835,12 @@ public class Manager
     }
 
 
-    private void startAllNodes()
+    private void startAllNodes() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         for ( UUID containerId : config.getNodes() )
         {
-            ContainerHost containerHost = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() )
-                                                            .getContainerHostById( containerId );
+            ContainerHost containerHost =
+                    environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( containerId );
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
@@ -874,12 +906,12 @@ public class Manager
     /**
      * java.util.Set)}.
      */
-    private void refreshUI()
+    private void refreshUI() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         if ( config != null )
         {
             autoScaleBtn.setValue( config.isAutoScaling() );
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
             Set<ContainerHost> containerHosts = new HashSet<>();
             for ( UUID uuid : config.getNodes() )
             {
