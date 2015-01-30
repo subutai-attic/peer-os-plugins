@@ -1,18 +1,22 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentModificationException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.environment.NodeGroup;
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -24,15 +28,10 @@ import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
 /**
@@ -87,13 +86,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     }
 
 
-    private void startNStopCluster( CassandraClusterConfig config, ClusterOperationType type ){
-        for ( UUID uuid : config.getNodes() ){
-            ContainerHost host = manager.getEnvironmentManager().getEnvironmentByUUID(
-                    config.getEnvironmentId() ).getContainerHostById( uuid );
+    private void startNStopCluster( CassandraClusterConfig config, ClusterOperationType type )
+    {
+        for ( UUID uuid : config.getNodes() )
+        {
             try
             {
-                switch ( type ){
+                ContainerHost host = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                                            .getContainerHostById( uuid );
+                switch ( type )
+                {
                     case START_ALL:
                         host.execute( new RequestBuilder( Commands.startCommand ) );
                         break;
@@ -102,13 +104,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                         break;
                 }
             }
-            catch ( CommandException e )
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException e )
             {
                 trackerOperation.addLogFailed( "Failed to start " + config.getClusterName() + " cluster" );
                 e.printStackTrace();
             }
         }
-        trackerOperation.addLogDone( config.getClusterName() + " started successfully" );
+        trackerOperation.addLogDone( String.format( "%s %s successfully", config.getClusterName(),
+                type == ClusterOperationType.START_ALL ? "started" : "stopped" ) );
     }
 
 
@@ -116,52 +119,41 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setName( CassandraClusterConfig.PRODUCT_NAME );
-        nodeGroup.setLinkHosts( true );
-        nodeGroup.setExchangeSshKeys( true );
-        nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        nodeGroup.setTemplateName( config.getTEMPLATE_NAME() );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes( 1 );
+        NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
+                Common.DEFAULT_DOMAIN_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
 
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
-        String ngJSON = gson.toJson( nodeGroup );
+        Topology topology = new Topology();
+
+        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+
 
         try
         {
-            environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            ContainerHost newNode = null;
-            // update cluster configuration on DB
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            Set<ContainerHost> newNodeSet;
+            try
             {
-
-                if ( !config.getNodes().contains( containerHost.getId() ) )
-                {
-                    newNode = containerHost;
-                    config.getNodes().add( containerHost.getId() );
-                    break;
-                }
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+            }
+            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+            {
+                throw new ClusterException( e );
             }
 
-            if ( newNode == null )
-            {
-                throw new ClusterException( "Failed to obtain new node" );
-            }
+            ContainerHost newNode = newNodeSet.iterator().next();
+
+            config.getNodes().add( newNode.getId() );
 
             manager.saveConfig( config );
 
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator.configureCluster( config,
-                        environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ) );
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
             }
-            catch ( ClusterConfigurationException e )
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
-                e.printStackTrace();
+                throw new ClusterException( e );
             }
 
             //subscribe to alerts
@@ -173,12 +165,33 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             {
                 throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
             }
+            trackerOperation.addLogDone( "Node added" );
         }
-        catch ( EnvironmentBuildException | ClusterException e )
+        catch ( ClusterException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
         }
     }
+
+
+    @Override
+    public void setupCluster()
+    {
+        trackerOperation.addLog( "Setting up cluster..." );
+
+        try
+        {
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+
+            new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
+        }
+        catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
+        }
+    }
+
 
     public void removeCluster()
     {
@@ -197,30 +210,37 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        CommandResult result = null;
-        switch ( clusterOperationType )
+        try
         {
-            case START_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.startCommand );
-                }
-                break;
-            case STOP_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.stopCommand );
-                }
-                break;
-            case STATUS_ALL:
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    result = executeCommand( containerHost, Commands.statusCommand );
-                }
-                break;
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            CommandResult result = null;
+            switch ( clusterOperationType )
+            {
+                case START_ALL:
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        result = executeCommand( containerHost, Commands.startCommand );
+                    }
+                    break;
+                case STOP_ALL:
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        result = executeCommand( containerHost, Commands.stopCommand );
+                    }
+                    break;
+                case STATUS_ALL:
+                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    {
+                        result = executeCommand( containerHost, Commands.statusCommand );
+                    }
+                    break;
+            }
+            NodeOperationHandler.logResults( trackerOperation, result );
         }
-        NodeOperationHandler.logResults( trackerOperation, result );
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Environment not found" );
+        }
     }
 
 
@@ -241,39 +261,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
 
     @Override
-    public void setupCluster()
-    {
-        if ( Strings.isNullOrEmpty( config.getClusterName() ) )
-        {
-            trackerOperation.addLogFailed( "Malformed configuration" );
-            return;
-        }
-
-        if ( manager.getCluster( clusterName ) != null )
-        {
-            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
-            return;
-        }
-
-        try
-        {
-            Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
-            ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, config, trackerOperation );
-            clusterSetupStrategy.setup();
-
-            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
-        }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup Cassandra cluster %s : %s", clusterName, e.getMessage() ) );
-        }
-    }
-
-
-    @Override
     public void destroyCluster()
     {
         CassandraClusterConfig config = manager.getCluster( clusterName );
@@ -284,36 +271,21 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-
-        if ( environment == null )
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
 
 
-        //        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getAllNodes() );
-        //
-        //
-        //        for ( ContainerHost node : nodes )
-        //        {
-        //            try
-        //            {
-        //                commandUtil.execute( new RequestBuilder( Commands.uninstallCommand ), node );
-        //            }
-        //            catch ( CommandException e )
-        //            {
-        //                trackerOperation.addLog(
-        //                        String.format( "Failed to uninstall Cassandra from node %s: %s", node.getHostname(),
-        //                                e.getMessage() ) );
-        //            }
-        //        }
-
         try
         {
-            manager.unsubscribeFromAlerts(
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ) );
+            manager.unsubscribeFromAlerts( environment );
         }
         catch ( MonitorException e )
         {

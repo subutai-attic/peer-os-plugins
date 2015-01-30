@@ -4,7 +4,9 @@ package org.safehaus.subutai.plugin.cassandra.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -16,6 +18,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
@@ -44,21 +47,31 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Data directory", environmentWizard.getConfig().getDataDirectory() );
         cfgView.addStringCfg( "Saved caches directory", environmentWizard.getConfig().getSavedCachesDirectory() );
         cfgView.addStringCfg( "Commit log directory", environmentWizard.getConfig().getCommitLogDirectory() );
-
+        Environment environment;
         String selectedNodes = "";
-        final Environment environment = environmentWizard.getEnvironmentManager().getEnvironmentByUUID(
-                environmentWizard.getConfig().getEnvironmentId() );
-        for ( UUID uuid : environmentWizard.getConfig().getNodes() ){
-            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+        String seeds = "";
+        try
+        {
+            environment = environmentWizard.getEnvironmentManager()
+                                           .findEnvironment( environmentWizard.getConfig().getEnvironmentId() );
+            for ( UUID uuid : environmentWizard.getConfig().getNodes() )
+            {
+                selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+            }
+            for ( UUID uuid : environmentWizard.getConfig().getSeedNodes() )
+            {
+                seeds += environment.getContainerHostById( uuid ).getHostname() + ",";
+            }
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            Notification.show( e.getMessage() );
+            return;
         }
 
-        String seeds = "";
-        for ( UUID uuid : environmentWizard.getConfig().getSeedNodes() ){
-            seeds += environment.getContainerHostById( uuid ).getHostname() + ",";
-        }
 
         cfgView.addStringCfg( "Nodes to be configured", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
-        cfgView.addStringCfg( "Seed nodes", seeds.substring( 0, ( seeds.length() -1 ) ) + "" );
+        cfgView.addStringCfg( "Seed nodes", seeds.substring( 0, ( seeds.length() - 1 ) ) + "" );
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 
         Button install = new Button( "Configure" );
@@ -69,7 +82,7 @@ public class VerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = cassandra.configureEnvironmentCluster( environmentWizard.getConfig() );
+                UUID trackID = cassandra.installCluster( environmentWizard.getConfig() );
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, CassandraClusterConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import javax.sql.DataSource;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,11 +18,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
@@ -35,7 +32,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
@@ -101,7 +97,7 @@ public class CassandraImplTest
         cassandraImpl.getTracker();
         cassandraImpl.setEnvironmentManager( environmentManager );
         cassandraImpl.getEnvironmentManager();
-        cassandraImpl.setPluginDAO(pluginDAO);
+        cassandraImpl.setPluginDAO( pluginDAO );
         cassandraImpl.executor = executor;
 
         // mock InstallClusterHandler
@@ -205,7 +201,7 @@ public class CassandraImplTest
     {
         //cassandraImpl.getClusters();
 
-       // assertNotNull( cassandraImpl.getClusters() );
+        // assertNotNull( cassandraImpl.getClusters() );
     }
 
 
@@ -349,21 +345,11 @@ public class CassandraImplTest
 
 
     @Test
-    public void testGetDefaultEnvironmentBlueprint()
-    {
-        EnvironmentBlueprint blueprint = cassandraImpl.getDefaultEnvironmentBlueprint( cassandraClusterConfig );
-
-        // asserts
-        assertNotNull( blueprint );
-    }
-
-
-    @Test
     public void testConfigureEnvironmentCluster()
     {
         cassandraImpl.executor = executor;
 
-        UUID id = cassandraImpl.configureEnvironmentCluster( cassandraClusterConfig );
+        UUID id = cassandraImpl.installCluster( cassandraClusterConfig );
 
         // asserts
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );

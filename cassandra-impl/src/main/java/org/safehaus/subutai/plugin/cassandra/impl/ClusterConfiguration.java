@@ -2,15 +2,15 @@ package org.safehaus.subutai.plugin.cassandra.impl;
 
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -20,7 +20,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 public class ClusterConfiguration
 {
 
-    private static final Logger LOG = Logger.getLogger( ClusterConfiguration.class.getName() );
     private TrackerOperation po;
     private CassandraImpl cassandraManager;
 
@@ -49,8 +48,16 @@ public class ClusterConfiguration
         StringBuilder sb = new StringBuilder();
         for ( UUID uuid : config.getSeedNodes() )
         {
-            ContainerHost containerHost = environment.getContainerHostById( uuid );
-            sb.append( containerHost.getIpByMask( Common.IP_MASK ) ).append( "," );
+            ContainerHost containerHost;
+            try
+            {
+                containerHost = environment.getContainerHostById( uuid );
+                sb.append( containerHost.getIpByInterfaceName( "eth0" ) ).append( "," );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterConfigurationException( e );
+            }
         }
         if ( !sb.toString().isEmpty() )
         {
@@ -115,7 +122,7 @@ public class ClusterConfiguration
                 commandResult = containerHost.execute( new RequestBuilder( String.format( script, seedsParam ) ) );
                 po.addLog( commandResult.getStdOut() );
             }
-            catch ( CommandException e )
+            catch ( ContainerHostNotFoundException | CommandException e )
             {
                 po.addLogFailed( String.format( "Installation failed" ) );
                 throw new ClusterConfigurationException( e.getMessage() );

@@ -9,9 +9,10 @@ import java.util.regex.Pattern;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -74,9 +75,14 @@ public class CassandraAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = cassandra.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
-        if ( environment == null )
+        Environment environment = null;
+        try
         {
+            environment = cassandra.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 

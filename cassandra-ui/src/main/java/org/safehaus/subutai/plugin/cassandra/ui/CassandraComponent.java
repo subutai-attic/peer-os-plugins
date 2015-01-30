@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.ui.environment.EnvironmentWizard;
@@ -19,8 +19,6 @@ import com.vaadin.ui.VerticalLayout;
 public class CassandraComponent extends CustomComponent
 {
 
-    //    private final Wizard wizard;
-    private final EnvironmentWizard environmentWizard;
     private final Manager manager;
 
 
@@ -39,10 +37,8 @@ public class CassandraComponent extends CustomComponent
         sheet.setSizeFull();
 
         manager = new Manager( executorService, cassandra, tracker, environmentManager );
-        //        wizard = new Wizard( executorService, cassandra, tracker );
-        environmentWizard = new EnvironmentWizard( executorService, cassandra, tracker, environmentManager );
-        //        sheet.addTab( wizard.getContent(), "Install" );
-        //        sheet.getTab( 0 ).setId( "CassandraInstallTab" );
+        final EnvironmentWizard environmentWizard =
+                new EnvironmentWizard( executorService, cassandra, tracker, environmentManager );
         sheet.addTab( environmentWizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "CassandraInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );

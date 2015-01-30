@@ -16,14 +16,14 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 /**
  * Displays the last log entries
  */
-@Command(scope = "cassandra", name = "service-cassandra-start", description = "Command to start Cassandra service")
+@Command( scope = "cassandra", name = "service-cassandra-start", description = "Command to start Cassandra service" )
 public class StartServiceCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "Name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "Name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
-    @Argument(index = 1, name = "hostanme", description = "UUID of the agent.", required = true, multiValued = false)
+    @Argument( index = 1, name = "hostanme", description = "UUID of the agent.", required = true, multiValued = false )
     String hostname = null;
     private Cassandra cassandraManager;
     private Tracker tracker;
@@ -56,7 +56,7 @@ public class StartServiceCommand extends OsgiCommandSupport
     protected Object doExecute() throws IOException
     {
 
-        UUID uuid = cassandraManager.startService( clusterName,  hostname );
+        UUID uuid = cassandraManager.startService( clusterName, hostname );
         tracker.printOperationLog( CassandraClusterConfig.PRODUCT_KEY, uuid, 30000 );
 
         return null;

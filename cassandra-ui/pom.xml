@@ -57,7 +57,7 @@
     </dependency>
     <dependency>
       <groupId>org.safehaus.subutai</groupId>
-      <artifactId>environment-manager-api</artifactId>
+      <artifactId>env-manager-api</artifactId>
     </dependency>
   </dependencies>
 
