@@ -13,16 +13,16 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -253,9 +253,15 @@ public class MongoImpl implements Mongo
                 config = GSON.fromJson( clusterData, MongoClusterConfigImpl.class )
                              .initTransientFields( environmentManager );
             }
-            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error retrieving mongo cluster info and initializing transient fields.", e );
+                LOG.error( "Environment with not found", e );
+                return null;
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                return null;
             }
             r.add( config );
         }
@@ -279,12 +285,18 @@ public class MongoImpl implements Mongo
             {
                 return clusterConfig.initTransientFields( environmentManager );
             }
-            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error retrieving cluster info and initializing fields.", e );
+                LOG.error( "Error environment not found.", e );
+                return null;
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Error container host not found.", e );
+                return null;
             }
         }
-        return clusterConfig;
+        return null;
     }
 
 
@@ -422,19 +434,19 @@ public class MongoImpl implements Mongo
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        //        getMonitor().startMonitoring( mongoAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( mongoAlertListener, environment, alertSettings );
     }
 
 
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
-        //        getMonitor().activateMonitoring( host, alertSettings );
+        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        //        getMonitor().stopMonitoring( mongoAlertListener, environment );
+        getMonitor().stopMonitoring( mongoAlertListener, environment );
     }
 
 

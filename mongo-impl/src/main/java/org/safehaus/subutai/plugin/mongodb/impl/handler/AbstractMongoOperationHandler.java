@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
@@ -23,7 +24,7 @@ import com.google.common.base.Preconditions;
  * Created by talas on 1/16/15.
  */
 public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends ConfigBase>
-        extends org.safehaus.subutai.plugin.common.api.AbstractOperationHandler<T, V>
+        extends AbstractOperationHandler<T, V>
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( AbstractMongoOperationHandler.class );

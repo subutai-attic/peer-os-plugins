@@ -1,12 +1,9 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
-import java.util.UUID;
-
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -14,6 +11,8 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -22,23 +21,16 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
 {
 
-    private final TrackerOperation po;
     private final MongoClusterConfig config;
+    private static final Logger LOGGER = LoggerFactory.getLogger( InstallOperationHandler.class );
 
 
     public InstallOperationHandler( final MongoImpl manager, final MongoClusterConfig config )
     {
         super( manager, config.getClusterName() );
         this.config = config;
-        po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Setting up %s cluster...", config.getClusterName() ) );
-    }
-
-
-    @Override
-    public UUID getTrackerId()
-    {
-        return po.getId();
     }
 
 
@@ -46,7 +38,7 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
     public void run()
     {
 
-        po.addLog( "Building environment..." );
+        trackerOperation.addLog( "Building environment..." );
 
         try
         {
@@ -69,15 +61,18 @@ public class InstallOperationHandler extends AbstractOperationHandler<MongoImpl,
                     config.getDataHostIds().add( containerHost.getId() );
                 }
             }
-            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( env, config, po );
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, config, trackerOperation );
             clusterSetupStrategy.setup();
 
-            po.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
             manager.subscribeToAlerts( env );
         }
         catch ( ClusterSetupException | MonitorException | EnvironmentCreationException e )
         {
-            po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
+
+            trackerOperation.addLogFailed( String.format( "Failed to setup cluster %s", clusterName ) );
+            LOGGER.error( String.format( "Failed to setup cluster: %s", clusterName ), e );
         }
     }
 }

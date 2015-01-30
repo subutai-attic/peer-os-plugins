@@ -7,16 +7,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.exception.SubutaiException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
-import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.Environment;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -28,6 +25,8 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoConfigNodeImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoDataNodeImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoRouterNodeImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,7 +37,7 @@ import com.google.gson.GsonBuilder;
  */
 public class AddNodeOperationHandler extends AbstractMongoOperationHandler<MongoImpl, MongoClusterConfig>
 {
-    private final TrackerOperation po;
+    private static final Logger LOGGER = LoggerFactory.getLogger( AddNodeOperationHandler.class );
     private final NodeType nodeType;
 
 
@@ -46,7 +45,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
     {
         super( manager, clusterName );
         this.nodeType = nodeType;
-        po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %s to %s...", nodeType, clusterName ) );
     }
 
@@ -54,7 +53,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
     @Override
     public UUID getTrackerId()
     {
-        return po.getId();
+        return trackerOperation.getId();
     }
 
 
@@ -64,21 +63,21 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         MongoClusterConfig config = manager.getCluster( clusterName );
         if ( config == null )
         {
-            po.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
+            trackerOperation.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
             return;
         }
         if ( nodeType == NodeType.CONFIG_NODE )
         {
-            po.addLogFailed( "Can not add config server" );
+            trackerOperation.addLogFailed( "Can not add config server" );
             return;
         }
         if ( nodeType == NodeType.DATA_NODE && config.getDataNodes().size() == 7 )
         {
-            po.addLogFailed( "Replica set cannot have more than 7 members" );
+            trackerOperation.addLogFailed( "Replica set cannot have more than 7 members" );
             return;
         }
 
-        po.addLog( "Creating lxc container..." );
+        trackerOperation.addLog( "Creating lxc container..." );
 
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         MongoNode mongoNode = null;
@@ -87,9 +86,30 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         {
 
             //was creating topology by pre-configuring nodeGroup and blueprint
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Error getting environment by id: %s", config.getEnvironmentId().toString() ),
+                        e );
+                return;
+            }
             List<ContainerHost> envContainerHosts = new ArrayList<>( environment.getContainerHosts() );
-            envContainerHosts.removeAll( environment.getContainerHostsByIds( config.getAllNodeIds() ) );
+            try
+            {
+                envContainerHosts.removeAll( environment.getContainerHostsByIds( config.getAllNodeIds() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Couldn't retrieve some container hosts by ids: %s", config.getAllNodeIds() ),
+                        e );
+                return;
+            }
 
             for ( int i = 0; i < envContainerHosts.size(); i++ )
             {
@@ -98,10 +118,6 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                 {
                     envContainerHosts.remove( i );
                 }
-            }
-            if ( envContainerHosts.size() == 0 )
-            {
-                throw new PeerException( "Something went wrong breeding environment" );
             }
             ContainerHost johnnyRaw = envContainerHosts.iterator().next();
             switch ( nodeType )
@@ -120,12 +136,12 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
             //            mongoNode.start( config );
             config.addNode( mongoNode, nodeType );
             manager.subscribeToAlerts( mongoNode.getContainerHost() );
-            po.addLog( "Lxc container created successfully\nConfiguring cluster..." );
+            trackerOperation.addLog( "Lxc container created successfully\nConfiguring cluster..." );
         }
-        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | PeerException |
-                MonitorException e )
+        catch ( MonitorException e )
         {
-            po.addLogFailed( e.toString() );
+            logExceptionWithMessage( String.format( "Couldn't subscribe container host (%s) for alert notifications.",
+                    mongoNode.getContainerHost().getHostname() ), e );
             return;
         }
 
@@ -133,30 +149,30 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         //add node
         if ( nodeType == NodeType.DATA_NODE )
         {
-            result = addDataNode( po, config, ( MongoDataNode ) mongoNode );
+            result = addDataNode( config, ( MongoDataNode ) mongoNode );
         }
         else if ( nodeType == NodeType.ROUTER_NODE )
         {
-            result = addRouter( po, config, ( MongoRouterNode ) mongoNode );
+            result = addRouter( config, ( MongoRouterNode ) mongoNode );
         }
 
         if ( result )
         {
-            po.addLog( "Updating cluster information in database..." );
+            trackerOperation.addLog( "Updating cluster information in database..." );
 
             Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
             String json = GSON.toJson( config.prepare() );
             manager.getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), json );
-            po.addLogDone( "Cluster information updated in database" );
+            trackerOperation.addLogDone( "Cluster information updated in database" );
         }
         else
         {
-            po.addLogFailed( "Node addition failed" );
+            trackerOperation.addLogFailed( "Node addition failed" );
         }
     }
 
 
-    private boolean addDataNode( TrackerOperation po, final MongoClusterConfig config, MongoDataNode newDataNode )
+    private boolean addDataNode( final MongoClusterConfig config, MongoDataNode newDataNode )
     {
 
         Set<Host> clusterMembers = new HashSet<>();
@@ -165,7 +181,6 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
             clusterMembers.add( mongoNode.getContainerHost() );
         }
         clusterMembers.add( newDataNode.getContainerHost() );
-        CommandResult commandResult = null;
         try
         {
             for ( Host c : clusterMembers )
@@ -174,13 +189,13 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
             }
 
             newDataNode.setReplicaSetName( config.getReplicaSetName() );
-            po.addLog( String.format( "Set replica set name succeeded" ) );
-            po.addLog( String.format( "Stopping node..." ) );
+            trackerOperation.addLog( String.format( "Set replica set name succeeded" ) );
+            trackerOperation.addLog( String.format( "Stopping node..." ) );
             newDataNode.stop();
-            po.addLog( String.format( "Starting node..." ) );
+            trackerOperation.addLog( String.format( "Starting node..." ) );
             newDataNode.start( config );
 
-            po.addLog( String.format( "Data node started successfully" ) );
+            trackerOperation.addLog( String.format( "Data node started successfully" ) );
 
             MongoDataNode primaryNode = config.findPrimaryNode();
 
@@ -189,22 +204,22 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 
                 primaryNode.registerSecondaryNode( newDataNode );
 
-                po.addLog( String.format( "Secondary node registered successfully." ) );
+                trackerOperation.addLog( String.format( "Secondary node registered successfully." ) );
                 return true;
             }
         }
         catch ( SubutaiException e )
         {
-            po.addLog( String.format( "Error: %s", e.toString() ) );
+            logExceptionWithMessage( "Error applying operations on peer", e );
         }
         return false;
     }
 
 
-    private boolean addRouter( TrackerOperation po, final MongoClusterConfig config, MongoRouterNode newRouter )
+    private boolean addRouter( final MongoClusterConfig config, MongoRouterNode newRouter )
     {
 
-        Set<Host> clusterMembers = new HashSet<Host>();
+        Set<Host> clusterMembers = new HashSet<>();
         for ( MongoNode mongoNode : config.getAllNodes() )
         {
             clusterMembers.add( mongoNode.getContainerHost() );
@@ -217,17 +232,23 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                 c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
             }
 
-            po.addLog( String.format( "Starting router: %s", newRouter.getHostname() ) );
+            trackerOperation.addLog( String.format( "Starting router: %s", newRouter.getHostname() ) );
             newRouter.setConfigServers( config.getConfigServers() );
             newRouter.start( config );
             return true;
         }
         catch ( SubutaiException e )
         {
-            po.addLog( String.format( "Could not add router node: %s", e.toString() ) );
+            logExceptionWithMessage( "Couldn't add router node", e );
         }
 
-
         return false;
+    }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
+        trackerOperation.addLogFailed( message );
     }
 }
