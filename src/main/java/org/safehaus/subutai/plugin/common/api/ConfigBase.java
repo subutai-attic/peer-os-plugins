@@ -1,9 +1,6 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-/**
- * Created by dilshat on 5/1/14.
- */
 public interface ConfigBase
 {
 

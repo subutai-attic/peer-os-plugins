@@ -6,9 +6,6 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-/**
- * @author dilshat
- */
 public enum NodeState
 {
 
