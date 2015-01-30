@@ -106,11 +106,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             }
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException e )
             {
-                trackerOperation.addLogFailed( "Failed to start " + config.getClusterName() + " cluster" );
+                trackerOperation.addLogFailed( "Failed to %s " +
+                        ( type == ClusterOperationType.START_ALL ? "start" : "stop" )  + config.getClusterName() + " cluster" );
                 e.printStackTrace();
             }
         }
-        trackerOperation.addLogDone( String.format( "%s %s successfully", config.getClusterName(),
+        trackerOperation.addLogDone( String.format( "%s cluster %s successfully", config.getClusterName(),
                 type == ClusterOperationType.START_ALL ? "started" : "stopped" ) );
     }
 
@@ -281,7 +282,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
-
 
         try
         {

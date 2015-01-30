@@ -21,17 +21,20 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response listClusters();
 
+
     //view cluster info
     @GET
     @Path("clusters/{clusterName}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getCluster( @PathParam("clusterName") String source );
 
+
     //create cluster
     @POST
     @Path("clusters")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createCluster( @QueryParam("config") String config );
+
 
     //destroy cluster
     @DELETE
@@ -49,11 +52,20 @@ public interface RestService
                                       @PathParam( "nodes" ) String nodes,
                                       @PathParam( "seeds" ) String seeds );
 
+
+    //remove cluster
+    @DELETE
+    @Path("clusters/{clusterName}/remove")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response removeCluster( @PathParam("clusterName") String clusterName );
+
+
     //start cluster
     @PUT
     @Path("clusters/{clusterName}/start")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response startCluster( @PathParam("clusterName") String clusterName );
+
 
     //stop cluster
     @PUT
@@ -61,22 +73,24 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopCluster( @PathParam("clusterName") String clusterName );
 
+
     //add node
     @POST
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/{nodeType}")
+    @Path("clusters/{clusterName}/add")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("nodeType") String nodeType );
+    public Response addNode( @PathParam("clusterName") String clusterName );
+
 
     //destroy node
     @DELETE
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/{nodeType}")
+    @Path("clusters/{clusterName}/node/{lxcHostname}/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
                                  @PathParam("lxcHostname") String lxcHostname );
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}")
+    @Path("clusters/{clusterName}/status/node/{lxcHostname}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response checkNode( @PathParam("clusterName") String clusterName,
                                @PathParam("lxcHostname") String lxcHostname );
