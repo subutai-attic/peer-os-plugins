@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 
 public class HadoopClusterConfig implements ConfigBase
@@ -32,6 +31,7 @@ public class HadoopClusterConfig implements ConfigBase
     private Set<UUID> blockedAgents;
     private UUID environmentId;
     private boolean autoScaling;
+    private Topology topology;
 
 
     public HadoopClusterConfig()
@@ -40,6 +40,7 @@ public class HadoopClusterConfig implements ConfigBase
         dataNodes = new ArrayList<>();
         taskTrackers = new ArrayList<>();
         blockedAgents = new HashSet<>();
+        topology = new Topology();
     }
 
 
@@ -294,7 +295,7 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public void removeNode( ContainerHost agent )
+    public void removeNode( UUID agent )
     {
         if ( dataNodes.contains( agent ) )
         {
@@ -389,6 +390,18 @@ public class HadoopClusterConfig implements ConfigBase
     public void setBlockedAgents( HashSet<UUID> blockedAgents )
     {
         this.blockedAgents = blockedAgents;
+    }
+
+
+    public Topology getTopology()
+    {
+        return topology;
+    }
+
+
+    public void setTopology( final Topology topology )
+    {
+        this.topology = topology;
     }
 
 

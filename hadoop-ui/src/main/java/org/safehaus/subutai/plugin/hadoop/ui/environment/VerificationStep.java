@@ -9,7 +9,9 @@ package org.safehaus.subutai.plugin.hadoop.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -31,80 +33,96 @@ public class VerificationStep extends VerticalLayout
                              final EnvironmentWizard wizard )
     {
 
-        setSizeFull();
 
-        GridLayout grid = new GridLayout( 1, 5 );
-        grid.setSpacing( true );
-        grid.setMargin( true );
-        grid.setSizeFull();
-
-        Label confirmationLbl = new Label( "<strong>Please verify the installation settings "
-                + "(you may change them by clicking on Back button)</strong><br/>" );
-        confirmationLbl.setContentMode( ContentMode.HTML );
-
-        ConfigView cfgView = new ConfigView( "Installation configuration" );
-        cfgView.addStringCfg( "Cluster Name", wizard.getHadoopClusterConfig().getClusterName() );
-        cfgView.addStringCfg( "Domain Name", wizard.getHadoopClusterConfig().getDomainName() );
-        cfgView.addStringCfg( "Number of slave nodes", wizard.getHadoopClusterConfig().getAllSlaveNodes().size() + "" );
-        cfgView.addStringCfg( "Replication factor", wizard.getHadoopClusterConfig().getReplicationFactor() + "" );
-
-        final Environment environment = wizard.getEnvironmentManager().getEnvironmentByUUID(
-                wizard.getHadoopClusterConfig().getEnvironmentId() );
-
-        cfgView.addStringCfg( "NameNode", environment.getContainerHostById( wizard.getHadoopClusterConfig().getNameNode() ).getHostname() + "" );
-        cfgView.addStringCfg( "JobTracker", environment.getContainerHostById( wizard.getHadoopClusterConfig().getJobTracker() ).getHostname() + "" );
-        cfgView.addStringCfg( "SecondaryNameNode", environment.getContainerHostById( wizard.getHadoopClusterConfig().getSecondaryNameNode() ).getHostname() + "" );
-        String selectedNodes = "";
-        for ( UUID uuid : wizard.getHadoopClusterConfig().getAllSlaveNodes() ){
-            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
-        }
-        cfgView.addStringCfg( "Slave Nodes (DataNode & TaskTracker)", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
-
-        Button install = new Button( "Configure" );
-        install.setId( "HadoopBtnInstall" );
-        install.addStyleName( "default" );
-        install.addClickListener( new Button.ClickListener()
+        try
         {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
+            setSizeFull();
+
+            GridLayout grid = new GridLayout( 1, 5 );
+            grid.setSpacing( true );
+            grid.setMargin( true );
+            grid.setSizeFull();
+
+            Label confirmationLbl = new Label( "<strong>Please verify the installation settings "
+                    + "(you may change them by clicking on Back button)</strong><br/>" );
+            confirmationLbl.setContentMode( ContentMode.HTML );
+
+            ConfigView cfgView = new ConfigView( "Installation configuration" );
+            cfgView.addStringCfg( "Cluster Name", wizard.getHadoopClusterConfig().getClusterName() );
+            cfgView.addStringCfg( "Domain Name", wizard.getHadoopClusterConfig().getDomainName() );
+            cfgView.addStringCfg( "Number of slave nodes",
+                    wizard.getHadoopClusterConfig().getAllSlaveNodes().size() + "" );
+            cfgView.addStringCfg( "Replication factor", wizard.getHadoopClusterConfig().getReplicationFactor() + "" );
+
+            final Environment environment = wizard.getEnvironmentManager().findEnvironment(
+                    wizard.getHadoopClusterConfig().getEnvironmentId() );
+            cfgView.addStringCfg( "NameNode",
+                    environment.getContainerHostById( wizard.getHadoopClusterConfig().getNameNode() ).getHostname()
+                            + "" );
+            cfgView.addStringCfg( "JobTracker",
+                    environment.getContainerHostById( wizard.getHadoopClusterConfig().getJobTracker() ).getHostname()
+                            + "" );
+            cfgView.addStringCfg( "SecondaryNameNode",
+                    environment.getContainerHostById( wizard.getHadoopClusterConfig().getSecondaryNameNode() )
+                               .getHostname() + "" );
+            String selectedNodes = "";
+            for ( UUID uuid : wizard.getHadoopClusterConfig().getAllSlaveNodes() )
             {
-                UUID trackID = hadoop.configureEnvironmentCluster( wizard.getHadoopClusterConfig() );
-                ProgressWindow window =
-                        new ProgressWindow( executorService, tracker, trackID, HadoopClusterConfig.PRODUCT_KEY );
-                window.getWindow().addCloseListener( new Window.CloseListener()
+                selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+            }
+            cfgView.addStringCfg( "Slave Nodes (DataNode & TaskTracker)",
+                    selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+
+            Button install = new Button( "Configure" );
+            install.setId( "HadoopBtnInstall" );
+            install.addStyleName( "default" );
+            install.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent clickEvent )
                 {
-                    @Override
-                    public void windowClose( Window.CloseEvent closeEvent )
+                    UUID trackID = hadoop.configureEnvironmentCluster( wizard.getHadoopClusterConfig() );
+                    ProgressWindow window =
+                            new ProgressWindow( executorService, tracker, trackID, HadoopClusterConfig.PRODUCT_KEY );
+                    window.getWindow().addCloseListener( new Window.CloseListener()
                     {
-                        wizard.init();
-                    }
-                } );
-                getUI().addWindow( window.getWindow() );
-            }
-        } );
+                        @Override
+                        public void windowClose( Window.CloseEvent closeEvent )
+                        {
+                            wizard.init();
+                        }
+                    } );
+                    getUI().addWindow( window.getWindow() );
+                }
+            } );
 
-        Button back = new Button( "Back" );
-        back.setId( "HadoopVerBack" );
-        back.addStyleName( "default" );
-        back.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
+            Button back = new Button( "Back" );
+            back.setId( "HadoopVerBack" );
+            back.addStyleName( "default" );
+            back.addClickListener( new Button.ClickListener()
             {
-                wizard.back();
-            }
-        } );
+                @Override
+                public void buttonClick( Button.ClickEvent clickEvent )
+                {
+                    wizard.back();
+                }
+            } );
 
-        HorizontalLayout buttons = new HorizontalLayout();
-        buttons.addComponent( back );
-        buttons.addComponent( install );
+            HorizontalLayout buttons = new HorizontalLayout();
+            buttons.addComponent( back );
+            buttons.addComponent( install );
 
-        grid.addComponent( confirmationLbl, 0, 0 );
+            grid.addComponent( confirmationLbl, 0, 0 );
 
-        grid.addComponent( cfgView.getCfgTable(), 0, 1, 0, 3 );
+            grid.addComponent( cfgView.getCfgTable(), 0, 1, 0, 3 );
 
-        grid.addComponent( buttons, 0, 4 );
+            grid.addComponent( buttons, 0, 4 );
 
-        addComponent( grid );
+            addComponent( grid );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
     }
 }

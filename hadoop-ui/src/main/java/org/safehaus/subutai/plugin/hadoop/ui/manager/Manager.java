@@ -9,9 +9,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
@@ -60,8 +61,8 @@ public class Manager
     protected final static String URL_BUTTON_CAPTION = "URL";
     protected final static String DECOMMISSION_STATUS_CAPTION = "Decommission Status: ";
     protected final static String EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION = "Exclude/Include";
-    protected final static String MASTERS_TABLE_CAPTION= "Masters Nodes";
-    protected final static String SLAVES_TABLE_CAPTION= "Slaves Nodes";
+    protected final static String MASTERS_TABLE_CAPTION = "Masters Nodes";
+    protected final static String SLAVES_TABLE_CAPTION = "Slaves Nodes";
 
 
     private final ComboBox clusterList;
@@ -83,7 +84,8 @@ public class Manager
     private ManagerListener managerListener;
 
 
-    public Manager( ExecutorService executorService, Tracker tracker, Hadoop hadoop, EnvironmentManager environmentManager) throws NamingException
+    public Manager( ExecutorService executorService, Tracker tracker, Hadoop hadoop,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         super();
         this.executorService = executorService;
@@ -238,14 +240,19 @@ public class Manager
     {
         if ( hadoopCluster != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( hadoopCluster.getEnvironmentId() );
-
-            populateMastersTable( masterNodesTable, getMasters( environment.getContainerHosts(), hadoopCluster ) );
-            populateSlavesTable( slaveNodesTable, getSlaves( environment.getContainerHosts(), hadoopCluster ) );
-
-            replicationFactor.setValue( hadoopCluster.getReplicationFactor().toString() );
-            domainName.setValue( hadoopCluster.getDomainName() );
-            slaveNodeCount.setValue( hadoopCluster.getAllSlaveNodes().size() + "" );
+            try
+            {
+                Environment environment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+                populateMastersTable( masterNodesTable, getMasters( environment.getContainerHosts(), hadoopCluster ) );
+                populateSlavesTable( slaveNodesTable, getSlaves( environment.getContainerHosts(), hadoopCluster ) );
+                replicationFactor.setValue( hadoopCluster.getReplicationFactor().toString() );
+                domainName.setValue( hadoopCluster.getDomainName() );
+                slaveNodeCount.setValue( hadoopCluster.getAllSlaveNodes().size() + "" );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
         else
         {
@@ -281,7 +288,8 @@ public class Manager
 
         final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
 
-        for ( ContainerHost containerHost : containerHosts ){
+        for ( ContainerHost containerHost : containerHosts )
+        {
 
             // Buttons to be added to availableOperations
             final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
@@ -323,12 +331,14 @@ public class Manager
             statusGroup.addComponent( statusTaskTracker );
             statusGroup.addComponent( statusDecommission );
 
-            table.addItem( new Object[] { containerHost.getHostname(),
-                    containerHost.getIpByInterfaceName( "eth0" ), NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name(),
-                    statusGroup, availableOperations }, null );
+            table.addItem( new Object[] {
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                    NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name(), statusGroup, availableOperations
+            }, null );
 
 
-            Item row = getAgentRow( table, containerHost, NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name() );
+            Item row =
+                    getAgentRow( table, containerHost, NodeType.DATANODE.name() + ", " + NodeType.TASKTRACKER.name() );
 
             checkButton.addClickListener( managerListener.slaveNodeCheckButtonListener( row ) );
             excludeIncludeNodeButton.addClickListener( managerListener.slaveNodeExcludeIncludeButtonListener( row ) );
@@ -336,12 +346,14 @@ public class Manager
         }
     }
 
+
     public void addMasterTableRowComponents( Table table, final ContainerHost containerHost )
     {
 
         final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
 
-        for ( NodeType nodeType : getNodeRoles( cluster, containerHost ) ){
+        for ( NodeType nodeType : getNodeRoles( cluster, containerHost ) )
+        {
 
             // Buttons to be added to availableOperations
             final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
@@ -381,7 +393,8 @@ public class Manager
             statusGroup.addStyleName( "default" );
             statusGroup.setSpacing( true );
 
-            switch ( nodeType ){
+            switch ( nodeType )
+            {
 
                 case NAMENODE:
                     availableOperations.addComponent( checkButton );
@@ -389,16 +402,21 @@ public class Manager
                     availableOperations.addComponent( urlButton );
                     statusGroup.addComponent( statusDatanode );
                     urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
+                    checkButton.addClickListener( managerListener
+                            .nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener(
+                            managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
 
-                    table.addItem( new Object[] { containerHost.getHostname(),
-                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                            statusGroup, availableOperations }, null );
+                    table.addItem( new Object[] {
+                            containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations
+                    }, null );
 
                     urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener( managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
+                    checkButton.addClickListener( managerListener
+                            .nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener(
+                            managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
                     break;
                 case JOBTRACKER:
                     availableOperations.addComponent( checkButton );
@@ -406,31 +424,39 @@ public class Manager
                     availableOperations.addComponent( urlButton );
                     statusGroup.addComponent( statusTaskTracker );
                     urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
+                    checkButton.addClickListener( managerListener
+                            .jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener(
+                            managerListener.jobTrackerStartStopButtonListener( containerHost, availableOperations ) );
 
-                    table.addItem( new Object[] { containerHost.getHostname(),
-                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                            statusGroup, availableOperations }, null );
+                    table.addItem( new Object[] {
+                            containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations
+                    }, null );
 
 
                     urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener( managerListener.jobTrackerStartStopButtonListener(  containerHost, availableOperations ) );
+                    checkButton.addClickListener( managerListener
+                            .jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    startStopButton.addClickListener(
+                            managerListener.jobTrackerStartStopButtonListener( containerHost, availableOperations ) );
                     break;
                 case SECONDARY_NAMENODE:
                     availableOperations.addComponent( checkButton );
                     availableOperations.addComponent( urlButton );
                     statusGroup.addComponent( statusDatanode );
                     urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    table.addItem( new Object[] { containerHost.getHostname(),
-                            containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
-                            statusGroup, availableOperations }, null );
+                    checkButton.addClickListener( managerListener
+                            .secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    table.addItem( new Object[] {
+                            containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
+                            statusGroup, availableOperations
+                    }, null );
 
 
                     urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener.secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
+                    checkButton.addClickListener( managerListener
+                            .secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
                     break;
             }
         }
@@ -448,8 +474,8 @@ public class Manager
         }
         if ( row == null )
         {
-            Notification.show( "Host rowId should have been found inside " + table.getCaption()
-                    + " but could not find! " );
+            Notification
+                    .show( "Host rowId should have been found inside " + table.getCaption() + " but could not find! " );
         }
         return row;
     }
@@ -498,6 +524,7 @@ public class Manager
             return NodeType.TASKTRACKER;
         }
     }
+
 
     private List<NodeType> getNodeRoles( HadoopClusterConfig clusterConfig, final ContainerHost containerHost )
     {
@@ -792,20 +819,28 @@ public class Manager
 
     protected ContainerHost getHostByRow( final Item row )
     {
-        if ( row == null )
+        try
         {
-            return null;
-        }
-        Environment environment = environmentManager.getEnvironmentByUUID( hadoopCluster.getEnvironmentId() );
-        String lxcHostname = row.getItemProperty( HOST_COLUMN_CAPTION ).getValue().toString();
-
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
-        {
-            if ( containerHost.getHostname().equals( lxcHostname ) )
+            if ( row == null )
             {
-                return containerHost;
+                return null;
+            }
+            Environment environment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+            String lxcHostname = row.getItemProperty( HOST_COLUMN_CAPTION ).getValue().toString();
+
+            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            {
+                if ( containerHost.getHostname().equals( lxcHostname ) )
+                {
+                    return containerHost;
+                }
             }
         }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
         return null;
     }
 

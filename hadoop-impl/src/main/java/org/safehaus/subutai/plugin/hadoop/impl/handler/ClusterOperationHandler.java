@@ -8,11 +8,13 @@ import java.util.regex.Pattern;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -100,10 +102,40 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     {
         try
         {
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
-            ContainerHost secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost namenode = null;
+            try
+            {
+                namenode = environment.getContainerHostById( config.getNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Container host with id: %s not found", config.getNameNode().toString() ), e );
+                return;
+            }
+            ContainerHost jobtracker = null;
+            try
+            {
+                jobtracker = environment.getContainerHostById( config.getJobTracker() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Container host with id: %s not found", config.getJobTracker().toString() ), e );
+                return;
+            }
+            ContainerHost secondaryNameNode = null;
+            try
+            {
+                secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage( String.format( "Container host with id: %s not found",
+                        config.getSecondaryNameNode().toString() ), e );
+                return;
+            }
 
             CommandResult result = null;
             switch ( clusterOperationType )
@@ -156,7 +188,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         }
         catch ( CommandException e )
         {
-            trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
+            logExceptionWithMessage( "Command failed", e );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            logExceptionWithMessage(
+                    String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
         }
     }
 
@@ -283,7 +320,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
+                                     .createEnvironment( config.getClusterName(), config.getTopology(), false );
             ClusterSetupStrategy setupStrategy = manager.getClusterSetupStrategy( env, config, trackerOperation );
             setupStrategy.setup();
 
@@ -291,12 +328,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         }
         catch ( ClusterSetupException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup Hadoop cluster %s : %s", clusterName, e.getMessage() ) );
+            logExceptionWithMessage( String.format( "Failed to setup Hadoop cluster %s", clusterName ), e );
         }
-        catch ( EnvironmentBuildException e )
+        catch ( EnvironmentCreationException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Error creating environment with name: " + config.getClusterName(), e );
         }
     }
 
@@ -315,14 +351,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
             manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( EnvironmentDestroyException e )
+        catch ( EnvironmentNotFoundException | EnvironmentDestructionException e )
         {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
+            logExceptionWithMessage( "Error performing operations on environment", e );
         }
+    }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOG.error( message, e );
+        trackerOperation.addLogFailed( message );
     }
 }

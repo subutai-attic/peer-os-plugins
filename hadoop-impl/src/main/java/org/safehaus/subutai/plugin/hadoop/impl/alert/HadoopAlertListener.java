@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -74,13 +74,15 @@ public class HadoopAlertListener implements AlertListener
         {
             throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
                     null );
+            return;
         }
 
         //get cluster environment
-        Environment environment = hadoop.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
+        Environment environment = hadoop.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+            return;
         }
 
         //get environment containers and find alert's source host
@@ -100,6 +102,7 @@ public class HadoopAlertListener implements AlertListener
         {
             throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
                     null );
+            return;
         }
 
         //check if source host belongs to found hadoop cluster
@@ -122,39 +125,46 @@ public class HadoopAlertListener implements AlertListener
         HashMap<NodeType, Integer> ramConsumption = new HashMap<>();
         HashMap<NodeType, Integer> cpuConsumption = new HashMap<>();
 
-        for ( NodeType nodeType : nodeRoles ){
+        for ( NodeType nodeType : nodeRoles )
+        {
             int pid;
-            switch ( nodeType ){
+            switch ( nodeType )
+            {
                 case NAMENODE:
-                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ), sourceHost );
-                    pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
+                    CommandResult result = commandUtil
+                            .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ), sourceHost );
+                    pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
                     break;
                 case SECONDARY_NAMENODE:
-                    result = commandUtil.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ), sourceHost );
-                    pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
+                    result =
+                            commandUtil.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ), sourceHost );
+                    pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
                     break;
                 case JOBTRACKER:
-                    result = commandUtil.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ), sourceHost );
-                    pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
+                    result = commandUtil
+                            .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ), sourceHost );
+                    pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
                     break;
                 case DATANODE:
-                    result = commandUtil.execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ), sourceHost );
-                    pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
+                    result = commandUtil
+                            .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ), sourceHost );
+                    pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
                 case TASKTRACKER:
-                    result = commandUtil.execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ), sourceHost );
-                    pid = parsePid( parseService( result.getStdOut() , nodeType.name().toLowerCase() ) );
+                    result = commandUtil
+                            .execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ), sourceHost );
+                    pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
@@ -162,9 +172,10 @@ public class HadoopAlertListener implements AlertListener
             }
         }
 
-        for ( NodeType nodeType : nodeRoles ){
-            totalRamUsage =+ ramConsumption.get( nodeType );
-            totalCpuUsage =+ cpuConsumption.get( nodeType );
+        for ( NodeType nodeType : nodeRoles )
+        {
+            totalRamUsage = +ramConsumption.get( nodeType );
+            totalCpuUsage = +cpuConsumption.get( nodeType );
         }
 
 
@@ -190,7 +201,8 @@ public class HadoopAlertListener implements AlertListener
          * after this point, we found out source node is under stress, we need to either
          * scale vertically ( increase available sources) or scale horizontally ( add new nodes to cluster)
          *
-         * Since in hadoop master nodes cannot be scaled horizontally ( Hadoop can just have one NameNode, one JobTracker,
+         * Since in hadoop master nodes cannot be scaled horizontally ( Hadoop can just have one NameNode, one
+         * JobTracker,
          * one SecondaryNameNode ), we should scale master nodes vertically. However we can scale out slave
          * nodes (DataNode and TaskTracker) horizontally.
          *
@@ -242,7 +254,8 @@ public class HadoopAlertListener implements AlertListener
              * If one of slave nodes uses consume most resources on machines,
              * we can scale horizontally, otherwise do nothing.
              */
-            if ( isSourceNodeUnderStressBySlaveNodes( ramConsumption, cpuConsumption, targetCluster ) ){
+            if ( isSourceNodeUnderStressBySlaveNodes( ramConsumption, cpuConsumption, targetCluster ) )
+            {
                 // add new nodes to hadoop cluster (horizontal scaling)
                 hadoop.addNode( targetCluster.getClusterName() );
             }
@@ -255,18 +268,24 @@ public class HadoopAlertListener implements AlertListener
 
 
     private boolean isSourceNodeUnderStressBySlaveNodes( HashMap<NodeType, Integer> ramConsumption,
-                                                   HashMap<NodeType, Integer> cpuConsumption, HadoopClusterConfig targetCluster ){
+                                                         HashMap<NodeType, Integer> cpuConsumption,
+                                                         HadoopClusterConfig targetCluster )
+    {
         Map.Entry<NodeType, Integer> maxEntryInRamConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : ramConsumption.entrySet() ){
-            if (maxEntryInRamConsumption == null || entry.getValue().compareTo( maxEntryInRamConsumption.getValue() ) > 0)
+        for ( Map.Entry<NodeType, Integer> entry : ramConsumption.entrySet() )
+        {
+            if ( maxEntryInRamConsumption == null
+                    || entry.getValue().compareTo( maxEntryInRamConsumption.getValue() ) > 0 )
             {
                 maxEntryInRamConsumption = entry;
             }
         }
 
         Map.Entry<NodeType, Integer> maxEntryInCPUConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : cpuConsumption.entrySet() ){
-            if (maxEntryInCPUConsumption == null || entry.getValue().compareTo( maxEntryInCPUConsumption.getValue() ) > 0)
+        for ( Map.Entry<NodeType, Integer> entry : cpuConsumption.entrySet() )
+        {
+            if ( maxEntryInCPUConsumption == null
+                    || entry.getValue().compareTo( maxEntryInCPUConsumption.getValue() ) > 0 )
             {
                 maxEntryInCPUConsumption = entry;
             }
@@ -274,8 +293,12 @@ public class HadoopAlertListener implements AlertListener
 
         assert maxEntryInCPUConsumption != null;
         assert maxEntryInRamConsumption != null;
-        if ( maxEntryInCPUConsumption.getKey().equals( NodeType.DATANODE ) || maxEntryInCPUConsumption.getKey().equals( NodeType.TASKTRACKER ) ||
-                maxEntryInRamConsumption.getKey().equals( NodeType.DATANODE ) || maxEntryInRamConsumption.getKey().equals( NodeType.TASKTRACKER ) ){
+        if ( maxEntryInCPUConsumption.getKey().equals( NodeType.DATANODE ) || maxEntryInCPUConsumption.getKey().equals(
+                NodeType.TASKTRACKER ) ||
+                maxEntryInRamConsumption.getKey().equals( NodeType.DATANODE ) || maxEntryInRamConsumption.getKey()
+                                                                                                         .equals(
+                                                                                                                 NodeType.TASKTRACKER ) )
+        {
             return true;
         }
         return false;
@@ -284,13 +307,16 @@ public class HadoopAlertListener implements AlertListener
 
     protected String parseService( String output, String target ) throws AlertException
     {
-        Matcher m = Pattern.compile("(?m)^.*$").matcher( output );
-        if ( m.find() ){
-            if ( m.group().toLowerCase().contains( target.toLowerCase() ) ){
+        Matcher m = Pattern.compile( "(?m)^.*$" ).matcher( output );
+        if ( m.find() )
+        {
+            if ( m.group().toLowerCase().contains( target.toLowerCase() ) )
+            {
                 return m.group();
             }
         }
-        else{
+        else
+        {
             throwAlertException( String.format( "Could not parse PID from %s", output ), null );
         }
         return null;
