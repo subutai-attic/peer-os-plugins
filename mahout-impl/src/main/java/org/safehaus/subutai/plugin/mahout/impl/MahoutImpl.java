@@ -6,9 +6,12 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -27,17 +30,14 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
-import org.safehaus.subutai.plugin.mahout.api.SetupType;
 import org.safehaus.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 public class MahoutImpl implements Mahout
@@ -52,8 +52,7 @@ public class MahoutImpl implements Mahout
     private Hadoop hadoopManager;
 
 
-    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                       final Hadoop hadoopManager )
+    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
 
         this.tracker = tracker;
@@ -159,6 +158,7 @@ public class MahoutImpl implements Mahout
         return operationHandler.getTrackerId();
     }
 
+
     @Override
     public UUID installCluster( MahoutClusterConfig config )
     {
@@ -186,11 +186,12 @@ public class MahoutImpl implements Mahout
         return h.getTrackerId();
     }
 
+
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterName), "Cluster name is null or empty");
-        MahoutClusterConfig mahoutClusterConfig = getCluster(clusterName);
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        MahoutClusterConfig mahoutClusterConfig = getCluster( clusterName );
         ClusterOperationHandler operationHandler =
                 new ClusterOperationHandler( this, mahoutClusterConfig, ClusterOperationType.DESTROY );
         executor.execute( operationHandler );
@@ -245,38 +246,26 @@ public class MahoutImpl implements Mahout
     public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment,
                                                          final MahoutClusterConfig config, final TrackerOperation po )
     {
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            return new OverHadoopSetupStrategy( this, config, po, environment );
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-        {
-//            WithHadoopSetupStrategy s = new WithHadoopSetupStrategy( this, config, po );
-//            s.setEnvironment( environment );
-//            return s;
-        }
-        return null;
+        return new OverHadoopSetupStrategy( this, config, po, environment );
     }
 
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint(MahoutClusterConfig config)
+
+    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( MahoutClusterConfig config )
     {
         EnvironmentBlueprint blueprint = new EnvironmentBlueprint();
 
-        blueprint.setName(String.format("%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID()));
-        blueprint.setExchangeSshKeys(true);
-        blueprint.setLinkHosts(true);
-        blueprint.setDomainName(Common.DEFAULT_DOMAIN_NAME);
+        blueprint.setName( String.format( "%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID() ) );
+        blueprint.setExchangeSshKeys( true );
+        blueprint.setLinkHosts( true );
+        blueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
 
         NodeGroup ng = new NodeGroup();
-        ng.setName("Default");
-        ng.setNumberOfNodes(config.getNodes().size()); // master +slaves
-        ng.setTemplateName(MahoutClusterConfig.TEMPLATE_NAME);
-        ng.setPlacementStrategy(new PlacementStrategy("MORE_RAM"));
-        blueprint.setNodeGroups(Sets.newHashSet(ng));
+        ng.setName( "Default" );
+        ng.setNumberOfNodes( config.getNodes().size() ); // master +slaves
+        ng.setTemplateName( MahoutClusterConfig.TEMPLATE_NAME );
+        ng.setPlacementStrategy( new PlacementStrategy( "MORE_RAM" ) );
+        blueprint.setNodeGroups( Sets.newHashSet( ng ) );
 
         return blueprint;
-
     }
-
-
 }

@@ -1,6 +1,9 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
-import com.google.common.base.Strings;
+
+import java.util.Set;
+import java.util.UUID;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -16,8 +19,7 @@ import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.UUID;
+import com.google.common.base.Strings;
 
 
 class OverHadoopSetupStrategy extends MahoutSetupStrategy
@@ -25,12 +27,14 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
     private static final Logger LOG = LoggerFactory.getLogger( OverHadoopSetupStrategy.class.getName() );
     private Environment environment;
 
+
     public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po,
                                     Environment environment )
     {
         super( manager, config, po );
         this.environment = environment;
     }
+
 
     private void check() throws ClusterSetupException
     {
@@ -60,9 +64,9 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID(hc.getEnvironmentId());
+        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
 
-        if ( environment == null)
+        if ( environment == null )
         {
             throw new ClusterSetupException( "Hadoop environment not found" );
         }
