@@ -1,5 +1,11 @@
 package org.safehaus.subutai.plugin.oozie.impl.alert;
 
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
@@ -9,24 +15,19 @@ import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Created by ermek on 1/28/15.
  */
 public class OozieAlertListener implements AlertListener
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OozieAlertListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OozieAlertListener.class);
     private OozieImpl oozie;
     public static final String OOZIE_ALERT_LISTENER = "OOZIE_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
@@ -41,9 +42,15 @@ public class OozieAlertListener implements AlertListener
         this.oozie = oozie;
     }
 
+    private void throwAlertException( String context, Exception e ) throws AlertException
+    {
+        LOG.error( context, e );
+        throw new AlertException( context, e );
+    }
+
 
     @Override
-    public void onAlert(ContainerHostMetric containerHostMetric) throws Exception
+    public void onAlert(ContainerHostMetric metric) throws Exception
     {
         //find oozie cluster by environment id
         List<OozieClusterConfig> clusters = oozie.getClusters();
@@ -51,7 +58,7 @@ public class OozieAlertListener implements AlertListener
         OozieClusterConfig targetCluster = null;
         for ( OozieClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( containerHostMetric.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( metric.getEnvironmentId() ) )
             {
                 targetCluster = cluster;
                 break;
@@ -60,18 +67,16 @@ public class OozieAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throw new Exception(
-                    String.format( "Cluster not found by environment id %s", containerHostMetric.getEnvironmentId() ),
+            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
                     null );
         }
 
         //get cluster environment
         Environment environment =
-                oozie.getEnvironmentManager().getEnvironmentByUUID( containerHostMetric.getEnvironmentId() );
+                oozie.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
         if ( environment == null )
         {
-            throw new Exception(
-                    String.format( "Environment not found by id %s", containerHostMetric.getEnvironmentId() ), null );
+            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert source host
@@ -80,7 +85,7 @@ public class OozieAlertListener implements AlertListener
         ContainerHost sourceHost = null;
         for ( ContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( containerHostMetric.getHostId() ) )
+            if ( containerHost.getId().equals( metric.getHostId() ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -89,16 +94,14 @@ public class OozieAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throw new Exception(
-                    String.format( "Alert source host %s not found in environment", containerHostMetric.getHost() ),
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
                     null );
         }
 
         //check if source host belongs to found oozie cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOGGER.info( String.format( "Alert source host %s does not belong to oozie cluster",
-                    containerHostMetric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Oozie cluster", metric.getHost() ) );
             return;
         }
 
@@ -111,7 +114,7 @@ public class OozieAlertListener implements AlertListener
         }
         catch ( NumberFormatException | CommandException e )
         {
-            throw new Exception( "Error obtaining oozie process PID", e );
+            throwAlertException( "Error obtaining process PID", e );
         }
 
         //get oozie process resource usage by oozie pid
@@ -120,7 +123,7 @@ public class OozieAlertListener implements AlertListener
 
         //confirm that oozie is causing the stress, otherwise no-op
         MonitoringSettings thresholds = oozie.getAlertSettings();
-        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
         boolean isCpuStressedByOozie = false;
         boolean isRamStressedByOozie = false;
@@ -136,7 +139,7 @@ public class OozieAlertListener implements AlertListener
 
         if ( !( isRamStressedByOozie || isCpuStressedByOozie ) )
         {
-            LOGGER.info( "oozie cluster runs ok" );
+            LOG.info( "oozie cluster runs ok" );
             return;
         }
 
@@ -185,14 +188,15 @@ public class OozieAlertListener implements AlertListener
             }
 
             // add new node
-            OozieClusterConfig oozieClusterConfig = oozie.getCluster( targetCluster.getClusterName() );
-            if ( oozieClusterConfig == null )
+            HadoopClusterConfig hadoopClusterConfig =
+                    oozie.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
+            if ( hadoopClusterConfig == null )
             {
-                throw new Exception( String.format( "oozie cluster %s not found", targetCluster.getClusterName() ),
-                        null );
+                throwAlertException(
+                        String.format( "Oozie cluster %s not found", targetCluster.getHadoopClusterName() ), null );
             }
 
-            Set<UUID> availableNodes = oozieClusterConfig.getNodes();
+            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
             availableNodes.removeAll( targetCluster.getNodes() );
 
             //no available nodes -> notify user
@@ -216,8 +220,8 @@ public class OozieAlertListener implements AlertListener
 
                 if ( newNodeHostName == null )
                 {
-                    throw new Exception(
-                            String.format( "Could not obtain available spark node from environment by id %s",
+                    throwAlertException(
+                            String.format( "Could not obtain available hadoop node from environment by id %s",
                                     newNodeId ), null );
                 }
 
@@ -251,8 +255,9 @@ public class OozieAlertListener implements AlertListener
         }
         else
         {
-            throw new Exception( String.format( "Could not parse PID from %s", output ), null );
+            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
         }
+        return 0;
     }
 
 

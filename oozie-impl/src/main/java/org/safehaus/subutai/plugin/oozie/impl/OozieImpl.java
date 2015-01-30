@@ -1,9 +1,12 @@
 package org.safehaus.subutai.plugin.oozie.impl;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
@@ -26,25 +29,22 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.alert.OozieAlertListener;
 import org.safehaus.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 public class OozieImpl implements Oozie
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OozieImpl.class.getName());
-    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin(45);
+    private static final Logger LOG = LoggerFactory.getLogger( OozieImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
     private Monitor monitor;
     private OozieAlertListener oozieAlertListener;
@@ -57,15 +57,15 @@ public class OozieImpl implements Oozie
     private ExecutorService executor;
 
 
-    public OozieImpl(final Tracker tracker, final EnvironmentManager environmentManager,
-                     final Hadoop hadoopManager, final Monitor monitor)
+    public OozieImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                      final Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
-        this.oozieAlertListener = new OozieAlertListener(this);
-        this.monitor.addAlertListener(oozieAlertListener);
+        this.oozieAlertListener = new OozieAlertListener( this );
+        this.monitor.addAlertListener( oozieAlertListener );
     }
 
 
@@ -75,7 +75,7 @@ public class OozieImpl implements Oozie
     }
 
 
-    public void setTracker(Tracker tracker)
+    public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
     }
@@ -86,15 +86,18 @@ public class OozieImpl implements Oozie
         return pluginDao;
     }
 
-    public void setPluginDao(PluginDAO pluginDao)
+
+    public void setPluginDao( PluginDAO pluginDao )
     {
         this.pluginDao = pluginDao;
     }
 
-    public void setExecutor(ExecutorService executor)
+
+    public void setExecutor( ExecutorService executor )
     {
         this.executor = executor;
     }
+
 
     public EnvironmentManager getEnvironmentManager()
     {
@@ -102,10 +105,11 @@ public class OozieImpl implements Oozie
     }
 
 
-    public void setEnvironmentManager(EnvironmentManager environmentManager)
+    public void setEnvironmentManager( EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
+
 
     public Hadoop getHadoopManager()
     {
@@ -113,7 +117,7 @@ public class OozieImpl implements Oozie
     }
 
 
-    public void setHadoopManager(Hadoop hadoopManager)
+    public void setHadoopManager( Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
     }
@@ -141,10 +145,11 @@ public class OozieImpl implements Oozie
     {
         try
         {
-            this.pluginDao = new PluginDAO(null);
-        } catch (SQLException e)
+            this.pluginDao = new PluginDAO( null );
+        }
+        catch ( SQLException e )
         {
-            LOG.error(e.getMessage(), e);
+            LOG.error( e.getMessage(), e );
         }
 
         executor = Executors.newCachedThreadPool();
@@ -159,118 +164,116 @@ public class OozieImpl implements Oozie
     }
 
 
-    public UUID installCluster(final OozieClusterConfig config)
+    public UUID installCluster( final OozieClusterConfig config )
     {
-        Preconditions.checkNotNull(config, "Configuration is null");
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(config.getClusterName()),
-                "Cluster name is null or empty");
+        Preconditions.checkNotNull( config, "Configuration is null" );
+        Preconditions
+                .checkArgument( !Strings.isNullOrEmpty( config.getClusterName() ), "Cluster name is null or empty" );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler(this, config, ClusterOperationType.INSTALL);
-        executor.execute(operationHandler);
+                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
-    public UUID uninstallCluster(final String clusterName)
+    public UUID uninstallCluster( final String clusterName )
     {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterName), "Cluster name is null or empty");
-        OozieClusterConfig oozieClusterConfig = getCluster(clusterName);
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        OozieClusterConfig oozieClusterConfig = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler(this, oozieClusterConfig, ClusterOperationType.UNINSTALL);
-        executor.execute(operationHandler);
+                new ClusterOperationHandler( this, oozieClusterConfig, ClusterOperationType.UNINSTALL );
+        executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
     public List<OozieClusterConfig> getClusters()
     {
-        return pluginDao.getInfo(OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class);
+        return pluginDao.getInfo( OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class );
     }
 
 
-    public OozieClusterConfig getCluster(String clusterName)
+    public OozieClusterConfig getCluster( String clusterName )
     {
-        return pluginDao.getInfo(OozieClusterConfig.PRODUCT_KEY, clusterName, OozieClusterConfig.class);
+        return pluginDao.getInfo( OozieClusterConfig.PRODUCT_KEY, clusterName, OozieClusterConfig.class );
     }
 
 
     @Override
-    public UUID addNode(final String clusterName, final String lxcHostname)
+    public UUID addNode( final String clusterName, final String lxcHostname )
     {
-        AbstractOperationHandler h = new NodeOperationHandler(this, clusterName, lxcHostname, NodeOperationType
-                .INSTALL);
-        executor.execute(h);
+        AbstractOperationHandler h =
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.INSTALL );
+        executor.execute( h );
         return h.getTrackerId();
     }
+
 
     @Override
-    public UUID startNode(String clusterName, String lxcHostname)
+    public UUID startNode( String clusterName, String lxcHostname )
     {
-        AbstractOperationHandler h = new NodeOperationHandler(this, clusterName, lxcHostname, NodeOperationType.START);
-        executor.execute(h);
+        AbstractOperationHandler h =
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.START );
+        executor.execute( h );
         return h.getTrackerId();
     }
+
 
     @Override
-    public UUID stopNode(String clusterName, String lxcHostname)
+    public UUID stopNode( String clusterName, String lxcHostname )
     {
-        AbstractOperationHandler h = new NodeOperationHandler(this, clusterName, lxcHostname, NodeOperationType.STOP);
-        executor.execute(h);
+        AbstractOperationHandler h = new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.STOP );
+        executor.execute( h );
         return h.getTrackerId();
     }
+
 
     @Override
-    public UUID checkNode(String clusterName, String lxcHostname)
+    public UUID checkNode( String clusterName, String lxcHostname )
     {
-        AbstractOperationHandler h = new NodeOperationHandler(this, clusterName, lxcHostname, NodeOperationType.STATUS);
-        executor.execute(h);
+        AbstractOperationHandler h =
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.STATUS );
+        executor.execute( h );
         return h.getTrackerId();
     }
 
-    public ClusterSetupStrategy getClusterSetupStrategy(final Environment environment,
-                                                        final OozieClusterConfig config,
-                                                        final TrackerOperation po)
-    {
-        Preconditions.checkNotNull(config, "Oozie cluster config is null");
-        Preconditions.checkNotNull(po, "Product operation is null");
-        if (config.getSetupType() != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */)
-        {
-            Preconditions.checkNotNull(environment, "Environment is null");
-        } else if (config.getSetupType() == SetupType.OVER_HADOOP)
-        {
-            return new OverHadoopSetupStrategy(environment, config, po, this);
-        }
 
-        return new OozieSetupStrategy(this, po, config);
+    public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final OozieClusterConfig config,
+                                                         final TrackerOperation po )
+    {
+        Preconditions.checkNotNull( config, "Oozie cluster config is null" );
+        Preconditions.checkNotNull( po, "Product operation is null" );
+
+        return new OverHadoopSetupStrategy( environment, config, po, this );
     }
 
 
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint(OozieClusterConfig config)
+    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( OozieClusterConfig config )
     {
         EnvironmentBlueprint blueprint = new EnvironmentBlueprint();
 
-        blueprint.setName(String.format("%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID()));
-        blueprint.setExchangeSshKeys(true);
-        blueprint.setLinkHosts(true);
-        blueprint.setDomainName(Common.DEFAULT_DOMAIN_NAME);
+        blueprint.setName( String.format( "%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID() ) );
+        blueprint.setExchangeSshKeys( true );
+        blueprint.setLinkHosts( true );
+        blueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
 
         NodeGroup ng = new NodeGroup();
-        ng.setName("Default");
-        ng.setNumberOfNodes(config.getNodes().size()); // master +slaves
-        ng.setTemplateName(OozieClusterConfig.TEMPLATE_NAME);
-        ng.setPlacementStrategy(new PlacementStrategy("MORE_RAM"));
-        blueprint.setNodeGroups(Sets.newHashSet(ng));
+        ng.setName( "Default" );
+        ng.setNumberOfNodes( config.getNodes().size() ); // master +slaves
+        ng.setTemplateName( OozieClusterConfig.TEMPLATE_NAME );
+        ng.setPlacementStrategy( new PlacementStrategy( "MORE_RAM" ) );
+        blueprint.setNodeGroups( Sets.newHashSet( ng ) );
 
         return blueprint;
-
     }
 
+
     @Override
-    public UUID destroyNode(final String clusterName, final String lxcHostname)
+    public UUID destroyNode( final String clusterName, final String lxcHostname )
     {
-        AbstractOperationHandler h = new NodeOperationHandler(this, clusterName, lxcHostname, NodeOperationType
-                .UNINSTALL);
-        executor.execute(h);
+        AbstractOperationHandler h =
+                new NodeOperationHandler( this, clusterName, lxcHostname, NodeOperationType.UNINSTALL );
+        executor.execute( h );
         return h.getTrackerId();
     }
 
@@ -287,20 +290,20 @@ public class OozieImpl implements Oozie
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
-    }
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
+//    }
+
 
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
 
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( oozieAlertListener, environment );
-    }
 
-
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        getMonitor().stopMonitoring( oozieAlertListener, environment );
+//    }
 }
