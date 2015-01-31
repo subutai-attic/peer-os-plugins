@@ -2,11 +2,13 @@
 
   <reference id="sparkManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.spark.api.Spark" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="spark/list-clusters">
       <action class="org.safehaus.subutai.plugin.spark.cli.ListClustersCommand">
-        <property name="sparkManager" ref="sparkManager" />
+        <argument ref="sparkManager" />
       </action>
     </command>
   </command-bundle>
@@ -14,7 +16,8 @@
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="spark/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.spark.cli.UninstallClusterCommand">
-        <property name="sparkManager" ref="sparkManager" />
+        <argument ref="sparkManager" />
+        <argument ref="tracker" />
       </action>
     </command>
   </command-bundle>

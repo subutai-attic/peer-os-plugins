@@ -2,8 +2,6 @@ package org.safehaus.subutai.plugin.spark.rest;
 
 
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -16,17 +14,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.Spark;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 
 public class RestService
@@ -35,16 +27,11 @@ public class RestService
     private static final String OPERATION_ID = "OPERATION_ID";
 
     private Spark sparkManager;
-    private Hadoop hadoopManager;
-    private EnvironmentManager environmentManager;
 
 
-    public RestService( final Spark sparkManager, final Hadoop hadoopManager,
-                        final EnvironmentManager environmentManager )
+    public RestService( final Spark sparkManager )
     {
         this.sparkManager = sparkManager;
-        this.hadoopManager = hadoopManager;
-        this.environmentManager = environmentManager;
     }
 
 
@@ -85,45 +72,11 @@ public class RestService
         TrimmedSparkConfig trimmedSparkConfig = JsonUtil.GSON.fromJson( config, TrimmedSparkConfig.class );
 
 
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( trimmedSparkConfig.getHadoopClusterName() );
-
-        if ( hadoopClusterConfig == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Hadoop cluster %s not found", trimmedSparkConfig.getHadoopClusterName() ) ).build();
-        }
-
-        Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-
-        if ( environment == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Environment %s not found", hadoopClusterConfig.getEnvironmentId() ) ).build();
-        }
-
-        ContainerHost master = environment.getContainerHostByHostname( trimmedSparkConfig.getMasterNodeHostName() );
-        if ( master == null )
-        {
-            return Response.status( Response.Status.NOT_FOUND ).entity(
-                    String.format( "Master node %s not found", trimmedSparkConfig.getMasterNodeHostName() ) ).build();
-        }
-        Set<UUID> slaveIds = Sets.newHashSet();
-        for ( String slaveHostname : trimmedSparkConfig.getSlavesHostName() )
-        {
-            ContainerHost slave = environment.getContainerHostByHostname( slaveHostname );
-            if ( slave == null )
-            {
-                return Response.status( Response.Status.NOT_FOUND )
-                               .entity( String.format( "Slave node %s not found", slaveHostname ) ).build();
-            }
-            slaveIds.add( slave.getId() );
-        }
-        //fill cluster config
         SparkClusterConfig expandedConfig = new SparkClusterConfig();
         expandedConfig.setClusterName( trimmedSparkConfig.getClusterName() );
         expandedConfig.setHadoopClusterName( trimmedSparkConfig.getHadoopClusterName() );
-        expandedConfig.setMasterNodeId( master.getId() );
-        expandedConfig.getSlaveIds().addAll( slaveIds );
+        expandedConfig.setMasterNodeId( trimmedSparkConfig.getMasterHostId() );
+        expandedConfig.getSlaveIds().addAll( trimmedSparkConfig.getSlaveHostsIds() );
 
         String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.installCluster( expandedConfig ) );
 

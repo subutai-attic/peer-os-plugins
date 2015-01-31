@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.spark.rest;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 
 public class TrimmedSparkConfig
@@ -10,8 +11,8 @@ public class TrimmedSparkConfig
     private String clusterName;
     private String hadoopClusterName;
 
-    private String masterNodeHostName;
-    private Set<String> slavesHostName;
+    private UUID masterHostId;
+    private Set<UUID> slaveHostsIds;
 
 
     public String getClusterName()
@@ -20,15 +21,15 @@ public class TrimmedSparkConfig
     }
 
 
-    public String getMasterNodeHostName()
+    public UUID getMasterHostId()
     {
-        return masterNodeHostName;
+        return masterHostId;
     }
 
 
-    public Set<String> getSlavesHostName()
+    public Set<UUID> getSlaveHostsIds()
     {
-        return slavesHostName;
+        return slaveHostsIds;
     }
 
 

@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -33,22 +33,15 @@ public class SparkAlertListener implements AlertListener
     public static final String SPARK_ALERT_LISTENER = "SPARK_ALERT_LISTENER";
     private SparkImpl spark;
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static final int MAX_RAM_QUOTA_MB = 2048;
+    private static final int RAM_QUOTA_INCREMENT_MB = 512;
+    private static final int MAX_CPU_QUOTA_PERCENT = 80;
+    private static final int CPU_QUOTA_INCREMENT_PERCENT = 10;
 
 
     public SparkAlertListener( final SparkImpl spark )
     {
         this.spark = spark;
-    }
-
-
-    private void throwAlertException( String context, Exception e ) throws AlertException
-    {
-        LOG.error( context, e );
-        throw new AlertException( context, e );
     }
 
 
@@ -70,15 +63,16 @@ public class SparkAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
-                    null );
+            throw new AlertException(
+                    String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ), null );
         }
 
         //get cluster environment
-        Environment environment = spark.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
+        Environment environment = spark.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
-            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+            throw new AlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ),
+                    null );
         }
 
         //get environment containers and find alert's source host
@@ -96,8 +90,8 @@ public class SparkAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
-                    null );
+            throw new AlertException(
+                    String.format( "Alert source host %s not found in environment", metric.getHost() ), null );
         }
 
         //check if source host belongs to found spark cluster
@@ -111,7 +105,7 @@ public class SparkAlertListener implements AlertListener
         boolean isMasterNode = targetCluster.getMasterNodeId().equals( sourceHost.getId() );
 
         //figure out Spark process pid
-        int sparkPID = 0;
+        int sparkPID;
         try
         {
             CommandResult result = commandUtil.execute( isMasterNode ? spark.getCommands().getObtainMasterPidCommand() :
@@ -120,7 +114,7 @@ public class SparkAlertListener implements AlertListener
         }
         catch ( NumberFormatException | CommandException e )
         {
-            throwAlertException( "Error obtaining Spark process PID", e );
+            throw new AlertException( "Error obtaining Spark process PID", e );
         }
 
         //get Spark process resource usage by Spark pid
@@ -168,7 +162,7 @@ public class SparkAlertListener implements AlertListener
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedBySpark )
+            else
             {
 
                 //read current CPU quota
@@ -194,7 +188,7 @@ public class SparkAlertListener implements AlertListener
                     spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
             if ( hadoopClusterConfig == null )
             {
-                throwAlertException(
+                throw new AlertException(
                         String.format( "Hadoop cluster %s not found", targetCluster.getHadoopClusterName() ), null );
             }
 
@@ -223,7 +217,7 @@ public class SparkAlertListener implements AlertListener
 
                 if ( newNodeHostName == null )
                 {
-                    throwAlertException(
+                    throw new AlertException(
                             String.format( "Could not obtain available hadoop node from environment by id %s",
                                     newNodeId ), null );
                 }
@@ -251,9 +245,8 @@ public class SparkAlertListener implements AlertListener
         }
         else
         {
-            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
+            throw new AlertException( String.format( "Could not parse PID from %s", output ), null );
         }
-        return 0;
     }
 
 

@@ -6,8 +6,10 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -74,16 +76,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
         }
 
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-
-        if ( environment == null )
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
         {
             throw new ClusterException( String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
         }
 
-        master = environment.getContainerHostById( config.getMasterNodeId() );
-
-        if ( master == null )
+        try
+        {
+            master = environment.getContainerHostById( config.getMasterNodeId() );
+        }
+        catch ( ContainerHostNotFoundException e )
         {
             throw new ClusterException(
                     String.format( "Master node not found in environment by id %s", config.getMasterNodeId() ) );
@@ -165,7 +171,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
         {
             checkPrerequisites();
 
-            Set<ContainerHost> allNodes = environment.getContainerHostsByIds( config.getSlaveIds() );
+            Set<ContainerHost> allNodes;
+            try
+            {
+                allNodes = environment.getContainerHostsByIds( config.getSlaveIds() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterException( String.format( "Failed to obtain master environment container: %s", e ) );
+            }
 
             for ( ContainerHost node : allNodes )
             {
@@ -236,8 +250,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
                         String.format( "Could not find Hadoop cluster %s", config.getHadoopClusterName() ) );
             }
 
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-            if ( env == null )
+            Environment env;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( hadoopConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
                         hadoopConfig.getEnvironmentId() ) );

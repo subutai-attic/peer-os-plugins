@@ -6,9 +6,10 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
@@ -36,8 +37,24 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
     public void configureCluster( final SparkClusterConfig config, final Environment environment )
             throws ClusterConfigurationException
     {
-        final ContainerHost master = environment.getContainerHostById( config.getMasterNodeId() );
-        final Set<ContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaveIds() );
+        final ContainerHost master;
+        try
+        {
+            master = environment.getContainerHostById( config.getMasterNodeId() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
+        final Set<ContainerHost> slaves;
+        try
+        {
+            slaves = environment.getContainerHostsByIds( config.getSlaveIds() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
 
         //configure master IP
         po.addLog( "Setting master IP..." );

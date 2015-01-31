@@ -5,11 +5,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.Spark;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -28,10 +26,10 @@ public class Wizard
     private final EnvironmentManager environmentManager;
     private int step = 1;
     private SparkClusterConfig config = new SparkClusterConfig();
-    private HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
 
 
-    public Wizard( ExecutorService executor, Spark spark, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executor, Spark spark, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
         this.executor = executor;
 
@@ -106,7 +104,6 @@ public class Wizard
     {
         step = 1;
         config = new SparkClusterConfig();
-        hadoopConfig = new HadoopClusterConfig();
         putForm();
     }
 
@@ -114,11 +111,5 @@ public class Wizard
     public SparkClusterConfig getConfig()
     {
         return config;
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
     }
 }

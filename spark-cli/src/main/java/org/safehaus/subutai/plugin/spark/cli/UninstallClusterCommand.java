@@ -17,38 +17,21 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 /**
  * Displays the last log entries
  */
-@Command(scope = "spark", name = "uninstall-cluster", description = "Command to uninstall Spark cluster")
+@Command( scope = "spark", name = "uninstall-cluster", description = "Command to uninstall Spark cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
-    private Spark sparkManager;
-    private Tracker tracker;
+    private final Spark sparkManager;
+    private final Tracker tracker;
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public Spark getSparkManager()
-    {
-        return sparkManager;
-    }
-
-
-    public void setSparkManager( Spark sparkManager )
+    public UninstallClusterCommand( final Spark sparkManager, final Tracker tracker )
     {
         this.sparkManager = sparkManager;
+        this.tracker = tracker;
     }
 
 

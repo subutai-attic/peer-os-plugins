@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -21,6 +23,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
@@ -45,15 +48,41 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final SparkClusterConfig config = wizard.getConfig();
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", config.getClusterName() );
 
         HadoopClusterConfig hadoopCluster = hadoop.getCluster( config.getHadoopClusterName() );
-        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopCluster.getEnvironmentId() );
-        ContainerHost master = hadoopEnvironment.getContainerHostById( config.getMasterNodeId() );
-        Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( config.getSlaveIds() );
+        Environment hadoopEnvironment;
+        try
+        {
+            hadoopEnvironment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            Notification.show( String.format( "Hadoop environment %s not found", hadoopCluster.getEnvironmentId() ) );
+            return;
+        }
+        ContainerHost master ;
+        try
+        {
+            master = hadoopEnvironment.getContainerHostById( config.getMasterNodeId() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            Notification.show( String.format( "Spark master %s not found", config.getMasterNodeId() ) );
+            return;
+        }
+        Set<ContainerHost> slaves;
+        try
+        {
+            slaves = hadoopEnvironment.getContainerHostsByIds( config.getSlaveIds() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            Notification.show( String.format( "Spark slaves %s not found", config.getSlaveIds() ) );
+            return;
+        }
         cfgView.addStringCfg( "Hadoop cluster Name", config.getHadoopClusterName() );
         cfgView.addStringCfg( "Master Node", master.getHostname() );
         for ( ContainerHost slave : slaves )

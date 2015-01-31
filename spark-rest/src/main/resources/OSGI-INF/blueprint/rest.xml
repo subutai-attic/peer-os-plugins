@@ -13,15 +13,9 @@
 
   <reference id="sparkManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.spark.api.Spark" />
-  <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="sparkRestService" class="org.safehaus.subutai.plugin.spark.rest.RestService">
     <argument ref="sparkManager" />
-    <argument ref="hadoopManager" />
-    <argument ref="environmentManager" />
   </bean>
 
   <jaxrs:server address="/spark" id="sparkRestServiceImpl">

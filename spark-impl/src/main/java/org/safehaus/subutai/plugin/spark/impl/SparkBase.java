@@ -5,8 +5,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -88,8 +87,7 @@ public abstract class SparkBase
     }
 
 
-    protected SparkBase( final Tracker tracker,
-                         final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+    protected SparkBase( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
                          final Monitor monitor )
     {
         this.tracker = tracker;

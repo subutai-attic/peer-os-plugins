@@ -8,9 +8,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -231,7 +233,15 @@ public class Manager
                     HadoopClusterConfig hci = hadoop.getCluster( hn );
                     if ( hci != null )
                     {
-                        set = environment.getContainerHostsByIds( Sets.newHashSet( hci.getAllNodes() ) );
+                        try
+                        {
+                            set = environment.getContainerHostsByIds( Sets.newHashSet( hci.getAllNodes() ) );
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            show( String.format( "Error obtaining hadoop environment containers: %s", e ) );
+                            return;
+                        }
                     }
                 }
 
@@ -241,7 +251,15 @@ public class Manager
                     show( "Hadoop cluster not found" );
                     return;
                 }
-                set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodesIds() ) ) );
+                try
+                {
+                    set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodesIds() ) ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    show( String.format( "Error obtaining spark environment containers: %s", e ) );
+                    return;
+                }
                 if ( set.isEmpty() )
                 {
                     show( "All nodes in Hadoop cluster have Spark installed" );
@@ -396,28 +414,6 @@ public class Manager
     }
 
 
-    public void disableOREnableAllButtonsOnTable( Table table, boolean value )
-    {
-        if ( table != null )
-        {
-            for ( Object o : table.getItemIds() )
-            {
-                int rowId = ( Integer ) o;
-                Item row = table.getItem( rowId );
-                HorizontalLayout availableOperationsLayout =
-                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
-                if ( availableOperationsLayout != null )
-                {
-                    for ( Component component : availableOperationsLayout )
-                    {
-                        component.setEnabled( value );
-                    }
-                }
-            }
-        }
-    }
-
-
     private Table createTableTemplate( String caption )
     {
         final Table table = new Table( caption );
@@ -442,13 +438,14 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost node = environment.getContainerHostByHostname( hostname );
-                    if ( node != null )
+                    ContainerHost node;
+                    try
                     {
+                        node = environment.getContainerHostByHostname( hostname );
                         TerminalWindow terminal = new TerminalWindow( node );
                         contentRoot.getUI().addWindow( terminal.getWindow() );
                     }
-                    else
+                    catch ( ContainerHostNotFoundException e )
                     {
                         show( "Host not found" );
                     }
@@ -463,12 +460,22 @@ public class Manager
     {
         if ( config != null )
         {
-            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-
-            populateTable( nodesTable, environment.getContainerHostsByIds( config.getSlaveIds() ),
-                    environment.getContainerHostById( config.getMasterNodeId() ) );
-            checkAllNodesStatus();
-            autoScaleBtn.setValue( config.isAutoScaling() );
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getSlaveIds() ),
+                        environment.getContainerHostById( config.getMasterNodeId() ) );
+                checkAllNodesStatus();
+                autoScaleBtn.setValue( config.isAutoScaling() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                show( String.format( "Spark environment %s not found", config.getEnvironmentId() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                show( String.format( "Error obtaining spark environment containers: %s", e ) );
+            }
         }
         else
         {
@@ -859,8 +866,6 @@ public class Manager
             }
         } );
     }
-
-
 
 
     public void addClickListenerToStopButton( final ContainerHost node, final boolean isMaster,

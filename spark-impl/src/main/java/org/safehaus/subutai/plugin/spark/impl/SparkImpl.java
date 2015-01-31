@@ -4,11 +4,10 @@ package org.safehaus.subutai.plugin.spark.impl;
 import java.util.List;
 import java.util.UUID;
 
-
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -36,8 +35,8 @@ public class SparkImpl extends SparkBase implements Spark
     private SparkAlertListener sparkAlertListener;
 
 
-    public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                      final Hadoop hadoopManager, final Monitor monitor )
+    public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                      final Monitor monitor )
     {
         super( tracker, environmentManager, hadoopManager, monitor );
 
