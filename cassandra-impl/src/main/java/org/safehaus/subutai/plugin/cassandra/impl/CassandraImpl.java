@@ -411,7 +411,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info( String.format( "Cassandra environment event: Cluster removed",
+                    LOG.info( String.format( "Cassandra environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
