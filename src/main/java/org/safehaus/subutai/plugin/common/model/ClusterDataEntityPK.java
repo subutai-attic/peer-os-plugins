@@ -4,9 +4,6 @@ package org.safehaus.subutai.plugin.common.model;
 import java.io.Serializable;
 
 
-/**
- * Created by talas on 12/9/14.
- */
 public class ClusterDataEntityPK implements Serializable
 {
     private String source;

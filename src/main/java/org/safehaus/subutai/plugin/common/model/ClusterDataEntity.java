@@ -13,9 +13,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 
-/**
- * Created by talas on 12/9/14.
- */
 @Entity
 @Access( AccessType.FIELD )
 @Table( name = "cluster_data" )

@@ -10,9 +10,6 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 
-/**
- * Created by talas on 12/9/14.
- */
 public class EmfUtil
 {
     private EntityManagerFactory emf;
@@ -20,27 +17,12 @@ public class EmfUtil
 
     public EmfUtil()
     {
-        //        getEmf();
     }
 
 
     public EntityManagerFactory getEmf()
     {
-        //        if ( emf == null )
-        //        {
-        //            Bundle thisBundle = FrameworkUtil.getBundle( EmfUtil.class );
-        //            // Could get this by wiring up OsgiTestBundleActivator as well.
-        //            BundleContext context = thisBundle.getBundleContext();
-        //
-        //            ServiceReference serviceReference = context.getServiceReference( PersistenceProvider.class
-        // .getName() );
-        //            PersistenceProvider persistenceProvider = (PersistenceProvider ) context.getService(
-        // serviceReference );
-        //
-        //            emf = persistenceProvider.createEntityManagerFactory( "pluginsUnit", null );
-        //        }
         Bundle thisBundle = FrameworkUtil.getBundle( EmfUtil.class );
-        // Could get this by wiring up OsgiTestBundleActivator as well.
         BundleContext context = thisBundle.getBundleContext();
         ServiceReference[] refs = null;
         try
