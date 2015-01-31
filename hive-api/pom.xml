@@ -17,11 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>subutai-common</artifactId>
+      <artifactId>env-manager-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.safehaus.subutai</groupId>
-      <artifactId>environment-manager-api</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.safehaus.subutai</groupId>

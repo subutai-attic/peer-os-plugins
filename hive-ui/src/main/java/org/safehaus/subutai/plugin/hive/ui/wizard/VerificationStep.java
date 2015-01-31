@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -48,9 +50,33 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", config.getClusterName() );
 
-        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
-        ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getServer() );
-        Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getClients() );
+        Environment hadoopEnvironment = null;
+        try
+        {
+            hadoopEnvironment = environmentManager.findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        ContainerHost master = null;
+        try
+        {
+            master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getServer() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        Set<ContainerHost> slaves = null;
+        try
+        {
+            slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getClients() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
         cfgView.addStringCfg( "Server node", master.getHostname() );

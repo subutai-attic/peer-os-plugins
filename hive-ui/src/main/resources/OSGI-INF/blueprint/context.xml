@@ -6,8 +6,10 @@
   <reference id="hive" availability="mandatory" interface="org.safehaus.subutai.plugin.hive.api.Hive" />
   <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
-  <reference id="portalModuleService" availability="mandatory" interface="org.safehaus.subutai.server.ui.api.PortalModuleService" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+  <reference id="portalModuleService" availability="mandatory"
+             interface="org.safehaus.subutai.server.ui.api.PortalModuleService" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.hive.ui.HivePortalModule"
         init-method="init" destroy-method="destroy">

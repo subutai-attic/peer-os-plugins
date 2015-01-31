@@ -4,15 +4,17 @@ package org.safehaus.subutai.plugin.hive.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.impl.Commands;
 import org.safehaus.subutai.plugin.hive.impl.HiveImpl;
+import org.safehaus.subutai.common.environment.Environment;
 
 import com.google.common.base.Preconditions;
 
@@ -42,7 +44,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     public void run()
     {
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -50,7 +60,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             return;
         }
 
-        ContainerHost host = environment.getContainerHostByHostname( hostname );
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         if ( host == null )
         {
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );

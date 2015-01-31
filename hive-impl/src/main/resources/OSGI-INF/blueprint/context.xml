@@ -3,7 +3,8 @@
 
   <reference id="hadoopManager" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="hive-impl" scope="singleton" class="org.safehaus.subutai.plugin.hive.impl.HiveImpl"
         init-method="init" destroy-method="destroy">
@@ -13,5 +14,8 @@
   </bean>
 
   <service ref="hive-impl" interface="org.safehaus.subutai.plugin.hive.api.Hive" />
+
+  <service ref="hive-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 
 </blueprint>

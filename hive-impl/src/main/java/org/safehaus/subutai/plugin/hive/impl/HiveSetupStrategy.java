@@ -6,17 +6,19 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
+import org.safehaus.subutai.common.environment.Environment;
 
 import com.google.common.base.Strings;
 
@@ -82,8 +84,15 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
                     hadoopClusterConfig.getClusterName() ) );
         }
 
-        environment =
-                hiveManager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+        try
+        {
+            environment =
+                    hiveManager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -102,7 +111,15 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        Set<ContainerHost> hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        Set<ContainerHost> hiveNodes = null;
+        try
+        {
+            hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         if ( hiveNodes.size() < config.getAllNodes().size() )
         {
             throw new ClusterSetupException(
@@ -119,9 +136,23 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
             }
         }
 
-        server = environment.getContainerHostById( config.getServer() );
+        try
+        {
+            server = environment.getContainerHostById( config.getServer() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
-        clients = environment.getContainerHostsByIds( config.getClients() );
+        try
+        {
+            clients = environment.getContainerHostsByIds( config.getClients() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
     }
 
 

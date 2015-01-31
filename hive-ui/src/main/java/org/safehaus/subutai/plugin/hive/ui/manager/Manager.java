@@ -9,8 +9,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -197,9 +199,20 @@ public class Manager
                 Set<ContainerHost> myHostSet = new HashSet<>();
                 for ( UUID uuid : set )
                 {
-                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                                                     .getContainerHostById( uuid ) );
+                    try
+                    {
+                        myHostSet.add( environmentManager.findEnvironment(
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                                                         .getContainerHostById( uuid ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                 }
 
                 AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config, myHostSet );
@@ -336,9 +349,21 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = environmentManager
-                        .getEnvironmentByUUID( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                        .getContainerHostByHostname( containerId );
+                ContainerHost containerHost = null;
+                try
+                {
+                    containerHost = environmentManager
+                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                            .getContainerHostByHostname( containerId );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
 
                 if ( containerHost != null )
                 {
@@ -364,12 +389,26 @@ public class Manager
     {
         if ( config != null )
         {
-            populateTable( serverTable, getServers(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
-            populateTable( clientsTable, getClients(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
+            try
+            {
+                populateTable( serverTable, getServers(
+                        environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                populateTable( clientsTable, getClients(
+                        environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
         else
         {
