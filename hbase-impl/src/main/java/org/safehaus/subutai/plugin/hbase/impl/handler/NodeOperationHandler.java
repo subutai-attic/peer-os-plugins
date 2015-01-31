@@ -6,10 +6,10 @@ import java.util.Iterator;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.Environment;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -63,7 +63,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     @Override
     public void run()
     {
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -95,7 +95,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
 
     protected void runCommand( ContainerHost host, NodeOperationType operationType )
     {
-        CommandResult result = null;
         switch ( operationType )
         {
             case START:

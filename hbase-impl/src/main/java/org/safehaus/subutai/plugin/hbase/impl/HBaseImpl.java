@@ -2,12 +2,16 @@ package org.safehaus.subutai.plugin.hbase.impl;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -33,7 +37,7 @@ import com.google.common.base.Preconditions;
 //import org.safehaus.subutai.plugin.common.PluginDAO;
 
 
-public class HBaseImpl implements HBase
+public class HBaseImpl implements HBase, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( HBaseImpl.class.getName() );
@@ -56,8 +60,8 @@ public class HBaseImpl implements HBase
     }
 
 
-    public HBaseImpl(final Tracker tracker, final EnvironmentManager environmentManager,
-                      final Hadoop hadoopManager, final Monitor monitor)
+    public HBaseImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                      final Monitor monitor )
     {
         this.hadoopManager = hadoopManager;
         this.tracker = tracker;
@@ -225,7 +229,8 @@ public class HBaseImpl implements HBase
 
 
     @Override
-    public UUID addNode( final String clusterName ){
+    public UUID addNode( final String clusterName )
+    {
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
@@ -233,6 +238,7 @@ public class HBaseImpl implements HBase
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
+
 
     @Override
     public UUID stopCluster( final String clusterName )
@@ -263,8 +269,8 @@ public class HBaseImpl implements HBase
     {
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, config,
-                                    hostname, NodeOperationType.STATUS );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -303,6 +309,7 @@ public class HBaseImpl implements HBase
         return addNode( clusterName );
     }
 
+
     @Override
     public void saveConfig( final HBaseConfig config ) throws ClusterException
     {
@@ -311,6 +318,63 @@ public class HBaseImpl implements HBase
         if ( !getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( String.format( "Environment created: %s", environment.getName() ) );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        List<String> nodeNames = new ArrayList<>();
+        for ( final ContainerHost containerHost : set )
+        {
+            nodeNames.add( containerHost.getHostname() );
+        }
+        LOG.info( String.format( "Environment: %s grown with containers: %s", environment.getName(),
+                nodeNames.toString() ) );
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    {
+        List<HBaseConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final HBaseConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                if ( clusterConfig.getAllNodes().contains( containerHostId ) )
+                {
+                    clusterConfig.getBackupMasters().remove( containerHostId );
+                    clusterConfig.getHadoopNodes().remove( containerHostId );
+                    clusterConfig.getRegionServers().remove( containerHostId );
+                    getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, clusterConfig.getClusterName(), clusterConfig );
+                    LOG.info( String.format( "Container host:%s is removed from hbase cluster: %s.",
+                            containerHostId.toString(), clusterConfig.getClusterName() ) );
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID environmentId )
+    {
+        List<HBaseConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final HBaseConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                getPluginDAO().deleteInfo( HBaseConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Cluster: %s destroyed in environment", clusterConfig.getClusterName() ) );
+            }
         }
     }
 }

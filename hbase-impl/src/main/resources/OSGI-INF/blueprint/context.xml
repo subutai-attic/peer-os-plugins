@@ -20,4 +20,6 @@
 
   <service ref="hbase-impl" interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
 
+  <service ref="hbase-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 </blueprint>

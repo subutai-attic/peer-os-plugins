@@ -28,7 +28,7 @@ public class HBaseConfig implements ConfigBase
     private Set<UUID> quorumPeers = Sets.newHashSet();
     private Set<UUID> backupMasters = Sets.newHashSet();
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
-    private Set<UUID> hadoopNodes;
+    private Set<UUID> hadoopNodes = new HashSet<>();
     private SetupType setupType;
     private UUID environmentId;
     private String hadoopClusterName;
@@ -185,11 +185,12 @@ public class HBaseConfig implements ConfigBase
         return allNodes;
     }
 
+
     public List<NodeType> getNodeRoles( HBaseConfig clusterConfig, final ContainerHost containerHost )
     {
         List<NodeType> nodeRoles = new ArrayList<>();
 
-        if ( hbaseMaster.equals ( containerHost.getId() ) )
+        if ( hbaseMaster.equals( containerHost.getId() ) )
         {
             nodeRoles.add( NodeType.HMASTER );
         }
@@ -203,6 +204,7 @@ public class HBaseConfig implements ConfigBase
         }
         return nodeRoles;
     }
+
 
     public UUID getHbaseMaster()
     {
