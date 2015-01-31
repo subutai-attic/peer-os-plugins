@@ -3,15 +3,16 @@ package org.safehaus.subutai.plugin.shark.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-public class SharkImpl implements Shark
+public class SharkImpl implements Shark, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( SharkImpl.class.getName() );
@@ -52,7 +53,7 @@ public class SharkImpl implements Shark
     private SharkAlertListener sharkAlertListener;
 
 
-    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager,Monitor monitor )
+    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, Monitor monitor )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -238,6 +239,98 @@ public class SharkImpl implements Shark
         if ( !pluginDAO.saveInfo( SharkClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void deleteConfig( final SharkClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.deleteInfo( SharkClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Shark environment event: Container destroyed: %s", uuid ) );
+
+        List<SharkClusterConfig> clusters = getClusters();
+        for ( SharkClusterConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Shark environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodeIds().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Shark environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodeIds() ) )
+                    {
+                        clusterConfig.getNodeIds().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Shark environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Shark environment event: Environment destroyed: %s", uuid ) );
+
+        List<SharkClusterConfig> clusters = getClusters();
+        for ( SharkClusterConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Shark environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Shark environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
         }
     }
 }

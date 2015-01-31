@@ -19,4 +19,7 @@
   </bean>
 
   <service ref="shark-impl" interface="org.safehaus.subutai.plugin.shark.api.Shark" />
+
+  <service ref="shark-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 </blueprint>

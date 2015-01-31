@@ -28,5 +28,7 @@ public interface Shark extends ApiBase<SharkClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( SharkClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final SharkClusterConfig config ) throws ClusterException;
 }
 
