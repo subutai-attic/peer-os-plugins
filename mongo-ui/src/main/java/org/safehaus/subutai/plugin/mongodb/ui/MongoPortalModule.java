@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -36,9 +36,9 @@ public class MongoPortalModule implements PortalModule
     private final EnvironmentManager environmentManager;
 
 
-    public MongoPortalModule( Mongo mongo,EnvironmentManager environmentManager, Tracker tracker )
+    public MongoPortalModule( Mongo mongo, EnvironmentManager environmentManager,
+                              Tracker tracker )
     {
-
         this.mongo = mongo;
         this.environmentManager = environmentManager;
         this.tracker = tracker;

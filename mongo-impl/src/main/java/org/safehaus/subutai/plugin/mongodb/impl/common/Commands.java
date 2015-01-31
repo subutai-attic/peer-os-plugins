@@ -117,7 +117,7 @@ public class Commands
                 continue;
             }
 
-            String ip = otherNode.getContainerHost().getIpByMask( Common.IP_MASK );
+            String ip = otherNode.getContainerHost().getIpByInterfaceName( "eth0" );
             String hostname = otherNode.getHostname();
             cleanHosts.append( ip ).append( "|" ).append( hostname ).append( "|" );
             appendHosts.append( "/bin/echo '" ).

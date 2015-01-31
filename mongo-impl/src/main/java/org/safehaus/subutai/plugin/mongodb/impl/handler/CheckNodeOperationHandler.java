@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
@@ -15,7 +14,6 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
  */
 public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<MongoImpl, MongoClusterConfig>
 {
-    private final TrackerOperation po;
     private final String lxcHostname;
 
 
@@ -23,7 +21,7 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
     {
         super( manager, clusterName );
         this.lxcHostname = lxcHostname;
-        po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Checking state of %s in %s", lxcHostname, clusterName ) );
     }
 
@@ -31,7 +29,7 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
     @Override
     public UUID getTrackerId()
     {
-        return po.getId();
+        return trackerOperation.getId();
     }
 
 
@@ -41,7 +39,7 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
         MongoClusterConfig config = manager.getCluster( clusterName );
         if ( config == null )
         {
-            po.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
+            trackerOperation.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
             return;
         }
 
@@ -49,7 +47,7 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
         MongoNode node = config.findNode( lxcHostname );
         if ( node == null )
         {
-            po.addLogFailed( String.format( "Node on %s is not found", lxcHostname ) );
+            trackerOperation.addLogFailed( String.format( "Node on %s is not found", lxcHostname ) );
             return;
         }
         NodeState nodeState;
@@ -61,6 +59,6 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
         {
             nodeState = NodeState.STOPPED;
         }
-        po.addLogDone( String.format( "Node on %s is %s", lxcHostname, nodeState ) );
+        trackerOperation.addLogDone( String.format( "Node on %s is %s", lxcHostname, nodeState ) );
     }
 }

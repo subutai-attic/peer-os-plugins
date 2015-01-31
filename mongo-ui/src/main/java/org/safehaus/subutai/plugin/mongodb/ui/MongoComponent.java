@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.ui.manager.Manager;
@@ -38,7 +38,7 @@ public class MongoComponent extends CustomComponent
         TabSheet mongoSheet = new TabSheet();
         mongoSheet.setSizeFull();
         final Manager manager = new Manager( executorService, mongo, environmentManager, tracker );
-        Wizard wizard = new Wizard( executorService, mongo, tracker, environmentManager );
+        Wizard wizard = new Wizard( executorService, mongo, tracker, environmentManager);
         mongoSheet.addTab( wizard.getContent(), "Install" );
         mongoSheet.getTab( 0 ).setId( "InstallTab" );
         mongoSheet.addTab( manager.getContent(), "Manage" );

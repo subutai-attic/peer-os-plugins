@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.StringUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.slf4j.Logger;
@@ -329,25 +329,6 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         }
 
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
-        for ( int i = 0; i < environments.size(); i++ )
-        {
-            boolean allowToConfigure = true;
-            Environment environment = environments.get( i );
-            Set<ContainerHost> envHosts = environment.getContainerHosts();
-            for ( final ContainerHost envHost : envHosts )
-            {
-                if ( !envHost.getTemplateName().equalsIgnoreCase( MongoClusterConfig.PRODUCT_NAME ) )
-                {
-                    allowToConfigure = false;
-                    break;
-                }
-            }
-            if ( !allowToConfigure )
-            {
-                environments.remove( i-- );
-            }
-        }
-
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );
         container.addAll( environments );
@@ -402,7 +383,9 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         {
             if ( !mongoContainerHosts.contains( containerHost.getId() ) && containerHost.getTemplateName()
                                                                                         .equalsIgnoreCase(
-                                                                                                MongoClusterConfig.PRODUCT_NAME ) )
+                                                                                                MongoClusterConfig
+                                                                                                        .PRODUCT_NAME
+                                                                                                         ) )
             {
                 environmentHosts.add( containerHost );
             }

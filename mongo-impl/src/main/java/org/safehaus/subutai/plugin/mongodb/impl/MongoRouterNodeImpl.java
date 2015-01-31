@@ -1,7 +1,6 @@
 package org.safehaus.subutai.plugin.mongodb.impl;
 
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
@@ -39,6 +38,7 @@ public class MongoRouterNodeImpl extends MongoNodeImpl implements MongoRouterNod
     @Override
     public void start( MongoClusterConfig config ) throws MongoException
     {
+        configServers = config.getConfigServers();
         Preconditions.checkNotNull( configServers, "Config servers is null" );
         CommandDef commandDef = Commands.getStartRouterCommandLine( port, cfgSrvPort, domainName,
                 config.getConfigServers() );

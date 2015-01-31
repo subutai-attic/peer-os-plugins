@@ -9,16 +9,20 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -28,7 +32,7 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
 {
     private final TrackerOperation po;
     private CommandUtil commandUtil = new CommandUtil();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( UninstallOperationHandler.class );
 
     public UninstallOperationHandler( MongoImpl manager, String clusterName )
     {
@@ -58,13 +62,13 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
         try
         {
             po.addLog( "Removing subscription from environment." );
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             manager.unsubscribeFromAlerts( environment );
 
             if ( config.getInstallationType() == InstallationType.STANDALONE )
             {
                 po.addLog( "Destroying lxc containers" );
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
                 po.addLog( "Lxc containers successfully destroyed" );
             }
             else if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
@@ -75,16 +79,18 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
                 for ( final ContainerHost containerHost : containerHosts )
                 {
                     commandResults.add( commandUtil.execute(
-                            new RequestBuilder( Commands.getStopMongodbService().getCommand() )
-                                    .withTimeout( Commands.getStopMongodbService().getTimeout() ),
-                                    containerHost ) );
+                            new RequestBuilder( Commands.getStopMongodbService().getCommand() ),
+                            containerHost ) );
                 }
                 logResults( po, commandResults );
             }
         }
-        catch ( EnvironmentDestroyException | MonitorException | CommandException ex )
+        catch ( ContainerHostNotFoundException | EnvironmentDestructionException | EnvironmentNotFoundException |
+                MonitorException | CommandException ex )
         {
-            po.addLog( String.format( "%s, skipping...", ex.getMessage() ) );
+            po.addLogFailed( "Operations failed" );
+            LOGGER.error( "Operations failed", ex );
+            return;
         }
 
         po.addLog( "Deleting cluster information from database.." );

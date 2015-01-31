@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.mongodb.api;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -20,6 +21,7 @@ public interface MongoClusterConfig extends ConfigBase
 
     public static final String PRODUCT_KEY = "MongoDB";
     public static final String PRODUCT_NAME = "mongo";
+    public static final String TEMPLATE_NAME = "mongo";
 
     String getTemplateName();
 
@@ -108,7 +110,15 @@ public interface MongoClusterConfig extends ConfigBase
 
     boolean isAutoScaling();
 
+    void setAutoScaling( boolean autoScaling );
+
     InstallationType getInstallationType();
 
     void setInstallationType( InstallationType installationType );
+
+    Topology getTopology();
+
+    void setTopology( Topology topology );
+
+    void removeNode( UUID nodeId );
 }

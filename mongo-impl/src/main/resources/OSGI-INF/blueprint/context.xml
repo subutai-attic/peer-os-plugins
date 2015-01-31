@@ -6,7 +6,7 @@
   <reference id="peerManager" availability="mandatory"
              interface="org.safehaus.subutai.core.peer.api.PeerManager" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="monitor" availability="mandatory"
              interface="org.safehaus.subutai.core.metric.api.Monitor" />
 
@@ -19,5 +19,7 @@
   </bean>
 
   <service ref="mongo-impl" interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
+
+  <service ref="mongo-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>

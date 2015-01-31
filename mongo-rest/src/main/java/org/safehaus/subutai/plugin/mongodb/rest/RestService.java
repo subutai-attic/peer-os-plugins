@@ -70,7 +70,8 @@ public interface RestService
 
     //add node
     @POST
-    @Path("clusters/{clusterName}/nodes/{nodeType}")
+    @Path( "clusters/{clusterName}/nodes/{nodeType}/peer/{peerId}" )
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("nodeType") String nodeType );
+    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeType" ) String nodeType,
+                             @PathParam( "peerId" ) String peerId );
 }

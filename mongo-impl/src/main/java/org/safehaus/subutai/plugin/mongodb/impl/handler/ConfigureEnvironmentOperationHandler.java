@@ -3,13 +3,15 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -17,15 +19,15 @@ import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
  */
 public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
 {
-    private final TrackerOperation po;
     private final MongoClusterConfig config;
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigureEnvironmentOperationHandler.class );
 
 
     public ConfigureEnvironmentOperationHandler( final MongoImpl manager, final MongoClusterConfig config )
     {
         super( manager, config.getClusterName() );
         this.config = config;
-        po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Configuring %s cluster...", config.getClusterName() ) );
     }
 
@@ -33,7 +35,7 @@ public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandl
     @Override
     public UUID getTrackerId()
     {
-        return po.getId();
+        return trackerOperation.getId();
     }
 
 
@@ -41,19 +43,21 @@ public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandl
     public void run()
     {
 
-        po.addLog( "Configuring environment..." );
+        trackerOperation.addLog( "Configuring environment..." );
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( env, config, po );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ClusterSetupStrategy clusterSetupStrategy =
+                    manager.getClusterSetupStrategy( env, config, trackerOperation );
             clusterSetupStrategy.setup();
 
-            po.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
+            trackerOperation.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
-            po.addLogFailed( String.format( "Failed to configure cluster %s : %s", clusterName, e.getMessage() ) );
+            LOGGER.error( String.format( "Failed to configure cluster %s", clusterName ), e );
+            trackerOperation.addLogFailed( String.format( "Failed to configure cluster %s", clusterName ) );
         }
     }
 }
