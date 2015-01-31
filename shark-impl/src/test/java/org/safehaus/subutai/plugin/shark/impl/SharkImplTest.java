@@ -1,17 +1,11 @@
 package org.safehaus.subutai.plugin.shark.impl;
 
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import javax.sql.DataSource;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,9 +13,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -33,7 +27,6 @@ import org.safehaus.subutai.plugin.spark.api.Spark;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.verify;
@@ -77,7 +70,7 @@ public class SharkImplTest
 
 
         uuid = new UUID( 50, 50 );
-        sharkImpl = new SharkImpl( tracker, environmentManager, spark,monitor );
+        sharkImpl = new SharkImpl( tracker, environmentManager, spark, monitor );
         //        sharkImpl.init();
         sharkImpl.setPluginDAO( pluginDAO );
 

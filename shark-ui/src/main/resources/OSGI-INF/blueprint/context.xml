@@ -4,7 +4,8 @@
   <reference id="shark" availability="mandatory" interface="org.safehaus.subutai.plugin.shark.api.Shark" />
   <reference id="spark" availability="mandatory" interface="org.safehaus.subutai.plugin.spark.api.Spark" />
   <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.shark.ui.SharkPortalModule"
         init-method="init" destroy-method="destroy">

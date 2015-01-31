@@ -6,8 +6,10 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -71,26 +73,42 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             {
                 throw new ClusterException( String.format( "Spark cluster %s not found", config.getClusterName() ) );
             }
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            if ( environment == null )
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException(
                         String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
             }
 
-            Set<ContainerHost> sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
+
+            Set<ContainerHost> sharkNodes;
+            try
+            {
+                sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterException( "Failed to obtain Shark environment containers", e );
+            }
 
             if ( sharkNodes.size() < config.getNodeIds().size() )
             {
                 throw new ClusterException( "Found fewer Shark nodes in environment than exist" );
             }
 
-            ContainerHost sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
-
-            if ( sparkMaster == null )
+            ContainerHost sparkMaster;
+            try
+            {
+                sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
+            }
+            catch ( ContainerHostNotFoundException e )
             {
                 throw new ClusterException( "Spark master not found in environment" );
             }
+
 
             for ( ContainerHost node : sharkNodes )
             {
@@ -134,8 +152,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
                 throw new ClusterSetupException(
                         String.format( "Spark cluster %s not found", config.getClusterName() ) );
             }
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( sparkConfig.getEnvironmentId() );
-            if ( environment == null )
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( sparkConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterSetupException( String.format( "Could not find environment of Spark cluster by id %s",
                         sparkConfig.getEnvironmentId() ) );
@@ -172,14 +193,25 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            if ( environment == null )
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException(
                         String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
             }
 
-            Set<ContainerHost> sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
+            Set<ContainerHost> sharkNodes;
+            try
+            {
+                sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterException( "Failed to obtain Shark environment containers", e );
+            }
 
             if ( sharkNodes.size() < config.getNodeIds().size() )
             {

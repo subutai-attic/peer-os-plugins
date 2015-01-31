@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -33,22 +33,15 @@ public class SharkAlertListener implements AlertListener
     private SharkImpl shark;
     public static final String SHARK_ALERT_LISTENER = "SHARK_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static final int MAX_RAM_QUOTA_MB = 2048;
+    private static final int RAM_QUOTA_INCREMENT_MB = 512;
+    private static final int MAX_CPU_QUOTA_PERCENT = 80;
+    private static final int CPU_QUOTA_INCREMENT_PERCENT = 10;
 
 
     public SharkAlertListener( final SharkImpl shark )
     {
         this.shark = shark;
-    }
-
-
-    private void throwAlertException( String context, Exception e ) throws AlertException
-    {
-        LOG.error( context, e );
-        throw new AlertException( context, e );
     }
 
 
@@ -71,15 +64,16 @@ public class SharkAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
-                    null );
+            throw new AlertException(
+                    String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ), null );
         }
 
         //get cluster environment
-        Environment environment = shark.getEnvironmentManager().getEnvironmentByUUID( metric.getEnvironmentId() );
+        Environment environment = shark.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
-            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+            throw new AlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ),
+                    null );
         }
 
         //get environment containers and find alert's source host
@@ -97,8 +91,8 @@ public class SharkAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
-                    null );
+            throw new AlertException(
+                    String.format( "Alert source host %s not found in environment", metric.getHost() ), null );
         }
 
         //check if source host belongs to found shark cluster
@@ -109,7 +103,7 @@ public class SharkAlertListener implements AlertListener
         }
 
         //figure out Shark process pid
-        int sharkPID = 0;
+        int sharkPID;
         try
         {
             CommandResult result = commandUtil.execute( shark.getCommands().getServiceStatusCommand(), sourceHost );
@@ -117,7 +111,7 @@ public class SharkAlertListener implements AlertListener
         }
         catch ( NumberFormatException | CommandException e )
         {
-            throwAlertException( "Error obtaining Shark process PID", e );
+            throw new AlertException( "Error obtaining Shark process PID", e );
         }
 
         //get Shark process resource usage by Spark pid
@@ -166,7 +160,7 @@ public class SharkAlertListener implements AlertListener
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedByShark )
+            else
             {
 
                 //read current CPU quota
@@ -192,8 +186,8 @@ public class SharkAlertListener implements AlertListener
                     shark.getSparkManager().getCluster( targetCluster.getSparkClusterName() );
             if ( sparkClusterConfig == null )
             {
-                throwAlertException( String.format( "Spark cluster %s not found", targetCluster.getSparkClusterName() ),
-                        null );
+                throw new AlertException(
+                        String.format( "Spark cluster %s not found", targetCluster.getSparkClusterName() ), null );
             }
 
             List<UUID> availableNodes = sparkClusterConfig.getAllNodesIds();
@@ -220,7 +214,7 @@ public class SharkAlertListener implements AlertListener
 
                 if ( newNodeHostName == null )
                 {
-                    throwAlertException(
+                    throw new AlertException(
                             String.format( "Could not obtain available spark node from environment by id %s",
                                     newNodeId ), null );
                 }
@@ -248,9 +242,8 @@ public class SharkAlertListener implements AlertListener
         }
         else
         {
-            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
+            throw new AlertException( String.format( "Could not parse PID from %s", output ), null );
         }
-        return 0;
     }
 
 

@@ -7,10 +7,11 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -66,13 +67,22 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
                     String.format( "Underlying Spark cluster '%s' not found.", config.getSparkClusterName() ) );
         }
 
-        final Set<ContainerHost> sparkSlaves =
-                environment.getContainerHostsByIds( Sets.newHashSet( sparkConfig.getSlaveIds() ) );
 
-        if ( CollectionUtil.isCollectionEmpty( sparkSlaves ) )
+        if ( CollectionUtil.isCollectionEmpty( config.getNodeIds() ) )
+        {
+            throw new ClusterSetupException( "Invalid Shark node ids" );
+        }
+
+        final Set<ContainerHost> sparkSlaves;
+        try
+        {
+            sparkSlaves = environment.getContainerHostsByIds( Sets.newHashSet( sparkConfig.getSlaveIds() ) );
+        }
+        catch ( ContainerHostNotFoundException e )
         {
             throw new ClusterSetupException( "Spark slave nodes not found" );
         }
+
 
         if ( sparkSlaves.size() < sparkConfig.getSlaveIds().size() )
         {
@@ -88,12 +98,15 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
             }
         }
 
-        sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
-
-        if ( sparkMaster == null )
+        try
+        {
+            sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
+        }
+        catch ( ContainerHostNotFoundException e )
         {
             throw new ClusterSetupException( "Spark master not found" );
         }
+
 
         if ( !sparkMaster.isConnected() )
         {

@@ -1,12 +1,18 @@
 package org.safehaus.subutai.plugin.shark.rest;
 
-import javax.ws.rs.*;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-/**
- * Created by ermek on 12/1/14.
- */
+
 public interface RestServiceInterface
 {
     @GET
@@ -22,7 +28,7 @@ public interface RestServiceInterface
     @POST
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @PathParam( "clusterName" ) String clusterName );
+    public Response installCluster( @QueryParam( "config" ) String config );
 
     @DELETE
     @Path( "clusters/{clusterName}" )
@@ -45,5 +51,4 @@ public interface RestServiceInterface
     @Path( "actualize_master_ip/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response actualizeMasterIP( @PathParam( "clusterName" ) String clusterName );
-
 }

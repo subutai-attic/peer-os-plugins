@@ -1,13 +1,15 @@
 package org.safehaus.subutai.plugin.shark.rest;
 
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 
-import javax.ws.rs.core.Response;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 
 public class RestServiceImpl implements RestServiceInterface
@@ -21,6 +23,7 @@ public class RestServiceImpl implements RestServiceInterface
     {
         this.sharkManager = sharkManager;
     }
+
 
     @Override
     public Response listClusters()
@@ -38,6 +41,7 @@ public class RestServiceImpl implements RestServiceInterface
         return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
+
     @Override
     public Response getCluster( String clusterName )
     {
@@ -45,17 +49,16 @@ public class RestServiceImpl implements RestServiceInterface
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
-    @Override
-    public Response installCluster( String clusterName )
-    {
-        SharkClusterConfig sharkConfig = new SharkClusterConfig();
 
-        sharkConfig.setClusterName( clusterName );
-        sharkConfig.setSparkClusterName( clusterName );
+    @Override
+    public Response installCluster( String config )
+    {
+        SharkClusterConfig sharkConfig = JsonUtil.fromJson( config, SharkClusterConfig.class );
 
         String operationId = JsonUtil.toJson( OPERATION_ID, sharkManager.installCluster( sharkConfig ) );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
+
 
     @Override
     public Response uninstallCluster( String clusterName )
@@ -64,19 +67,22 @@ public class RestServiceImpl implements RestServiceInterface
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
 
+
     @Override
-    public Response addNode(  String clusterName, String lxcHostName )
+    public Response addNode( String clusterName, String lxcHostName )
     {
         String operationId = JsonUtil.toJson( OPERATION_ID, sharkManager.addNode( clusterName, lxcHostName ) );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
 
+
     @Override
-    public Response destroyNode(  String clusterName, String lxcHostName )
+    public Response destroyNode( String clusterName, String lxcHostName )
     {
         String operationId = JsonUtil.toJson( OPERATION_ID, sharkManager.destroyNode( clusterName, lxcHostName ) );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
+
 
     @Override
     public Response actualizeMasterIP( String clusterName )

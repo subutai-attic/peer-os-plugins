@@ -9,9 +9,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.shark.api.Shark;
@@ -45,23 +47,14 @@ public class Manager
 
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
-    protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
-    protected static final String CHECK_BUTTON_CAPTION = "Check";
-    protected static final String START_ALL_BUTTON_CAPTION = "Start All";
-    protected static final String START_BUTTON_CAPTION = "Start";
-    protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
-    protected static final String STOP_BUTTON_CAPTION = "Stop";
     protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
     protected static final String HOST_COLUMN_CAPTION = "Host";
     protected static final String IP_COLUMN_CAPTION = "IP List";
-    protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
-    protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
 
-    private static final String MESSAGE = "No cluster is installed !";
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
@@ -206,14 +199,16 @@ public class Manager
                 SparkClusterConfig sparkInfo = spark.getCluster( config.getClusterName() );
                 if ( sparkInfo != null )
                 {
-                    Environment environment = environmentManager.getEnvironmentByUUID( sparkInfo.getEnvironmentId() );
-                    if ( environment != null )
+                    Environment environment;
+                    try
                     {
+                        environment = environmentManager.findEnvironment( sparkInfo.getEnvironmentId() );
                         Set<UUID> nodeIds = new HashSet<>( sparkInfo.getAllNodesIds() );
                         nodeIds.removeAll( config.getNodeIds() );
-                        Set<ContainerHost> availableNodes = environment.getContainerHostsByIds( nodeIds );
-                        if ( !nodeIds.isEmpty() )
+                        Set<ContainerHost> availableNodes;
+                        try
                         {
+                            availableNodes = environment.getContainerHostsByIds( nodeIds );
                             AddNodeWindow win =
                                     new AddNodeWindow( shark, executorService, tracker, config, availableNodes );
                             contentRoot.getUI().addWindow( win );
@@ -226,12 +221,12 @@ public class Manager
                                 }
                             } );
                         }
-                        else
+                        catch ( ContainerHostNotFoundException e )
                         {
                             show( "All nodes in corresponding Spark cluster have Shark installed" );
                         }
                     }
-                    else
+                    catch ( EnvironmentNotFoundException e )
                     {
                         show( "Spark environment not found" );
                     }
@@ -315,13 +310,14 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost node = environment.getContainerHostByHostname( hostname );
-                    if ( node != null )
+                    ContainerHost node;
+                    try
                     {
+                        node = environment.getContainerHostByHostname( hostname );
                         TerminalWindow terminal = new TerminalWindow( node );
                         contentRoot.getUI().addWindow( terminal.getWindow() );
                     }
-                    else
+                    catch ( ContainerHostNotFoundException e )
                     {
                         show( "Host not found" );
                     }
@@ -341,9 +337,16 @@ public class Manager
     {
         if ( config != null )
         {
-            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodeIds() ) );
-            autoScaleBtn.setValue( config.isAutoScaling() );
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodeIds() ) );
+                autoScaleBtn.setValue( config.isAutoScaling() );
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                show( String.format( "Error obtaining environment or containers: %s", e ) );
+            }
         }
         else
         {
@@ -453,24 +456,6 @@ public class Manager
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
             }
-        }
-    }
-
-
-    public void disableButtons( Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            b.setEnabled( false );
-        }
-    }
-
-
-    public void enableButtons( Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            b.setEnabled( true );
         }
     }
 

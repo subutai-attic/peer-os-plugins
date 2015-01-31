@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -27,7 +26,6 @@ public class VerificationStep extends Panel
                              final Wizard wizard )
     {
         final SharkClusterConfig config = wizard.getConfig();
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
 
         setSizeFull();
 

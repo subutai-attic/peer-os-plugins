@@ -6,8 +6,10 @@ import java.util.List;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -56,17 +58,22 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
                 throw new ClusterException( String.format( "Cluster with name %s does not exist", clusterName ) );
             }
 
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-
-            if ( environment == null )
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException(
                         String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
             }
 
-            node = environment.getContainerHostByHostname( hostname );
 
-            if ( node == null )
+            try
+            {
+                node = environment.getContainerHostByHostname( hostname );
+            }
+            catch ( ContainerHostNotFoundException e )
             {
                 throw new ClusterException( String.format( "Node not found in environment by name %s", hostname ) );
             }
@@ -139,14 +146,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
                     String.format( "Underlying Spark cluster '%s' not found.", config.getSparkClusterName() ) );
         }
 
-        ContainerHost sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
-
-        if ( sparkMaster == null )
+        ContainerHost sparkMaster;
+        try
+        {
+            sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
+        }
+        catch ( ContainerHostNotFoundException e )
         {
             throw new ClusterException(
                     String.format( "Master node not found in environment by id %s", sparkConfig.getMasterNodeId() ) );
         }
-
 
         if ( !sparkConfig.getAllNodesIds().contains( node.getId() ) )
         {
