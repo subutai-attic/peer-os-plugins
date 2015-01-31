@@ -29,6 +29,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.CheckDecommissionStatusTask;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopNodeOperationTask;
@@ -36,6 +37,8 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.QuestionDialog;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.event.Action;
@@ -52,7 +55,7 @@ import com.vaadin.ui.Window;
 public class ManagerListener
 {
 
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( ManagerListener.class );
     private static final Action ADD_ITEM_ACTION = new Action( "Add new node" );
 
     private Manager hadoopManager;
@@ -84,7 +87,7 @@ public class ManagerListener
                     }
                     catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Environment error", e );
                     }
 
                     if ( containerHost != null )
@@ -489,6 +492,7 @@ public class ManagerListener
                                             catch ( InterruptedException e )
                                             {
                                                 hadoopManager.show( "Exception: " + e );
+                                                LOGGER.error( "Interrupted exception", e );
                                             }
                                             hadoopManager.disableProgressBar();
                                             hadoopManager.checkAllIfNoProcessRunning();
@@ -586,7 +590,7 @@ public class ManagerListener
                 startStopButton.setEnabled( false );
                 hadoopManager.getExecutorService().execute(
                         new HadoopNodeOperationTask( hadoopManager.getHadoop(), hadoopManager.getTracker(), clusterName,
-                                containerHost, NodeOperationType.STATUS, org.safehaus.subutai.plugin.common.api.NodeType.NAMENODE, new CompleteEvent()
+                                containerHost, NodeOperationType.STATUS, NodeType.NAMENODE, new CompleteEvent()
                         {
                             public void onComplete( NodeState state )
                             {
@@ -645,6 +649,7 @@ public class ManagerListener
                                             }
                                             catch ( InterruptedException e )
                                             {
+                                                LOGGER.error( "Interrupted Exception", e );
                                                 hadoopManager.show( "Exception: " + e );
                                             }
                                             hadoopManager.disableProgressBar();
@@ -805,7 +810,7 @@ public class ManagerListener
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Environment exception", e );
             return null;
         }
     }

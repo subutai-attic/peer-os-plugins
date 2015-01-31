@@ -215,7 +215,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                             String temp = status.replaceAll(
                                     Pattern.quote( "!(SecondaryNameNode is not running on this " + "machine)" ), "" ).
                                                         replaceAll( "NameNode is ", "" );
-                            if ( temp.toLowerCase().contains( "not" ) )
+                            if ( temp.toLowerCase().contains( "not" ) && !temp.toLowerCase().contains( "secondary" ) )
                             {
                                 nodeState = NodeState.STOPPED;
                             }
