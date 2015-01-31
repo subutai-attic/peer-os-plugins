@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.Environment;
-import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
+import org.safehaus.subutai.common.environment.Environment;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -117,30 +115,10 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
-        for ( int i = 0; i < environments.size(); i++ )
-        {
-            boolean applicable = false;
-            for ( final ContainerHost containerHost : environments.get( i ).getContainerHosts() )
-            {
-                if ( containerHost.getTemplateName().equalsIgnoreCase( SolrClusterConfig.PRODUCT_KEY ) )
-                {
-                    applicable = true;
-                }
-            }
-            if ( !applicable )
-            {
-                environments.remove( i );
-                i--;
-            }
-        }
 
         BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "id" );
-
-        for ( final Environment environment : environments )
-        {
-            container.addBean( environment );
-        }
+        container.addAll( environments );
 
         ComboBox envList = new ComboBox( "Select environment" );
         envList.setId( "envList" );

@@ -6,6 +6,7 @@
 package org.safehaus.subutai.plugin.solr.ui.manager;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -14,11 +15,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -34,9 +35,11 @@ import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -78,7 +81,7 @@ public class Manager
     private SolrClusterConfig solrClusterConfig;
 
 
-    public Manager( final ExecutorService executorService, Solr solr, Tracker tracker,
+    public Manager( final ExecutorService executorService, final Solr solr, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
     {
 
@@ -115,7 +118,7 @@ public class Manager
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                solrClusterConfig = ( SolrClusterConfig ) event.getProperty().getValue();
+                solrClusterConfig = solr.getCluster( event.getProperty().getValue().toString() );
                 refreshUI();
             }
         } );
@@ -201,7 +204,7 @@ public class Manager
     {
         if ( solrClusterConfig != null )
         {
-            Environment environment = null;
+            Environment environment;
             try
             {
                 environment = environmentManager.findEnvironment( solrClusterConfig.getEnvironmentId() );
@@ -412,33 +415,31 @@ public class Manager
 
     public void refreshClustersInfo()
     {
-        List<SolrClusterConfig> mongoClusterInfos = solr.getClusters();
-        SolrClusterConfig clusterInfo = ( SolrClusterConfig ) clusterCombo.getValue();
-        clusterCombo.removeAllItems();
-        if ( mongoClusterInfos != null && !mongoClusterInfos.isEmpty() )
+        List<SolrClusterConfig> environments = new ArrayList<>( solr.getClusters() );
+
+        BeanContainer<String, SolrClusterConfig> container = new BeanContainer<>( SolrClusterConfig.class );
+        container.setBeanIdProperty( "clusterName" );
+        container.addAll( environments );
+
+        ComboBox envList = new ComboBox( "Select cluster" );
+        envList.setId( "envList" );
+        envList.setItemCaptionPropertyId( "clusterName" );
+        envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
+        envList.setImmediate( true );
+        envList.setNullSelectionAllowed( false );
+        envList.setTextInputAllowed( false );
+        envList.setNullSelectionAllowed( false );
+        envList.setWidth( 150, Sizeable.Unit.PIXELS );
+        envList.setContainerDataSource( container );
+        envList.addValueChangeListener( new Property.ValueChangeListener()
         {
-            for ( SolrClusterConfig mongoClusterInfo : mongoClusterInfos )
+            @Override
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                clusterCombo.addItem( mongoClusterInfo );
-                clusterCombo.setItemCaption( mongoClusterInfo, mongoClusterInfo.getClusterName() );
+                String clusterName = ( String ) valueChangeEvent.getProperty().getValue();
+                solrClusterConfig = solr.getCluster( clusterName );
             }
-            if ( clusterInfo != null )
-            {
-                for ( SolrClusterConfig mongoClusterInfo : mongoClusterInfos )
-                {
-                    if ( mongoClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
-                    {
-                        clusterCombo.setValue( mongoClusterInfo );
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                clusterCombo.select( clusterCombo.getItemIds().iterator().next() );
-                //                clusterCombo.setValue( mongoClusterInfos.iterator().next() );
-            }
-        }
+        } );
     }
 
 

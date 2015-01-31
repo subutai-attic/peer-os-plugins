@@ -13,4 +13,6 @@
 
   <service ref="solr-impl" interface="org.safehaus.subutai.plugin.solr.api.Solr" />
 
+  <service ref="solr-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 </blueprint>

@@ -2,19 +2,23 @@ package org.safehaus.subutai.plugin.solr.impl;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Blueprint;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.NodeGroup;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.build.Blueprint;
-import org.safehaus.subutai.core.env.api.build.NodeGroup;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -34,7 +38,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 
-public class SolrImpl implements Solr
+public class SolrImpl implements Solr, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( SolrImpl.class.getName() );
@@ -253,5 +257,68 @@ public class SolrImpl implements Solr
         executor.execute( operationHandler );
 
         return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( "Environment created: " + environment.getName() );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        List<String> containerNames = new ArrayList<>();
+        for ( final ContainerHost containerHost : set )
+        {
+            containerNames.add( containerHost.getHostname() );
+        }
+        LOG.info( String.format( "Environment: %s has been grown with containers: %s", environment.getName(),
+                containerNames.toString() ) );
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    {
+        List<SolrClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final SolrClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                if ( clusterConfig.getNodes().contains( containerHostId ) )
+                {
+                    clusterConfig.getNodes().remove( containerHostId );
+                    clusterConfig.setNumberOfNodes( clusterConfig.getNodes().size() );
+                    if ( clusterConfig.getNodes().size() == 0 )
+                    {
+                        getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                    }
+                    else
+                    {
+                        getPluginDAO().saveInfo( SolrClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(),
+                                clusterConfig );
+                    }
+                    LOG.info( String.format( "Container host destroyed from solr cluster." ) );
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID environmentId )
+    {
+        List<SolrClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final SolrClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Solr cluster destroyed." ) );
+            }
+        }
     }
 }
