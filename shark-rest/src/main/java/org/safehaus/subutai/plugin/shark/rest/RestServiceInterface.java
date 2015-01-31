@@ -48,7 +48,7 @@ public interface RestServiceInterface
                                  @PathParam( "lxcHostName" ) String lxcHostName );
 
     @PUT
-    @Path( "actualize_master_ip/{clusterName}" )
+    @Path( "clusters/{clusterName}/actualize_master_ip" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response actualizeMasterIP( @PathParam( "clusterName" ) String clusterName );
 }
