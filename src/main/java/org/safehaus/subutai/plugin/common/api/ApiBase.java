@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-/**
- * Created by dilshat on 5/1/14.
- */
 public interface ApiBase<T extends ConfigBase>
 {
 

@@ -1,9 +1,6 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-/**
- * Created by dilshat on 11/6/14.
- */
 public class ClusterException extends Exception
 {
 

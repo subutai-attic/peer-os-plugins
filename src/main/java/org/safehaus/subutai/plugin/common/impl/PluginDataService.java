@@ -19,9 +19,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 
-/**
- * Created by talas on 12/9/14.
- */
 public class PluginDataService
 {
     private EntityManagerFactory emf;
