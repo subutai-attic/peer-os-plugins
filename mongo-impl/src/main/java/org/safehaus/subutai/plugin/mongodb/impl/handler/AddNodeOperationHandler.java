@@ -213,10 +213,10 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         clusterMembers.add( newDataNode.getContainerHost() );
         try
         {
-            for ( Host c : clusterMembers )
-            {
-                c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
-            }
+            //            for ( Host c : clusterMembers )
+            //            {
+            //                c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
+            //            }
 
             newDataNode.setReplicaSetName( config.getReplicaSetName() );
             trackerOperation.addLog( String.format( "Set replica set name succeeded" ) );
@@ -257,10 +257,10 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         clusterMembers.add( newRouter.getContainerHost() );
         try
         {
-            for ( Host c : clusterMembers )
-            {
-                c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
-            }
+            //            for ( Host c : clusterMembers )
+            //            {
+            //                c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
+            //            }
 
             trackerOperation.addLog( String.format( "Starting router: %s", newRouter.getHostname() ) );
             newRouter.setConfigServers( config.getConfigServers() );
