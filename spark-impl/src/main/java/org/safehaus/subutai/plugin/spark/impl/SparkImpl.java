@@ -2,11 +2,14 @@ package org.safehaus.subutai.plugin.spark.impl;
 
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -28,7 +31,7 @@ import org.safehaus.subutai.plugin.spark.impl.handler.NodeOperationHandler;
 import com.google.common.base.Preconditions;
 
 
-public class SparkImpl extends SparkBase implements Spark
+public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListener
 {
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -249,6 +252,103 @@ public class SparkImpl extends SparkBase implements Spark
         if ( !getPluginDAO().saveInfo( SparkClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final SparkClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.deleteInfo( SparkClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Spark environment event: Container destroyed: %s", uuid ) );
+
+        List<SparkClusterConfig> clusters = getClusters();
+        for ( SparkClusterConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Spark environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getAllNodesIds().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Spark environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSlaveIds() ) )
+                    {
+                        clusterConfig.getSlaveIds().remove( uuid );
+                    }
+
+                    if ( uuid.equals( clusterConfig.getMasterNodeId() ) )
+                    {
+                        clusterConfig.setMasterNodeId( null );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Spark environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Spark environment event: Environment destroyed: %s", uuid ) );
+
+        List<SparkClusterConfig> clusters = getClusters();
+        for ( SparkClusterConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Spark environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Spark environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
         }
     }
 }

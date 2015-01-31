@@ -20,4 +20,6 @@
 
   <service ref="spark-impl" interface="org.safehaus.subutai.plugin.spark.api.Spark" />
 
+  <service ref="spark-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 </blueprint>

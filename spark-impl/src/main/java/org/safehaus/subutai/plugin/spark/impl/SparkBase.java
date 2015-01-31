@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public abstract class SparkBase
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger( SparkBase.class.getName() );
+    protected static final Logger LOG = LoggerFactory.getLogger( SparkBase.class.getName() );
     public PluginDAO pluginDAO;
     private Monitor monitor;
 

@@ -85,4 +85,6 @@ public interface Spark extends ApiBase<SparkClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( SparkClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final SparkClusterConfig config ) throws ClusterException;
 }
