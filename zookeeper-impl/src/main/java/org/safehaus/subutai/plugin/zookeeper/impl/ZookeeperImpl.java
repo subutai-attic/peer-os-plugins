@@ -2,17 +2,20 @@ package org.safehaus.subutai.plugin.zookeeper.impl;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.env.api.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -44,7 +47,7 @@ import com.google.common.collect.Sets;
 
 
 //TODO: Add parameter validation
-public class ZookeeperImpl implements Zookeeper
+public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( ZookeeperImpl.class );
@@ -115,7 +118,7 @@ public class ZookeeperImpl implements Zookeeper
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        //        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
     }
 
 
@@ -127,7 +130,7 @@ public class ZookeeperImpl implements Zookeeper
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        //        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
+        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
     }
 
 
@@ -438,5 +441,54 @@ public class ZookeeperImpl implements Zookeeper
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( "Environment created" );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        LOG.info( "Environment grown" );
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID nodeId )
+    {
+        List<ZookeeperClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final ZookeeperClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                if ( clusterConfig.getNodes().contains( nodeId ) )
+                {
+                    clusterConfig.getNodes().remove( nodeId );
+                    getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(),
+                            clusterConfig );
+                    LOG.info( "Container host destroyed from environment." );
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID environmentId )
+    {
+        List<ZookeeperClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final ZookeeperClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                getPluginDAO().deleteInfo( ZookeeperClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( "Environment destroyed from cluster: " + clusterConfig.getClusterName() );
+            }
+        }
     }
 }

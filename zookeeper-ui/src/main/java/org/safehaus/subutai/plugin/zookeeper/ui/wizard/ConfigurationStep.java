@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.env.api.Environment;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.ContainerHostNotFoundException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentNotFoundException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
@@ -324,7 +324,7 @@ public class ConfigurationStep extends Panel
         List<UUID> allHadoopNodes = hadoopInfo.getAllNodes();
         Set<UUID> allHadoopNodeSet = new HashSet<>();
         allHadoopNodeSet.addAll( allHadoopNodes );
-        Environment hadoopEnvironment = null;
+        Environment hadoopEnvironment;
         final Set<ContainerHost> hadoopNodes;
         try
         {
