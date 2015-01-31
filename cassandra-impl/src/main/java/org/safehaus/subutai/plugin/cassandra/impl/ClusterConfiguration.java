@@ -1,20 +1,19 @@
 package org.safehaus.subutai.plugin.cassandra.impl;
 
 
-import java.util.UUID;
-
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+
+import java.util.UUID;
 
 
 public class ClusterConfiguration
@@ -108,13 +107,13 @@ public class ClusterConfiguration
                 // Set RPC address
                 String rpcAddress =
                         String.format( ". /etc/profile && $CASSANDRA_HOME/bin/cassandra-conf.sh %s %s", "rpc_address",
-                                containerHost.getIpByMask( Common.IP_MASK ) );
+                                containerHost.getIpByInterfaceName( "eth0" ) );
                 commandResult = containerHost.execute( new RequestBuilder( rpcAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
                 // Set listen address
                 String listenAddress = String.format( ". /etc/profile && $CASSANDRA_HOME/bin/cassandra-conf.sh %s %s",
-                        "listen_address", containerHost.getIpByMask( Common.IP_MASK ) );
+                        "listen_address", containerHost.getIpByInterfaceName( "eth0" ) );
                 commandResult = containerHost.execute( new RequestBuilder( listenAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
