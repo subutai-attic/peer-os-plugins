@@ -180,8 +180,8 @@ public class Manager
         destroyClusterBtn.setId( "CassDestroyClusterBtn" );
         destroyClusterBtn.setDescription( "Destroy environment with containers" );
         addClickListenerToDestroyClusterButton();
-        controlsContent.addComponent( destroyClusterBtn );
-        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+        // controlsContent.addComponent( destroyClusterBtn );
+        // controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Remove Cluster button */
@@ -189,8 +189,8 @@ public class Manager
         removeCluster.setId( "CassRemoveClusterBtn" );
         removeCluster.setDescription( "Removes cluster info from DB" );
         addClickListenerToRemoveClusterButton();
-        //controlsContent.addComponent( removeCluster );
-        //controlsContent.setComponentAlignment( removeCluster, Alignment.MIDDLE_CENTER );
+        controlsContent.addComponent( removeCluster );
+        controlsContent.setComponentAlignment( removeCluster, Alignment.MIDDLE_CENTER );
 
 
         /** Add Node button */
@@ -294,7 +294,7 @@ public class Manager
                 if ( config != null )
                 {
                     ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to destroy the %s cluster?", config.getClusterName() ), "Yes",
+                            String.format( "Do you want to remove the %s cluster?", config.getClusterName() ), "Yes",
                             "No" );
                     alert.getOk().addClickListener( new Button.ClickListener()
                     {

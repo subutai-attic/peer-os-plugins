@@ -1,11 +1,15 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
@@ -66,20 +70,25 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             trackerOperation.addLogFailed( "Cluster environment not found" );
             return;
         }
-        Iterator iterator = environment.getContainerHosts().iterator();
+
         ContainerHost host = null;
-        while ( iterator.hasNext() )
+        try
         {
-            host = ( ContainerHost ) iterator.next();
-            if ( host.getHostname().equals( hostname ) )
-            {
-                break;
-            }
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
 
         if ( host == null )
         {
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+            return;
+        }
+
+        if ( ! config.getAllNodes().contains( host.getId() ) ){
+            trackerOperation.addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
             return;
         }
 
@@ -160,6 +169,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             status = result.getStdOut();
         }
         log.append( String.format( "%s", status ) );
-        po.addLogDone( log.toString() );
+        po.addLog( log.toString() );
+        po.addLogDone( "" );
     }
 }

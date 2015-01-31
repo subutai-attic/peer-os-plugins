@@ -9,28 +9,25 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.TrimmedCassandraClusterConfig;
 
+import com.google.common.base.Preconditions;
+
 
 public class RestServiceImpl implements RestService
 {
-
     private Cassandra cassandraManager;
-
-
-    public Cassandra getCassandraManager()
-    {
-        return cassandraManager;
-    }
-
-
-    public void setCassandraManager( final Cassandra cassandraManager )
-    {
-        this.cassandraManager = cassandraManager;
-    }
+    private Tracker tracker;
+    private EnvironmentManager environmentManager;
 
 
     @Override
@@ -48,9 +45,13 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response getCluster( final String source )
+    public Response getCluster( final String clusterName )
     {
-        String cluster = JsonUtil.toJson( cassandraManager.getCluster( source ) );
+        CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
+        if ( config == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + " cluster not found." ).build();
+        }
+        String cluster = JsonUtil.toJson( config );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -76,6 +77,10 @@ public class RestServiceImpl implements RestService
     @Override
     public Response destroyCluster( final String clusterName )
     {
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.uninstallCluster( clusterName );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
@@ -83,9 +88,46 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response removeCluster( final String clusterName ){
+        Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = cassandraManager.removeCluster( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+    @Override
     public Response configureCluster( final String environmentId, final String clusterName, final String nodes,
                                       final String seeds )
     {
+        Preconditions.checkNotNull( environmentId );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( nodes );
+        Preconditions.checkNotNull( seeds );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.findEnvironment( UUID.fromString( environmentId  ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        if ( environment == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Could not find environment with id : " + environmentId ).build();
+        }
+
+        if ( cassandraManager.getCluster( clusterName ) != null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "There is already a cluster with same name !" ).build();
+        }
+
         CassandraClusterConfig config = new CassandraClusterConfig();
         config.setEnvironmentId( UUID.fromString( environmentId ) );
         config.setClusterName( clusterName );
@@ -104,59 +146,169 @@ public class RestServiceImpl implements RestService
         config.setNodes( allNodes );
         config.setSeedNodes( allSeeds );
 
+
         UUID uuid = cassandraManager.installCluster( config );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response startCluster( final String clusterName )
     {
+        Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.startCluster( clusterName );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response stopCluster( final String clusterName )
     {
+        Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.stopCluster( clusterName );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response addNode( final String clusterName, final String nodeType )
+    public Response addNode( final String clusterName )
     {
-        UUID uuid = cassandraManager.addNode( clusterName, nodeType );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = cassandraManager.addNode( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response destroyNode( final String clusterName, final String hostname )
     {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hostname );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.destroyNode( clusterName, hostname );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response checkNode( final String clusterName, final String hostname )
     {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hostname );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = cassandraManager.checkNode( clusterName, hostname );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    private Response createResponse( UUID uuid, OperationState state ){
+        TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
+        if ( state == OperationState.FAILED ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED ){
+            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+        }
+        else {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+        }
     }
 
 
     private String wrapUUID( UUID uuid )
     {
         return JsonUtil.toJson( "OPERATION_ID", uuid );
+    }
+
+
+    private OperationState waitUntilOperationFinish( UUID uuid ){
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+        return state;
+    }
+
+
+    public Tracker getTracker(){
+        return tracker;
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Cassandra getCassandraManager()
+    {
+        return cassandraManager;
+    }
+
+    public void setCassandraManager( final Cassandra cassandraManager )
+    {
+        this.cassandraManager = cassandraManager;
     }
 }

@@ -19,8 +19,15 @@
 
   <bean id="cassandraRestServiceImpl" class="org.safehaus.subutai.plugin.cassandra.rest.RestServiceImpl">
     <property name="cassandraManager" ref="cassandraManager" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
   </bean>
 
   <reference id="cassandraManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.cassandra.api.Cassandra" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+
 </blueprint>
