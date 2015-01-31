@@ -176,17 +176,20 @@ public class ZookeeperClusterOperationHandler
         {
             if ( config.getSetupType() == SetupType.OVER_HADOOP || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
             {
-                List<CommandResult> commandResultList = new ArrayList<>();
-
                 trackerOperation.addLog( "Uninstalling zookeeper from nodes" );
                 Environment zookeeperEnvironment =
                         manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
                 for ( ContainerHost containerHost : zookeeperEnvironment.getContainerHostsByIds( config.getNodes() ) )
                 {
-                    commandResultList
-                            .add( containerHost.execute( new RequestBuilder( Commands.getUninstallCommand() ) ) );
+                    try
+                    {
+                        containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) );
+                    }
+                    catch ( CommandException e )
+                    {
+                        LOG.warn( "Couldn't execute command, but still removing from database.", e );
+                    }
                 }
-                logResults( trackerOperation, commandResultList );
             }
             else
             {
@@ -199,7 +202,7 @@ public class ZookeeperClusterOperationHandler
                     manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() ) );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( CommandException | MonitorException | ContainerHostNotFoundException |
+        catch ( MonitorException | ContainerHostNotFoundException |
                 EnvironmentDestructionException | EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );

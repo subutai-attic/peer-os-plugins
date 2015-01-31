@@ -541,11 +541,11 @@ public class Manager
                                     config.getEnvironmentId().toString() ), e );
                             return;
                         }
-                        Set<ContainerHost> environmentHosts = environment.getContainerHosts();
-                        Set<ContainerHost> zookeeperHosts;
+                        Set<ContainerHost> environmentHosts = new HashSet<>( environment.getContainerHosts() );
+                        Set<ContainerHost> zookeeperHosts = new HashSet<>();
                         try
                         {
-                            zookeeperHosts = environment.getContainerHostsByIds( config.getNodes() );
+                            zookeeperHosts.addAll( environment.getContainerHostsByIds( config.getNodes() ) );
                         }
                         catch ( ContainerHostNotFoundException e )
                         {
@@ -586,19 +586,35 @@ public class Manager
                                 return;
                             }
                             Set<UUID> hadoopNodeIDs = new HashSet<>( hadoopClusterConfig.getAllNodes() );
-                            Set<ContainerHost> hadoopNodes;
-                            Set<ContainerHost> zookeeperHosts;
-                            try
+                            Set<ContainerHost> hadoopNodes = new HashSet<>();
+                            Set<ContainerHost> zookeeperHosts = new HashSet<>();
+
+                            for ( final UUID nodeId : config.getNodes() )
                             {
-                                zookeeperHosts = hadoopEnvironment.getContainerHostsByIds( config.getNodes() );
-                                hadoopNodes = hadoopEnvironment.getContainerHostsByIds( hadoopNodeIDs );
+                                try
+                                {
+                                    zookeeperHosts.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                                }
+                                catch ( ContainerHostNotFoundException e )
+                                {
+                                    LOGGER.warn( String.format( "Couldn't get some container host with ids: %s",
+                                            nodeId.toString() ), e );
+                                }
                             }
-                            catch ( ContainerHostNotFoundException e )
+
+                            for ( final UUID nodeId : hadoopNodeIDs )
                             {
-                                LOGGER.error( String.format( "Couldn't get some container hosts with ids: %s",
-                                        hadoopNodeIDs.toString() ), e );
-                                return;
+                                try
+                                {
+                                    hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                                }
+                                catch ( ContainerHostNotFoundException e )
+                                {
+                                    LOGGER.warn( String.format( "Couldn't get some container host with ids: %s",
+                                            nodeId.toString() ), e );
+                                }
                             }
+
                             Set<ContainerHost> nodes = new HashSet<>();
                             nodes.addAll( hadoopNodes );
                             nodes.removeAll( zookeeperHosts );

@@ -18,6 +18,7 @@ public class ZookeeperClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Zookeeper";
     public static final String PRODUCT_NAME = "zookeeper";
+    public static final String TEMPLATE_NAME = "zookeeper";
     private String templateName = PRODUCT_NAME;
     private String clusterName = "";
     private int numberOfNodes = 3;

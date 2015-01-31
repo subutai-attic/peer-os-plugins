@@ -9,8 +9,8 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 
 import com.google.common.base.Strings;
 import com.vaadin.server.ThemeResource;
@@ -33,7 +33,7 @@ public class AddNodeWindow extends Window
     private volatile boolean track = true;
 
 
-    public AddNodeWindow( final ApiBase product, final ExecutorService executorService, final Tracker tracker,
+    public AddNodeWindow( final Zookeeper product, final ExecutorService executorService, final Tracker tracker,
                           final ConfigBase config, Set<ContainerHost> nodes )
     {
         super( "Add New Node" );
@@ -66,7 +66,7 @@ public class AddNodeWindow extends Window
             availableNodesComboBox.addItem( node );
             availableNodesComboBox.setItemCaption( node, node.getHostname() );
         }
-        availableNodesComboBox.setValue( nodes.iterator().next() );
+        //        availableNodesComboBox.setValue( nodes.iterator().next() );
 
         topContent.addComponent( availableNodesComboBox );
 
@@ -89,8 +89,21 @@ public class AddNodeWindow extends Window
                 // TODO make relevant addNode calls according to product type !!!
                 // TODO e.g. for hadoop, call addNode that creates the lxc container
                 // TODO and for hive, call addNode that installs package to an existing lxc container
-                final UUID trackID = product.addNode( config.getClusterName(), agent.getHostname() );
+                final UUID trackID;
+                if ( agent != null )
+                {
+                    trackID = product.addNode( config.getClusterName(), agent.getHostname() );
+                }
+                else
+                {
+                    trackID = product.addNode( config.getClusterName() );
+                }
 
+                if ( trackID == null )
+                {
+                    setOutput( "Failed to create container host." );
+                    return;
+                }
                 ok.setEnabled( false );
                 executorService.execute( new Runnable()
                 {

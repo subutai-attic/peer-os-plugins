@@ -304,48 +304,48 @@ public class ConfigurationStep extends Panel
             }
         }
 
-        HadoopClusterConfig info = null;
-        if ( wizard.getConfig().getHadoopClusterName() != null )
-        {
-            info = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
-        }
-
-        if ( info != null )
-        {
-            hadoopClustersCombo.setValue( info );
-        }
-        else if ( !hadoopClusterConfigs.isEmpty() )
+        HadoopClusterConfig hadoopInfo = null;
+        if ( !hadoopClusterConfigs.isEmpty() )
         {
             hadoopClustersCombo.setValue( hadoopClusterConfigs.iterator().next() );
+            hadoopInfo = hadoopClusterConfigs.iterator().next();
         }
 
-        HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
+        List<UUID> allHadoopNodes = new ArrayList<>();
+        if ( hadoopInfo != null )
+        {
+            allHadoopNodes.addAll( hadoopInfo.getAllNodes() );
+        }
 
-        List<UUID> allHadoopNodes = hadoopInfo.getAllNodes();
+
         Set<UUID> allHadoopNodeSet = new HashSet<>();
         allHadoopNodeSet.addAll( allHadoopNodes );
         Environment hadoopEnvironment;
-        final Set<ContainerHost> hadoopNodes;
-        try
+        final Set<ContainerHost> hadoopNodes = new HashSet<>();
+        if ( hadoopInfo != null )
         {
-            hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
-            hadoopNodes = hadoopEnvironment.getContainerHostsByIds( allHadoopNodeSet );
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOGGER.error(
-                    String.format( "Environment with id:%s not found(.", hadoopInfo.getEnvironmentId().toString() ),
-                    e );
-            return;
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOGGER.error( String.format( "Some container hosts with ids: %s not found", allHadoopNodeSet.toString() ),
-                    e );
-            return;
+            try
+            {
+                hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                hadoopNodes.addAll( hadoopEnvironment.getContainerHostsByIds( allHadoopNodeSet ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error(
+                        String.format( "Environment with id:%s not found(.", hadoopInfo.getEnvironmentId().toString() ),
+                        e );
+                return;
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error(
+                        String.format( "Some container hosts with ids: %s not found", allHadoopNodeSet.toString() ),
+                        e );
+                return;
+            }
         }
 
-        if ( hadoopClustersCombo.getValue() != null )
+        if ( hadoopInfo != null )
         {
             wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
             wizard.setHadoopClusterConfig( hadoopInfo );

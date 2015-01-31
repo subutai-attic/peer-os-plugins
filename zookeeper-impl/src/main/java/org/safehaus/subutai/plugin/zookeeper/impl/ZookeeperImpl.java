@@ -292,7 +292,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         ZookeeperClusterConfig zookeeperClusterConfig = getCluster( clusterName );
 
         AbstractOperationHandler operationHandler =
-                new ZookeeperClusterOperationHandler( this, zookeeperClusterConfig, ClusterOperationType.ADD );
+                new ZookeeperNodeOperationHandler( this, zookeeperClusterConfig, NodeOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -304,7 +304,8 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
         ZookeeperClusterConfig zookeeperClusterConfig = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ZookeeperNodeOperationHandler( this, zookeeperClusterConfig, lxcHostname, NodeOperationType.ADD );
+                new ZookeeperNodeOperationHandler( this, zookeeperClusterConfig.getClusterName(), lxcHostname,
+                        NodeOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -387,6 +388,8 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     }
 
 
+    //these command substitutions are not valid,
+    // this was made so to omit wrong command execution
     @Override
     public String getCommand( final CommandType commandType )
     {
@@ -395,7 +398,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
             case INSTALL:
                 return Commands.getInstallCommand();
             case UNINSTALL:
-                return Commands.getUninstallCommand();
+                return Commands.getStartCommand();
             case START:
                 return Commands.getStartCommand();
             case STOP:
