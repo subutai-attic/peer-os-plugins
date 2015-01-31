@@ -229,7 +229,8 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    refreshClustersInfo();
+                                    //                                    refreshClustersInfo();
+                                    checkAllBtn.click();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );
@@ -275,7 +276,8 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    refreshClustersInfo();
+                                    //                                    refreshClustersInfo();
+                                    checkAllBtn.click();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );
@@ -319,7 +321,8 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    refreshClustersInfo();
+                                    //                                    refreshClustersInfo();
+                                    checkAllBtn.click();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );
@@ -653,6 +656,7 @@ public class Manager
                 {
                     if ( mongoClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
+                        mongoClusterConfig = mongoClusterInfo;
                         clusterCombo.setValue( mongoClusterInfo );
                         return;
                     }
@@ -660,10 +664,10 @@ public class Manager
             }
             else
             {
-                clusterCombo.setValue( mongoClusterInfos.iterator().next() );
+                mongoClusterConfig = mongoClusterInfos.iterator().next();
+                clusterCombo.setValue( mongoClusterConfig );
             }
         }
-        checkAllNodes();
     }
 
 

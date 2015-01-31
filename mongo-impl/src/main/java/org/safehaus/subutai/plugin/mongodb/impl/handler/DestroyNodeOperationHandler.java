@@ -92,6 +92,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             {
 
                 config.getConfigServers().remove( node );
+                config.getConfigHostIds().remove( node.getContainerHost().getId() );
                 config.setNumberOfConfigServers( config.getNumberOfConfigServers() - 1 );
                 //restart routers
                 trackerOperation.addLog( "Restarting routers..." );
@@ -117,6 +118,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 MongoDataNode dataNode = ( MongoDataNode ) node;
                 dataNode.stop();
                 config.getDataNodes().remove( dataNode );
+                config.getDataHostIds().remove( node.getContainerHost().getId() );
                 config.setNumberOfDataNodes( config.getNumberOfDataNodes() - 1 );
                 //unregister from primary
                 trackerOperation.addLog( "Unregistering this node from replica set..." );
@@ -127,6 +129,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             {
                 config.setNumberOfRouters( config.getNumberOfRouters() - 1 );
                 config.getRouterServers().remove( node );
+                config.getRouterHostIds().remove( node.getContainerHost().getId() );
             }
 
             Environment environment = manager.getEnvironmentManager().findEnvironment(
@@ -136,7 +139,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
             {
                 ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
-                trackerOperation.addLog( "Purging subutai-hadoop from containers." );
+                trackerOperation.addLog( "Purging subutai-mongo from containers." );
                 logResults( trackerOperation,
                         Arrays.asList( executeCommand( Commands.getStopMongodbService(), containerHost ) ) );
             }

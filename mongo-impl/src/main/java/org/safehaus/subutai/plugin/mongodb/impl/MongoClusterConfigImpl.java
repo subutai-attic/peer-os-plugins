@@ -481,16 +481,24 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     @Override
     public Object prepare()
     {
+        configServersImpl.clear();
+        configHostIds.clear();
         for ( final MongoConfigNode configServer : configServers )
         {
             this.configServersImpl.add( ( MongoConfigNodeImpl ) configServer );
             this.configHostIds.add( UUID.fromString( ( ( MongoConfigNodeImpl ) configServer ).getContainerHostId() ) );
         }
+
+        this.routerServersImpl.clear();
+        this.routerHostIds.clear();
         for ( final MongoRouterNode routerServer : routerServers )
         {
             this.routerServersImpl.add( ( MongoRouterNodeImpl ) routerServer );
             this.routerHostIds.add( UUID.fromString( ( ( MongoRouterNodeImpl ) routerServer ).getContainerHostId() ) );
         }
+
+        this.dataNodesImpl.clear();
+        this.dataHostIds.clear();
         for ( final MongoDataNode dataNode : dataNodes )
         {
             this.dataNodesImpl.add( ( MongoDataNodeImpl ) dataNode );
@@ -584,5 +592,60 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     public void setTopology( final Topology topology )
     {
         this.topology = topology;
+    }
+
+
+    @Override
+    public void removeNode( UUID nodeId )
+    {
+        //sheat man this piece of code is full of awfullness that I want to cry
+        for ( Iterator<MongoConfigNodeImpl> it = configServersImpl.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+
+        for ( Iterator<MongoConfigNode> it = configServers.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+        configHostIds.remove( nodeId );
+
+        for ( Iterator<MongoRouterNodeImpl> it = routerServersImpl.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+        for ( Iterator<MongoRouterNode> it = routerServers.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+        routerHostIds.remove( nodeId );
+
+        for ( Iterator<MongoDataNodeImpl> it = dataNodesImpl.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+        for ( Iterator<MongoDataNode> it = dataNodes.iterator(); it.hasNext(); )
+        {
+            if ( it.next().getContainerHost().getId().equals( nodeId ) )
+            {
+                it.remove();
+            }
+        }
+        this.dataHostIds.remove( nodeId );
     }
 }

@@ -119,4 +119,6 @@ public interface MongoClusterConfig extends ConfigBase
     Topology getTopology();
 
     void setTopology( Topology topology );
+
+    void removeNode( UUID nodeId );
 }

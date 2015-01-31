@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.mongodb.impl;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +23,7 @@ import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -61,7 +63,7 @@ import com.google.gson.GsonBuilder;
  * Implementation of Mongo interface. Implements all backend logic for mongo cluster management
  */
 
-public class MongoImpl implements Mongo
+public class MongoImpl implements Mongo, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( MongoImpl.class.getName() );
@@ -478,5 +480,86 @@ public class MongoImpl implements Mongo
     public QuotaManager getQuotaManager()
     {
         return quotaManager;
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( "Environment created." );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        LOG.info( "Environment grown" );
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    {
+        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
+        for ( final String clusterData : clusterDataList )
+        {
+            MongoClusterConfigImpl clusterConfig = GSON.fromJson( clusterData, MongoClusterConfigImpl.class );
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                clusterConfig.removeNode( containerHostId );
+                Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
+                String json = GSON.toJson( clusterConfig );
+                getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), json );
+                LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
+                        clusterConfig.getClusterName() ) );
+            }
+        }
+
+        //        List<MongoClusterConfig> clusterConfigs = getClusters();
+        //        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
+        //        {
+        //            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+        //            {
+        //                if ( clusterConfig.getAllNodeIds().contains( containerHostId ) )
+        //                {
+        //                    clusterConfig.removeNode( containerHostId );
+        //                    Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation()
+        // .create();
+        //                    String json = GSON.toJson( clusterConfig.prepare() );
+        //                    getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName()
+        // , json );
+        //                    LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
+        //                            clusterConfig.getClusterName() ) );
+        //                }
+        //            }
+        //        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID environmentId )
+    {
+        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
+        for ( final String clusterData : clusterDataList )
+        {
+            MongoClusterConfigImpl clusterConfig = GSON.fromJson( clusterData, MongoClusterConfigImpl.class );
+            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Mongo cluster: %s destroyed", clusterConfig.getClusterName() ) );
+            }
+        }
+
+        //        List<MongoClusterConfig> clusterConfigs = getClusters();
+        //        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
+        //        {
+        //            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+        //            {
+        //                getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+        //                LOG.info( String.format( "Cluster %s destroyed in environment %s", clusterConfig
+        // .getClusterName(),
+        //                        environmentId.toString() ) );
+        //            }
+        //        }
     }
 }

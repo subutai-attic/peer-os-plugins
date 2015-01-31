@@ -227,7 +227,7 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
             {
                 ContainerHost environmentContainer = it.next();
                 MongoDataNode mongoDataNode =
-                        new MongoDataNodeImpl( environmentContainer, config.getDomainName(), config.getRouterPort() );
+                        new MongoDataNodeImpl( environmentContainer, config.getDomainName(), config.getDataNodePort() );
                 dataNodes.add( mongoDataNode );
                 it.remove();
             }
