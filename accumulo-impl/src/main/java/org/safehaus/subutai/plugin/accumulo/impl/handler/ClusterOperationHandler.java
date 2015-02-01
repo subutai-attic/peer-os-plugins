@@ -8,9 +8,11 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+
 
 
 /**
@@ -81,9 +84,33 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg =
+                    String.format( "Environment with id: %s doesn't exists.", config.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return;
+        }
         CommandResult result = null;
-        ContainerHost containerHost = environment.getContainerHostById( config.getMasterNode() );
+        ContainerHost containerHost = null;
+        try
+        {
+            containerHost = environment.getContainerHostById( config.getMasterNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg = String.format( "Container host with id: %s doesn't exists in environment: %s",
+                    config.getMasterNode(), environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return;
+        }
         switch ( clusterOperationType )
         {
             case START_ALL:
@@ -110,8 +137,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     @Override
     public void setupCluster()
     {
-        Environment environment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hadoopConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Environment with id: %s doesn't exists.",
+                    hadoopConfig.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return;
+        }
         AccumuloOverZkNHadoopSetupStrategy setupStrategyOverHadoop =
                 new AccumuloOverZkNHadoopSetupStrategy( environment, config, hadoopConfig, trackerOperation, manager );
         try
@@ -120,6 +158,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         }
         catch ( ClusterSetupException e )
         {
+            trackerOperation.addLogFailed( "Error setting up accumulo cluster" );
             LOG.error( "Error setting up accumulo cluster", e );
         }
     }
@@ -129,8 +168,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
     public void destroyCluster()
     {
         AccumuloClusterConfig config = manager.getCluster( clusterName );
-        Environment environment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hadoopConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Environment with id: %s doesn't exists.",
+                    hadoopConfig.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return;
+        }
         if ( config == null )
         {
             trackerOperation.addLogFailed(
@@ -138,9 +188,21 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             return;
         }
 
-        for ( UUID uuid : config.getAllNodes() )
+        for ( UUID nodeId : config.getAllNodes() )
         {
-            ContainerHost host = environment.getContainerHostById( uuid );
+            ContainerHost host = null;
+            try
+            {
+                host = environment.getContainerHostById( nodeId );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                String msg = String.format( "Container host with id: %s doesn't exists in environment: %s",
+                        nodeId.toString(), environment.getName() );
+                trackerOperation.addLogFailed( msg );
+                LOG.error( msg, e );
+                continue;
+            }
             CommandResult result;
             try
             {
@@ -166,7 +228,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
                 trackerOperation.addLog( "Error destroying cluster. " + e.getMessage() );
             }
         }
-        ContainerHost namenode = environment.getContainerHostById( hadoopConfig.getNameNode() );
+        ContainerHost namenode = null;
+        try
+        {
+            namenode = environment.getContainerHostById( hadoopConfig.getNameNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg = String.format( "Container host with id: %s doesn't exist in environment: %s",
+                    hadoopConfig.getNameNode().toString(), environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return;
+        }
         CommandResult result = executeCommand( namenode, Commands.getRemoveAccumuloFromHFDSCommand() );
 
         if ( result.hasSucceeded() )
@@ -174,13 +248,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             try
             {
                 manager.unsubscribeFromAlerts( environment );
+                trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
             }
             catch ( MonitorException e )
             {
                 LOG.error( "Error removing subscription for environment.", e );
                 trackerOperation.addLogFailed( "Error removing subscription for environment." );
             }
-            trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
         }
         else
         {
