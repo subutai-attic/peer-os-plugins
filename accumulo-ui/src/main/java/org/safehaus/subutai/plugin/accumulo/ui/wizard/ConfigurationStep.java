@@ -575,8 +575,18 @@ public class ConfigurationStep extends Panel
     {
         target.removeAllItems();
         target.setValue( null );
-        ZookeeperClusterConfig zookeeperClusterConfig =
-                zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+
+        ZookeeperClusterConfig zookeeperClusterConfig;
+
+        try
+        {
+            zookeeperClusterConfig = zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "Some exception getting zookeeper cluster.", e );
+            return;
+        }
         if ( zookeeperClusterConfig == null )
         {
             return;

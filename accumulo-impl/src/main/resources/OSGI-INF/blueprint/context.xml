@@ -31,6 +31,10 @@
     <argument ref="monitor" />
   </bean>
 
-  <service ref="accumulo-impl" interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
+  <service ref="accumulo-impl"
+           interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
+
+  <service ref="accumulo-impl"
+           interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>

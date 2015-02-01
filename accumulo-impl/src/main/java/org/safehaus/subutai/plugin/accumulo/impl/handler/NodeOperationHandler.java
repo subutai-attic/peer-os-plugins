@@ -74,21 +74,21 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    public NodeOperationHandler( final AccumuloImpl manager, final Hadoop hadoopManager, final Zookeeper zkManager,
+    public NodeOperationHandler( final AccumuloImpl manager, final Hadoop hadoop, final Zookeeper zookeeper,
                                  final String clusterName, final NodeOperationType nodeOperationType,
                                  final NodeType nodeType )
     {
         super( manager, manager.getCluster( clusterName ) );
         Preconditions.checkNotNull( manager, "Accumulo manager is null." );
-        Preconditions.checkNotNull( hadoopManager, "Hadoop manager is null." );
-        Preconditions.checkNotNull( zkManager, "Zookeeper manager is null." );
+        Preconditions.checkNotNull( hadoop, "Hadoop manager is null." );
+        Preconditions.checkNotNull( zookeeper, "Zookeeper manager is null." );
         Preconditions.checkNotNull( clusterName, "Accumulo clusterName is null." );
         Preconditions.checkNotNull( nodeOperationType, "Node operation type is null." );
         Preconditions.checkNotNull( nodeType, "Node type is null." );
 
         this.clusterName = clusterName;
-        this.hadoop = hadoopManager;
-        this.zookeeper = zkManager;
+        this.hadoop = hadoop;
+        this.zookeeper = zookeeper;
         this.operationType = nodeOperationType;
         this.nodeType = nodeType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY,
@@ -106,7 +106,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -119,7 +119,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             LOGGER.error( msg, e );
             return;
         }
-        ContainerHost host = null;
+        ContainerHost host;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -174,7 +174,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                     }
                     break;
             }
-            trackerOperation.addLogDone( "" );
+            if ( result != null )
+            {
+                trackerOperation.addLogDone( result.getStdOut() );
+            }
         }
         catch ( CommandException e )
         {
@@ -186,8 +189,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
     private CommandResult destroyNode( final String clusterName, final String containerHostname )
     {
-        CommandResult result = null;
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -200,7 +202,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             LOGGER.error( msg, e );
             return null;
         }
-        Set<ContainerHost> environmentHosts = null;
+        Set<ContainerHost> environmentHosts;
         try
         {
             environmentHosts = environment.getContainerHostsByIds( config.getAllNodes() );
@@ -237,6 +239,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 return uninstallProductOnNode( targetHost, NodeType.ACCUMULO_TRACER );
             }
         }
+        trackerOperation.addLogDone( "" );
         return null;
     }
 
@@ -254,12 +257,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
      */
     private CommandResult addNode( final String clusterName, final String containerName, final NodeType nodeType )
     {
-        CommandResult result = null;
+        CommandResult result;
 
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
         ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
 
-        Environment accumuloEnvironment = null;
+        Environment accumuloEnvironment;
         try
         {
             accumuloEnvironment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -271,7 +274,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             LOGGER.error( msg, e );
             return null;
         }
-        ContainerHost environmentContainerHost = null;
+        ContainerHost environmentContainerHost;
         try
         {
             environmentContainerHost = accumuloEnvironment.getContainerHostByHostname( containerName );
@@ -325,7 +328,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         //installing accumulo package
         //initializing accumulo cluster configuration with new node
         result = installProductOnNode( environmentContainerHost, nodeType );
-
+        trackerOperation.addLogDone( "" );
         return result;
     }
 
@@ -341,12 +344,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
      */
     private CommandResult addNode( final String clusterName, final NodeType nodeType )
     {
-        CommandResult result = null;
+        CommandResult result;
 
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
         ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
 
-        Environment accumuloEnvironment = null;
+        Environment accumuloEnvironment;
         try
         {
             accumuloEnvironment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -453,7 +456,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
 
         result = installProductOnNode( additionalNode, nodeType );
-
+        trackerOperation.addLogDone( "" );
         return result;
     }
 
@@ -482,7 +485,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 try
                 {
                     manager.subscribeToAlerts( host );
-                    Environment environment = null;
+                    Environment environment;
                     try
                     {
                         environment = manager.getEnvironmentManager().findEnvironment(
@@ -546,7 +549,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 // Configure all nodes again
                 try
                 {
-                    Environment environment = null;
+                    Environment environment;
                     try
                     {
                         environment = manager.getEnvironmentManager().findEnvironment(
