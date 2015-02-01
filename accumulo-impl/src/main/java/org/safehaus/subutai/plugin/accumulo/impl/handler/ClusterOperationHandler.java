@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-
 /**
  * This class handles operations that are related to whole cluster.
  */
@@ -126,11 +125,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
                 }
                 break;
         }
-        assert result != null;
-        if ( result.hasSucceeded() )
-        {
-            trackerOperation.addLogDone( "" );
-        }
+        trackerOperation.addLogDone( "" );
     }
 
 

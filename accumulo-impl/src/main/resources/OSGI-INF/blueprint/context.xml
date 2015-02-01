@@ -7,11 +7,16 @@
     <property name="password" value="" />
   </bean>
 
-  <reference id="tracker" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="hadoopManager" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="zkManager" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
-  <reference id="environmentManager" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
-  <reference id="monitor" availability="mandatory" interface="org.safehaus.subutai.core.metric.api.Monitor" />
+  <reference id="tracker"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="hadoopManager"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="zkManager"
+             interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+  <reference id="monitor" availability="mandatory"
+             interface="org.safehaus.subutai.core.metric.api.Monitor" />
   <reference id="quotaManager" availability="mandatory"
              interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
 

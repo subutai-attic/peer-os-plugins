@@ -174,8 +174,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                     }
                     break;
             }
-            assert result != null;
-            trackerOperation.addLogDone( result.getStdOut() );
+            trackerOperation.addLogDone( "" );
         }
         catch ( CommandException e )
         {
