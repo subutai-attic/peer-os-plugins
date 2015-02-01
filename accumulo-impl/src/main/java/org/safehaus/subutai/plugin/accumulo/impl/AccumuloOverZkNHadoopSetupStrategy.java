@@ -6,11 +6,12 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -18,6 +19,8 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -29,7 +32,7 @@ import com.google.common.base.Strings;
 public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 {
 
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( AccumuloOverZkNHadoopSetupStrategy.class );
     private final AccumuloImpl accumuloManager;
     private final TrackerOperation trackerOperation;
     private final AccumuloClusterConfig accumuloClusterConfig;
@@ -105,17 +108,41 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
         accumuloManager.getHadoopManager().startNameNode( hadoopClusterConfig );
 
         /** start Zookeeper cluster */
-        for ( UUID node : zookeeperClusterConfig.getNodes() )
+        for ( UUID nodeId : zookeeperClusterConfig.getNodes() )
         {
-            accumuloManager.getZkManager().startNode( zookeeperClusterConfig.getClusterName(),
-                    environment.getContainerHostById( node ).getHostname() );
+            try
+            {
+                accumuloManager.getZkManager().startNode( zookeeperClusterConfig.getClusterName(),
+                        environment.getContainerHostById( nodeId ).getHostname() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId,
+                        environment.getName() );
+                trackerOperation.addLogFailed( msg );
+                LOGGER.error( msg, e );
+                return null;
+            }
         }
 
         trackerOperation.addLog( "Installing Accumulo..." );
         for ( UUID uuid : accumuloClusterConfig.getAllNodes() )
         {
             CommandResult result;
-            ContainerHost host = environment.getContainerHostById( uuid );
+            ContainerHost host = null;
+            try
+            {
+                host = environment.getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                String msg =
+                        String.format( "Container host with id: %s doesn't exists in environment: %s", uuid.toString(),
+                                environment.getName() );
+                trackerOperation.addLogFailed( msg );
+                LOGGER.error( msg, e );
+                return null;
+            }
             if ( checkIfProductIsInstalled( host, HadoopClusterConfig.PRODUCT_NAME ) )
             {
                 if ( !checkIfProductIsInstalled( host, AccumuloClusterConfig.PRODUCT_NAME ) )
@@ -138,7 +165,9 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
                     }
                     catch ( CommandException e )
                     {
-                        e.printStackTrace();
+                        String msg = String.format( "Error executing install command on container host." );
+                        trackerOperation.addLogFailed( msg );
+                        LOGGER.error( msg, e );
                     }
                 }
                 else
@@ -158,7 +187,7 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
         {
             accumuloManager.subscribeToAlerts( environment );
             new ClusterConfiguration( accumuloManager, trackerOperation )
-                    .configureCluster( environment, accumuloClusterConfig, zookeeperClusterConfig );
+                    .configureCluster( accumuloClusterConfig, environment );
         }
         catch ( ClusterConfigurationException | MonitorException e )
         {
