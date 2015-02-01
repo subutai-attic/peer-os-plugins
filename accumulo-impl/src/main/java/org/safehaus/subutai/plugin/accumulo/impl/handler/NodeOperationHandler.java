@@ -497,8 +497,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                         LOGGER.error( msg, e );
                         return null;
                     }
-                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( environment, config,
-                            zookeeper.getCluster( config.getZookeeperClusterName() ) );
+                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, environment );
                 }
                 catch ( ClusterConfigurationException | MonitorException e )
                 {
@@ -563,8 +562,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                         return null;
                     }
                     manager.unsubscribeFromAlerts( environment );
-                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( environment, config,
-                            zookeeper.getCluster( config.getZookeeperClusterName() ) );
+                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, environment );
                 }
                 catch ( ClusterConfigurationException | MonitorException e )
                 {
