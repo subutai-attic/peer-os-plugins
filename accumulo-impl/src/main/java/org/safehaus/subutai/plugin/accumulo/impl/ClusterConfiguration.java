@@ -6,11 +6,15 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
+import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,28 +25,32 @@ import com.google.common.base.Preconditions;
 /**
  * Configures Accumulo Cluster
  */
-public class ClusterConfiguration
+public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ClusterConfiguration.class );
-    private TrackerOperation po;
+    private TrackerOperation trackerOperation;
     private AccumuloImpl accumuloManager;
 
 
-    public ClusterConfiguration( final AccumuloImpl accumuloManager, final TrackerOperation po )
+    public ClusterConfiguration( final AccumuloImpl accumuloManager, final TrackerOperation trackerOperation )
     {
         Preconditions.checkNotNull( accumuloManager, "Accumulo Manager is null" );
-        Preconditions.checkNotNull( po, "Product Operation is null" );
-        this.po = po;
+        Preconditions.checkNotNull( trackerOperation, "Product Operation is null" );
+        this.trackerOperation = trackerOperation;
         this.accumuloManager = accumuloManager;
     }
 
 
-    public void configureCluster( Environment environment, AccumuloClusterConfig accumuloClusterConfig,
-                                  ZookeeperClusterConfig zookeeperClusterConfig ) throws ClusterConfigurationException
+    @Override
+    public void configureCluster( final ConfigBase configBase, final Environment environment )
+            throws ClusterConfigurationException
     {
+        AccumuloClusterConfig accumuloClusterConfig = ( AccumuloClusterConfig ) configBase;
+        ZookeeperClusterConfig zookeeperClusterConfig =
+                accumuloManager.getZkManager().getCluster( accumuloClusterConfig.getZookeeperClusterName() );
 
-        po.addLog( "Configuring cluster..." );
+        trackerOperation.addLog( "Configuring cluster..." );
         ContainerHost master = getHost( environment, accumuloClusterConfig.getMasterNode() );
         ContainerHost gc = getHost( environment, accumuloClusterConfig.getGcNode() );
         ContainerHost monitor = getHost( environment, accumuloClusterConfig.getMonitor() );
@@ -85,10 +93,10 @@ public class ClusterConfiguration
                                accumuloClusterConfig );
 
         // start cluster
-        po.addLog( "Starting cluster ..." );
+        trackerOperation.addLog( "Starting cluster ..." );
         executeCommand( master, Commands.startCommand );
 
-        po.addLogDone( AccumuloClusterConfig.PRODUCT_KEY + " cluster data saved into database" );
+        trackerOperation.addLogDone( AccumuloClusterConfig.PRODUCT_KEY + " cluster data saved into database" );
     }
 
 
@@ -105,8 +113,17 @@ public class ClusterConfiguration
 
     private String serializeZKNodeNames( ZookeeperClusterConfig zookeeperClusterConfig )
     {
-        Environment environment = accumuloManager.getEnvironmentManager()
-                                                 .getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = accumuloManager.getEnvironmentManager()
+                                         .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Environment with id: %s doesn't exists.",
+                    zookeeperClusterConfig.getEnvironmentId().toString() );
+        }
         Set<UUID> zkNodes = zookeeperClusterConfig.getNodes();
         StringBuilder zkNodesCommaSeparated = new StringBuilder();
         for ( UUID zkNode : zkNodes )
@@ -127,13 +144,25 @@ public class ClusterConfiguration
         catch ( CommandException e )
         {
             LOGGER.error( "Error executing command.", e );
-            po.addLogFailed( "Error executing command. " + e.getMessage() );
+            trackerOperation.addLogFailed( "Error executing command. " + e.getMessage() );
         }
     }
 
 
-    private ContainerHost getHost( Environment environment, UUID uuid )
+    private ContainerHost getHost( Environment environment, UUID nodeId )
     {
-        return environment.getContainerHostById( uuid );
+        try
+        {
+            return environment.getContainerHostById( nodeId );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg =
+                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
+                            environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
     }
 }
