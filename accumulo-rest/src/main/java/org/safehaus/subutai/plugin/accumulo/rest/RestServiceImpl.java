@@ -9,9 +9,11 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.NodeType;
@@ -55,36 +57,46 @@ public class RestServiceImpl implements RestService
     @Override
     public Response createCluster( final String config )
     {
-        TrimmedAccumuloConfig trimmedAccumuloConfig = JsonUtil.fromJson( config, TrimmedAccumuloConfig.class );
-        AccumuloClusterConfig expandedConfig = new AccumuloClusterConfig();
-        expandedConfig.setClusterName( trimmedAccumuloConfig.getClusterName() );
-        expandedConfig.setInstanceName( trimmedAccumuloConfig.getInstanceName() );
-        expandedConfig.setPassword( trimmedAccumuloConfig.getPassword() );
-        expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
-        Environment environment = environmentManager
-                .getEnvironmentByUUID( hadoop.getCluster( expandedConfig.getHadoopClusterName() ).getEnvironmentId() );
-        expandedConfig.setMasterNode(
-                environment.getContainerHostByHostname( trimmedAccumuloConfig.getMasterNode() ).getId() );
-        expandedConfig.setGcNode( environment.getContainerHostByHostname( trimmedAccumuloConfig.getGcNode() ).getId() );
-        expandedConfig
-                .setMonitor( environment.getContainerHostByHostname( trimmedAccumuloConfig.getMonitor() ).getId() );
 
-        Set<UUID> tracers = new HashSet<>();
-        Set<UUID> slaves = new HashSet<>();
-        for ( String tracer : trimmedAccumuloConfig.getTracers() )
+        try
         {
-            tracers.add( environment.getContainerHostByHostname( tracer ).getId() );
+            TrimmedAccumuloConfig trimmedAccumuloConfig = JsonUtil.fromJson( config, TrimmedAccumuloConfig.class );
+            AccumuloClusterConfig expandedConfig = new AccumuloClusterConfig();
+            expandedConfig.setClusterName( trimmedAccumuloConfig.getClusterName() );
+            expandedConfig.setInstanceName( trimmedAccumuloConfig.getInstanceName() );
+            expandedConfig.setPassword( trimmedAccumuloConfig.getPassword() );
+            expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
+            Environment environment = environmentManager
+                    .findEnvironment( hadoop.getCluster( expandedConfig.getHadoopClusterName() ).getEnvironmentId() );
+            expandedConfig.setMasterNode(
+                    environment.getContainerHostByHostname( trimmedAccumuloConfig.getMasterNode() ).getId() );
+            expandedConfig
+                    .setGcNode( environment.getContainerHostByHostname( trimmedAccumuloConfig.getGcNode() ).getId() );
+            expandedConfig
+                    .setMonitor( environment.getContainerHostByHostname( trimmedAccumuloConfig.getMonitor() ).getId() );
+
+            Set<UUID> tracers = new HashSet<>();
+            Set<UUID> slaves = new HashSet<>();
+            for ( String tracer : trimmedAccumuloConfig.getTracers() )
+            {
+                tracers.add( environment.getContainerHostByHostname( tracer ).getId() );
+            }
+            for ( String slave : trimmedAccumuloConfig.getSlaves() )
+            {
+                slaves.add( environment.getContainerHostByHostname( slave ).getId() );
+            }
+
+            expandedConfig.setTracers( tracers );
+            expandedConfig.setSlaves( slaves );
+
+            String operationId = wrapUUID( accumuloManager.installCluster( expandedConfig ) );
+            return Response.status( Response.Status.CREATED ).entity( operationId ).build();
         }
-        for ( String slave : trimmedAccumuloConfig.getSlaves() )
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
-            slaves.add( environment.getContainerHostByHostname( slave ).getId() );
+            e.printStackTrace();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
-
-        expandedConfig.setTracers( tracers );
-        expandedConfig.setSlaves( slaves );
-
-        String operationId = wrapUUID( accumuloManager.installCluster( expandedConfig ) );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
 
 

@@ -149,6 +149,34 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
+    public boolean removeNode( UUID nodeId )
+    {
+        if ( masterNode != null && masterNode == nodeId )
+        {
+            return false;
+        }
+        if ( gcNode != null && gcNode == nodeId )
+        {
+            return false;
+        }
+        if ( monitor != null && monitor == nodeId )
+        {
+            return false;
+        }
+        if ( tracers != null && tracers.contains( nodeId ) )
+        {
+            tracers.remove( nodeId );
+            return true;
+        }
+        if ( slaves != null && slaves.contains( nodeId ) )
+        {
+            slaves.remove( nodeId );
+            return true;
+        }
+        return true;
+    }
+
+
     public UUID getMasterNode()
     {
         return masterNode;

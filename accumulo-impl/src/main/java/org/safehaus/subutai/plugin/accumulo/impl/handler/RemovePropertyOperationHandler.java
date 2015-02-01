@@ -109,6 +109,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
                 String msg = String.format( "Error removing property %s", propertyName );
                 trackerOperation.addLogFailed( msg );
                 LOGGER.error( msg, e );
+                throw new NullPointerException( msg );
             }
         }
         if ( allSuccess )
