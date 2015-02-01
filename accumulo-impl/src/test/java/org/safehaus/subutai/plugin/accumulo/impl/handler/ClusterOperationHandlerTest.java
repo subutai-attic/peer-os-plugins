@@ -15,9 +15,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -34,6 +38,7 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -78,7 +83,7 @@ public class ClusterOperationHandlerTest
     PluginDAO pluginDAO;
 
     @Before
-    public void setUp() throws CommandException
+    public void setUp() throws CommandException, EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         // mock constructor
         uuid = UUID.randomUUID();
@@ -89,7 +94,7 @@ public class ClusterOperationHandlerTest
 
         // mock runOperationOnContainers method
         when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
         when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
 
@@ -107,7 +112,7 @@ public class ClusterOperationHandlerTest
     }
 
     @Test
-    public void testRunWithClusterOperationTypeInstall() throws CommandException
+    public void testRunWithClusterOperationTypeInstall() throws CommandException, EnvironmentNotFoundException
     {
         // mock setup method
         when(accumuloClusterConfig.getMasterNode()).thenReturn(UUID.randomUUID());
@@ -143,14 +148,14 @@ public class ClusterOperationHandlerTest
         // mock clusterConfiguration
         when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
         when(zookeeperClusterConfig.getEnvironmentId()).thenReturn(uuid);
-        when(environmentManager.getEnvironmentByUUID(uuid)).thenReturn(environment);
+        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
         when(accumuloImpl.getPluginDAO()).thenReturn(pluginDAO);
         when(accumuloImpl.getCluster(anyString())).thenReturn(null);
 
         clusterOperationHandler.run();
 
         // assertions
-        assertEquals(environment, accumuloImpl.getEnvironmentManager().getEnvironmentByUUID(any(UUID.class)));
+        assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
         verify(trackerOperation).addLogDone("Accumulo cluster data saved into database");
     }
 
@@ -180,31 +185,31 @@ public class ClusterOperationHandlerTest
     }
 
     @Test
-    public void testRunWithClusterOperationTypeStartAll() throws CommandException
+    public void testRunWithClusterOperationTypeStartAll() throws CommandException, EnvironmentNotFoundException
     {
 
         when(commandResult.hasSucceeded()).thenReturn(true);
         clusterOperationHandler3.run();
 
         // assertions
-        assertEquals(environment, accumuloImpl.getEnvironmentManager().getEnvironmentByUUID(any(UUID.class)));
+        assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
         assertTrue(commandResult.hasSucceeded());
     }
 
     @Test
-    public void testRunWithClusterOperationTypeStopAll()
+    public void testRunWithClusterOperationTypeStopAll() throws EnvironmentNotFoundException
     {
 
         when(commandResult.hasSucceeded()).thenReturn(true);
         clusterOperationHandler4.run();
 
         // assertions
-        assertEquals(environment, accumuloImpl.getEnvironmentManager().getEnvironmentByUUID(any(UUID.class)));
+        assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
         assertTrue(commandResult.hasSucceeded());
     }
 
     @Test
-    public void testRunWithClusterOperationTypeStatusAll()
+    public void testRunWithClusterOperationTypeStatusAll() throws EnvironmentNotFoundException
     {
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add(containerHost);
@@ -213,7 +218,7 @@ public class ClusterOperationHandlerTest
         clusterOperationHandler5.run();
 
         // assertions
-        assertEquals(environment, accumuloImpl.getEnvironmentManager().getEnvironmentByUUID(any(UUID.class)));
+        assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
         assertTrue(commandResult.hasSucceeded());
     }
 
@@ -228,9 +233,6 @@ public class ClusterOperationHandlerTest
         when(accumuloClusterConfig.getInstanceName()).thenReturn("test-instance");
         when(accumuloClusterConfig.getPassword()).thenReturn("test-password");
         when(accumuloImpl.getHadoopManager()).thenReturn(hadoop);
-
-        List<UUID> myList = new ArrayList<>();
-        myList.add(uuid);
 
         Set<UUID> myUUID = new HashSet<>();
         myUUID.add(uuid);

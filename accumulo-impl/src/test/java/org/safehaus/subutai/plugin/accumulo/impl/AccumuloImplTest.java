@@ -18,8 +18,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -40,7 +42,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class AccumuloImplTest
 {
     private AccumuloImpl accumuloImpl;
@@ -84,44 +87,45 @@ public class AccumuloImplTest
     @Mock
     ZookeeperClusterConfig zookeeperClusterConfig;
 
+
     @Before
     public void setUp() throws Exception
     {
         // mock init
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
-        when(resultSetMetaData.getColumnCount()).thenReturn(1);
+        when( dataSource.getConnection() ).thenReturn( connection );
+        when( connection.prepareStatement( any( String.class ) ) ).thenReturn( preparedStatement );
+        when( preparedStatement.executeQuery() ).thenReturn( resultSet );
+        when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
+        when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        uuid = new UUID(50, 50);
+        uuid = new UUID( 50, 50 );
         Monitor monitor = mock( Monitor.class );
         accumuloImpl = new AccumuloImpl( dataSource, monitor );
-//        accumuloImpl.init();
-        accumuloImpl.setExecutor(executor);
-        accumuloImpl.setEnvironmentManager(environmentManager);
-        accumuloImpl.setHadoopManager(hadoop);
-        accumuloImpl.setTracker(tracker);
-        accumuloImpl.setZkManager(zookeeper);
-        accumuloImpl.setPluginDAO(pluginDAO);
+        //        accumuloImpl.init();
+        accumuloImpl.setExecutor( executor );
+        accumuloImpl.setEnvironmentManager( environmentManager );
+        accumuloImpl.setHadoopManager( hadoop );
+        accumuloImpl.setTracker( tracker );
+        accumuloImpl.setZkManager( zookeeper );
+        accumuloImpl.setPluginDAO( pluginDAO );
 
         // mock InstallClusterHandler
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( trackerOperation.getId() ).thenReturn( uuid );
 
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(pluginDAO.getInfo(AccumuloClusterConfig.PRODUCT_KEY, "test", AccumuloClusterConfig.class)).thenReturn
-                (accumuloClusterConfig);
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( pluginDAO.getInfo( AccumuloClusterConfig.PRODUCT_KEY, "test", AccumuloClusterConfig.class ) )
+                .thenReturn( accumuloClusterConfig );
 
         // asserts
-        assertEquals(connection, dataSource.getConnection());
-        assertEquals(preparedStatement, connection.prepareStatement(any(String.class)));
-        assertEquals(resultSet, preparedStatement.executeQuery());
-        assertEquals(resultSetMetaData, resultSet.getMetaData());
-        assertNotNull(resultSetMetaData.getColumnCount());
-
+        assertEquals( connection, dataSource.getConnection() );
+        assertEquals( preparedStatement, connection.prepareStatement( any( String.class ) ) );
+        assertEquals( resultSet, preparedStatement.executeQuery() );
+        assertEquals( resultSetMetaData, resultSet.getMetaData() );
+        assertNotNull( resultSetMetaData.getColumnCount() );
     }
+
 
     @Test
     public void testGetPluginDAO() throws Exception
@@ -129,9 +133,9 @@ public class AccumuloImplTest
         accumuloImpl.getPluginDAO();
 
         // assertions
-        assertNotNull(accumuloImpl.getPluginDAO());
-
+        assertNotNull( accumuloImpl.getPluginDAO() );
     }
+
 
     @Test
     public void testGetExecutor() throws Exception
@@ -139,10 +143,10 @@ public class AccumuloImplTest
         accumuloImpl.getExecutor();
 
         // assertions
-        assertNotNull(accumuloImpl.getExecutor());
-        assertEquals(executor, accumuloImpl.getExecutor());
-
+        assertNotNull( accumuloImpl.getExecutor() );
+        assertEquals( executor, accumuloImpl.getExecutor() );
     }
+
 
     @Test
     public void testGetEnvironmentManager() throws Exception
@@ -150,17 +154,17 @@ public class AccumuloImplTest
         accumuloImpl.getEnvironmentManager();
 
         // assertions
-        assertNotNull(accumuloImpl.getEnvironmentManager());
-        assertEquals(environmentManager, accumuloImpl.getEnvironmentManager());
-
+        assertNotNull( accumuloImpl.getEnvironmentManager() );
+        assertEquals( environmentManager, accumuloImpl.getEnvironmentManager() );
     }
+
 
     @Test
     public void testGetCommands() throws Exception
     {
         accumuloImpl.getCommands();
-
     }
+
 
     @Test
     public void testGetTracker() throws Exception
@@ -168,10 +172,10 @@ public class AccumuloImplTest
         accumuloImpl.getTracker();
 
         // assertions
-        assertNotNull(accumuloImpl.getTracker());
-        assertEquals(tracker, accumuloImpl.getTracker());
-
+        assertNotNull( accumuloImpl.getTracker() );
+        assertEquals( tracker, accumuloImpl.getTracker() );
     }
+
 
     @Test
     public void testGetHadoopManager() throws Exception
@@ -179,17 +183,17 @@ public class AccumuloImplTest
         accumuloImpl.getHadoopManager();
 
         // assertions
-        assertNotNull(accumuloImpl.getHadoopManager());
-        assertEquals(hadoop, accumuloImpl.getHadoopManager());
-
+        assertNotNull( accumuloImpl.getHadoopManager() );
+        assertEquals( hadoop, accumuloImpl.getHadoopManager() );
     }
 
 
     @Test
     public void testInit() throws Exception
     {
-//        accumuloImpl.init();
+        //        accumuloImpl.init();
     }
+
 
     @Test
     public void testDestroy() throws Exception
@@ -197,141 +201,146 @@ public class AccumuloImplTest
         accumuloImpl.destroy();
     }
 
+
     @Test
     public void testInstallCluster() throws Exception
     {
-        UUID id = accumuloImpl.installCluster(accumuloClusterConfig);
+        UUID id = accumuloImpl.installCluster( accumuloClusterConfig );
 
         // assertions
-        assertNotNull(accumuloImpl.installCluster(accumuloClusterConfig));
-        assertEquals(uuid, id);
+        assertNotNull( accumuloImpl.installCluster( accumuloClusterConfig ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        UUID id = accumuloImpl.uninstallCluster("test");
+        UUID id = accumuloImpl.uninstallCluster( "test" );
 
         // assertions
-        assertNotNull(accumuloImpl.uninstallCluster("test"));
-        assertEquals(uuid, id);
-
+        assertNotNull( accumuloImpl.uninstallCluster( "test" ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testGetClusters() throws Exception
     {
         List<AccumuloClusterConfig> myList = new ArrayList<>();
-        myList.add(accumuloClusterConfig);
-        when(pluginDAO.getInfo(AccumuloClusterConfig.PRODUCT_KEY, AccumuloClusterConfig.class)).thenReturn(myList);
+        myList.add( accumuloClusterConfig );
+        when( pluginDAO.getInfo( AccumuloClusterConfig.PRODUCT_KEY, AccumuloClusterConfig.class ) )
+                .thenReturn( myList );
 
 
         accumuloImpl.getClusters();
 
         // assertions
-        assertNotNull(accumuloImpl.getClusters());
-        assertEquals(myList, accumuloImpl.getClusters());
-
+        assertNotNull( accumuloImpl.getClusters() );
+        assertEquals( myList, accumuloImpl.getClusters() );
     }
+
 
     @Test
     public void testGetCluster() throws Exception
     {
-        accumuloImpl.getCluster("test");
+        accumuloImpl.getCluster( "test" );
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster("test"));
-        assertEquals(accumuloClusterConfig, accumuloImpl.getCluster("test"));
+        assertNotNull( accumuloImpl.getCluster( "test" ) );
+        assertEquals( accumuloClusterConfig, accumuloImpl.getCluster( "test" ) );
     }
+
 
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = accumuloImpl.addNode("test", "test");
+        UUID id = accumuloImpl.addNode( "test", "test" );
     }
+
 
     @Test
     public void testStartCluster() throws Exception
     {
-        UUID id = accumuloImpl.startCluster("test");
+        UUID id = accumuloImpl.startCluster( "test" );
 
         // assertions
-        assertNotNull(accumuloImpl.startCluster("test"));
-        assertEquals(uuid, id);
-
+        assertNotNull( accumuloImpl.startCluster( "test" ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testStopCluster() throws Exception
     {
-        UUID id = accumuloImpl.stopCluster("test");
+        UUID id = accumuloImpl.stopCluster( "test" );
 
         // assertions
-        assertNotNull(accumuloImpl.stopCluster("test"));
-        assertEquals(uuid, id);
-
+        assertNotNull( accumuloImpl.stopCluster( "test" ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = accumuloImpl.checkNode("test", "test");
+        UUID id = accumuloImpl.checkNode( "test", "test" );
 
         // assertions
-        assertEquals(uuid, id);
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testAddNode1() throws Exception
     {
-        UUID id = accumuloImpl.addNode("test", "test", NodeType.MASTER_NODE);
+        UUID id = accumuloImpl.addNode( "test", "test", NodeType.MASTER_NODE );
 
         // assertions
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
-
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = accumuloImpl.destroyNode("test", "test", NodeType.MASTER_NODE);
+        UUID id = accumuloImpl.destroyNode( "test", "test", NodeType.MASTER_NODE );
 
         // assertions
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
-
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testAddProperty() throws Exception
     {
-        UUID id = accumuloImpl.addProperty("test", "test", "test");
+        UUID id = accumuloImpl.addProperty( "test", "test", "test" );
 
         // assertions
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
-
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testRemoveProperty() throws Exception
     {
-        UUID id = accumuloImpl.removeProperty("test", "test");
+        UUID id = accumuloImpl.removeProperty( "test", "test" );
 
         // assertions
-        verify(executor).execute(isA(AbstractOperationHandler.class));
-        assertEquals(uuid, id);
-
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testGetDefaultEnvironmentBlueprint() throws Exception
     {
-        accumuloImpl.getDefaultEnvironmentBlueprint(accumuloClusterConfig);
+        accumuloImpl.getDefaultEnvironmentBlueprint( accumuloClusterConfig );
 
         // assertions
-        assertNotNull(accumuloImpl.getDefaultEnvironmentBlueprint(accumuloClusterConfig));
-
+        assertNotNull( accumuloImpl.getDefaultEnvironmentBlueprint( accumuloClusterConfig ) );
     }
 }

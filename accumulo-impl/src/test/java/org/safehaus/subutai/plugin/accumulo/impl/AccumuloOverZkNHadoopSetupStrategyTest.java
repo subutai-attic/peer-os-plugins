@@ -15,9 +15,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -36,7 +40,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class AccumuloOverZkNHadoopSetupStrategyTest
 {
     private AccumuloOverZkNHadoopSetupStrategy accumuloOverZkNHadoopSetupStrategy;
@@ -70,231 +75,241 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     @Mock
     PluginDAO pluginDAO;
 
+
     @Before
     public void setUp() throws Exception
     {
-        when(accumuloClusterConfig.getMasterNode()).thenReturn(UUID.randomUUID());
-        when(accumuloClusterConfig.getGcNode()).thenReturn(UUID.randomUUID());
-        when(accumuloClusterConfig.getMonitor()).thenReturn(UUID.randomUUID());
-        when(accumuloClusterConfig.getClusterName()).thenReturn("test-cluster");
-        when(accumuloClusterConfig.getInstanceName()).thenReturn("test-instance");
-        when(accumuloClusterConfig.getPassword()).thenReturn("test-password");
+        when( accumuloClusterConfig.getMasterNode() ).thenReturn( UUID.randomUUID() );
+        when( accumuloClusterConfig.getGcNode() ).thenReturn( UUID.randomUUID() );
+        when( accumuloClusterConfig.getMonitor() ).thenReturn( UUID.randomUUID() );
+        when( accumuloClusterConfig.getClusterName() ).thenReturn( "test-cluster" );
+        when( accumuloClusterConfig.getInstanceName() ).thenReturn( "test-instance" );
+        when( accumuloClusterConfig.getPassword() ).thenReturn( "test-password" );
 
-        when(accumuloImpl.getHadoopManager()).thenReturn(hadoop);
+        when( accumuloImpl.getHadoopManager() ).thenReturn( hadoop );
 
         uuid = UUID.randomUUID();
-        accumuloOverZkNHadoopSetupStrategy = new AccumuloOverZkNHadoopSetupStrategy(environment,
-                accumuloClusterConfig, hadoopClusterConfig, trackerOperation, accumuloImpl);
+        accumuloOverZkNHadoopSetupStrategy =
+                new AccumuloOverZkNHadoopSetupStrategy( environment, accumuloClusterConfig, hadoopClusterConfig,
+                        trackerOperation, accumuloImpl );
     }
+
 
     @Test
     public void testSetup() throws Exception
     {
         List<UUID> myList = new ArrayList<>();
-        myList.add(uuid);
+        myList.add( uuid );
 
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
 
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(zookeeperClusterConfig.getNodes()).thenReturn(myUUID);
-        when(zookeeperClusterConfig.getClusterName()).thenReturn("testClusterName");
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.getHostname()).thenReturn("testHostName");
-        when(zookeeper.startNode(anyString(), anyString())).thenReturn(uuid);
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+        when( zookeeperClusterConfig.getClusterName() ).thenReturn( "testClusterName" );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( zookeeper.startNode( anyString(), anyString() ) ).thenReturn( uuid );
 
-        when(hadoopClusterConfig.getAllNodes()).thenReturn(myList);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(myUUID);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(commandResult.getStdOut()).thenReturn("Hadoop");
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( commandResult.getStdOut() ).thenReturn( "Hadoop" );
 
 
         // mock clusterConfiguration
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(zookeeperClusterConfig.getEnvironmentId()).thenReturn(uuid);
-        when(environmentManager.getEnvironmentByUUID(uuid)).thenReturn(environment);
-        when(accumuloImpl.getPluginDAO()).thenReturn(pluginDAO);
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
+        when( accumuloImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
 
         // assertions
-        assertNotNull(accumuloImpl.getHadoopManager().getCluster(anyString()));
-        assertNotNull(accumuloImpl.getZkManager().getCluster(anyString()));
-        verify(containerHost).execute(Commands.getInstallCommand(
-                Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ));
-        verify(trackerOperation).addLog(
-                AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + containerHost.getHostname());
-        assertNotNull(accumuloOverZkNHadoopSetupStrategy.setup());
-        assertEquals(accumuloClusterConfig,accumuloOverZkNHadoopSetupStrategy.setup());
+        assertNotNull( accumuloImpl.getHadoopManager().getCluster( anyString() ) );
+        assertNotNull( accumuloImpl.getZkManager().getCluster( anyString() ) );
+        verify( containerHost ).execute(
+                Commands.getInstallCommand( Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
+        verify( trackerOperation )
+                .addLog( AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + containerHost.getHostname() );
+        assertNotNull( accumuloOverZkNHadoopSetupStrategy.setup() );
+        assertEquals( accumuloClusterConfig, accumuloOverZkNHadoopSetupStrategy.setup() );
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupWhenMalformedConfiguration() throws ClusterSetupException
     {
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupWhenClusterNameExists() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupWhenHadoopClusterConfigIsNull() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
-        when(accumuloImpl.getHadoopManager()).thenReturn(hadoop);
-        when(hadoop.getCluster(anyString())).thenReturn(null);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
+        when( accumuloImpl.getHadoopManager() ).thenReturn( hadoop );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( null );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupWhenZookeperClusterConfigIsNull() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(null);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( null );
 
 
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupWhenNodesNotBelongToHadoopCluster() throws ClusterSetupException
     {
         Set<UUID> myUUID2 = new HashSet<>();
-        myUUID2.add(UUID.randomUUID());
+        myUUID2.add( UUID.randomUUID() );
         List<UUID> mylist2 = new ArrayList<>();
-        mylist2.add(UUID.randomUUID());
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID2);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID2);
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(hadoopClusterConfig.getAllNodes()).thenReturn(mylist2);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(myUUID2);
+        mylist2.add( UUID.randomUUID() );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID2 );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID2 );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( mylist2 );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID2 );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
+
     @Test
-    public void testSetupWhenCommandResultNotSucceded() throws CommandException, ClusterSetupException
+    public void testSetupWhenCommandResultNotSucceded()
+            throws CommandException, ClusterSetupException, ContainerHostNotFoundException, EnvironmentNotFoundException
     {
         List<UUID> myList = new ArrayList<>();
-        myList.add(uuid);
+        myList.add( uuid );
 
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
 
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(zookeeperClusterConfig.getNodes()).thenReturn(myUUID);
-        when(zookeeperClusterConfig.getClusterName()).thenReturn("testClusterName");
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.getHostname()).thenReturn("testHostName");
-        when(zookeeper.startNode(anyString(), anyString())).thenReturn(uuid);
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+        when( zookeeperClusterConfig.getClusterName() ).thenReturn( "testClusterName" );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( zookeeper.startNode( anyString(), anyString() ) ).thenReturn( uuid );
 
-        when(hadoopClusterConfig.getAllNodes()).thenReturn(myList);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(myUUID);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(commandResult.getStdOut()).thenReturn("Hadoop");
-        when(commandResult.hasSucceeded()).thenReturn(false);
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( commandResult.getStdOut() ).thenReturn( "Hadoop" );
+        when( commandResult.hasSucceeded() ).thenReturn( false );
 
 
         // mock clusterConfiguration
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(zookeeperClusterConfig.getEnvironmentId()).thenReturn(uuid);
-        when(environmentManager.getEnvironmentByUUID(uuid)).thenReturn(environment);
-        when(accumuloImpl.getPluginDAO()).thenReturn(pluginDAO);
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
+        when( accumuloImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
-
     }
 
-    @Test(expected = ClusterSetupException.class)
-    public void testSetupWhenCommandResultNotSucceded2() throws CommandException, ClusterSetupException
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupWhenCommandResultNotSucceded2()
+            throws CommandException, ClusterSetupException, ContainerHostNotFoundException
     {
         List<UUID> myList = new ArrayList<>();
-        myList.add(uuid);
+        myList.add( uuid );
 
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
 
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(zookeeperClusterConfig.getNodes()).thenReturn(myUUID);
-        when(zookeeperClusterConfig.getClusterName()).thenReturn("testClusterName");
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.getHostname()).thenReturn("testHostName");
-        when(zookeeper.startNode(anyString(), anyString())).thenReturn(uuid);
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+        when( zookeeperClusterConfig.getClusterName() ).thenReturn( "testClusterName" );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( zookeeper.startNode( anyString(), anyString() ) ).thenReturn( uuid );
 
-        when(hadoopClusterConfig.getAllNodes()).thenReturn(myList);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(myUUID);
-        when(containerHost.execute(any(RequestBuilder.class))).thenThrow(CommandException.class);
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenThrow( CommandException.class );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
-    @Test(expected = ClusterSetupException.class)
+
+    @Test( expected = ClusterSetupException.class )
     public void testSetupShouldThrowsClusterSetupException() throws Exception
     {
         List<UUID> myList = new ArrayList<>();
-        myList.add(uuid);
+        myList.add( uuid );
 
         Set<UUID> myUUID = new HashSet<>();
-        myUUID.add(uuid);
-        when(accumuloClusterConfig.getTracers()).thenReturn(myUUID);
-        when(accumuloClusterConfig.getSlaves()).thenReturn(myUUID);
+        myUUID.add( uuid );
+        when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
 
-        when(hadoop.getCluster(anyString())).thenReturn(hadoopClusterConfig);
-        when(accumuloImpl.getZkManager()).thenReturn(zookeeper);
-        when(zookeeper.getCluster(anyString())).thenReturn(zookeeperClusterConfig);
-        when(zookeeperClusterConfig.getNodes()).thenReturn(myUUID);
-        when(zookeeperClusterConfig.getClusterName()).thenReturn("testClusterName");
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.getHostname()).thenReturn("testHostName");
-        when(zookeeper.startNode(anyString(), anyString())).thenReturn(uuid);
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+        when( zookeeperClusterConfig.getClusterName() ).thenReturn( "testClusterName" );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( zookeeper.startNode( anyString(), anyString() ) ).thenReturn( uuid );
 
-        when(hadoopClusterConfig.getAllNodes()).thenReturn(myList);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(myUUID);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(commandResult.getStdOut()).thenReturn("Hadoop");
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( commandResult.getStdOut() ).thenReturn( "Hadoop" );
 
 
         // mock clusterConfiguration
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(zookeeperClusterConfig.getEnvironmentId()).thenReturn(uuid);
-        when(environmentManager.getEnvironmentByUUID(uuid)).thenReturn(environment);
-        when(accumuloImpl.getPluginDAO()).thenThrow(ClusterConfigurationException.class);
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
+        when( accumuloImpl.getPluginDAO() ).thenThrow( ClusterConfigurationException.class );
 
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
-
-
 }
