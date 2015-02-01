@@ -146,7 +146,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
             //not installed and not configured, because in case with hadoop this piece
             //doesn't work
             String commandOutput = result.getStdOut() + "\n" + result.getStdErr();
-            if ( !commandOutput.contains( "zookeeper: unrecognized service" ) )
+            if ( commandOutput.contains( "Zookeeper Server is running" ) )
             {
                 throw new ClusterSetupException(
                         String.format( "Node %s already has Zookeeper installed", host.getHostname() ) );
