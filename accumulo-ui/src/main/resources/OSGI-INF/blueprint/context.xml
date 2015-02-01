@@ -5,11 +5,16 @@
 
   <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
 
-  <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="accumulo" availability="mandatory" interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
-  <reference id="zookeeper" availability="mandatory" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
-  <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoop" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="accumulo" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
+  <reference id="zookeeper" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.accumulo.ui.AccumuloPortalModule"
         init-method="init" destroy-method="destroy">

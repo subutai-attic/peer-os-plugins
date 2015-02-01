@@ -10,15 +10,19 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.api.SetupType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -31,6 +35,8 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Accumulo accumulo, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
@@ -56,24 +62,32 @@ public class VerificationStep extends Panel
 
         if ( wizard.getConfig().getSetupType() == SetupType.OVER_HADOOP_N_ZK )
         {
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID(
-                    hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() );
-            ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMasterNode() );
-            ContainerHost gc = hadoopEnvironment.getContainerHostById( wizard.getConfig().getGcNode() );
-            ContainerHost monitor = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMonitor() );
-            Set<ContainerHost> tracers = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getTracers() );
-            Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getSlaves() );
+            try
+            {
+                Environment hadoopEnvironment = environmentManager.findEnvironment(
+                        hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() );
+                ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMasterNode() );
+                ContainerHost gc = hadoopEnvironment.getContainerHostById( wizard.getConfig().getGcNode() );
+                ContainerHost monitor = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMonitor() );
+                Set<ContainerHost> tracers =
+                        hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getTracers() );
+                Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getSlaves() );
 
-            cfgView.addStringCfg( "Master node", master.getHostname() );
-            cfgView.addStringCfg( "GC node", gc.getHostname() );
-            cfgView.addStringCfg( "Monitor node", monitor.getHostname() );
-            for ( ContainerHost containerHost : tracers )
-            {
-                cfgView.addStringCfg( "Tracers", containerHost.getHostname() );
+                cfgView.addStringCfg( "Master node", master.getHostname() );
+                cfgView.addStringCfg( "GC node", gc.getHostname() );
+                cfgView.addStringCfg( "Monitor node", monitor.getHostname() );
+                for ( ContainerHost containerHost : tracers )
+                {
+                    cfgView.addStringCfg( "Tracers", containerHost.getHostname() );
+                }
+                for ( ContainerHost containerHost : slaves )
+                {
+                    cfgView.addStringCfg( "Slaves", containerHost.getHostname() );
+                }
             }
-            for ( ContainerHost containerHost : slaves )
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
             {
-                cfgView.addStringCfg( "Slaves", containerHost.getHostname() );
+                LOGGER.error( "Error applying operations on environment/container", e );
             }
         }
         else
