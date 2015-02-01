@@ -9,9 +9,11 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -104,14 +106,30 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost host = environment.getContainerHostByHostname( hostname );
-
-        if ( host == null )
+        Environment environment = null;
+        try
         {
-            trackerOperation.addLogFailed(
-                    String.format( "No container in environment: %s with hostname %s", environment.getName(),
-                            hostname ) );
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg =
+                    String.format( "Environment with id: %s doesn't exist.", config.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return;
+        }
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg = String.format( "Container host with name {%s} doesn't exists in environment: %s", hostname,
+                    environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
             return;
         }
 
@@ -170,8 +188,31 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     private CommandResult destroyNode( final String clusterName, final String containerHostname )
     {
         CommandResult result = null;
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        Set<ContainerHost> environmentHosts = environment.getContainerHostsByIds( config.getAllNodes() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg =
+                    String.format( "Environment with id: %s doesn't exists.", config.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
+        Set<ContainerHost> environmentHosts = null;
+        try
+        {
+            environmentHosts = environment.getContainerHostsByIds( config.getAllNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg = String.format( "Some containers are not accessible from environment." );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
         ContainerHost targetHost = null;
         for ( final ContainerHost environmentHost : environmentHosts )
         {
@@ -219,9 +260,31 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
         ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
 
-        Environment accumuloEnvironment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost environmentContainerHost = accumuloEnvironment.getContainerHostByHostname( containerName );
+        Environment accumuloEnvironment = null;
+        try
+        {
+            accumuloEnvironment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Environment with id: %s doesn't exist", config.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
+        ContainerHost environmentContainerHost = null;
+        try
+        {
+            environmentContainerHost = accumuloEnvironment.getContainerHostByHostname( containerName );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg = String.format( "Container with name: %s doesn't exists in environment: %s", containerName,
+                    accumuloEnvironment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
 
         //check if passed container is valid container
         if ( environmentContainerHost == null )
@@ -284,8 +347,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
         ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
 
-        Environment accumuloEnvironment =
-                manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment accumuloEnvironment = null;
+        try
+        {
+            accumuloEnvironment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Environment with id: %s doesn't exists.", config.getEnvironmentId() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
 
         //get environment containers
         List<ContainerHost> environmentContainers = new ArrayList<>( accumuloEnvironment.getContainerHosts() );
@@ -335,7 +408,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             HadoopClusterConfig freshHadoopClusterConfig = hadoop.getCluster( hadoopClusterConfig.getClusterName() );
             List<UUID> freshContainerHostIds = freshHadoopClusterConfig.getAllNodes();
             freshContainerHostIds.removeAll( hadoopClusterConfig.getAllNodes() );
-            additionalNode = accumuloEnvironment.getContainerHostById( freshContainerHostIds.get( 0 ) );
+            try
+            {
+                additionalNode = accumuloEnvironment.getContainerHostById( freshContainerHostIds.iterator().next() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                String msg = String.format( "Container host with id: %s is not found in environment: %s",
+                        freshContainerHostIds.iterator().next().toString(), accumuloEnvironment.getName() );
+                trackerOperation.addLogFailed( msg );
+                LOGGER.error( msg, e );
+                return null;
+            }
             try
             {
                 manager.subscribeToAlerts( additionalNode );
@@ -352,7 +436,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
         if ( additionalNode == null )
         {
-            trackerOperation.addLogFailed( "Couldn't create container host." );
+            String msg = "Couldn't create container host.";
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg );
             return null;
         }
 
@@ -397,8 +483,20 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 try
                 {
                     manager.subscribeToAlerts( host );
-                    Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                    Environment environment = null;
+                    try
+                    {
+                        environment = manager.getEnvironmentManager().findEnvironment(
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        String msg = String.format( "Environment with id: %s doesn't exists.",
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId().toString() );
+                        trackerOperation.addLogFailed( msg );
+                        LOGGER.error( msg, e );
+                        return null;
+                    }
                     new ClusterConfiguration( manager, trackerOperation ).configureCluster( environment, config,
                             zookeeper.getCluster( config.getZookeeperClusterName() ) );
                 }
@@ -450,8 +548,20 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 // Configure all nodes again
                 try
                 {
-                    Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                    Environment environment = null;
+                    try
+                    {
+                        environment = manager.getEnvironmentManager().findEnvironment(
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        String msg = String.format( "Environment with id: %s doesn't exists.",
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId().toString() );
+                        trackerOperation.addLogFailed( msg );
+                        LOGGER.error( msg, e );
+                        return null;
+                    }
                     manager.unsubscribeFromAlerts( environment );
                     new ClusterConfiguration( manager, trackerOperation ).configureCluster( environment, config,
                             zookeeper.getCluster( config.getZookeeperClusterName() ) );
