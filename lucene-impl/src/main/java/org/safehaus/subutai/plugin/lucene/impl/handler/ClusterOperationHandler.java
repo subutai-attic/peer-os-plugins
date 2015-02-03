@@ -1,28 +1,23 @@
 package org.safehaus.subutai.plugin.lucene.impl.handler;
 
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
-import org.safehaus.subutai.plugin.lucene.api.SetupType;
 import org.safehaus.subutai.plugin.lucene.impl.Commands;
 import org.safehaus.subutai.plugin.lucene.impl.LuceneImpl;
 import org.slf4j.Logger;
@@ -31,17 +26,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 09.11.2014.
- */
 public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl, LuceneConfig>
         implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private LuceneConfig config;
-    private HadoopClusterConfig hadoopConfig;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final LuceneImpl manager, final LuceneConfig config,
@@ -68,30 +58,31 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
 
         try
         {
-            Environment env = null;
-
-            env = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
-            if ( env == null )
+            HadoopClusterConfig hadoopClusterConfig =
+                    manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+            if ( hadoopClusterConfig == null )
             {
-                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                        hadoopConfig.getEnvironmentId() ) );
+                throw new ClusterSetupException(
+                        String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
+            }
+
+            Environment env;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                throw new ClusterSetupException( e );
             }
 
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
-            if ( s == null )
-            {
-                throw new ClusterSetupException( "No setup strategy" );
-            }
             s.setup();
             trackerOperation.addLogDone( "Done" );
         }
         catch ( ClusterSetupException ex )
         {
             trackerOperation.addLogFailed( "Failed to setup cluster: " + ex.getMessage() );
-        }
-        catch ( ClusterException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Could not start all nodes : %s", e.getMessage() ) );
         }
     }
 
@@ -107,32 +98,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
             return;
         }
 
-        try
-        {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDao().deleteInfo( LuceneConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
-        }
-    }
-
-
-    public void uninstallCluster()
-    {
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Lucene..." );
 
-        for ( UUID uuid : config.getNodes() )
+        Set<ContainerHost> nodes;
+        try
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
-            CommandResult result = null;
+            nodes = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                           .getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Failed obtaining environment containers: %s", e ) );
+            return;
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Environment not found: %s", e ) );
+            return;
+        }
+        for ( ContainerHost containerHost : nodes )
+        {
+            CommandResult result;
             try
             {
                 result = containerHost.execute( new RequestBuilder( Commands.uninstallCommand ) );
@@ -164,43 +151,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
                 setupCluster();
                 break;
             case DESTROY:
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    uninstallCluster();
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    destroyCluster();
-                }
-
+                destroyCluster();
                 break;
         }
-    }
-
-
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
-
-
-    public Environment build()
-    {
-        Environment env = null;
-        try
-        {
-            trackerOperation.addLog( "Building environment..." );
-            EnvironmentBlueprint eb = manager.getHadoopManager().getDefaultEnvironmentBlueprint( hadoopConfig );
-            env = manager.getEnvironmentManager().buildEnvironment( eb );
-        }
-        catch ( ClusterSetupException ex )
-        {
-            trackerOperation.addLogFailed( "Failed to prepare environment: " + ex.getMessage() );
-        }
-        catch ( EnvironmentBuildException ex )
-        {
-            trackerOperation.addLogFailed( "Failed to build environment: " + ex.getMessage() );
-        }
-        return env;
     }
 }

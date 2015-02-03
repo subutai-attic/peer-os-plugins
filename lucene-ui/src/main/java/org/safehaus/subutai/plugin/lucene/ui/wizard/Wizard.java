@@ -5,11 +5,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.Lucene;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
@@ -28,10 +26,10 @@ public class Wizard
     private final EnvironmentManager environmentManager;
     private int step = 1;
     private LuceneConfig config = new LuceneConfig();
-    private HadoopClusterConfig hadoopConfig;
 
 
-    public Wizard( ExecutorService executorService, Lucene lucene, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Lucene lucene, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -67,7 +65,7 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( lucene, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( hadoop, lucene, executorService, tracker, environmentManager, this );
                 break;
             }
             default:
@@ -114,17 +112,5 @@ public class Wizard
     public LuceneConfig getConfig()
     {
         return config;
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
-    }
-
-
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
     }
 }

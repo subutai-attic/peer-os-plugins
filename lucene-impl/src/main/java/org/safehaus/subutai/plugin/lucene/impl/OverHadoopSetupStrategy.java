@@ -2,29 +2,26 @@ package org.safehaus.subutai.plugin.lucene.impl;
 
 
 import java.util.Set;
-import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 class OverHadoopSetupStrategy extends LuceneSetupStrategy
 {
-    private static final Logger LOG = LoggerFactory.getLogger( OverHadoopSetupStrategy.class.getName() );
     private Environment environment;
 
 
@@ -61,7 +58,15 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
                             config.getClusterName() ) );
         }
         //check nodes are connected
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
+        }
         for ( ContainerHost host : nodes )
         {
             if ( !host.isConnected() )
@@ -83,9 +88,10 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
         RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
-        for ( UUID uuid : config.getNodes() )
+
+
+        for ( ContainerHost node : nodes )
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
             try
             {
                 CommandResult result = node.execute( checkInstalledCommand );
@@ -123,10 +129,17 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         config.setEnvironmentId( environment.getId() );
         manager.getPluginDao().saveInfo( LuceneConfig.PRODUCT_KEY, config.getClusterName(), config );
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Lucene..." );
-
-        for ( UUID uuid : config.getNodes() )
+        Set<ContainerHost> nodes;
+        try
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
+        }
+        for ( ContainerHost node : nodes )
+        {
             try
             {
                 CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
@@ -134,10 +147,9 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             }
             catch ( CommandException e )
             {
-                throw new ClusterSetupException( String.format( "Failed to install %s on server node" ) );
+                throw new ClusterSetupException( String.format( "Failed to install Lucene on server node" ) );
             }
         }
-        trackerOperation.addLog( "Configuring cluster..." );
     }
 
 

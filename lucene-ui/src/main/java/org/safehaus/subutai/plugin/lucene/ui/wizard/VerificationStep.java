@@ -5,14 +5,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.ui.ConfigView;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.Lucene;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
-import org.safehaus.subutai.plugin.lucene.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 
 import com.vaadin.shared.ui.label.ContentMode;
@@ -20,6 +22,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
@@ -27,8 +30,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Lucene lucene, final ExecutorService executorService, final Tracker tracker,
-                             final EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Hadoop hadoop, final Lucene lucene, final ExecutorService executorService,
+                             final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -45,27 +48,33 @@ public class VerificationStep extends Panel
         // Display config values
 
         final LuceneConfig config = wizard.getConfig();
-        final HadoopClusterConfig hadoopClusterConfig = wizard.getHadoopConfig();
+        final HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
+        if ( hadoopClusterConfig == null )
+        {
+            Notification.show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
+            return;
+        }
+
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        Set<ContainerHost> nodes;
+        try
         {
-            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-            Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
-            for ( ContainerHost host : nodes )
-            {
-                cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
-            }
+            nodes = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+                                      .getContainerHostsByIds( wizard.getConfig().getNodes() );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
+            Notification.show( String.format( "Error accessing Hadoop environment: %s", e ) );
+            return;
         }
+
+        for ( ContainerHost host : nodes )
+        {
+            cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
+        }
+
 
         // Install button
 
@@ -78,16 +87,7 @@ public class VerificationStep extends Panel
             public void buttonClick( Button.ClickEvent clickEvent )
             {
 
-                UUID trackId = null;
-
-                if ( config.getSetupType() == SetupType.OVER_HADOOP )
-                {
-                    trackId = lucene.installCluster( config, wizard.getHadoopConfig() );
-                }
-                else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-                {
-                    trackId = lucene.installCluster( config, wizard.getHadoopConfig() );
-                }
+                UUID trackId = lucene.installCluster( config );
 
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackId, LuceneConfig.PRODUCT_KEY );

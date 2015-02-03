@@ -19,6 +19,8 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.lucene.api.Lucene;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
+import com.google.common.collect.Lists;
+
 
 public class RestService
 {
@@ -41,7 +43,7 @@ public class RestService
     {
 
         List<LuceneConfig> configs = luceneManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        ArrayList<String> clusterNames = Lists.newArrayList();
 
         for ( LuceneConfig config : configs )
         {

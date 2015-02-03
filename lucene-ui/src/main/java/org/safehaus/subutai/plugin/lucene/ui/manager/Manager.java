@@ -6,15 +6,19 @@
 package org.safehaus.subutai.plugin.lucene.ui.manager;
 
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -61,7 +65,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executorService, Lucene lucene, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager) throws NamingException
+    public Manager( final ExecutorService executorService, Lucene lucene, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.lucene = lucene;
@@ -106,7 +111,7 @@ public class Manager
         /** Refresh Cluster button */
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         refreshClustersBtn.setId( "LucenerefreshClustersBtn" );
-        refreshClustersBtn.addStyleName( "default" );
+        refreshClustersBtn.addStyleName( BUTTON_STYLE_NAME );
         refreshClustersBtn.addClickListener( new Button.ClickListener()
         {
             @Override
@@ -120,7 +125,7 @@ public class Manager
         /** Destroy Cluster button */
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "LuceneDestroyClusterBtn" );
-        destroyClusterBtn.addStyleName( "default" );
+        destroyClusterBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToDestroyClusterButton();
         controlsContent.addComponent( destroyClusterBtn );
 
@@ -128,7 +133,7 @@ public class Manager
         /** Add Node button */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeBtn.setId( "LuceneAddNode" );
-        addNodeBtn.addStyleName( "default" );
+        addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
 
@@ -153,10 +158,24 @@ public class Manager
                         nodes.removeAll( config.getNodes() );
                         if ( !nodes.isEmpty() )
                         {
-                            Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() ).getContainerHostsByIds(
-                                    nodes );
+                            Set<ContainerHost> hosts;
+                            try
+                            {
+                                hosts = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() )
+                                                          .getContainerHostsByIds( nodes );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                show( String.format( "Failed obtaining environment containers: %s", e ) );
+                                return;
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                show( String.format( "Environment not found: %s", e ) );
+                                return;
+                            }
                             AddNodeWindow addNodeWindow =
-                                    new AddNodeWindow( lucene, tracker, executorService, config, hosts  );
+                                    new AddNodeWindow( lucene, tracker, executorService, config, hosts );
                             contentRoot.getUI().addWindow( addNodeWindow );
                             addNodeWindow.addCloseListener( new Window.CloseListener()
                             {
@@ -203,7 +222,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = lucene.uninstallCluster( config );
+                            UUID trackID = lucene.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
                                     new ProgressWindow( executorService, tracker, trackID, LuceneConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -255,8 +274,17 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        show( String.format( "Environment not found: %s", e ) );
+                        return;
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
@@ -292,9 +320,23 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
-            populateTable( nodesTable, hosts);
+            Set<ContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                          .getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                show( String.format( "Failed obtaining environment containers: %s", e ) );
+                return;
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                show( String.format( "Environment not found: %s", e ) );
+                return;
+            }
+            populateTable( nodesTable, hosts );
         }
         else
         {
@@ -312,10 +354,10 @@ public class Manager
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-luceneDestroy" );
-            destroyBtn.addStyleName( "default" );
+            destroyBtn.addStyleName( BUTTON_STYLE_NAME );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.addStyleName( "default" );
+            availableOperations.addStyleName( BUTTON_STYLE_NAME );
             availableOperations.setSpacing( true );
 
             addGivenComponents( availableOperations, destroyBtn );
@@ -395,7 +437,8 @@ public class Manager
             for ( LuceneConfig luceneClusterInfo : clustersInfo )
             {
                 clusterCombo.addItem( luceneClusterInfo );
-                clusterCombo.setItemCaption( luceneClusterInfo, luceneClusterInfo.getClusterName() + "(" + luceneClusterInfo.getHadoopClusterName() + ")" );
+                clusterCombo.setItemCaption( luceneClusterInfo,
+                        luceneClusterInfo.getClusterName() + "(" + luceneClusterInfo.getHadoopClusterName() + ")" );
             }
             if ( clusterInfo != null )
             {

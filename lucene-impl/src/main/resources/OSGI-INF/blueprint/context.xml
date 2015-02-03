@@ -4,15 +4,15 @@
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
 
   <bean id="lucene-impl" scope="singleton" class="org.safehaus.subutai.plugin.lucene.impl.LuceneImpl"
         init-method="init" destroy-method="destroy">
-      <argument ref="tracker" />
-      <argument ref="environmentManager" />
-      <argument ref="hadoopManager" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+    <argument ref="hadoopManager" />
   </bean>
 
   <service ref="lucene-impl" interface="org.safehaus.subutai.plugin.lucene.api.Lucene" />
