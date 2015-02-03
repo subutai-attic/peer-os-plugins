@@ -6,9 +6,10 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -93,26 +94,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
     @Override
     public void destroyCluster()
     {
-        PigConfig config = manager.getCluster( clusterName );
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
-
-        try
-        {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
-            manager.getPluginDao().deleteInfo( PigConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
-        }
     }
 
 
@@ -123,9 +104,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
 
         for ( UUID uuid : config.getNodes() )
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                       .getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;            }
             try
             {
                 CommandResult result = containerHost.execute( new RequestBuilder( Commands.uninstallCommand ) );
