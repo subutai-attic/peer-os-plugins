@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.sqoop.impl;
 
 import java.util.concurrent.ExecutorService;
 
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

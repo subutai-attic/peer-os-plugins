@@ -4,9 +4,8 @@ package org.safehaus.subutai.plugin.sqoop.impl;
 import java.util.List;
 import java.util.UUID;
 
-
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
