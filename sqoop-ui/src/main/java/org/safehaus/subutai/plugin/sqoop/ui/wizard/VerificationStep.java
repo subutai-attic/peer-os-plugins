@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -47,9 +49,28 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", wizard.getConfig().getClusterName() );
 
-        Environment hadoopEnv = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
+        Environment hadoopEnv = null;
+        try
+        {
+            hadoopEnv = environmentManager.findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
-        Set<ContainerHost> hosts = hadoopEnv.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> hosts = null;
+        if ( hadoopEnv != null )
+        {
+            try
+            {
+                hosts = hadoopEnv.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
         for ( ContainerHost host : hosts )
         {
             cfgView.addStringCfg( "Node(s) to install", host.getHostname() );

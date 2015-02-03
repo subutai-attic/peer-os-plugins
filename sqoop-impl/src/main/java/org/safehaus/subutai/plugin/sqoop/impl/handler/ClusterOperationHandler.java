@@ -6,9 +6,11 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -87,7 +89,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             {
                 throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
             }
-            env = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+
             if ( env == null )
             {
                 throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
@@ -128,13 +139,30 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             {
                 throw new ClusterException( "Sqoop installation not found: " + clusterName );
             }
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = null;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+
             if ( env == null )
             {
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            Set<ContainerHost> nodes = env.getContainerHostsByIds( config.getNodes() );
+            Set<ContainerHost> nodes = null;
+            try
+            {
+                nodes = env.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost node : nodes )
             {
                 if ( !node.isConnected() )

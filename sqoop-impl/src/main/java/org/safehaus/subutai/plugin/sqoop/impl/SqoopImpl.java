@@ -6,7 +6,7 @@ import java.util.UUID;
 
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -123,6 +123,16 @@ public class SqoopImpl extends SqoopBase
         return h.getTrackerId();
     }
 
+
+    @Override
+    public String reviewExportQuery( ExportSetting settings ){
+        return CommandFactory.build( NodeOperationType.EXPORT, settings );
+    }
+
+    @Override
+    public String reviewImportQuery( ImportSetting settings ){
+        return CommandFactory.build( NodeOperationType.IMPORT, settings );
+    }
 
     @Override
     public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation to )

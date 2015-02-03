@@ -2,15 +2,16 @@ package org.safehaus.subutai.plugin.sqoop.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
@@ -130,10 +131,28 @@ public class NodeSelectionStep extends VerticalLayout
                 if ( event.getProperty().getValue() != null )
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
-                    Environment env = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    Set<ContainerHost> allNodes = env.getContainerHostsByIds(
-                            new HashSet<>( hadoopInfo.getAllNodes() ) );
-                    select.setValue( null );
+                    Environment env = null;
+                    try
+                    {
+                        env = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                    Set<ContainerHost> allNodes = null;
+                    if ( env != null )
+                    {
+                        try
+                        {
+                            allNodes = env.getContainerHostsByIds(
+                                    new HashSet<>( hadoopInfo.getAllNodes() ) );
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            e.printStackTrace();
+                        }
+                    } select.setValue( null );
                     select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, allNodes ) );
                     wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
                     wizard.getConfig().setEnvironmentId( hadoopInfo.getEnvironmentId() );
@@ -178,10 +197,26 @@ public class NodeSelectionStep extends VerticalLayout
             HadoopClusterConfig hadoopConfig = hadoop.getCluster( config.getHadoopClusterName() );
             if ( hadoopConfig != null )
             {
-                Environment env = environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() );
+                Environment env = null;
+                try
+                {
+                    env = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 if ( env != null )
                 {
-                    Set<ContainerHost> hosts = env.getContainerHostsByIds( config.getNodes() );
+                    Set<ContainerHost> hosts = null;
+                    try
+                    {
+                        hosts = env.getContainerHostsByIds( config.getNodes() );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     select.setValue( hosts );
                 }
             }
