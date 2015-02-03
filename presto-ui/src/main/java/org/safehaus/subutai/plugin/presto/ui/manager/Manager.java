@@ -9,10 +9,12 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
@@ -311,9 +313,21 @@ public class Manager
 
                         if ( !CollectionUtil.isCollectionEmpty( availableNodes ) )
                         {
-                            Set<ContainerHost> set = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() )
-                                                                       .getContainerHostsByIds(
-                                                                               Sets.newHashSet( availableNodes ) );
+                            Set<ContainerHost> set = null;
+                            try
+                            {
+                                set = environmentManager.findEnvironment( info.getEnvironmentId() )
+                                                                           .getContainerHostsByIds(
+                                                                                   Sets.newHashSet( availableNodes ) );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                e.printStackTrace();
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                e.printStackTrace();
+                            }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( presto, executorService, tracker, config, set );
                             contentRoot.getUI().addWindow( addNodeWindow );
@@ -745,8 +759,16 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
@@ -809,9 +831,24 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
-                    environment.getContainerHostById( config.getCoordinatorNode() ) );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
+                        environment.getContainerHostById( config.getCoordinatorNode() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else

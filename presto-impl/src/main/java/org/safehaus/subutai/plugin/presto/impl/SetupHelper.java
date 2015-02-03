@@ -5,9 +5,10 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 
@@ -43,12 +44,19 @@ public class SetupHelper
             throw new ClusterSetupException( "Coordinator node is not connected" );
         }
 
-        for ( ContainerHost host : environment.getContainerHostsByIds( config.getWorkers() ) )
+        try
         {
-            if ( !host.isConnected() )
+            for ( ContainerHost host : environment.getContainerHostsByIds( config.getWorkers() ) )
             {
-                throw new ClusterSetupException( "Not all worker nodes are connected" );
+                if ( !host.isConnected() )
+                {
+                    throw new ClusterSetupException( "Not all worker nodes are connected" );
+                }
             }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -117,6 +125,14 @@ public class SetupHelper
 
     public ContainerHost getCoordinatorHost( Environment environment )
     {
-        return environment.getContainerHostById( config.getCoordinatorNode() );
+        try
+        {
+            return environment.getContainerHostById( config.getCoordinatorNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

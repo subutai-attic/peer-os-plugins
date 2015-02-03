@@ -59,4 +59,6 @@ public interface Presto extends ApiBase<PrestoClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( final PrestoClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final PrestoClusterConfig config ) throws ClusterException;
 }

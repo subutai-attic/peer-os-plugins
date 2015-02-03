@@ -8,10 +8,12 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -73,7 +75,14 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -89,7 +98,15 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
         for ( UUID uuid : config.getAllNodes() )
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
+            ContainerHost node = null;
+            try
+            {
+                node = environment.getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             if ( node == null )
             {
                 throw new ClusterSetupException( String.format( "Node %s not found in environment", uuid ) );
@@ -135,8 +152,22 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                 processResult( node, result );
             }
             po.addLog( "Configuring cluster..." );
-            configureAsCoordinator( environment.getContainerHostById( config.getCoordinatorNode() ), environment );
-            configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
+            try
+            {
+                configureAsCoordinator( environment.getContainerHostById( config.getCoordinatorNode() ), environment );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             //startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
 
             po.addLog( "Saving cluster info..." );

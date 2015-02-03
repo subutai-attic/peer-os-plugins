@@ -5,10 +5,10 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -82,9 +82,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
 
         for ( UUID uuid : config.getAllNodes() )
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                       .getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             if ( containerHost.getHostname() == null )
             {
                 po.addLogFailed(

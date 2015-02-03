@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
@@ -184,9 +186,23 @@ public class ConfigurationStep extends Panel
         {
             HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
             config.setHadoopClusterName( hadoopInfo.getClusterName() );
-            hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-            Set<ContainerHost> hadoopNodes =
-                    hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+            try
+            {
+                hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            Set<ContainerHost> hadoopNodes = null;
+            try
+            {
+                hadoopNodes = hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             workersSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
             for ( ContainerHost hadoopNode : hadoopNodes )
             {
@@ -221,9 +237,24 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    Set<ContainerHost> hadoopNodes =
-                            hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    try
+                    {
+                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                    Set<ContainerHost> hadoopNodes = null;
+                    try
+                    {
+                        hadoopNodes =
+                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     workersSelect.setValue( null );
                     workersSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
                     coordinatorNodeCombo.setValue( null );
@@ -258,9 +289,24 @@ public class ConfigurationStep extends Panel
                     {
                         config.getWorkers().remove( coordinator.getId() );
                     }
-                    hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    Set<ContainerHost> hadoopNodes =
-                            hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    try
+                    {
+                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                    Set<ContainerHost> hadoopNodes = null;
+                    try
+                    {
+                        hadoopNodes =
+                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     hadoopNodes.remove( coordinator );
                     workersSelect.getContainerDataSource().removeAllItems();
                     for ( ContainerHost hadoopNode : hadoopNodes )
@@ -268,7 +314,14 @@ public class ConfigurationStep extends Panel
                         workersSelect.getContainerDataSource().addItem( hadoopNode );
                     }
                     workersSelect.removeValueChangeListener( workersSelectChangeListener );
-                    workersSelect.setValue( hadoopEnvironment.getContainerHostsByIds( config.getWorkers() ) );
+                    try
+                    {
+                        workersSelect.setValue( hadoopEnvironment.getContainerHostsByIds( config.getWorkers() ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     workersSelect.addValueChangeListener( workersSelectChangeListener );
                 }
             }
