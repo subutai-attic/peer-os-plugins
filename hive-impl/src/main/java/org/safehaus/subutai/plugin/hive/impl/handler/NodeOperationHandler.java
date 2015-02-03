@@ -54,7 +54,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logExceptionWithMessage( "Couldn't retrieve environment", e );
+            LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
             return;
         }
 
@@ -71,9 +71,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage(
-                    String.format( "Container hosts with id: %s not found", hostname ), e );
-            return;
+            LOGGER.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
         if ( host == null )
         {
@@ -209,11 +208,4 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         return result;
     }
-
-    private void logExceptionWithMessage( String message, Exception e )
-    {
-        LOGGER.error( message, e );
-        trackerOperation.addLogFailed( message );
-    }
-
 }

@@ -41,8 +41,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage( String.format( "Container hosts with id: %s not found",
-                    ( ( HiveConfig ) config ).getServer().toString() ), e );
+            LOGGER.error( "Error getting server container host.", e );
+            po.addLogFailed( "Error getting server container host." );
+            return;
         }
 
         // configure hive server
@@ -74,11 +75,5 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             e.printStackTrace();
         }
-    }
-
-
-    private void logExceptionWithMessage( String message, Exception e )
-    {
-        LOGGER.error( message, e );
     }
 }

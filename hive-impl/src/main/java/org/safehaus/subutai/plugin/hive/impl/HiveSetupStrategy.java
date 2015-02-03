@@ -94,7 +94,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logExceptionWithMessage( "Couldn't retrieve environment", e );
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
             return;
         }
 
@@ -122,8 +122,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage( String.format( "Container hosts with id: %s not found", config.getAllNodes()), e );
-            return;
+            LOGGER.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
         if ( hiveNodes != null )
         {
@@ -150,8 +150,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage( String.format( "Container host with id: %s not found", config.getServer() ), e );
-            return;
+            LOGGER.error( "Container host not found" + config.getServer().toString() , e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
 
         try
@@ -160,8 +160,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage( String.format( "Container hosts with id: %s not found", config.getClients() ), e );
-            return;
+            LOGGER.error( "Container hosts not found" + config.getClients(), e );
+            trackerOperation.addLogFailed( "Containers host not found" );
         }
     }
 
@@ -238,12 +238,4 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         return isHiveInstalled;
     }
-
-
-    private void logExceptionWithMessage( String message, Exception e )
-    {
-        LOGGER.error( message, e );
-        trackerOperation.addLogFailed( message );
-    }
-
 }

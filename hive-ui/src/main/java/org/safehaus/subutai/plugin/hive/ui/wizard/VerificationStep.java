@@ -17,6 +17,8 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.Hive;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -29,6 +31,7 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
 
     public VerificationStep( final Hive hive, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
@@ -57,7 +60,7 @@ public class VerificationStep extends Panel
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Environment not found.", e );
         }
         ContainerHost master = null;
         try

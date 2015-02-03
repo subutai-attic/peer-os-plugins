@@ -25,6 +25,8 @@ import org.safehaus.subutai.plugin.hive.api.HiveNodeOperationTask;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -75,7 +77,7 @@ public class Manager
     private GridLayout contentRoot;
     private HiveConfig config;
     private Hadoop hadoop;
-
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
     public Manager( final ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
@@ -207,7 +209,8 @@ public class Manager
                     }
                     catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
                     }
                 }
 
@@ -352,9 +355,13 @@ public class Manager
                             .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
                             .getContainerHostByHostname( containerId );
                 }
-                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                catch ( ContainerHostNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Container host not found", e );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Environment not found", e );
                 }
 
                 if ( containerHost != null )
@@ -389,8 +396,8 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
-            }
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;            }
             try
             {
                 populateTable( clientsTable, getClients(
@@ -399,8 +406,8 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
-            }
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;            }
         }
         else
         {

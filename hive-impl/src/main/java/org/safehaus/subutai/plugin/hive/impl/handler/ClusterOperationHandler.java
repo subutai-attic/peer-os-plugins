@@ -98,11 +98,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
 
         catch ( EnvironmentNotFoundException e )
         {
-            logExceptionWithMessage(
-                    String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
             return;
         }
     }
+
 
     private CommandResult executeCommand( ContainerHost containerHost, String command )
     {
@@ -149,8 +149,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logExceptionWithMessage(
-                    String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
             return;
         }
 
@@ -165,9 +164,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logExceptionWithMessage(
-                    String.format( "Container hosts with id: %s not found", config.getAllNodes().toString() ), e );
-            return;
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
         if ( hiveNodes != null )
         {
@@ -203,18 +201,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
                 }
                 catch ( CommandException e )
                 {
-                    trackerOperation.addLog( String.format( "Error uninstalling Hive from node %s", host.getHostname() ) );
+                    trackerOperation.addLog( String.format( "Error uninstalling Hive from node %s",
+                            host.getHostname() ) );
                 }
             }
         }
         manager.getPluginDAO().deleteInfo( HiveConfig.PRODUCT_KEY, config.getClusterName() );
         trackerOperation.addLogDone( "Hive cluster is removed from database" );
-    }
-
-
-    private void logExceptionWithMessage( String message, Exception e )
-    {
-        LOG.error( message, e );
-        trackerOperation.addLogFailed( message );
     }
 }
