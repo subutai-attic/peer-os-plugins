@@ -6,23 +6,28 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
+import org.safehaus.subutai.common.environment.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 public class HiveSetupStrategy implements ClusterSetupStrategy
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( HiveSetupStrategy.class );
     public final HiveImpl hiveManager;
     public final HiveConfig config;
     public final TrackerOperation trackerOperation;
@@ -82,8 +87,16 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
                     hadoopClusterConfig.getClusterName() ) );
         }
 
-        environment =
-                hiveManager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+        try
+        {
+            environment =
+                    hiveManager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            return;
+        }
 
         if ( environment == null )
         {
@@ -102,12 +115,24 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        Set<ContainerHost> hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
-        if ( hiveNodes.size() < config.getAllNodes().size() )
+        Set<ContainerHost> hiveNodes = null;
+        try
         {
-            throw new ClusterSetupException(
-                    String.format( "Only %d nodes found in environment whereas %d expected", hiveNodes.size(),
-                            config.getAllNodes().size() ) );
+            hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        if ( hiveNodes != null )
+        {
+            if ( hiveNodes.size() < config.getAllNodes().size() )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Only %d nodes found in environment whereas %d expected", hiveNodes.size(),
+                                config.getAllNodes().size() ) );
+            }
         }
 
 
@@ -119,9 +144,25 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
             }
         }
 
-        server = environment.getContainerHostById( config.getServer() );
+        try
+        {
+            server = environment.getContainerHostById( config.getServer() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container host not found" + config.getServer().toString() , e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
 
-        clients = environment.getContainerHostsByIds( config.getClients() );
+        try
+        {
+            clients = environment.getContainerHostsByIds( config.getClients() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container hosts not found" + config.getClients(), e );
+            trackerOperation.addLogFailed( "Containers host not found" );
+        }
     }
 
 

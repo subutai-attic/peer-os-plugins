@@ -9,8 +9,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -23,6 +25,8 @@ import org.safehaus.subutai.plugin.hive.api.HiveNodeOperationTask;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -73,7 +77,7 @@ public class Manager
     private GridLayout contentRoot;
     private HiveConfig config;
     private Hadoop hadoop;
-
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
     public Manager( final ExecutorService executorService, Hive hive, Hadoop hadoop, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
@@ -197,9 +201,17 @@ public class Manager
                 Set<ContainerHost> myHostSet = new HashSet<>();
                 for ( UUID uuid : set )
                 {
-                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                                                     .getContainerHostById( uuid ) );
+                    try
+                    {
+                        myHostSet.add( environmentManager.findEnvironment(
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                                                         .getContainerHostById( uuid ) );
+                    }
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
+                    }
                 }
 
                 AddNodeWindow w = new AddNodeWindow( hive, executorService, tracker, config, myHostSet );
@@ -336,9 +348,21 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = environmentManager
-                        .getEnvironmentByUUID( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                        .getContainerHostByHostname( containerId );
+                ContainerHost containerHost = null;
+                try
+                {
+                    containerHost = environmentManager
+                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                            .getContainerHostByHostname( containerId );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    LOGGER.error( "Container host not found", e );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Environment not found", e );
+                }
 
                 if ( containerHost != null )
                 {
@@ -364,12 +388,26 @@ public class Manager
     {
         if ( config != null )
         {
-            populateTable( serverTable, getServers(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
-            populateTable( clientsTable, getClients(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
+            try
+            {
+                populateTable( serverTable, getServers(
+                        environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;            }
+            try
+            {
+                populateTable( clientsTable, getClients(
+                        environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;            }
         }
         else
         {

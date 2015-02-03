@@ -3,18 +3,22 @@ package org.safehaus.subutai.plugin.hive.impl;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ClusterConfiguration.class );
     private HiveImpl manager;
     private TrackerOperation po;
 
@@ -30,7 +34,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             throws ClusterConfigurationException
     {
         HiveConfig hiveConfig = ( HiveConfig ) config;
-        ContainerHost server = environment.getContainerHostById( ( ( HiveConfig ) config ).getServer() );
+        ContainerHost server = null;
+        try
+        {
+            server = environment.getContainerHostById( ( ( HiveConfig ) config ).getServer() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Error getting server container host.", e );
+            po.addLogFailed( "Error getting server container host." );
+            return;
+        }
 
         // configure hive server
         po.addLog( "Configuring server node: " + server.getHostname() );
