@@ -4,9 +4,11 @@ package org.safehaus.subutai.plugin.flume.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
@@ -47,7 +49,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -55,7 +65,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             return;
         }
 
-        ContainerHost host = environment.getContainerHostByHostname( hostName );
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostName );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( host == null )
         {

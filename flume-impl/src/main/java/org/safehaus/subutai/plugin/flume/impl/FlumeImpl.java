@@ -3,16 +3,21 @@ package org.safehaus.subutai.plugin.flume.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -24,8 +29,10 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 
-public class FlumeImpl implements Flume
+
+public class FlumeImpl implements Flume, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( FlumeImpl.class.getName() );
@@ -182,5 +189,109 @@ public class FlumeImpl implements Flume
     public ClusterSetupStrategy getClusterSetupStrategy( FlumeConfig config, TrackerOperation po )
     {
         return new FlumeSetupStrategy( this, config, po );
+    }
+
+
+    @Override
+    public void saveConfig( final FlumeConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+
+    }
+
+
+    @Override
+    public void deleteConfig( final FlumeConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().deleteInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        // not need   
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        // not need
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Flume environment event: Container destroyed: %s", uuid ) );
+        List<FlumeConfig> clusterConfigs = getClusters();
+        for ( final FlumeConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                LOG.info(
+                        String.format( "Flume environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Flume environment event: Before: %s", clusterConfig ) );
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Flume environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Flume environment event: Environment destroyed: %s", uuid ) );
+
+        List<FlumeConfig> clusterConfigs = getClusters();
+        for ( final FlumeConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            {
+                LOG.info(
+                        String.format( "Flume environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info(
+                            String.format( "Flume environment event: Cluster removed", clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
     }
 }

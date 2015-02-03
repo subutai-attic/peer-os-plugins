@@ -6,7 +6,8 @@
   <reference id="flume" availability="mandatory" interface="org.safehaus.subutai.plugin.flume.api.Flume" />
   <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.flume.ui.FlumePortalModule"
         init-method="init" destroy-method="destroy">

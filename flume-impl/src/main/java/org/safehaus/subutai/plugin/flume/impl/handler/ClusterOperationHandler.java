@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -82,9 +84,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl,
 
         for ( UUID uuid : config.getNodes() )
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                       .getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             CommandResult result;
             try
             {

@@ -6,10 +6,12 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -54,19 +56,26 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         po.addLog( "Cluster info saved to DB\nInstalling Flume..." );
         //install pig,
         String s = Commands.make( CommandType.INSTALL );
-        for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
+        try
         {
-            try
+            for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
             {
-                CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
-                processResult( node, result );
+                try
+                {
+                    CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
+                    processResult( node, result );
+                }
+                catch ( CommandException e )
+                {
+                    throw new ClusterSetupException(
+                            String.format( "Error while installing Flume on container %s; %s", node.getHostname(),
+                                    e.getMessage() ) );
+                }
             }
-            catch ( CommandException e )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Error while installing Flume on container %s; %s", node.getHostname(),
-                                e.getMessage() ) );
-            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -102,7 +111,14 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -115,7 +131,15 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.make( CommandType.STATUS ) );
         for ( UUID uuid : config.getNodes() )
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
+            ContainerHost node = null;
+            try
+            {
+                node = environment.getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             try
             {
                 CommandResult result = node.execute( checkInstalledCommand );
