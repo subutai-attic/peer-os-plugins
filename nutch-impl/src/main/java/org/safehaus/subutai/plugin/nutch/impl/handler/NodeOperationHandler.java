@@ -3,9 +3,11 @@ package org.safehaus.subutai.plugin.nutch.impl.handler;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -48,22 +50,27 @@ public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, Nu
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-
-        if ( environment == null )
+        Environment environment;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
 
-        ContainerHost host = environment.getContainerHostByHostname( hostname );
-
-        if ( host == null )
+        ContainerHost host;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
             return;
         }
-
 
         switch ( operationType )
         {

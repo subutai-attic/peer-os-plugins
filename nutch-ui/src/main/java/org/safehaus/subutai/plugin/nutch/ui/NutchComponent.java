@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.nutch.api.Nutch;
@@ -25,7 +25,8 @@ import com.vaadin.ui.VerticalLayout;
 public class NutchComponent extends CustomComponent
 {
 
-    public NutchComponent( ExecutorService executorService, Nutch nutch, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public NutchComponent( ExecutorService executorService, Nutch nutch, Hadoop hadoop, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 

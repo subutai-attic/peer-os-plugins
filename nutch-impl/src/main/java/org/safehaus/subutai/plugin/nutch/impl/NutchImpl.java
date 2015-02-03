@@ -3,13 +3,17 @@ package org.safehaus.subutai.plugin.nutch.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -29,7 +33,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-public class NutchImpl implements Nutch
+public class NutchImpl implements Nutch, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( NutchImpl.class.getName() );
@@ -40,8 +44,7 @@ public class NutchImpl implements Nutch
     private EnvironmentManager environmentManager;
 
 
-    public NutchImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                      final Hadoop hadoopManager )
+    public NutchImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -177,6 +180,97 @@ public class NutchImpl implements Nutch
         if ( !getPluginDao().saveInfo( NutchConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final NutchConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().deleteInfo( NutchConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Nutch environment event: Container destroyed: %s", uuid ) );
+        List<NutchConfig> clusters = getClusters();
+        for ( NutchConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Nutch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Nutch environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Nutch environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Nutch environment event: Environment destroyed: %s", uuid ) );
+
+        List<NutchConfig> clusters = getClusters();
+        for ( NutchConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Nutch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Nutch environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
         }
     }
 }

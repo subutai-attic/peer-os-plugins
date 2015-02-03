@@ -4,7 +4,7 @@
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
 
@@ -16,5 +16,8 @@
   </bean>
 
   <service ref="nutch-impl" interface="org.safehaus.subutai.plugin.nutch.api.Nutch" />
+
+  <service ref="nutch-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
 
 </blueprint>

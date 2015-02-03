@@ -17,4 +17,6 @@ public interface Nutch extends ApiBase<NutchConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( NutchConfig config, TrackerOperation po );
 
     public void saveConfig( final NutchConfig config ) throws ClusterException;
+
+    public void deleteConfig( final NutchConfig config ) throws ClusterException;
 }

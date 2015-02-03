@@ -4,8 +4,10 @@ package org.safehaus.subutai.plugin.nutch.impl.handler;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -69,14 +71,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
     {
         trackerOperation.addLog( "Uninstalling Nutch..." );
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-
-        if ( environment == null )
+        Environment environment;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Failed obtaining environment containers: %s", e ) );
+            return;
+        }
 
         for ( ContainerHost node : nodes )
         {

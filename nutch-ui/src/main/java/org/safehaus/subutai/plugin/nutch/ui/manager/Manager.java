@@ -15,9 +15,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -157,9 +158,22 @@ public class Manager
                         nodes.removeAll( config.getNodes() );
                         if ( !nodes.isEmpty() )
                         {
-                            Set<ContainerHost> hosts =
-                                    environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
-                                                      .getContainerHostsByIds( nodes );
+                            Set<ContainerHost> hosts;
+                            try
+                            {
+                                hosts = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() )
+                                                          .getContainerHostsByIds( nodes );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                show( "Containers not found" );
+                                return;
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                show( "Environment not found" );
+                                return;
+                            }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( nutch, tracker, executorService, config, hosts );
                             contentRoot.getUI().addWindow( addNodeWindow );
@@ -260,8 +274,17 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        show( "Environment not found" );
+                        return;
+                    }
 
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
@@ -298,8 +321,22 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
+            Set<ContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                          .getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                show( "Containers not found" );
+                return;
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                show( "Environment not found" );
+                return;
+            }
             populateTable( nodesTable, hosts );
         }
         else

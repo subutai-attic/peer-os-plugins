@@ -5,11 +5,13 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -43,7 +45,6 @@ class NutchSetupStrategy implements ClusterSetupStrategy
     @Override
     public ConfigBase setup() throws ClusterSetupException
     {
-
         check();
         configure();
         return config;
@@ -73,16 +74,27 @@ class NutchSetupStrategy implements ClusterSetupStrategy
                     String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-
-        if ( environment == null )
+        try
         {
-            throw new ClusterSetupException( "Environment not found" );
+            environment = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            throw new ClusterSetupException( e );
         }
 
 
         //check nodes are connected
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed obtaining environment containers: %s", e ) );
+        }
+
         for ( ContainerHost host : nodes )
         {
             if ( !host.isConnected() )
@@ -147,8 +159,19 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         }
 
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Nutch..." );
+
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed obtaining environment containers: %s", e ) );
+        }
+
         //install nutch,
-        for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
+        for ( ContainerHost node : nodes )
         {
             try
             {
