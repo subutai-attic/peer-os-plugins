@@ -4,18 +4,21 @@ package org.safehaus.subutai.plugin.hive.impl;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
-import org.safehaus.subutai.common.environment.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ClusterConfiguration.class );
     private HiveImpl manager;
     private TrackerOperation po;
 
@@ -38,7 +41,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( String.format( "Container hosts with id: %s not found",
+                    ( ( HiveConfig ) config ).getServer().toString() ), e );
         }
 
         // configure hive server
@@ -70,5 +74,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             e.printStackTrace();
         }
+    }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
     }
 }

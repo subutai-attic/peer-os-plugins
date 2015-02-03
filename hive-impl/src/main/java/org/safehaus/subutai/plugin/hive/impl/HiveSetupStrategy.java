@@ -19,12 +19,15 @@ import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.common.environment.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 public class HiveSetupStrategy implements ClusterSetupStrategy
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( HiveSetupStrategy.class );
     public final HiveImpl hiveManager;
     public final HiveConfig config;
     public final TrackerOperation trackerOperation;
@@ -91,7 +94,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Couldn't retrieve environment", e );
+            return;
         }
 
         if ( environment == null )
@@ -118,13 +122,17 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( String.format( "Container hosts with id: %s not found", config.getAllNodes()), e );
+            return;
         }
-        if ( hiveNodes.size() < config.getAllNodes().size() )
+        if ( hiveNodes != null )
         {
-            throw new ClusterSetupException(
-                    String.format( "Only %d nodes found in environment whereas %d expected", hiveNodes.size(),
-                            config.getAllNodes().size() ) );
+            if ( hiveNodes.size() < config.getAllNodes().size() )
+            {
+                throw new ClusterSetupException(
+                        String.format( "Only %d nodes found in environment whereas %d expected", hiveNodes.size(),
+                                config.getAllNodes().size() ) );
+            }
         }
 
 
@@ -142,7 +150,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( String.format( "Container host with id: %s not found", config.getServer() ), e );
+            return;
         }
 
         try
@@ -151,7 +160,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( String.format( "Container hosts with id: %s not found", config.getClients() ), e );
+            return;
         }
     }
 
@@ -228,4 +238,12 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         return isHiveInstalled;
     }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
+        trackerOperation.addLogFailed( message );
+    }
+
 }

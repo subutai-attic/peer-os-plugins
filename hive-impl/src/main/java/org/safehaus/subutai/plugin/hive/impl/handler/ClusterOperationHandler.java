@@ -100,6 +100,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         {
             logExceptionWithMessage(
                     String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
+            return;
         }
     }
 
@@ -150,6 +151,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         {
             logExceptionWithMessage(
                     String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
+            return;
         }
 
         Set<ContainerHost> hiveNodes = null;
@@ -163,7 +165,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage(
+                    String.format( "Container hosts with id: %s not found", config.getAllNodes().toString() ), e );
+            return;
         }
         if ( hiveNodes != null )
         {

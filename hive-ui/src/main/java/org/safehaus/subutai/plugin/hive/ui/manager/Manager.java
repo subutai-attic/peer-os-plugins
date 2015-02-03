@@ -205,11 +205,7 @@ public class Manager
                                 hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
                                                          .getContainerHostById( uuid ) );
                     }
-                    catch ( ContainerHostNotFoundException e )
-                    {
-                        e.printStackTrace();
-                    }
-                    catch ( EnvironmentNotFoundException e )
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
                         e.printStackTrace();
                     }
@@ -356,11 +352,7 @@ public class Manager
                             .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
                             .getContainerHostByHostname( containerId );
                 }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-                catch ( EnvironmentNotFoundException e )
+                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                 {
                     e.printStackTrace();
                 }

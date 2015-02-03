@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Topology;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -23,10 +22,12 @@ public class HiveConfig implements ConfigBase
     private UUID environmentId;
     private Topology topology;
 
+
     public HiveConfig()
     {
         this.topology = new Topology();
     }
+
 
     public Topology getTopology()
     {
@@ -115,25 +116,6 @@ public class HiveConfig implements ConfigBase
             allNodes.add( server );
         }
         return allNodes;
-    }
-
-    public void removeNode( UUID agent )
-    {
-        if ( clients.contains( agent ) )
-        {
-            clients.remove( agent );
-        }
-        if ( server == agent)
-        {
-            try
-            {
-                throw new ClusterException( "can not delete server node" );
-            }
-            catch ( ClusterException e )
-            {
-                e.printStackTrace();
-            }
-        }
     }
 
 

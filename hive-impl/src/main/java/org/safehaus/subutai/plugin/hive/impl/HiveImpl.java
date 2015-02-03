@@ -13,11 +13,13 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -30,10 +32,12 @@ import org.safehaus.subutai.plugin.hive.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 
 public class HiveImpl implements Hive, EnvironmentEventListener
 {
-    private static final Logger LOG = LoggerFactory.getLogger( HiveImpl.class.getName() );
+    private static final Logger LOGGER = LoggerFactory.getLogger( HiveImpl.class.getName() );
     private Tracker tracker;
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
@@ -41,7 +45,7 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     private Hadoop hadoopManager;
 
 
-    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Hadoop hadoopManager )
+    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -57,7 +61,7 @@ public class HiveImpl implements Hive, EnvironmentEventListener
         }
         catch ( SQLException e )
         {
-            LOG.error( e.getMessage(), e );
+            LOGGER.error( e.getMessage(), e );
         }
         executor = Executors.newCachedThreadPool();
     }
@@ -187,17 +191,17 @@ public class HiveImpl implements Hive, EnvironmentEventListener
         ContainerHost containerHost = null;
         try
         {
-            containerHost = environmentManager.findEnvironment(
-                    hadoopManager.getCluster( clusterName ).getEnvironmentId() )
-                              .getContainerHostByHostname( hostname );
+            containerHost =
+                    environmentManager.findEnvironment( hadoopManager.getCluster( clusterName ).getEnvironmentId() )
+                                      .getContainerHostByHostname( hostname );
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( String.format( "Container hosts with id: %s not found", hostname ), e );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Couldn't retrieve environment", e );
         }
         CheckInstallHandler h = new CheckInstallHandler( containerHost );
         return h.check();
@@ -213,63 +217,109 @@ public class HiveImpl implements Hive, EnvironmentEventListener
 
 
     @Override
+    public void saveConfig( final HiveConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final HiveConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( HiveConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
     public void onEnvironmentCreated( final Environment environment )
     {
-        LOG.info( "Environment created " + environment.toString() );
-
+        // not need
     }
 
 
     @Override
     public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
     {
-        String hostNames = "";
-        for ( final ContainerHost containerHost : set )
-        {
-            hostNames += containerHost.getHostname() + "; ";
-        }
-        LOG.info( String.format( "Environment: %s bred with containers: %s", environment.getName(), hostNames ) );
-
+        // not need
     }
 
 
     @Override
     public void onContainerDestroyed( final Environment environment, final UUID uuid )
     {
+        LOGGER.info( String.format( "Hive environment event: Container destroyed: %s", uuid ) );
         List<HiveConfig> clusterConfigs = getClusters();
         for ( final HiveConfig clusterConfig : clusterConfigs )
         {
             if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
             {
+                LOGGER.info(
+                        String.format( "Hive environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
                 if ( clusterConfig.getAllNodes().contains( uuid ) )
                 {
-                    clusterConfig.removeNode( uuid );
-                    getPluginDAO()
-                            .saveInfo( HiveConfig.PRODUCT_KEY, clusterConfig.getClusterName(), clusterConfig );
-                    LOG.info( String.format( "Container host: %s removed from cluster: %s with environment id: %s",
-                            uuid.toString(), clusterConfig.getClusterName(),
-                            clusterConfig.getEnvironmentId().toString() ) );
+                    LOGGER.info( String.format( "Hive environment event: Before: %s", clusterConfig ) );
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getClients() ) )
+                    {
+                        clusterConfig.getClients().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOGGER.info( String.format( "Hive environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOGGER.error( "Error updating cluster config", e );
+                    }
+                    break;
                 }
             }
         }
-
     }
 
 
     @Override
     public void onEnvironmentDestroyed( final UUID uuid )
     {
+        LOGGER.info( String.format( "Cassandra environment event: Environment destroyed: %s", uuid ) );
+
         List<HiveConfig> clusterConfigs = getClusters();
         for ( final HiveConfig clusterConfig : clusterConfigs )
         {
             if ( clusterConfig.getEnvironmentId().equals( uuid ) )
             {
-                LOG.info(
-                        String.format( "Hadoop cluster: %s destroyed in environment %s", clusterConfig.getClusterName(),
-                                uuid.toString() ) );
-                getPluginDAO().deleteInfo( HiveConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOGGER.info(
+                        String.format( "Hive environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOGGER.info( String.format( "Hive environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOGGER.error( "Error deleting cluster config", e );
+                }
+                break;
             }
         }
+    }
 
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
     }
 }

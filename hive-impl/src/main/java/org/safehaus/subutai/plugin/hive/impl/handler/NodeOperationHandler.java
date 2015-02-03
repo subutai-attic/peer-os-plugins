@@ -15,6 +15,8 @@ import org.safehaus.subutai.plugin.hive.api.HiveConfig;
 import org.safehaus.subutai.plugin.hive.impl.Commands;
 import org.safehaus.subutai.plugin.hive.impl.HiveImpl;
 import org.safehaus.subutai.common.environment.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -25,6 +27,7 @@ import com.google.common.base.Preconditions;
 public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, HiveConfig>
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( NodeOperationHandler.class );
     private String hostname;
     private NodeOperationType operationType;
 
@@ -51,7 +54,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage( "Couldn't retrieve environment", e );
+            return;
         }
 
         if ( environment == null )
@@ -67,7 +71,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            logExceptionWithMessage(
+                    String.format( "Container hosts with id: %s not found", hostname ), e );
+            return;
         }
         if ( host == null )
         {
@@ -110,21 +116,22 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
 
     public static void logResults( TrackerOperation po, CommandResult result )
     {
-        if ( result != null )
+        Preconditions.checkNotNull(result);
+        StringBuilder log = new StringBuilder();
+        String status = "UNKNOWN";
+        String cmdResult = result.getStdErr() + result.getStdOut();
+        if (cmdResult.contains("Hive Thrift Server is running"))
         {
-            Preconditions.checkNotNull( result );
-            String status = "UNKNOWN";
-            if ( result.getExitCode() == 0 )
-            {
-                status = result.getStdOut();
-            }
-            else if ( result.getExitCode() == 768 )
-            {
-                status = "Hive Thrift Server is not running";
-            }
-
-            po.addLogDone( status );
+            status = "Hive Thrift Server is running";
+        } else if (cmdResult.contains("Hive Thrift Server is not running"))
+        {
+            status = "Hive Thrift Server is not running";
+        } else
+        {
+            status = result.getStdOut();
         }
+        log.append(String.format("%s", status));
+        po.addLogDone(log.toString());
     }
 
 
@@ -202,4 +209,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
         }
         return result;
     }
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOGGER.error( message, e );
+        trackerOperation.addLogFailed( message );
+    }
+
 }

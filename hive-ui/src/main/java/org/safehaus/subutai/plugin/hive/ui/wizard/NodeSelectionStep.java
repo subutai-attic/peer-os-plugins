@@ -150,11 +150,7 @@ public class NodeSelectionStep extends Panel
                             selected = environmentManager.findEnvironment( config.getEnvironmentId() )
                                                          .getContainerHostById( config.getServer() );
                         }
-                        catch ( ContainerHostNotFoundException e )
-                        {
-                            e.printStackTrace();
-                        }
-                        catch ( EnvironmentNotFoundException e )
+                        catch ( ContainerHostNotFoundException |EnvironmentNotFoundException e )
                         {
                             e.printStackTrace();
                         }
@@ -166,11 +162,7 @@ public class NodeSelectionStep extends Panel
                             selected = environmentManager.findEnvironment( hc.getEnvironmentId() )
                                                          .getContainerHostById( hc.getNameNode() );
                         }
-                        catch ( ContainerHostNotFoundException e )
-                        {
-                            e.printStackTrace();
-                        }
-                        catch ( EnvironmentNotFoundException e )
+                        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                         {
                             e.printStackTrace();
                         }
@@ -282,11 +274,7 @@ public class NodeSelectionStep extends Panel
         {
             return environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( uuid );
         }
-        catch ( ContainerHostNotFoundException e )
-        {
-            e.printStackTrace();
-        }
-        catch ( EnvironmentNotFoundException e )
+        catch ( ContainerHostNotFoundException  | EnvironmentNotFoundException e )
         {
             e.printStackTrace();
         }
@@ -311,11 +299,7 @@ public class NodeSelectionStep extends Panel
                         host = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
                                           .getContainerHostById( uuid );
                     }
-                    catch ( ContainerHostNotFoundException e )
-                    {
-                        e.printStackTrace();
-                    }
-                    catch ( EnvironmentNotFoundException e )
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
                         e.printStackTrace();
                     }
