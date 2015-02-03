@@ -38,6 +38,10 @@ import com.vaadin.ui.ProgressBar;
 
 public class ETLBaseManager
 {
+    public static final String SQOOP_COMBO_BOX_CAPTION = "Select Sqoop Node";
+    public static final String HIVE_COMBO_BOX_CAPTION = "Select Hive Installation";
+    public static final String PIG_COMBO_BOX_CAPTION = "Select Pig Installation";
+
     public final GridLayout contentRoot;
     public final ETL etl;
     public final ExecutorService executorService;
@@ -47,11 +51,9 @@ public class ETLBaseManager
     public Hadoop hadoop;
     public Sqoop sqoop;
     public ProgressBar progressIcon;
-
     public QueryType type;
     public HorizontalLayout hadoopComboWithProgressIcon;
     public ComboBox hadoopClustersCombo;
-
 
     public ETLBaseManager(  ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop,
                             Tracker tracker, EnvironmentManager environmentManager )
@@ -228,45 +230,6 @@ public class ETLBaseManager
         for ( PigConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = null;
-            try
-            {
-                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
-            {
-                if ( containerHost.getId().equals( host.getId() ) )
-                {
-                    return config;
-                }
-            }
-        }
-        return null;
-    }
-
-
-    public ConfigBase findConfigOfContainerHost( List<ConfigBase> configs, ContainerHost host ){
-        for ( ConfigBase config : configs )
-        {
-            HadoopClusterConfig hadoopClusterConfig = null;
-            switch ( config.getProductKey() ){
-                case SqoopConfig.PRODUCT_KEY:
-                    SqoopConfig sqoopConfig = ( SqoopConfig ) config;
-                    hadoopClusterConfig = hadoop.getCluster( sqoopConfig.getHadoopClusterName() );
-                    break;
-                case HiveConfig.PRODUCT_KEY:
-                    HiveConfig hiveConfig = ( HiveConfig ) config;
-                    hadoopClusterConfig = hadoop.getCluster( hiveConfig.getHadoopClusterName() );
-                    break;
-                case PigConfig.PRODUCT_KEY:
-                    PigConfig pigConfig = ( PigConfig ) config;
-                    hadoopClusterConfig = hadoop.getCluster( pigConfig.getHadoopClusterName() );
-                    break;
-            }
             Environment environment = null;
             try
             {

@@ -89,13 +89,13 @@ public class ETLTransformManager extends ETLBaseManager
             type = QueryType.HIVE;
         }
 
-        final ComboBox hiveSelection = new ComboBox( "Select Hive Installation" );
+        final ComboBox hiveSelection = new ComboBox( HIVE_COMBO_BOX_CAPTION );
         hiveSelection.setNullSelectionAllowed( false );
         hiveSelection.setImmediate( true );
         hiveSelection.setTextInputAllowed( false );
         hiveSelection.setRequired( true );
 
-        final ComboBox pigSelection = new ComboBox( "Select Pig Installation" );
+        final ComboBox pigSelection = new ComboBox( PIG_COMBO_BOX_CAPTION );
         pigSelection.setNullSelectionAllowed( false );
         pigSelection.setImmediate( true );
         pigSelection.setTextInputAllowed( false );

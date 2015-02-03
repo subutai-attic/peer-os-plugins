@@ -50,7 +50,7 @@ public class ETLExtractManager extends ETLBaseManager
             }
         }
 
-        final ComboBox sqoopSelection = new ComboBox( "Select Sqoop Node" );
+        final ComboBox sqoopSelection = new ComboBox( SQOOP_COMBO_BOX_CAPTION );
         sqoopSelection.setNullSelectionAllowed( false );
         sqoopSelection.setImmediate( true );
         sqoopSelection.setTextInputAllowed( false );
@@ -143,7 +143,4 @@ public class ETLExtractManager extends ETLBaseManager
             }
         } );
     }
-
-
-
 }

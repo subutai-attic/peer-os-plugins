@@ -7,11 +7,9 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
-import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
