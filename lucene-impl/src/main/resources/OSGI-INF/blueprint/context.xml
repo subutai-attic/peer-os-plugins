@@ -17,4 +17,7 @@
 
   <service ref="lucene-impl" interface="org.safehaus.subutai.plugin.lucene.api.Lucene" />
 
+  <service ref="lucene-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+
+
 </blueprint>

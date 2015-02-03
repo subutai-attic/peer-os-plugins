@@ -10,11 +10,11 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 import org.safehaus.subutai.plugin.lucene.impl.Commands;
 import org.safehaus.subutai.plugin.lucene.impl.LuceneImpl;
-
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, LuceneConfig>
@@ -96,7 +96,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
             if ( result.hasSucceeded() )
             {
                 config.getNodes().add( host.getId() );
-                manager.getPluginDao().saveInfo( LuceneConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+                manager.saveConfig( config );
+
                 trackerOperation.addLogDone(
                         LuceneConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
             }
@@ -106,9 +108,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
                         .addLogFailed( "Could not install " + LuceneConfig.PRODUCT_KEY + " to node " + hostname );
             }
         }
-        catch ( CommandException e )
+        catch ( ClusterException | CommandException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( "Could not install " + LuceneConfig.PRODUCT_KEY + " to node " + hostname );
         }
         return result;
     }
@@ -123,7 +125,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
             if ( result.hasSucceeded() )
             {
                 config.getNodes().remove( host.getId() );
-                manager.getPluginDao().saveInfo( LuceneConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+                manager.saveConfig( config );
+
                 trackerOperation.addLogDone(
                         LuceneConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
                                 + " successfully." );
@@ -134,9 +138,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
                         .addLogFailed( "Could not uninstall " + LuceneConfig.PRODUCT_KEY + " from node " + hostname );
             }
         }
-        catch ( CommandException e )
+        catch ( ClusterException | CommandException e )
         {
-            e.printStackTrace();
+            trackerOperation
+                    .addLogFailed( "Could not uninstall " + LuceneConfig.PRODUCT_KEY + " from node " + hostname );
         }
         return result;
     }

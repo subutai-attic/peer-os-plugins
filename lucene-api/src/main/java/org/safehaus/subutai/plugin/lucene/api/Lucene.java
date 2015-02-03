@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -16,4 +17,8 @@ public interface Lucene extends ApiBase<LuceneConfig>
     public UUID uninstallNode( String clusterName, String lxcHostname );
 
     public ClusterSetupStrategy getClusterSetupStrategy( Environment env, LuceneConfig config, TrackerOperation po );
+
+    public void saveConfig( final LuceneConfig config ) throws ClusterException;
+
+    public void deleteConfig( final LuceneConfig config ) throws ClusterException;
 }

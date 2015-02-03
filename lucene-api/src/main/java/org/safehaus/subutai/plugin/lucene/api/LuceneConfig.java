@@ -26,10 +26,9 @@ public class LuceneConfig implements ConfigBase
     }
 
 
-    public LuceneConfig setClusterName( String clusterName )
+    public void setClusterName( String clusterName )
     {
         this.clusterName = clusterName;
-        return this;
     }
 
 
@@ -69,7 +68,6 @@ public class LuceneConfig implements ConfigBase
     public void setHadoopClusterName( String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
-        this.clusterName = hadoopClusterName;
     }
 
 

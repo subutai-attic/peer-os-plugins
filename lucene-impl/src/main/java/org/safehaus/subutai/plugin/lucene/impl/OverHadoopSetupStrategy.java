@@ -12,6 +12,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -127,7 +128,14 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
     {
         trackerOperation.addLog( "Updating db..." );
         config.setEnvironmentId( environment.getId() );
-        manager.getPluginDao().saveInfo( LuceneConfig.PRODUCT_KEY, config.getClusterName(), config );
+        try
+        {
+            manager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
+        }
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Lucene..." );
         Set<ContainerHost> nodes;
         try
