@@ -11,10 +11,11 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.etl.api.ETL;
@@ -177,7 +178,15 @@ public class ETLBaseManager
         for ( SqoopConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
@@ -188,12 +197,21 @@ public class ETLBaseManager
         }
         return null;
     }
+
 
     public HiveConfig findHiveConfigOfContainerHost( List<HiveConfig> configs, ContainerHost host ){
         for ( HiveConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
@@ -205,11 +223,20 @@ public class ETLBaseManager
         return null;
     }
 
+
     public PigConfig findPigConfigOfContainerHost( List<PigConfig> configs, ContainerHost host ){
         for ( PigConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
@@ -240,7 +267,15 @@ public class ETLBaseManager
                     hadoopClusterConfig = hadoop.getCluster( pigConfig.getHadoopClusterName() );
                     break;
             }
-            Environment environment = environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )

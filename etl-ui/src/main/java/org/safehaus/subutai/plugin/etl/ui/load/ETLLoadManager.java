@@ -7,9 +7,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.ETLBaseManager;
@@ -74,14 +76,35 @@ public class ETLLoadManager extends ETLBaseManager
                         @Override
                         public void run()
                         {
-                            Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                            final Set<ContainerHost> hadoopNodes =
-                                    hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                            Environment hadoopEnvironment = null;
+                            try
+                            {
+                                hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                e.printStackTrace();
+                            }
+                            Set<ContainerHost> hadoopNodes = null;
+                            if ( hadoopEnvironment != null )
+                            {
+                                try
+                                {
+                                    hadoopNodes =
+                                            hadoopEnvironment.getContainerHostsByIds( Sets
+                                                    .newHashSet( hadoopInfo.getAllNodes() ) );
+                                }
+                                catch ( ContainerHostNotFoundException e )
+                                {
+                                    e.printStackTrace();
+                                }
+                            }
+                            final Set<ContainerHost> finalHadoopNodes = hadoopNodes;
                             UI.getCurrent().access(new Runnable() {
                                 @Override
                                 public void run() {
 
-                                    Set<ContainerHost> filteredNodes = filterSqoopInstalledNodes( hadoopNodes );
+                                    Set<ContainerHost> filteredNodes = filterSqoopInstalledNodes( finalHadoopNodes );
 
                                     if ( filteredNodes.isEmpty() ){
                                         show( "No node has subutai Sqoop package installed" );

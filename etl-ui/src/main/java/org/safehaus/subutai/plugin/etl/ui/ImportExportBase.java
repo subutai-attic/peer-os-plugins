@@ -13,6 +13,7 @@ import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 import org.safehaus.subutai.plugin.sqoop.api.setting.CommonSetting;
 
 import com.vaadin.ui.AbstractTextField;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
@@ -29,12 +30,12 @@ public abstract class ImportExportBase extends VerticalLayout
     protected String clusterName;
     protected ContainerHost host;
     protected List<Field> fields = new ArrayList<>();
-    AbstractTextField connStringField = UIUtil.getTextField( "Connection string:", 300 );
-    AbstractTextField tableField = UIUtil.getTextField( "Table name:", 300 );
-    AbstractTextField usernameField = UIUtil.getTextField( "Username:", 300 );
-    AbstractTextField passwordField = UIUtil.getTextField( "Password:", 300, true );
-    AbstractTextField optionalParams = UIUtil.getTextField( "Optional parameters:", 300 );
-    TextArea logTextArea = UIUtil.getTextArea( "Logs:", 600, 200 );
+    AbstractTextField connStringField;
+    AbstractTextField tableField;
+    AbstractTextField usernameField;
+    AbstractTextField passwordField;
+    AbstractTextField optionalParams;
+    TextArea logTextArea;
     private String hostNameTitle = "";
 
 
@@ -102,6 +103,13 @@ public abstract class ImportExportBase extends VerticalLayout
 
     void init()
     {
+        connStringField = UIUtil.getTextField( "Connection string:" );
+        tableField = UIUtil.getTextField( "Table name:" );
+        usernameField = UIUtil.getTextField( "Username:" );
+        passwordField = UIUtil.getTextField( "Password:", true );
+        optionalParams = UIUtil.getTextField( "Optional parameters:" );
+        logTextArea = UIUtil.getTextArea( "Logs:" );
+
         logTextArea.setValue( "" );
         logTextArea.setHeight( 100, Unit.PERCENTAGE );
 
@@ -114,18 +122,29 @@ public abstract class ImportExportBase extends VerticalLayout
     }
 
 
-    public GridLayout addComponents( List<Component> components )
+    public GridLayout addComponentsVertical( List<Component> components )
     {
-        GridLayout grid = new GridLayout( 2, components.size() );
-        grid.setSpacing( true );
-        grid.setMargin( true );
+        GridLayout rootLayout = new GridLayout( 2, 1 );
+        rootLayout.setSizeFull();
+        rootLayout.setSpacing( true );
+
+        VerticalLayout left = new VerticalLayout();
+        VerticalLayout right = new VerticalLayout();
+        left.setSizeFull();
+        right.setSizeFull();
+        left.setSpacing( true );
+        right.setSpacing( true );
+
         for ( int i = 0; i < components.size(); i++ )
         {
-            grid.addComponent( components.get( i ), 0, i );
+            left.addComponent( components.get( i ) );
         }
-        grid.addComponent( logTextArea, 1, 1, 1, components.size() - 1 - 1 );
-        addComponent( grid );
-        return grid;
+        right.addComponent( logTextArea );
+
+        rootLayout.addComponent( left, 0, 0 );
+        rootLayout.addComponent( right, 1, 0 );
+        addComponent( rootLayout );
+        return rootLayout;
     }
 
 

@@ -7,9 +7,11 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
+import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
@@ -19,6 +21,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
@@ -31,10 +34,10 @@ public class ImportPanel extends ImportExportBase
     private final ExecutorService executorService;
     DataSourceType type;
     CheckBox chkImportAllTables = new CheckBox( "Import all tables" );
-    AbstractTextField hbaseTableNameField = UIUtil.getTextField( "Table name:", 300 );
-    AbstractTextField hbaseColumnFamilyField = UIUtil.getTextField( "Column family:", 300 );
-    AbstractTextField hiveDatabaseField = UIUtil.getTextField( "Database:", 300 );
-    AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:", 300 );
+    AbstractTextField hbaseTableNameField = UIUtil.getTextField( "Table name:" );
+    AbstractTextField hbaseColumnFamilyField = UIUtil.getTextField( "Column family:" );
+    AbstractTextField hiveDatabaseField = UIUtil.getTextField( "Database:" );
+    AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:" );
 
 
     public ImportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
@@ -172,7 +175,23 @@ public class ImportPanel extends ImportExportBase
         } );
 
         HorizontalLayout buttons = new HorizontalLayout();
-        buttons.addComponent( UIUtil.getButton( "Import", 120, new Button.ClickListener()
+        buttons.setSpacing( true );
+        buttons.addComponent( UIUtil.getButton( "Review Query", new Button.ClickListener(){
+
+            @Override
+            public void buttonClick( final Button.ClickEvent event )
+            {
+                if ( host.getId() == null  ){
+                    Notification.show( "Please select sqoop node!" );
+                    return;
+                }
+                ImportSetting es = makeSettings();
+                String cmd = sqoop.reviewImportQuery( es );
+                Notification.show( cmd );
+            }
+        }) );
+
+        buttons.addComponent( UIUtil.getButton( "Import", new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent event )
@@ -199,7 +218,7 @@ public class ImportPanel extends ImportExportBase
             }
         } ) );
 
-        buttons.addComponent( UIUtil.getButton( "Back", 120, new Button.ClickListener()
+        buttons.addComponent( UIUtil.getButton( "Back", new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent event )
@@ -210,7 +229,7 @@ public class ImportPanel extends ImportExportBase
         } ) );
 
         List<Component> ls = new ArrayList<>();
-        ls.add( UIUtil.getLabel( "<h1>Sqoop Import</h1>", 100, Unit.PERCENTAGE ) );
+        ls.add( UIUtil.getLabel( "<h1>Sqoop Import</h1>", Unit.PERCENTAGE ) );
         ls.add( UIUtil.getLabel( "<h1>" + type.toString() + "</h1>", 200 ) );
         ls.add( connStringField );
         ls.add( tableField );
@@ -245,7 +264,7 @@ public class ImportPanel extends ImportExportBase
         ls.add( optionalParams );
         ls.add( buttons );
 
-        addComponents( ls );
+        addComponentsVertical( ls );
     }
 
 

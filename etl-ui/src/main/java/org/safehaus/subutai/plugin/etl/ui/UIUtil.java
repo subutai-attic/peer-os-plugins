@@ -14,17 +14,10 @@ import com.vaadin.ui.TextField;
 public class UIUtil
 {
 
-    public static Button getButton( String caption, float width )
-    {
-        return getButton( caption, width, null );
-    }
-
-
-    public static Button getButton( String caption, float width, Button.ClickListener listener )
+    public static Button getButton( String caption, Button.ClickListener listener )
     {
         Button button = new Button( caption );
         button.addStyleName( "default" );
-        button.setWidth( width, Sizeable.Unit.PIXELS );
         if ( listener != null )
         {
             button.addClickListener( listener );
@@ -33,11 +26,11 @@ public class UIUtil
     }
 
 
-    public static TextArea getTextArea( String caption, float width, float height )
+    public static TextArea getTextArea( String caption )
     {
         TextArea textArea = new TextArea( caption );
-        textArea.setWidth( width, Sizeable.Unit.PIXELS );
-        textArea.setHeight( height, Sizeable.Unit.PIXELS );
+        textArea.setSizeFull();
+        textArea.setRows( 30 );
         textArea.setWordwrap( false );
         return textArea;
     }
@@ -45,29 +38,29 @@ public class UIUtil
 
     public static Label getLabel( String text, float width )
     {
-        return getLabel( text, width, Sizeable.Unit.PIXELS );
+        return getLabel( text, Sizeable.Unit.PIXELS );
     }
 
 
-    public static Label getLabel( String text, float width, Sizeable.Unit sizeAble )
+    public static Label getLabel( String text, Sizeable.Unit sizeAble )
     {
         Label label = new Label( text );
-        label.setWidth( width, sizeAble );
+        label.setSizeFull();
         label.setContentMode( ContentMode.HTML );
         return label;
     }
 
 
-    public static AbstractTextField getTextField( String label, float width )
+    public static AbstractTextField getTextField( String label )
     {
-        return getTextField( label, width, false );
+        return getTextField( label, false );
     }
 
 
-    public static AbstractTextField getTextField( String label, float width, boolean isPassword )
+    public static AbstractTextField getTextField( String label, boolean isPassword )
     {
         AbstractTextField textField = isPassword ? new PasswordField( label ) : new TextField( label );
-        textField.setWidth( width, Sizeable.Unit.PIXELS );
+        textField.setSizeFull();
         return textField;
     }
 }

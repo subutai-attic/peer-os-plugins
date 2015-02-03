@@ -7,9 +7,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.ETLBaseManager;
@@ -142,25 +144,45 @@ public class ETLTransformManager extends ETLBaseManager
                 if ( event.getProperty().getValue() != null )
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
-                    Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    final Set<ContainerHost> hadoopNodes =
-                            hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    Environment hadoopEnvironment = null;
+                    try
+                    {
+                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                    Set<ContainerHost> hadoopNodes = null;
+                    if ( hadoopEnvironment != null )
+                    {
+                        try
+                        {
+                            hadoopNodes =
+                                    hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }
                     hiveSelection.setValue( null );
                     pigSelection.setValue( null );
                     hiveSelection.removeAllItems();
                     pigSelection.removeAllItems();
                     enableProgressBar();
+                    final Set<ContainerHost> finalHadoopNodes = hadoopNodes;
                     executorService.execute( new Runnable()
                     {
                         @Override
                         public void run()
                         {
-                            Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( hadoopNodes, queryType );
+                            Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( finalHadoopNodes, queryType );
                             if ( filteredHadoopNodes.isEmpty() ){
                                 show( "No node has subutai " + queryType.name() + " package installed" );
                             }
                             else {
-                                for ( ContainerHost hadoopNode : filterHadoopNodes( hadoopNodes, queryType ) )
+                                for ( ContainerHost hadoopNode : filterHadoopNodes( finalHadoopNodes, queryType ) )
                                 {
                                     hiveSelection.addItem( hadoopNode );
                                     hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );

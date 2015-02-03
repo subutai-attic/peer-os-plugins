@@ -16,6 +16,7 @@ import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
 
 
 public class ExportPanel extends ImportExportBase
@@ -24,7 +25,7 @@ public class ExportPanel extends ImportExportBase
     private final ETL etl;
     private final Sqoop sqoop;
     private final ExecutorService executorService;
-    AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:", 300 );
+    AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:" );
 
 
     public ExportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
@@ -70,7 +71,23 @@ public class ExportPanel extends ImportExportBase
         fields.add( hdfsPathField );
 
         HorizontalLayout buttons = new HorizontalLayout();
-        buttons.addComponent( UIUtil.getButton( "Export", 120, new Button.ClickListener()
+        buttons.setSpacing( true );
+        buttons.addComponent( UIUtil.getButton( "Review Query", new Button.ClickListener(){
+
+            @Override
+            public void buttonClick( final Button.ClickEvent event )
+            {
+                if ( host.getId() == null  ){
+                    Notification.show( "Please select sqoop node!" );
+                    return;
+                }
+                ExportSetting es = makeSettings();
+                String cmd = sqoop.reviewExportQuery( es );
+                Notification.show( cmd );
+            }
+        }) );
+
+        buttons.addComponent( UIUtil.getButton( "Export", new Button.ClickListener()
         {
 
             @Override
@@ -98,7 +115,8 @@ public class ExportPanel extends ImportExportBase
                 executorService.execute( watcher );
             }
         } ) );
-        buttons.addComponent( UIUtil.getButton( "Cancel", 120, new Button.ClickListener()
+
+        buttons.addComponent( UIUtil.getButton( "Cancel", new Button.ClickListener()
         {
 
             @Override
@@ -108,8 +126,10 @@ public class ExportPanel extends ImportExportBase
             }
         } ) );
 
+
+
         List<Component> ls = new ArrayList<>();
-        ls.add( UIUtil.getLabel( "<h1>Sqoop Export</h1>", 100, Unit.PERCENTAGE ) );
+        ls.add( UIUtil.getLabel( "<h1>Sqoop Export</h1>", Unit.PERCENTAGE ) );
         ls.add( connStringField );
         ls.add( tableField );
         ls.add( usernameField );
@@ -118,7 +138,7 @@ public class ExportPanel extends ImportExportBase
         ls.add( optionalParams );
         ls.add( buttons );
 
-        addComponents( ls );
+        addComponentsVertical( ls );
     }
 
 

@@ -14,7 +14,7 @@
   <reference id="sqoop" availability="mandatory"
              interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="sqoop-impl" scope="singleton" class="org.safehaus.subutai.plugin.etl.impl.ETLImpl"
         init-method="init" destroy-method="destroy">
