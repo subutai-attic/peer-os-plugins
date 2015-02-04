@@ -40,30 +40,16 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyCluster( @PathParam("clusterName") String clusterName );
 
-    //start cluster
-    @PUT
-    @Path("clusters/{clusterName}/start")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response startCluster( @PathParam("clusterName") String clusterName );
-
-    //stop cluster
-    @PUT
-    @Path("clusters/{clusterName}/stop")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response stopCluster( @PathParam("clusterName") String clusterName );
-
-    //TODO unused variable nodeType in Mahout-plugin-rest
     //add node
     @POST
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/{nodetype}")
+    @Path("clusters/{clusterName}/nodes/{lxcHostname}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addNode( @PathParam("clusterName") String clusterName,
                              @PathParam("lxcHostname") String lxcHostname );
 
-    //TODO unused variable nodeType in Mahout-plugin-rest
     //destroy node
     @DELETE
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/{nodetype}")
+    @Path("clusters/{clusterName}/nodes/{lxcHostname}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
                                  @PathParam("lxcHostname") String lxcHostname );

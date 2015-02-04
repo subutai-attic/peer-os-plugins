@@ -10,11 +10,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 
@@ -33,10 +31,10 @@ public class Wizard
     private final Mahout mahout;
     private int step = 1;
     private MahoutClusterConfig config = new MahoutClusterConfig();
-    private HadoopClusterConfig hadoopConfig;
 
 
-    public Wizard( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -71,7 +69,7 @@ public class Wizard
             }
             case 3:
             {
-                component = new VerificationStep( mahout, executorService, tracker, environmentManager, this );
+                component = new VerificationStep( hadoop, mahout, executorService, tracker, environmentManager, this );
                 break;
             }
             default:
@@ -84,12 +82,6 @@ public class Wizard
         {
             grid.addComponent( component, 0, 1, 0, 19 );
         }
-    }
-
-
-    public HadoopClusterConfig getHadoopConfig()
-    {
-        return hadoopConfig;
     }
 
 
@@ -124,11 +116,5 @@ public class Wizard
     public MahoutClusterConfig getConfig()
     {
         return config;
-    }
-
-
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
     }
 }

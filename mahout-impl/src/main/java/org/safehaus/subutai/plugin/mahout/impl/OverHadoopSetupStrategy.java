@@ -2,37 +2,33 @@ package org.safehaus.subutai.plugin.mahout.impl;
 
 
 import java.util.Set;
-import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 class OverHadoopSetupStrategy extends MahoutSetupStrategy
 {
-    private static final Logger LOG = LoggerFactory.getLogger( OverHadoopSetupStrategy.class.getName() );
     private Environment environment;
 
 
-    public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po,
-                                    Environment environment )
+    public OverHadoopSetupStrategy( MahoutImpl manager, MahoutClusterConfig config, TrackerOperation po )
     {
         super( manager, config, po );
-        this.environment = environment;
     }
 
 
@@ -64,15 +60,26 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
-
-        if ( environment == null )
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
         {
             throw new ClusterSetupException( "Hadoop environment not found" );
         }
 
+
         //check nodes are connected
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
+        }
         for ( ContainerHost host : nodes )
         {
             if ( !host.isConnected() )
@@ -84,13 +91,12 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
-        for ( UUID uuid : config.getNodes() )
+        for ( ContainerHost node : nodes )
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
             try
             {
                 CommandResult result = node.execute( checkInstalledCommand );
-                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                if ( result.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s already has Mahout installed. Omitting this node from installation",
@@ -124,10 +130,17 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
         config.setEnvironmentId( environment.getId() );
         manager.getPluginDAO().saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Mahout..." );
-
-        for ( UUID uuid : config.getNodes() )
+        Set<ContainerHost> nodes;
+        try
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
+        }
+        for ( ContainerHost node : nodes )
+        {
             try
             {
                 CommandResult result = node.execute( manager.getCommands().getInstallCommand() );
@@ -135,10 +148,9 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
             }
             catch ( CommandException e )
             {
-                throw new ClusterSetupException( String.format( "Failed to install %s on server node" ) );
+                throw new ClusterSetupException( String.format( "Failed to install Mahout on server node: %s", e ) );
             }
         }
-        trackerOperation.addLog( "Configuring cluster..." );
     }
 
 

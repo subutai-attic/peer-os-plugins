@@ -7,7 +7,6 @@ package org.safehaus.subutai.plugin.mahout.ui.manager;
 
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -15,15 +14,15 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
-import org.safehaus.subutai.plugin.mahout.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
@@ -64,9 +63,8 @@ public class Manager
     private final EnvironmentManager environmentManager;
 
 
-    public Manager( final ExecutorService executorService, final Mahout mahout, final Tracker tracker, final Hadoop hadoop,
-                    final EnvironmentManager environmentManager )
-            throws NamingException
+    public Manager( final ExecutorService executorService, final Mahout mahout, final Tracker tracker,
+                    final Hadoop hadoop, final EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -200,61 +198,52 @@ public class Manager
                 }
                 else
                 {
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP )
+
+                    String hn = config.getHadoopClusterName();
+                    if ( hn == null || hn.isEmpty() )
                     {
-                        String hn = config.getHadoopClusterName();
-                        if ( hn == null || hn.isEmpty() )
+                        show( "Undefined Hadoop cluster name" );
+                        return;
+                    }
+                    HadoopClusterConfig info = hadoop.getCluster( hn );
+                    if ( info != null )
+                    {
+                        Set<UUID> nodes = new HashSet<>( info.getAllNodes() );
+                        nodes.removeAll( config.getNodes() );
+                        if ( !nodes.isEmpty() )
                         {
-                            show( "Undefined Hadoop cluster name" );
-                            return;
-                        }
-                        HadoopClusterConfig info = hadoop.getCluster( hn );
-                        if ( info != null )
-                        {
-                            Set<UUID> nodes = new HashSet<>( info.getAllNodes() );
-                            nodes.removeAll( config.getNodes() );
-                            if ( !nodes.isEmpty() )
+                            Set<ContainerHost> hosts;
+                            try
                             {
-                                Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() ).getContainerHostsByIds(
-                                        nodes );
-                                AddNodeWindow addNodeWindow =
-                                        new AddNodeWindow( mahout, executorService, tracker, config, hosts );
-                                contentRoot.getUI().addWindow( addNodeWindow );
-                                addNodeWindow.addCloseListener( new Window.CloseListener()
+                                hosts = environmentManager.findEnvironment( info.getEnvironmentId() )
+                                                          .getContainerHostsByIds( nodes );
+                            }
+                            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                            {
+                                show( String.format( "Error accessing environment: %s", e ) );
+                                return;
+                            }
+
+                            AddNodeWindow addNodeWindow =
+                                    new AddNodeWindow( mahout, executorService, tracker, config, hosts );
+                            contentRoot.getUI().addWindow( addNodeWindow );
+                            addNodeWindow.addCloseListener( new Window.CloseListener()
+                            {
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    @Override
-                                    public void windowClose( Window.CloseEvent closeEvent )
-                                    {
-                                        refreshClustersInfo();
-                                    }
-                                } );
-                            }
-                            else
-                            {
-                                show( "All nodes in corresponding Hadoop cluster have Presto installed" );
-                            }
+                                    refreshClustersInfo();
+                                }
+                            } );
                         }
                         else
                         {
-                            show( "Hadoop cluster info not found" );
+                            show( "All nodes in corresponding Hadoop cluster have Presto installed" );
                         }
                     }
-                    else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+                    else
                     {
-                        ConfirmationDialog d = new ConfirmationDialog( "Add node to cluster", "OK", "Cancel" );
-                        d.getOk().addClickListener( new Button.ClickListener()
-                        {
-
-                            @Override
-                            public void buttonClick( Button.ClickEvent event )
-                            {
-                                UUID trackId = mahout.addNode( config.getClusterName(), null );
-                                ProgressWindow w = new ProgressWindow( executorService, tracker, trackId,
-                                        MahoutClusterConfig.PRODUCT_KEY );
-                                contentRoot.getUI().addWindow( w.getWindow() );
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( d.getAlert() );
+                        show( "Hadoop cluster info not found" );
                     }
                 }
             }
@@ -298,27 +287,20 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
-                    Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
-                    while ( iterator.hasNext() )
+                    ContainerHost containerHost;
+                    try
                     {
-                        containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
-                        {
-                            break;
-                        }
+                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                          .getContainerHostById( UUID.fromString( containerId ) );
                     }
-                    if ( containerHost != null )
+                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
                     {
-                        TerminalWindow terminal = new TerminalWindow( containerHost );
-                        contentRoot.getUI().addWindow( terminal.getWindow() );
+                        show( String.format( "Error accessing environment: %s", e ) );
+                        return;
                     }
-                    else
-                    {
-                        show( "Host not found" );
-                    }
+
+                    TerminalWindow terminal = new TerminalWindow( containerHost );
+                    contentRoot.getUI().addWindow( terminal.getWindow() );
                 }
             }
         } );
@@ -335,9 +317,18 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
-            populateTable( nodesTable, hosts);
+            Set<ContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                          .getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                show( String.format( "Error accessing environment: %s", e ) );
+                return;
+            }
+            populateTable( nodesTable, hosts );
         }
         else
         {
@@ -384,7 +375,7 @@ public class Manager
                     @Override
                     public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        UUID trackID = mahout.uninstalllNode( config.getClusterName(), host.getHostname() );
+                        UUID trackID = mahout.uninstallNode( config.getClusterName(), host.getHostname() );
                         ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                 MahoutClusterConfig.PRODUCT_KEY );
                         window.getWindow().addCloseListener( new Window.CloseListener()

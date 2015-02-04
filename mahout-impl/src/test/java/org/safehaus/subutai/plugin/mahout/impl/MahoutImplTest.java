@@ -19,10 +19,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -134,7 +134,6 @@ public class MahoutImplTest
         // assertions
         assertEquals( executorService, mahoutImpl.getExecutor() );
         assertNotNull( mahoutImpl.getExecutor() );
-
     }
 
 
@@ -146,7 +145,6 @@ public class MahoutImplTest
         // assertions
         assertEquals( environmentManager, mahoutImpl.getEnvironmentManager() );
         assertNotNull( mahoutImpl.getEnvironmentManager() );
-
     }
 
 
@@ -158,7 +156,6 @@ public class MahoutImplTest
         // assertions
         assertEquals( tracker, mahoutImpl.getTracker() );
         assertNotNull( mahoutImpl.getTracker() );
-
     }
 
 
@@ -170,7 +167,6 @@ public class MahoutImplTest
         // assertions
         assertEquals( hadoop, mahoutImpl.getHadoopManager() );
         assertNotNull( mahoutImpl.getHadoopManager() );
-
     }
 
 
@@ -197,7 +193,6 @@ public class MahoutImplTest
         // assertions
         assertNotNull( mahoutImpl.installCluster( mahoutClusterConfig ) );
         assertEquals( uuid, id );
-
     }
 
 
@@ -205,12 +200,11 @@ public class MahoutImplTest
     public void testInstallCluster1() throws Exception
     {
         when( mahoutClusterConfig.getClusterName() ).thenReturn( "test" );
-        UUID id = mahoutImpl.installCluster( mahoutClusterConfig,hadoopClusterConfig );
+        UUID id = mahoutImpl.installCluster( mahoutClusterConfig );
 
         // assertions
-        assertNotNull( mahoutImpl.installCluster( mahoutClusterConfig,hadoopClusterConfig ) );
+        assertNotNull( mahoutImpl.installCluster( mahoutClusterConfig ) );
         assertEquals( uuid, id );
-
     }
 
 
@@ -222,26 +216,17 @@ public class MahoutImplTest
         // assertions
         assertNotNull( mahoutImpl.uninstallCluster( "test" ) );
         assertEquals( uuid, id );
-
     }
 
 
     @Test
     public void testUninstalllNode() throws Exception
     {
-        UUID id = mahoutImpl.uninstalllNode( "test", "test" );
+        UUID id = mahoutImpl.uninstallNode( "test", "test" );
 
         // assertions
-        assertNotNull( mahoutImpl.uninstalllNode( "test", "test" ) );
+        assertNotNull( mahoutImpl.uninstallNode( "test", "test" ) );
         assertEquals( uuid, id );
-
-    }
-
-
-    @Test
-    public void testUninstallCluster1() throws Exception
-    {
-        mahoutImpl.uninstallCluster( mahoutClusterConfig );
     }
 
 
@@ -258,7 +243,6 @@ public class MahoutImplTest
         // assertions
         assertNotNull( mahoutImpl.getClusters() );
         assertEquals( myList, mahoutImpl.getClusters() );
-
     }
 
 
@@ -270,7 +254,6 @@ public class MahoutImplTest
         // assertions
         assertNotNull( mahoutImpl.getCluster( "test" ) );
         assertEquals( mahoutClusterConfig, mahoutImpl.getCluster( "test" ) );
-
     }
 
 
@@ -282,7 +265,6 @@ public class MahoutImplTest
         // assertions
         assertNotNull( mahoutImpl.addNode( "test", "test" ) );
         assertEquals( uuid, id );
-
     }
 
 
@@ -294,34 +276,11 @@ public class MahoutImplTest
 
 
     @Test
-    public void testStopCluster() throws Exception
-    {
-        mahoutImpl.stopCluster( "test" );
-    }
-
-
-    @Test
-    public void testStartCluster() throws Exception
-    {
-        mahoutImpl.startCluster( "test" );
-    }
-
-
-    @Test
     public void testGetClusterSetupStrategy() throws Exception
     {
-        mahoutImpl.getClusterSetupStrategy( environment,mahoutClusterConfig,trackerOperation );
+        mahoutImpl.getClusterSetupStrategy( mahoutClusterConfig, trackerOperation );
 
         // assertions
-        assertNotNull( mahoutImpl.getClusterSetupStrategy( environment,mahoutClusterConfig,trackerOperation ) );
-    }
-
-
-    @Test
-    public void testGetDefaultEnvironmentBlueprint() throws Exception
-    {
-        mahoutImpl.getDefaultEnvironmentBlueprint( mahoutClusterConfig );
-
-        assertNotNull( mahoutImpl.getDefaultEnvironmentBlueprint( mahoutClusterConfig ) );
+        assertNotNull( mahoutImpl.getClusterSetupStrategy( mahoutClusterConfig, trackerOperation ) );
     }
 }

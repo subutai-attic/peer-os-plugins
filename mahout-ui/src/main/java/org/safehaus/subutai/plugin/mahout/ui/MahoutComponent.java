@@ -10,8 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
@@ -26,7 +25,8 @@ import com.vaadin.ui.VerticalLayout;
 public class MahoutComponent extends CustomComponent
 {
 
-    public MahoutComponent( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public MahoutComponent( ExecutorService executorService, Mahout mahout, Hadoop hadoop, Tracker tracker,
+                            EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 

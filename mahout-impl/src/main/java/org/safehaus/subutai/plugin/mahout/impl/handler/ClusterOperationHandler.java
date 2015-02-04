@@ -1,24 +1,21 @@
 package org.safehaus.subutai.plugin.mahout.impl.handler;
 
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
-import org.safehaus.subutai.plugin.mahout.api.SetupType;
 import org.safehaus.subutai.plugin.mahout.impl.MahoutImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +30,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private MahoutClusterConfig config;
-    private HadoopClusterConfig hadoopConfig;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final MahoutImpl manager, final MahoutClusterConfig config,
@@ -72,21 +67,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
 
         try
         {
-            Environment env = null;
-            if ( config.getSetupType() != SetupType.OVER_HADOOP )
-            {
-                env = manager.getEnvironmentManager()
-                             .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
-            }
-
-
-            ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(), clusterName,
@@ -95,35 +81,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
     }
 
 
-    public void setHadoopConfig( HadoopClusterConfig hadoopConfig )
-    {
-        this.hadoopConfig = hadoopConfig;
-    }
-
-
     @Override
     public void destroyCluster()
-    {
-    }
-
-
-    @Override
-    public void run()
-    {
-        Preconditions.checkNotNull( config, "Configuration is null !!!" );
-        switch ( operationType )
-        {
-            case INSTALL:
-                setupCluster();
-                break;
-            case DESTROY:
-                uninstallCluster();
-                break;
-        }
-    }
-
-
-    public void uninstallCluster()
     {
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Mahout..." );
@@ -136,15 +95,34 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
             return;
         }
 
-        for ( UUID uuid : config.getNodes() )
+        Environment environment;
+        try
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
-            CommandResult result = null;
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Environment not found: %s", e ) );
+            return;
+        }
+
+        Set<ContainerHost> nodes;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Failed to obtain environment containers: %s", e ) );
+            return;
+        }
+
+        for ( ContainerHost node : nodes )
+        {
+            CommandResult result;
             try
             {
-                result = containerHost.execute( manager.getCommands().getUninstallCommand() );
+                result = node.execute( manager.getCommands().getUninstallCommand() );
                 if ( !result.hasSucceeded() )
                 {
                     po.addLog( result.getStdErr() );
@@ -160,5 +138,21 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
         po.addLog( "Updating db..." );
         manager.getPluginDAO().deleteInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName() );
         po.addLogDone( "Cluster info deleted from DB\nDone" );
+    }
+
+
+    @Override
+    public void run()
+    {
+        Preconditions.checkNotNull( config, "Configuration is null !!!" );
+        switch ( operationType )
+        {
+            case INSTALL:
+                setupCluster();
+                break;
+            case DESTROY:
+                destroyCluster();
+                break;
+        }
     }
 }

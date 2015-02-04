@@ -13,10 +13,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -88,9 +88,11 @@ public class NodeOperationHandlerTest
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
+
 
         // mock installProductOnNode
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -100,8 +102,8 @@ public class NodeOperationHandlerTest
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
 
         when( mahoutImpl.getCommands() ).thenReturn( commands );
-
     }
+
 
     @Test
     public void testRunOperationTypeInstall() throws CommandException
@@ -161,7 +163,6 @@ public class NodeOperationHandlerTest
         // assertions
         assertNotNull( mahoutImpl.getCluster( "testClusterName" ) );
     }
-
 
 
     @Test

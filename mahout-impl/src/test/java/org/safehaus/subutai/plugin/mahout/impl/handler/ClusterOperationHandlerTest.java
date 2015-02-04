@@ -12,12 +12,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -66,8 +64,6 @@ public class ClusterOperationHandlerTest
     @Mock
     PluginDAO pluginDAO;
     @Mock
-    EnvironmentBlueprint environmentBlueprint;
-    @Mock
     Commands commands;
 
 
@@ -82,7 +78,7 @@ public class ClusterOperationHandlerTest
 
         // mock runOperationOnContainers method
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
@@ -99,11 +95,6 @@ public class ClusterOperationHandlerTest
         when( mahoutClusterConfig.getNodes() ).thenReturn( myUUID );
     }
 
-    @Test
-    public void testSetHadoopConfig()
-    {
-        clusterOperationHandler.setHadoopConfig( hadoopClusterConfig );
-    }
 
     @Test
     public void testDestroyCluster()
@@ -135,18 +126,7 @@ public class ClusterOperationHandlerTest
     }
 
 
-    @Test
-    public void testRunOperationTypeInstall() throws EnvironmentBuildException
-    {
-        when( mahoutClusterConfig.getClusterName() ).thenReturn( "test" );
-        when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.buildEnvironment( any( EnvironmentBlueprint.class ) ) ).thenReturn( environment );
-        when( mahoutImpl.getDefaultEnvironmentBlueprint( mahoutClusterConfig ) ).thenReturn( environmentBlueprint );
-        when( mahoutImpl.getClusterSetupStrategy( environment, mahoutClusterConfig, trackerOperation ) )
-                .thenReturn( clusterSetupStrategy );
 
-        clusterOperationHandler.run();
-    }
 
 
     @Test
@@ -163,7 +143,7 @@ public class ClusterOperationHandlerTest
         Set<UUID> myUUID = new HashSet<>();
         myUUID.add( UUID.randomUUID() );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
@@ -180,7 +160,7 @@ public class ClusterOperationHandlerTest
         Set<UUID> myUUID = new HashSet<>();
         myUUID.add( UUID.randomUUID() );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );

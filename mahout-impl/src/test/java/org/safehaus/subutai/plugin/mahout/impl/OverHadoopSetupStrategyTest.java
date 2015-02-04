@@ -21,10 +21,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -37,6 +38,7 @@ import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 
@@ -95,7 +97,7 @@ public class OverHadoopSetupStrategyTest
     public void setUp() throws Exception
     {
         overHadoopSetupStrategy =
-                new OverHadoopSetupStrategy( mahoutImpl, mahoutClusterConfig, trackerOperation, environment );
+                new OverHadoopSetupStrategy( mahoutImpl, mahoutClusterConfig, trackerOperation );
 
         uuid = new UUID( 50, 50 );
         mySet = new HashSet<>();
@@ -103,9 +105,8 @@ public class OverHadoopSetupStrategyTest
         when( mahoutClusterConfig.getHadoopClusterName() ).thenReturn( "testHadoop" );
 
         when( mahoutImpl.getCommands() ).thenReturn( commands );
-
-
     }
+
 
     @Test( expected = ClusterSetupException.class )
     public void testSetupMalformedConfiguration() throws Exception
@@ -119,7 +120,7 @@ public class OverHadoopSetupStrategyTest
     {
         when( mahoutClusterConfig.getNodes() ).thenReturn( mySet );
         when( mahoutClusterConfig.getClusterName() ).thenReturn( "test" );
-        when( mahoutImpl.getCluster( anyString() ) ).thenReturn( mahoutClusterConfig);
+        when( mahoutImpl.getCluster( anyString() ) ).thenReturn( mahoutClusterConfig );
 
         overHadoopSetupStrategy.setup();
     }
@@ -165,7 +166,7 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( null );
+        doThrow( new EnvironmentNotFoundException() ).when( environmentManager ).findEnvironment( any( UUID.class )  );
 
         overHadoopSetupStrategy.setup();
     }
@@ -183,7 +184,7 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
@@ -204,14 +205,14 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
         when( containerHost.isConnected() ).thenReturn( true );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( commandResult.getStdOut() ).thenReturn( Commands.PACKAGE_NAME );
+        when( commandResult.getStdOut() ).thenReturn( MahoutClusterConfig.PRODUCT_PACKAGE );
         when( mahoutImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         overHadoopSetupStrategy.setup();
@@ -230,14 +231,14 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
         when( containerHost.isConnected() ).thenReturn( true );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( commandResult.getStdOut() ).thenReturn( Commands.PACKAGE_NAME );
+        when( commandResult.getStdOut() ).thenReturn( MahoutClusterConfig.PRODUCT_PACKAGE );
         when( mahoutImpl.getPluginDAO() ).thenReturn( pluginDAO );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
@@ -257,14 +258,14 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( mahoutImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
         when( containerHost.isConnected() ).thenReturn( true );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( commandResult.getStdOut() ).thenReturn( "test");
+        when( commandResult.getStdOut() ).thenReturn( "test" );
         when( mahoutImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         overHadoopSetupStrategy.setup();

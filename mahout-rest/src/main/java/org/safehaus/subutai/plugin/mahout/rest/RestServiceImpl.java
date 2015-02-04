@@ -5,15 +5,13 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
+
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.TrimmedMahoutClusterConfig;
 
 
-/**
- * Created by bahadyr on 9/4/14.
- */
 public class RestServiceImpl implements RestService
 {
 
@@ -30,7 +28,6 @@ public class RestServiceImpl implements RestService
     {
         this.mahoutManager = mahoutManager;
     }
-
 
 
     @Override
@@ -58,15 +55,10 @@ public class RestServiceImpl implements RestService
 
         MahoutClusterConfig mahoutConfig = new MahoutClusterConfig();
         mahoutConfig.setClusterName( tmcc.getClusterName() );
-
-        for ( String node : tmcc.getNodes() )
-        {
-
-            mahoutConfig.getNodes().add( UUID.fromString( node ) );
-        }
+        mahoutConfig.setHadoopClusterName( tmcc.getHadoopClusterName() );
+        mahoutConfig.getNodes().addAll( tmcc.getNodes() );
 
         UUID uuid = mahoutManager.installCluster( mahoutConfig );
-
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.CREATED ).entity( operationId ).build();
     }
@@ -82,20 +74,6 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startCluster( final String clusterName )
-    {
-        return null;
-    }
-
-
-    @Override
-    public Response stopCluster( final String clusterName )
-    {
-        return null;
-    }
-
-
-    @Override
     public Response addNode( final String clusterName, final String lxcHostname )
     {
         UUID uuid = mahoutManager.addNode( clusterName, lxcHostname );
@@ -107,7 +85,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response destroyNode( final String clusterName, final String lxcHostname )
     {
-        UUID uuid = mahoutManager.uninstalllNode( clusterName, lxcHostname );
+        UUID uuid = mahoutManager.uninstallNode( clusterName, lxcHostname );
         String operationId = wrapUUID( uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }

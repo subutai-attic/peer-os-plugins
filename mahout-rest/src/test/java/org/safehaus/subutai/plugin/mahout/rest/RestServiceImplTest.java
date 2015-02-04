@@ -100,19 +100,6 @@ public class RestServiceImplTest
     }
 
 
-    @Test
-    public void testStartCluster() throws Exception
-    {
-        restService.startCluster( "test" );
-    }
-
-
-    @Test
-    public void testStopCluster() throws Exception
-    {
-        restService.stopCluster( "test" );
-    }
-
 
     @Test
     public void testAddNode() throws Exception

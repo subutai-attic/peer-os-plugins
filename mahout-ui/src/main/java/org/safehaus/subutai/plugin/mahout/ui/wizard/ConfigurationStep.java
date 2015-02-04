@@ -7,21 +7,21 @@ package org.safehaus.subutai.plugin.mahout.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
-import org.safehaus.subutai.plugin.mahout.api.SetupType;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -42,7 +42,6 @@ public class ConfigurationStep extends Panel
 {
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
-    private Environment hadoopEnvironment;
     final Wizard wizard;
 
 
@@ -82,15 +81,9 @@ public class ConfigurationStep extends Panel
 
         content.addComponent( txtClusterName );
 
-        SetupType st = wizard.getConfig().getSetupType();
-        if ( st == SetupType.OVER_HADOOP )
-        {
-            addOverHadoopControls( content, wizard.getConfig() );
-        }
-        else if ( st == SetupType.WITH_HADOOP )
-        {
-            addWithHadoopControls( content, wizard.getConfig(), wizard.getHadoopConfig() );
-        }
+
+        addOverHadoopControls( content, wizard.getConfig() );
+
 
         // --- buttons ---
         Button next = new Button( "Next" );
@@ -147,20 +140,27 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    config.setHadoopNodes( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
-                    hadoopEnvironment = environmentManager.getEnvironmentByUUID( hadoopInfo.getEnvironmentId() );
-                    Set<ContainerHost> hadoopNodes =
-                            hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    Set<ContainerHost> hadoopNodes;
+                    try
+                    {
+                        hadoopNodes = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() )
+                                                        .getContainerHostsByIds(
+                                                                Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                    }
+                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                    {
+                        show( String.format( "Error accessing environment: %s", e ) );
+                        return;
+                    }
                     select.setValue( null );
                     select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
-                    //config.getNodes().clear();
                 }
             }
         } );
 
         Hadoop hadoopManager = hadoop;
         List<HadoopClusterConfig> clusters = hadoopManager.getClusters();
-        if ( clusters != null )
+        if ( !CollectionUtil.isCollectionEmpty( clusters ) )
         {
             for ( HadoopClusterConfig hadoopClusterInfo : clusters )
             {
@@ -178,7 +178,7 @@ public class ConfigurationStep extends Panel
                 hadoopClusters.setValue( info );
             }
         }
-        else if ( clusters != null && !clusters.isEmpty() )
+        else if ( !CollectionUtil.isCollectionEmpty( clusters ) )
         {
             hadoopClusters.setValue( clusters.iterator().next() );
         }
@@ -191,7 +191,7 @@ public class ConfigurationStep extends Panel
         select.setRightColumnCaption( "Selected Nodes" );
         select.setWidth( 100, Unit.PERCENTAGE );
         select.setRequired( true );
-        if ( config.getNodes() != null && !config.getNodes().isEmpty() )
+        if ( !CollectionUtil.isCollectionEmpty( config.getNodes() ) )
         {
             select.setValue( config.getNodes() );
         }
@@ -219,139 +219,25 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void addWithHadoopControls( ComponentContainer content, final MahoutClusterConfig config,
-                                        final HadoopClusterConfig hadoopConfig )
-    {
-
-        Collection<Integer> col = Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 );
-
-        final TextField txtHadoopClusterName = new TextField( "Hadoop cluster name" );
-        txtHadoopClusterName.setId( "MahoutConfHadoopCluster" );
-        txtHadoopClusterName.setRequired( true );
-        txtHadoopClusterName.setMaxLength( 20 );
-        if ( hadoopConfig.getClusterName() != null )
-        {
-            txtHadoopClusterName.setValue( hadoopConfig.getClusterName() );
-        }
-        txtHadoopClusterName.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                String name = event.getProperty().getValue().toString().trim();
-                config.setHadoopClusterName( name );
-                hadoopConfig.setClusterName( name );
-            }
-        } );
-
-        ComboBox cmbSlaveNodes = new ComboBox( "Number of Hadoop slave nodes", col );
-        cmbSlaveNodes.setId( "MahoutConfSlaveNodes" );
-        cmbSlaveNodes.setImmediate( true );
-        cmbSlaveNodes.setTextInputAllowed( false );
-        cmbSlaveNodes.setNullSelectionAllowed( false );
-        cmbSlaveNodes.setValue( hadoopConfig.getCountOfSlaveNodes() );
-        cmbSlaveNodes.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                hadoopConfig.setCountOfSlaveNodes( ( Integer ) event.getProperty().getValue() );
-            }
-        } );
-
-        ComboBox cmbReplFactor = new ComboBox( "Replication factor for Hadoop slave nodes", col );
-        cmbReplFactor.setId( "MahoutConfReplFactor" );
-        cmbReplFactor.setImmediate( true );
-        cmbReplFactor.setTextInputAllowed( false );
-        cmbReplFactor.setNullSelectionAllowed( false );
-        cmbReplFactor.setValue( hadoopConfig.getReplicationFactor() );
-        cmbReplFactor.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                hadoopConfig.setReplicationFactor( ( Integer ) event.getProperty().getValue() );
-            }
-        } );
-
-        TextField txtHadoopDomain = new TextField( "Hadoop cluster domain name" );
-        txtHadoopDomain.setId( "MahoutConfHadoopClusterDomain" );
-        txtHadoopDomain.setInputPrompt( hadoopConfig.getDomainName() );
-        txtHadoopDomain.setValue( hadoopConfig.getDomainName() );
-        txtHadoopDomain.setMaxLength( 20 );
-        txtHadoopDomain.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                String val = event.getProperty().getValue().toString().trim();
-                if ( !val.isEmpty() )
-                {
-                    hadoopConfig.setDomainName( val );
-                }
-            }
-        } );
-
-        content.addComponent( new Label( "Hadoop settings" ) );
-        content.addComponent( txtHadoopClusterName );
-        content.addComponent( cmbSlaveNodes );
-        content.addComponent( cmbReplFactor );
-        content.addComponent( txtHadoopDomain );
-    }
-
-
     private void nextButtonClickHandler( Wizard wizard )
     {
         MahoutClusterConfig config = wizard.getConfig();
-        if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
+
+        if ( Strings.isNullOrEmpty( config.getClusterName() ) )
         {
             show( "Enter installation name" );
-            return;
         }
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        else if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) )
         {
-            String name = config.getHadoopClusterName();
-            if ( name == null || name.isEmpty() )
-            {
-                show( "Select Hadoop cluster" );
-            }
-            else if ( config.getNodes() == null || config.getNodes().isEmpty() )
-            {
-                show( "Select target nodes" );
-            }
-            else
-            {
-                wizard.setHadoopConfig( hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ) );
-                wizard.next();
-            }
+            show( "Select Hadoop cluster" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+        else if ( CollectionUtil.isCollectionEmpty( config.getNodes() ) )
         {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            if ( hc.getClusterName() == null || hc.getClusterName().isEmpty() )
-            {
-                show( "Enter Hadoop cluster name" );
-            }
-            else if ( hc.getCountOfSlaveNodes() <= 0 )
-            {
-                show( "Invalid number of Hadoop slave nodes" );
-            }
-            else if ( hc.getReplicationFactor() <= 0 )
-            {
-                show( "Invalid replication factor" );
-            }
-            else if ( hc.getDomainName() == null || hc.getDomainName().isEmpty() )
-            {
-                show( "Enter Hadoop domain name" );
-            }
-            else
-            {
-                wizard.next();
-            }
+            show( "Select target nodes" );
         }
         else
         {
-            show( "Installation type not supported" );
+            wizard.next();
         }
     }
 

@@ -6,40 +6,31 @@
 package org.safehaus.subutai.plugin.mahout.impl;
 
 
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 
 
-
 public class Commands
 {
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + MahoutClusterConfig.PRODUCT_KEY.toLowerCase();
-
 
     public RequestBuilder getInstallCommand()
     {
-        RequestBuilder rb = new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 360 )
-                                                                                                            .withStdOutRedirection(
-                                                                                                                    OutputRedirection.NO );
-        return rb;
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + MahoutClusterConfig.PRODUCT_PACKAGE )
+                .withTimeout( 360 ).withStdOutRedirection( OutputRedirection.NO );
     }
 
 
     public RequestBuilder getUninstallCommand()
     {
-        RequestBuilder rb =
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 60 );
-        return rb;
-
+        return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + MahoutClusterConfig.PRODUCT_PACKAGE )
+                .withTimeout( 60 );
     }
 
 
     public RequestBuilder getCheckInstalledCommand()
     {
-        RequestBuilder rb =
-                new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
-        return rb;
+        return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
     }
 }

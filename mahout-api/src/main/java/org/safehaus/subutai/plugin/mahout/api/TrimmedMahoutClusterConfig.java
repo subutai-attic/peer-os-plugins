@@ -2,16 +2,21 @@ package org.safehaus.subutai.plugin.mahout.api;
 
 
 import java.util.List;
+import java.util.UUID;
 
 
-/**
- * Created by bahadyr on 9/4/14.
- */
 public class TrimmedMahoutClusterConfig
 {
 
     String clusterName;
-    List<String> nodes;
+    String hadoopClusterName;
+    List<UUID> nodes;
+
+
+    public String getHadoopClusterName()
+    {
+        return hadoopClusterName;
+    }
 
 
     public String getClusterName()
@@ -20,20 +25,8 @@ public class TrimmedMahoutClusterConfig
     }
 
 
-    public void setClusterName( final String clusterName )
-    {
-        this.clusterName = clusterName;
-    }
-
-
-    public List<String> getNodes()
+    public List<UUID> getNodes()
     {
         return nodes;
-    }
-
-
-    public void setNodes( final List<String> nodes )
-    {
-        this.nodes = nodes;
     }
 }

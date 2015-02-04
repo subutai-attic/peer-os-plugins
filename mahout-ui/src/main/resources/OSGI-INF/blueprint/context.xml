@@ -6,7 +6,7 @@
   <reference id="mahout" availability="mandatory" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
   <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="hadoop" availability="mandatory" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager" availability="mandatory" interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.mahout.ui.MahoutPortalModule"
         init-method="init" destroy-method="destroy">
