@@ -28,6 +28,8 @@ import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Item;
@@ -82,6 +84,7 @@ public class Manager
     private PrestoClusterConfig config;
     private final EnvironmentManager environmentManager;
     private CheckBox autoScaleBtn;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
     public Manager( final ExecutorService executorService, final Presto presto, Hadoop hadoop, Tracker tracker,
@@ -317,16 +320,17 @@ public class Manager
                             try
                             {
                                 set = environmentManager.findEnvironment( info.getEnvironmentId() )
-                                                                           .getContainerHostsByIds(
-                                                                                   Sets.newHashSet( availableNodes ) );
+                                                        .getContainerHostsByIds( Sets.newHashSet( availableNodes ) );
                             }
                             catch ( ContainerHostNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Container host not found", e );
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Error getting environment by id: " + info.getEnvironmentId().toString(),
+                                        e );
+                                return;
                             }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( presto, executorService, tracker, config, set );
@@ -767,7 +771,8 @@ public class Manager
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
                     }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
@@ -838,7 +843,8 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
             }
             try
             {
@@ -847,7 +853,7 @@ public class Manager
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Container host not found", e );
             }
             autoScaleBtn.setValue( config.isAutoScaling() );
         }

@@ -17,6 +17,8 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -29,6 +31,7 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
 
     public VerificationStep( final Presto presto, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
@@ -57,7 +60,8 @@ public class VerificationStep extends Panel
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            return;
         }
         ContainerHost coordinator = null;
         try
@@ -66,7 +70,7 @@ public class VerificationStep extends Panel
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Container host not found", e );
         }
         Set<ContainerHost> workers = null;
         try
@@ -75,7 +79,7 @@ public class VerificationStep extends Panel
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Container hosts not found", e );
         }
         cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
         cfgView.addStringCfg( "Master Node", coordinator.getHostname() );

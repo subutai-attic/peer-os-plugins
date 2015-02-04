@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl, PrestoClusterConfig>
         implements ClusterOperationHandlerInterface
 {
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class );
     private ClusterOperationType operationType;
     private PrestoClusterConfig config;
 
@@ -86,15 +86,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
             try
             {
                 containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                       .getContainerHostById( uuid );
+                                       .getContainerHostById( uuid );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                trackerOperation.addLogFailed( "Container host not found" );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
             }
             if ( containerHost.getHostname() == null )
             {

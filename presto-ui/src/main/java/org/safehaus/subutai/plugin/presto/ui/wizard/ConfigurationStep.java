@@ -16,6 +16,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -47,6 +49,7 @@ public class ConfigurationStep extends Panel
     private ComboBox coordinatorNodeCombo;
     private Environment hadoopEnvironment;
     private final EnvironmentManager environmentManager;
+    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
@@ -192,7 +195,8 @@ public class ConfigurationStep extends Panel
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(), e );
+                return;
             }
             Set<ContainerHost> hadoopNodes = null;
             try
@@ -201,7 +205,7 @@ public class ConfigurationStep extends Panel
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Container host not found", e );
             }
             workersSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
             for ( ContainerHost hadoopNode : hadoopNodes )
@@ -243,7 +247,9 @@ public class ConfigurationStep extends Panel
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
+                                e );
+                        return;
                     }
                     Set<ContainerHost> hadoopNodes = null;
                     try
@@ -253,7 +259,7 @@ public class ConfigurationStep extends Panel
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Container host not found", e );
                     }
                     workersSelect.setValue( null );
                     workersSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
@@ -295,7 +301,9 @@ public class ConfigurationStep extends Panel
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
+                                e );
+                        return;
                     }
                     Set<ContainerHost> hadoopNodes = null;
                     try
@@ -305,7 +313,7 @@ public class ConfigurationStep extends Panel
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Container host not found", e );
                     }
                     hadoopNodes.remove( coordinator );
                     workersSelect.getContainerDataSource().removeAllItems();
@@ -320,7 +328,7 @@ public class ConfigurationStep extends Panel
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Container hosts not found", e );
                     }
                     workersSelect.addValueChangeListener( workersSelectChangeListener );
                 }

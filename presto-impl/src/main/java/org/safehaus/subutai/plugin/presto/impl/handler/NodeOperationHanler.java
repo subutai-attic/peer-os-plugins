@@ -22,6 +22,8 @@ import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.plugin.presto.impl.Commands;
 import org.safehaus.subutai.plugin.presto.impl.PrestoImpl;
 import org.safehaus.subutai.plugin.presto.impl.SetupHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -29,6 +31,7 @@ import com.google.common.collect.Sets;
 
 public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, PrestoClusterConfig>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHanler.class);
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
@@ -63,7 +66,8 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
         }
         Iterator iterator = environment.getContainerHosts().iterator();
         ContainerHost host = null;
@@ -88,7 +92,8 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
         if ( !coordinator.isConnected() )
         {

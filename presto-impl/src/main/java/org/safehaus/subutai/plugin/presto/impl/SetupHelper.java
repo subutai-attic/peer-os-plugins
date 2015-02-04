@@ -11,6 +11,8 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -18,6 +20,7 @@ import com.google.common.base.Preconditions;
 public class SetupHelper
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger( SetupHelper.class );
     final TrackerOperation po;
     final PrestoImpl manager;
     final PrestoClusterConfig config;
@@ -56,7 +59,8 @@ public class SetupHelper
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Container host not found", e );
+            po.addLogFailed( "Container host not found" );
         }
     }
 
@@ -131,7 +135,8 @@ public class SetupHelper
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Container host not found", e );
+            po.addLogFailed( "Container host not found" );
         }
         return null;
     }

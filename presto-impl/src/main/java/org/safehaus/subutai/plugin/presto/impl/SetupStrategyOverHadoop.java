@@ -20,12 +20,15 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
 
 public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetupStrategy
 {
+    private static final Logger LOG = LoggerFactory.getLogger( SetupStrategyOverHadoop.class );
     private Environment environment;
     private Set<ContainerHost> nodesToInstallPresto;
 
@@ -81,7 +84,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            return;
         }
 
         if ( environment == null )
@@ -105,7 +109,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
             }
             if ( node == null )
             {
@@ -158,7 +163,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
             }
             try
             {
@@ -166,7 +172,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
             }
             //startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
 
