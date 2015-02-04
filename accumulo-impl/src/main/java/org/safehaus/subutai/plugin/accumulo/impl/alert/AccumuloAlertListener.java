@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -73,7 +73,7 @@ public class AccumuloAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                accumulo.getEnvironmentManager().getEnvironmentByUUID( containerHostMetric.getEnvironmentId() );
+                accumulo.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(

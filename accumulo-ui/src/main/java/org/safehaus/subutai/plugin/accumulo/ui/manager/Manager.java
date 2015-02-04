@@ -16,9 +16,11 @@ import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -29,6 +31,8 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Item;
@@ -52,6 +56,8 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
+
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
     protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
@@ -351,9 +357,16 @@ public class Manager
                 Set<ContainerHost> myHostSet = new HashSet<>();
                 for ( UUID uuid : nodesWithHadoopNZoo )
                 {
-                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-                            hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
-                                                     .getContainerHostById( uuid ) );
+                    try
+                    {
+                        myHostSet.add( environmentManager.findEnvironment(
+                                hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
+                                                         .getContainerHostById( uuid ) );
+                    }
+                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                    {
+                        LOGGER.error( "Error applying operation on environment/container" );
+                    }
                 }
 
                 AddNodeWindow w =
@@ -420,9 +433,16 @@ public class Manager
                 Set<ContainerHost> myHostSet = new HashSet<>();
                 for ( UUID uuid : nodesWithHadoopNZoo )
                 {
-                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-                            hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
-                                                     .getContainerHostById( uuid ) );
+                    try
+                    {
+                        myHostSet.add( environmentManager.findEnvironment(
+                                hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
+                                                         .getContainerHostById( uuid ) );
+                    }
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error applying operation on environment/container" );
+                    }
                 }
 
                 AddNodeWindow w =
@@ -628,9 +648,17 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = environmentManager.getEnvironmentByUUID(
-                        hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
-                                                                .getContainerHostByHostname( containerId );
+                ContainerHost containerHost = null;
+                try
+                {
+                    containerHost = environmentManager.findEnvironment(
+                            hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
+                                                      .getContainerHostByHostname( containerId );
+                }
+                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Error applying operations on environment/container" );
+                }
 
                 if ( containerHost != null )
                 {
@@ -650,19 +678,27 @@ public class Manager
     {
         if ( accumuloClusterConfig != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID(
-                    hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() );
-            populateTable( slavesTable, environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ),
-                    false );
-            populateTable( tracersTable, environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ),
-                    false );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment(
+                        hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() );
+                populateTable( slavesTable, environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ),
+                        false );
+                populateTable( tracersTable, environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ),
+                        false );
 
 
-            Set<ContainerHost> masters = new HashSet<>();
-            masters.add( environment.getContainerHostById( accumuloClusterConfig.getMasterNode() ) );
-            masters.add( environment.getContainerHostById( accumuloClusterConfig.getGcNode() ) );
-            masters.add( environment.getContainerHostById( accumuloClusterConfig.getMonitor() ) );
-            populateTable( mastersTable, masters, true );
+                Set<ContainerHost> masters = new HashSet<>();
+                masters.add( environment.getContainerHostById( accumuloClusterConfig.getMasterNode() ) );
+                masters.add( environment.getContainerHostById( accumuloClusterConfig.getGcNode() ) );
+                masters.add( environment.getContainerHostById( accumuloClusterConfig.getMonitor() ) );
+                populateTable( mastersTable, masters, true );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Error applying operation on environment/container." );
+            }
         }
         else
         {

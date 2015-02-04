@@ -13,10 +13,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -70,7 +70,7 @@ public class AddPropertyOperationHandlerTest
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add(containerHost);
         when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
         when(containerHost.execute(new RequestBuilder(Commands.getAddPropertyCommand("testProperty",
                 "testPropertyValue")))).thenReturn(commandResult);

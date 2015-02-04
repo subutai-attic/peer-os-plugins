@@ -2,13 +2,16 @@ package org.safehaus.subutai.plugin.accumulo.impl;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
@@ -16,8 +19,8 @@ import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -47,7 +50,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 
-public class AccumuloImpl implements Accumulo
+public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( AccumuloImpl.class.getName() );
     protected Commands commands;
@@ -416,5 +419,71 @@ public class AccumuloImpl implements Accumulo
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( String.format( "Environment: %s successfully created", environment.getName() ) );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        List<String> hostNames = new ArrayList<>();
+        for ( final ContainerHost containerHost : set )
+        {
+            hostNames.add( containerHost.getHostname() );
+        }
+        for ( final AccumuloClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                LOG.info( String.format( "Accumulo %s cluster has been grown with %s hosts",
+                        clusterConfig.getClusterName(), hostNames.toString() ) );
+            }
+        }
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID nodeId )
+    {
+        List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final AccumuloClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                if ( clusterConfig.getAllNodes().contains( nodeId ) )
+                {
+                    if ( !clusterConfig.removeNode( nodeId ) )
+                    {
+                        getPluginDAO().deleteInfo( AccumuloClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                    }
+                    else
+                    {
+                        getPluginDAO().saveInfo( AccumuloClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(),
+                                clusterConfig );
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID environmentId )
+    {
+        List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
+        for ( final AccumuloClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            {
+                getPluginDAO().deleteInfo( AccumuloClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+            }
+        }
     }
 }

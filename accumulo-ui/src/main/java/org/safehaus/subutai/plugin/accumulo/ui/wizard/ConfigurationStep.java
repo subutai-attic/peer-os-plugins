@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.api.SetupType;
@@ -23,6 +25,8 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -43,7 +47,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
     private EnvironmentManager environmentManager;
     private Wizard wizard;
     private Hadoop hadoop;
@@ -515,8 +519,15 @@ public class ConfigurationStep extends Panel
         {
             if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
             {
-                set.add( environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() )
-                                           .getContainerHostById( uuid ) );
+                try
+                {
+                    set.add( environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+                                               .getContainerHostById( uuid ) );
+                }
+                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Error applying operation on environment/container" );
+                }
             }
         }
         return set;
@@ -564,8 +575,18 @@ public class ConfigurationStep extends Panel
     {
         target.removeAllItems();
         target.setValue( null );
-        ZookeeperClusterConfig zookeeperClusterConfig =
-                zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+
+        ZookeeperClusterConfig zookeeperClusterConfig;
+
+        try
+        {
+            zookeeperClusterConfig = zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "Some exception getting zookeeper cluster.", e );
+            return;
+        }
         if ( zookeeperClusterConfig == null )
         {
             return;
@@ -600,9 +621,17 @@ public class ConfigurationStep extends Panel
 
     private ContainerHost getHost( UUID uuid )
     {
-        return environmentManager.getEnvironmentByUUID(
-                hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() )
-                                 .getContainerHostById( uuid );
+        try
+        {
+            return environmentManager.findEnvironment(
+                    hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() )
+                                     .getContainerHostById( uuid );
+        }
+        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Environment/Container doesn't exists." );
+            return null;
+        }
     }
 
 

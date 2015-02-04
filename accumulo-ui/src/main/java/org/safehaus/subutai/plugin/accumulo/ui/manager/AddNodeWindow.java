@@ -34,8 +34,8 @@ import com.vaadin.ui.Window;
 public class AddNodeWindow extends Window
 {
 
-    private final TextArea outputTxtArea;
-    private final Label indicator;
+    private TextArea outputTxtArea;
+    private Label indicator;
     private volatile boolean track = true;
 
 
@@ -71,6 +71,11 @@ public class AddNodeWindow extends Window
         {
             hadoopNodes.addItem( node );
             hadoopNodes.setItemCaption( node, node.getHostname() );
+        }
+
+        if ( nodes.size() == 0 )
+        {
+            return;
         }
         hadoopNodes.setValue( nodes.iterator().next() );
 
@@ -186,7 +191,7 @@ public class AddNodeWindow extends Window
         if ( !Strings.isNullOrEmpty( output ) )
         {
             outputTxtArea.setValue( output );
-            outputTxtArea.setCursorPosition( outputTxtArea.getValue().toString().length() - 1 );
+            outputTxtArea.setCursorPosition( outputTxtArea.getValue().length() - 1 );
         }
     }
 

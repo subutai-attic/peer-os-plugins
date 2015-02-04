@@ -13,11 +13,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -118,7 +118,7 @@ public class NodeOperationHandlerTest
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
 
         // mock installProductOnNode
@@ -154,6 +154,8 @@ public class NodeOperationHandlerTest
                         .withTimeout( 3600 ) ) ).thenReturn( commandResult );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         nodeOperationHandler.run();
 
@@ -176,6 +178,8 @@ public class NodeOperationHandlerTest
                 Commands.getInstallCommand( Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() )
                         .withTimeout( 3600 ) ) ).thenReturn( commandResult );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
         when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
 
         nodeOperationHandler6.run();
@@ -239,6 +243,8 @@ public class NodeOperationHandlerTest
         Set<UUID> myUUID = new HashSet<>();
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         nodeOperationHandler5.run();
 
@@ -258,6 +264,8 @@ public class NodeOperationHandlerTest
         Set<UUID> myUUID = new HashSet<>();
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
+        when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
+        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         nodeOperationHandler7.run();
 

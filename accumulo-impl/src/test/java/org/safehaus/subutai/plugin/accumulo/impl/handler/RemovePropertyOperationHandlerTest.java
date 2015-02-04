@@ -13,10 +13,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -31,7 +31,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class RemovePropertyOperationHandlerTest
 {
     private RemovePropertyOperationHandler removePropertyOperationHandler;
@@ -55,19 +56,21 @@ public class RemovePropertyOperationHandlerTest
     @Mock
     ClusterSetupStrategy clusterSetupStrategy;
 
+
     @Before
     public void setUp() throws Exception
     {
         // mock constructor
         uuid = UUID.randomUUID();
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(accumuloImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( accumuloImpl.getTracker() ).thenReturn( tracker );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( trackerOperation.getId() ).thenReturn( uuid );
 
-        removePropertyOperationHandler = new RemovePropertyOperationHandler(accumuloImpl, "testClusterName",
-                "testPropertyName");
+        removePropertyOperationHandler =
+                new RemovePropertyOperationHandler( accumuloImpl, "testClusterName", "testPropertyName" );
     }
+
 
     @Test
     public void testGetTrackerId() throws Exception
@@ -75,100 +78,106 @@ public class RemovePropertyOperationHandlerTest
         UUID uuid1 = removePropertyOperationHandler.getTrackerId();
 
         // assertions
-        assertNotNull(uuid1);
-        assertEquals(uuid, uuid1);
+        assertNotNull( uuid1 );
+        assertEquals( uuid, uuid1 );
     }
+
 
     @Test
     public void testRun() throws Exception
     {
         // mock run method
         Set<ContainerHost> mySet = new HashSet<>();
-        mySet.add(containerHost);
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
-        when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
-        when(containerHost.execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName"))))
-                .thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
+        mySet.add( containerHost );
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) ) )
+                .thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
         removePropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName")));
-        verify(trackerOperation).addLog("Property removed successfully to node " + containerHost.getHostname());
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) );
+        verify( trackerOperation ).addLog( "Property removed successfully to node " + containerHost.getHostname() );
         verify( containerHost ).execute( Commands.stopCommand );
         verify( containerHost ).execute( Commands.startCommand );
     }
+
 
     @Test
     public void testRunWhenCommandResultHasNotSucceeded() throws Exception
     {
         // mock run method
         Set<ContainerHost> mySet = new HashSet<>();
-        mySet.add(containerHost);
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
-        when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
-        when(containerHost.execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName"))))
-                .thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(false);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
+        mySet.add( containerHost );
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) ) )
+                .thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( false );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
         removePropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName")));
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) );
     }
 
-    @Test (expected = NullPointerException.class)
+
+    @Test( expected = NullPointerException.class )
     public void testRunWhenCommandResultHasNotSucceeded2() throws Exception
     {
         // mock run method
         Set<ContainerHost> mySet = new HashSet<>();
-        mySet.add(containerHost);
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
-        when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
-        when(containerHost.execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName"))))
-                .thenThrow(CommandException.class);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
+        mySet.add( containerHost );
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) ) )
+                .thenThrow( CommandException.class );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
 
         removePropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName")));
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) );
     }
+
 
     @Test
     public void testRunShouldThrowsCommandException() throws Exception
     {
         // mock run method
         Set<ContainerHost> mySet = new HashSet<>();
-        mySet.add(containerHost);
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
-        when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
-        when(containerHost.execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName"))))
-                .thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
+        mySet.add( containerHost );
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) ) )
+                .thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( Commands.stopCommand ) ).thenThrow( CommandException.class );
 
         removePropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getRemovePropertyCommand("testPropertyName")));
-        verify(trackerOperation).addLog("Property removed successfully to node " + containerHost.getHostname());
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getRemovePropertyCommand( "testPropertyName" ) ) );
+        verify( trackerOperation ).addLog( "Property removed successfully to node " + containerHost.getHostname() );
     }
-
-
 }
