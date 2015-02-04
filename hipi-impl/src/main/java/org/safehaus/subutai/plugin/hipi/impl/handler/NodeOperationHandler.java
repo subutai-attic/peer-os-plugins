@@ -4,9 +4,11 @@ package org.safehaus.subutai.plugin.hipi.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -43,17 +45,27 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
     {
         try
         {
-            Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            if ( environment == null )
+            Environment environment;
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            ContainerHost node = environment.getContainerHostByHostname( hostName );
-            if ( node == null )
+
+            ContainerHost node;
+            try
+            {
+                node = environment.getContainerHostByHostname( hostName );
+            }
+            catch ( ContainerHostNotFoundException e )
             {
                 throw new ClusterException( "Node not found in environment: " + hostName );
             }
+
             if ( !node.isConnected() )
             {
                 throw new ClusterException( "Node is not connected: " + hostName );
@@ -92,7 +104,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
         config.getNodes().add( node.getId() );
 
         trackerOperation.addLog( "Saving cluster info..." );
-        manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, clusterName, config );
+        manager.saveConfig( config );
         trackerOperation.addLogDone( "Saved cluster info" );
     }
 
@@ -199,8 +211,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
             config.getNodes().remove( node.getId() );
             trackerOperation.addLog( "Updating db..." );
 
-            manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, config.getClusterName(), config );
-            trackerOperation.addLogDone( "Cluster info updated in DB\nDone" );
+            try
+            {
+                manager.saveConfig( config );
+                trackerOperation.addLogDone( "Cluster info updated in DB\nDone" );
+            }
+            catch ( ClusterException e )
+            {
+                trackerOperation.addLogFailed( String.format( "Failed to save cluster info: %s", e ) );
+            }
         }
         else
         {

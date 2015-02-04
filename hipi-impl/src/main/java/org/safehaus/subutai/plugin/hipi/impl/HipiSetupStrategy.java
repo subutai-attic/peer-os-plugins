@@ -1,18 +1,19 @@
 package org.safehaus.subutai.plugin.hipi.impl;
 
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -85,20 +86,30 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                     String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
         }
 
-        environment =manager.getEnvironmentManager().getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-
-        if ( environment == null )
+        try
         {
-            throw new ClusterSetupException( "Environment not found" );
+            environment = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
+        catch ( EnvironmentNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Hadoop environment not found: %s", e ) );
+        }
+
 
         if ( !hadoopClusterConfig.getAllNodes().containsAll( config.getNodes() ) )
         {
             throw new ClusterSetupException(
-                    String.format( "Not all nodes belong to Hadoop cluster %s", config.getHadoopClusterName() ));
+                    String.format( "Not all nodes belong to Hadoop cluster %s", config.getHadoopClusterName() ) );
         }
 
-        nodes = environment.getContainerHostsByIds( config.getNodes() );
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException( String.format( "Failed to obtain hadoop environment containers: %s", e ) );
+        }
 
         if ( nodes.size() < config.getNodes().size() )
         {
@@ -131,7 +142,8 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
 
             try
             {
-                RequestBuilder statusCommand = new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) );
+                RequestBuilder statusCommand =
+                        new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) );
                 CommandResult result = commandUtil.execute( statusCommand, node );
                 if ( result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) )
                 {
@@ -161,7 +173,6 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
     }
 
 
-
     private void configure() throws ClusterSetupException
     {
 
@@ -180,13 +191,12 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Hipi..." );
 
 
-
         for ( ContainerHost node : nodes )
         {
             try
             {
-                RequestBuilder installCommand = new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) )
-                        .withTimeout( 300 );
+                RequestBuilder installCommand =
+                        new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 300 );
                 commandUtil.execute( installCommand, node );
             }
             catch ( CommandException e )
@@ -195,17 +205,16 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                         String.format( "Error while installing Hipi on container %s; %s", node.getHostname(),
                                 e.getMessage() ) );
             }
-
         }
-        boolean saved = manager.getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, config.getClusterName(), config );
-
-        if ( saved )
+        try
         {
-            trackerOperation.addLog( "Installation info successfully saved" );
+            manager.saveConfig( config );
         }
-        else
+        catch ( ClusterException e )
         {
             throw new ClusterSetupException( "Failed to save installation info" );
         }
+
+        trackerOperation.addLog( "Installation info successfully saved" );
     }
 }

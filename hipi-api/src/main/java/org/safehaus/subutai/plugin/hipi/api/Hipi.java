@@ -19,4 +19,6 @@ public interface Hipi extends ApiBase<HipiConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( HipiConfig config, TrackerOperation po );
 
     public void saveConfig( final HipiConfig config ) throws ClusterException;
+
+    public void deleteConfig( final HipiConfig config ) throws ClusterException;
 }

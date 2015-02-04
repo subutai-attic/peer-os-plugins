@@ -5,8 +5,10 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -92,13 +94,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             {
                 throw new ClusterException( "Hipi installation not found: " + clusterName );
             }
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-            if ( env == null )
+            Environment env;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
             {
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            Set<ContainerHost> nodes = env.getContainerHostsByIds( config.getNodes() );
+
+            Set<ContainerHost> nodes;
+            try
+            {
+                nodes = env.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                throw new ClusterException( String.format( "Environment containers not found: %s", e ) );
+            }
             for ( ContainerHost node : nodes )
             {
                 if ( !node.isConnected() )
@@ -128,11 +143,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             }
 
 
-            boolean deleted = manager.getPluginDao().deleteInfo( HipiConfig.PRODUCT_KEY, config.getClusterName() );
-            if ( !deleted )
-            {
-                throw new ClusterException( "Failed to delete installation info" );
-            }
+            manager.deleteConfig( config );
+
             trackerOperation.addLogDone( "HIPI installation successfully removed" );
         }
         catch ( ClusterException e )

@@ -3,13 +3,19 @@ package org.safehaus.subutai.plugin.hipi.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -18,7 +24,6 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.hipi.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.hipi.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -27,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-public class HipiImpl implements Hipi
+public class HipiImpl implements Hipi, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( HipiImpl.class.getName() );
@@ -163,6 +168,97 @@ public class HipiImpl implements Hipi
         if ( !getPluginDao().saveInfo( HipiConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final HipiConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().deleteInfo( HipiConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Hipi environment event: Container destroyed: %s", uuid ) );
+        List<HipiConfig> clusters = getClusters();
+        for ( HipiConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info(
+                        String.format( "Hipi environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Hipi environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Hipi environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Hipi environment event: Environment destroyed: %s", uuid ) );
+
+        List<HipiConfig> clusters = getClusters();
+        for ( HipiConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info(
+                        String.format( "Hipi environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Hipi environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
         }
     }
 }

@@ -14,9 +14,10 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -153,8 +154,18 @@ public class Manager
                     {
                         List<UUID> hadoopNodes = hadoopConfig.getAllNodes();
                         hadoopNodes.removeAll( config.getNodes() );
-                        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-                        Set<ContainerHost> nodes = environment.getContainerHostsByIds( new HashSet<>( hadoopNodes ) );
+                        Set<ContainerHost> nodes;
+                        try
+                        {
+                            nodes = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                      .getContainerHostsByIds( new HashSet<>( hadoopNodes ) );
+                        }
+                        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                        {
+                            show( String.format( "Error accessing environment: %s", e ) );
+                            return;
+                        }
+
                         if ( !nodes.isEmpty() )
                         {
                             AddNodeWindow addNodeWindow =
@@ -257,8 +268,17 @@ public class Manager
                 {
                     String lxcHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-                    ContainerHost host = environment.getContainerHostByHostname( lxcHostname );
+                    ContainerHost host;
+                    try
+                    {
+                        host = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                 .getContainerHostByHostname( lxcHostname );
+                    }
+                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                    {
+                        show( String.format( "Error accessing environment: %s", e ) );
+                        return;
+                    }
 
                     if ( host != null )
                     {
@@ -285,8 +305,17 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+            Set<ContainerHost> nodes;
+            try
+            {
+                nodes = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                          .getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+            {
+                show( String.format( "Error accessing environment: %s", e ) );
+                return;
+            }
             populateTable( nodesTable, nodes );
         }
         else
