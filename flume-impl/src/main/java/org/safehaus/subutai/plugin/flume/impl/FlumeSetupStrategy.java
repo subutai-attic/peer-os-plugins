@@ -17,12 +17,15 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
 
 class FlumeSetupStrategy implements ClusterSetupStrategy
 {
+    private static final Logger LOG = LoggerFactory.getLogger( FlumeSetupStrategy.class.getName() );
     final FlumeImpl manager;
     final FlumeConfig config;
     final TrackerOperation po;
@@ -75,7 +78,8 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Container host not found", e );
+            po.addLogFailed( "Container host not found" );
         }
     }
 
@@ -117,7 +121,8 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            return;
         }
 
         if ( environment == null )
@@ -138,7 +143,8 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
             }
             try
             {

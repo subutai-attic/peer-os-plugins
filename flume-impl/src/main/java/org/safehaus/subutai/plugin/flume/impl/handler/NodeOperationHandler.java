@@ -15,6 +15,8 @@ import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.flume.impl.CommandType;
 import org.safehaus.subutai.plugin.flume.impl.Commands;
 import org.safehaus.subutai.plugin.flume.impl.FlumeImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -22,6 +24,7 @@ import com.google.common.base.Preconditions;
 public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
@@ -56,7 +59,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
         }
 
         if ( environment == null )
@@ -72,7 +76,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
         }
 
         if ( host == null )

@@ -43,7 +43,7 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
     private ExecutorService executor;
 
 
-    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Hadoop hadoopManager )
+    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
 
         this.tracker = tracker;
@@ -201,7 +201,6 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
         {
             throw new ClusterException( "Could not save cluster info" );
         }
-
     }
 
 
@@ -240,8 +239,8 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
             {
-                LOG.info(
-                        String.format( "Flume environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Flume environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 if ( clusterConfig.getNodes().contains( uuid ) )
                 {
@@ -277,14 +276,14 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( uuid ) )
             {
-                LOG.info(
-                        String.format( "Flume environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Flume environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info(
-                            String.format( "Flume environment event: Cluster removed", clusterConfig.getClusterName() ) );
+                    LOG.info( String.format( "Flume environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
                 {

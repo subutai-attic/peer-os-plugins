@@ -16,6 +16,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -40,6 +42,7 @@ public class ConfigurationStep extends VerticalLayout
     private final EnvironmentManager environmentManager;
     private Environment hadoopEnvironment;
     final Wizard wizard;
+    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
@@ -144,7 +147,9 @@ public class ConfigurationStep extends VerticalLayout
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
+                                e );
+                        return;
                     }
                     Set<ContainerHost> hadoopNodes = null;
                     try
@@ -154,7 +159,7 @@ public class ConfigurationStep extends VerticalLayout
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Container hosts not found", e );
                     }
                     select.setValue( null );
                     select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );

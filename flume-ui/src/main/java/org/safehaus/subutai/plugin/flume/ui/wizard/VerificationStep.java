@@ -17,6 +17,8 @@ import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -29,6 +31,8 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends VerticalLayout
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Hadoop hadoop, final Flume flume, final ExecutorService executorService,
                              final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
@@ -58,7 +62,8 @@ public class VerificationStep extends VerticalLayout
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            return;
         }
         Set<ContainerHost> nodes = null;
         try
@@ -67,7 +72,7 @@ public class VerificationStep extends VerticalLayout
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Container hosts not found", e );
         }
         for ( ContainerHost host : nodes )
         {

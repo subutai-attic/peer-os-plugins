@@ -27,6 +27,8 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -70,6 +72,7 @@ public class Manager
     private FlumeConfig config;
     private Hadoop hadoop;
     private final EnvironmentManager environmentManager;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
     public Manager( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker,
@@ -135,15 +138,17 @@ public class Manager
                             try
                             {
                                 hosts = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() )
-                                                  .getContainerHostsByIds( nodes );
+                                                          .getContainerHostsByIds( nodes );
                             }
                             catch ( ContainerHostNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Container host not found", e );
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Error getting environment by id: " + hadoopConfig.getEnvironmentId()
+                                                                                                .toString(), e );
+                                return;
                             }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( flume, tracker, executorService, config, hosts );
@@ -320,7 +325,8 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
             }
             Set<ContainerHost> hosts = null;
             try
@@ -329,7 +335,7 @@ public class Manager
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Container host not found", e );
             }
             populateTable( nodesTable, hosts );
         }
@@ -631,7 +637,8 @@ public class Manager
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
                     }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;

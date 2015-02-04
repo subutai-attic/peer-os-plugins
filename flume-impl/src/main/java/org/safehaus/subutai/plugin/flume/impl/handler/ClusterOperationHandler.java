@@ -92,11 +92,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl,
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Container host not found", e );
+                trackerOperation.addLogFailed( "Container host not found" );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
             }
             CommandResult result;
             try
