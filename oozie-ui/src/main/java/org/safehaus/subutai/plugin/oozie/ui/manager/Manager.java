@@ -1,14 +1,18 @@
 package org.safehaus.subutai.plugin.oozie.ui.manager;
 
 
-import com.vaadin.data.Item;
-import com.vaadin.data.Property;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.server.Sizeable;
-import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
+import javax.naming.NamingException;
+
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -21,13 +25,28 @@ import org.safehaus.subutai.plugin.oozie.api.OozieNodeOperationTask;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+
 
 public class Manager
 {
@@ -56,6 +75,7 @@ public class Manager
     private GridLayout contentRoot;
     private OozieClusterConfig config;
     private Hadoop hadoop;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
     public Manager( final ExecutorService executorService, Oozie oozie, Hadoop hadoop, Tracker tracker,
@@ -180,13 +200,26 @@ public class Manager
                 Set<ContainerHost> myHostSet = new HashSet<>();
                 for ( UUID uuid : set )
                 {
-                    myHostSet.add( environmentManager.getEnvironmentByUUID(
-                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                            .getContainerHostById( uuid ) );
+                    try
+                    {
+                        myHostSet.add( environmentManager.findEnvironment(
+                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                                                         .getContainerHostById( uuid ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        LOGGER.error( "Container host not found", e );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
+                    }
                 }
 
-                org.safehaus.subutai.plugin.oozie.ui.manager.AddNodeWindow w = new org.safehaus.subutai.plugin.oozie
-                        .ui.manager.AddNodeWindow(oozie, executorService, tracker, config, myHostSet);
+                org.safehaus.subutai.plugin.oozie.ui.manager.AddNodeWindow w =
+                        new org.safehaus.subutai.plugin.oozie.ui.manager.AddNodeWindow( oozie, executorService, tracker,
+                                config, myHostSet );
                 contentRoot.getUI().addWindow( w );
                 w.addCloseListener( new Window.CloseListener()
                 {
@@ -320,9 +353,22 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = environmentManager
-                        .getEnvironmentByUUID( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                        .getContainerHostByHostname( containerId );
+                ContainerHost containerHost = null;
+                try
+                {
+                    containerHost = environmentManager
+                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                            .getContainerHostByHostname( containerId );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    LOGGER.error( "Container host not found", e );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                    return;
+                }
 
                 if ( containerHost != null )
                 {
@@ -348,12 +394,27 @@ public class Manager
     {
         if ( config != null )
         {
-            populateTable( serverTable, getServers(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
-            populateTable( clientsTable, getClients(
-                    environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts(),
-                    config ) );
+            try
+            {
+                populateTable( serverTable,
+                        getServers( environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                                config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
+            }
+            try
+            {
+                populateTable( clientsTable,
+                        getClients( environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                                config ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Container host not found", e );
+            }
         }
         else
         {
@@ -398,13 +459,13 @@ public class Manager
         for ( final ContainerHost containerHost : containerHosts )
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) );
             final Button startBtn = new Button( START_BUTTON_CAPTION );
-            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
+            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) );
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
+            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) );
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ));
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) );
 
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
             disableButtons( startBtn, stopBtn );
@@ -433,9 +494,10 @@ public class Manager
                             @Override
                             public void buttonClick( Button.ClickEvent clickEvent )
                             {
-                                UUID trackID = oozie.destroyNode(config.getClusterName(), containerHost.getHostname());
-                                ProgressWindow window =
-                                        new ProgressWindow( executorService, tracker, trackID, OozieClusterConfig.PRODUCT_KEY );
+                                UUID trackID =
+                                        oozie.destroyNode( config.getClusterName(), containerHost.getHostname() );
+                                ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                        OozieClusterConfig.PRODUCT_KEY );
                                 window.getWindow().addCloseListener( new Window.CloseListener()
                                 {
                                     @Override

@@ -1,16 +1,23 @@
 package org.safehaus.subutai.plugin.oozie.impl;
 
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-
-import java.util.*;
 
 /**
  * Created by ermek on 1/18/15.
@@ -33,7 +40,15 @@ public class ClusterConfiguration
     {
         HadoopClusterConfig hadoopClusterConfig = manager.getHadoopManager().getCluster(config.getHadoopClusterName());
         Set<UUID> nodeUUIDs = new HashSet<>(hadoopClusterConfig.getAllNodes());
-        Set<ContainerHost> containerHosts = environment.getContainerHostsByIds(nodeUUIDs);
+        Set<ContainerHost> containerHosts = null;
+        try
+        {
+            containerHosts = environment.getContainerHostsByIds(nodeUUIDs);
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         Iterator<ContainerHost> iterator = containerHosts.iterator();
 
         List<CommandResult> commandsResultList = new ArrayList<>();
@@ -41,7 +56,15 @@ public class ClusterConfiguration
 
         while (iterator.hasNext())
         {
-            ContainerHost hadoopNode = environment.getContainerHostById(iterator.next().getId());
+            ContainerHost hadoopNode = null;
+            try
+            {
+                hadoopNode = environment.getContainerHostById(iterator.next().getId());
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             RequestBuilder requestBuilder = Commands.getConfigureRootHostsCommand(hadoopNode.getIpByInterfaceName("eth0"));
             RequestBuilder requestBuilder2 = Commands.getConfigureRootGroupsCommand();
             CommandResult commandResult = null;

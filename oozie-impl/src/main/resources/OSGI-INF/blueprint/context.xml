@@ -3,25 +3,27 @@
 
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-    <reference id="monitor" availability="mandatory"
-               interface="org.safehaus.subutai.core.metric.api.Monitor" />
-    <reference id="quotaManager" availability="mandatory"
-               interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
+  <reference id="monitor" availability="mandatory"
+             interface="org.safehaus.subutai.core.metric.api.Monitor" />
+  <reference id="quotaManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
 
   <bean id="oozie-impl" scope="singleton" class="org.safehaus.subutai.plugin.oozie.impl.OozieImpl"
         init-method="init" destroy-method="destroy">
-      <argument ref="tracker" />
-      <argument ref="hadoopManager" />
-      <argument ref="environmentManager" />
-      <argument ref="monitor" />
-      <property name="quotaManager" ref="quotaManager" />
+    <argument ref="tracker" />
+    <argument ref="hadoopManager" />
+    <argument ref="environmentManager" />
+    <argument ref="monitor" />
+    <property name="quotaManager" ref="quotaManager" />
 
   </bean>
 
   <service ref="oozie-impl" interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
+
+  <service ref="oozie-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>

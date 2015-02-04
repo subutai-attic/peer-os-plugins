@@ -7,10 +7,10 @@ import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -18,7 +18,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.safehaus.subutai.plugin.oozie.api.SetupType;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 import org.slf4j.Logger;
@@ -34,7 +33,7 @@ import com.google.common.base.Strings;
 public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl, OozieClusterConfig>
         implements ClusterOperationHandlerInterface
 {
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class);
     private ClusterOperationType operationType;
     private OozieClusterConfig config;
     private HadoopClusterConfig hadoopConfig;
@@ -76,22 +75,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
 
         try
         {
-            Environment env = null;
-            if ( config.getSetupType()
-                    != SetupType.OVER_HADOOP /*&& config.getSetupType() != SetupType.OVER_ENVIRONMENT */ )
-            {
-                env = manager.getEnvironmentManager()
-                             .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
-            }
-
-
-            ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(), clusterName,
@@ -116,9 +105,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
 
         for ( UUID uuid : config.getClients() )
         {
-            ContainerHost containerHost =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                           .getContainerHostById( uuid );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                trackerOperation.addLogFailed( "Container host not found" );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
+            }
             try
             {
                 CommandResult result = containerHost.execute( Commands.getUninstallClientsCommand() );
@@ -137,8 +139,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
 
         po.addLog( "Uninstalling Oozie server..." );
 
-        ContainerHost containerHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() )
-                                             .getContainerHostById( config.getServer() );
+        ContainerHost containerHost = null;
+        try
+        {
+            containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                                   .getContainerHostById( config.getServer() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
+        }
         try
         {
             CommandResult result = containerHost.execute( Commands.getUninstallServerCommand() );

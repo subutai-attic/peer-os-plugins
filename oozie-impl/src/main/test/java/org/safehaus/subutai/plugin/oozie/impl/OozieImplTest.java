@@ -19,10 +19,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -287,7 +287,7 @@ public class OozieImplTest
     @Test
     public void testGetClusterSetupStrategy() throws Exception
     {
-        oozieImpl.getClusterSetupStrategy( environment, oozieClusterConfig, trackerOperation );
+        oozieImpl.getClusterSetupStrategy( oozieClusterConfig, trackerOperation );
     }
 
 
@@ -323,16 +323,16 @@ public class OozieImplTest
     }
 
 
-//    @Test
-//    public void testSubscribeToAlerts1() throws Exception
-//    {
-//        oozieImpl.subscribeToAlerts( environment );
-//    }
+    //    @Test
+    //    public void testSubscribeToAlerts1() throws Exception
+    //    {
+    //        oozieImpl.subscribeToAlerts( environment );
+    //    }
 
 
-//    @Test
-//    public void testUnsubscribeFromAlerts() throws Exception
-//    {
-//        oozieImpl.unsubscribeFromAlerts( environment );
-//    }
+    //    @Test
+    //    public void testUnsubscribeFromAlerts() throws Exception
+    //    {
+    //        oozieImpl.unsubscribeFromAlerts( environment );
+    //    }
 }

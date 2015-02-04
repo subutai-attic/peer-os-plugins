@@ -21,11 +21,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -97,7 +97,7 @@ public class OverHadoopSetupStrategyTest
     public void setUp() throws Exception
     {
         overHadoopSetupStrategy =
-                new OverHadoopSetupStrategy( environment, oozieClusterConfig, trackerOperation, oozieImpl );
+                new OverHadoopSetupStrategy( oozieClusterConfig, trackerOperation, oozieImpl );
         uuid = new UUID( 50, 50 );
         mySet = new HashSet<>();
         mySet.add( uuid );
@@ -164,7 +164,7 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( null );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( null );
 
         overHadoopSetupStrategy.setup();
     }
@@ -182,7 +182,7 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
@@ -203,7 +203,7 @@ public class OverHadoopSetupStrategyTest
         myList.add( uuid );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
@@ -230,7 +230,7 @@ public class OverHadoopSetupStrategyTest
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( mySet );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
@@ -258,7 +258,7 @@ public class OverHadoopSetupStrategyTest
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( mySet );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
@@ -287,7 +287,7 @@ public class OverHadoopSetupStrategyTest
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( mySet );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         Set<ContainerHost> myCont = new HashSet<>();
         myCont.add( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );

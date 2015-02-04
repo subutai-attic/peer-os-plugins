@@ -12,12 +12,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -82,7 +82,7 @@ public class ClusterOperationHandlerTest
 
         // mock runOperationOnContainers method
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
@@ -129,9 +129,9 @@ public class ClusterOperationHandlerTest
     {
         when( oozieClusterConfig.getClusterName() ).thenReturn( "test" );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.buildEnvironment( any( EnvironmentBlueprint.class ) ) ).thenReturn( environment );
+//        when( environmentManager.buildEnvironment( any( EnvironmentBlueprint.class ) ) ).thenReturn( environment );
         when( oozieImpl.getDefaultEnvironmentBlueprint( oozieClusterConfig ) ).thenReturn( environmentBlueprint );
-        when( oozieImpl.getClusterSetupStrategy( environment, oozieClusterConfig, trackerOperation ) )
+        when( oozieImpl.getClusterSetupStrategy( oozieClusterConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
 
         clusterOperationHandler.run();
@@ -153,7 +153,7 @@ public class ClusterOperationHandlerTest
         myUUID.add( UUID.randomUUID() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
         when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
@@ -169,7 +169,7 @@ public class ClusterOperationHandlerTest
         myUUID.add( UUID.randomUUID() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
         when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );

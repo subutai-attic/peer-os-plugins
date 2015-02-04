@@ -1,16 +1,19 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import java.util.concurrent.ExecutorService;
+
+import javax.naming.NamingException;
+
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
-import javax.naming.NamingException;
-import java.util.concurrent.ExecutorService;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
 
 
 public class Wizard
@@ -60,7 +63,14 @@ public class Wizard
             }
             case 3:
             {
-                vlayout.addComponent(new StepSetConfig(oozie, hadoop, this, environmentManager));
+                try
+                {
+                    vlayout.addComponent(new StepSetConfig(oozie, hadoop, this, environmentManager));
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 break;
             }
             case 4:

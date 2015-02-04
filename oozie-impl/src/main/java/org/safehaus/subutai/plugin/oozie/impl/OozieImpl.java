@@ -3,19 +3,22 @@ package org.safehaus.subutai.plugin.oozie.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -23,6 +26,7 @@ import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -40,7 +44,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 
-public class OozieImpl implements Oozie
+public class OozieImpl implements Oozie, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( OozieImpl.class.getName() );
@@ -238,13 +242,13 @@ public class OozieImpl implements Oozie
     }
 
 
-    public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final OozieClusterConfig config,
+    public ClusterSetupStrategy getClusterSetupStrategy( final OozieClusterConfig config,
                                                          final TrackerOperation po )
     {
         Preconditions.checkNotNull( config, "Oozie cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation is null" );
 
-        return new OverHadoopSetupStrategy( environment, config, po, this );
+        return new OverHadoopSetupStrategy( config, po, this );
     }
 
 
@@ -278,6 +282,32 @@ public class OozieImpl implements Oozie
     }
 
 
+    @Override
+    public void saveConfig( final OozieClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().saveInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+
+    }
+
+
+    @Override
+    public void deleteConfig( final OozieClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDao().deleteInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+
+    }
+
+
     public QuotaManager getQuotaManager()
     {
         return quotaManager;
@@ -290,10 +320,10 @@ public class OozieImpl implements Oozie
     }
 
 
-//    public void subscribeToAlerts( Environment environment ) throws MonitorException
-//    {
-//        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
-//    }
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
+    }
 
 
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
@@ -302,8 +332,88 @@ public class OozieImpl implements Oozie
     }
 
 
-//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-//    {
-//        getMonitor().stopMonitoring( oozieAlertListener, environment );
-//    }
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( oozieAlertListener, environment );
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        // not need
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        // not need
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Oozie environment event: Container destroyed: %s", uuid ) );
+        List<OozieClusterConfig> clusterConfigs = getClusters();
+        for ( final OozieClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                LOG.info( String.format( "Oozie environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Oozie environment event: Before: %s", clusterConfig ) );
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getClients() ) )
+                    {
+                        clusterConfig.getClients().remove( uuid );
+                    }
+
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Oozie environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Oozie environment event: Environment destroyed: %s", uuid ) );
+
+        List<OozieClusterConfig> clusterConfigs = getClusters();
+        for ( final OozieClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            {
+                LOG.info( String.format( "Oozie environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Oozie environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
+    }
 }
