@@ -3,8 +3,8 @@ package org.safehaus.subutai.plugin.sqoop.api;
 
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -25,5 +25,10 @@ public interface Sqoop extends ApiBase<SqoopConfig>
 
     public UUID importData( ImportSetting settings );
 
+    public String reviewExportQuery( ExportSetting settings );
+
+    public String reviewImportQuery( ImportSetting settings );
+
     public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation po );
+
 }

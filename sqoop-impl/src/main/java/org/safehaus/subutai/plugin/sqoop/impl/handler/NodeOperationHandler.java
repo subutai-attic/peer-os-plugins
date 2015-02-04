@@ -4,8 +4,10 @@ package org.safehaus.subutai.plugin.sqoop.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -65,13 +67,27 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
                 throw new ClusterException( String.format( "Cluster with name %s does not exist", clusterName ) );
             }
 
-            environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             if ( environment == null )
             {
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            node = environment.getContainerHostByHostname( hostname );
+            try
+            {
+                node = environment.getContainerHostByHostname( hostname );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             if ( node == null )
             {
                 throw new ClusterException( "Node not found in environment: " + hostname );

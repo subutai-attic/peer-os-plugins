@@ -16,7 +16,6 @@ public class SqoopConfig implements ConfigBase
     public static final String TEMPLATE_NAME = "hadoopsqoop";
 
     private String clusterName = "";
-    private SetupType setupType;
     private UUID environmentId;
     private int nodesCount;
     private Set<UUID> nodes = new HashSet();
@@ -48,18 +47,6 @@ public class SqoopConfig implements ConfigBase
     public String getProductKey()
     {
         return PRODUCT_KEY;
-    }
-
-
-    public SetupType getSetupType()
-    {
-        return setupType;
-    }
-
-
-    public void setSetupType( SetupType setupType )
-    {
-        this.setupType = setupType;
     }
 
 

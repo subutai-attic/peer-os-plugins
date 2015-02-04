@@ -6,11 +6,10 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -18,9 +17,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.safehaus.subutai.plugin.sqoop.api.SetupType;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 import org.safehaus.subutai.plugin.sqoop.impl.CommandFactory;
 import org.safehaus.subutai.plugin.sqoop.impl.SqoopImpl;
@@ -86,19 +83,25 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
         Environment env = null;
         try
         {
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+            if ( hc == null )
             {
-                HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
-                if ( hc == null )
-                {
-                    throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
-                }
-                env = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
-                if ( env == null )
-                {
-                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
-                            hadoopConfig.getEnvironmentId() ) );
-                }
+                throw new ClusterException( "Hadoop cluster not found: " + config.getHadoopClusterName() );
+            }
+
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+
+            if ( env == null )
+            {
+                throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                        hadoopConfig.getEnvironmentId() ) );
             }
 
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( env, config, trackerOperation );
@@ -135,13 +138,30 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             {
                 throw new ClusterException( "Sqoop installation not found: " + clusterName );
             }
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = null;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+
             if ( env == null )
             {
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            Set<ContainerHost> nodes = env.getContainerHostsByIds( config.getNodes() );
+            Set<ContainerHost> nodes = null;
+            try
+            {
+                nodes = env.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             for ( ContainerHost node : nodes )
             {
                 if ( !node.isConnected() )
@@ -152,35 +172,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
 
             trackerOperation.addLog( "Uninstalling Sqoop..." );
 
-            if ( config.getSetupType() == SetupType.OVER_HADOOP )
+            RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL, null ) );
+            for ( ContainerHost node : nodes )
             {
-                RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL, null ) );
-                for ( ContainerHost node : nodes )
+                try
                 {
-                    try
+                    CommandResult result = node.execute( rb );
+                    if ( result.hasSucceeded() )
                     {
-                        CommandResult result = node.execute( rb );
-                        if ( result.hasSucceeded() )
-                        {
-                            trackerOperation.addLog( "Sqoop uninstalled from " + node.getHostname() );
-                        }
-                        else
-                        {
-                            throw new ClusterException(
-                                    String.format( "Could not uninstall Sqoop from node %s : %s", node.getHostname(),
-                                            result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
-                        }
+                        trackerOperation.addLog( "Sqoop uninstalled from " + node.getHostname() );
                     }
-                    catch ( CommandException e )
+                    else
                     {
                         throw new ClusterException(
-                                String.format( "Failed to uninstall Sqoop on node %s", node.getHostname() ), e );
+                                String.format( "Could not uninstall Sqoop from node %s : %s", node.getHostname(),
+                                        result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
                     }
                 }
-            }
-            else if ( config.getSetupType() == SetupType.WITH_HADOOP )
-            {
-                destroyEnvironment( env );
+                catch ( CommandException e )
+                {
+                    throw new ClusterException(
+                            String.format( "Failed to uninstall Sqoop on node %s", node.getHostname() ), e );
+                }
             }
 
             boolean deleted = manager.getPluginDao().deleteInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName() );
@@ -196,22 +209,5 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             trackerOperation.addLogFailed( String.format( "Failed to uninstall cluster: %s", e.getMessage() ) );
         }
     }
-
-
-    private void destroyEnvironment( Environment environment )
-    {
-        if ( environment != null )
-        {
-            try
-            {
-                manager.getEnvironmentManager().destroyEnvironment( environment.getId() );
-            }
-            catch ( EnvironmentDestroyException ex )
-            {
-                LOG.error( "Failed to destroy environment: {}", environment.getId(), ex );
-            }
-        }
-    }
-
 }
 

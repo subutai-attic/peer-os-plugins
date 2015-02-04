@@ -9,10 +9,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
@@ -218,7 +219,15 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost host = environment.getContainerHostByHostname( hostname );
+                    ContainerHost host = null;
+                    try
+                    {
+                        host = environment.getContainerHostByHostname( hostname );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     if ( host != null && host.isConnected() )
                     {
                         TerminalWindow terminal = new TerminalWindow( host );
@@ -244,8 +253,23 @@ public class Manager
     {
         if ( config != null )
         {
-            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            Set<ContainerHost> nodes = null;
+            try
+            {
+                nodes = environment.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             populateTable( nodesTable, nodes );
         }
         else

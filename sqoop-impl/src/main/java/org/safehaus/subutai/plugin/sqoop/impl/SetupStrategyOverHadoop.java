@@ -8,10 +8,11 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -35,11 +36,21 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         checkConfig();
 
         //check if nodes are connected
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> nodes = null;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
         if ( nodes.size() < config.getNodes().size() )
         {
-            throw new ClusterSetupException( "Fewer nodes found in the encironment than expected" );
+            throw new ClusterSetupException( "Fewer nodes found in the environment than expected" );
         }
+
         for ( ContainerHost node : nodes )
         {
             if ( !node.isConnected() )
@@ -78,7 +89,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
                         to.addLog( String.format( "Node %s has already Sqoop installed.", node.getHostname() ) );
                         it.remove();
                     }
-                    else if ( res.getStdOut().contains( hadoop_pack ) )
+                    else if ( ! res.getStdOut().contains( hadoop_pack ) )
                     {
                         throw new ClusterSetupException( "Hadoop not installed on node " + node.getHostname() );
                     }

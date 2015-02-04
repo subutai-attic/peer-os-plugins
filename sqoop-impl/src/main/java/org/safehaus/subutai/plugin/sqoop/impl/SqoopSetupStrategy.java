@@ -1,12 +1,11 @@
 package org.safehaus.subutai.plugin.sqoop.impl;
 
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.sqoop.api.SetupType;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
 
@@ -49,12 +48,9 @@ abstract class SqoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( "Environment not specified" );
         }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        if ( config.getNodes() == null || config.getNodes().isEmpty() )
         {
-            if ( config.getNodes() == null || config.getNodes().isEmpty() )
-            {
-                throw new ClusterSetupException( m + "Target nodes not specified" );
-            }
+            throw new ClusterSetupException( m + "Target nodes not specified" );
         }
     }
 
