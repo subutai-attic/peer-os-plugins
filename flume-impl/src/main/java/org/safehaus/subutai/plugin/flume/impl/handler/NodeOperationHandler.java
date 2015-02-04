@@ -4,15 +4,19 @@ package org.safehaus.subutai.plugin.flume.impl.handler;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.flume.impl.CommandType;
 import org.safehaus.subutai.plugin.flume.impl.Commands;
 import org.safehaus.subutai.plugin.flume.impl.FlumeImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -20,6 +24,7 @@ import com.google.common.base.Preconditions;
 public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
@@ -47,7 +52,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
+        }
 
         if ( environment == null )
         {
@@ -55,7 +69,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             return;
         }
 
-        ContainerHost host = environment.getContainerHostByHostname( hostName );
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostName );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found", e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
 
         if ( host == null )
         {

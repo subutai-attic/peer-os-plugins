@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.flume.api.Flume;
@@ -15,6 +17,8 @@ import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -27,6 +31,8 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends VerticalLayout
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Hadoop hadoop, final Flume flume, final ExecutorService executorService,
                              final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
@@ -49,9 +55,25 @@ public class VerificationStep extends VerticalLayout
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation Name", wizard.getConfig().getClusterName() );
 
-        Environment hadoopEnvironment =
-                environmentManager.getEnvironmentByUUID( hadoopClusterConfig.getEnvironmentId() );
-        Set<ContainerHost> nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
+        Environment hadoopEnvironment = null;
+        try
+        {
+            hadoopEnvironment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            return;
+        }
+        Set<ContainerHost> nodes = null;
+        try
+        {
+            nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container hosts not found", e );
+        }
         for ( ContainerHost host : nodes )
         {
             cfgView.addStringCfg( "Node to install", host.getHostname() + "" );

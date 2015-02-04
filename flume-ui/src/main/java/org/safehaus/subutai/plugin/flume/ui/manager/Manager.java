@@ -10,9 +10,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -25,6 +27,8 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -68,6 +72,7 @@ public class Manager
     private FlumeConfig config;
     private Hadoop hadoop;
     private final EnvironmentManager environmentManager;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
     public Manager( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker,
@@ -129,9 +134,22 @@ public class Manager
                         nodes.removeAll( config.getNodes() );
                         if ( !nodes.isEmpty() )
                         {
-                            Set<ContainerHost> hosts =
-                                    environmentManager.getEnvironmentByUUID( hadoopConfig.getEnvironmentId() )
-                                                      .getContainerHostsByIds( nodes );
+                            Set<ContainerHost> hosts = null;
+                            try
+                            {
+                                hosts = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() )
+                                                          .getContainerHostsByIds( nodes );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                LOGGER.error( "Container host not found", e );
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                LOGGER.error( "Error getting environment by id: " + hadoopConfig.getEnvironmentId()
+                                                                                                .toString(), e );
+                                return;
+                            }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( flume, tracker, executorService, config, hosts );
                             contentRoot.getUI().addWindow( addNodeWindow );
@@ -300,8 +318,25 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            Set<ContainerHost> hosts = environment.getContainerHostsByIds( config.getNodes() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
+            }
+            Set<ContainerHost> hosts = null;
+            try
+            {
+                hosts = environment.getContainerHostsByIds( config.getNodes() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Container host not found", e );
+            }
             populateTable( nodesTable, hosts );
         }
         else
@@ -594,8 +629,17 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
