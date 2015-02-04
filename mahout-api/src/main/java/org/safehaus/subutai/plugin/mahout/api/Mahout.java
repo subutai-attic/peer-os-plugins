@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -23,4 +24,8 @@ public interface Mahout extends ApiBase<MahoutClusterConfig>
     public UUID checkNode( String clustername, String lxchostname );
 
     public ClusterSetupStrategy getClusterSetupStrategy( MahoutClusterConfig config, TrackerOperation po );
+
+    public void saveConfig( final MahoutClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final MahoutClusterConfig config ) throws ClusterException;
 }

@@ -8,15 +8,21 @@ package org.safehaus.subutai.plugin.mahout.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -32,7 +38,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-public class MahoutImpl implements Mahout
+public class MahoutImpl implements Mahout, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( MahoutImpl.class.getName() );
@@ -206,5 +212,108 @@ public class MahoutImpl implements Mahout
     public ClusterSetupStrategy getClusterSetupStrategy( final MahoutClusterConfig config, final TrackerOperation po )
     {
         return new OverHadoopSetupStrategy( this, config, po );
+    }
+
+
+    @Override
+    public void saveConfig( final MahoutClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final MahoutClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.deleteInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Mahout environment event: Container destroyed: %s", uuid ) );
+        List<MahoutClusterConfig> clusters = getClusters();
+        for ( MahoutClusterConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Mahout environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Mahout environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Mahout environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Mahout environment event: Environment destroyed: %s", uuid ) );
+
+        List<MahoutClusterConfig> clusters = getClusters();
+        for ( MahoutClusterConfig clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Mahout environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Mahout environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
     }
 }

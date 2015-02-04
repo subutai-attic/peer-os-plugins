@@ -16,5 +16,6 @@
   </bean>
 
   <service ref="mahout-impl" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
+  <service ref="mahout-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>
