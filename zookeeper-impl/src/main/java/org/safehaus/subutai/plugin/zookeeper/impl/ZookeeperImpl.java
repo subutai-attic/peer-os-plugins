@@ -11,8 +11,6 @@ import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
@@ -407,31 +405,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
                 return Commands.getStatusCommand();
         }
         return null;
-    }
-
-
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( ZookeeperClusterConfig config )
-    {
-        Preconditions.checkNotNull( config, "Zookeeper cluster config is null" );
-
-
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint.setName(
-                String.format( "%s-%s", ZookeeperClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ) );
-
-        //node group
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setName( "DEFAULT" );
-        nodeGroup.setLinkHosts( false );
-        nodeGroup.setExchangeSshKeys( false );
-        nodeGroup.setNumberOfNodes( config.getNumberOfNodes() );
-        nodeGroup.setTemplateName( config.getTemplateName() );
-        nodeGroup.setPlacementStrategy( ZookeeperStandaloneSetupStrategy.getNodePlacementStrategy() );
-
-        environmentBlueprint.setNodeGroups( Sets.newHashSet( nodeGroup ) );
-
-
-        return environmentBlueprint;
     }
 
 

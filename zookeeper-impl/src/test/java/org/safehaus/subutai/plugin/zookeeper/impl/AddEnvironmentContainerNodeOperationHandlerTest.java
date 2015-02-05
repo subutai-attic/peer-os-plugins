@@ -5,7 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -54,7 +54,7 @@ public class AddEnvironmentContainerNodeOperationHandlerTest
 
     @Ignore
     @Test
-    public void testWithStandaloneSetupType() throws EnvironmentBuildException
+    public void testWithStandaloneSetupType() throws EnvironmentCreationException
     {
         ZookeeperImpl zookeeperMock = mock( ZookeeperImpl.class );
         when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
