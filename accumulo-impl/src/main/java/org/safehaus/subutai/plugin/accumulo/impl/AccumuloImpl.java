@@ -11,11 +11,9 @@ import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
+import org.safehaus.subutai.common.environment.Blueprint;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.EnvironmentBuildTask;
-import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.UUIDUtil;
@@ -344,33 +342,6 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
                 new RemovePropertyOperationHandler( this, clusterName, propertyName );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public EnvironmentBuildTask getDefaultEnvironmentBlueprint( final AccumuloClusterConfig config )
-    {
-
-        EnvironmentBuildTask environmentBuildTask = new EnvironmentBuildTask();
-
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint
-                .setName( String.format( "%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID() ) );
-
-        environmentBlueprint.setLinkHosts( true );
-        environmentBlueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-        environmentBlueprint.setExchangeSshKeys( true );
-
-        NodeGroup nodeGroup = new NodeGroup();
-        nodeGroup.setTemplateName( config.getTemplateName() );
-        nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-        nodeGroup.setNumberOfNodes( config.getAllNodes().size() );
-
-        environmentBlueprint.setNodeGroups( Sets.newHashSet( nodeGroup ) );
-
-        environmentBuildTask.setEnvironmentBlueprint( environmentBlueprint );
-
-        return environmentBuildTask;
     }
 
 

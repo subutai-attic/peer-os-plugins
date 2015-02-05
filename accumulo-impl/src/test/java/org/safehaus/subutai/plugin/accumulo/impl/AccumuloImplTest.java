@@ -364,17 +364,6 @@ public class AccumuloImplTest
         assertEquals( uuid, id );
     }
 
-
-    @Test
-    public void testGetDefaultEnvironmentBlueprint() throws Exception
-    {
-        accumuloImpl.getDefaultEnvironmentBlueprint( accumuloClusterConfig );
-
-        // assertions
-        assertNotNull( accumuloImpl.getDefaultEnvironmentBlueprint( accumuloClusterConfig ) );
-    }
-
-
     @Test
     public void testOnEnvironmentCreated() throws Exception
     {
