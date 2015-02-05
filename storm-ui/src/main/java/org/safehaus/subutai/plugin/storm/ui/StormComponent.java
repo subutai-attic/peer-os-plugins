@@ -5,12 +5,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.ui.environment.EnvironmentWizard;
 import org.safehaus.subutai.plugin.storm.ui.manager.Manager;
-import org.safehaus.subutai.plugin.storm.ui.wizard.Wizard;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 
 import com.vaadin.ui.CustomComponent;

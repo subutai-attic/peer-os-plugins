@@ -4,9 +4,11 @@ package org.safehaus.subutai.plugin.storm.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
@@ -46,8 +48,24 @@ public class VerificationStep extends Panel
         if ( config.isExternalZookeeper() )
         {
             ZookeeperClusterConfig zookeeperClusterConfig = wizard.getZookeeperClusterConfig();
-            Environment zookeeperEnvironment = environmentManager.getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-            ContainerHost nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            ContainerHost nimbusHost = null;
+            try
+            {
+                nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             cfgView.addStringCfg( "Master node", nimbusHost.getHostname() );
         }
         cfgView.addStringCfg( "Supervisor nodes count", config.getSupervisorsCount() + "" );

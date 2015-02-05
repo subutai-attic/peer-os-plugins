@@ -5,8 +5,8 @@
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="zookeeperManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="org.safehaus.subutai.core.peer.api.PeerManager" />
 

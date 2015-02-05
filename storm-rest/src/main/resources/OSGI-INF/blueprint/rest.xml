@@ -10,8 +10,8 @@
       <cxf:logging />
     </cxf:features>
   </cxf:bus>
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <reference id="stormManager" availability="mandatory" interface="org.safehaus.subutai.plugin.storm.api.Storm" />
   <reference id="zookeeperManager" availability="mandatory" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />

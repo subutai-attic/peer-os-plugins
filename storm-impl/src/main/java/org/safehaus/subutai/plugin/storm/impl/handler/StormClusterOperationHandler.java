@@ -10,24 +10,23 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentDestroyException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
@@ -53,7 +52,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     private ClusterOperationType operationType;
     private StormClusterConfiguration config;
     private String hostname;
-
+    private Environment environment;
 
     public StormClusterOperationHandler( final StormImpl manager,
                                          final StormClusterConfiguration config,
@@ -64,6 +63,15 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( config.getProductKey(),
                 String.format( "Running %s operation on %s...", operationType , clusterName ) );
+
+//        try
+//        {
+//            this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+//        }
+//        catch ( EnvironmentNotFoundException e )
+//        {
+//            e.printStackTrace();
+//        }
     }
 
 
@@ -91,7 +99,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        Environment environment;
         List<CommandResult> commandResultList = new ArrayList<>(  );
         switch ( clusterOperationType )
         {
@@ -102,7 +109,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 destroyCluster();
                 break;
             case START_ALL:
-                environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+                try
+                {
+                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 for ( ContainerHost containerHost : environment.getContainerHosts() )
                 {
                     if ( config.getNimbus().equals( containerHost.getId() ) ) {
@@ -117,7 +131,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 break;
             case STOP_ALL:
-                environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+                try
+                {
+                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 for ( ContainerHost containerHost : environment.getContainerHosts() )
                 {
                     if ( config.getNimbus().equals( containerHost.getId() ) ) {
@@ -132,7 +153,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 break;
             case STATUS_ALL:
-                environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+                try
+                {
+                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 for ( ContainerHost containerHost : environment.getContainerHosts() )
                 {
                     if ( config.getNimbus().equals( containerHost.getId() ) ) {
@@ -182,7 +210,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
          * first check if there are containers in environment that is not being used in storm cluster,
          * if yes, then do NOT create new containers.
          */
-        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+        try
+        {
+            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         boolean allContainersNotBeingUsed = false;
         for ( ContainerHost containerHost : environment.getContainerHosts() ){
             if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
@@ -190,36 +225,43 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             }
         }
 
+        if ( ( ! allContainersNotBeingUsed ) ){
+
+            NodeGroup nodeGroup = new NodeGroup();
+            nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
+            nodeGroup.setLinkHosts( true );
+            nodeGroup.setExchangeSshKeys( true );
+            nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
+            nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
+            nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
+            nodeGroup.setNumberOfNodes( 1 );
+
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            String ngJSON = gson.toJson(nodeGroup);
+
+            trackerOperation.addLog( "Creating new containers..." );
+//                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
+        }
+        else{
+            trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
+        }
+
+
+        // update cluster configuration on DB
+        ContainerHost newSupervisorNode = null;
+        int newNodeCount = 0;
         try
         {
-            if ( ( ! allContainersNotBeingUsed ) ){
-
-                NodeGroup nodeGroup = new NodeGroup();
-                nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
-                nodeGroup.setLinkHosts( true );
-                nodeGroup.setExchangeSshKeys( true );
-                nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-                nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
-                nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-                nodeGroup.setNumberOfNodes( 1 );
-
-                GsonBuilder builder = new GsonBuilder();
-                Gson gson = builder.create();
-                String ngJSON = gson.toJson(nodeGroup);
-
-                trackerOperation.addLog( "Creating new containers..." );
-                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
-            }
-            else{
-                trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
-            }
-
-
-            // update cluster configuration on DB
-            ContainerHost newSupervisorNode = null;
-            int newNodeCount = 0;
-            environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            for ( ContainerHost containerHost : environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts() )
+            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            for ( ContainerHost containerHost : environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts() )
             {
                 if ( ! config.getAllNodes().contains( containerHost.getId() ) ){
                     if ( newNodeCount < count ){
@@ -230,9 +272,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                     }
                 }
             }
-            manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
 
-            // configure ssh keys
+        // configure ssh keys
             /*
                 TODO: do we need to configure ssh keys of storm nodes?
                 Set<ContainerHost> allNodes = new HashSet<>();
@@ -258,22 +305,25 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
             */
 
-            // configure new supervisor node
-            configureNStart( newSupervisorNode, config, environment );
+        // configure new supervisor node
+        configureNStart( newSupervisorNode, config, environment );
 
-            trackerOperation.addLogDone( "Finished." );
-        }
-        catch ( EnvironmentBuildException e )
-        {
-            e.printStackTrace();
-        }
+        trackerOperation.addLogDone( "Finished." );
     }
 
 
     private void configureNStart( ContainerHost stormNode, StormClusterConfiguration config, Environment environment ){
 
         String zk_servers = makeZookeeperServersList( config );
-        ContainerHost nimbusHost = environment.getContainerHostById( config.getNimbus() );
+        ContainerHost nimbusHost = null;
+        try
+        {
+            nimbusHost = environment.getContainerHostById( config.getNimbus() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         Map<String, String> paramValues = new LinkedHashMap<>();
         paramValues.put( "storm.zookeeper.servers", zk_servers );
         paramValues.put( "storm.local.dir", "/var/lib/storm" );
@@ -316,9 +366,25 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             if ( zk_config != null )
             {
                 StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment = manager.getEnvironmentManager().getEnvironmentByUUID(
-                        zk_config.getEnvironmentId() );
-                Set<ContainerHost> zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                Environment zookeeperEnvironment = null;
+                try
+                {
+                    zookeeperEnvironment = manager.getEnvironmentManager().findEnvironment(
+                            zk_config.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                Set<ContainerHost> zookeeperNodes = null;
+                try
+                {
+                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 for ( ContainerHost containerHost : zookeeperNodes )
                 {
                     if ( sb.length() > 0 )
@@ -332,7 +398,21 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         }
         else if ( config.getNimbus() != null )
         {
-            ContainerHost nimbusHost = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHostById( config.getNimbus() );
+            ContainerHost nimbusHost = null;
+            try
+            {
+                nimbusHost =
+                        manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                                           .getContainerHostById( config.getNimbus() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             return nimbusHost.getIpByInterfaceName( "eth0" );
         }
         return null;
@@ -372,17 +452,17 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
         try
         {
-            Environment env = manager.getEnvironmentManager()
-                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
-            trackerOperation.addLog( String.format( "Environment created successfully", clusterName ) );
+//            Environment env = manager.getEnvironmentManager()
+//                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config ) );
+//            trackerOperation.addLog( String.format( "Environment created successfully", clusterName ) );
 
             ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, config, trackerOperation );
+                    manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 
             trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
-        catch ( EnvironmentBuildException | ClusterSetupException e )
+        catch ( ClusterSetupException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Failed to setup %s cluster %s : %s", config.getProductKey(), clusterName,
@@ -405,23 +485,44 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         try
         {
             trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId() );
+            try
+            {
+                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(),false,false );
+            }
+            catch ( EnvironmentDestructionException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             if ( config.isExternalZookeeper() ) {
                 ZookeeperClusterConfig zookeeperClusterConfig =
                         manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                Environment zookeeperEnvironment =
-                        manager.getEnvironmentManager().getEnvironmentByUUID(
-                                zookeeperClusterConfig.getEnvironmentId() );
-                ContainerHost nimbusNode = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+                Environment zookeeperEnvironment = null;
+                try
+                {
+                    zookeeperEnvironment = manager.getEnvironmentManager().findEnvironment(
+                            zookeeperClusterConfig.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                ContainerHost nimbusNode = null;
+                try
+                {
+                    nimbusNode = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 nimbusNode.execute( new RequestBuilder( Commands.make( CommandType.PURGE ) ) );
             }
             manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
             trackerOperation.addLogDone( "Cluster destroyed" );
-        }
-        catch ( EnvironmentDestroyException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error destroying environment, %s", e.getMessage() ) );
-            LOG.error( e.getMessage(), e );
         }
         catch ( CommandException e )
         {

@@ -10,13 +10,14 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.protocol.Criteria;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -33,25 +34,33 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
 
     private final StormImpl manager;
     private final StormClusterConfiguration config;
-    private final Environment environment;
+    private Environment environment;
     private final TrackerOperation po;
-    private final EnvironmentManager environmentManager;
+    private ContainerHost nimbusHost;
 
-    public StormSetupStrategyDefault( StormImpl manager, StormClusterConfiguration config, Environment environment,
-                                      TrackerOperation po, EnvironmentManager environmentManager )
+
+    public StormSetupStrategyDefault( StormImpl manager, StormClusterConfiguration config, TrackerOperation po )
     {
         this.manager = manager;
         this.config = config;
-        this.environment = environment;
         this.po = po;
-        this.environmentManager = environmentManager;
     }
 
 
     @Override
     public ConfigBase setup() throws ClusterSetupException
     {
+        ZookeeperClusterConfig zookeeperClusterConfig =
+                manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
 
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         if ( environment == null )
         {
             throw new ClusterSetupException( "Environment not specified" );
@@ -135,21 +144,28 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                             config.getSupervisorsCount() ) );
         }
 
-        ContainerHost containerHost = environment.getContainerHostById( config.getNimbus() );
+        try
+        {
+            ContainerHost containerHost = environment.getContainerHostById( config.getNimbus() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         //TODO enable these checks when isConnected method working OK
-//        if ( !containerHost.isConnected() )
-//        {
-//            throw new ClusterSetupException( "Nimbus node is not connected" );
-//        }
-//        for ( UUID supervisorUuids : config.getSupervisors() )
-//        {
-//            if ( ! environment
-//                    .getContainerHostById( supervisorUuids ).isConnected() )
-//            {
-//                throw new ClusterSetupException( "Not all worker nodes are connected" );
-//            }
-//        }
+        //        if ( !containerHost.isConnected() )
+        //        {
+        //            throw new ClusterSetupException( "Nimbus node is not connected" );
+        //        }
+        //        for ( UUID supervisorUuids : config.getSupervisors() )
+        //        {
+        //            if ( ! environment
+        //                    .getContainerHostById( supervisorUuids ).isConnected() )
+        //            {
+        //                throw new ClusterSetupException( "Not all worker nodes are connected" );
+        //            }
+        //        }
 
         configure();
 
@@ -172,29 +188,61 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         Map<String, String> paramValues = new LinkedHashMap<>();
         paramValues.put( "storm.zookeeper.servers", zk_servers );
         paramValues.put( "storm.local.dir", "/var/lib/storm" );
-        ContainerHost nimbusHost;
-        if ( config.isExternalZookeeper() ) {
+
+        if ( config.isExternalZookeeper() )
+        {
             ZookeeperClusterConfig zookeeperClusterConfig =
                     manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment =
-                    environmentManager.getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-            nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment =
+                        manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
-        else {
-            nimbusHost = environment.getContainerHostById( config.getNimbus() );
+        else
+        {
+            try
+            {
+                nimbusHost = environment.getContainerHostById( config.getNimbus() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
         paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
 
-        Set<ContainerHost> supervisorNodes = environment.getContainerHostsByIds( config.getSupervisors() );
+        Set<ContainerHost> supervisorNodes = null;
+        try
+        {
+            supervisorNodes = environment.getContainerHostsByIds( config.getSupervisors() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
-        Set<ContainerHost> allNodes = new HashSet<>(  );
+        Set<ContainerHost> allNodes = new HashSet<>();
         allNodes.add( nimbusHost );
         allNodes.addAll( supervisorNodes );
 
         ContainerHost stormNode;
         Iterator<ContainerHost> iterator = allNodes.iterator();
 
-        while( iterator.hasNext() )
+        while ( iterator.hasNext() )
         {
             stormNode = iterator.next();
             int operation_count = 0;
@@ -205,14 +253,15 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
 
 
                 // Install zookeeper on nimbus node if embedded zookeeper is selected
-                if ( ! config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
+                if ( !config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
                         && operation_count == 0 )
                 {
                     String installZookeeperCommand = manager.getZookeeperManager().getCommand( CommandType.INSTALL );
                     CommandResult commandResult = null;
                     try
                     {
-                        commandResult = stormNode.execute( new RequestBuilder( installZookeeperCommand ).withTimeout( 1800 ) );
+                        commandResult =
+                                stormNode.execute( new RequestBuilder( installZookeeperCommand ).withTimeout( 1800 ) );
                     }
                     catch ( CommandException e )
                     {
@@ -225,11 +274,13 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 else if ( config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
                         && operation_count == 0 )
                 {
-                    String installStormCommand = Commands.make( org.safehaus.subutai.plugin.storm.impl.CommandType.INSTALL );
+                    String installStormCommand =
+                            Commands.make( org.safehaus.subutai.plugin.storm.impl.CommandType.INSTALL );
                     CommandResult commandResult = null;
                     try
                     {
-                        commandResult = stormNode.execute( new RequestBuilder( installStormCommand ).withTimeout( 1800 ) );
+                        commandResult =
+                                stormNode.execute( new RequestBuilder( installStormCommand ).withTimeout( 1800 ) );
                     }
                     catch ( CommandException e )
                     {
@@ -237,7 +288,6 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                     }
                     po.addLog( String.format( "Storm %s installed on zookeeper node %s",
                             commandResult.hasSucceeded() ? "" : "not", stormNode.getHostname() ) );
-
                 }
                 try
                 {
@@ -247,7 +297,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 }
                 catch ( CommandException exception )
                 {
-                    po.addLogFailed("Failed to configure " + stormNode + ": " + exception );
+                    po.addLogFailed( "Failed to configure " + stormNode + ": " + exception );
                     exception.printStackTrace();
                 }
                 operation_count++;
@@ -266,8 +316,25 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             if ( zk_config != null )
             {
                 StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment = environmentManager.getEnvironmentByUUID( zk_config.getEnvironmentId() );
-                Set<ContainerHost> zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                Environment zookeeperEnvironment = null;
+                try
+                {
+                    zookeeperEnvironment =
+                            manager.getEnvironmentManager().findEnvironment( zk_config.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                Set<ContainerHost> zookeeperNodes = null;
+                try
+                {
+                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
                 for ( ContainerHost containerHost : zookeeperNodes )
                 {
                     if ( sb.length() > 0 )
@@ -281,7 +348,15 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
         else if ( config.getNimbus() != null )
         {
-            ContainerHost nimbusHost = environment.getContainerHostById( config.getNimbus() );
+            ContainerHost nimbusHost = null;
+            try
+            {
+                nimbusHost = environment.getContainerHostById( config.getNimbus() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             return nimbusHost.getIpByInterfaceName( "eth0" );
         }
 
@@ -300,7 +375,6 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
 
             default:
                 return new PlacementStrategy( "ROUND_ROBIN" );
-
         }
     }
 }

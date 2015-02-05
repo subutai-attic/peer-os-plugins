@@ -9,16 +9,17 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
-import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.api.StormNodeOperationTask;
@@ -372,9 +373,25 @@ public class Manager
                 {
                     String containerName =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+                    Environment environment = null;
+                    try
+                    {
+                        environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
 
-                    ContainerHost containerHost = environment.getContainerHostByHostname( containerName );
+                    ContainerHost containerHost = null;
+                    try
+                    {
+                        containerHost = environment.getContainerHostByHostname( containerName );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
 
                     // Check if the node is involved inside Zookeeper cluster
                     if ( containerHost == null )
@@ -383,9 +400,24 @@ public class Manager
                                 zookeeper.getCluster( config.getZookeeperClusterName() );
                         if ( zookeeperCluster != null )
                         {
-                            Environment zookeeperEnvironment =
-                                    environmentManager.getEnvironmentByUUID( zookeeperCluster.getEnvironmentId() );
-                            containerHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+                            Environment zookeeperEnvironment = null;
+                            try
+                            {
+                                zookeeperEnvironment =
+                                        environmentManager.findEnvironment( zookeeperCluster.getEnvironmentId() );
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                e.printStackTrace();
+                            }
+                            try
+                            {
+                                containerHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
@@ -475,25 +507,61 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             Set<ContainerHost> nimbusHost = new HashSet<>();
             if ( !config.isExternalZookeeper() )
             {
-                nimbusHost.add( environment.getContainerHostById( config.getNimbus() ) );
+                try
+                {
+                    nimbusHost.add( environment.getContainerHostById( config.getNimbus() ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
             }
             else
             {
                 ZookeeperClusterConfig zookeeperCluster = zookeeper.getCluster( config.getZookeeperClusterName() );
-                Environment zookeeperEnvironment =
-                        environmentManager.getEnvironmentByUUID( zookeeperCluster.getEnvironmentId() );
-                nimbusHost.add( zookeeperEnvironment.getContainerHostById( config.getNimbus() ) );
+                Environment zookeeperEnvironment = null;
+                try
+                {
+                    zookeeperEnvironment = environmentManager.findEnvironment( zookeeperCluster.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                try
+                {
+                    nimbusHost.add( zookeeperEnvironment.getContainerHostById( config.getNimbus() ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
             }
             populateTable( masterTable, true, nimbusHost );
 
             Set<ContainerHost> supervisorHosts = new HashSet<>();
             for ( UUID uuid : config.getSupervisors() )
             {
-                supervisorHosts.add( environment.getContainerHostById( uuid ) );
+                try
+                {
+                    supervisorHosts.add( environment.getContainerHostById( uuid ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
             }
             populateTable( workersTable, false, supervisorHosts );
         }

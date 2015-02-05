@@ -7,12 +7,13 @@ import java.util.List;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentManagerException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
@@ -61,16 +62,47 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost containerHost = environment.getContainerHostByHostname( hostname );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        ContainerHost containerHost = null;
+        try
+        {
+            containerHost = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         // Check if the container is on external environment
         if ( config.isExternalZookeeper() && containerHost == null )
         {
             ZookeeperClusterConfig zookeeperCluster = manager.getZookeeperManager().getCluster(
                     config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( zookeeperCluster.getEnvironmentId() );
-            containerHost =zookeeperEnvironment.getContainerHostByHostname( hostname );
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment =
+                        manager.getEnvironmentManager().findEnvironment( zookeeperCluster.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                containerHost =zookeeperEnvironment.getContainerHostByHostname( hostname );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
 
         if ( containerHost == null )
@@ -136,22 +168,30 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
     public void destroyNode(){
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         StormClusterConfiguration config = manager.getCluster( clusterName );
-        Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost host = environment.getContainerHostByHostname( hostname );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         trackerOperation.addLog( "Removing " + hostname + " from cluster." );
         config.getSupervisors().remove( host.getId() );
         manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
-        try
-        {
-            trackerOperation.addLog( "Destroying " + hostname + " node." );
-            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname( hostname ).getId() );
-        }
-        catch ( EnvironmentManagerException e )
-        {
-            trackerOperation.addLogFailed( "Could not destroy container " + hostname +  ". " + e.getMessage() );
-            e.printStackTrace();
-        }
+        trackerOperation.addLog( "Destroying " + hostname + " node." );
+        //            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname( hostname ).getId() );
         trackerOperation.addLogDone( "Container " + hostname + " is destroyed!" );
     }
 

@@ -5,12 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-
 import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -179,11 +177,10 @@ public class StormImpl extends StormBase
 
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, StormClusterConfiguration config,
+    public ClusterSetupStrategy getClusterSetupStrategy( StormClusterConfiguration config,
                                                          TrackerOperation po )
     {
-
-        return new StormSetupStrategyDefault( this, config, environment, po, environmentManager );
+        return new StormSetupStrategyDefault( this, config, po );
     }
 
     public UUID configureEnvironmentCluster( final StormClusterConfiguration config )
