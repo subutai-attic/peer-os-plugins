@@ -1,10 +1,7 @@
 package org.safehaus.subutai.plugin.common.api;
 
 
-import org.safehaus.subutai.common.exception.SubutaiException;
-
-
-public class ClusterSetupException extends SubutaiException
+public class ClusterSetupException extends Exception
 {
 
     public ClusterSetupException( final String message )
