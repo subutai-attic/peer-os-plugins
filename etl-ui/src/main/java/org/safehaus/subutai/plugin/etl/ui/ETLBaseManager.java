@@ -17,7 +17,6 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.etl.ui.transform.QueryType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;

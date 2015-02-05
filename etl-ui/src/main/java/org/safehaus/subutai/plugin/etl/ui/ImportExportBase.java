@@ -103,12 +103,20 @@ public abstract class ImportExportBase extends VerticalLayout
     void init()
     {
         connStringField = UIUtil.getTextField( "Connection string:" );
+        connStringField.setDescription( "Connection string to be used while connecting to " +
+                                        "relational database.\n\n" +
+                                        "e.g. jdbc:mysql://localhost:3306");
+
         tableField = UIUtil.getTextField( "Table name:" );
         usernameField = UIUtil.getTextField( "Username:" );
         passwordField = UIUtil.getTextField( "Password:", true );
-        optionalParams = UIUtil.getTextField( "Optional parameters:" );
-        logTextArea = UIUtil.getTextArea( "Logs:" );
 
+        optionalParams = UIUtil.getTextField( "Optional parameters:" );
+        optionalParams.setDescription( "Check out following page for all sqoop parameters: " +
+                "http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html. Do not forget to use \"--\" " +
+                "(double dashes) in optional parameters." );
+
+        logTextArea = UIUtil.getTextArea( "Logs:" );
         logTextArea.setValue( "" );
         logTextArea.setHeight( 100, Unit.PERCENTAGE );
 
