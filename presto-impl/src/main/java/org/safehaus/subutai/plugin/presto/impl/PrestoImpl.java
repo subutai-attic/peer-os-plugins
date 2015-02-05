@@ -3,15 +3,17 @@ package org.safehaus.subutai.plugin.presto.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -34,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-public class PrestoImpl implements Presto
+public class PrestoImpl implements Presto, EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( PrestoImpl.class.getName() );
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -268,5 +270,98 @@ public class PrestoImpl implements Presto
         {
             throw new ClusterException( "Could not save cluster info" );
         }
+    }
+
+
+    @Override
+    public void deleteConfig( final PrestoClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( PrestoClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        // not need
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        // not need
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Presto environment event: Container destroyed: %s", uuid ) );
+        List<PrestoClusterConfig> clusterConfigs = getClusters();
+        for ( final PrestoClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                LOG.info(
+                        String.format( "Presto environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Hive environment event: Before: %s", clusterConfig ) );
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getWorkers() ) )
+                    {
+                        clusterConfig.getWorkers().remove( uuid );
+                    }
+                    
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Presto environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Presto environment event: Environment destroyed: %s", uuid ) );
+
+        List<PrestoClusterConfig> clusterConfigs = getClusters();
+        for ( final PrestoClusterConfig clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            {
+                LOG.info(
+                        String.format( "Presto environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info(
+                            String.format( "Presto environment event: Cluster removed", clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
+
     }
 }

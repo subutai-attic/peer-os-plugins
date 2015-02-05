@@ -9,10 +9,12 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
@@ -26,6 +28,8 @@ import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Item;
@@ -80,6 +84,7 @@ public class Manager
     private PrestoClusterConfig config;
     private final EnvironmentManager environmentManager;
     private CheckBox autoScaleBtn;
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
 
     public Manager( final ExecutorService executorService, final Presto presto, Hadoop hadoop, Tracker tracker,
@@ -311,9 +316,22 @@ public class Manager
 
                         if ( !CollectionUtil.isCollectionEmpty( availableNodes ) )
                         {
-                            Set<ContainerHost> set = environmentManager.getEnvironmentByUUID( info.getEnvironmentId() )
-                                                                       .getContainerHostsByIds(
-                                                                               Sets.newHashSet( availableNodes ) );
+                            Set<ContainerHost> set = null;
+                            try
+                            {
+                                set = environmentManager.findEnvironment( info.getEnvironmentId() )
+                                                        .getContainerHostsByIds( Sets.newHashSet( availableNodes ) );
+                            }
+                            catch ( ContainerHostNotFoundException e )
+                            {
+                                LOGGER.error( "Container host not found", e );
+                            }
+                            catch ( EnvironmentNotFoundException e )
+                            {
+                                LOGGER.error( "Error getting environment by id: " + info.getEnvironmentId().toString(),
+                                        e );
+                                return;
+                            }
                             AddNodeWindow addNodeWindow =
                                     new AddNodeWindow( presto, executorService, tracker, config, set );
                             contentRoot.getUI().addWindow( addNodeWindow );
@@ -745,8 +763,17 @@ public class Manager
                 {
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        return;
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
@@ -809,9 +836,25 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
-                    environment.getContainerHostById( config.getCoordinatorNode() ) );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
+            }
+            try
+            {
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
+                        environment.getContainerHostById( config.getCoordinatorNode() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Container host not found", e );
+            }
             autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else

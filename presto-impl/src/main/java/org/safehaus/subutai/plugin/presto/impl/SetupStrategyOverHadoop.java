@@ -8,22 +8,27 @@ import java.util.UUID;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
 
 public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetupStrategy
 {
+    private static final Logger LOG = LoggerFactory.getLogger( SetupStrategyOverHadoop.class );
     private Environment environment;
     private Set<ContainerHost> nodesToInstallPresto;
 
@@ -73,7 +78,15 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                     "Not all nodes belong to Hadoop cluster " + config.getHadoopClusterName() );
         }
 
-        environment = manager.getEnvironmentManager().getEnvironmentByUUID( hc.getEnvironmentId() );
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            return;
+        }
 
         if ( environment == null )
         {
@@ -89,7 +102,16 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
         for ( UUID uuid : config.getAllNodes() )
         {
-            ContainerHost node = environment.getContainerHostById( uuid );
+            ContainerHost node = null;
+            try
+            {
+                node = environment.getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
+            }
             if ( node == null )
             {
                 throw new ClusterSetupException( String.format( "Node %s not found in environment", uuid ) );
@@ -135,8 +157,24 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                 processResult( node, result );
             }
             po.addLog( "Configuring cluster..." );
-            configureAsCoordinator( environment.getContainerHostById( config.getCoordinatorNode() ), environment );
-            configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
+            try
+            {
+                configureAsCoordinator( environment.getContainerHostById( config.getCoordinatorNode() ), environment );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
+            }
+            try
+            {
+                configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
+            }
             //startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
 
             po.addLog( "Saving cluster info..." );

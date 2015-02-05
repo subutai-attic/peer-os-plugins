@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -15,6 +17,8 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -27,6 +31,7 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
 
     public VerificationStep( final Presto presto, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
@@ -48,9 +53,34 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", config.getClusterName() );
         final HadoopClusterConfig hc = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
-        Environment hadoopEnvironment = environmentManager.getEnvironmentByUUID( hc.getEnvironmentId() );
-        ContainerHost coordinator = hadoopEnvironment.getContainerHostById( wizard.getConfig().getCoordinatorNode() );
-        Set<ContainerHost> workers = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getWorkers() );
+        Environment hadoopEnvironment = null;
+        try
+        {
+            hadoopEnvironment = environmentManager.findEnvironment( hc.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            return;
+        }
+        ContainerHost coordinator = null;
+        try
+        {
+            coordinator = hadoopEnvironment.getContainerHostById( wizard.getConfig().getCoordinatorNode() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container host not found", e );
+        }
+        Set<ContainerHost> workers = null;
+        try
+        {
+            workers = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getWorkers() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container hosts not found", e );
+        }
         cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
         cfgView.addStringCfg( "Master Node", coordinator.getHostname() );
         for ( ContainerHost worker : workers )
