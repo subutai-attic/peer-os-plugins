@@ -15,6 +15,7 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -68,6 +69,9 @@ public class UninstallClusterCommandTest
         when(trackerOperationView.getLog()).thenReturn("test");
 
         uninstallClusterCommand.doExecute();
+
+        // assertions
+        assertNotNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
     }
 
     @Test
@@ -78,6 +82,9 @@ public class UninstallClusterCommandTest
         when(trackerOperationView.getLog()).thenReturn("test");
 
         uninstallClusterCommand.doExecute();
+
+        //assertions
+        assertNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
     }
 
 }

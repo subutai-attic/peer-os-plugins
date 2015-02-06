@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.oozie.api;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -25,8 +24,6 @@ public interface Oozie extends ApiBase<OozieClusterConfig>
 
     public ClusterSetupStrategy getClusterSetupStrategy( OozieClusterConfig config, TrackerOperation trackerOperation );
 
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( OozieClusterConfig config );
-
     public UUID destroyNode( final String clusterName, final String lxcHostname );
 
     /**
@@ -37,5 +34,4 @@ public interface Oozie extends ApiBase<OozieClusterConfig>
     public void saveConfig( OozieClusterConfig config ) throws ClusterException;
 
     public void deleteConfig( OozieClusterConfig config ) throws ClusterException;
-
 }

@@ -10,13 +10,8 @@ import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
@@ -41,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 
 public class OozieImpl implements Oozie, EnvironmentEventListener
@@ -249,26 +243,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
         Preconditions.checkNotNull( po, "Product operation is null" );
 
         return new OverHadoopSetupStrategy( config, po, this );
-    }
-
-
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( OozieClusterConfig config )
-    {
-        EnvironmentBlueprint blueprint = new EnvironmentBlueprint();
-
-        blueprint.setName( String.format( "%s-%s", config.getProductKey(), UUIDUtil.generateTimeBasedUUID() ) );
-        blueprint.setExchangeSshKeys( true );
-        blueprint.setLinkHosts( true );
-        blueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-
-        NodeGroup ng = new NodeGroup();
-        ng.setName( "Default" );
-        ng.setNumberOfNodes( config.getNodes().size() ); // master +slaves
-        ng.setTemplateName( OozieClusterConfig.TEMPLATE_NAME );
-        ng.setPlacementStrategy( new PlacementStrategy( "MORE_RAM" ) );
-        blueprint.setNodeGroups( Sets.newHashSet( ng ) );
-
-        return blueprint;
     }
 
 

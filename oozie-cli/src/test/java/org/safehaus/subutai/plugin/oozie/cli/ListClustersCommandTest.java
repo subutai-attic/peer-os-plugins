@@ -14,6 +14,7 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -52,6 +53,9 @@ public class ListClustersCommandTest
         when(oozieClusterConfig.getClusterName()).thenReturn("testPresto");
 
         listClustersCommand.doExecute();
+
+        // assertions
+        assertNotNull( oozie.getClusters() );
     }
 
     @Test
@@ -61,5 +65,8 @@ public class ListClustersCommandTest
         when(oozie.getClusters()).thenReturn(myList);
 
         listClustersCommand.doExecute();
+
+        // assertions
+        assertTrue( oozie.getClusters().isEmpty() );
     }
 }

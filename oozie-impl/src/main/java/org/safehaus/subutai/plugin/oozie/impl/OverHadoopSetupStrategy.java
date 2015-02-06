@@ -56,7 +56,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     @Override
     public OozieClusterConfig setup() throws ClusterSetupException
     {
-        // CHECKING for oozie - clients
+        // CHECKING for oozie - clients and server
         // =====================================================================================================================
         if ( Strings.isNullOrEmpty( oozieClusterConfig.getClusterName() ) ||
                 oozieClusterConfig.getServer() == null || oozieClusterConfig.getClients().isEmpty() )
@@ -84,6 +84,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
                     String.format( "Not all specified Oozie Client and Server nodes belong to %s Hadoop " + "cluster",
                             hadoopClusterConfig.getClusterName() ) );
         }
+
 
         try
         {

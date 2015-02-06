@@ -28,9 +28,12 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -108,13 +111,13 @@ public class NodeOperationHandlerTest
 
         when( oozieImpl.getPluginDao() ).thenReturn( pluginDAO );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
     }
 
 
     @Test
     public void testRunOperationTypeStart() throws Exception
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
 
@@ -122,13 +125,13 @@ public class NodeOperationHandlerTest
 
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
+        assertTrue( containerHost.isConnected() );
     }
 
 
     @Test
     public void testRunOperationTypeStartRunning() throws Exception
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
         when( commandResult.getStdOut() ).thenReturn( "Oozie Server is running" );
@@ -143,7 +146,6 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeStartNotRunning() throws Exception
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
         when( commandResult.getStdOut() ).thenReturn( "Oozie Server is not running" );
@@ -158,7 +160,6 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeStop() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
 
@@ -172,7 +173,6 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeStatus() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
 
@@ -186,7 +186,6 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeInstall() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
 
@@ -194,13 +193,14 @@ public class NodeOperationHandlerTest
 
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( oozieImpl ).getPluginDao();
     }
 
 
     @Test
     public void testRunOperationTypeInstallHasNotSucceeded() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
         when( commandResult.hasSucceeded() ).thenReturn( false );
@@ -209,13 +209,14 @@ public class NodeOperationHandlerTest
 
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
+        assertFalse( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLogFailed( "Could not install " + OozieClusterConfig.PRODUCT_KEY + " to node " + "testHostName" );
     }
 
 
     @Test
     public void testRunOperationTypeUninstall() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -224,13 +225,14 @@ public class NodeOperationHandlerTest
 
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( oozieImpl ).getPluginDao();
     }
 
 
     @Test
     public void testRunOperationTypeUninstallHasNotSucceeded() throws CommandException
     {
-        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.getExitCode() ).thenReturn( 0 );
         when( containerHost.isConnected() ).thenReturn( true );
         when( commandResult.hasSucceeded() ).thenReturn( false );
@@ -239,6 +241,8 @@ public class NodeOperationHandlerTest
 
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
+        assertFalse( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLogFailed( "Could not uninstall " + OozieClusterConfig.PRODUCT_KEY + " from node " + "testHostName" );
     }
 
 

@@ -288,13 +288,9 @@ public class OozieImplTest
     public void testGetClusterSetupStrategy() throws Exception
     {
         oozieImpl.getClusterSetupStrategy( oozieClusterConfig, trackerOperation );
-    }
 
-
-    @Test
-    public void testGetDefaultEnvironmentBlueprint() throws Exception
-    {
-        oozieImpl.getDefaultEnvironmentBlueprint( oozieClusterConfig );
+        // assertions
+        assertNotNull( oozieImpl.getClusterSetupStrategy( oozieClusterConfig,trackerOperation ) );
     }
 
 
@@ -323,16 +319,22 @@ public class OozieImplTest
     }
 
 
-    //    @Test
-    //    public void testSubscribeToAlerts1() throws Exception
-    //    {
-    //        oozieImpl.subscribeToAlerts( environment );
-    //    }
+    @Test
+    public void testSubscribeToAlerts1() throws Exception
+    {
+        oozieImpl.subscribeToAlerts( environment );
+    }
 
 
-    //    @Test
-    //    public void testUnsubscribeFromAlerts() throws Exception
-    //    {
-    //        oozieImpl.unsubscribeFromAlerts( environment );
-    //    }
+    @Test
+    public void testUnsubscribeFromAlerts() throws Exception
+    {
+        oozieImpl.unsubscribeFromAlerts( environment );
+    }
+
+    @Test
+    public void testOnEnvironmentCreated()
+    {
+
+    }
 }

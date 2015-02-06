@@ -25,6 +25,7 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -72,6 +73,9 @@ public class ClusterConfigurationTest
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
+
+        // assertions
+        verify( trackerOperation ).addLog( "Cluster configured\n" );
     }
 
 

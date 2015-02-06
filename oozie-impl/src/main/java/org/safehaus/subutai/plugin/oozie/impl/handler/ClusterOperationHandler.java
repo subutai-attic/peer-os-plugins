@@ -33,7 +33,7 @@ import com.google.common.base.Strings;
 public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl, OozieClusterConfig>
         implements ClusterOperationHandlerInterface
 {
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class );
     private ClusterOperationType operationType;
     private OozieClusterConfig config;
     private HadoopClusterConfig hadoopConfig;
