@@ -114,7 +114,7 @@ public class ClusterOperationHandler
     @Override
     public void setupCluster()
     {
-        Environment env = null;
+        Environment env;
         try
         {
             env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
