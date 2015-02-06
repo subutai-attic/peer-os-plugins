@@ -38,7 +38,6 @@ public class ElasticsearchImpl implements Elasticsearch
 {
     private static final Logger LOG = LoggerFactory.getLogger( ElasticsearchImpl.class.getName() );
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-
     private Tracker tracker;
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
@@ -49,14 +48,24 @@ public class ElasticsearchImpl implements Elasticsearch
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Monitor monitor )
+    public ElasticsearchImpl( final Monitor monitor )
     {
-        this.tracker = tracker;
-        this.environmentManager = environmentManager;
         this.monitor = monitor;
 
         alertListener = new EsAlertListener( this );
         monitor.addAlertListener( alertListener );
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 
 
