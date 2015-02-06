@@ -3,19 +3,21 @@ package org.safehaus.subutai.plugin.elasticsearch.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -24,7 +26,6 @@ import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.alert.EsAlertListener;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-public class ElasticsearchImpl implements Elasticsearch
+public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( ElasticsearchImpl.class.getName() );
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
@@ -109,7 +110,9 @@ public class ElasticsearchImpl implements Elasticsearch
     {
         return pluginDAO;
     }
-    public void setPluginDAO(PluginDAO pluginDAO)
+
+
+    public void setPluginDAO( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
@@ -270,15 +273,43 @@ public class ElasticsearchImpl implements Elasticsearch
         }
     }
 
+
     @Override
     public void deleteConfig( final ElasticsearchClusterConfiguration config ) throws ClusterException
     {
         Preconditions.checkNotNull( config );
 
-        if ( !getPluginDAO()
-                .deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        if ( !getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
         {
             throw new ClusterException( "Could not save cluster info" );
         }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        //TODO implement me Salih Bey )
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        //TODO implement me Salih Bey )
     }
 }

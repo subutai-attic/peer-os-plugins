@@ -2,18 +2,16 @@ package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -27,8 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 
 /**
  * This class handles operations that are related to whole cluster.
@@ -40,7 +36,6 @@ public class ClusterOperationHandler
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
-    private ExecutorService executor = Executors.newCachedThreadPool();
     CommandUtil commandUtil = new CommandUtil();
 
 
@@ -69,9 +64,9 @@ public class ClusterOperationHandler
             case REMOVE:
                 removeCluster();
                 break;
-
         }
     }
+
 
     public void removeCluster()
     {
@@ -97,7 +92,7 @@ public class ClusterOperationHandler
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
 
@@ -168,7 +163,8 @@ public class ClusterOperationHandler
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( String.format( "Error accessing environment containers: %s", e ) );
+            return;
         }
         for ( ContainerHost node : esNodes )
         {
