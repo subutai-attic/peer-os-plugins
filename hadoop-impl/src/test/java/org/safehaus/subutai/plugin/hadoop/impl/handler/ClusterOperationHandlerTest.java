@@ -18,7 +18,6 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -54,8 +53,8 @@ public class ClusterOperationHandlerTest
     CommandResult commandResult;
 
     @Before
-    public void setUp() throws ClusterSetupException, EnvironmentBuildException, EnvironmentNotFoundException,
-            ContainerHostNotFoundException, EnvironmentCreationException
+    public void setUp() throws ClusterSetupException, EnvironmentNotFoundException, EnvironmentCreationException,
+            ContainerHostNotFoundException
     {
         containerHost = mock(ContainerHost.class);
         containerHost2 = mock(ContainerHost.class);
