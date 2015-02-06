@@ -16,9 +16,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
@@ -29,7 +31,7 @@ public class RestService
 {
 
     private static final String OPERATION_ID = "OPERATION_ID";
-
+    private UUID nimbusID;
     private Storm stormManager;
     private Zookeeper zookeeperManager;
 
@@ -116,13 +118,25 @@ public class RestService
 
         if ( externalZookeeper )
         {
-            UUID nimbusID;
             ZookeeperClusterConfig zookeeperClusterConfig =
                     zookeeperManager.getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment =
-                    environmentManager.getEnvironmentByUUID(
-                            zookeeperClusterConfig.getEnvironmentId() );
-            nimbusID = zookeeperEnvironment.getContainerHostByHostname( nimbus ).getId();
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                nimbusID = zookeeperEnvironment.getContainerHostByHostname( nimbus ).getId();
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             config.setNimbus( nimbusID );
         }
 

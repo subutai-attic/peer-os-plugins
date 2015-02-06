@@ -14,9 +14,6 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -38,8 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
 /**
@@ -227,18 +222,18 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
         if ( ( ! allContainersNotBeingUsed ) ){
 
-            NodeGroup nodeGroup = new NodeGroup();
-            nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
-            nodeGroup.setLinkHosts( true );
-            nodeGroup.setExchangeSshKeys( true );
-            nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-            nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
-            nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
-            nodeGroup.setNumberOfNodes( 1 );
-
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            String ngJSON = gson.toJson(nodeGroup);
+//            NodeGroup nodeGroup = new NodeGroup();
+//            nodeGroup.setName( StormClusterConfiguration.PRODUCT_NAME );
+//            nodeGroup.setLinkHosts( true );
+//            nodeGroup.setExchangeSshKeys( true );
+//            nodeGroup.setDomainName( Common.DEFAULT_DOMAIN_NAME );
+//            nodeGroup.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
+//            nodeGroup.setPlacementStrategy( new PlacementStrategy( "ROUND_ROBIN" ) );
+//            nodeGroup.setNumberOfNodes( 1 );
+//
+//            GsonBuilder builder = new GsonBuilder();
+//            Gson gson = builder.create();
+//            String ngJSON = gson.toJson(nodeGroup);
 
             trackerOperation.addLog( "Creating new containers..." );
 //                environmentManager.createAdditionalContainers( config.getEnvironmentId(), ngJSON, localPeer );
