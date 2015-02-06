@@ -27,6 +27,7 @@ import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
@@ -258,12 +259,8 @@ public class OverHadoopSetupStrategyTest
         when( oozieImpl.getPluginDao() ).thenReturn( pluginDAO );
 
         overHadoopSetupStrategy.setup();
-    }
 
-
-    @Test
-    public void testGetFailedCommandResults() throws Exception
-    {
-
+        // assertions
+        assertNotNull(overHadoopSetupStrategy.setup());
     }
 }
