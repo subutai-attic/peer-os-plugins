@@ -14,11 +14,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
@@ -110,7 +110,7 @@ public class OozieAlertListenerTest
         when(oozieClusterConfig.getEnvironmentId()).thenReturn(uuid);
         when(containerHostMetric.getEnvironmentId()).thenReturn(uuid);
         when(oozieImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(null);
+        when(environmentManager.findEnvironment(any(UUID.class))).thenReturn(null);
 
 
         oozieAlertListener.onAlert(containerHostMetric);
@@ -128,7 +128,7 @@ public class OozieAlertListenerTest
         when(oozieClusterConfig.getEnvironmentId()).thenReturn(uuid);
         when(containerHostMetric.getEnvironmentId()).thenReturn(uuid);
         when(oozieImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment(any(UUID.class))).thenReturn(environment);
         when(environment.getContainerHosts()).thenReturn(mySet);
         when(containerHost.getId()).thenReturn(uuid);
         when(containerHostMetric.getHostId()).thenReturn(uuid);
@@ -150,7 +150,7 @@ public class OozieAlertListenerTest
         when(oozieClusterConfig.getEnvironmentId()).thenReturn(uuid);
         when(containerHostMetric.getEnvironmentId()).thenReturn(uuid);
         when(oozieImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.getEnvironmentByUUID(any(UUID.class))).thenReturn(environment);
+        when(environmentManager.findEnvironment(any(UUID.class))).thenReturn(environment);
         when(environment.getContainerHosts()).thenReturn(mySet);
         when(containerHost.getId()).thenReturn(uuid);
         when(containerHostMetric.getHostId()).thenReturn(uuid);

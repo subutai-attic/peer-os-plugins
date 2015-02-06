@@ -12,12 +12,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.exception.EnvironmentBuildException;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -28,8 +26,11 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -66,8 +67,6 @@ public class ClusterOperationHandlerTest
     @Mock
     PluginDAO pluginDAO;
     @Mock
-    EnvironmentBlueprint environmentBlueprint;
-    @Mock
     Commands commands;
 
 
@@ -82,7 +81,7 @@ public class ClusterOperationHandlerTest
 
         // mock runOperationOnContainers method
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
@@ -111,6 +110,9 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeInstallMalformedConfiguration() throws Exception
     {
         clusterOperationHandler.run();
+
+        // assertions
+        verify( trackerOperation ).addLogFailed( "Malformed configuration" );
     }
 
 
@@ -121,20 +123,9 @@ public class ClusterOperationHandlerTest
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
 
         clusterOperationHandler.run();
-    }
 
-
-    @Test
-    public void testRunOperationTypeInstall() throws EnvironmentBuildException
-    {
-        when( oozieClusterConfig.getClusterName() ).thenReturn( "test" );
-        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.buildEnvironment( any( EnvironmentBlueprint.class ) ) ).thenReturn( environment );
-        when( oozieImpl.getDefaultEnvironmentBlueprint( oozieClusterConfig ) ).thenReturn( environmentBlueprint );
-        when( oozieImpl.getClusterSetupStrategy( environment, oozieClusterConfig, trackerOperation ) )
-                .thenReturn( clusterSetupStrategy );
-
-        clusterOperationHandler.run();
+        // assertions
+        verify( trackerOperation ).addLogFailed( String.format( "Cluster with name 'null' already exists" ) );
     }
 
 
@@ -153,13 +144,18 @@ public class ClusterOperationHandlerTest
         myUUID.add( UUID.randomUUID() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
-        when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
 
         clusterOperationHandler2.run();
+
+        // assertions
+        verify( trackerOperation ).addLogFailed( "Uninstallation of oozie client failed" );
+        assertFalse( commandResult.hasSucceeded() );
     }
+
 
     @Test
     public void testRunOperationTypeUninstall() throws Exception
@@ -169,12 +165,16 @@ public class ClusterOperationHandlerTest
         myUUID.add( UUID.randomUUID() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.getEnvironmentByUUID( any(UUID.class) ) ).thenReturn( environment );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
-        when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         clusterOperationHandler2.run();
-    }
 
+        // assertions
+        verify( trackerOperation ).addLog( "Uninstalling Oozie server..." );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLogDone( "Cluster info deleted from DB\nDone" );
+    }
 }

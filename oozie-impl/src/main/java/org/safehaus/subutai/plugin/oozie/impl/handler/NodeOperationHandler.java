@@ -1,26 +1,32 @@
 package org.safehaus.subutai.plugin.oozie.impl.handler;
 
-import com.google.common.base.Preconditions;
+
+import java.util.Iterator;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.impl.CommandType;
 import org.safehaus.subutai.plugin.oozie.impl.Commands;
 import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
+import com.google.common.base.Preconditions;
 
 /**
  * Created by ermek on 1/12/15.
  */
 public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, OozieClusterConfig>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class );
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
@@ -47,7 +53,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID(config.getEnvironmentId());
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            return;
+        }
 
         if (environment == null)
         {

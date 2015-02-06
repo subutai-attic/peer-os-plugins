@@ -1,18 +1,20 @@
 package org.safehaus.subutai.plugin.oozie.ui;
 
 
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import java.util.concurrent.ExecutorService;
+
+import javax.naming.NamingException;
+
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.ui.manager.Manager;
 import org.safehaus.subutai.plugin.oozie.ui.wizard.Wizard;
 
-import javax.naming.NamingException;
-import java.util.concurrent.ExecutorService;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
 
 
 public class OozieComponent extends CustomComponent

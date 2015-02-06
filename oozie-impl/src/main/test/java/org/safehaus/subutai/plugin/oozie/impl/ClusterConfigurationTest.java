@@ -14,9 +14,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -25,6 +25,7 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -72,6 +73,9 @@ public class ClusterConfigurationTest
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
+
+        // assertions
+        verify( trackerOperation ).addLog( "Cluster configured\n" );
     }
 
 

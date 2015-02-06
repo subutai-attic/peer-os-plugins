@@ -1,18 +1,20 @@
 package org.safehaus.subutai.plugin.oozie.rest;
 
 
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.SetupType;
 
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.google.common.base.Preconditions;
 
 
 public class RestServiceImpl implements RestService

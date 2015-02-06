@@ -1,25 +1,47 @@
 package org.safehaus.subutai.plugin.oozie.ui.wizard;
 
 
-import com.vaadin.data.Property;
-import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.TwinColSelect;
+import com.vaadin.ui.VerticalLayout;
 
 
 public class StepSetConfig extends Panel
 {
     public EnvironmentManager environmentManager;
+    private Set<ContainerHost> hosts = null;
+    private final static Logger LOGGER = LoggerFactory.getLogger( StepSetConfig.class );
 
     public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard , final EnvironmentManager environmentManager)
+            throws EnvironmentNotFoundException
     {
         this.environmentManager = environmentManager;
 
@@ -66,13 +88,21 @@ public class StepSetConfig extends Panel
         allHadoopNodeSet.addAll( allHadoopNodes );
 
         Set<UUID> nodes = new HashSet<>(hcc.getAllNodes());
-        final Set<ContainerHost> hosts = environmentManager.getEnvironmentByUUID(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
-
-        for (ContainerHost host : hosts)
+//        final Set<ContainerHost> hosts;
+        try
         {
-            cbServers.addItem( host );
-            cbServers.setItemCaption( host, host.getHostname() );
+            hosts = environmentManager.findEnvironment(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
+            for (ContainerHost host : hosts)
+            {
+                cbServers.addItem( host );
+                cbServers.setItemCaption( host, host.getHostname() );
+            }
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container host not found", e );
+        }
+
 
 //        for ( UUID agent : hcc.getAllNodes() )
 //        {
