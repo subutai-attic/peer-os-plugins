@@ -21,7 +21,6 @@ import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
