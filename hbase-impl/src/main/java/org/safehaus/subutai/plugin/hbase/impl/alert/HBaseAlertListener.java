@@ -10,13 +10,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
@@ -276,19 +276,25 @@ public class HBaseAlertListener implements AlertListener
         }
     }
 
+
     private boolean isSourceNodeUnderStressBySlaveNodes( HashMap<NodeType, Integer> ramConsumption,
-                                                         HashMap<NodeType, Integer> cpuConsumption ){
+                                                         HashMap<NodeType, Integer> cpuConsumption )
+    {
         Map.Entry<NodeType, Integer> maxEntryInRamConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : ramConsumption.entrySet() ){
-            if (maxEntryInRamConsumption == null || entry.getValue().compareTo( maxEntryInRamConsumption.getValue() ) > 0)
+        for ( Map.Entry<NodeType, Integer> entry : ramConsumption.entrySet() )
+        {
+            if ( maxEntryInRamConsumption == null
+                    || entry.getValue().compareTo( maxEntryInRamConsumption.getValue() ) > 0 )
             {
                 maxEntryInRamConsumption = entry;
             }
         }
 
         Map.Entry<NodeType, Integer> maxEntryInCPUConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : cpuConsumption.entrySet() ){
-            if (maxEntryInCPUConsumption == null || entry.getValue().compareTo( maxEntryInCPUConsumption.getValue() ) > 0)
+        for ( Map.Entry<NodeType, Integer> entry : cpuConsumption.entrySet() )
+        {
+            if ( maxEntryInCPUConsumption == null
+                    || entry.getValue().compareTo( maxEntryInCPUConsumption.getValue() ) > 0 )
             {
                 maxEntryInCPUConsumption = entry;
             }
@@ -296,8 +302,10 @@ public class HBaseAlertListener implements AlertListener
 
         assert maxEntryInCPUConsumption != null;
         assert maxEntryInRamConsumption != null;
-        if ( maxEntryInCPUConsumption.getKey().equals( NodeType.HREGIONSERVER ) ||
-                maxEntryInRamConsumption.getKey().equals( NodeType.HREGIONSERVER ) ) {
+        if ( maxEntryInCPUConsumption.getKey().equals( NodeType.HREGIONSERVER ) || maxEntryInRamConsumption.getKey()
+                                                                                                           .equals(
+                                                                                                                   NodeType.HREGIONSERVER ) )
+        {
             return true;
         }
         return false;
@@ -306,13 +314,16 @@ public class HBaseAlertListener implements AlertListener
 
     protected String parseService( String output, String target ) throws AlertException
     {
-        Matcher m = Pattern.compile("(?m)^.*$").matcher( output );
-        if ( m.find() ){
-            if ( m.group().toLowerCase().contains( target.toLowerCase() ) ){
+        Matcher m = Pattern.compile( "(?m)^.*$" ).matcher( output );
+        if ( m.find() )
+        {
+            if ( m.group().toLowerCase().contains( target.toLowerCase() ) )
+            {
                 return m.group();
             }
         }
-        else{
+        else
+        {
             throwAlertException( String.format( "Could not parse PID from %s", output ), null );
         }
         return null;
