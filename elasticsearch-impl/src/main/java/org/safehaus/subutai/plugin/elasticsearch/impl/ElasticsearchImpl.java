@@ -22,7 +22,6 @@ import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
@@ -248,18 +247,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
                 new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public ClusterSetupStrategy getClusterSetupStrategy(
-            final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration, final TrackerOperation po )
-    {
-
-        Preconditions.checkNotNull( elasticsearchClusterConfiguration, "Elasticsearch cluster config is null" );
-        Preconditions.checkNotNull( po, "Product operation is null" );
-
-        return new ESSetupStrategy( elasticsearchClusterConfiguration, po, this );
     }
 
 

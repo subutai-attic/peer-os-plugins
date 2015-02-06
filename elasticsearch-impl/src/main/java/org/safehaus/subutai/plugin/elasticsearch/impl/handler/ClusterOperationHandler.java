@@ -164,7 +164,7 @@ public class ClusterOperationHandler
         }
 
         trackerOperation.addLog( "Uninstalling ES..." );
-        Set<ContainerHost> esNodes = null;
+        Set<ContainerHost> esNodes;
         try
         {
             esNodes = environment.getContainerHostsByIds( config.getNodes() );

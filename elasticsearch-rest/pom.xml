@@ -12,14 +12,10 @@
 
   <artifactId>elasticsearch-plugin-rest</artifactId>
   <name>Subutai Elasticsearch REST</name>
-  <description>Subutai Elasicsearch REST</description>
+  <description>Subutai Elasticsearch REST</description>
   <packaging>bundle</packaging>
 
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>subutai-common</artifactId>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>elasticsearch-plugin-api</artifactId>
