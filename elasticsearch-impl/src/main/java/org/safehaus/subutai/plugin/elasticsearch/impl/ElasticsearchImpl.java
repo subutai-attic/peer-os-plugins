@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -303,13 +304,64 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     @Override
     public void onContainerDestroyed( final Environment environment, final UUID uuid )
     {
-        //TODO implement me Salih Bey )
+        LOG.info( String.format( "Elasticsearch environment event: Container destroyed: %s", uuid ) );
+        List<ElasticsearchClusterConfiguration> clusters = getClusters();
+        for ( ElasticsearchClusterConfiguration clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Elasticsearch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Elasticsearch environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Elasticsearch environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
     }
 
 
     @Override
     public void onEnvironmentDestroyed( final UUID uuid )
     {
-        //TODO implement me Salih Bey )
+        LOG.info( String.format( "Elasticsearch environment event: Environment destroyed: %s", uuid ) );
+
+        List<ElasticsearchClusterConfiguration> clusters = getClusters();
+        for ( ElasticsearchClusterConfiguration clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Elasticsearch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Elasticsearch environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
     }
 }
