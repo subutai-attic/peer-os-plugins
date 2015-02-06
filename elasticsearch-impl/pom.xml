@@ -15,19 +15,11 @@
   <description>Subutai Elasticsearch Impl</description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <scope>test</scope>
-    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -43,12 +35,9 @@
       <artifactId>metric-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>environment-manager-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>plugin-common</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

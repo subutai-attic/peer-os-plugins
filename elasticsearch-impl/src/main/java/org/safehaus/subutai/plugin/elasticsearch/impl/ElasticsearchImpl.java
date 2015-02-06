@@ -3,29 +3,29 @@ package org.safehaus.subutai.plugin.elasticsearch.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
-
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.alert.EsAlertListener;
-import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
@@ -35,11 +35,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-public class ElasticsearchImpl implements Elasticsearch
+public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( ElasticsearchImpl.class.getName() );
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-
     private Tracker tracker;
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
@@ -50,14 +49,24 @@ public class ElasticsearchImpl implements Elasticsearch
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( final Tracker tracker, final EnvironmentManager environmentManager,final Monitor monitor )
+    public ElasticsearchImpl( final Monitor monitor )
     {
-        this.tracker = tracker;
-        this.environmentManager = environmentManager;
         this.monitor = monitor;
 
         alertListener = new EsAlertListener( this );
         monitor.addAlertListener( alertListener );
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 
 
@@ -101,7 +110,9 @@ public class ElasticsearchImpl implements Elasticsearch
     {
         return pluginDAO;
     }
-    public void setPluginDAO(PluginDAO pluginDAO)
+
+
+    public void setPluginDAO( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
@@ -199,6 +210,17 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
+    public UUID removeCluster( final String clusterName )
+    {
+        ElasticsearchClusterConfiguration config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID checkNode( final String clusterName, final String hostname )
     {
         AbstractOperationHandler operationHandler =
@@ -229,26 +251,104 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy(
-            final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration, final TrackerOperation po )
-    {
-
-        Preconditions.checkNotNull( elasticsearchClusterConfiguration, "Zookeeper cluster config is null" );
-        Preconditions.checkNotNull( po, "Product operation is null" );
-
-        return new ESSetupStrategy( elasticsearchClusterConfiguration, po, this );
-    }
-
-
-    @Override
     public void saveConfig( final ElasticsearchClusterConfiguration config ) throws ClusterException
     {
         Preconditions.checkNotNull( config );
 
-        if ( !getPluginDAO()
-                .saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
+        if ( !getPluginDAO().saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final ElasticsearchClusterConfiguration config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
         {
             throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        //not needed
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    {
+        LOG.info( String.format( "Elasticsearch environment event: Container destroyed: %s", uuid ) );
+        List<ElasticsearchClusterConfiguration> clusters = getClusters();
+        for ( ElasticsearchClusterConfiguration clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Elasticsearch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Elasticsearch environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
+                    {
+                        clusterConfig.getNodes().remove( uuid );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Elasticsearch environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Elasticsearch environment event: Environment destroyed: %s", uuid ) );
+
+        List<ElasticsearchClusterConfiguration> clusters = getClusters();
+        for ( ElasticsearchClusterConfiguration clusterConfig : clusters )
+        {
+            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Elasticsearch environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Elasticsearch environment event: Cluster %s removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
         }
     }
 }

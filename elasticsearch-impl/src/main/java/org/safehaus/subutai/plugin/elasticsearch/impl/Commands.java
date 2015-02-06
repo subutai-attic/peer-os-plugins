@@ -9,7 +9,6 @@ import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfigu
 public class Commands
 {
 
-
     public RequestBuilder getStatusCommand()
     {
         return new RequestBuilder( "service elasticsearch status" );

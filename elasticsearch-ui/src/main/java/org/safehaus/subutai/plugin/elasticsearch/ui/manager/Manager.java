@@ -9,9 +9,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
@@ -53,7 +55,7 @@ public class Manager
     protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
     protected static final String STOP_BUTTON_CAPTION = "Stop";
-    protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
+    protected static final String REMOVE_CLUSTER_BUTTON = "Remove Cluster";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
     protected static final String ADD_NODE_BUTTON_CAPTION = "Add Node";
     protected static final String HOST_COLUMN_CAPTION = "Host";
@@ -63,7 +65,7 @@ public class Manager
     private static final String MESSAGE = "No cluster is installed !";
     private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
 
-    final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn;
+    final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, removeClusterBtn, addNodeBtn;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final Table nodesTable;
     private final ExecutorService executorService;
@@ -160,12 +162,12 @@ public class Manager
         controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
 
-        /**  Destroy cluster button  */
-        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
-        destroyClusterBtn.setId( "ElasticSearchMngDestroyCuster" );
-        addClickListenerToDestroyClusterButton();
-        controlsContent.addComponent( destroyClusterBtn );
-        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+        /**  Remove cluster button  */
+        removeClusterBtn = new Button( REMOVE_CLUSTER_BUTTON );
+        removeClusterBtn.setId( "ElasticSearchMngRemoveCuster" );
+        addClickListenerToRemoveClusterButton();
+        controlsContent.addComponent( removeClusterBtn );
+        controlsContent.setComponentAlignment( removeClusterBtn, Alignment.MIDDLE_CENTER );
 
 
         /**  Add Node button  */
@@ -180,6 +182,7 @@ public class Manager
         autoScaleBtn.setValue( false );
         autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
         controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
         autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -205,7 +208,7 @@ public class Manager
             }
         } );
 
-        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn,
+        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, removeClusterBtn,
                 addNodeBtn );
 
         PROGRESS_ICON.setVisible( false );
@@ -331,9 +334,9 @@ public class Manager
     }
 
 
-    private void addClickListenerToDestroyClusterButton()
+    private void addClickListenerToRemoveClusterButton()
     {
-        destroyClusterBtn.addClickListener( new Button.ClickListener()
+        removeClusterBtn.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
@@ -341,18 +344,16 @@ public class Manager
                 if ( config != null )
                 {
                     ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to destroy the %s cluster?", config.getClusterName() ), "Yes",
+                            String.format( "Do you want to remove the %s cluster?", config.getClusterName() ), "Yes",
                             "No" );
                     alert.getOk().addClickListener( new Button.ClickListener()
                     {
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = elasticsearch.uninstallCluster( config.getClusterName() );
-
-                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                            UUID track = elasticsearch.removeCluster( config.getClusterName() );
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, track,
                                     ElasticsearchClusterConfiguration.PRODUCT_KEY );
-
                             window.getWindow().addCloseListener( new Window.CloseListener()
                             {
                                 @Override
@@ -379,8 +380,20 @@ public class Manager
     {
         for ( UUID containerUUID : config.getNodes() )
         {
-            ContainerHost containerHost = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() )
-                                                            .getContainerHostById( containerUUID );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                                .getContainerHostById( containerUUID );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute(
@@ -405,8 +418,20 @@ public class Manager
     {
         for ( UUID containerUUID : config.getNodes() )
         {
-            ContainerHost containerHost = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() )
-                                                            .getContainerHostById( containerUUID );
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                                .getContainerHostById( containerUUID );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             PROGRESS_ICON.setVisible( true );
             disableOREnableAllButtonsOnTable( nodesTable, false );
             executorService.execute(
@@ -501,8 +526,16 @@ public class Manager
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts =
-                            environmentManager.getEnvironmentByUUID( config.getEnvironmentId() ).getContainerHosts();
+                    Set<ContainerHost> containerHosts = null;
+                    try
+                    {
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
                     Iterator iterator = containerHosts.iterator();
                     ContainerHost containerHost = null;
                     while ( iterator.hasNext() )
@@ -538,8 +571,23 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = environmentManager.getEnvironmentByUUID( config.getEnvironmentId() );
-            populateTable( nodesTable, environment.getContainerHosts() );
+            Environment environment = null;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodes() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else

@@ -3,11 +3,13 @@ package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -41,8 +43,27 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
     @Override
     public void run()
     {
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost host = environment.getContainerHostByHostname( hostname );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        ContainerHost host = null;
+        if ( environment != null )
+        {
+            try
+            {
+                host = environment.getContainerHostByHostname( hostname );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
 
         if ( host == null )
         {

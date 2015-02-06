@@ -2,29 +2,28 @@ package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
@@ -37,7 +36,6 @@ public class ClusterOperationHandler
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
-    private ExecutorService executor = Executors.newCachedThreadPool();
     CommandUtil commandUtil = new CommandUtil();
 
 
@@ -58,23 +56,35 @@ public class ClusterOperationHandler
         switch ( operationType )
         {
             case INSTALL:
-                executor.execute( new Runnable()
-                {
-                    public void run()
-                    {
-                        setupCluster();
-                    }
-                } );
+                setupCluster();
                 break;
             case UNINSTALL:
-                executor.execute( new Runnable()
-                {
-                    public void run()
-                    {
-                        destroyCluster();
-                    }
-                } );
+                destroyCluster();
                 break;
+            case REMOVE:
+                removeCluster();
+                break;
+        }
+    }
+
+
+    public void removeCluster()
+    {
+        ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        try
+        {
+            manager.deleteConfig( config );
+            trackerOperation.addLogDone( "Cluster removed from database" );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -82,7 +92,7 @@ public class ClusterOperationHandler
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
 
@@ -104,17 +114,25 @@ public class ClusterOperationHandler
     @Override
     public void setupCluster()
     {
+        Environment env;
         try
         {
-            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
-            clusterSetupStrategy.setup();
-
-            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            try
+            {
+                new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, env );
+                trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            }
+            catch ( ClusterConfigurationException e )
+            {
+                trackerOperation.addLogFailed(
+                        String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
+                e.printStackTrace();
+            }
         }
-        catch ( ClusterSetupException e )
+        catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
+            e.printStackTrace();
         }
     }
 
@@ -129,7 +147,15 @@ public class ClusterOperationHandler
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -138,7 +164,16 @@ public class ClusterOperationHandler
         }
 
         trackerOperation.addLog( "Uninstalling ES..." );
-        Set<ContainerHost> esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> esNodes;
+        try
+        {
+            esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Error accessing environment containers: %s", e ) );
+            return;
+        }
         for ( ContainerHost node : esNodes )
         {
             executeCommand( node, manager.getCommands().getUninstallCommand() );

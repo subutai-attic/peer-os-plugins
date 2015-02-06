@@ -5,10 +5,11 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -36,7 +37,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
 
         ElasticsearchClusterConfiguration clusterConfiguration = ( ElasticsearchClusterConfiguration ) config;
-        Set<ContainerHost> esNodes = environment.getContainerHostsByIds( clusterConfiguration.getNodes() );
+        Set<ContainerHost> esNodes = null;
+        try
+        {
+            esNodes = environment.getContainerHostsByIds( clusterConfiguration.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
 
         for ( ContainerHost containerHost : esNodes )
@@ -54,7 +63,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     commandUtil.execute( manager.getCommands().getInstallCommand(), containerHost );
                 }
 
-                po.addLog( String.format( "Configuring node %s..." + containerHost.getHostname() ) );
+                po.addLog( String.format( "Configuring node %s...", containerHost.getHostname() ) );
                 // Setting cluster name
                 commandUtil.execute( manager.getCommands().getConfigureCommand( clusterConfiguration.getClusterName() ),
                         containerHost );

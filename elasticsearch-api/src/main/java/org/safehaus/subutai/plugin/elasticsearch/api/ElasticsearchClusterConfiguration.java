@@ -11,11 +11,8 @@ import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 public class ElasticsearchClusterConfiguration implements ConfigBase
 {
-
     public static final String PRODUCT_KEY = "Elasticsearch";
-
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_KEY.toLowerCase();
-
     private String clusterName = "";
     private UUID environmentId;
     private Set<UUID> nodes = new HashSet<>();
