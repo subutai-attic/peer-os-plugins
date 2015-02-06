@@ -15,7 +15,7 @@
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.environment.api.EnvironmentManager" />
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="prestoRestServiceImpl" class="org.safehaus.subutai.plugin.presto.rest.RestService">
     <argument ref="prestoManager" />
