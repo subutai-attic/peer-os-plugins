@@ -18,11 +18,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
@@ -52,7 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -388,49 +383,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         Preconditions.checkNotNull( po, "Product operation is null" );
 
         return new MongoDbSetupStrategy( environment, config, po, this );
-    }
-
-
-    @Override
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( MongoClusterConfig config )
-    {
-        Preconditions.checkNotNull( config, "Mongo cluster config is null" );
-        //        EnvironmentBuildTask environmentBuildTask = new EnvironmentBuildTask();
-
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint
-                .setName( String.format( "%s-%s", MongoClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ) );
-        environmentBlueprint.setLinkHosts( true );
-        environmentBlueprint.setDomainName( Common.DEFAULT_DOMAIN_NAME );
-
-        //config servers
-        NodeGroup cfgServersGroup = new NodeGroup();
-        cfgServersGroup.setName( NodeType.CONFIG_NODE.name() );
-        cfgServersGroup.setNumberOfNodes( config.getNumberOfConfigServers() );
-        cfgServersGroup.setTemplateName( config.getTemplateName() );
-        cfgServersGroup.setPlacementStrategy(
-                MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( NodeType.CONFIG_NODE ) );
-
-        //routers
-        NodeGroup routersGroup = new NodeGroup();
-        routersGroup.setName( NodeType.ROUTER_NODE.name() );
-        routersGroup.setNumberOfNodes( config.getNumberOfRouters() );
-        routersGroup.setTemplateName( config.getTemplateName() );
-        routersGroup.setPlacementStrategy(
-                MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( NodeType.ROUTER_NODE ) );
-
-        //data nodes
-        NodeGroup dataNodesGroup = new NodeGroup();
-        dataNodesGroup.setName( NodeType.DATA_NODE.name() );
-        dataNodesGroup.setNumberOfNodes( config.getNumberOfDataNodes() );
-        dataNodesGroup.setTemplateName( config.getTemplateName() );
-        dataNodesGroup
-                .setPlacementStrategy( MongoDbSetupStrategy.getNodePlacementStrategyByNodeType( NodeType.DATA_NODE ) );
-
-        environmentBlueprint.setNodeGroups( Sets.newHashSet( cfgServersGroup, routersGroup, dataNodesGroup ) );
-
-        //        environmentBuildTask.setEnvironmentBlueprint( environmentBlueprint );
-        return environmentBlueprint;
     }
 
 

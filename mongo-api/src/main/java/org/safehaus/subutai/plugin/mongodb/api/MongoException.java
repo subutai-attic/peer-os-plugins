@@ -1,10 +1,7 @@
 package org.safehaus.subutai.plugin.mongodb.api;
 
 
-import org.safehaus.subutai.common.exception.SubutaiException;
-
-
-public class MongoException extends SubutaiException
+public class MongoException extends Exception
 {
     public MongoException( final String message )
     {

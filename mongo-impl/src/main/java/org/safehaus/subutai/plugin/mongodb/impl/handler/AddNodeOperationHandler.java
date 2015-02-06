@@ -13,7 +13,6 @@ import org.safehaus.subutai.common.environment.EnvironmentModificationException;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.environment.Topology;
-import org.safehaus.subutai.common.exception.SubutaiException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
@@ -22,6 +21,7 @@ import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
+import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
@@ -238,7 +238,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                 return true;
             }
         }
-        catch ( SubutaiException e )
+        catch ( MongoException e )
         {
             logExceptionWithMessage( "Error applying operations on peer", e );
         }
@@ -267,7 +267,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
             newRouter.start( config );
             return true;
         }
-        catch ( SubutaiException e )
+        catch ( Exception e )
         {
             logExceptionWithMessage( "Couldn't add router node", e );
         }
