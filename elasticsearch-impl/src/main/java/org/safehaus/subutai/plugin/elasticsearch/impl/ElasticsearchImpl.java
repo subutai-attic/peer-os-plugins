@@ -7,12 +7,11 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.sql.DataSource;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -199,6 +198,17 @@ public class ElasticsearchImpl implements Elasticsearch
 
 
     @Override
+    public UUID removeCluster( final String clusterName )
+    {
+        ElasticsearchClusterConfiguration config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID checkNode( final String clusterName, final String hostname )
     {
         AbstractOperationHandler operationHandler =
@@ -245,8 +255,19 @@ public class ElasticsearchImpl implements Elasticsearch
     {
         Preconditions.checkNotNull( config );
 
+        if ( !getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+    @Override
+    public void deleteConfig( final ElasticsearchClusterConfiguration config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
         if ( !getPluginDAO()
-                .saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
+                .deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
         {
             throw new ClusterException( "Could not save cluster info" );
         }

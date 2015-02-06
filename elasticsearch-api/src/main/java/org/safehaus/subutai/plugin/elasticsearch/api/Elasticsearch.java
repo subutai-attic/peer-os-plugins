@@ -20,6 +20,8 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
 
     public UUID destroyNode( String clusterName, String lxcHostname );
 
+    public UUID removeCluster( String clusterName );
+
     ClusterSetupStrategy getClusterSetupStrategy( ElasticsearchClusterConfiguration elasticsearchClusterConfiguration,
                                                   TrackerOperation po );
 
@@ -29,4 +31,6 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @param config - config to update
      */
     public void saveConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
+
+    public void deleteConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
 }

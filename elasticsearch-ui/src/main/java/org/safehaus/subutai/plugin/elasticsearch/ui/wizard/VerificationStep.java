@@ -4,7 +4,9 @@ package org.safehaus.subutai.plugin.elasticsearch.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.ui.ConfigView;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
@@ -42,11 +44,29 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Cluster Name", environmentWizard.getConfig().getClusterName() );
 
         String selectedNodes = "";
-        final Environment environment = environmentWizard.getEnvironmentManager().getEnvironmentByUUID(
-                environmentWizard.getConfig().getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = environmentWizard.getEnvironmentManager().findEnvironment(
+                    environmentWizard.getConfig().getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         for ( UUID uuid : environmentWizard.getConfig().getNodes() )
         {
-            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+            if ( environment != null )
+            {
+                try
+                {
+                    selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+            }
         }
 
         cfgView.addStringCfg( "Nodes to be configured", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );

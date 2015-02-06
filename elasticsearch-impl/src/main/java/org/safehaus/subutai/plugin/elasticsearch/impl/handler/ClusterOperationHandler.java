@@ -8,11 +8,14 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.CommandUtil;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -58,23 +61,35 @@ public class ClusterOperationHandler
         switch ( operationType )
         {
             case INSTALL:
-                executor.execute( new Runnable()
-                {
-                    public void run()
-                    {
-                        setupCluster();
-                    }
-                } );
+                setupCluster();
                 break;
             case UNINSTALL:
-                executor.execute( new Runnable()
-                {
-                    public void run()
-                    {
-                        destroyCluster();
-                    }
-                } );
+                destroyCluster();
                 break;
+            case REMOVE:
+                removeCluster();
+                break;
+
+        }
+    }
+
+    public void removeCluster()
+    {
+        ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        try
+        {
+            manager.deleteConfig( config );
+            trackerOperation.addLogDone( "Cluster removed from database" );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -129,7 +144,15 @@ public class ClusterOperationHandler
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
@@ -138,7 +161,15 @@ public class ClusterOperationHandler
         }
 
         trackerOperation.addLog( "Uninstalling ES..." );
-        Set<ContainerHost> esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> esNodes = null;
+        try
+        {
+            esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         for ( ContainerHost node : esNodes )
         {
             executeCommand( node, manager.getCommands().getUninstallCommand() );

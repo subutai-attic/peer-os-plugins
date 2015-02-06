@@ -4,9 +4,11 @@ package org.safehaus.subutai.plugin.elasticsearch.impl;
 import java.util.List;
 import java.util.Set;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -53,15 +55,30 @@ public class ESSetupStrategy implements ClusterSetupStrategy
                     String.format( "Cluster with name '%s' already exists", config.getClusterName() ) );
         }
 
-        Environment environment =
-                elasticsearchManager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = elasticsearchManager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         if ( environment == null )
         {
             throw new ClusterSetupException( "Environment not found" );
         }
 
-        Set<ContainerHost> nodes = environment.getContainerHostsByIds( config.getNodes() );
+        Set<ContainerHost> nodes = null;
+        try
+        {
+            nodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         List<ElasticsearchClusterConfiguration> esClusters = elasticsearchManager.getClusters();
 

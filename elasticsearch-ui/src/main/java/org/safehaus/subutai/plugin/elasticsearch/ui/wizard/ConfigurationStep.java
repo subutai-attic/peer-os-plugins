@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 import com.google.common.base.Strings;
@@ -58,7 +58,7 @@ public class ConfigurationStep extends VerticalLayout
             }
         } );
 
-        final List<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
+        final Set<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
