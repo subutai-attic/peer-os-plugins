@@ -13,12 +13,12 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,17 +114,25 @@ public class ClusterOperationHandler
     @Override
     public void setupCluster()
     {
+        Environment env = null;
         try
         {
-            ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
-            clusterSetupStrategy.setup();
-
-            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            try
+            {
+                new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, env );
+                trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            }
+            catch ( ClusterConfigurationException e )
+            {
+                trackerOperation.addLogFailed(
+                        String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
+                e.printStackTrace();
+            }
         }
-        catch ( ClusterSetupException e )
+        catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
+            e.printStackTrace();
         }
     }
 

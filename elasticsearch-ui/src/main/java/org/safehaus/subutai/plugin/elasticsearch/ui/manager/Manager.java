@@ -182,6 +182,7 @@ public class Manager
         autoScaleBtn.setValue( false );
         autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
         controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
         autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -579,7 +580,14 @@ public class Manager
             {
                 e.printStackTrace();
             }
-            populateTable( nodesTable, environment.getContainerHosts() );
+            try
+            {
+                populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodes() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else

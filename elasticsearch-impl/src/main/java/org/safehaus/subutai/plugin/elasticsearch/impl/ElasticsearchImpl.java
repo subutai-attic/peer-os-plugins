@@ -256,7 +256,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
             final ElasticsearchClusterConfiguration elasticsearchClusterConfiguration, final TrackerOperation po )
     {
 
-        Preconditions.checkNotNull( elasticsearchClusterConfiguration, "Zookeeper cluster config is null" );
+        Preconditions.checkNotNull( elasticsearchClusterConfiguration, "Elasticsearch cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation is null" );
 
         return new ESSetupStrategy( elasticsearchClusterConfiguration, po, this );
@@ -268,7 +268,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         Preconditions.checkNotNull( config );
 
-        if ( !getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        if ( !getPluginDAO().saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not delete cluster info" );
         }

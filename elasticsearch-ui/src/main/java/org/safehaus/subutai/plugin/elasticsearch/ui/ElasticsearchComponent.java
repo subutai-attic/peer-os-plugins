@@ -8,8 +8,8 @@ import javax.naming.NamingException;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
-import org.safehaus.subutai.plugin.elasticsearch.ui.wizard.EnvironmentWizard;
 import org.safehaus.subutai.plugin.elasticsearch.ui.manager.Manager;
+import org.safehaus.subutai.plugin.elasticsearch.ui.wizard.EnvironmentWizard;
 
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
