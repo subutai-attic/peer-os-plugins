@@ -16,9 +16,11 @@ import com.vaadin.data.Property;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+
 
 
 public class ImportPanel extends ImportExportBase
@@ -32,6 +34,7 @@ public class ImportPanel extends ImportExportBase
     AbstractTextField hbaseColumnFamilyField = UIUtil.getTextField( "Column family:", 300 );
     AbstractTextField hiveDatabaseField = UIUtil.getTextField( "Database:", 300 );
     AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:", 300 );
+    public ComboBox tables = new ComboBox();
 
 
     public ImportPanel( Sqoop sqoop, ExecutorService executorService, Tracker tracker )
@@ -189,14 +192,15 @@ public class ImportPanel extends ImportExportBase
         ls.add( UIUtil.getLabel( "<h1>Sqoop Import</h1>", 100, Unit.PERCENTAGE ) );
         ls.add( UIUtil.getLabel( "<h1>" + type.toString() + "</h1>", 200 ) );
         ls.add( connStringField );
-        ls.add( tableField );
         ls.add( usernameField );
         ls.add( passwordField );
+        ls.add( ( Component ) tables );
+        ls.add( tableField );
 
         switch ( type )
         {
             case HDFS:
-                ls.add( 3, chkImportAllTables );
+                ls.add( 5, chkImportAllTables );
                 this.fields.add( chkImportAllTables );
                 break;
             case HBASE:

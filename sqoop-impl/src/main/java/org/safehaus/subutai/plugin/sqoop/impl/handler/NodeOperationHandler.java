@@ -115,7 +115,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
                     LOG.warn( "Operation not applicable: " + operationType );
             }
 
-            trackerOperation.addLogDone( String.format( "Operation %s succeeded", operationType.name() ) );
+            trackerOperation.addLogDone( String.format( "Operation %s finished", operationType.name() ) );
         }
         catch ( ClusterException e )
         {
@@ -235,7 +235,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
             if ( res.hasSucceeded() )
             {
                 trackerOperation.addLog( res.getStdOut() );
-                trackerOperation.addLog( "Import completed on " + node.getHostname() );
+                trackerOperation.addLog( res.getStdErr() );
             }
             else
             {
