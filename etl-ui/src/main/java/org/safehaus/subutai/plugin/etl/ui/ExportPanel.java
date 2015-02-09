@@ -17,6 +17,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.ProgressBar;
 
 
 public class ExportPanel extends ImportExportBase
@@ -26,6 +27,7 @@ public class ExportPanel extends ImportExportBase
     private final Sqoop sqoop;
     private final ExecutorService executorService;
     AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:" );
+    public ProgressBar progressIcon = UIUtil.getProgressIcon();
 
     public ExportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
     {
@@ -98,20 +100,26 @@ public class ExportPanel extends ImportExportBase
                     return;
                 }
                 setFieldsEnabled( false );
-                ExportSetting es = makeSettings();
-                final UUID trackId = sqoop.exportData( es );
-
-                OperationWatcher watcher = new OperationWatcher( trackId );
-                watcher.setCallback( new OperationCallback()
+                executorService.execute( new Runnable()
                 {
-
                     @Override
-                    public void onComplete()
+                    public void run()
                     {
-                        setFieldsEnabled( true );
+                        ExportSetting es = makeSettings();
+                        final UUID trackId = sqoop.exportData( es );
+                        OperationWatcher watcher = new OperationWatcher( trackId );
+                        watcher.setCallback( new OperationCallback()
+                        {
+                            @Override
+                            public void onComplete()
+                            {
+                                progressIcon.setVisible( false );
+                            }
+                        } );
+                        executorService.execute( watcher );
+
                     }
                 } );
-                executorService.execute( watcher );
             }
         } ) );
 
@@ -124,6 +132,8 @@ public class ExportPanel extends ImportExportBase
                 detachFromParent();
             }
         } ) );
+
+        buttons.addComponent( progressIcon );
 
         List<Component> ls = new ArrayList<>();
         ls.add( UIUtil.getLabel( "<h1>Sqoop Export</h1>", Unit.PERCENTAGE ) );

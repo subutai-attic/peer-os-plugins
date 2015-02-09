@@ -44,7 +44,7 @@ public class ImportPanel extends ImportExportBase
     private ComboBox tables = UIUtil.getComboBox( "Tables" );
     private ProgressBar progressIconDB = UIUtil.getProgressIcon();
     private ProgressBar progressIconTable = UIUtil.getProgressIcon();
-
+    public ProgressBar progressIcon = UIUtil.getProgressIcon();
 
     public ImportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
     {
@@ -220,19 +220,28 @@ public class ImportPanel extends ImportExportBase
                 {
                     return;
                 }
-                setFieldsEnabled( false );
-                ImportSetting sett = makeSettings();
-                final UUID trackId = sqoop.importData( sett );
-                OperationWatcher watcher = new OperationWatcher( trackId );
-                watcher.setCallback( new OperationCallback()
+                progressIcon.setVisible( true );
+                final ImportSetting sett = makeSettings();
+                executorService.execute( new Runnable()
                 {
                     @Override
-                    public void onComplete()
+                    public void run()
                     {
-                        setFieldsEnabled( true );
+                        final UUID trackId = sqoop.importData( sett );
+                        OperationWatcher watcher = new OperationWatcher( trackId );
+                        watcher.setCallback( new OperationCallback()
+                        {
+                            @Override
+                            public void onComplete()
+                            {
+                                progressIcon.setVisible( false );
+                            }
+                        } );
+                        executorService.execute( watcher );
+
                     }
                 } );
-                executorService.execute( watcher );
+
             }
         } ) );
 
@@ -245,6 +254,8 @@ public class ImportPanel extends ImportExportBase
                 setType( null );
             }
         } ) );
+
+        buttons.addComponent( progressIcon );
 
         HorizontalLayout dbLayout = new HorizontalLayout();
         dbLayout.setSpacing( true );
@@ -282,11 +293,12 @@ public class ImportPanel extends ImportExportBase
                         databases.removeAllItems();
                         ImportSetting importSettings = makeSettings();
                         String databaseList = sqoop.fetchDatabases( importSettings );
-                        if ( databaseList.isEmpty() ){
+                        ArrayList<String> dbItems = clearResult( databaseList );
+                        if ( dbItems.isEmpty() ){
                             Notification.show( "Cannot fetch any database. Check your connection details !!!" );
+                            progressIconDB.setVisible( false );
                             return;
                         }
-                        ArrayList<String> dbItems = clearResult( databaseList );
                         Notification.show( "Fetched " + dbItems.size() + " databases." );
 
                         for ( String dbItem : dbItems ){
@@ -342,11 +354,12 @@ public class ImportPanel extends ImportExportBase
                         tables.removeAllItems();
                         ImportSetting importSettings = makeSettings();
                         String tableList = sqoop.fetchTables( importSettings );
-                        if ( tableList.isEmpty() ){
+                        ArrayList<String> tableItems = clearResult( tableList );
+                        if ( tableItems.isEmpty() ){
                             Notification.show( "Cannot fetch any table. Check your connection details !!!" );
+                            progressIconTable.setVisible( false );
                             return;
                         }
-                        ArrayList<String> tableItems = clearResult( tableList );
                         Notification.show( "Fetched " + tableItems.size() + " tables." );
 
                         for ( String tableItem : tableItems ){
