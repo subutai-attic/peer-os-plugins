@@ -27,7 +27,6 @@ public class ExportPanel extends ImportExportBase
     private final ExecutorService executorService;
     AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:" );
 
-
     public ExportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
     {
         super( tracker );
@@ -68,12 +67,13 @@ public class ExportPanel extends ImportExportBase
     {
         removeAllComponents();
         super.init();
+
         fields.add( hdfsPathField );
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setSpacing( true );
-        buttons.addComponent( UIUtil.getButton( "Review Query", new Button.ClickListener(){
-
+        buttons.addComponent( UIUtil.getButton( "Review Query", new Button.ClickListener()
+        {
             @Override
             public void buttonClick( final Button.ClickEvent event )
             {
@@ -89,7 +89,6 @@ public class ExportPanel extends ImportExportBase
 
         buttons.addComponent( UIUtil.getButton( "Export", new Button.ClickListener()
         {
-
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
@@ -126,14 +125,13 @@ public class ExportPanel extends ImportExportBase
             }
         } ) );
 
-
-
         List<Component> ls = new ArrayList<>();
         ls.add( UIUtil.getLabel( "<h1>Sqoop Export</h1>", Unit.PERCENTAGE ) );
         ls.add( connStringField );
         ls.add( tableField );
         ls.add( usernameField );
         ls.add( passwordField );
+        hdfsPathField = UIUtil.getTextField( "HDFS file path:" );
         ls.add( hdfsPathField );
         ls.add( optionalParams );
         ls.add( buttons );

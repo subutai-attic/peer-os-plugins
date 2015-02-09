@@ -15,13 +15,17 @@ import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.AbstractTextField;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+
 
 
 public class ImportPanel extends ImportExportBase
@@ -36,6 +40,10 @@ public class ImportPanel extends ImportExportBase
     AbstractTextField hbaseColumnFamilyField = UIUtil.getTextField( "Column family:" );
     AbstractTextField hiveDatabaseField = UIUtil.getTextField( "Database:" );
     AbstractTextField hiveTableNameField = UIUtil.getTextField( "Table name:" );
+    private ComboBox databases = UIUtil.getComboBox( "Databases" );
+    private ComboBox tables = UIUtil.getComboBox( "Tables" );
+    private ProgressBar progressIconDB = UIUtil.getProgressIcon();
+    private ProgressBar progressIconTable = UIUtil.getProgressIcon();
 
 
     public ImportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
@@ -69,8 +77,20 @@ public class ImportPanel extends ImportExportBase
         s.setType( type );
         s.setClusterName( clusterName );
         s.setHostname( host.getHostname() );
-        s.setConnectionString( connStringField.getValue() );
-        s.setTableName( tableField.getValue() );
+
+        if ( databases.getValue() == null ){
+            s.setConnectionString( connStringField.getValue() );
+        }
+        else {
+            s.setConnectionString( connStringField.getValue() + "/" + databases.getValue().toString() );
+        }
+
+        if ( tables.getValue() == null ){
+            s.setTableName( connStringField.getValue() );
+        }
+        else {
+            s.setTableName( tables.getValue().toString() );
+        }
         s.setUsername( usernameField.getValue() );
         s.setPassword( passwordField.getValue() );
         s.setOptionalParameters( optionalParams.getValue() );
@@ -123,7 +143,7 @@ public class ImportPanel extends ImportExportBase
 
         switch ( type ){
             case HDFS:
-               tabsheet.setSelectedTab( tab1 );
+                tabsheet.setSelectedTab( tab1 );
                 break;
             case HBASE:
                 tabsheet.setSelectedTab( tab2 );
@@ -169,6 +189,7 @@ public class ImportPanel extends ImportExportBase
             {
                 String v = e.getProperty().getValue().toString();
                 tableField.setEnabled( !Boolean.parseBoolean( v ) );
+                tables.setEnabled( !Boolean.parseBoolean( v ) );
             }
         } );
 
@@ -205,7 +226,6 @@ public class ImportPanel extends ImportExportBase
                 OperationWatcher watcher = new OperationWatcher( trackId );
                 watcher.setCallback( new OperationCallback()
                 {
-
                     @Override
                     public void onComplete()
                     {
@@ -226,18 +246,140 @@ public class ImportPanel extends ImportExportBase
             }
         } ) );
 
+        HorizontalLayout dbLayout = new HorizontalLayout();
+        dbLayout.setSpacing( true );
+        dbLayout.addComponent( databases );
+        Button fetchDB = new Button( "Fetch" );
+        fetchDB.addStyleName( "default" );
+        dbLayout.addComponent( fetchDB );
+        dbLayout.setComponentAlignment( fetchDB, Alignment.BOTTOM_CENTER );
+        dbLayout.addComponent( progressIconDB  );
+        dbLayout.setComponentAlignment( progressIconDB, Alignment.BOTTOM_CENTER );
+
+        fetchDB.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent clickEvent )
+            {
+                if ( host.getId() == null  ){
+                    Notification.show( "Please select sqoop node!" );
+                    return;
+                }
+                if ( connStringField.getValue().isEmpty() ){
+                    Notification.show( "Please enter connection string!" );
+                    return;
+                }
+                if ( passwordField.getValue().isEmpty() ){
+                    Notification.show( "Please enter your password!" );
+                    return;
+                }
+                progressIconDB.setVisible( true );
+                executorService.execute( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        databases.removeAllItems();
+                        ImportSetting importSettings = makeSettings();
+                        String databaseList = sqoop.fetchDatabases( importSettings );
+                        if ( databaseList.isEmpty() ){
+                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
+                            return;
+                        }
+                        ArrayList<String> dbItems = clearResult( databaseList );
+                        Notification.show( "Fetched " + dbItems.size() + " databases." );
+
+                        for ( String dbItem : dbItems ){
+                            databases.addItem( dbItem );
+                        }
+                        try
+                        {
+                            Thread.sleep( 2000 );
+                        }
+                        catch ( InterruptedException e )
+                        {
+                            e.printStackTrace();
+                        }
+                        progressIconDB.setVisible( false );
+                    }
+                } );
+            }
+        } );
+
+
+        HorizontalLayout tableLayout = new HorizontalLayout();
+        tableLayout.setSpacing( true );
+        tableLayout.addComponent( tables );
+        Button fetchTables = new Button( "Fetch" );
+        fetchTables.addStyleName( "default" );
+        tableLayout.addComponent( fetchTables );
+        tableLayout.setComponentAlignment( fetchTables, Alignment.BOTTOM_CENTER );
+        tableLayout.addComponent( progressIconTable  );
+        tableLayout.setComponentAlignment( progressIconTable, Alignment.BOTTOM_CENTER );
+        fetchTables.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent clickEvent )
+            {
+                if ( host.getId() == null  ){
+                    Notification.show( "Please select sqoop node!" );
+                    return;
+                }
+                if ( connStringField.getValue().isEmpty() ){
+                    Notification.show( "Please enter connection string!" );
+                    return;
+                }
+                if ( passwordField.getValue().isEmpty() ){
+                    Notification.show( "Please enter your password!" );
+                    return;
+                }
+                progressIconTable.setVisible( true );
+                executorService.execute( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        tables.removeAllItems();
+                        ImportSetting importSettings = makeSettings();
+                        String tableList = sqoop.fetchTables( importSettings );
+                        if ( tableList.isEmpty() ){
+                            Notification.show( "Cannot fetch any table. Check your connection details !!!" );
+                            return;
+                        }
+                        ArrayList<String> tableItems = clearResult( tableList );
+                        Notification.show( "Fetched " + tableItems.size() + " tables." );
+
+                        for ( String tableItem : tableItems ){
+                            tables.addItem( tableItem );
+                        }
+                        try
+                        {
+                            Thread.sleep( 2000 );
+                        }
+                        catch ( InterruptedException e )
+                        {
+                            e.printStackTrace();
+                        }
+                        progressIconTable.setVisible( false );
+                    }
+                } );
+
+            }
+        } );
+
         List<Component> ls = new ArrayList<>();
         ls.add( UIUtil.getLabel( "<h1>Sqoop Import</h1>", Unit.PERCENTAGE ) );
         ls.add( UIUtil.getLabel( "<h1>" + type.toString() + "</h1>", 200 ) );
         ls.add( connStringField );
-        ls.add( tableField );
         ls.add( usernameField );
         ls.add( passwordField );
+        ls.add( dbLayout );
+        ls.add( tableLayout );
 
         switch ( type )
         {
             case HDFS:
-                ls.add( 3, chkImportAllTables );
+                ls.add( 6, chkImportAllTables );
                 this.fields.add( chkImportAllTables );
                 break;
             case HBASE:
@@ -266,6 +408,26 @@ public class ImportPanel extends ImportExportBase
     }
 
 
+    /**
+     * Sqoop query message contains some unrelated sentences along with
+     * tables list. That's why we need to revoke this method to filter
+     * unrelated sentences from query output.
+     *
+     * @param s sqoop query output
+     * @return
+     */
+    private ArrayList<String> clearResult( String s ){
+        ArrayList<String> list = new ArrayList<>();
+        String result[] = s.split( "\n" );
+        for ( String part : result ){
+            if ( ! part.endsWith( "." ) ){
+                list.add( part );
+            }
+        }
+        return list;
+    }
+
+
     @Override
     boolean checkFields()
     {
@@ -276,7 +438,7 @@ public class ImportPanel extends ImportExportBase
                 case HDFS:
                     if ( !isChecked( chkImportAllTables ) )
                     {
-                        if ( !hasValue( tableField, "Table name not specified" ) )
+                        if ( !hasValue( tables, "Table name not specified" ) )
                         {
                             return false;
                         }
@@ -295,7 +457,7 @@ public class ImportPanel extends ImportExportBase
                 case HIVE:
                     if ( !isChecked( chkImportAllTables ) )
                     {
-                        if ( !hasValue( tableField, "Table name not specified" ) )
+                        if ( !hasValue( tables, "Table name not specified" ) )
                         {
                             return false;
                         }

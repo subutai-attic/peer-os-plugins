@@ -18,6 +18,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 
@@ -34,7 +35,8 @@ public abstract class ImportExportBase extends VerticalLayout
     AbstractTextField usernameField;
     AbstractTextField passwordField;
     AbstractTextField optionalParams;
-    TextArea logTextArea;
+    TextArea std_logs;
+    TextArea std_err_logs;
     private String hostNameTitle = "";
 
 
@@ -116,16 +118,11 @@ public abstract class ImportExportBase extends VerticalLayout
                 "http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html. Do not forget to use \"--\" " +
                 "(double dashes) in optional parameters." );
 
-        logTextArea = UIUtil.getTextArea( "Logs:" );
-        logTextArea.setValue( "" );
-        logTextArea.setHeight( 100, Unit.PERCENTAGE );
-
         fields.add( connStringField );
         fields.add( tableField );
         fields.add( usernameField );
         fields.add( passwordField );
         fields.add( optionalParams );
-        fields.add( logTextArea );
     }
 
 
@@ -146,7 +143,36 @@ public abstract class ImportExportBase extends VerticalLayout
         {
             left.addComponent( components.get( i ) );
         }
-        right.addComponent( logTextArea );
+
+        int rowSize = 30;
+        std_logs = new TextArea();
+        std_logs.setSizeFull();
+        std_logs.setRows( rowSize );
+
+        std_err_logs = new TextArea();
+        std_err_logs.setSizeFull();
+        std_err_logs.setRows( rowSize );
+
+        final TabSheet tabsheet = new TabSheet();
+        tabsheet.setCaption( "Query Results" );
+        tabsheet.setSizeFull();
+
+        final VerticalLayout tab1 = new VerticalLayout();
+        tab1.setSizeFull();
+        tab1.setSpacing( true );
+        tab1.setCaption( "std_out" );
+        tabsheet.addTab(tab1);
+        tab1.addComponent( std_logs );
+
+        final VerticalLayout tab2 = new VerticalLayout();
+        tab2.setSizeFull();
+        tab2.setSpacing( true );
+        tab2.setCaption( "std_err");
+        tabsheet.addTab(tab2);
+        tab2.addComponent( std_err_logs );
+
+        right.addComponent( tabsheet );
+
 
         rootLayout.addComponent( left, 0, 0 );
         rootLayout.addComponent( right, 1, 0 );
@@ -190,8 +216,8 @@ public abstract class ImportExportBase extends VerticalLayout
     {
         if ( m != null && m.length() > 0 )
         {
-            logTextArea.setValue( logTextArea.getValue() + "\n" + m );
-            logTextArea.setCursorPosition( logTextArea.getValue().length() );
+            std_logs.setValue( std_logs.getValue() + "\n" + m );
+            std_logs.setCursorPosition( std_logs.getValue().length() );
         }
     }
 
@@ -207,7 +233,8 @@ public abstract class ImportExportBase extends VerticalLayout
 
     void clearLogMessages()
     {
-        logTextArea.setValue( "" );
+        std_logs.setValue( "" );
+        std_err_logs.setValue( "" );
     }
 
 

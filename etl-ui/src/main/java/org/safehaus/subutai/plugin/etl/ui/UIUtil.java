@@ -5,10 +5,13 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
+
 
 
 public class UIUtil
@@ -23,6 +26,26 @@ public class UIUtil
             button.addClickListener( listener );
         }
         return button;
+    }
+
+
+    public static ProgressBar getProgressIcon(){
+        ProgressBar progressIcon = new com.vaadin.ui.ProgressBar();
+        progressIcon.setId( "indicator" );
+        progressIcon.setIndeterminate( true );
+        progressIcon.setVisible( false );
+        return  progressIcon;
+    }
+
+
+    public static ComboBox getComboBox ( String caption ){
+        ComboBox comboBox = new ComboBox();
+        comboBox.setCaption( caption );
+        comboBox.setNullSelectionAllowed( false );
+        comboBox.setImmediate( true );
+        comboBox.setTextInputAllowed( false );
+        comboBox.setRequired( true );
+        return comboBox;
     }
 
 
