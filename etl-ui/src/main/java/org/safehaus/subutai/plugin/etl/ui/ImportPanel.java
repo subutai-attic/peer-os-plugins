@@ -205,6 +205,7 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
                 ImportSetting es = makeSettings();
+                es.setPassword( "***" );
                 String cmd = sqoop.reviewImportQuery( es );
                 Notification.show( cmd );
             }

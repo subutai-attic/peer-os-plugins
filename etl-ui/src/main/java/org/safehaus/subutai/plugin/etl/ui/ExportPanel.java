@@ -84,6 +84,7 @@ public class ExportPanel extends ImportExportBase
                     return;
                 }
                 ExportSetting es = makeSettings();
+                es.setPassword( "***" );
                 String cmd = sqoop.reviewExportQuery( es );
                 Notification.show( cmd );
             }

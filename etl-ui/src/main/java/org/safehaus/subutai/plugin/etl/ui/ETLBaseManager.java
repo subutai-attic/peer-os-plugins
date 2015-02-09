@@ -76,7 +76,6 @@ public class ETLBaseManager
         hadoopComboWithProgressIcon.setSpacing( true );
 
         hadoopClustersCombo = new ComboBox( "Select Hadoop Cluster" );
-        hadoopClustersCombo.setNullSelectionAllowed( false );
         hadoopClustersCombo.setImmediate( true );
         hadoopClustersCombo.setTextInputAllowed( false );
         hadoopClustersCombo.setRequired( true );
