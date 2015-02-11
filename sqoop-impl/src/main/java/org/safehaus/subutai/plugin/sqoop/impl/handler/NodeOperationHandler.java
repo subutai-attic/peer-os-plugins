@@ -199,11 +199,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         String cmd = CommandFactory.build( NodeOperationType.EXPORT, exportSettings );
         try
         {
-            CommandResult res = node.execute( new RequestBuilder( cmd ) );
+            CommandResult res = node.execute( new RequestBuilder( cmd ).withTimeout( 3600 ) );
             if ( res.hasSucceeded() )
             {
                 trackerOperation.addLog( res.getStdOut() );
-                trackerOperation.addLog( "Export completed on " + node.getHostname() );
+                trackerOperation.addLog( res.getStdErr() );
             }
             else
             {
@@ -231,7 +231,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         String cmd = CommandFactory.build( NodeOperationType.IMPORT, importSettings );
         try
         {
-            CommandResult res = node.execute( new RequestBuilder( cmd ) );
+            CommandResult res = node.execute( new RequestBuilder( cmd ).withTimeout( 360000 ) );
             if ( res.hasSucceeded() )
             {
                 trackerOperation.addLog( res.getStdOut() );
