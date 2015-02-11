@@ -122,8 +122,8 @@ public class HadoopAlertListener implements AlertListener
         // confirm that Hadoop is causing the stress, otherwise no-op
         MonitoringSettings thresholds = hadoop.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 );
-        HashMap<NodeType, Integer> ramConsumption = new HashMap<>();
-        HashMap<NodeType, Integer> cpuConsumption = new HashMap<>();
+        HashMap<NodeType, Double> ramConsumption = new HashMap<>();
+        HashMap<NodeType, Double> cpuConsumption = new HashMap<>();
 
         for ( NodeType nodeType : nodeRoles )
         {
@@ -267,12 +267,12 @@ public class HadoopAlertListener implements AlertListener
     }
 
 
-    private boolean isSourceNodeUnderStressBySlaveNodes( HashMap<NodeType, Integer> ramConsumption,
-                                                         HashMap<NodeType, Integer> cpuConsumption,
+    private boolean isSourceNodeUnderStressBySlaveNodes( HashMap<NodeType, Double> ramConsumption,
+                                                         HashMap<NodeType, Double> cpuConsumption,
                                                          HadoopClusterConfig targetCluster )
     {
-        Map.Entry<NodeType, Integer> maxEntryInRamConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : ramConsumption.entrySet() )
+        Map.Entry<NodeType, Double> maxEntryInRamConsumption = null;
+        for ( Map.Entry<NodeType, Double> entry : ramConsumption.entrySet() )
         {
             if ( maxEntryInRamConsumption == null
                     || entry.getValue().compareTo( maxEntryInRamConsumption.getValue() ) > 0 )
@@ -281,8 +281,8 @@ public class HadoopAlertListener implements AlertListener
             }
         }
 
-        Map.Entry<NodeType, Integer> maxEntryInCPUConsumption = null;
-        for ( Map.Entry<NodeType, Integer> entry : cpuConsumption.entrySet() )
+        Map.Entry<NodeType, Double> maxEntryInCPUConsumption = null;
+        for ( Map.Entry<NodeType, Double> entry : cpuConsumption.entrySet() )
         {
             if ( maxEntryInCPUConsumption == null
                     || entry.getValue().compareTo( maxEntryInCPUConsumption.getValue() ) > 0 )
