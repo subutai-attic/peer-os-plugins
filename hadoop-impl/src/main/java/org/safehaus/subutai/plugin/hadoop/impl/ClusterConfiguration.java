@@ -130,8 +130,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
         // Start Hadoop cluster
-        executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
-        executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
+//        executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
+//        executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
 
 
         po.addLog( "Configuration is finished !" );
