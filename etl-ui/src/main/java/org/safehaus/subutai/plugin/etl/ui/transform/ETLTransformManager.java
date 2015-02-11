@@ -93,11 +93,13 @@ public class ETLTransformManager extends ETLBaseManager
         hiveSelection.setImmediate( true );
         hiveSelection.setTextInputAllowed( false );
         hiveSelection.setRequired( true );
+        hiveSelection.setNullSelectionAllowed( false );
 
         final ComboBox pigSelection = new ComboBox( PIG_COMBO_BOX_CAPTION );
         pigSelection.setImmediate( true );
         pigSelection.setTextInputAllowed( false );
         pigSelection.setRequired( true );
+        pigSelection.setNullSelectionAllowed( false );
 
         switch ( type ){
             case HIVE:
