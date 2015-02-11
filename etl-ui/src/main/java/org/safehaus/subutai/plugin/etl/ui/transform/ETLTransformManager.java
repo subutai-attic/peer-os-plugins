@@ -37,6 +37,7 @@ public class ETLTransformManager extends ETLBaseManager
     private QueryPanel queryPanel;
     private Hive hive;
     private Pig pig;
+    private QueryType queryType;
 
     public ETLTransformManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
                                 Hive hive, Pig pig, EnvironmentManager environmentManager )
@@ -53,6 +54,7 @@ public class ETLTransformManager extends ETLBaseManager
     public void init( final GridLayout gridLayout, QueryType type ){
 
         gridLayout.removeAllComponents();
+        queryType  = type;
 
         contentRoot.addComponent( hadoopComboWithProgressIcon, 0, 1 );
 
@@ -136,7 +138,6 @@ public class ETLTransformManager extends ETLBaseManager
 
 
         // event listeners
-        final QueryType queryType = type;
         hadoopClustersCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
