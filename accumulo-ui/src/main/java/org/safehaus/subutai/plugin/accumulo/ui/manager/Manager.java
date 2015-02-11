@@ -369,6 +369,13 @@ public class Manager
                     }
                 }
 
+                if ( myHostSet.isEmpty() )
+                {
+                    Notification
+                            .show( "Please revise hadoop and zookeeper clusters for existence for additional nodes." );
+                    return;
+                }
+
                 AddNodeWindow w =
                         new AddNodeWindow( accumulo, executorService, tracker, accumuloClusterConfig, myHostSet,
                                 NodeType.ACCUMULO_TABLET_SERVER );
@@ -443,6 +450,13 @@ public class Manager
                     {
                         LOGGER.error( "Error applying operation on environment/container" );
                     }
+                }
+
+                if ( myHostSet.isEmpty() )
+                {
+                    Notification
+                            .show( "Please revise hadoop and zookeeper clusters for existence for additional nodes." );
+                    return;
                 }
 
                 AddNodeWindow w =
