@@ -771,8 +771,8 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
-                                    containerHost.getHostname(),
-                                    table == tracersTable ? NodeType.ACCUMULO_TRACER : NodeType.ACCUMULO_LOGGER );
+                                    containerHost.getHostname(), table == tracersTable ? NodeType.ACCUMULO_TRACER :
+                                                                 NodeType.ACCUMULO_TABLET_SERVER );
 
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -960,6 +960,7 @@ public class Manager
                 clusterCombo.setValue( mongoClusterInfos.iterator().next() );
             }
         }
+        refreshUI();
     }
 
 

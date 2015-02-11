@@ -241,6 +241,8 @@ public class NodeOperationHandlerTest
     public void testRunWithNodeOperationTypeUninstallAndNodeTypeAccumuloTracer() throws Exception
     {
         Set<UUID> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID() );
+        myUUID.add( UUID.randomUUID() );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
         when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
@@ -262,6 +264,8 @@ public class NodeOperationHandlerTest
     public void testRunWithNodeOperationTypeUninstallAndNodeTypeAccumuloTabletServers() throws Exception
     {
         Set<UUID> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID() );
+        myUUID.add( UUID.randomUUID() );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
         when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );

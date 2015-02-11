@@ -529,8 +529,26 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     private CommandResult uninstallProductOnNode( ContainerHost host, NodeType nodeType )
     {
         CommandResult result = null;
+        switch ( nodeType )
+        {
+            case ACCUMULO_TRACER:
+                if ( config.getTracers().size() <= 1 )
+                {
+                    trackerOperation.addLogFailed( "Could not uninstall last tracer of cluster." );
+                    return null;
+                }
+                break;
+            case ACCUMULO_TABLET_SERVER:
+                if ( config.getSlaves().size() <= 1 )
+                {
+                    trackerOperation.addLogFailed( "Could not uninstall last tablet server of cluster." );
+                    return null;
+                }
+                break;
+        }
         try
         {
+
             result = host.execute( new RequestBuilder(
                     Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME
                             .toLowerCase() ) );
