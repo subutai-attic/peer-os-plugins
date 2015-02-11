@@ -100,7 +100,7 @@ public class ExportPanel extends ImportExportBase
                 {
                     return;
                 }
-                setFieldsEnabled( false );
+                progressIcon.setVisible( true );
                 executorService.execute( new Runnable()
                 {
                     @Override
@@ -124,15 +124,15 @@ public class ExportPanel extends ImportExportBase
             }
         } ) );
 
-        buttons.addComponent( UIUtil.getButton( "Cancel", new Button.ClickListener()
-        {
-
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                detachFromParent();
-            }
-        } ) );
+//        buttons.addComponent( UIUtil.getButton( "Cancel", new Button.ClickListener()
+//        {
+//
+//            @Override
+//            public void buttonClick( Button.ClickEvent event )
+//            {
+//                detachFromParent();
+//            }
+//        } ) );
 
         buttons.addComponent( progressIcon );
 

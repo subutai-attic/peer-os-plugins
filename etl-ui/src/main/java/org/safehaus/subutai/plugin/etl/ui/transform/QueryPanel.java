@@ -38,16 +38,16 @@ public class QueryPanel extends VerticalLayout
     private QueryType type;
     ETLTransformManager etlTransformManager;
     private final int rowSize = 30;
+    private static final String JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/";
 
 
 
     public QueryPanel( ETLTransformManager etlTransformManager )
     {
         this.etlTransformManager = etlTransformManager;
-        init( QueryType.HIVE );
     }
 
-    public void init( QueryType type ){
+    public void init( final QueryType type ){
 
         final GridLayout upperGrid = new GridLayout();
         upperGrid.setRows( 1 );
@@ -166,7 +166,6 @@ public class QueryPanel extends VerticalLayout
         } );
 
 
-
         final TextArea std_logs = new TextArea();
         std_logs.setSizeFull();
         std_logs.setRows( rowSize );
@@ -175,6 +174,14 @@ public class QueryPanel extends VerticalLayout
         final TextArea std_err_logs = new TextArea();
         std_err_logs.setSizeFull();
         std_err_logs.setRows( rowSize );
+        std_err_logs.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+            {
+                Notification.show( "Error !!!" );
+            }
+        } );
 
 
         final QueryType queryType = type;
@@ -185,16 +192,19 @@ public class QueryPanel extends VerticalLayout
             @Override
             public void buttonClick( final Button.ClickEvent event )
             {
-                if ( receiver.getFile() == null ){
-                    Notification.show( "You need to create a query file first !!!" );
-                    return;
-                }
                 if ( containerHost == null )
                 {
                     Notification.show( "Please select node !!!" );
                     return;
                 }
+
                 progressBar.setVisible( true );
+                String queryFileName = "query_file";
+                File newFile = receiver.createNewFile( queryFileName );
+                receiver.setFile( newFile );
+                receiver.saveChanges( contentOfQueryFile, newFile );
+                receiver.showUploadedText( contentOfQueryFile, newFile );
+
                 try
                 {
                     receiver.copyFile( containerHost, receiver.getFile() );
@@ -213,8 +223,8 @@ public class QueryPanel extends VerticalLayout
                                 CommandResult result = executeCommand( containerHost, ". /etc/profile && hive -f " +
                                         receiver.getFile().getAbsolutePath() );
                                 if ( result.hasSucceeded() ){
-                                    std_err_logs.setValue( std_err_logs.getValue() +  getCurrentTime() + result.getStdErr() + "\n" );
                                     std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdOut() + "\n" );
+                                    std_err_logs.setValue( std_err_logs.getValue() + "\n" + result.getStdErr() );
                                 }
                                 progressBar.setVisible( false );
                             }
@@ -226,10 +236,13 @@ public class QueryPanel extends VerticalLayout
                             @Override
                             public void run()
                             {
-                                CommandResult result = executeCommand( containerHost, ". /etc/profile && pig -x mapreduce " +
-                                        receiver.getFile().getAbsolutePath() );
+                                CommandResult result = executeCommand( containerHost, ". /etc/profile && "
+                                                                        + "export JAVA_HOME=" + JAVA_HOME + " && "
+                                                                        + "pig -x mapreduce " +
+                                                                          receiver.getFile().getAbsolutePath() );
                                 if ( result.hasSucceeded() ){
-                                    std_logs.setValue( std_logs.getValue() +  "\n" + result.getStdOut() );
+                                    std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdOut() + "\n" );
+                                    std_err_logs.setValue( std_err_logs.getValue() + getCurrentTime() + result.getStdErr() + "\n");
                                 }
                                 progressBar.setVisible( false );
                             }
@@ -250,7 +263,7 @@ public class QueryPanel extends VerticalLayout
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing( true );
         buttonLayout.addComponent( refresh );
-        buttonLayout.addComponent( newFileButton );
+//        buttonLayout.addComponent( newFileButton );
 //        buttonLayout.addComponent( saveButton );
         buttonLayout.addComponent( runButtonLayout );
 
@@ -349,7 +362,8 @@ public class QueryPanel extends VerticalLayout
         CommandResult result = null;
         try
         {
-            result = containerHost.execute( new RequestBuilder( command ) );
+            // TODO: maximum command timeout is 360000 sec which is 100 hours.
+            result = containerHost.execute( new RequestBuilder( command ).withTimeout( 360000 ) );
         }
         catch ( CommandException e )
         {

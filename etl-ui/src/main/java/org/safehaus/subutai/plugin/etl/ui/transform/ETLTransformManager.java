@@ -104,12 +104,13 @@ public class ETLTransformManager extends ETLBaseManager
                 hadoopClustersCombo.setValue( null );
                 gridLayout.addComponent( hiveSelection, 0, 2 );
                 tabsheet.setSelectedTab( tab1 );
+                queryPanel.init( QueryType.HIVE );
                 break;
             case PIG:
                 hadoopClustersCombo.setValue( null );
                 gridLayout.addComponent( pigSelection, 0, 2 );
                 tabsheet.setSelectedTab( tab2 );
-
+                queryPanel.init( QueryType.PIG );
                 break;
         }
 

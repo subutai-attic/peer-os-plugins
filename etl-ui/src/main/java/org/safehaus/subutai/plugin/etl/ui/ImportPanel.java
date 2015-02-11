@@ -82,7 +82,13 @@ public class ImportPanel extends ImportExportBase
             s.setConnectionString( connStringField.getValue() );
         }
         else {
-            s.setConnectionString( connStringField.getValue() + "/" + databases.getValue().toString() );
+            if ( connStringField.getValue().endsWith( "/" ) ){
+                s.setConnectionString( connStringField.getValue() + databases.getValue().toString() );
+            }
+            else{
+                s.setConnectionString( connStringField.getValue() + "/" + databases.getValue().toString() );
+            }
+
         }
 
         if ( tables.getValue() == null ){
@@ -246,15 +252,15 @@ public class ImportPanel extends ImportExportBase
             }
         } ) );
 
-        buttons.addComponent( UIUtil.getButton( "Back", new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                reset();
-                setType( null );
-            }
-        } ) );
+//        buttons.addComponent( UIUtil.getButton( "Back", new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( Button.ClickEvent event )
+//            {
+//                reset();
+//                setType( null );
+//            }
+//        } ) );
 
         buttons.addComponent( progressIcon );
 
@@ -296,6 +302,7 @@ public class ImportPanel extends ImportExportBase
                         String databaseList = sqoop.fetchDatabases( importSettings );
                         ArrayList<String> dbItems = clearResult( databaseList );
                         if ( dbItems.isEmpty() ){
+
                             Notification.show( "Cannot fetch any database. Check your connection details !!!" );
                             progressIconDB.setVisible( false );
                             return;
