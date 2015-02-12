@@ -81,12 +81,12 @@ public class Manager
     private SolrClusterConfig solrClusterConfig;
 
 
-    public Manager( final ExecutorService executorService, final Solr solr, Tracker tracker,
+    public Manager( final ExecutorService executorService, final Solr aSolr, Tracker tracker,
                     EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
-        this.solr = solr;
+        this.solr = aSolr;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
 
@@ -421,17 +421,16 @@ public class Manager
         container.setBeanIdProperty( "clusterName" );
         container.addAll( environments );
 
-        ComboBox envList = new ComboBox( "Select cluster" );
-        envList.setId( "envList" );
-        envList.setItemCaptionPropertyId( "clusterName" );
-        envList.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
-        envList.setImmediate( true );
-        envList.setNullSelectionAllowed( false );
-        envList.setTextInputAllowed( false );
-        envList.setNullSelectionAllowed( false );
-        envList.setWidth( 150, Sizeable.Unit.PIXELS );
-        envList.setContainerDataSource( container );
-        envList.addValueChangeListener( new Property.ValueChangeListener()
+        clusterCombo.setId( "envList" );
+        clusterCombo.setItemCaptionPropertyId( "clusterName" );
+        clusterCombo.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
+        clusterCombo.setImmediate( true );
+        clusterCombo.setNullSelectionAllowed( false );
+        clusterCombo.setTextInputAllowed( false );
+        clusterCombo.setNullSelectionAllowed( false );
+        clusterCombo.setWidth( 150, Sizeable.Unit.PIXELS );
+        clusterCombo.setContainerDataSource( container );
+        clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
             public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
