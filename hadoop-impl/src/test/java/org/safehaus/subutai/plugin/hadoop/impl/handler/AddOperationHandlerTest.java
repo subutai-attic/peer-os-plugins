@@ -1,15 +1,15 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
+
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
-
-
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
@@ -28,7 +28,6 @@ public class AddOperationHandlerTest
     @Before
     public void setUp()
     {
-        //dataSource = mock(DataSource.class);
         executorService = mock(ExecutorService.class);
         trackerOperation = mock(TrackerOperation.class);
         uuid = new UUID(50, 50);

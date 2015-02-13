@@ -7,10 +7,11 @@ package org.safehaus.subutai.plugin.hadoop.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.List;
-import org.safehaus.subutai.core.hostregistry.api.HostRegistry;
 import java.util.Arrays;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import java.util.List;
+
+import org.safehaus.subutai.core.hostregistry.api.HostRegistry;
+
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
