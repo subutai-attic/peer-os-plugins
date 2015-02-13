@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.safehaus.subutai.plugin.pig.impl.Commands;
@@ -82,20 +83,25 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
             return;
         }
 
-
-        switch ( operationType )
+        try
         {
-            case INSTALL:
-                installProductOnNode( host );
-                break;
-            case UNINSTALL:
-                uninstallProductOnNode( host );
-                break;
+            switch ( operationType )
+            {
+                case INSTALL:
+                    installProductOnNode( host );
+                    break;
+                case UNINSTALL:
+                    uninstallProductOnNode( host );
+                    break;
+            }
+        } catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Operation failed, %s", e.getMessage() ) );
         }
     }
 
 
-    private CommandResult installProductOnNode( ContainerHost host )
+    private CommandResult installProductOnNode( ContainerHost host ) throws ClusterException
     {
         CommandResult result = null;
         try
@@ -104,7 +110,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
             if ( result.hasSucceeded() )
             {
                 config.getNodes().add( host.getId() );
-                manager.getPluginDao().saveInfo( PigConfig.PRODUCT_KEY, config.getClusterName(), config );
+                manager.saveConfig( config );
                 trackerOperation.addLogDone(
                         PigConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " successfully." );
             }
@@ -121,7 +127,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
     }
 
 
-    private CommandResult uninstallProductOnNode( ContainerHost host )
+    private CommandResult uninstallProductOnNode( ContainerHost host ) throws ClusterException
     {
         CommandResult result = null;
         try
@@ -130,7 +136,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
             if ( result.hasSucceeded() )
             {
                 config.getNodes().remove( host.getId() );
-                manager.getPluginDao().saveInfo( PigConfig.PRODUCT_KEY, config.getClusterName(), config );
+                manager.saveConfig( config );
                 trackerOperation.addLogDone(
                         PigConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname() + " successfully." );
             }

@@ -11,6 +11,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -48,15 +49,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
     public void run()
     {
         Preconditions.checkNotNull( config, "Configuration is null !!!" );
-        switch ( operationType )
+        try
         {
-            case INSTALL:
-                setupCluster();
-                break;
-            case DESTROY:
-                uninstallCluster();
-                break;
+            switch ( operationType )
+            {
+                case INSTALL:
+                    setupCluster();
+                    break;
+                case DESTROY:
+                    uninstallCluster();
+                    break;
+            }
+        } catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Operation failed, %s", e.getMessage() ) );
         }
+
     }
 
 
@@ -97,7 +105,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
     }
 
 
-    public void uninstallCluster()
+    public void uninstallCluster() throws ClusterException
     {
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Pig..." );
@@ -108,7 +116,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
             try
             {
                 containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                       .getContainerHostById( uuid );
+                                       .getContainerHostById( uuid );
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
             {
@@ -130,7 +138,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
             }
         }
         po.addLog( "Updating db..." );
-        manager.getPluginDao().deleteInfo( PigConfig.PRODUCT_KEY, config.getClusterName() );
+        manager.saveConfig( config );
         po.addLogDone( "Cluster info deleted from DB\nDone" );
     }
 }
