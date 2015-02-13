@@ -14,6 +14,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -163,7 +164,14 @@ class PigSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Updating db..." );
         //save to db
         config.setEnvironmentId( environment.getId() );
-        manager.getPluginDao().saveInfo( PigConfig.PRODUCT_KEY, config.getClusterName(), config );
+        try
+        {
+            manager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
+        }
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Pig..." );
         //install pig,
         try
@@ -172,7 +180,8 @@ class PigSetupStrategy implements ClusterSetupStrategy
             {
                 try
                 {
-                    node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+                    CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+                    processResult( node,result );
                 }
                 catch ( CommandException e )
                 {
@@ -189,5 +198,15 @@ class PigSetupStrategy implements ClusterSetupStrategy
         }
 
         trackerOperation.addLog( "Configuring cluster..." );
+    }
+
+    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    {
+
+        if ( !result.hasSucceeded() )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }
