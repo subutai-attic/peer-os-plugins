@@ -53,6 +53,10 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
     }
 
+    public void setPluginDAO(PluginDAO pluginDAO)
+    {
+        this.pluginDAO = pluginDAO;
+    }
 
     public PluginDAO getPluginDAO()
     {
