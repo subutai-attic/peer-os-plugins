@@ -74,54 +74,46 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
 
-        // Clear configuration files
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
-        {
-            executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
-            executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
+
+        // Configure NameNode & JobTracker and replication factor on all cluser nodes
+        for ( UUID uuid : config.getAllNodes() ){
+            try
+            {
+                ContainerHost containerHost = environment.getContainerHostById( uuid );
+                if ( containerHost.getId().equals( namenode.getId() ) || containerHost.getId().equals( jobtracker.getId() ) ){
+                    executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
+                    executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
+                }
+                executeCommandOnContainer( containerHost,
+                        commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
         }
-
-        // Configure NameNode
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
-        {
-            executeCommandOnContainer( containerHost,
-                    commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
-        }
-
-        // Configure JobTracker
-        executeCommandOnContainer( jobtracker, Commands.getConfigureJobTrackerCommand( jobtracker.getHostname() ) );
-
 
         // Configure Secondary NameNode
         executeCommandOnContainer( namenode,
                 Commands.getConfigureSecondaryNameNodeCommand( secondaryNameNode.getHostname() ) );
 
 
-        // Configure DataNodes
+        // Configure DataNodes & TaskTrackers
         for ( UUID uuid : config.getDataNodes() )
         {
             try
             {
-                executeCommandOnContainer( namenode, Commands.getConfigureDataNodesCommand(
+                executeCommandOnContainer( namenode, Commands.getConfigureSlaveNodes(
                         environment.getContainerHostById( uuid ).getHostname() ) );
+
+                if ( ! namenode.getId().equals( jobtracker.getId() ) ){
+                    executeCommandOnContainer( jobtracker, Commands.getConfigureSlaveNodes(
+                            environment.getContainerHostById( uuid ).getHostname() ) );
+                }
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Error executing command", e );
-            }
-        }
-
-        // Configure TaskTrackers
-        for ( UUID uuid : config.getTaskTrackers() )
-        {
-            try
-            {
-                executeCommandOnContainer( jobtracker, Commands.getConfigureTaskTrackersCommand(
-                        environment.getContainerHostById( uuid ).getHostname() ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error configuring task tracker.", e );
             }
         }
 
@@ -130,8 +122,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
         // Start Hadoop cluster
-//        executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
-//        executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
+        // executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
+        // executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
 
 
         po.addLog( "Configuration is finished !" );
@@ -147,7 +139,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            containerHost.execute( new RequestBuilder( command ) );
+            containerHost.execute( new RequestBuilder( command ).withTimeout( 10 ) );
         }
         catch ( CommandException e )
         {

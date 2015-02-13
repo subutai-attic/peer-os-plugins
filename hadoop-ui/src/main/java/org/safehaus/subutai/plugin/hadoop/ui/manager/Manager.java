@@ -416,11 +416,7 @@ public class Manager
                             statusGroup, availableOperations
                     }, null );
 
-                    urlButton.addClickListener( managerListener.nameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener
-                            .nameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener(
-                            managerListener.nameNodeStartStopButtonListener( containerHost, availableOperations ) );
+
                     break;
                 case JOBTRACKER:
                     availableOperations.addComponent( checkButton );
@@ -437,13 +433,6 @@ public class Manager
                             containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
                             statusGroup, availableOperations
                     }, null );
-
-
-                    urlButton.addClickListener( jobTrackerURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener
-                            .jobTrackerCheckButtonListener( containerHost, availableOperations, statusGroup ) );
-                    startStopButton.addClickListener(
-                            managerListener.jobTrackerStartStopButtonListener( containerHost, availableOperations ) );
                     break;
                 case SECONDARY_NAMENODE:
                     availableOperations.addComponent( checkButton );
@@ -456,11 +445,6 @@ public class Manager
                             containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeType.name(),
                             statusGroup, availableOperations
                     }, null );
-
-
-                    urlButton.addClickListener( managerListener.secondaryNameNodeURLButtonListener( containerHost ) );
-                    checkButton.addClickListener( managerListener
-                            .secondaryNameNodeCheckButtonListener( containerHost, availableOperations, statusGroup ) );
                     break;
             }
         }
@@ -650,7 +634,7 @@ public class Manager
     }
 
 
-    private void stopAllNodes( Table table )
+    public void stopAllNodes( Table table )
     {
         for ( Object o : table.getItemIds() )
         {

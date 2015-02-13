@@ -185,7 +185,7 @@ public class Commands
     }
 
 
-    public static String getConfigureDataNodesCommand( String hostname )
+    public static String getConfigureSlaveNodes( String hostname )
     {
         return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
     }

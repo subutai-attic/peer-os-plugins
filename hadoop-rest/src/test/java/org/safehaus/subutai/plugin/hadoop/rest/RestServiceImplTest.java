@@ -1,6 +1,11 @@
 package org.safehaus.subutai.plugin.hadoop.rest;
 
-import com.google.common.collect.Lists;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,9 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
-import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.UUID;
+import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

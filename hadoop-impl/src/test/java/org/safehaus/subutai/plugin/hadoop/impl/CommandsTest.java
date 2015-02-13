@@ -244,8 +244,8 @@ public class CommandsTest
     {
         String hostname = "test";
         assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
-                Commands.getConfigureDataNodesCommand( hostname ) );
-        assertNotNull( Commands.getConfigureDataNodesCommand( hostname ) );
+                Commands.getConfigureSlaveNodes( hostname ) );
+        assertNotNull( Commands.getConfigureSlaveNodes( hostname ) );
     }
 
     @Test
