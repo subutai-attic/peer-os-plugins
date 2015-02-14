@@ -14,6 +14,8 @@ import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -26,6 +28,8 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Storm storm, final ExecutorService executorService, final Tracker tracker,
                              final Wizard wizard, final EnvironmentManager environmentManager )
@@ -55,7 +59,8 @@ public class VerificationStep extends Panel
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Environment not found " + zookeeperClusterConfig.getEnvironmentId().toString(), e );
+                return;
             }
             ContainerHost nimbusHost = null;
             try
@@ -64,7 +69,8 @@ public class VerificationStep extends Panel
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Container host not found " + config.getNimbus().toString(), e );
+                return;
             }
             cfgView.addStringCfg( "Master node", nimbusHost.getHostname() );
         }

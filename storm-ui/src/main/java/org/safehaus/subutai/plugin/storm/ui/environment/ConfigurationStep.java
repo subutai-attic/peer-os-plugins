@@ -15,6 +15,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -36,7 +38,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends VerticalLayout
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
     private EnvironmentManager environmentManager;
     private EnvironmentWizard environmentWizard;
 
@@ -81,12 +83,14 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
 
-//        final List<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
-        final List<Environment> environmentList = new ArrayList<>( environmentWizard.getEnvironmentManager().getEnvironments() );
+        //        final List<Environment> environmentList = environmentWizard.getEnvironmentManager().getEnvironments();
+        final List<Environment> environmentList =
+                new ArrayList<>( environmentWizard.getEnvironmentManager().getEnvironments() );
         List<Environment> envList = new ArrayList<>();
         for ( Environment anEnvironmentList : environmentList )
         {
-            boolean exists = isTemplateExists( anEnvironmentList.getContainerHosts(), StormClusterConfiguration.TEMPLATE_NAME );
+            boolean exists =
+                    isTemplateExists( anEnvironmentList.getContainerHosts(), StormClusterConfiguration.TEMPLATE_NAME );
             if ( exists )
             {
                 envList.add( anEnvironmentList );
@@ -135,7 +139,9 @@ public class ConfigurationStep extends VerticalLayout
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Environment not found with id: " + environmentWizard.getConfig().getEnvironmentId()
+                                                                                       .toString(), e );
+                    return;
                 }
                 fillUpComboBox( allNodesSelect, env );
                 UUID uuid = ( UUID ) event.getProperty().getValue();
@@ -146,11 +152,11 @@ public class ConfigurationStep extends VerticalLayout
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Container host not found with id: " + uuid.toString(), e );
+                    return;
                 }
                 environmentWizard.getConfig().setNimbus( containerHost.getId() );
                 allNodesSelect.removeItem( containerHost );
-
             }
         } );
 
@@ -169,12 +175,14 @@ public class ConfigurationStep extends VerticalLayout
             public void valueChange( Property.ValueChangeEvent event )
             {
                 Environment environment = ( Environment ) event.getProperty().getValue();
-                if ( environment != null ){
+                if ( environment != null )
+                {
                     environmentWizard.getConfig().setEnvironmentId( environment.getId() );
                     nimbusNode.removeAllItems();
                     nimbusNode.setValue( null );
 
-                    for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) ){
+                    for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) )
+                    {
                         allNodesSelect.addItem( host.getId() );
                         allNodesSelect.setItemCaption( host.getId(),
                                 ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
@@ -183,7 +191,8 @@ public class ConfigurationStep extends VerticalLayout
                                 ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
                     }
                 }
-                else{
+                else
+                {
                     allNodesSelect.removeAllItems();
                     nimbusNode.removeAllItems();
                 }
@@ -211,7 +220,8 @@ public class ConfigurationStep extends VerticalLayout
                     masterNodeCombo.removeAllItems();
                     if ( e.getProperty().getValue() != null )
                     {
-                        ZookeeperClusterConfig zookeeperClusterConfig = ( ZookeeperClusterConfig ) e.getProperty().getValue();
+                        ZookeeperClusterConfig zookeeperClusterConfig =
+                                ( ZookeeperClusterConfig ) e.getProperty().getValue();
 
                         Environment zookeeperEnvironment = null;
                         try
@@ -221,7 +231,9 @@ public class ConfigurationStep extends VerticalLayout
                         }
                         catch ( EnvironmentNotFoundException e1 )
                         {
-                            e1.printStackTrace();
+                            LOGGER.error( "Environment not found with id: " + zookeeperClusterConfig.getEnvironmentId()
+                                                                                                    .toString(), e );
+                            return;
                         }
                         Set<ContainerHost> zookeeperNodes = null;
                         try
@@ -231,7 +243,10 @@ public class ConfigurationStep extends VerticalLayout
                         }
                         catch ( ContainerHostNotFoundException e1 )
                         {
-                            e1.printStackTrace();
+                            LOGGER.error( "Some container hosts not found by ids: " + zookeeperClusterConfig.getNodes()
+                                                                                                            .toString(),
+                                    e1 );
+                            return;
                         }
                         for ( ContainerHost containerHost : zookeeperNodes )
                         {
@@ -246,7 +261,8 @@ public class ConfigurationStep extends VerticalLayout
 
                         environmentWizard.setZookeeperClusterConfig( zookeeperClusterConfig );
 
-                        environmentWizard.getConfig().setZookeeperClusterName( zookeeperClusterConfig.getClusterName() );
+                        environmentWizard.getConfig()
+                                         .setZookeeperClusterName( zookeeperClusterConfig.getClusterName() );
                     }
                 }
             } );
@@ -275,7 +291,6 @@ public class ConfigurationStep extends VerticalLayout
             String s = "<b>A new nimbus node will be created with Zookeeper instance installed</b>";
             nimbusElem = new Label( s, ContentMode.HTML );
         }
-
 
 
         Button next = new Button( "Next" );
@@ -342,28 +357,35 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private void fillUpComboBox( TwinColSelect target, Environment environment ){
-        if ( environment != null ){
+    private void fillUpComboBox( TwinColSelect target, Environment environment )
+    {
+        if ( environment != null )
+        {
             environmentWizard.getConfig().setEnvironmentId( environment.getId() );
             target.removeAllItems();
             target.setValue( null );
 
-            for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) ){
+            for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) )
+            {
                 target.addItem( host );
                 target.setItemCaption( host,
                         ( host.getHostname() + " (" + host.getIpByInterfaceName( "eth0" ) + ")" ) );
             }
         }
-        else{
+        else
+        {
             target.removeAllItems();
         }
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts ){
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    {
         Set<ContainerHost> filteredSet = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts ){
-            if ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) ){
+        for ( ContainerHost containerHost : containerHosts )
+        {
+            if ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) )
+            {
                 filteredSet.add( containerHost );
             }
         }
@@ -371,14 +393,18 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName ){
-        for ( ContainerHost host: containerHosts ){
-            if ( host.getTemplateName().equals( templateName ) ){
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    {
+        for ( ContainerHost host : containerHosts )
+        {
+            if ( host.getTemplateName().equals( templateName ) )
+            {
                 return true;
             }
         }
-        return  false;
+        return false;
     }
+
 
     private ComboBox makeMasterNodeComboBox( final EnvironmentWizard wizard )
     {
@@ -402,8 +428,8 @@ public class ConfigurationStep extends VerticalLayout
         return cb;
     }
 
-    public static TwinColSelect getTwinSelect( String title, String leftTitle,
-                                               String rightTitle, int rows )
+
+    public static TwinColSelect getTwinSelect( String title, String leftTitle, String rightTitle, int rows )
     {
         TwinColSelect twinColSelect = new TwinColSelect( title );
         twinColSelect.setRows( rows );
@@ -415,6 +441,7 @@ public class ConfigurationStep extends VerticalLayout
         twinColSelect.setRequired( true );
         return twinColSelect;
     }
+
 
     private void show( String notification )
     {

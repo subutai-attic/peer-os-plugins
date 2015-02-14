@@ -25,11 +25,15 @@ import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 
 public class RestService
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( RestService.class );
     private static final String OPERATION_ID = "OPERATION_ID";
     private UUID nimbusID;
     private Storm stormManager;
@@ -75,7 +79,7 @@ public class RestService
     {
 
         List<StormClusterConfiguration> configs = stormManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        ArrayList<String> clusterNames = Lists.newArrayList();
 
         for ( StormClusterConfiguration config : configs )
         {
@@ -127,7 +131,8 @@ public class RestService
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Environment with id not found.", e );
+                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
             }
             try
             {

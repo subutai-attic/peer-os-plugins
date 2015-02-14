@@ -28,6 +28,8 @@ import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -49,6 +51,8 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
+
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
     protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
@@ -184,16 +188,16 @@ public class Manager
                     return;
                 }
                 ConfirmationDialog alert = new ConfirmationDialog(
-                        String.format( "Do you want to add a new node to the %s cluster?",
-                                config.getClusterName() ), "Yes", "No" );
+                        String.format( "Do you want to add a new node to the %s cluster?", config.getClusterName() ),
+                        "Yes", "No" );
                 alert.getOk().addClickListener( new Button.ClickListener()
                 {
                     @Override
                     public void buttonClick( Button.ClickEvent clickEvent )
                     {
                         UUID trackId = storm.addNode( config.getClusterName() );
-                        ProgressWindow pw =
-                                new ProgressWindow( executorService, tracker, trackId, StormClusterConfiguration.PRODUCT_NAME );
+                        ProgressWindow pw = new ProgressWindow( executorService, tracker, trackId,
+                                StormClusterConfiguration.PRODUCT_NAME );
                         pw.getWindow().addCloseListener( new Window.CloseListener()
                         {
                             @Override
@@ -223,7 +227,6 @@ public class Manager
         contentRoot.addComponent( masterTable, 0, 1, 0, 5 );
         contentRoot.addComponent( workersTable, 0, 6, 0, 10 );
     }
-
 
 
     private void addClickListenerToRemoveClusterButton()
@@ -380,7 +383,8 @@ public class Manager
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Environment not found.", e );
+                        return;
                     }
 
                     ContainerHost containerHost = null;
@@ -390,7 +394,8 @@ public class Manager
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.error( "Container host not found.", e );
+                        return;
                     }
 
                     // Check if the node is involved inside Zookeeper cluster
@@ -408,7 +413,8 @@ public class Manager
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Environment not found.", e );
+                                return;
                             }
                             try
                             {
@@ -416,7 +422,8 @@ public class Manager
                             }
                             catch ( ContainerHostNotFoundException e )
                             {
-                                e.printStackTrace();
+                                LOGGER.error( "Container host not found.", e );
+                                return;
                             }
                         }
                     }
@@ -437,18 +444,22 @@ public class Manager
     }
 
 
-    public void checkAllNodes(){
+    public void checkAllNodes()
+    {
         batchOperationButton( masterTable, CHECK_BUTTON_CAPTION );
         batchOperationButton( workersTable, CHECK_BUTTON_CAPTION );
     }
 
 
-    public void startAllNodes(){
-        batchOperationButton( masterTable, START_BUTTON_CAPTION);
+    public void startAllNodes()
+    {
+        batchOperationButton( masterTable, START_BUTTON_CAPTION );
         batchOperationButton( workersTable, START_BUTTON_CAPTION );
     }
 
-    public void stopAllNodes(){
+
+    public void stopAllNodes()
+    {
         batchOperationButton( masterTable, STOP_BUTTON_CAPTION );
         batchOperationButton( workersTable, STOP_BUTTON_CAPTION );
     }
@@ -514,7 +525,8 @@ public class Manager
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Environment not found.", e );
+                return;
             }
             Set<ContainerHost> nimbusHost = new HashSet<>();
             if ( !config.isExternalZookeeper() )
@@ -525,7 +537,8 @@ public class Manager
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Container host not found.", e );
+                    return;
                 }
             }
             else
@@ -538,7 +551,8 @@ public class Manager
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Environment not found.", e );
+                    return;
                 }
                 try
                 {
@@ -546,7 +560,8 @@ public class Manager
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Container host not found.", e );
+                    return;
                 }
             }
             populateTable( masterTable, true, nimbusHost );
@@ -560,7 +575,8 @@ public class Manager
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    e.printStackTrace();
+                    LOGGER.error( "Container host not found.", e );
+                    return;
                 }
             }
             populateTable( workersTable, false, supervisorHosts );
@@ -604,33 +620,37 @@ public class Manager
 
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
 
-//            disableButtons( startBtn, stopBtn, restartBtn );
+            //            disableButtons( startBtn, stopBtn, restartBtn );
             PROGRESS_ICON.setVisible( false );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            if ( server ){
+            if ( server )
+            {
                 addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, restartBtn );
                 table.addItem( new Object[] {
-                        containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Nimbus", resultHolder,
-                        availableOperations
+                        containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Nimbus",
+                        resultHolder, availableOperations
                 }, null );
             }
-            else{
+            else
+            {
                 addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
                 table.addItem( new Object[] {
-                        containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Supervisor", resultHolder,
-                        availableOperations
+                        containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Supervisor",
+                        resultHolder, availableOperations
                 }, null );
             }
 
 
-            addClickListenerToCheckButton( containerHost, resultHolder, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
-            addClickListenerToStartButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn  );
-            addClickListenerToStopButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn  );
-            if ( ! server ){
+            addClickListenerToCheckButton( containerHost, resultHolder, checkBtn, startBtn, stopBtn, restartBtn,
+                    destroyBtn );
+            addClickListenerToStartButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+            addClickListenerToStopButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+            if ( !server )
+            {
                 addClickListenerToDestroyButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
             }
             addClickListenerToRestartButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
@@ -836,7 +856,6 @@ public class Manager
         }
         return null;
     }
-
 
 
     private void addGivenComponents( HorizontalLayout layout, Button... buttons )

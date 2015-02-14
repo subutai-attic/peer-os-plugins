@@ -12,6 +12,8 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -25,6 +27,8 @@ import com.vaadin.ui.Window;
 public class VerificationStep extends VerticalLayout
 {
     private Environment environment;
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Storm storm, final ExecutorService executorService, final Tracker tracker,
                              final EnvironmentWizard environmentWizard )
@@ -48,21 +52,23 @@ public class VerificationStep extends VerticalLayout
         String selectedNodes = "";
         try
         {
-            environment = environmentWizard.getEnvironmentManager().findEnvironment(
-                    environmentWizard.getConfig().getEnvironmentId() );
+            environment = environmentWizard.getEnvironmentManager()
+                                           .findEnvironment( environmentWizard.getConfig().getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Environment not found." );
+            return;
         }
-        for ( UUID uuid : environmentWizard.getConfig().getSupervisors() ){
+        for ( UUID uuid : environmentWizard.getConfig().getSupervisors() )
+        {
             try
             {
                 selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
             }
             catch ( ContainerHostNotFoundException e )
             {
-                e.printStackTrace();
+                LOGGER.error( "Container host not found.", e );
             }
         }
 
@@ -73,9 +79,11 @@ public class VerificationStep extends VerticalLayout
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            LOGGER.error( "Container host not found.", e );
+            return;
         }
-        cfgView.addStringCfg( "Nodes to be configured as supervisor", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+        cfgView.addStringCfg( "Nodes to be configured as supervisor",
+                selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
         cfgView.addStringCfg( "Nimbus Node", nimbusNodeNode.getHostname() + "" );
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 

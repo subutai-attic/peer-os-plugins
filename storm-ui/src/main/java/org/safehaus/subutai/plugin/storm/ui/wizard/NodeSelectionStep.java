@@ -13,6 +13,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -31,6 +33,8 @@ import com.vaadin.ui.VerticalLayout;
 
 public class NodeSelectionStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( NodeSelectionStep.class );
+
 
     public NodeSelectionStep( final Zookeeper zookeeper, final Wizard wizard,
                               final EnvironmentManager environmentManager )
@@ -76,7 +80,8 @@ public class NodeSelectionStep extends Panel
                     masterNodeCombo.removeAllItems();
                     if ( e.getProperty().getValue() != null )
                     {
-                        ZookeeperClusterConfig zookeeperClusterConfig = ( ZookeeperClusterConfig ) e.getProperty().getValue();
+                        ZookeeperClusterConfig zookeeperClusterConfig =
+                                ( ZookeeperClusterConfig ) e.getProperty().getValue();
                         Environment zookeeperEnvironment = null;
                         try
                         {
@@ -85,7 +90,10 @@ public class NodeSelectionStep extends Panel
                         }
                         catch ( EnvironmentNotFoundException e1 )
                         {
-                            e1.printStackTrace();
+                            LOGGER.error(
+                                    "Environment not found " + zookeeperClusterConfig.getEnvironmentId().toString(),
+                                    e1 );
+                            return;
                         }
                         Set<ContainerHost> zookeeperNodes = null;
                         try
@@ -95,7 +103,10 @@ public class NodeSelectionStep extends Panel
                         }
                         catch ( ContainerHostNotFoundException e1 )
                         {
-                            e1.printStackTrace();
+                            LOGGER.error( "Some container hosts not found by ids: " + zookeeperClusterConfig.getNodes()
+                                                                                                            .toString(),
+                                    e );
+                            return;
                         }
                         for ( ContainerHost containerHost : zookeeperNodes )
                         {
