@@ -1,8 +1,12 @@
 package org.safehaus.subutai.plugin.cassandra.rest;
 
-import com.google.common.collect.Lists;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -11,9 +15,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
-import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.UUID;
+import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
