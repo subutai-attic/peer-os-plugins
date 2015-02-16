@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
@@ -24,6 +25,7 @@ public class SetupHelper
     final TrackerOperation po;
     final PrestoImpl manager;
     final PrestoClusterConfig config;
+    CommandUtil commandUtil;
 
 
     public SetupHelper( TrackerOperation po, PrestoImpl manager, PrestoClusterConfig config )
@@ -36,6 +38,7 @@ public class SetupHelper
         this.po = po;
         this.manager = manager;
         this.config = config;
+        commandUtil = new CommandUtil();
     }
 
 
@@ -139,5 +142,25 @@ public class SetupHelper
             po.addLogFailed( "Container host not found" );
         }
         return null;
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand() , host);
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) ) )
+        {
+            po.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }

@@ -152,10 +152,10 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             {
                 throw new ClusterSetupException( "Node already belongs to cluster" + clusterName );
             }
-            result = host.execute( manager.getCommands().getCheckInstalledCommand() );
+            result = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
             String hadoopPackage = Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME;
             boolean skipInstall = false;
-            if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+            if ( result.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) )
             {
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has Presto installed" );
@@ -168,8 +168,9 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             if ( ! skipInstall )
             {
                 trackerOperation.addLog( "Installing Presto..." );
-                result = host.execute( manager.getCommands().getInstallCommand() );
-                if ( result.hasSucceeded() )
+                result = commandUtil.execute( manager.getCommands().getInstallCommand(), host );
+                CommandResult checkResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
+                if ( result.hasSucceeded() && checkResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ))
                 {
                     config.getWorkers().add( host.getId() );
                     manager.saveConfig( config );

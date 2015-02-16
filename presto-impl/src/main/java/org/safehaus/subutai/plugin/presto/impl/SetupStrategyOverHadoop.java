@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -31,11 +32,12 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
     private static final Logger LOG = LoggerFactory.getLogger( SetupStrategyOverHadoop.class );
     private Environment environment;
     private Set<ContainerHost> nodesToInstallPresto;
-
+    CommandUtil commandUtil;
 
     public SetupStrategyOverHadoop( TrackerOperation po, PrestoImpl manager, PrestoClusterConfig config )
     {
         super( po, manager, config );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -153,8 +155,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Installing Presto..." );
             for ( ContainerHost node : nodesToInstallPresto )
             {
-                CommandResult result = node.execute( manager.getCommands().getInstallCommand() );
-                processResult( node, result );
+                CommandResult result = commandUtil.execute( manager.getCommands().getInstallCommand(), node );
+                checkInstalled( node, result );
             }
             po.addLog( "Configuring cluster..." );
             try
@@ -175,7 +177,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                 LOG.error( "Container host not found", e );
                 po.addLogFailed( "Container host not found" );
             }
-            //startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
+            startNodes( environment.getContainerHostsByIds( config.getAllNodes() ) );
 
             po.addLog( "Saving cluster info..." );
             config.setEnvironmentId( environment.getId() );
@@ -197,6 +199,11 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         {
             throw new ClusterSetupException(
                     String.format( "Error while installing Presto on container %s; ", e.getMessage() ) );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            throw new ClusterSetupException(
+                    String.format( "Error while starting Presto on container %s; ", e.getMessage() ) );
         }
     }
 }
