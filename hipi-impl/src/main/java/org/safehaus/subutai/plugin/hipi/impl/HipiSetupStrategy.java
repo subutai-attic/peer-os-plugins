@@ -213,7 +213,18 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
 
     public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
     {
-        if ( !( result.hasSucceeded() && result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) ) )
+        CommandResult statusResult;
+        try
+        {
+           statusResult = commandUtil.execute( new RequestBuilder(
+                   CommandFactory.build( NodeOperationType.CHECK_INSTALLATION )), host);
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
