@@ -121,92 +121,54 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
-                Common.DEFAULT_DOMAIN_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
-
-        ContainerHost unUsedContainerInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
-        if ( unUsedContainerInEnvironment != null ){
-
-            config.getNodes().add( unUsedContainerInEnvironment.getId() );
+        try
+        {
+            Set<ContainerHost> newNodeSet;
             try
             {
-                manager.saveConfig( config );
-
-                ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-                try
-                {
-                    configurator
-                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-                }
-                catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-                {
-                    throw new ClusterException( e );
-                }
-
-                //subscribe to alerts
-                try
-                {
-                    manager.subscribeToAlerts( unUsedContainerInEnvironment );
-                }
-                catch ( MonitorException e )
-                {
-                    throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-                }
-                trackerOperation.addLogDone( "Node added" );
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
             }
-            catch ( ClusterException e )
+            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
             {
-                e.printStackTrace();
+                throw new ClusterException( e );
             }
+
+            ContainerHost newNode = newNodeSet.iterator().next();
+
+            config.getNodes().add( newNode.getId() );
+
+            manager.saveConfig( config );
+
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+            try
+            {
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+            }
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            {
+                throw new ClusterException( e );
+            }
+
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( newNode );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
+            trackerOperation.addLogDone( "Node added" );
         }
-        else{
-            try
-            {
-                Set<ContainerHost> newNodeSet;
-                try
-                {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
-                }
-                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-                {
-                    throw new ClusterException( e );
-                }
-
-                ContainerHost newNode = newNodeSet.iterator().next();
-
-                config.getNodes().add( newNode.getId() );
-
-                manager.saveConfig( config );
-
-                ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-                try
-                {
-                    configurator
-                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-                }
-                catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-                {
-                    throw new ClusterException( e );
-                }
-
-                //subscribe to alerts
-                try
-                {
-                    manager.subscribeToAlerts( newNode );
-                }
-                catch ( MonitorException e )
-                {
-                    throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-                }
-                trackerOperation.addLogDone( "Node added" );
-            }
-            catch ( ClusterException e )
-            {
-                trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
-            }
+        catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
         }
     }
 
