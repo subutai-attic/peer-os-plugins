@@ -127,51 +127,108 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
 
+        ContainerHost unUsedContainerInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
+        if ( unUsedContainerInEnvironment != null ){
 
+            config.getNodes().add( unUsedContainerInEnvironment.getId() );
+            try
+            {
+                manager.saveConfig( config );
+
+                ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+                try
+                {
+                    configurator
+                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                }
+                catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+                {
+                    throw new ClusterException( e );
+                }
+
+                //subscribe to alerts
+                try
+                {
+                    manager.subscribeToAlerts( unUsedContainerInEnvironment );
+                }
+                catch ( MonitorException e )
+                {
+                    throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+                }
+                trackerOperation.addLogDone( "Node added" );
+            }
+            catch ( ClusterException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else{
+            try
+            {
+                Set<ContainerHost> newNodeSet;
+                try
+                {
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                }
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+                {
+                    throw new ClusterException( e );
+                }
+
+                ContainerHost newNode = newNodeSet.iterator().next();
+
+                config.getNodes().add( newNode.getId() );
+
+                manager.saveConfig( config );
+
+                ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+                try
+                {
+                    configurator
+                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                }
+                catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+                {
+                    throw new ClusterException( e );
+                }
+
+                //subscribe to alerts
+                try
+                {
+                    manager.subscribeToAlerts( newNode );
+                }
+                catch ( MonitorException e )
+                {
+                    throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+                }
+                trackerOperation.addLogDone( "Node added" );
+            }
+            catch ( ClusterException e )
+            {
+                trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+            }
+        }
+    }
+
+
+    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager ){
+        ContainerHost unUsedContainerInEnvironment = null;
         try
         {
-            Set<ContainerHost> newNodeSet;
-            try
-            {
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
+            for ( ContainerHost host : containerHostSet ){
+                if ( ! config.getAllNodes().contains( host.getId() ) ){
+                    unUsedContainerInEnvironment = host;
+                    break;
+                }
             }
-            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-            {
-                throw new ClusterException( e );
-            }
-
-            ContainerHost newNode = newNodeSet.iterator().next();
-
-            config.getNodes().add( newNode.getId() );
-
-            manager.saveConfig( config );
-
-            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-            try
-            {
-                configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-            }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-            {
-                throw new ClusterException( e );
-            }
-
-            //subscribe to alerts
-            try
-            {
-                manager.subscribeToAlerts( newNode );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
-            trackerOperation.addLogDone( "Node added" );
         }
-        catch ( ClusterException e )
+        catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+            e.printStackTrace();
         }
+        return unUsedContainerInEnvironment;
     }
 
 

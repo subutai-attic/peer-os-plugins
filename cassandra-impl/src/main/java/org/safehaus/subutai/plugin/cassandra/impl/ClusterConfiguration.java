@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.cassandra.impl;
 
 
+import java.util.UUID;
+
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -12,8 +14,6 @@ import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
-
-import java.util.UUID;
 
 
 public class ClusterConfiguration

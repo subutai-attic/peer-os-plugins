@@ -7,7 +7,6 @@ package org.safehaus.subutai.plugin.cassandra.ui.manager;
 
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +30,8 @@ import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -72,8 +73,9 @@ public class Manager
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
     private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
-    final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn, removeCluster;
+    final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, addNodeBtn, removeCluster;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final ExecutorService executorService;
     private final Tracker tracker;
@@ -175,15 +177,6 @@ public class Manager
         controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
 
-        /** Destroy Cluster button */
-        destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
-        destroyClusterBtn.setId( "CassDestroyClusterBtn" );
-        destroyClusterBtn.setDescription( "Destroy environment with containers" );
-        addClickListenerToDestroyClusterButton();
-        // controlsContent.addComponent( destroyClusterBtn );
-        // controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
-
-
         /** Remove Cluster button */
         removeCluster = new Button( REMOVE_CLUSTER );
         removeCluster.setId( "CassRemoveClusterBtn" );
@@ -205,6 +198,7 @@ public class Manager
         autoScaleBtn.setValue( false );
         autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
         controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
         autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -230,7 +224,7 @@ public class Manager
             }
         } );
 
-        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn, addNodeBtn,
+        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, addNodeBtn,
                 removeCluster );
 
         PROGRESS_ICON.setVisible( false );
@@ -301,6 +295,8 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
+                            // stop cluster before removing cluster information from database.
+                            cassandra.stopCluster( config.getClusterName() );
                             UUID track = cassandra.removeCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, track,
                                     CassandraClusterConfig.PRODUCT_KEY );
@@ -315,52 +311,6 @@ public class Manager
                             contentRoot.getUI().addWindow( window.getWindow() );
                         }
                     } );
-                    contentRoot.getUI().addWindow( alert.getAlert() );
-                }
-                else
-                {
-                    show( "Please, select cluster" );
-                }
-            }
-        } );
-    }
-
-
-    private void addClickListenerToDestroyClusterButton()
-    {
-        destroyClusterBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                if ( config != null )
-                {
-                    ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to destroy the %s cluster?", config.getClusterName() ), "Yes",
-                            "No" );
-                    alert.getOk().addClickListener( new Button.ClickListener()
-                    {
-                        @Override
-                        public void buttonClick( Button.ClickEvent clickEvent )
-                        {
-                            /** before destroying cluster, stop it first to not leave background zombie processes **/
-                            stopAllBtn.click();
-                            UUID trackID = cassandra.uninstallCluster( config.getClusterName() );
-
-                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                    CassandraClusterConfig.PRODUCT_KEY );
-                            window.getWindow().addCloseListener( new Window.CloseListener()
-                            {
-                                @Override
-                                public void windowClose( Window.CloseEvent closeEvent )
-                                {
-                                    refreshClustersInfo();
-                                }
-                            } );
-                            contentRoot.getUI().addWindow( window.getWindow() );
-                        }
-                    } );
-
                     contentRoot.getUI().addWindow( alert.getAlert() );
                 }
                 else
@@ -391,6 +341,7 @@ public class Manager
             case CHECK_ALL_BUTTON_CAPTION:
                 button.addClickListener( new Button.ClickListener()
                 {
+
                     @Override
                     public void buttonClick( final Button.ClickEvent event )
                     {
@@ -409,6 +360,7 @@ public class Manager
             case START_ALL_BUTTON_CAPTION:
                 button.addClickListener( new Button.ClickListener()
                 {
+
                     @Override
                     public void buttonClick( final Button.ClickEvent event )
                     {
@@ -433,6 +385,7 @@ public class Manager
             case STOP_ALL_BUTTON_CAPTION:
                 button.addClickListener( new Button.ClickListener()
                 {
+
                     @Override
                     public void buttonClick( final Button.ClickEvent event )
                     {
@@ -510,7 +463,14 @@ public class Manager
         table.setSelectable( false );
         table.setImmediate( true );
         table.setColumnCollapsingAllowed( true );
-        table.addItemClickListener( new ItemClickEvent.ItemClickListener()
+        table.addItemClickListener( getTableClickListener( table ) );
+        return table;
+    }
+
+
+    protected ItemClickEvent.ItemClickListener getTableClickListener( final Table table )
+    {
+        return new ItemClickEvent.ItemClickListener()
         {
             @Override
             public void itemClick( ItemClickEvent event )
@@ -518,29 +478,18 @@ public class Manager
                 if ( event.isDoubleClick() )
                 {
                     String containerId =
-                            ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
-                                            .getValue();
-                    Set<ContainerHost> containerHosts = null;
+                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION ).getValue();
+                    ContainerHost containerHost = null;
                     try
                     {
-                        containerHosts =
-                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                     .getContainerHostByHostname( containerId );
                     }
-                    catch ( EnvironmentNotFoundException e )
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
-                        show( "Environment not found" );
-                        return;
+                        LOGGER.error( "Environment error", e );
                     }
-                    Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
-                    while ( iterator.hasNext() )
-                    {
-                        containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
-                        {
-                            break;
-                        }
-                    }
+
                     if ( containerHost != null )
                     {
                         TerminalWindow terminal = new TerminalWindow( containerHost );
@@ -548,14 +497,12 @@ public class Manager
                     }
                     else
                     {
-                        show( "Host not found" );
+                        Notification.show( "Agent is not connected" );
                     }
                 }
             }
-        } );
-        return table;
+        };
     }
-
 
     /**
      * Shows notification with the given argument
@@ -694,6 +641,7 @@ public class Manager
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
                                 NodeOperationType.STOP, new CompleteEvent()
                         {
+
                             @Override
                             public void onComplete( NodeState nodeState )
                             {
@@ -722,6 +670,7 @@ public class Manager
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
                                 NodeOperationType.START, new CompleteEvent()
                         {
+
                             @Override
                             public void onComplete( NodeState nodeState )
                             {
@@ -751,6 +700,7 @@ public class Manager
                         new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
                                 NodeOperationType.STATUS, new CompleteEvent()
                         {
+
                             @Override
                             public void onComplete( NodeState nodeState )
                             {
@@ -903,9 +853,6 @@ public class Manager
     }
 
 
-    /**
-     * java.util.Set)}.
-     */
     private void refreshUI() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         if ( config != null )
@@ -934,7 +881,7 @@ public class Manager
 
 
     /**
-     * @param agentUUID agent
+     * @param agentUUID agent uuid
      *
      * @return Yes if give agent is among seeds, otherwise returns No
      */
@@ -954,6 +901,8 @@ public class Manager
     public void refreshClustersInfo()
     {
         List<CassandraClusterConfig> info = cassandra.getClusters();
+        clusterCombo.removeAllItems();
+
         if ( !info.isEmpty() )
         {
             CassandraClusterConfig clusterInfo = ( CassandraClusterConfig ) clusterCombo.getValue();

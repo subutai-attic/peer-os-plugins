@@ -61,6 +61,7 @@ public class CassandraPortalModule implements PortalModule
     }
 
 
+    @Override
     public String getName()
     {
         return CassandraClusterConfig.PRODUCT_KEY;
@@ -74,6 +75,7 @@ public class CassandraPortalModule implements PortalModule
     }
 
 
+    @Override
     public Component createComponent()
     {
         try
@@ -91,6 +93,6 @@ public class CassandraPortalModule implements PortalModule
     @Override
     public Boolean isCorePlugin()
     {
-        return null;
+        return false;
     }
 }
