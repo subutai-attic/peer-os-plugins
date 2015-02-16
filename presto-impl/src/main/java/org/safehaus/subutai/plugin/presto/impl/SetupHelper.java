@@ -103,7 +103,7 @@ public class SetupHelper
         {
             try
             {
-                CommandResult result = host.execute( manager.getCommands().getStartCommand() );
+                CommandResult result = host.execute( manager.getCommands().getStartCommand().daemon() );
                 processResult( host, result );
             }
             catch ( CommandException e )

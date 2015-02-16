@@ -214,6 +214,17 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
 
     @Override
+    public UUID stopAllNodes( final String clusterName )
+    {
+        PrestoClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID destroyWorkerNode( final String clusterName, final String lxcHostname )
     {
 
