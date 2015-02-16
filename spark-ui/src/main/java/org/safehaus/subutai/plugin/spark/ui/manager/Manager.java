@@ -15,8 +15,11 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.spark.api.NodeOperationTask;
 import org.safehaus.subutai.plugin.spark.api.Spark;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
@@ -31,6 +34,7 @@ import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
@@ -104,9 +108,11 @@ public class Manager
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
         clusterCombo = new ComboBox();
         clusterCombo.setId( "sparkClusterCombo" );
@@ -125,48 +131,56 @@ public class Manager
         } );
 
         controlsContent.addComponent( clusterCombo );
+        controlsContent.setComponentAlignment( clusterCombo, Alignment.MIDDLE_CENTER );
 
 
         /** Refresh Cluster button */
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         addClickListener( refreshClustersBtn );
         controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Check All button */
         checkAllBtn = new Button( CHECK_ALL_BUTTON_CAPTION );
         addClickListener( checkAllBtn );
         controlsContent.addComponent( checkAllBtn );
+        controlsContent.setComponentAlignment( checkAllBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Start all button */
         startAllNodesBtn = new Button( START_ALL_BUTTON_CAPTION );
         addClickListener( startAllNodesBtn );
         controlsContent.addComponent( startAllNodesBtn );
+        controlsContent.setComponentAlignment( startAllNodesBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Stop all button */
         stopAllNodesBtn = new Button( STOP_ALL_BUTTON_CAPTION );
         addClickListener( stopAllNodesBtn );
         controlsContent.addComponent( stopAllNodesBtn );
+        controlsContent.setComponentAlignment( stopAllNodesBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Destroy Cluster button */
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         addClickListenerToDestroyClusterButton();
         controlsContent.addComponent( destroyClusterBtn );
+        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Add Node button */
         addNodeBtn = new Button( ADD_NODE_CAPTION );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
+        controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
 
         //auto scale button
         autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
         autoScaleBtn.setValue( false );
         autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
         controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
         autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -721,38 +735,36 @@ public class Manager
             {
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
-
-                executor.execute( new CheckNodeTask( spark, tracker, config.getClusterName(), node.getHostname(),
-                        new CompleteEvent()
+                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
+                        NodeOperationType.STATUS, false, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+                {
+                    @Override
+                    public void onComplete( NodeState nodeState )
+                    {
+                        synchronized ( progressIcon )
                         {
-                            @Override
-                            public void onComplete( String result )
+                            if ( nodeState.equals( NodeState.RUNNING ) )
                             {
-                                synchronized ( progressIcon )
-                                {
-                                    resultHolder.setValue( result );
-                                    if ( result.contains( "NOT" ) )
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                    }
-                                    else
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    }
-                                    progressIcon.setVisible( false );
-                                    for ( Button b : buttons )
-                                    {
-                                        if ( b.getCaption().equals( CHECK_BUTTON_CAPTION ) || b.getCaption().equals(
-                                                DESTROY_BUTTON_CAPTION ) )
-                                        {
-                                            enableButtons( b );
-                                        }
-                                    }
-                                }
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
                             }
-                        }, false ) );
+                            else if ( nodeState.equals( NodeState.STOPPED ) )
+                            {
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                            }
+                            else if ( nodeState.equals( NodeState.UNKNOWN ) )
+                            {
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            }
+                            resultHolder.setValue( nodeState.name() );
+                            progressIcon.setVisible( false );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
+                        }
+                    }
+                }, null ) );
             }
         } );
     }
@@ -769,37 +781,43 @@ public class Manager
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
 
-                executor.execute( new CheckNodeTask( spark, tracker, config.getClusterName(), node.getHostname(),
-                        new CompleteEvent()
+                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
+                        NodeOperationType.STATUS, true, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+                {
+                    @Override
+                    public void onComplete( NodeState nodeState )
+                    {
+                        synchronized ( progressIcon )
                         {
-                            @Override
-                            public void onComplete( String result )
+                            if ( nodeState.equals( NodeState.RUNNING ) )
                             {
-                                synchronized ( progressIcon )
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            }
+                            else if ( nodeState.equals( NodeState.STOPPED ) )
+                            {
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                            }
+                            else if ( nodeState.equals( NodeState.UNKNOWN ) )
+                            {
+                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            }
+                            resultHolder.setValue( nodeState.name() );
+                            progressIcon.setVisible( false );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            for ( Button b : buttons )
+                            {
+                                if ( b.getCaption().equals( CHECK_BUTTON_CAPTION ) || b.getCaption().equals(
+                                        DESTROY_BUTTON_CAPTION ) )
                                 {
-                                    resultHolder.setValue( result );
-                                    if ( result.contains( "NOT" ) )
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                    }
-                                    else
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    }
-                                    progressIcon.setVisible( false );
-                                    for ( Button b : buttons )
-                                    {
-                                        if ( b.getCaption().equals( CHECK_BUTTON_CAPTION ) || b.getCaption().equals(
-                                                DESTROY_BUTTON_CAPTION ) )
-                                        {
-                                            enableButtons( b );
-                                        }
-                                    }
+                                    enableButtons( b );
                                 }
                             }
-                        }, true ) );
+                        }
+                    }
+                }, null ) );
             }
         } );
     }
@@ -815,19 +833,20 @@ public class Manager
             {
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
-                executor.execute( new StartTask( spark, tracker, config.getClusterName(), node.getHostname(), isMaster,
-                        new CompleteEvent()
+
+                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
+                        NodeOperationType.START, isMaster, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+                {
+                    @Override
+                    public void onComplete( NodeState nodeState )
+                    {
+                        synchronized ( progressIcon )
                         {
-                            @Override
-                            public void onComplete( String result )
-                            {
-                                synchronized ( progressIcon )
-                                {
-                                    enableButtons( getButton( CHECK_BUTTON_CAPTION, buttons ) );
-                                    getButton( CHECK_BUTTON_CAPTION, buttons ).click();
-                                }
-                            }
-                        } ) );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                        }
+                    }
+                }, null ) );
             }
         } );
     }
@@ -878,19 +897,20 @@ public class Manager
             {
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
-                executor.execute( new StopTask( spark, tracker, config.getClusterName(), node.getHostname(), isMaster,
-                        new CompleteEvent()
+
+                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
+                        NodeOperationType.STOP, isMaster, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+                {
+                    @Override
+                    public void onComplete( NodeState nodeState )
+                    {
+                        synchronized ( progressIcon )
                         {
-                            @Override
-                            public void onComplete( String result )
-                            {
-                                synchronized ( progressIcon )
-                                {
-                                    enableButtons( getButton( CHECK_BUTTON_CAPTION, buttons ) );
-                                    getButton( CHECK_BUTTON_CAPTION, buttons ).click();
-                                }
-                            }
-                        } ) );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                            getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                        }
+                    }
+                }, null ) );
             }
         } );
     }

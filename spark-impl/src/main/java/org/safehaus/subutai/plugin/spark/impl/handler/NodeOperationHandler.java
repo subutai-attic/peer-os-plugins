@@ -3,6 +3,8 @@ package org.safehaus.subutai.plugin.spark.impl.handler;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -15,9 +17,12 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.common.api.OperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.spark.api.NodeOperationTask;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 import org.safehaus.subutai.plugin.spark.impl.SparkImpl;
 import org.slf4j.Logger;
@@ -107,8 +112,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
                     break;
             }
 
-
-            trackerOperation.addLogDone( String.format( "Operation %s succeeded", operationType.name() ) );
+            trackerOperation.addLogDone( "" );
         }
         catch ( ClusterException e )
         {
@@ -147,7 +151,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
     public void addSlaveNode() throws ClusterException
     {
-        ContainerHost master;
+        final ContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -239,34 +243,25 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         RequestBuilder addSlaveCommand = manager.getCommands().getAddSlaveCommand( node.getHostname() );
         executeCommand( master, addSlaveCommand );
 
+        // check if cluster is already running, then newly added node should be started automatically.
+        RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusMasterCommand();
+        result = executeCommand( master, checkMasterIsRunning );
+        if ( result.hasSucceeded() ){
+            if ( result.getStdOut().contains( "pid" ) ){
 
-        trackerOperation.addLog( "Restarting master..." );
+                RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
+                trackerOperation.addLog( "Restarting master..." );
+                executeCommand( master, restartMasterCommand );
 
-        RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
-        result = executeCommand( master, restartMasterCommand );
-
-
-        if ( !result.getStdOut().contains( "starting" ) )
-        {
-            trackerOperation.addLog( "Master restart failed, skipping..." );
-        }
-
-
-        trackerOperation.addLog( "Starting Spark on new node..." );
-
-        RequestBuilder startSlaveCommand = manager.getCommands().getStartSlaveCommand();
-        result = executeCommand( node, startSlaveCommand );
-
-        if ( !result.getStdOut().contains( "starting" ) )
-        {
-            trackerOperation.addLog( "Slave start failed, skipping..." );
+                RequestBuilder startSlaveCommand = manager.getCommands().getStartSlaveCommand();
+                trackerOperation.addLog( "Starting new slave node..." );
+                executeCommand( node, startSlaveCommand );
+            }
         }
 
 
         trackerOperation.addLog( "Updating db..." );
-
         manager.saveConfig( config );
-
         //subscribe to alerts
         try
         {
@@ -298,7 +293,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         }
 
 
-        ContainerHost master;
+        final ContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -321,21 +316,40 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         RequestBuilder clearSlavesCommand = manager.getCommands().getClearSlaveCommand( hostname );
 
         executeCommand( master, clearSlavesCommand );
+        trackerOperation.addLog( "Successfully unregistered slave from master..." );
+
+
+        // check if cluster is already running, then newly added node should be started automatically.
+        ExecutorService executorService =  Executors.newCachedThreadPool();
+        executorService.execute( new NodeOperationTask( manager, manager.getTracker(), config.getClusterName(), master,
+                NodeOperationType.STATUS, true, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
+        {
+            @Override
+            public void onComplete( NodeState nodeState )
+            {
+                if ( nodeState.equals( NodeState.RUNNING ) )
+                {
+                    trackerOperation.addLog( "Restarting master..." );
+                    RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
+                    try
+                    {
+                        CommandResult result = executeCommand( master, restartMasterCommand );
+                        if ( !result.getStdOut().contains( "starting" ) )
+                        {
+                            trackerOperation.addLog( "Master restart failed, skipping..." );
+                        }
+                    }
+                    catch ( ClusterException e )
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, null ) );
 
         trackerOperation.addLog( "Successfully unregistered slave from master\nRestarting master..." );
 
-        RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
-
-        CommandResult result = executeCommand( master, restartMasterCommand );
-
-        if ( !result.getStdOut().contains( "starting" ) )
-        {
-            trackerOperation.addLog( "Master restart failed, skipping..." );
-        }
-
-
         boolean uninstall = !node.getId().equals( config.getMasterNodeId() );
-
         if ( uninstall )
         {
             trackerOperation.addLog( "Uninstalling Spark..." );
@@ -504,6 +518,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         try
         {
             result = host.execute( command );
+            trackerOperation.addLog( result.getStdOut() );
         }
         catch ( CommandException e )
         {

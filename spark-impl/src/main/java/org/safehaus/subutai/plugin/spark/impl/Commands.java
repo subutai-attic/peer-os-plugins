@@ -37,74 +37,73 @@ public class Commands
 
     public RequestBuilder getStartAllCommand()
     {
-        return new RequestBuilder( "service spark-all start" ).withTimeout( 360 ).daemon();
+        return new RequestBuilder( "service spark-all start" ).daemon();
     }
 
 
     public RequestBuilder getStopAllCommand()
     {
-        return new RequestBuilder( "service spark-all stop" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-all stop" ).daemon();
     }
 
 
     public RequestBuilder getStatusAllCommand()
     {
-        return new RequestBuilder( "service spark-all status" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-all status" ).daemon();
     }
 
 
     public RequestBuilder getStartMasterCommand()
     {
-        return new RequestBuilder( "service spark-master start" ).withTimeout( 90 ).daemon();
+        return new RequestBuilder( "service spark-master start" ).daemon();
     }
 
 
     public RequestBuilder getRestartMasterCommand()
     {
-        return new RequestBuilder( "service spark-master stop && service spark-master start" ).withTimeout( 60 )
-                                                                                              .daemon();
+        return new RequestBuilder( "service spark-master stop && service spark-master start" ).daemon();
     }
 
 
     public RequestBuilder getObtainMasterPidCommand()
     {
-        return new RequestBuilder( "service spark-master status" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-master status" );
     }
 
 
     public RequestBuilder getObtainSlavePidCommand()
     {
-        return new RequestBuilder( "service spark-slave status" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-slave status" );
     }
 
 
     public RequestBuilder getStopMasterCommand()
     {
-        return new RequestBuilder( "service spark-master stop" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-master stop" );
     }
 
 
     public RequestBuilder getStatusMasterCommand()
     {
-        return new RequestBuilder( "service spark-master status" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-master status" );
     }
 
 
     public RequestBuilder getStartSlaveCommand()
     {
-        return new RequestBuilder( "service spark-slave start" ).withTimeout( 90 ).daemon();
+        return new RequestBuilder( "service spark-slave start" ).daemon();
     }
 
 
     public RequestBuilder getStatusSlaveCommand()
     {
-        return new RequestBuilder( "service spark-slave status" ).withTimeout( 90 );
+        return new RequestBuilder( "service spark-slave status" );
     }
 
 
     public RequestBuilder getStopSlaveCommand()
     {
-        return new RequestBuilder( "service spark-slave stop" ).withTimeout( 60 );
+        return new RequestBuilder( "service spark-slave stop" );
     }
 
 
@@ -117,7 +116,7 @@ public class Commands
 
     public RequestBuilder getClearSlavesCommand()
     {
-        return new RequestBuilder( ". /etc/profile && sparkSlaveConf.sh clear" ).withTimeout( 60 );
+        return new RequestBuilder( ". /etc/profile && sparkSlaveConf.sh clear" );
     }
 
 
