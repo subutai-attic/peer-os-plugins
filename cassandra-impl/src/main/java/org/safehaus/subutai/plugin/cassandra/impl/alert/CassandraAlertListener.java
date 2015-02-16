@@ -119,7 +119,7 @@ public class CassandraAlertListener implements AlertListener {
         //confirm that Cassandra is causing the stress, otherwise no-op
         MonitoringSettings thresholds = cassandra.getAlertSettings();
         double ramLimit = metric.getTotalRam() * thresholds.getRamAlertThreshold() / 100 ; // 0.8
-        double redLine = 0.9;
+        double redLine = 0.7;
         boolean isCpuStressed = false;
         boolean isRamStressed = false;
 
