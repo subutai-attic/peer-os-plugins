@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -18,6 +19,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
     final PigConfig config;
     final TrackerOperation trackerOperation;
     private Environment environment;
+    CommandUtil commandUtil = new CommandUtil();
 
 
     public PigSetupStrategy( PigImpl manager, PigConfig config, TrackerOperation trackerOperation )
@@ -181,7 +184,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
                 try
                 {
                     CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
-                    processResult( node,result );
+                    checkInstalled( node,result );
                 }
                 catch ( CommandException e )
                 {
@@ -200,11 +203,21 @@ class PigSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Configuring cluster..." );
     }
 
-    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
     {
-
-        if ( !result.hasSucceeded() )
+        CommandResult statusResult;
+        try
         {
+            statusResult = commandUtil.execute( new RequestBuilder( Commands.checkCommand ), host);
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PigConfig.PRODUCT_PACKAGE ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
