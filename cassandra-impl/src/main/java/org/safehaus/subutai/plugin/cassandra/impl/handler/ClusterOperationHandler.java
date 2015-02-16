@@ -121,7 +121,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
-                Common.DEFAULT_DOMAIN_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
