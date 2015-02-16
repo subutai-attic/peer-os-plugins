@@ -318,36 +318,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         executeCommand( master, clearSlavesCommand );
         trackerOperation.addLog( "Successfully unregistered slave from master..." );
 
-
         // check if cluster is already running, then newly added node should be started automatically.
-        ExecutorService executorService =  Executors.newCachedThreadPool();
-        executorService.execute( new NodeOperationTask( manager, manager.getTracker(), config.getClusterName(), master,
-                NodeOperationType.STATUS, true, new org.safehaus.subutai.plugin.common.api.CompleteEvent()
-        {
-            @Override
-            public void onComplete( NodeState nodeState )
-            {
-                if ( nodeState.equals( NodeState.RUNNING ) )
-                {
-                    trackerOperation.addLog( "Restarting master..." );
-                    RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
-                    try
-                    {
-                        CommandResult result = executeCommand( master, restartMasterCommand );
-                        if ( !result.getStdOut().contains( "starting" ) )
-                        {
-                            trackerOperation.addLog( "Master restart failed, skipping..." );
-                        }
-                    }
-                    catch ( ClusterException e )
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }, null ) );
+        RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusMasterCommand();
+        CommandResult result = executeCommand( master, checkMasterIsRunning );
+        if ( result.hasSucceeded() ){
+            if ( result.getStdOut().contains( "pid" ) ){
 
-        trackerOperation.addLog( "Successfully unregistered slave from master\nRestarting master..." );
+                RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
+                trackerOperation.addLog( "Restarting master..." );
+                executeCommand( master, restartMasterCommand );
+            }
+        }
 
         boolean uninstall = !node.getId().equals( config.getMasterNodeId() );
         if ( uninstall )
