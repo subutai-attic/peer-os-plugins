@@ -133,7 +133,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
             }
             try
             {
-                CommandResult result = node.execute( checkInstalledCommand );
+                CommandResult result = commandUtil.execute( checkInstalledCommand,node );
                 if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation.addLog(
@@ -183,7 +183,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
             {
                 try
                 {
-                    CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ), node );
                     checkInstalled( node,result );
                 }
                 catch ( CommandException e )
