@@ -138,7 +138,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
             }
         }
         po.addLog( "Updating db..." );
-        manager.saveConfig( config );
+        manager.deleteConfig( config );
         po.addLogDone( "Cluster info deleted from DB\nDone" );
     }
 }
