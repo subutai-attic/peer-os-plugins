@@ -1,21 +1,14 @@
 package org.safehaus.subutai.plugin.storm.impl;
 
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-
-import org.safehaus.subutai.common.protocol.EnvironmentBlueprint;
-import org.safehaus.subutai.common.protocol.NodeGroup;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.common.util.UUIDUtil;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
@@ -45,7 +38,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID uninstallCluster( String clusterName )
     {
-        AbstractOperationHandler h = new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
+        AbstractOperationHandler h =
+                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -61,7 +55,8 @@ public class StormImpl extends StormBase
     @Override
     public StormClusterConfiguration getCluster( String clusterName )
     {
-        return pluginDAO.getInfo( StormClusterConfiguration.PRODUCT_NAME, clusterName, StormClusterConfiguration.class );
+        return pluginDAO
+                .getInfo( StormClusterConfiguration.PRODUCT_NAME, clusterName, StormClusterConfiguration.class );
     }
 
 
@@ -75,8 +70,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID checkNode( String clusterName, String hostname )
     {
-        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
-                NodeOperationType.STATUS );
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.STATUS );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -85,8 +80,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID startNode( String clusterName, String hostname )
     {
-        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
-                NodeOperationType.START );
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.START );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -95,8 +90,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID stopNode( String clusterName, String hostname )
     {
-        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
-                NodeOperationType.STOP );
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -105,8 +100,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID restartNode( String clusterName, String hostname )
     {
-        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
-                NodeOperationType.RESTART );
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.RESTART );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -117,8 +112,8 @@ public class StormImpl extends StormBase
     {
         StormClusterConfiguration zookeeperClusterConfig = getCluster( clusterName );
 
-        AbstractOperationHandler h = new StormClusterOperationHandler( this, zookeeperClusterConfig,
-                ClusterOperationType.ADD );
+        AbstractOperationHandler h =
+                new StormClusterOperationHandler( this, zookeeperClusterConfig, ClusterOperationType.ADD );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -127,8 +122,8 @@ public class StormImpl extends StormBase
     @Override
     public UUID destroyNode( String clusterName, String hostname )
     {
-        AbstractOperationHandler h = new StormNodeOperationHandler( this, clusterName, hostname,
-                NodeOperationType.DESTROY );
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.DESTROY );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -137,54 +132,19 @@ public class StormImpl extends StormBase
     public UUID removeCluster( final String clusterName )
     {
         StormClusterConfiguration config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler = new StormClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+        AbstractOperationHandler operationHandler =
+                new StormClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
-    @Override
-    public EnvironmentBlueprint getDefaultEnvironmentBlueprint( StormClusterConfiguration config )
-    {
-
-        EnvironmentBlueprint environmentBlueprint = new EnvironmentBlueprint();
-        environmentBlueprint.setName( StormClusterConfiguration.PRODUCT_NAME + UUIDUtil.generateTimeBasedUUID() );
-        environmentBlueprint.setNodeGroups( new HashSet<NodeGroup>() );
-
-        if ( !config.isExternalZookeeper() )
-        {
-            NodeGroup nimbus = new NodeGroup();
-            nimbus.setName( StormService.NIMBUS.toString() );
-            nimbus.setLinkHosts( false );
-            nimbus.setExchangeSshKeys( false );
-            nimbus.setNumberOfNodes( 1 );
-            nimbus.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
-            nimbus.setPlacementStrategy( StormSetupStrategyDefault.getNodePlacementStrategyByNodeType(
-                    NodeType.STORM_NIMBUS ) );
-            environmentBlueprint.getNodeGroups().add( nimbus );
-        }
-
-        NodeGroup workers = new NodeGroup();
-        workers.setName( StormService.SUPERVISOR.toString() );
-        workers.setLinkHosts( false );
-        workers.setExchangeSshKeys( false );
-        workers.setNumberOfNodes( config.getSupervisorsCount() );
-        workers.setTemplateName( StormClusterConfiguration.TEMPLATE_NAME );
-        workers.setPlacementStrategy( StormSetupStrategyDefault.getNodePlacementStrategyByNodeType(
-                NodeType.STORM_SUPERVISOR ) );
-        environmentBlueprint.getNodeGroups().add( workers );
-
-
-        return environmentBlueprint;
-    }
-
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment, StormClusterConfiguration config,
-                                                         TrackerOperation po )
+    public ClusterSetupStrategy getClusterSetupStrategy( StormClusterConfiguration config, TrackerOperation po )
     {
-
-        return new StormSetupStrategyDefault( this, config, environment, po, environmentManager );
+        return new StormSetupStrategyDefault( this, config, po );
     }
+
 
     public UUID configureEnvironmentCluster( final StormClusterConfiguration config )
     {

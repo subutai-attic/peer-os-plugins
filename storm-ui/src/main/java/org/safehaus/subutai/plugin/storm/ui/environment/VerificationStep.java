@@ -4,12 +4,16 @@ package org.safehaus.subutai.plugin.storm.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -22,6 +26,9 @@ import com.vaadin.ui.Window;
 
 public class VerificationStep extends VerticalLayout
 {
+    private Environment environment;
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Storm storm, final ExecutorService executorService, final Tracker tracker,
                              final EnvironmentWizard environmentWizard )
@@ -43,14 +50,40 @@ public class VerificationStep extends VerticalLayout
         cfgView.addStringCfg( "Domain Name", environmentWizard.getConfig().getDomainName() );
 
         String selectedNodes = "";
-        final Environment environment = environmentWizard.getEnvironmentManager().getEnvironmentByUUID(
-                environmentWizard.getConfig().getEnvironmentId() );
-        for ( UUID uuid : environmentWizard.getConfig().getSupervisors() ){
-            selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+        try
+        {
+            environment = environmentWizard.getEnvironmentManager()
+                                           .findEnvironment( environmentWizard.getConfig().getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Environment not found." );
+            return;
+        }
+        for ( UUID uuid : environmentWizard.getConfig().getSupervisors() )
+        {
+            try
+            {
+                selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOGGER.error( "Container host not found.", e );
+            }
         }
 
-        ContainerHost nimbusNodeNode = environment.getContainerHostById( environmentWizard.getConfig().getNimbus() );
-        cfgView.addStringCfg( "Nodes to be configured as supervisor", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+        ContainerHost nimbusNodeNode = null;
+        try
+        {
+            nimbusNodeNode = environment.getContainerHostById( environmentWizard.getConfig().getNimbus() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container host not found.", e );
+            return;
+        }
+        cfgView.addStringCfg( "Nodes to be configured as supervisor",
+                selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
         cfgView.addStringCfg( "Nimbus Node", nimbusNodeNode.getHostname() + "" );
         cfgView.addStringCfg( "Environment UUID", environmentWizard.getConfig().getEnvironmentId() + "" );
 

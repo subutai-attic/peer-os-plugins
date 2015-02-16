@@ -3,19 +3,22 @@ package org.safehaus.subutai.plugin.storm.impl.handler;
 
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.StormImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler<StormImpl, StormClusterConfiguration>
 {
-
+    private static final Logger LOG = LoggerFactory.getLogger( ConfigureEnvironmentClusterHandler.class );
     private StormClusterConfiguration config;
     private TrackerOperation po;
 
@@ -44,7 +47,18 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
 
         try
         {
-            Environment env = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
+            Environment env = null;
+            try
+            {
+                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                logException(
+                        String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
+                        e );
+                return;
+            }
 
             try
             {
@@ -57,7 +71,14 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
         }
         catch ( ClusterSetupException e )
         {
-            po.addLogFailed( String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
+            logException( String.format( "Failed to setup %s cluster %s", config.getProductKey(), clusterName ), e );
         }
+    }
+
+
+    private void logException( String msg, Exception e )
+    {
+        LOG.error( msg, e );
+        trackerOperation.addLogFailed( msg );
     }
 }
