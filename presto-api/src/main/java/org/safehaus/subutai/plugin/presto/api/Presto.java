@@ -21,6 +21,8 @@ public interface Presto extends ApiBase<PrestoClusterConfig>
 
     //public UUID changeCoordinatorNode( String clusterName, String newMasterHostname );
 
+    public UUID stopAllNodes( String clusterName );
+
     /**
      * Starts the specified node
      *

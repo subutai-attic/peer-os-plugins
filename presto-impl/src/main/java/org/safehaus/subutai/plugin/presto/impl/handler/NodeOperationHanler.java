@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
@@ -35,6 +37,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
+    CommandUtil commandUtil;
 
 
     public NodeOperationHanler( final PrestoImpl manager, final String clusterName, final String hostName,
@@ -46,6 +49,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( PrestoClusterConfig.PRODUCT_KEY,
                 String.format( "Checking %s cluster...", clusterName ) );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -108,7 +112,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             switch ( operationType )
             {
                 case START:
-                    result = host.execute( manager.getCommands().getStartCommand() );
+                    result = host.execute( manager.getCommands().getStartCommand().daemon() );
                     logStatusResults( trackerOperation, result );
                     break;
                 case STOP:
@@ -140,7 +144,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         CommandResult result = null;
         try
         {
-            if ( !host.isConnected() )
+            if ( ! host.isConnected() )
             {
                 throw new ClusterSetupException( "New node is not connected" );
             }
@@ -156,11 +160,12 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has Presto installed" );
             }
-            else if ( !result.getStdOut().contains( hadoopPackage ) )
+            else if ( ! result.getStdOut().contains( hadoopPackage ) )
             {
                 throw new ClusterSetupException( "Node has no Hadoop installation" );
             }
-            if ( !skipInstall )
+
+            if ( ! skipInstall )
             {
                 trackerOperation.addLog( "Installing Presto..." );
                 result = host.execute( manager.getCommands().getInstallCommand() );
@@ -178,10 +183,41 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                             "Could not install " + PrestoClusterConfig.PRODUCT_KEY + " to node " + host.getHostname() );
                 }
             }
+
             Set<ContainerHost> set = Sets.newHashSet( host );
             SetupHelper sh = new SetupHelper( trackerOperation, manager, config );
             sh.configureAsWorker( set );
-            sh.startNodes( set );
+
+            // check if coordinator is already running,
+            // then newly added node should be started automatically.
+            Environment environment = null;
+            try
+            {
+                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                try
+                {
+                    ContainerHost coordinator = environment.getContainerHostById( config.getCoordinatorNode() );
+                    RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusCommand();
+                    result = commandUtil.execute( checkMasterIsRunning, coordinator );
+                    if ( result.hasSucceeded() ){
+                        // if Presto service is running on container,
+                        // command output will be smt like this: "Running as {pid}"
+                        // else it returns "Not running"
+                        if ( ! result.getStdOut().toLowerCase().contains( "not running" ) ){
+                            sh.startNodes( set );
+                        }
+                    }
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            }
+
 
             //subscribe to alerts
             try
@@ -235,18 +271,15 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
-
+        log.append( "UNKNOWN" );
         if ( result.getExitCode() == 0 )
         {
-            status = result.getStdOut();
+            log.append( result.getStdOut() );
         }
         if ( result.getExitCode() == 768 )
         {
-            status = "Not running";
+            log.append( "Not running" );
         }
-
-        log.append( String.format( "%s", status ) );
         po.addLogDone( log.toString() );
     }
 }

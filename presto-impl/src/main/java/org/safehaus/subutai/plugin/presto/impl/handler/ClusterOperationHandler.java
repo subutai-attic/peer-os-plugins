@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
@@ -29,6 +30,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class );
     private ClusterOperationType operationType;
     private PrestoClusterConfig config;
+    CommandUtil commandUtil;
 
 
     public ClusterOperationHandler( final PrestoImpl manager, final PrestoClusterConfig config,
@@ -39,6 +41,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( PrestoClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -125,6 +128,37 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     }
 
 
+    public void stopAllNodes(){
+        for ( UUID uuid : config.getAllNodes() ){
+            ContainerHost containerHost = null;
+            try
+            {
+                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( uuid );
+                try
+                {
+                    commandUtil.execute( manager.getCommands().getStopCommand(), containerHost );
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                trackerOperation.addLogFailed( "Container host not found" );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                return;
+            }
+        }
+    }
+
+
+
     @Override
     public void run()
     {
@@ -136,6 +170,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
                 break;
             case DESTROY:
                 destroyCluster();
+                break;
+            case STOP_ALL:
+                stopAllNodes();
                 break;
         }
     }

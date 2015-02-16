@@ -336,11 +336,9 @@ public class ConfigurationStep extends Panel
         };
         coordinatorNodeCombo.addValueChangeListener( coordinatorComboChangeListener );
 
-        //workers selection change listener
-        workersSelectChangeListener = new Property.ValueChangeListener()
+        //add value change handler
+        workersSelect.addValueChangeListener( new Property.ValueChangeListener()
         {
-
-            @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
                 if ( event.getProperty().getValue() != null )
@@ -357,7 +355,6 @@ public class ConfigurationStep extends Panel
                     if ( config.getCoordinatorNode() != null && config.getWorkers()
                                                                       .contains( config.getCoordinatorNode() ) )
                     {
-
                         config.setCoordinatorNode( null );
                         coordinatorNodeCombo.removeValueChangeListener( coordinatorComboChangeListener );
                         coordinatorNodeCombo.setValue( null );
@@ -365,8 +362,7 @@ public class ConfigurationStep extends Panel
                     }
                 }
             }
-        };
-        workersSelect.addValueChangeListener( workersSelectChangeListener );
+        } );
 
         parent.addComponent( hadoopClustersCombo );
         parent.addComponent( coordinatorNodeCombo );

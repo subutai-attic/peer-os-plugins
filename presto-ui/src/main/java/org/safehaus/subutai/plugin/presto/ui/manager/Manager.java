@@ -1,7 +1,7 @@
 package org.safehaus.subutai.plugin.presto.ui.manager;
 
 
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -110,9 +110,11 @@ public class Manager
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
         clusterCombo = new ComboBox();
         clusterCombo.setId( "PresClusterCombo" );
@@ -179,6 +181,7 @@ public class Manager
         autoScaleBtn.setValue( false );
         autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
         controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
         autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
@@ -363,6 +366,7 @@ public class Manager
     {
         destroyClusterBtn.addClickListener( new Button.ClickListener()
         {
+
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
@@ -376,8 +380,9 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
+                            // before removing cluster information from DB, stop cluster
+                            presto.stopAllNodes( config.getClusterName() );
                             UUID trackID = presto.uninstallCluster( config );
-
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     PrestoClusterConfig.PRODUCT_KEY );
 
@@ -407,43 +412,46 @@ public class Manager
     {
         table.removeAllItems();
 
-        for ( final ContainerHost node : workers )
-        {
-            final Label resultHolder = new Label();
-            resultHolder.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoResult" );
-            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoCheck" );
-            final Button startBtn = new Button( START_BUTTON_CAPTION );
-            startBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoStart" );
-            final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoStop" );
+        if ( ! workers.isEmpty() ){
+            for ( final ContainerHost node : workers )
+            {
+                final Label resultHolder = new Label();
+                resultHolder.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoResult" );
+                final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+                checkBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoCheck" );
+                final Button startBtn = new Button( START_BUTTON_CAPTION );
+                startBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoStart" );
+                final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
+                stopBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoStop" );
 
 
-            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoDestroy" );
+                final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+                destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoDestroy" );
 
-            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-            disableButtons( startBtn, stopBtn );
-            PROGRESS_ICON.setVisible( false );
-            PROGRESS_ICON.setId( "indicator" );
+                addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+                disableButtons( startBtn, stopBtn );
+                PROGRESS_ICON.setVisible( false );
+                PROGRESS_ICON.setId( "indicator" );
 
-            HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.setSpacing( true );
-            availableOperations.addStyleName( BUTTON_STYLE_NAME );
+                HorizontalLayout availableOperations = new HorizontalLayout();
+                availableOperations.setSpacing( true );
+                availableOperations.addStyleName( BUTTON_STYLE_NAME );
 
-            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
 
-            table.addItem( new Object[] {
-                    node.getHostname(), node.getIpByInterfaceName( "eth0" ), checkIfCoordinator( node ), resultHolder,
-                    availableOperations
-            }, null );
+                table.addItem( new Object[] {
+                        node.getHostname(), node.getIpByInterfaceName( "eth0" ), checkIfCoordinator( node ), resultHolder,
+                        availableOperations
+                }, null );
 
-            /** add click listeners to button */
-            addClickListenerToSlavesCheckButton( node, resultHolder, checkBtn, startBtn, stopBtn, destroyBtn );
-            addClickListenerToStartButtons( node, startBtn, stopBtn, checkBtn, destroyBtn );
-            addClickListenerToStopButtons( node, startBtn, stopBtn, checkBtn );
-            addClickListenerToDestroyButton( node, destroyBtn );
+                /** add click listeners to button */
+                addClickListenerToSlavesCheckButton( node, resultHolder, checkBtn, startBtn, stopBtn, destroyBtn );
+                addClickListenerToStartButtons( node, startBtn, stopBtn, checkBtn, destroyBtn );
+                addClickListenerToStopButtons( node, startBtn, stopBtn, checkBtn );
+                addClickListenerToDestroyButton( node, destroyBtn );
+            }
         }
+
 
         /** add Coordinator here */
         final Label resultHolder = new Label();
@@ -753,8 +761,14 @@ public class Manager
         table.setSelectable( false );
         table.setImmediate( true );
         table.setColumnCollapsingAllowed( true );
+        table.addItemClickListener( getTableClickListener( table ) );
+        return table;
+    }
 
-        table.addItemClickListener( new ItemClickEvent.ItemClickListener()
+
+    protected ItemClickEvent.ItemClickListener getTableClickListener( final Table table )
+    {
+        return new ItemClickEvent.ItemClickListener()
         {
             @Override
             public void itemClick( ItemClickEvent event )
@@ -762,28 +776,18 @@ public class Manager
                 if ( event.isDoubleClick() )
                 {
                     String containerId =
-                            ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts = null;
+                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION ).getValue();
+                    ContainerHost containerHost = null;
                     try
                     {
-                        containerHosts =
-                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                                                          .getContainerHostByHostname( containerId );
                     }
-                    catch ( EnvironmentNotFoundException e )
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
-                        return;
+                        LOGGER.error( "Environment error", e );
                     }
-                    Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
-                    while ( iterator.hasNext() )
-                    {
-                        containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
-                        {
-                            break;
-                        }
-                    }
+
                     if ( containerHost != null )
                     {
                         TerminalWindow terminal = new TerminalWindow( containerHost );
@@ -791,14 +795,12 @@ public class Manager
                     }
                     else
                     {
-                        show( "Host not found" );
+                        Notification.show( "Agent is not connected" );
                     }
                 }
             }
-        } );
-        return table;
+        };
     }
-
 
     public void disableOREnableAllButtonsOnTable( Table table, boolean value )
     {
@@ -848,7 +850,11 @@ public class Manager
             }
             try
             {
-                populateTable( nodesTable, environment.getContainerHostsByIds( config.getWorkers() ),
+                Set<ContainerHost> workerNodes = new HashSet<>();
+                if ( ! config.getWorkers().isEmpty() ){
+                    workerNodes.addAll( environment.getContainerHostsByIds( config.getWorkers() ) );
+                }
+                populateTable( nodesTable, workerNodes,
                         environment.getContainerHostById( config.getCoordinatorNode() ) );
             }
             catch ( ContainerHostNotFoundException e )

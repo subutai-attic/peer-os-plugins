@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.presto.impl;
 
 
-import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.command.OutputRedirection;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
@@ -36,13 +36,13 @@ public class Commands
 
     public RequestBuilder getStartCommand()
     {
-        return new RequestBuilder( "service presto start" ).withTimeout( 60 );
+        return new RequestBuilder( "service presto start" );
     }
 
 
     public RequestBuilder getStopCommand()
     {
-        return new RequestBuilder( "service presto stop" ).withTimeout( 60 );
+        return new RequestBuilder( "service presto stop" );
     }
 
 
@@ -55,14 +55,14 @@ public class Commands
     public RequestBuilder getSetCoordinatorCommand( ContainerHost coordinatorNode )
     {
         String s = String.format( "presto-config.sh coordinator %s", coordinatorNode.getHostname() );
-        return new RequestBuilder( s ).withTimeout( 60 );
+        return new RequestBuilder( s );
     }
 
 
     public RequestBuilder getSetWorkerCommand( ContainerHost node )
     {
         String s = String.format( "presto-config.sh worker %s", node.getHostname() );
-        return new RequestBuilder( s ).withTimeout( 60 );
+        return new RequestBuilder( s );
     }
 
 
