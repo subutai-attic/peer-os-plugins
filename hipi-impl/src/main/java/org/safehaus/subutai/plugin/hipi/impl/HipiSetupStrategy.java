@@ -179,14 +179,6 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Updating Hipi..." );
         config.setEnvironmentId( environment.getId() );
 
-        try
-        {
-            manager.saveConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            throw new ClusterSetupException( e );
-        }
 
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Hipi..." );
 
@@ -197,7 +189,8 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
             {
                 RequestBuilder installCommand =
                         new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 300 );
-                commandUtil.execute( installCommand, node );
+                CommandResult result = commandUtil.execute( installCommand, node );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
@@ -212,9 +205,30 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ClusterException e )
         {
-            throw new ClusterSetupException( "Failed to save installation info" );
+            throw new ClusterSetupException( e );
         }
 
         trackerOperation.addLog( "Installation info successfully saved" );
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+           statusResult = commandUtil.execute( new RequestBuilder(
+                   CommandFactory.build( NodeOperationType.CHECK_INSTALLATION )), host);
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }

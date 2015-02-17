@@ -145,8 +145,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
                 trackerOperation.addLog( "Installing " + HipiConfig.PRODUCT_KEY );
                 String installCommand = CommandFactory.build( NodeOperationType.INSTALL );
                 CommandResult installCommandResult = node.execute( new RequestBuilder( installCommand ) );
+                checkCommandResult = node.execute( new RequestBuilder( checkCommand ) );
 
-                if ( installCommandResult.hasSucceeded() )
+                if ( installCommandResult.hasSucceeded() && checkCommandResult.getStdOut().
+                        contains( HipiConfig.PRODUCT_PACKAGE ) )
                 {
                     trackerOperation.addLog( "Installation succeeded" );
                 }
