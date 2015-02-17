@@ -58,27 +58,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( config.getProductKey(),
                 String.format( "Running %s operation on %s...", operationType, clusterName ) );
-
-        //        try
-        //        {
-        //            this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-        //        }
-        //        catch ( EnvironmentNotFoundException e )
-        //        {
-        //            e.printStackTrace();
-        //        }
-    }
-
-
-    public StormClusterOperationHandler( final StormImpl manager, final StormClusterConfiguration config,
-                                         final String hostname, final ClusterOperationType operationType )
-    {
-        super( manager, config );
-        this.operationType = operationType;
-        this.config = config;
-        this.hostname = hostname;
-        trackerOperation = manager.getTracker().createTrackerOperation( config.getProductKey(),
-                String.format( "Running %s operation on %s...", operationType, clusterName ) );
     }
 
 
@@ -486,11 +465,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
         try
         {
-            //            Environment env = manager.getEnvironmentManager()
-            //                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config
-            // ) );
-            //            trackerOperation.addLog( String.format( "Environment created successfully", clusterName ) );
-
             ClusterSetupStrategy clusterSetupStrategy = manager.getClusterSetupStrategy( config, trackerOperation );
             clusterSetupStrategy.setup();
 

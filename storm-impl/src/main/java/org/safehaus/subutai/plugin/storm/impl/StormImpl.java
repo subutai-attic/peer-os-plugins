@@ -1,11 +1,18 @@
 package org.safehaus.subutai.plugin.storm.impl;
 
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
+import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -13,12 +20,15 @@ import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 
-public class StormImpl extends StormBase
+public class StormImpl extends StormBase implements EnvironmentEventListener
 {
+    private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
 
     public StormImpl()
     {
@@ -152,5 +162,117 @@ public class StormImpl extends StormBase
         AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public void saveConfig( final StormClusterConfiguration config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+
+    }
+
+
+    @Override
+    public void deleteConfig( final StormClusterConfiguration config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+
+    }
+
+
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+        LOG.info( "Environment created: " + environment.getName() );
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    {
+        List<String> containerNames = new ArrayList<>();
+        for ( final ContainerHost containerHost : set )
+        {
+            containerNames.add( containerHost.getHostname() );
+        }
+        LOG.info( String.format( "Environment: %s has been grown with containers: %s", environment.getName(),
+                containerNames.toString() ) );
+
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    {
+        LOG.info( String.format( "Storm environment event: Container destroyed: %s", containerHostId ) );
+        List<StormClusterConfiguration> clusterConfigs = getClusters();
+        for ( final StormClusterConfiguration clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+            {
+                LOG.info(
+                        String.format( "Storm environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                if ( clusterConfig.getAllNodes().contains( containerHostId ) )
+                {
+                    LOG.info( String.format( "Storm environment event: Before: %s", clusterConfig ) );
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSupervisors() ) )
+                    {
+                        clusterConfig.getSupervisors().remove( containerHostId );
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Storm environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
+
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final UUID uuid )
+    {
+        LOG.info( String.format( "Storm environment event: Environment destroyed: %s", uuid ) );
+
+        List<StormClusterConfiguration> clusterConfigs = getClusters();
+        for ( final StormClusterConfiguration clusterConfig : clusterConfigs )
+        {
+            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            {
+                LOG.info(
+                        String.format( "Storm environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Storm environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error deleting cluster config", e );
+                }
+                break;
+            }
+        }
     }
 }

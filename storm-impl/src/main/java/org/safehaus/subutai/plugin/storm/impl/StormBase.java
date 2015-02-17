@@ -38,6 +38,10 @@ public abstract class StormBase implements Storm
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
+    public void setExecutor(ExecutorService executor)
+    {
+        this.executor = executor;
+    }
 
     public MonitoringSettings getAlertSettings()
     {
