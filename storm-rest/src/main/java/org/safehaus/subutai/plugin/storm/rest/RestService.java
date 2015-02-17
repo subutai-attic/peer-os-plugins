@@ -16,20 +16,26 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 
 public class RestService
 {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger( RestService.class );
     private static final String OPERATION_ID = "OPERATION_ID";
-
+    private UUID nimbusID;
     private Storm stormManager;
     private Zookeeper zookeeperManager;
 
@@ -73,7 +79,7 @@ public class RestService
     {
 
         List<StormClusterConfiguration> configs = stormManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+        ArrayList<String> clusterNames = Lists.newArrayList();
 
         for ( StormClusterConfiguration config : configs )
         {
@@ -116,13 +122,26 @@ public class RestService
 
         if ( externalZookeeper )
         {
-            UUID nimbusID;
             ZookeeperClusterConfig zookeeperClusterConfig =
                     zookeeperManager.getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment =
-                    environmentManager.getEnvironmentByUUID(
-                            zookeeperClusterConfig.getEnvironmentId() );
-            nimbusID = zookeeperEnvironment.getContainerHostByHostname( nimbus ).getId();
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Environment with id not found.", e );
+                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
+            }
+            try
+            {
+                nimbusID = zookeeperEnvironment.getContainerHostByHostname( nimbus ).getId();
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
             config.setNimbus( nimbusID );
         }
 

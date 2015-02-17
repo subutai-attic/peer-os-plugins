@@ -10,5 +10,6 @@ public enum CommandType
     STATUS,
     START,
     STOP,
-    RESTART;
+    RESTART,
+    KILL
 }

@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.storm.ui.wizard;
+package org.safehaus.subutai.plugin.storm.ui.environment;
 
 
 import com.vaadin.data.Item;
@@ -14,8 +14,7 @@ public class ConfigView
     public ConfigView( String cfgCaption )
     {
         configTbl = new TreeTable();
-        configTbl.setWidth( "100%" );
-        configTbl.setHeight( "350px" );
+        configTbl.setSizeFull();
         configTbl.addContainerProperty( cfgCaption, String.class, "" );
     }
 

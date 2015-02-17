@@ -1,4 +1,4 @@
-package org.safehaus.subutai.plugin.storm.ui.wizard;
+package org.safehaus.subutai.plugin.storm.ui.environment;
 
 
 import java.util.concurrent.ExecutorService;
@@ -12,26 +12,28 @@ import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.VerticalLayout;
 
 
-public class Wizard
+public class EnvironmentWizard
 {
 
-    private final GridLayout grid;
+    private final VerticalLayout verticalLayout;
     private final ExecutorService executorService;
-    private final Storm storm;
     private final Tracker tracker;
+    private final Storm storm;
     private final Zookeeper zookeeper;
-    private final EnvironmentManager environmentManager;
+    private EnvironmentManager environmentManager;
+    private GridLayout grid;
     private int step = 1;
     private StormClusterConfiguration config = new StormClusterConfiguration();
     private ZookeeperClusterConfig zookeeperClusterConfig = new ZookeeperClusterConfig();
 
 
-
-    public Wizard( ExecutorService executorService, Storm storm, Zookeeper zookeeper,  Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public EnvironmentWizard( ExecutorService executorService, Storm storm, Zookeeper zookeeper, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -40,9 +42,13 @@ public class Wizard
         this.tracker = tracker;
         this.environmentManager = environmentManager;
 
-        grid = new GridLayout( 1, 20 );
+        verticalLayout = new VerticalLayout();
+        verticalLayout.setSizeFull();
+        grid = new GridLayout( 1, 1 );
         grid.setMargin( true );
         grid.setSizeFull();
+        grid.addComponent( verticalLayout );
+        grid.setComponentAlignment( verticalLayout, Alignment.TOP_CENTER );
 
         putForm();
     }
@@ -50,35 +56,37 @@ public class Wizard
 
     private void putForm()
     {
-        grid.removeComponent( 0, 1 );
-        Component component = null;
+        verticalLayout.removeAllComponents();
         switch ( step )
         {
             case 1:
             {
-                component = new WelcomeStep( this );
+                verticalLayout.addComponent( new StepStart( this ) );
                 break;
             }
             case 2:
             {
-                component = new NodeSelectionStep( zookeeper, this, environmentManager );
+                verticalLayout.addComponent( new ConfigurationStep( this, zookeeper ) );
                 break;
             }
             case 3:
             {
-                component = new VerificationStep( storm, executorService, tracker, this, environmentManager );
+                verticalLayout.addComponent( new VerificationStep( storm, executorService, tracker, this ) );
                 break;
             }
             default:
             {
+                step = 1;
+                verticalLayout.addComponent( new StepStart( this ) );
                 break;
             }
         }
+    }
 
-        if ( component != null )
-        {
-            grid.addComponent( component, 0, 1, 0, 19 );
-        }
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
     }
 
 
@@ -102,18 +110,10 @@ public class Wizard
     }
 
 
-    protected void init( boolean externalZookeeper )
+    protected void cancel()
     {
         step = 1;
-        config = new StormClusterConfiguration();
-        config.setExternalZookeeper( externalZookeeper );
         putForm();
-    }
-
-
-    public StormClusterConfiguration getConfig()
-    {
-        return config;
     }
 
 
@@ -126,5 +126,25 @@ public class Wizard
     public void setZookeeperClusterConfig( final ZookeeperClusterConfig zookeeperClusterConfig )
     {
         this.zookeeperClusterConfig = zookeeperClusterConfig;
+    }
+
+
+    public StormClusterConfiguration getConfig()
+    {
+        return config;
+    }
+
+
+    public void clearConfig(){
+        config = new StormClusterConfiguration();
+    }
+
+
+    protected void init( boolean externalZookeeper )
+    {
+        step = 1;
+        config = new StormClusterConfiguration();
+        config.setExternalZookeeper( externalZookeeper );
+        putForm();
     }
 }

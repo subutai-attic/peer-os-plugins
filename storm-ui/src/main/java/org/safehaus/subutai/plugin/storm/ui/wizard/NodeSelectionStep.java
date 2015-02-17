@@ -5,12 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.safehaus.subutai.core.environment.api.EnvironmentManager;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -29,6 +33,8 @@ import com.vaadin.ui.VerticalLayout;
 
 public class NodeSelectionStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( NodeSelectionStep.class );
+
 
     public NodeSelectionStep( final Zookeeper zookeeper, final Wizard wizard,
                               final EnvironmentManager environmentManager )
@@ -74,11 +80,34 @@ public class NodeSelectionStep extends Panel
                     masterNodeCombo.removeAllItems();
                     if ( e.getProperty().getValue() != null )
                     {
-                        ZookeeperClusterConfig zookeeperClusterConfig = ( ZookeeperClusterConfig ) e.getProperty().getValue();
-                        Environment zookeeperEnvironment =
-                                environmentManager.getEnvironmentByUUID( zookeeperClusterConfig.getEnvironmentId() );
-                        Set<ContainerHost> zookeeperNodes =
-                                zookeeperEnvironment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+                        ZookeeperClusterConfig zookeeperClusterConfig =
+                                ( ZookeeperClusterConfig ) e.getProperty().getValue();
+                        Environment zookeeperEnvironment = null;
+                        try
+                        {
+                            zookeeperEnvironment =
+                                    environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                        }
+                        catch ( EnvironmentNotFoundException e1 )
+                        {
+                            LOGGER.error(
+                                    "Environment not found " + zookeeperClusterConfig.getEnvironmentId().toString(),
+                                    e1 );
+                            return;
+                        }
+                        Set<ContainerHost> zookeeperNodes = null;
+                        try
+                        {
+                            zookeeperNodes =
+                                    zookeeperEnvironment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+                        }
+                        catch ( ContainerHostNotFoundException e1 )
+                        {
+                            LOGGER.error( "Some container hosts not found by ids: " + zookeeperClusterConfig.getNodes()
+                                                                                                            .toString(),
+                                    e );
+                            return;
+                        }
                         for ( ContainerHost containerHost : zookeeperNodes )
                         {
                             masterNodeCombo.addItem( containerHost );

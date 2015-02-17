@@ -6,12 +6,15 @@ import java.util.List;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.protocol.AbstractOperationHandler;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.environment.api.helper.Environment;
-import org.safehaus.subutai.core.peer.api.ContainerHost;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
@@ -19,6 +22,8 @@ import org.safehaus.subutai.plugin.storm.impl.Commands;
 import org.safehaus.subutai.plugin.storm.impl.StormImpl;
 import org.safehaus.subutai.plugin.storm.impl.StormService;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -30,7 +35,7 @@ import com.google.common.base.Preconditions;
  */
 public class StormNodeOperationHandler extends AbstractOperationHandler<StormImpl, StormClusterConfiguration>
 {
-
+    private static final Logger LOG = LoggerFactory.getLogger( StormNodeOperationHandler.class );
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
@@ -43,9 +48,8 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         this.hostname = hostname;
         this.clusterName = clusterName;
         this.operationType = operationType;
-        this.trackerOperation = manager.getTracker()
-                                       .createTrackerOperation( StormClusterConfiguration.PRODUCT_NAME,
-                                               String.format( "Running %s operation on %s...", operationType, hostname ) );
+        this.trackerOperation = manager.getTracker().createTrackerOperation( StormClusterConfiguration.PRODUCT_NAME,
+                String.format( "Running %s operation on %s...", operationType, hostname ) );
     }
 
 
@@ -59,16 +63,53 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
             return;
         }
 
-        Environment environment = manager.getEnvironmentManager().getEnvironmentByUUID( config.getEnvironmentId() );
-        ContainerHost containerHost = environment.getContainerHostByHostname( hostname );
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
+                    e );
+            return;
+        }
+        ContainerHost containerHost = null;
+        try
+        {
+            containerHost = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            logException( String.format( "Error getting container host by name: %s", hostname ), e );
+            return;
+        }
         // Check if the container is on external environment
         if ( config.isExternalZookeeper() && containerHost == null )
         {
-            ZookeeperClusterConfig zookeeperCluster = manager.getZookeeperManager().getCluster(
-                    config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment =
-                    manager.getEnvironmentManager().getEnvironmentByUUID( zookeeperCluster.getEnvironmentId() );
-            containerHost =zookeeperEnvironment.getContainerHostByHostname( hostname );
+            ZookeeperClusterConfig zookeeperCluster =
+                    manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+            Environment zookeeperEnvironment = null;
+            try
+            {
+                zookeeperEnvironment =
+                        manager.getEnvironmentManager().findEnvironment( zookeeperCluster.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                logException( String.format( "Couldn't find environment by id: %s",
+                        zookeeperCluster.getEnvironmentId().toString() ), e );
+                return;
+            }
+            try
+            {
+                containerHost = zookeeperEnvironment.getContainerHostByHostname( hostname );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logException( String.format( "Error getting container host by name: %s", hostname ), e );
+                return;
+            }
         }
 
         if ( containerHost == null )
@@ -79,52 +120,101 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
 
         try
         {
-            List<CommandResult> commandResultList = new ArrayList<>(  );
+            List<CommandResult> commandResultList = new ArrayList<>();
             switch ( operationType )
             {
                 case START:
-                    if ( config.getNimbus().equals( containerHost.getId() ) ) {
-                        commandResultList.add( containerHost.execute( new RequestBuilder( manager.getZookeeperManager().getCommand(
+                    if ( config.getNimbus().equals( containerHost.getId() ) )
+                    {
+                        commandResultList.add( containerHost
+                                .execute( new RequestBuilder( manager.getZookeeperManager().getCommand(
 
-                                org.safehaus.subutai.plugin.zookeeper.api.CommandType.START ) ) ) );
-                        commandResultList.add( containerHost.execute( new
-                                RequestBuilder( Commands.make( CommandType.START, StormService.NIMBUS ) ) ) );
+                                        org.safehaus.subutai.plugin.zookeeper.api.CommandType.START ) ) ) );
                         commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.START, StormService.UI ) ) ) );
+                                new RequestBuilder( Commands.make( CommandType.START, StormService.NIMBUS ) ) ) );
+                        commandResultList.add( containerHost
+                                .execute( new RequestBuilder( Commands.make( CommandType.START, StormService.UI ) ) ) );
                     }
                     else if ( config.getSupervisors().contains( containerHost.getId() ) )
+                    {
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) ) );
+                    }
                     break;
                 case STOP:
-                    if ( config.getNimbus().equals( containerHost.getId() ) ) {
+                    if ( config.getNimbus().equals( containerHost.getId() ) )
+                    {
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STOP, StormService.NIMBUS ) ) ) );
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STOP, StormService.UI ) ) ) );
+                        commandResultList.add( containerHost
+                                .execute( new RequestBuilder( Commands.make( CommandType.STOP, StormService.UI ) ) ) );
                     }
                     else if ( config.getSupervisors().contains( containerHost.getId() ) )
+                    {
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STOP, StormService.SUPERVISOR ) ) ) );
+                    }
                     break;
                 case STATUS:
-                    if ( config.getNimbus().equals( containerHost.getId() ) ) {
+                    if ( config.getNimbus().equals( containerHost.getId() ) )
+                    {
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) ) );
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STATUS, StormService.UI ) ) ) );
                     }
                     else if ( config.getSupervisors().contains( containerHost.getId() ) )
+                    {
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ) ) );
+                    }
+                    break;
+                case DESTROY:
+                    destroyNode();
                     break;
             }
             logResults( trackerOperation, commandResultList );
         }
         catch ( CommandException e )
         {
-            trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
+            logException( "Command failed", e );
         }
+    }
+
+
+    public void destroyNode()
+    {
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+        StormClusterConfiguration config = manager.getCluster( clusterName );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
+                    e );
+            return;
+        }
+        ContainerHost host = null;
+        try
+        {
+            host = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            logException( String.format( "Error getting container host by name: %s", hostname ), e );
+            return;
+        }
+
+        trackerOperation.addLog( "Removing " + hostname + " from cluster." );
+        config.getSupervisors().remove( host.getId() );
+        manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
+        trackerOperation.addLog( "Destroying " + hostname + " node." );
+        //            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname
+        // ( hostname ).getId() );
+        trackerOperation.addLogDone( "Container " + hostname + " is destroyed!" );
     }
 
 
@@ -132,12 +222,23 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
     {
         Preconditions.checkNotNull( commandResultList );
         for ( CommandResult commandResult : commandResultList )
+        {
             po.addLog( commandResult.getStdOut() );
-        if ( po.getState() == OperationState.FAILED ) {
+        }
+        if ( po.getState() == OperationState.FAILED )
+        {
             po.addLogFailed( "" );
         }
-        else {
+        else
+        {
             po.addLogDone( "" );
         }
+    }
+
+
+    private void logException( String msg, Exception e )
+    {
+        LOG.error( msg, e );
+        trackerOperation.addLogFailed( msg );
     }
 }
