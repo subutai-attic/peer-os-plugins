@@ -42,7 +42,6 @@ public class ZookeeperClusterOperationHandler
     private ClusterOperationType operationType;
     private ZookeeperClusterConfig zookeeperClusterConfig;
     private String hostName;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ZookeeperClusterOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
