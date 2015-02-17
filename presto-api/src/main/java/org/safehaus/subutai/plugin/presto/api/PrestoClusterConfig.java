@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -13,6 +14,7 @@ public class PrestoClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Presto";
     public static final String TEMPLATE_NAME = "presto";
+    public static final String PRODUCT_PACKAGE = ( Common.PACKAGE_PREFIX + PRODUCT_KEY ).toLowerCase();
 
     private String clusterName = "";
     // over-Hadoop params
