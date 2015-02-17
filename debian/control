@@ -8,6 +8,6 @@ Homepage: http://www.safehaus.org
 
 Package: storm-subutai-plugin
 Architecture: all
-Pre-Depends: subutai-repo-storm-subutai-template (= 2.1.1)
+Pre-Depends: subutai-repo-storm-subutai-template (= 2.1.2)
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: This package contains kar file of Subutai Storm plugin that runs  on subutai server application.
