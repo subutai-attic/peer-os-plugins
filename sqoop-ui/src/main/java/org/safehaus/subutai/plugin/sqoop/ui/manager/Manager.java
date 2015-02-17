@@ -256,21 +256,22 @@ public class Manager
             try
             {
                 environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+
+                Set<ContainerHost> nodes = null;
+                try
+                {
+                    nodes = environment.getContainerHostsByIds( config.getNodes() );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+                populateTable( nodesTable, nodes );
             }
             catch ( EnvironmentNotFoundException e )
             {
                 e.printStackTrace();
             }
-            Set<ContainerHost> nodes = null;
-            try
-            {
-                nodes = environment.getContainerHostsByIds( config.getNodes() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            populateTable( nodesTable, nodes );
         }
         else
         {

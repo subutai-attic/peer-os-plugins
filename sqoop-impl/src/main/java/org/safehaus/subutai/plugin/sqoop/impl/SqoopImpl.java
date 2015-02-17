@@ -4,7 +4,13 @@ package org.safehaus.subutai.plugin.sqoop.impl;
 import java.util.List;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -120,6 +126,81 @@ public class SqoopImpl extends SqoopBase
 
         executor.execute( h );
         return h.getTrackerId();
+    }
+
+
+    @Override
+    public String fetchDatabases( ImportSetting importSetting ){
+        String databases = null;
+        SqoopConfig config = getCluster( importSetting.getClusterName() );
+        String query = CommandFactory.fetchDatabasesQuery( importSetting );
+        try
+        {
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            try
+            {
+                ContainerHost containerHost = environment.getContainerHostByHostname( importSetting.getHostname() );
+                try
+                {
+                    CommandResult result = containerHost.execute( new RequestBuilder( query ) );
+                    if ( result.hasSucceeded() ){
+                        databases = result.getStdOut();
+                    }
+
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return databases;
+    }
+
+
+
+    @Override
+    public String fetchTables( ImportSetting importSetting ){
+        String tables = null;
+        SqoopConfig config = getCluster( importSetting.getClusterName() );
+        String query = CommandFactory.fetchTablesQuery( importSetting );
+        try
+        {
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            try
+            {
+                ContainerHost containerHost = environment.getContainerHostByHostname( importSetting.getHostname() );
+                try
+                {
+                    CommandResult result = containerHost.execute( new RequestBuilder( query ) );
+                    if ( result.hasSucceeded() ){
+                        tables = result.getStdOut();
+                    }
+
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return tables;
     }
 
 

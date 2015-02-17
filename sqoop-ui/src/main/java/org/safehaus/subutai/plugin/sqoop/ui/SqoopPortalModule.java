@@ -26,7 +26,7 @@ public class SqoopPortalModule implements PortalModule
     private ExecutorService executor;
     private final Sqoop sqoop;
     private final Tracker tracker;
-    private final EnvironmentManager environmentManager;;
+    private final EnvironmentManager environmentManager;
     private Hadoop hadoop;
 
 

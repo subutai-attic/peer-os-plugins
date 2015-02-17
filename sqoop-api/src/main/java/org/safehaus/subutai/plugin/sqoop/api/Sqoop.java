@@ -25,6 +25,10 @@ public interface Sqoop extends ApiBase<SqoopConfig>
 
     public UUID importData( ImportSetting settings );
 
+    public String fetchDatabases( ImportSetting setting );
+
+    public String fetchTables( ImportSetting setting );
+
     public String reviewExportQuery( ExportSetting settings );
 
     public String reviewImportQuery( ImportSetting settings );

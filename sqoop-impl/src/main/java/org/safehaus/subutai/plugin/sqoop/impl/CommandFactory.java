@@ -58,6 +58,28 @@ public class CommandFactory
     }
 
 
+    public static String fetchDatabasesQuery( ImportSetting importSetting ) {
+        StringBuilder sb = new StringBuilder();
+        sb.append( EXEC_PROFILE ).append( " && " );
+        sb.append( "sqoop list-databases " );
+        appendOption( sb, "username", importSetting.getUsername() );
+        appendOption( sb, "password", importSetting.getPassword() );
+        appendOption( sb, "connect", importSetting.getConnectionString() );
+        return sb.toString();
+    }
+
+
+    public static String fetchTablesQuery( ImportSetting importSetting ) {
+        StringBuilder sb = new StringBuilder();
+        sb.append( EXEC_PROFILE ).append( " && " );
+        sb.append( "sqoop list-tables " );
+        appendOption( sb, "username", importSetting.getUsername() );
+        appendOption( sb, "password", importSetting.getPassword() );
+        appendOption( sb, "connect", importSetting.getConnectionString() );
+        return sb.toString();
+    }
+
+
     private static String importData( ImportSetting settings )
     {
         boolean all = settings.getBooleanParameter( ImportParameter.IMPORT_ALL_TABLES );
