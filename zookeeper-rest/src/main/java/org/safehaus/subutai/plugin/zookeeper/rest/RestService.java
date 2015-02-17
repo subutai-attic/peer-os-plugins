@@ -63,7 +63,7 @@ public interface RestService
 
     //stop all nodes
     @PUT
-    @Path("clusters/{clusterName}/start_all")
+    @Path("clusters/{clusterName}/stop_all")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopAllNodes( @PathParam("clusterName") String clusterName );
 
