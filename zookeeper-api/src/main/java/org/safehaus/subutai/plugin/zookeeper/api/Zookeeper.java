@@ -23,6 +23,10 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
 
     public UUID stopNode( String clusterName, String lxcHostname );
 
+    public UUID stopAllNodes( String clusterName );
+
+    public UUID startAllNodes( String clusterName );
+
     public UUID checkNode( String clusterName, String lxcHostname );
 
     public UUID addNode( String clusterName );

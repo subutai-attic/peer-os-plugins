@@ -246,6 +246,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     }
 
 
+    @Override
     public UUID startNode( String clusterName, String hostname )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
@@ -253,6 +254,30 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
         AbstractOperationHandler operationHandler =
                 new ZookeeperNodeOperationHandler( this, clusterName, hostname, NodeOperationType.START );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID startAllNodes( String clusterName )
+    {
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID stopAllNodes( String clusterName )
+    {
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
