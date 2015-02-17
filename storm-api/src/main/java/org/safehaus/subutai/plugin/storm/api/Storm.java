@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -35,4 +36,13 @@ public interface Storm extends ApiBase<StormClusterConfiguration>
     public ClusterSetupStrategy getClusterSetupStrategy( StormClusterConfiguration config, TrackerOperation po );
 
     UUID configureEnvironmentCluster( StormClusterConfiguration config );
+
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( StormClusterConfiguration config ) throws ClusterException;
+
+    public void deleteConfig( StormClusterConfiguration config ) throws ClusterException;
 }
