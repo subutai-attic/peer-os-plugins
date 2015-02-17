@@ -27,7 +27,7 @@ public class Commands
 
     public static String getInstallCommand()
     {
-        return "apt-get update && apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
+        return "apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
     }
 
 

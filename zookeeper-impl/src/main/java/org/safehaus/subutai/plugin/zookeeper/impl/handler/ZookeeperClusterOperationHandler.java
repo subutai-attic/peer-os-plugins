@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -41,7 +42,6 @@ public class ZookeeperClusterOperationHandler
     private ClusterOperationType operationType;
     private ZookeeperClusterConfig zookeeperClusterConfig;
     private String hostName;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ZookeeperClusterOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
@@ -95,7 +95,9 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
+                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                            commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
+                        }
                     }
                     break;
                 case STOP_ALL:
@@ -103,7 +105,9 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
+                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                            commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
+                        }
                     }
                     break;
                 case STATUS_ALL:
@@ -111,7 +115,9 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
+                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                            commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
+                        }
                     }
                     break;
             }

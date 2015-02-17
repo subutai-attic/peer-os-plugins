@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -25,6 +26,7 @@ import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.zookeeper.api.CommandType;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.impl.ClusterConfiguration;
@@ -48,6 +50,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
     private String clusterName;
     private String hostname;
     private NodeOperationType operationType;
+    CommandUtil commandUtil;
 
 
     public ZookeeperNodeOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
@@ -58,6 +61,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         this.operationType = nodeOperationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( ZookeeperClusterConfig.PRODUCT_NAME,
                 String.format( "Running %s operation on %s...", operationType, hostname ) );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -71,6 +75,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( ZookeeperClusterConfig.PRODUCT_NAME,
                 String.format( "Running %s operation on %s...", operationType, hostname ) );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -106,7 +111,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             switch ( operationType )
             {
                 case START:
-                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
                     break;
                 case STOP:
                     commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
@@ -323,6 +328,24 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 LOGGER.error( "Couldn't configure host for zookeeper cluster", e );
                 return Collections.emptyList();
             }
+
+            // check if cluster is already running, then newly added node should be started automatically.
+            RequestBuilder checkClusterIsRunning = new RequestBuilder( manager.getCommand( CommandType.STATUS ) ) ;
+            ContainerHost host = zookeeperEnvironment.getContainerHostById( config.getNodes().iterator().next() );
+            try
+            {
+                CommandResult result = commandUtil.execute( checkClusterIsRunning, host );
+                if ( result.hasSucceeded() ){
+                    if ( result.getStdOut().contains( "pid" ) ){
+                        commandUtil.execute( new RequestBuilder( manager.getCommand( CommandType.START ) ).daemon(), newNode );
+                    }
+                }
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
+
 
             config.getNodes().add( newNode.getId() );
             new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, zookeeperEnvironment );

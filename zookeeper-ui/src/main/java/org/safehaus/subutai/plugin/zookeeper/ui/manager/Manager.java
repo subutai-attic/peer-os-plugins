@@ -36,6 +36,7 @@ import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -108,9 +109,11 @@ public class Manager
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
         clusterCombo = new ComboBox();
         clusterCombo.setId( "ZookeeperMngClusterCombo" );
@@ -128,36 +131,43 @@ public class Manager
             }
         } );
         controlsContent.addComponent( clusterCombo );
+        controlsContent.setComponentAlignment( clusterCombo, Alignment.MIDDLE_CENTER );
 
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         refreshClustersBtn.setId( "ZookeeperMngRefresh" );
         addClickListener( refreshClustersBtn );
         controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
 
         checkAllBtn = new Button( CHECK_ALL_BUTTON_CAPTION );
         checkAllBtn.setId( "ZookeeperMngCheckAll" );
         addClickListener( checkAllBtn );
         controlsContent.addComponent( checkAllBtn );
+        controlsContent.setComponentAlignment( checkAllBtn, Alignment.MIDDLE_CENTER );
 
         startAllBtn = new Button( START_ALL_BUTTON_CAPTION );
         startAllBtn.setId( "ZookeeperMngStartAll" );
         addClickListener( startAllBtn );
         controlsContent.addComponent( startAllBtn );
+        controlsContent.setComponentAlignment( startAllBtn, Alignment.MIDDLE_CENTER );
 
         stopAllBtn = new Button( STOP_ALL_BUTTON_CAPTION );
         stopAllBtn.setId( "ZookeeperMngStopAll" );
         addClickListener( stopAllBtn );
         controlsContent.addComponent( stopAllBtn );
+        controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "ZookeeperMngDestroyCluster" );
         addClickListenerToDestroyButton();
         controlsContent.addComponent( destroyClusterBtn );
+        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
 
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
         addNodeBtn.setId( "ZookeeperMngAddNode" );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
+        controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
 
         addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn,
                 addNodeBtn );
@@ -492,6 +502,9 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
+                            // stop all nodes before deleting cluster information from DB.
+                            zookeeper.stopAllNodes( config.getClusterName() );
+
                             UUID trackID = zookeeper.uninstallCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     ZookeeperClusterConfig.PRODUCT_KEY );
