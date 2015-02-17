@@ -130,7 +130,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
 
 
     /**
-     * Returns various commands to operation on zookeeper nodes such as start, stop, status etc.
+     * Returns various commands to operate on zookeeper nodes such as start, stop, status etc.
      *
      * @param commandType {@link org.safehaus.subutai.plugin.zookeeper.api.CommandType}
      * @return command string ( e.g service zookeeper start )
