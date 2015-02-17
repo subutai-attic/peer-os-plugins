@@ -47,12 +47,26 @@ public interface RestService
     public Response startNode( @PathParam("clusterName") String clusterName,
                                @PathParam("lxcHostname") String lxcHostname );
 
+    //start all nodes
+    @PUT
+    @Path("clusters/{clusterName}/start_all")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response startAllNodes( @PathParam("clusterName") String clusterName );
+
     //stop node
     @PUT
     @Path("clusters/{clusterName}/nodes/{lxcHostname}/stop")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopNode( @PathParam("clusterName") String clusterName,
                               @PathParam("lxcHostname") String lxcHostname );
+
+
+    //stop all nodes
+    @PUT
+    @Path("clusters/{clusterName}/start_all")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response stopAllNodes( @PathParam("clusterName") String clusterName );
+
 
     //destroy node
     @DELETE

@@ -112,9 +112,25 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response startAllNodes( final String clusterName )
+    {
+        String operationId = wrapUUID( zookeeperManager.startAllNodes( clusterName ) );
+        return Response.status( Response.Status.OK ).entity( operationId ).build();
+    }
+
+
+    @Override
     public Response stopNode( final String clusterName, final String lxcHostname )
     {
         String operationId = wrapUUID( zookeeperManager.stopNode( clusterName, lxcHostname ) );
+        return Response.status( Response.Status.OK ).entity( operationId ).build();
+    }
+
+
+    @Override
+    public Response stopAllNodes( final String clusterName )
+    {
+        String operationId = wrapUUID( zookeeperManager.stopAllNodes( clusterName ) );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
     }
 
