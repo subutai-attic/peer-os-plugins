@@ -1,0 +1,219 @@
+package org.safehaus.subutai.plugin.lucene.impl;
+
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.PluginDAO;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
+import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+@RunWith( MockitoJUnitRunner.class )
+public class OverHadoopSetupStrategyTest
+{
+    private OverHadoopSetupStrategy overHadoopSetupStrategy;
+    private UUID uuid;
+    private Set<ContainerHost> mySet;
+    private Set<UUID> myUUID;
+    private List<UUID> myList;
+    @Mock
+    ContainerHost containerHost;
+    @Mock
+    LuceneImpl luceneImpl;
+    @Mock
+    LuceneConfig luceneConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    Hadoop hadoop;
+    @Mock
+    HadoopClusterConfig hadoopClusterConfig;
+    @Mock
+    CommandResult commandResult;
+
+
+    @Before
+    public void setUp() throws Exception
+    {
+        uuid = new UUID( 50, 50 );
+        myUUID = new HashSet<>();
+        myUUID.add( uuid );
+
+        mySet = new HashSet<>();
+        mySet.add( containerHost );
+
+        myList = new ArrayList<>();
+        myList.add( uuid );
+
+        overHadoopSetupStrategy =
+                new OverHadoopSetupStrategy( luceneImpl, luceneConfig, trackerOperation, environment );
+
+        when( luceneImpl.getHadoopManager() ).thenReturn( hadoop );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupMalformedConfiguration() throws Exception
+    {
+        overHadoopSetupStrategy.setup();
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupClusterAlreadyExist() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
+
+        overHadoopSetupStrategy.setup();
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupContainerIsNotConnected() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+
+        overHadoopSetupStrategy.setup();
+
+        // assertions
+        assertFalse( containerHost.isConnected() );
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupFailedToObtainContainers() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) )
+                .thenThrow( ContainerHostNotFoundException.class );
+
+
+        overHadoopSetupStrategy.setup();
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupNoHadoop() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.isConnected() ).thenReturn( true );
+
+        overHadoopSetupStrategy.setup();
+
+        // assertions
+        assertTrue( containerHost.isConnected() );
+    }
+
+
+    @Test( expected = ClusterSetupException.class )
+    public void testSetupNotAllNodesBelongToHadoop() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.isConnected() ).thenReturn( true );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+
+        overHadoopSetupStrategy.setup();
+
+        // assertions
+        assertTrue( containerHost.isConnected() );
+    }
+
+
+    @Test
+    public void testSetupAlreadyInstalledLucene() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.isConnected() ).thenReturn( true );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( commandResult.getStdOut() ).thenReturn( Commands.PACKAGE_NAME );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+
+        overHadoopSetupStrategy.setup();
+
+        // assertions
+        assertTrue( containerHost.isConnected() );
+        verify( trackerOperation ).addLog(
+                String.format( "Node %s already has Lucene installed. Omitting this node from installation",
+                        containerHost.getHostname() ) );
+    }
+
+
+    @Test
+    public void testSetup() throws Exception
+    {
+        when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
+        when( luceneConfig.getNodes() ).thenReturn( myUUID );
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.isConnected() ).thenReturn( true );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
+        when( commandResult.getStdOut() ).thenReturn( "test" );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+
+        overHadoopSetupStrategy.setup();
+
+        // assertions
+        assertTrue( containerHost.isConnected() );
+        verify( luceneImpl ).saveConfig( luceneConfig );
+    }
+
+
+    @Test(expected = ClusterSetupException.class)
+    public void testProcessResultHasNotSucceeded() throws Exception
+    {
+        when( commandResult.hasSucceeded() ).thenReturn( false );
+
+        overHadoopSetupStrategy.processResult( containerHost, commandResult );
+    }
+}

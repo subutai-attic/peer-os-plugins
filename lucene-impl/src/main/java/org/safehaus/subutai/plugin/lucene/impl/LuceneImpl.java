@@ -52,6 +52,17 @@ public class LuceneImpl implements Lucene, EnvironmentEventListener
     }
 
 
+    public void setPluginDao( PluginDAO pluginDao )
+    {
+        this.pluginDao = pluginDao;
+    }
+
+
+    public void setExecutor(ExecutorService executor)
+    {
+        this.executor = executor;
+    }
+
     public Hadoop getHadoopManager()
     {
         return hadoopManager;
