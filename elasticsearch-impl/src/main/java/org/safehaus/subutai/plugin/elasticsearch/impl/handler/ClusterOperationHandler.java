@@ -114,6 +114,32 @@ public class ClusterOperationHandler
                 environment = environmentManager.findEnvironment( config.getEnvironmentId() );
                 configurator
                         .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                // check if one of seeds in cassandra cluster is already running,
+                // then newly added node should be started automatically.
+                try
+                {
+                    ContainerHost node = environment.getContainerHostById( config.getNodes().iterator().next() );
+                    RequestBuilder checkNodeIsRunning =  manager.getCommands().getStatusCommand();
+                    CommandResult result = null;
+                    try
+                    {
+                        result = commandUtil.execute( checkNodeIsRunning, node );
+                        if ( result.hasSucceeded() ){
+                            if ( !result.getStdOut().toLowerCase().contains( "not" ) ){
+                                commandUtil.execute( manager.getCommands().getStartCommand(), newNode );
+                            }
+                        }
+                    }
+                    catch ( CommandException e )
+                    {
+                        LOG.error( "Could not check if Elasticsearch is running on one of the nodes" );
+                        e.printStackTrace();
+                    }
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
