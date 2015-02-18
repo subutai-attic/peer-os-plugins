@@ -29,7 +29,7 @@ public interface RestService
                                       @PathParam( "nodes" ) String nodes );
     //remove cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/remove/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response removeCluster( @PathParam( "clusterName" ) String clusterName );
 
@@ -65,7 +65,7 @@ public interface RestService
 
     //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/node/{lxcHostname}" )
+    @Path( "clusters/{clusterName}/remove/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 }

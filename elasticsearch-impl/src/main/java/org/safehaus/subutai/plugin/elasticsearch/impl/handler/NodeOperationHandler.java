@@ -9,11 +9,14 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 
 
@@ -100,78 +103,31 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
 
     private void removeNode( final ContainerHost host ) throws ClusterException, CommandException
     {
-        //check if node belongs to this cluster
-        if ( !config.getNodes().contains( host.getId() ) )
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+        try
         {
-            throw new ClusterException( String.format( "Node %s does not belong to ES cluster %s", host.getHostname(),
-                    config.getClusterName() ) );
+            ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
+            config.getNodes().remove( host.getId() );
+            manager.saveConfig( config );
+            // configure cluster again
+            ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
+            try
+            {
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+            }
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            {
+                e.printStackTrace();
+            }
+            trackerOperation.addLog( String.format( "Cluster information is updated" ) );
+            trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
-
-        //check if node is connected
-        if ( !host.isConnected() )
+        catch ( ClusterException e )
         {
-            throw new ClusterException( String.format( "Node %s is disconnected", host.getHostname() ) );
+            e.printStackTrace();
         }
-
-        //check if ES is installed
-        CommandResult result = commandUtil.execute( manager.getCommands().getCheckInstallationCommand(), host );
-        if ( result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
-        {
-            //uninstall ES from the node
-            trackerOperation.addLog( String.format( "Uninstalling ES from %s...", host.getHostname() ) );
-            commandUtil.execute( manager.getCommands().getUninstallCommand(), host );
-        }
-
-        config.getNodes().remove( host.getId() );
-
-        manager.saveConfig( config );
-
-        trackerOperation.addLogDone( "Node removed" );
     }
-
-
-//    private void addNode( ContainerHost host ) throws ClusterException, CommandException
-//    {
-//        //check if node already belongs to this cluster
-//        if ( config.getNodes().contains( host.getId() ) )
-//        {
-//            throw new ClusterException( String.format( "Node %s already belongs to ES cluster %s", host.getHostname(),
-//                    config.getClusterName() ) );
-//        }
-//
-//        //check if node is connected
-//        if ( !host.isConnected() )
-//        {
-//            throw new ClusterException( String.format( "Node %s is disconnected", host.getHostname() ) );
-//        }
-//
-//        //check if ES is installed
-//        CommandResult result = commandUtil.execute( manager.getCommands().getCheckInstallationCommand(), host );
-//        if ( !result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
-//        {
-//            //install ES on the node
-//            trackerOperation.addLog( String.format( "Installing ES on %s...", host.getHostname() ) );
-//            commandUtil.execute( manager.getCommands().getInstallCommand(), host );
-//        }
-//
-//        //configure node
-//        commandUtil.execute( manager.getCommands().getConfigureCommand( config.getClusterName() ), host );
-//
-//        config.getNodes().add( host.getId() );
-//
-//        manager.saveConfig( config );
-//
-//        trackerOperation.addLogDone( "Node added" );
-//
-//        try
-//        {
-//            manager.subscribeToAlerts( host );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            throw new ClusterException( e );
-//        }
-//    }
 
 
     public static void logResults( TrackerOperation po, CommandResult result )
