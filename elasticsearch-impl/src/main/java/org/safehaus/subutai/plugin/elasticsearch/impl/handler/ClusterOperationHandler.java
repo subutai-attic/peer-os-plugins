@@ -114,7 +114,7 @@ public class ClusterOperationHandler
                 environment = environmentManager.findEnvironment( config.getEnvironmentId() );
                 configurator
                         .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-                // check if one of seeds in cassandra cluster is already running,
+                // check if one of seeds in elasticsearch cluster is already running,
                 // then newly added node should be started automatically.
                 try
                 {
