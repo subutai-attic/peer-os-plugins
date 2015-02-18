@@ -56,23 +56,6 @@ public class RestServiceImpl implements RestService
     }
 
 
-    @Override
-    public Response createCluster( final String config )
-    {
-        TrimmedCassandraClusterConfig trimmedCassandraConfig =
-                JsonUtil.fromJson( config, TrimmedCassandraClusterConfig.class );
-
-        CassandraClusterConfig cassandraConfig = new CassandraClusterConfig();
-        cassandraConfig.setClusterName( trimmedCassandraConfig.getClusterName() );
-        cassandraConfig.setDomainName( trimmedCassandraConfig.getDomainName() );
-        cassandraConfig.setNumberOfNodes( trimmedCassandraConfig.getNumberOfNodes() );
-        cassandraConfig.setNumberOfSeeds( trimmedCassandraConfig.getNumberOfSeeds() );
-
-        UUID uuid = cassandraManager.installCluster( cassandraConfig );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
 
     @Override
     public Response destroyCluster( final String clusterName )
@@ -228,6 +211,36 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
+    public Response startNode( final String clusterName, final String lxcHostname )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found" ).build();
+        }
+        UUID uuid = cassandraManager.startService( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response stopNode( final String clusterName, final String lxcHostname )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found" ).build();
+        }
+        UUID uuid = cassandraManager.stopService( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
     private Response createResponse( UUID uuid, OperationState state ){
         TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
         if ( state == OperationState.FAILED ){
@@ -270,7 +283,7 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
             {
                 break;
             }

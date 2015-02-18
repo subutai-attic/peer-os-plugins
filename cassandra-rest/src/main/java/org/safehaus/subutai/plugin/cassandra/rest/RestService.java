@@ -29,13 +29,6 @@ public interface RestService
     public Response getCluster( @PathParam("clusterName") String source );
 
 
-    //create cluster
-    @POST
-    @Path("clusters")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response createCluster( @QueryParam("config") String config );
-
-
     //destroy cluster
     @DELETE
     @Path("clusters/{clusterName}")
@@ -83,7 +76,7 @@ public interface RestService
 
     //destroy node
     @DELETE
-    @Path("clusters/{clusterName}/node/{lxcHostname}/{nodeType}")
+    @Path("clusters/{clusterName}/node/{lxcHostname}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
                                  @PathParam("lxcHostname") String lxcHostname );
@@ -93,5 +86,19 @@ public interface RestService
     @Path("clusters/{clusterName}/status/node/{lxcHostname}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response checkNode( @PathParam("clusterName") String clusterName,
+                               @PathParam("lxcHostname") String lxcHostname );
+
+    //start node
+    @PUT
+    @Path("clusters/{clusterName}/start/node/{lxcHostname}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response startNode( @PathParam("clusterName") String clusterName,
+                               @PathParam("lxcHostname") String lxcHostname );
+
+    //stop node
+    @PUT
+    @Path("clusters/{clusterName}/stop/node/{lxcHostname}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response stopNode( @PathParam("clusterName") String clusterName,
                                @PathParam("lxcHostname") String lxcHostname );
 }

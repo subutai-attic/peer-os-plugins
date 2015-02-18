@@ -164,7 +164,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
+                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
