@@ -62,7 +62,6 @@ public class Manager
     protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
     protected static final String STOP_BUTTON_CAPTION = "Stop";
-    protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Environment";
     protected static final String REMOVE_CLUSTER = "Remove Cluster";
     protected static final String DESTROY_NODE_BUTTON_CAPTION = "Destroy";
     protected static final String HOST_COLUMN_CAPTION = "Host";

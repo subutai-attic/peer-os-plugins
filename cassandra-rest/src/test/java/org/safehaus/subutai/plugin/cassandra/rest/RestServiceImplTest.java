@@ -82,16 +82,6 @@ public class RestServiceImplTest
     }
 
     @Test
-    public void testCreateCluster() throws Exception
-    {
-        when(cassandra.installCluster(any(CassandraClusterConfig.class))).thenReturn(UUID.randomUUID());
-        Response response = restService.createCluster(config2);
-
-        // assertions
-        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
-    }
-
-    @Test
     public void testDestroyCluster() throws Exception
     {
         when(cassandra.uninstallCluster(anyString())).thenReturn(UUID.randomUUID());

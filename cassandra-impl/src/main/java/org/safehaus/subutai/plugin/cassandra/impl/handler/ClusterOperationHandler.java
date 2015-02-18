@@ -64,9 +64,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             case INSTALL:
                 setupCluster();
                 break;
-            case UNINSTALL:
-                destroyCluster();
-                break;
             case START_ALL:
                 startNStopCluster( config, ClusterOperationType.START_ALL );
                 break;
@@ -80,7 +77,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                 addNode();
                 break;
             case REMOVE:
-                removeCluster();
+                destroyCluster();
                 break;
         }
     }
@@ -213,20 +210,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     }
 
 
-    public void removeCluster()
-    {
-        CassandraClusterConfig config = manager.getCluster( clusterName );
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
-        manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() );
-        trackerOperation.addLogDone( "Cluster removed from database" );
-    }
-
-
     @Override
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
@@ -310,14 +293,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         {
             trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
         }
-
-        if ( manager.getPluginDAO().deleteInfo( CassandraClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        try
         {
-            trackerOperation.addLogDone( "Cluster information deleted from database" );
+            manager.deleteConfig( config );
         }
-        else
+        catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+            return;
         }
+        trackerOperation.addLogDone( "Cluster removed from database" );
     }
 }
