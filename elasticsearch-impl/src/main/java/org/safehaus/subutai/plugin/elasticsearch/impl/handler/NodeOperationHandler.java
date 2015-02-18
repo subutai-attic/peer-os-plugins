@@ -78,16 +78,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
             {
                 case START:
                     result = commandUtil.execute( manager.getCommands().getStartCommand(), host );
-
                     break;
                 case STOP:
                     result = commandUtil.execute( manager.getCommands().getStopCommand(), host );
                     break;
                 case STATUS:
                     result = commandUtil.execute( manager.getCommands().getStatusCommand(), host );
-                    break;
-                case INSTALL:
-                    addNode( host );
                     break;
                 case UNINSTALL:
                     removeNode( host );
@@ -134,48 +130,48 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
     }
 
 
-    private void addNode( ContainerHost host ) throws ClusterException, CommandException
-    {
-        //check if node already belongs to this cluster
-        if ( config.getNodes().contains( host.getId() ) )
-        {
-            throw new ClusterException( String.format( "Node %s already belongs to ES cluster %s", host.getHostname(),
-                    config.getClusterName() ) );
-        }
-
-        //check if node is connected
-        if ( !host.isConnected() )
-        {
-            throw new ClusterException( String.format( "Node %s is disconnected", host.getHostname() ) );
-        }
-
-        //check if ES is installed
-        CommandResult result = commandUtil.execute( manager.getCommands().getCheckInstallationCommand(), host );
-        if ( !result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
-        {
-            //install ES on the node
-            trackerOperation.addLog( String.format( "Installing ES on %s...", host.getHostname() ) );
-            commandUtil.execute( manager.getCommands().getInstallCommand(), host );
-        }
-
-        //configure node
-        commandUtil.execute( manager.getCommands().getConfigureCommand( config.getClusterName() ), host );
-
-        config.getNodes().add( host.getId() );
-
-        manager.saveConfig( config );
-
-        trackerOperation.addLogDone( "Node added" );
-
-        try
-        {
-            manager.subscribeToAlerts( host );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterException( e );
-        }
-    }
+//    private void addNode( ContainerHost host ) throws ClusterException, CommandException
+//    {
+//        //check if node already belongs to this cluster
+//        if ( config.getNodes().contains( host.getId() ) )
+//        {
+//            throw new ClusterException( String.format( "Node %s already belongs to ES cluster %s", host.getHostname(),
+//                    config.getClusterName() ) );
+//        }
+//
+//        //check if node is connected
+//        if ( !host.isConnected() )
+//        {
+//            throw new ClusterException( String.format( "Node %s is disconnected", host.getHostname() ) );
+//        }
+//
+//        //check if ES is installed
+//        CommandResult result = commandUtil.execute( manager.getCommands().getCheckInstallationCommand(), host );
+//        if ( !result.getStdOut().contains( ElasticsearchClusterConfiguration.PACKAGE_NAME ) )
+//        {
+//            //install ES on the node
+//            trackerOperation.addLog( String.format( "Installing ES on %s...", host.getHostname() ) );
+//            commandUtil.execute( manager.getCommands().getInstallCommand(), host );
+//        }
+//
+//        //configure node
+//        commandUtil.execute( manager.getCommands().getConfigureCommand( config.getClusterName() ), host );
+//
+//        config.getNodes().add( host.getId() );
+//
+//        manager.saveConfig( config );
+//
+//        trackerOperation.addLogDone( "Node added" );
+//
+//        try
+//        {
+//            manager.subscribeToAlerts( host );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            throw new ClusterException( e );
+//        }
+//    }
 
 
     public static void logResults( TrackerOperation po, CommandResult result )

@@ -9,9 +9,15 @@ import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentModificationException;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.environment.NodeGroup;
+import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -64,6 +70,70 @@ public class ClusterOperationHandler
             case REMOVE:
                 removeCluster();
                 break;
+            case ADD:
+                addNode();
+                break;
+
+        }
+    }
+
+
+    private void addNode()
+    {
+        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+        NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getTemplateName(),
+                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+
+        Topology topology = new Topology();
+
+        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+        try
+        {
+            Set<ContainerHost> newNodeSet;
+            try
+            {
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+            }
+            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+            {
+                LOG.error( "Could not add new node(s) to environment." );
+                throw new ClusterException( e );
+            }
+
+            ContainerHost newNode = newNodeSet.iterator().next();
+
+            config.getNodes().add( newNode.getId() );
+
+            manager.saveConfig( config );
+
+            ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
+            Environment environment;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+            }
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            {
+                LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
+                throw new ClusterException( e );
+            }
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( newNode );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
+            trackerOperation.addLogDone( "Node added" );
+        }
+        catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
         }
     }
 
