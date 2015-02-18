@@ -17,6 +17,7 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
+import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -45,6 +46,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private PluginDAO pluginDAO;
     private Monitor monitor;
     private EsAlertListener alertListener;
+    private PeerManager peerManager;
 
     Commands commands = new Commands();
 
@@ -192,8 +194,9 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     @Override
     public UUID addNode( final String clusterName, final String hostname )
     {
+        ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.INSTALL );
+                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -350,5 +353,16 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
                 break;
             }
         }
+    }
+
+    public PeerManager getPeerManager()
+    {
+        return peerManager;
+    }
+
+
+    public void setPeerManager( final PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 }
