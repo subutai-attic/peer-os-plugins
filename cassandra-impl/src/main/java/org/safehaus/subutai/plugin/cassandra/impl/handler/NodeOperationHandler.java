@@ -122,7 +122,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         try
         {
             CassandraClusterConfig config = manager.getCluster( clusterName );
-            //            environmentManager.removeContainer( config.getEnvironmentId(), host.getId() );
             config.getNodes().remove( host.getId() );
             manager.saveConfig( config );
             // configure cluster again
@@ -150,21 +149,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
+        log.append( "UNKNOWN" );
         if ( result.getExitCode() == 0 )
         {
-            status = result.getStdOut();
+            log.append( result.getStdOut() );
         }
-        else if ( result.getExitCode() == 768 )
+
+        if ( result.getExitCode() == 768 )
         {
-            status = "cassandra is not running";
+            log.append( "cassandra is not running" );
         }
-        else
-        {
-            status = result.getStdOut();
-        }
-        log.append( String.format( "%s", status ) );
-        po.addLog( log.toString() );
-        po.addLogDone( "" );
+        po.addLogDone( log.toString() );
     }
 }

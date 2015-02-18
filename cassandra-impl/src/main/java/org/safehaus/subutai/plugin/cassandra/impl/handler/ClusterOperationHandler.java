@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -15,7 +16,6 @@ import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
@@ -43,6 +43,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
+    private CommandUtil commandUtil;
 
 
     public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
@@ -53,6 +54,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -132,6 +134,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             }
             catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
             {
+                LOG.error( "Could not add new node(s) to environment." );
                 throw new ClusterException( e );
             }
 
@@ -142,13 +145,45 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             manager.saveConfig( config );
 
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+            Environment environment;
             try
             {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
                 configurator
                         .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+
+                // check if one of seeds in cassandra cluster is already running,
+                // then newly added node should be started automatically.
+                try
+                {
+                    ContainerHost coordinator = environment.getContainerHostById( config.getSeedNodes().iterator().next() );
+                    RequestBuilder checkMasterIsRunning = new RequestBuilder( Commands.statusCommand );
+                    CommandResult result = null;
+                    try
+                    {
+                        result = commandUtil.execute( checkMasterIsRunning, coordinator );
+                        if ( result.hasSucceeded() ){
+                            if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
+                                commandUtil.execute( new RequestBuilder( Commands.startCommand ), newNode );
+                            }
+                        }
+                    }
+                    catch ( CommandException e )
+                    {
+                        LOG.error( "Could not check if Cassandra is running on one of the seeds nodes" );
+                        e.printStackTrace();
+                    }
+
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
+                LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
                 throw new ClusterException( e );
             }
 
@@ -167,27 +202,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
         }
-    }
-
-
-    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager ){
-        ContainerHost unUsedContainerInEnvironment = null;
-        try
-        {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
-            for ( ContainerHost host : containerHostSet ){
-                if ( ! config.getAllNodes().contains( host.getId() ) ){
-                    unUsedContainerInEnvironment = host;
-                    break;
-                }
-            }
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            e.printStackTrace();
-        }
-        return unUsedContainerInEnvironment;
     }
 
 
