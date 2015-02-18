@@ -526,6 +526,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
+    /**
+     * Completely uninstalls accumulo package from container host if it is not one of master nodes otherwise triggers
+     * reconfigure operation on top of cluster for new cluster structure
+     *
+     * @param host - target container host
+     * @param nodeType - node type being removed
+     *
+     * @return - result of uninstall command
+     */
     private CommandResult uninstallProductOnNode( ContainerHost host, NodeType nodeType )
     {
         CommandResult result = null;
