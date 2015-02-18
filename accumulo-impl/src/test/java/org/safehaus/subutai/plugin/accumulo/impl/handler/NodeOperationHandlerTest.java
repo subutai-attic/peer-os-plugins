@@ -118,6 +118,7 @@ public class NodeOperationHandlerTest
         Set<ContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( containerHost.getId() ).thenReturn( UUID.randomUUID() );
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
 
