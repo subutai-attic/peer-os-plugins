@@ -234,7 +234,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( commandResult.getStdOut() ).thenReturn( "Hadoop" );
+        when( commandResult.getStdOut() ).thenReturn( "Hadoop install ok installed" );
         when( commandResult.hasSucceeded() ).thenReturn( false );
 
 
