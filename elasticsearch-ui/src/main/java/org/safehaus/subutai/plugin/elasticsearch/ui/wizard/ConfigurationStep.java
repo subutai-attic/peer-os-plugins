@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.elasticsearch.ui.wizard;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -112,7 +113,7 @@ public class ConfigurationStep extends VerticalLayout
                 environmentWizard.getConfig().getNodes().clear();
 
 
-                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) )
+                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts(), environmentWizard, e ) )
                 {
                     allNodesSelect.addItem( host );
                     allNodesSelect.setItemCaption( host,
@@ -194,7 +195,7 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts, EnvironmentWizard environmentWizard, Environment environment )
     {
         Set<ContainerHost> filteredSet = new HashSet<>();
         for ( ContainerHost containerHost : containerHosts )
@@ -212,6 +213,26 @@ public class ConfigurationStep extends VerticalLayout
                 e.printStackTrace();
             }
         }
+
+        //exclude nodes which are in other clusters
+        List<ElasticsearchClusterConfiguration> configs = environmentWizard.getElasticsearch().getClusters();
+        for( ElasticsearchClusterConfiguration config : configs )
+        {
+            if( !config.getEnvironmentId().equals( environment.getId() ))
+            {
+                continue;
+            }
+            for( Iterator<ContainerHost> iterator = filteredSet.iterator(); iterator.hasNext(); )
+            {
+                ContainerHost node = iterator.next();
+                if( config.getNodes().contains( node.getId() ))
+                {
+                    iterator.remove();
+                }
+            }
+        }
+
+
         return filteredSet;
     }
 

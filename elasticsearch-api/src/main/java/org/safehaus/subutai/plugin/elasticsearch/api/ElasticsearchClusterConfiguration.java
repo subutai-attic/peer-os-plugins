@@ -13,18 +13,12 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 {
     public static final String PRODUCT_KEY = "Elasticsearch";
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_KEY.toLowerCase();
-    private static final String TEMPLATE_NAME = "elasticsearch";
+    public static final String TEMPLATE_NAME = "elasticsearch";
 
     private String clusterName = "";
     private UUID environmentId;
     private Set<UUID> nodes = new HashSet<>();
     private boolean autoScaling;
-
-
-    public static String getTemplateName()
-    {
-        return TEMPLATE_NAME;
-    }
 
 
     public boolean isAutoScaling()

@@ -67,7 +67,7 @@ public class EnvironmentWizard
             }
             case 3:
             {
-                verticalLayout.addComponent( new VerificationStep( elasticsearch, executorService, tracker, this ) );
+                verticalLayout.addComponent( new VerificationStep( getElasticsearch(), executorService, tracker, this ) );
                 break;
             }
             default:
@@ -123,5 +123,11 @@ public class EnvironmentWizard
         step = 1;
         config = new ElasticsearchClusterConfiguration();
         putForm();
+    }
+
+
+    public Elasticsearch getElasticsearch()
+    {
+        return elasticsearch;
     }
 }
