@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
@@ -88,22 +90,32 @@ public class ClusterOperationHandler
         Topology topology = new Topology();
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
+
+        ContainerHost newNode = null;
         try
         {
-            Set<ContainerHost> newNodeSet;
-            try
+            ContainerHost unusedNodeInenvironment = findUnUsedContainerInEnvironment( environmentManager );
+            if( unusedNodeInenvironment != null )
             {
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                newNode = unusedNodeInenvironment;
+                config.getNodes().add( unusedNodeInenvironment.getId() );
             }
-            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-            {
-                LOG.error( "Could not add new node(s) to environment." );
-                throw new ClusterException( e );
+            else {
+                Set<ContainerHost> newNodeSet;
+                try
+                {
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                }
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+                {
+                    LOG.error( "Could not add new node(s) to environment." );
+                    throw new ClusterException( e );
+                }
+
+                newNode = newNodeSet.iterator().next();
+
+                config.getNodes().add( newNode.getId() );
             }
-
-            ContainerHost newNode = newNodeSet.iterator().next();
-
-            config.getNodes().add( newNode.getId() );
 
             manager.saveConfig( config );
 
@@ -163,6 +175,45 @@ public class ClusterOperationHandler
         }
     }
 
+    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
+    {
+        ContainerHost unusedNode = null;
+
+        try
+        {
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
+            for( ContainerHost host : containerHostSet )
+            {
+                if( (!config.getNodes().contains( host.getId())) && host.getTemplateName().equals( config.getTemplateName() ) )
+                {
+                    unusedNode = host;
+                    break;
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return checkUnusedNode( unusedNode );
+    }
+
+    private ContainerHost checkUnusedNode( ContainerHost node )
+    {
+        if( node != null)
+        {
+            for( ElasticsearchClusterConfiguration config : manager.getClusters() )
+            {
+                if( !config.getNodes().contains( node.getId() ))
+                {
+                    return node;
+                }
+            }
+        }
+        return null;
+
+    }
 
     public void removeCluster()
     {
