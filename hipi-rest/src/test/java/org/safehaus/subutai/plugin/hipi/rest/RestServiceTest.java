@@ -12,10 +12,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
+import org.safehaus.subutai.plugin.hipi.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -23,27 +28,35 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceTest
 {
-    private RestService restService;
+    private RestServiceImpl restService;
     private HipiConfig hipiConfig;
     @Mock
     Hipi hipi;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
 
     @Before
     public void setUp() throws Exception
     {
         hipiConfig = new HipiConfig();
-        restService = new RestService( hipi );
+        restService = new RestServiceImpl( hipi );
+        restService.setTracker( tracker );
+        when( hipi.getCluster( anyString() )).thenReturn( hipiConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
 
     @Test
-    public void testGetClusters() throws Exception
+    public void testListClusters() throws Exception
     {
         List<HipiConfig> myList = new ArrayList<>();
         myList.add( hipiConfig );
         when( hipi.getClusters() ).thenReturn( myList );
 
-        Response response = restService.getClusters();
+        Response response = restService.listClusters();
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
@@ -53,8 +66,6 @@ public class RestServiceTest
     @Test
     public void testGetCluster() throws Exception
     {
-        when( hipi.getCluster( anyString() ) ).thenReturn( hipiConfig );
-
         Response response = restService.getCluster( "test" );
 
         // assertions
@@ -65,7 +76,10 @@ public class RestServiceTest
     @Test
     public void testInstallCluster() throws Exception
     {
-//        restService.installCluster( "testClusterName", "testHostName", "nodes,sdff" );
+        Response response = restService.installCluster( "test", "test", UUID.randomUUID().toString() );
+
+        // assertions
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
 
     }
 
@@ -73,8 +87,6 @@ public class RestServiceTest
     @Test
     public void testUninstallCluster() throws Exception
     {
-        when( hipi.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.uninstallCluster( "test" );
 
         // assertions
@@ -85,20 +97,16 @@ public class RestServiceTest
     @Test
     public void testAddNode() throws Exception
     {
-        when( hipi.addNode( "testClusterName", "testLxcHostName" ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.addNode( "testClusterName", "testLxcHostName" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        when( hipi.destroyNode( "testClusterName", "testLxcHostName" ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.destroyNode( "testClusterName", "testLxcHostName" );
 
         // assertions

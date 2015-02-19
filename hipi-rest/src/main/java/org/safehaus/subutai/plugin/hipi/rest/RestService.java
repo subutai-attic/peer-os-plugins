@@ -22,110 +22,49 @@ import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
 import com.google.common.collect.Sets;
 
 
-public class RestService
+public interface RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Hipi hipiManager;
-
-
-    public RestService( final Hipi hipiManager )
-    {
-        this.hipiManager = hipiManager;
-    }
-
-
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getClusters()
-    {
-
-        List<HipiConfig> configs = hipiManager.getClusters();
-        Set<String> clusterNames = Sets.newHashSet();
-
-        for ( HipiConfig config : configs )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        HipiConfig config = hipiManager.getCluster( clusterName );
-
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
-    @Path( "clusters/" )
+    @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @PathParam( "clusterName" ) String clusterName,
                                     @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes )
-    {
-
-        HipiConfig config = new HipiConfig();
-        config.setClusterName( clusterName );
-        config.setHadoopClusterName( hadoopClusterName );
+                                    @QueryParam( "nodes" ) String nodes );
 
 
-        // BUG: Getting the params as list doesn't work. For example "List<String> nodes". To fix this we get a param
-        // as plain string and use splitting.
-        for ( String node : nodes.split( "," ) )
-        {
-            config.getNodes().add( UUID.fromString( node ) );
-        }
-
-        UUID uuid = hipiManager.installCluster( config );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
+    //destroy cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        UUID uuid = hipiManager.uninstallCluster( clusterName );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //add node
     @POST
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = hipiManager.addNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = hipiManager.destroyNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 }
