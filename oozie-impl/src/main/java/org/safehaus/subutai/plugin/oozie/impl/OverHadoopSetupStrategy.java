@@ -45,7 +45,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     {
         Preconditions.checkNotNull( oozieClusterConfig, "Cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation tracker is null" );
-        Preconditions.checkNotNull( oozieManager, "ZK manager is null" );
+        Preconditions.checkNotNull( oozieManager, "Oozie manager is null" );
 
         this.oozieClusterConfig = oozieClusterConfig;
         this.po = po;
@@ -121,11 +121,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        for ( ContainerHost hiveNode : oozieNodes )
+        for ( ContainerHost oozieNode : oozieNodes )
         {
-            if ( !hiveNode.isConnected() )
+            if ( !oozieNode.isConnected() )
             {
-                throw new ClusterSetupException( String.format( "Node %s is not connected", hiveNode.getHostname() ) );
+                throw new ClusterSetupException( String.format( "Node %s is not connected", oozieNode.getHostname() ) );
             }
         }
 
@@ -176,6 +176,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
                         String.format( "Node %s has no Hadoop installed", host.getHostname() ) );
             }
         }
+
         //======================================================================================================================
         // CHECKING for oozie - server
         //======================================================================================================================

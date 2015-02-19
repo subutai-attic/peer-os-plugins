@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.oozie.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
@@ -11,12 +12,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,13 +43,21 @@ public class RestServiceImplTest
     Hadoop hadoop;
     @Mock
     EnvironmentManager environmentManager;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
 
 
     @Before
     public void setUp() throws Exception
     {
-        restService = new RestServiceImpl( oozie, hadoop, environmentManager );
+        restService = new RestServiceImpl( oozie );
+        restService.setTracker( tracker );
         oozieClusterConfig = new OozieClusterConfig();
+        when( oozie.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
 
@@ -65,20 +78,12 @@ public class RestServiceImplTest
     @Test
     public void testGetCluster() throws Exception
     {
-        when( oozie.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
-
         Response response = restService.getCluster( "test" );
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
-
-    @Test
-    public void testInstall() throws Exception
-    {
-        restService.install( "test","test","5","test","test" );
-    }
 
 
     @Test
@@ -97,7 +102,7 @@ public class RestServiceImplTest
         Response response = restService.addNode( "testClusterName", "testNode" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
@@ -124,6 +129,8 @@ public class RestServiceImplTest
     @Test
     public void testStopNode() throws Exception
     {
+        when( oozie.stopNode( anyString(), anyString() ) ).thenReturn( UUID.randomUUID() );
+
         Response response = restService.stopNode( "testClusterName", "testNode" );
 
         // assertions
