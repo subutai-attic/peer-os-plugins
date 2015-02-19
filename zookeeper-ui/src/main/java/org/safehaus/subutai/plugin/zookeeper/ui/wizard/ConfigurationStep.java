@@ -538,29 +538,9 @@ public class ConfigurationStep extends Panel
             zookeeperContainerHosts.addAll( clusterConfig.getNodes() );
         }
 
-        List<Environment> environments = new ArrayList<>( environmentManager.getEnvironments() );
-        for ( int i = 0; i < environments.size(); i++ )
-        {
-            Environment environment = environments.get( i );
-            Set<ContainerHost> envHosts = environment.getContainerHosts();
-            boolean allowEnv = true;
-            for ( final ContainerHost envHost : envHosts )
-            {
-                if ( !envHost.getTemplateName().equalsIgnoreCase( ZookeeperClusterConfig.PRODUCT_NAME ) )
-                {
-                    allowEnv = false;
-                    break;
-                }
-            }
-            if ( !allowEnv )
-            {
-                environments.remove( i-- );
-            }
-        }
-
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );
-        container.addAll( environments );
+        container.addAll( environmentManager.getEnvironments() );
 
         ComboBox envList = new ComboBox( "Select environment" );
         envList.setId( "envList" );
@@ -591,12 +571,14 @@ public class ConfigurationStep extends Panel
 
 
     private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,
-                                    final Set<UUID> containerHostIds )
+                                    final Set<UUID> containerHostIdsToExclude )
     {
         List<ContainerHost> environmentHosts = new ArrayList<>();
         for ( final ContainerHost containerHost : containerHosts )
         {
-            if ( !containerHostIds.contains( containerHost.getId() ) )
+            if ( !containerHostIdsToExclude.contains( containerHost.getId() ) && containerHost.getTemplateName()
+                                                                                              .equalsIgnoreCase(
+                                                                                                      ZookeeperClusterConfig.TEMPLATE_NAME ) )
             {
                 environmentHosts.add( containerHost );
             }
