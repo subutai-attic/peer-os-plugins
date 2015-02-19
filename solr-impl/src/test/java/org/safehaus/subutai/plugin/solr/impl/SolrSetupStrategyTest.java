@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +48,8 @@ public class SolrSetupStrategyTest
     public void setUp() throws Exception
     {
         solrSetupStrategy = new SolrSetupStrategy( solrImpl, trackerOperation, solrClusterConfig, environment );
+        when( solrImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
     }
 
 

@@ -7,14 +7,22 @@ package org.safehaus.subutai.plugin.solr.ui.wizard;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.plugin.solr.api.SolrClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanContainer;
+import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -23,6 +31,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
@@ -34,13 +43,87 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
 
         setSizeFull();
 
-        GridLayout content = new GridLayout( 1, 3 );
+        final GridLayout content = new GridLayout( 1, 3 );
         content.setSizeFull();
         content.setSpacing( true );
         content.setMargin( true );
 
 
+        final TwinColSelect solrNodes = new TwinColSelect( "Available nodes" );
+        solrNodes.setId( "SolrNodesSelector" );
+        solrNodes.setItemCaptionPropertyId( "hostname" );
+        solrNodes.setRows( 7 );
+        solrNodes.setMultiSelect( true );
+        solrNodes.setImmediate( true );
+        solrNodes.setLeftColumnCaption( "Available Nodes" );
+        solrNodes.setRightColumnCaption( "Selected Nodes" );
+        solrNodes.setWidth( 100, Unit.PERCENTAGE );
+        solrNodes.setRequired( true );
+        solrNodes.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                if ( event.getProperty().getValue() != null )
+                {
+                    Set<ContainerHost> containerHosts =
+                            new HashSet<>( ( Collection<ContainerHost> ) event.getProperty().getValue() );
+                    Set<UUID> containerIDs = new HashSet<>();
+                    for ( ContainerHost containerHost : containerHosts )
+                    {
+                        containerIDs.add( containerHost.getId() );
+                    }
+                    wizard.getSolrClusterConfig().setNodes( containerIDs );
+                    wizard.getSolrClusterConfig().setNumberOfNodes( containerIDs.size() );
+                }
+            }
+        } );
+
         final ComboBox envList = getEnvironmentList( wizard );
+        envList.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+            {
+                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
+                wizard.getSolrClusterConfig().setEnvironmentId( envId );
+                BeanItem environmentItem = ( BeanItem ) envList.getItem( envId );
+                Environment environment = ( Environment ) environmentItem.getBean();
+
+                Set<ContainerHost> allowedContainerHosts = new HashSet<>( environment.getContainerHosts() );
+
+                //Exclude container hosts which are cloned not from solr template
+                for ( Iterator<ContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
+                {
+                    ContainerHost containerHost = it.next();
+                    if ( !containerHost.getTemplateName().equalsIgnoreCase( SolrClusterConfig.TEMPLATE_NAME ) )
+                    {
+                        it.remove();
+                    }
+                }
+
+                //Exclude container hosts which are already in solr cluster
+                List<SolrClusterConfig> solrConfigs = wizard.getSolr().getClusters();
+                for ( final SolrClusterConfig solrConfig : solrConfigs )
+                {
+                    if ( !solrConfig.getEnvironmentId().equals( environment.getId() ) )
+                    {
+                        continue;
+                    }
+                    for ( Iterator<ContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
+                    {
+                        ContainerHost containerHost = it.next();
+                        if ( solrConfig.getNodes().contains( containerHost.getId() ) )
+                        {
+                            it.remove();
+                        }
+                    }
+                }
+
+                solrNodes.setContainerDataSource(
+                        new BeanItemContainer<>( ContainerHost.class, allowedContainerHosts ) );
+            }
+        } );
 
         final TextField clusterNameTxtFld = new TextField( "Enter installation name" );
         clusterNameTxtFld.setId( "SlrClusterNameTxtFld" );
@@ -79,6 +162,12 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
                     return;
                 }
 
+                if ( solrNodes.getValue() == null )
+                {
+                    show( "Select nodes to configure solr cluster on top of it" );
+                    return;
+                }
+
                 wizard.next();
             }
         } );
@@ -106,6 +195,7 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
 
         content.addComponent( envList );
         content.addComponent( clusterNameTxtFld );
+        content.addComponent( solrNodes );
         content.addComponent( buttons );
 
         addComponent( layout );
@@ -130,15 +220,15 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
         envList.setNullSelectionAllowed( false );
         envList.setWidth( 150, Unit.PIXELS );
         envList.setContainerDataSource( container );
-        envList.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
-                wizard.getSolrClusterConfig().setEnvironmentId( envId );
-            }
-        } );
+        //        envList.addValueChangeListener( new Property.ValueChangeListener()
+        //        {
+        //            @Override
+        //            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+        //            {
+        //                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
+        //                wizard.getSolrClusterConfig().setEnvironmentId( envId );
+        //            }
+        //        } );
 
         return envList;
     }

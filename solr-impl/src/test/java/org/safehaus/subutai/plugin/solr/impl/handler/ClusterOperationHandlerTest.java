@@ -64,23 +64,24 @@ public class ClusterOperationHandlerTest
         when( trackerOperation.getId() ).thenReturn( uuid );
 
         clusterOperationHandler =
-                new ClusterOperationHandler( solrImpl, solrClusterConfig, ClusterOperationType.INSTALL );
+                new ClusterOperationHandler( solrImpl, solrClusterConfig, ClusterOperationType.INSTALL_OVER_ENV );
         clusterOperationHandler2 =
                 new ClusterOperationHandler( solrImpl, solrClusterConfig, ClusterOperationType.UNINSTALL );
 
         // mock setupCluster
         when( solrImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.createEnvironment( anyString(), any(Topology.class), anyBoolean() ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyString(), anyBoolean() ) )
+                .thenReturn( environment );
         when( solrImpl.getClusterSetupStrategy( environment, solrClusterConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
-
     }
 
 
     @Test
     public void testRunOperationOnContainers() throws Exception
     {
-        clusterOperationHandler.runOperationOnContainers( ClusterOperationType.INSTALL );
+        clusterOperationHandler.runOperationOnContainers( ClusterOperationType.INSTALL_OVER_ENV );
     }
 
 
@@ -95,13 +96,15 @@ public class ClusterOperationHandlerTest
         verify( trackerOperation ).addLogDone( String.format( "Cluster %s set up successfully", null ) );
     }
 
-    @Test(expected = RuntimeException.class)
+
+    @Test( expected = RuntimeException.class )
     public void testRunOperationTypeInstallSetupFailed() throws Exception
     {
         when( clusterSetupStrategy.setup() ).thenThrow( ClusterSetupException.class );
 
         clusterOperationHandler.run();
     }
+
 
     @Test
     public void testRunOpertaionTypeUninstall()
@@ -114,20 +117,19 @@ public class ClusterOperationHandlerTest
         // assertions
         verify( solrImpl ).getPluginDAO();
         verify( trackerOperation ).addLogDone( "Cluster removed from database" );
-        assertNotNull(solrImpl.getCluster( anyString() ));
+        assertNotNull( solrImpl.getCluster( anyString() ) );
     }
 
 
     @Test
     public void testRunOpertaionTypeUninstallSolrClusterConfigNull()
     {
-        when( solrImpl.getCluster( anyString() ) ).thenReturn( null);
+        when( solrImpl.getCluster( anyString() ) ).thenReturn( null );
 
         clusterOperationHandler2.run();
 
         // assertions
-        verify( trackerOperation ).addLogFailed(
-                String.format( "Cluster with name %s does not exist. Operation aborted", null ) );
+        verify( trackerOperation )
+                .addLogFailed( String.format( "Cluster with name %s does not exist. Operation aborted", null ) );
     }
-
 }

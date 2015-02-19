@@ -109,19 +109,6 @@ public class Manager
         controlsContent.addComponent( clusterNameLabel );
 
         clusterCombo = new ComboBox();
-        clusterCombo.setId( "SlrClusterCombo" );
-        clusterCombo.setImmediate( true );
-        clusterCombo.setTextInputAllowed( false );
-        clusterCombo.setWidth( 200, Sizeable.Unit.PIXELS );
-        clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                solrClusterConfig = solr.getCluster( event.getProperty().getValue().toString() );
-                refreshUI();
-            }
-        } );
         controlsContent.addComponent( clusterCombo );
 
 
@@ -154,6 +141,7 @@ public class Manager
         controlsContent.addComponent( PROGRESS_ICON );
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
+        refreshUI();
     }
 
 
@@ -260,6 +248,8 @@ public class Manager
             addCheckButtonClickListener( containerHost, resultHolder, startBtn, stopBtn, checkBtn );
             addStartButtonClickListener( containerHost, startBtn, stopBtn, checkBtn );
             addStopButtonClickListener( containerHost, startBtn, stopBtn, checkBtn );
+
+            checkStatus();
         }
     }
 
@@ -417,11 +407,11 @@ public class Manager
     {
         List<SolrClusterConfig> environments = new ArrayList<>( solr.getClusters() );
 
-        BeanContainer<String, SolrClusterConfig> container = new BeanContainer<>( SolrClusterConfig.class );
+        final BeanContainer<String, SolrClusterConfig> container = new BeanContainer<>( SolrClusterConfig.class );
         container.setBeanIdProperty( "clusterName" );
         container.addAll( environments );
 
-        clusterCombo.setId( "envList" );
+        clusterCombo.setId( "SlrClusterCombo" );
         clusterCombo.setItemCaptionPropertyId( "clusterName" );
         clusterCombo.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
         clusterCombo.setImmediate( true );
@@ -433,10 +423,14 @@ public class Manager
         clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
             @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+            public void valueChange( Property.ValueChangeEvent event )
             {
-                String clusterName = ( String ) valueChangeEvent.getProperty().getValue();
-                solrClusterConfig = solr.getCluster( clusterName );
+                if ( event.getProperty().getValue() == null )
+                {
+                    clusterCombo.setValue( solrClusterConfig.getClusterName() );
+                }
+                solrClusterConfig = container.getItem( clusterCombo.getValue().toString() ).getBean();
+                refreshUI();
             }
         } );
     }
