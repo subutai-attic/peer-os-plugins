@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.peer.ContainerHost;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanContainer;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -23,6 +25,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
@@ -40,7 +43,30 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
         content.setMargin( true );
 
 
+        final TwinColSelect solrNodes = new TwinColSelect( "Available nodes" );
+        solrNodes.setId( "SolrNodesSelector" );
+        solrNodes.setItemCaptionPropertyId( "hostname" );
+        solrNodes.setRows( 7 );
+        solrNodes.setMultiSelect( true );
+        solrNodes.setImmediate( true );
+        solrNodes.setLeftColumnCaption( "Available Nodes" );
+        solrNodes.setRightColumnCaption( "Selected Nodes" );
+        solrNodes.setWidth( 100, Unit.PERCENTAGE );
+        solrNodes.setRequired( true );
+
         final ComboBox envList = getEnvironmentList( wizard );
+        envList.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+            {
+                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
+                wizard.getSolrClusterConfig().setEnvironmentId( envId );
+                Environment environment = ( Environment ) envList.getItem( envId );
+                solrNodes.setContainerDataSource(
+                        new BeanItemContainer<>( ContainerHost.class, environment.getContainerHosts() ) );
+            }
+        } );
 
         final TextField clusterNameTxtFld = new TextField( "Enter installation name" );
         clusterNameTxtFld.setId( "SlrClusterNameTxtFld" );
@@ -130,15 +156,15 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
         envList.setNullSelectionAllowed( false );
         envList.setWidth( 150, Unit.PIXELS );
         envList.setContainerDataSource( container );
-        envList.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
-                wizard.getSolrClusterConfig().setEnvironmentId( envId );
-            }
-        } );
+        //        envList.addValueChangeListener( new Property.ValueChangeListener()
+        //        {
+        //            @Override
+        //            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
+        //            {
+        //                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
+        //                wizard.getSolrClusterConfig().setEnvironmentId( envId );
+        //            }
+        //        } );
 
         return envList;
     }

@@ -58,7 +58,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         {
             Environment env = manager.getEnvironmentManager()
                                      .createEnvironment( config.getClusterName(), config.getEnvironmentTopology(),
-                                             false );
+                                             "sshKey", false );
             //                                     .buildEnvironment( manager.getDefaultEnvironmentBlueprint( config
             // ) );
 
