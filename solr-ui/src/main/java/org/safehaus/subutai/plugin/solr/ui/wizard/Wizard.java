@@ -133,4 +133,10 @@ public class Wizard
     {
         return installOverEnvironment;
     }
+
+
+    public Solr getSolr()
+    {
+        return solr;
+    }
 }
