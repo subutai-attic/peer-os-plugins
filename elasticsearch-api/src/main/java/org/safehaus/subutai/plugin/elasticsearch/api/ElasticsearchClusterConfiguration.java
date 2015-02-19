@@ -21,12 +21,6 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
     private boolean autoScaling;
 
 
-    public static String getTemplateName()
-    {
-        return TEMPLATE_NAME;
-    }
-
-
     public boolean isAutoScaling()
     {
         return autoScaling;

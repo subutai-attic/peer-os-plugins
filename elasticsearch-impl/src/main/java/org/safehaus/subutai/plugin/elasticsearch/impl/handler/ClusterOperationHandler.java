@@ -84,7 +84,7 @@ public class ClusterOperationHandler
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getTemplateName(),
+        NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY, ElasticsearchClusterConfiguration.TEMPLATE_NAME,
                 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
@@ -185,7 +185,7 @@ public class ClusterOperationHandler
             Set<ContainerHost> containerHostSet = environment.getContainerHosts();
             for( ContainerHost host : containerHostSet )
             {
-                if( (!config.getNodes().contains( host.getId())) && host.getTemplateName().equals( config.getTemplateName() ) )
+                if( (!config.getNodes().contains( host.getId())) && host.getTemplateName().equals( ElasticsearchClusterConfiguration.TEMPLATE_NAME ) )
                 {
                     unusedNode = host;
                     break;
