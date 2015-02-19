@@ -68,7 +68,7 @@ public class RestServiceImpl implements RestService
 
         FlumeConfig config = new FlumeConfig();
         config.setClusterName( clusterName );
-        config.setClusterName( hadoopClusterName );
+        config.setHadoopClusterName( hadoopClusterName );
 
         String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
         for ( String node : arr )
