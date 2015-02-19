@@ -15,152 +15,69 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.flume.api.Flume;
-import org.safehaus.subutai.plugin.flume.api.FlumeConfig;
 
-import com.google.common.collect.Lists;
-
-
-public class RestService
+public interface RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Flume flumeManager;
-
-
-    public RestService( final Flume flumeManager )
-    {
-        this.flumeManager = flumeManager;
-    }
-
-
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getClusters()
-    {
-
-        List<FlumeConfig> configs = flumeManager.getClusters();
-        List<String> clusterNames = Lists.newArrayList();
-
-        for ( FlumeConfig config : configs )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        FlumeConfig config = flumeManager.getCluster( clusterName );
-
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @PathParam( "clusterName" ) String clusterName,
                                     @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes )
-    {
+                                    @QueryParam( "nodes" ) String nodes );
 
-        FlumeConfig config = new FlumeConfig();
-        config.setClusterName( clusterName );
-        config.setClusterName( hadoopClusterName );
-
-        String[] arr = nodes.split( "[,;]" );
-        for ( String node : arr )
-        {
-
-            config.getNodes().add( UUID.fromString( node ) );
-        }
-
-        UUID uuid = flumeManager.installCluster( config );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
+    //destroy cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        UUID uuid = flumeManager.uninstallCluster( clusterName );
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
-
-
+    //add node
     @POST
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = flumeManager.addNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = flumeManager.destroyNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //start node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{node}/start" )
+    @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = flumeManager.startNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //stop node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{node}/stop" )
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = flumeManager.stopNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //check ndoe
     @GET
-    @Path( "clusters/{clusterName}/nodes/{node}/check" )
+    @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response checkNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = flumeManager.checkNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response checkNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 }
