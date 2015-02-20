@@ -17,22 +17,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 @Command( scope = "hadoop", name = "list-clusters", description = "Shows the list of Hadoop clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
-
     private Hadoop hadoopManager;
-
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
 
     @Override
     protected Object doExecute()
@@ -52,5 +37,17 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
 
         return null;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }

@@ -38,7 +38,31 @@ public class UninstallClusterCommandTest
     {
         uninstallClusterCommand = new UninstallClusterCommand();
         uninstallClusterCommand.setHadoopManager(hadoop);
+        uninstallClusterCommand.setTracker( tracker );
     }
+
+
+    @Test
+    public void testGetTracker() throws Exception
+    {
+        uninstallClusterCommand.getTracker();
+
+        // assertions
+        assertNotNull(uninstallClusterCommand.getTracker());
+        assertEquals(tracker, uninstallClusterCommand.getTracker());
+
+    }
+
+    @Test
+    public void testSetTracker() throws Exception
+    {
+        uninstallClusterCommand.setTracker(tracker);
+
+        // assertions
+        assertNotNull(uninstallClusterCommand.getTracker());
+
+    }
+
 
 
     @Test

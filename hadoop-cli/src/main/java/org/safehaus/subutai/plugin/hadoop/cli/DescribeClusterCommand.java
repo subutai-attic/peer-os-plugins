@@ -31,31 +31,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     private Hadoop hadoopManager;
     private EnvironmentManager environmentManager;
 
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
     @Override
     protected Object doExecute()
     {
@@ -160,5 +135,28 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
+    }
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }

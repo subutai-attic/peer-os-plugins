@@ -20,7 +20,10 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
+/**
+ * sample command :
+ *      hadoop:check-cluster test \ {cluster name}
+ */
 @Command(scope = "hadoop", name = "check-cluster", description = "Command to check Hadoop cluster")
 public class CheckClusterCommand extends OsgiCommandSupport
 {
