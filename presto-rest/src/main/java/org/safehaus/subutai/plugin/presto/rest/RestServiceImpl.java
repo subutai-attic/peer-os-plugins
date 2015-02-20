@@ -187,7 +187,7 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = prestoManager.stopAllNodes( clusterName );
+        UUID uuid = prestoManager.startAllNodes( clusterName );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
