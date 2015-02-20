@@ -128,7 +128,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     }
 
 
-    public void stopAllNodes(){
+    public void startNStopNCheckAllNodes( ClusterOperationType type ){
         for ( UUID uuid : config.getAllNodes() ){
             ContainerHost containerHost = null;
             try
@@ -137,7 +137,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
                                        .getContainerHostById( uuid );
                 try
                 {
-                    commandUtil.execute( manager.getCommands().getStopCommand(), containerHost );
+                    CommandResult result = null;
+                    switch ( type ){
+                        case START_ALL:
+                            result = commandUtil.execute( manager.getCommands().getStartCommand().daemon(), containerHost );
+                            break;
+                        case STOP_ALL:
+                            result = commandUtil.execute( manager.getCommands().getStopCommand().daemon(), containerHost );
+                            break;
+                        case STATUS_ALL:
+                            result = commandUtil.execute( manager.getCommands().getStatusCommand().daemon(), containerHost );
+                            break;
+                    }
+                    NodeOperationHanler.logStatusResults( trackerOperation, result );
                 }
                 catch ( CommandException e )
                 {
@@ -172,7 +184,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
                 destroyCluster();
                 break;
             case STOP_ALL:
-                stopAllNodes();
+            case START_ALL:
+            case STATUS_ALL:
+                startNStopNCheckAllNodes( operationType );
                 break;
         }
     }

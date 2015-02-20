@@ -21,7 +21,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.safehaus.subutai.plugin.presto.impl.Commands;
 import org.safehaus.subutai.plugin.presto.impl.PrestoImpl;
 import org.safehaus.subutai.plugin.presto.impl.SetupHelper;
 import org.slf4j.Logger;
@@ -272,7 +271,6 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        log.append( "UNKNOWN" );
         if ( result.getExitCode() == 0 )
         {
             log.append( result.getStdOut() );
