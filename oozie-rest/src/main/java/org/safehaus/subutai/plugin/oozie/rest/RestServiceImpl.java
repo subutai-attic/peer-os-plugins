@@ -23,8 +23,6 @@ import com.google.common.collect.Lists;
 
 public class RestServiceImpl implements RestService
 {
-    private static final String OPERATION_ID = "OPERATION_ID";
-
     private Oozie oozieManager;
     private Tracker tracker;
 
@@ -88,12 +86,11 @@ public class RestServiceImpl implements RestService
         config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-        config.setClients( uuidSet );
         config.setServer( UUID.fromString( server ) );
+
         String[] arr = clients.replaceAll( "\\s+", "" ).split( "," );
         for ( String client : arr )
         {
-//            config.getClients().add( UUID.fromString( client ) );
             uuidSet.add( UUID.fromString( client ) );
         }
 
