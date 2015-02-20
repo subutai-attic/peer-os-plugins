@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.mahout.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
@@ -11,11 +12,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
 import org.safehaus.subutai.plugin.mahout.api.MahoutClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -33,13 +38,22 @@ public class RestServiceImplTest
 
     @Mock
     Mahout mahout;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
     
     @Before
     public void setUp() throws Exception
     {
-        restService = new RestServiceImpl();
+        restService = new RestServiceImpl(mahout);
         mahoutClusterConfig = new MahoutClusterConfig();
         restService.setMahoutManager( mahout );
+        restService.setTracker( tracker );
+        when( mahout.getCluster( anyString() ) ).thenReturn( mahoutClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
+
     }
 
 
@@ -107,7 +121,7 @@ public class RestServiceImplTest
         Response response = restService.addNode( "testClusterName", "testNode" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
 
     }
 

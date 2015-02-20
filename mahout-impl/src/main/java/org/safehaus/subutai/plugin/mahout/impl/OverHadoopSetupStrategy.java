@@ -156,9 +156,20 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
     public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-
-        if ( !result.hasSucceeded() )
+        CommandResult statusResult;
+        try
         {
+            RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
+            statusResult = host.execute( checkInstalledCommand );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

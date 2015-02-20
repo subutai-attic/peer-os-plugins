@@ -105,7 +105,7 @@ public class AddNodeWindow extends Window
                                 {
 
                                     hideProgress();
-                                    //ok.setEnabled( true );
+                                    ok.setEnabled( true );
                                     break;
                                 }
                             }
