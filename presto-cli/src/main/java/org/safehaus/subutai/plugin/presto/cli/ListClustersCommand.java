@@ -9,28 +9,14 @@ import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
 /**
- * Displays the last log entries
+ * sample command :
+ *      presto:list-clusters
  */
-@Command( scope = "presto", name = "list-clusters", description = "mydescription" )
+@Command( scope = "presto", name = "list-clusters", description = "Lists Presto clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
-
     private Presto prestoManager;
-
-
-    public Presto getPrestoManager()
-    {
-        return prestoManager;
-    }
-
-
-    public void setPrestoManager( Presto prestoManager )
-    {
-        this.prestoManager = prestoManager;
-    }
-
 
     protected Object doExecute()
     {
@@ -44,9 +30,20 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
         else
         {
-            System.out.println( "No Presto cluster" );
+            System.out.println( "There is no Presto cluster" );
         }
-
         return null;
     }
+
+    public Presto getPrestoManager()
+    {
+        return prestoManager;
+    }
+
+
+    public void setPrestoManager( Presto prestoManager )
+    {
+        this.prestoManager = prestoManager;
+    }
+
 }
