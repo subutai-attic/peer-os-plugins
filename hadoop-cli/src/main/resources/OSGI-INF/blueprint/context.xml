@@ -3,29 +3,62 @@
 
   <reference id="hadoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+  <reference id="tracker"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
     <command name="hadoop/list-clusters">
       <action class="org.safehaus.subutai.plugin.hadoop.cli.ListClustersCommand">
         <property name="hadoopManager" ref="hadoopManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+    <command name="hadoop/install-cluster">
+      <action class="org.safehaus.subutai.plugin.hadoop.cli.InstallClusterCommand">
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
     <command name="hadoop/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.hadoop.cli.UninstallClusterCommand">
         <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="hadoop/describe-cluster">
       <action class="org.safehaus.subutai.plugin.hadoop.cli.DescribeClusterCommand">
         <property name="hadoopManager" ref="hadoopManager" />
+        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
+
+    <command name="hadoop/start-cluster">
+      <action class="org.safehaus.subutai.plugin.hadoop.cli.StartClusterCommand">
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="hadoop/stop-cluster">
+      <action class="org.safehaus.subutai.plugin.hadoop.cli.StopClusterCommand">
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="hadoop/check-cluster">
+      <action class="org.safehaus.subutai.plugin.hadoop.cli.CheckClusterCommand">
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="environmentManager" ref="environmentManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
   </command-bundle>
 
 </blueprint>

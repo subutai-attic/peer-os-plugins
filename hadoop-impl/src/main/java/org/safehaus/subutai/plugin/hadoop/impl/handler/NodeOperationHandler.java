@@ -112,7 +112,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                             result = host.execute( new RequestBuilder( Commands.getStartDataNodeCommand() ) );
                             break;
                     }
-                    ClusterOperationHandler.logStatusResults( trackerOperation, result, nodeType );
+                    ClusterOperationHandler.logResults( trackerOperation, result, nodeType );
                     break;
                 case STOP:
                     switch ( nodeType )
@@ -130,7 +130,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                             result = host.execute( new RequestBuilder( Commands.getStopDataNodeCommand() ) );
                             break;
                     }
-                    ClusterOperationHandler.logStatusResults( trackerOperation, result, nodeType );
+                    ClusterOperationHandler.logResults( trackerOperation, result, nodeType );
                     break;
                 case STATUS:
                     switch ( nodeType )
@@ -151,7 +151,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                             result = host.execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ) );
                             break;
                     }
-                    ClusterOperationHandler.logStatusResults( trackerOperation, result, nodeType );
+                    ClusterOperationHandler.logResults( trackerOperation, result, nodeType );
                     break;
                 case EXCLUDE:
                     excludeNode();

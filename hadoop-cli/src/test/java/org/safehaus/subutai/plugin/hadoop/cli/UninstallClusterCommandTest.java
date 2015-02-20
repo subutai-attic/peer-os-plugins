@@ -18,6 +18,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,8 +38,9 @@ public class UninstallClusterCommandTest
     {
         uninstallClusterCommand = new UninstallClusterCommand();
         uninstallClusterCommand.setHadoopManager(hadoop);
-        uninstallClusterCommand.setTracker(tracker);
+        uninstallClusterCommand.setTracker( tracker );
     }
+
 
     @Test
     public void testGetTracker() throws Exception
@@ -60,6 +62,8 @@ public class UninstallClusterCommandTest
         assertNotNull(uninstallClusterCommand.getTracker());
 
     }
+
+
 
     @Test
     public void testGetHadoopManager() throws Exception
@@ -89,6 +93,7 @@ public class UninstallClusterCommandTest
         when(tracker.getTrackerOperation(anyString(),any(UUID.class))).thenReturn(trackerOperationView);
         when(trackerOperationView.getLog()).thenReturn("test");
 
+        uninstallClusterCommand.setTracker( tracker );
         uninstallClusterCommand.doExecute();
 
         // assertions
@@ -99,9 +104,9 @@ public class UninstallClusterCommandTest
     @Test
     public void testDoExecuteWhenTrackerOperationIsNull() throws Exception
     {
-        when(hadoop.uninstallCluster(anyString())).thenReturn(UUID.randomUUID());
-        when(tracker.getTrackerOperation(anyString(),any(UUID.class))).thenReturn(null);
-
+        when(hadoop.uninstallCluster( anyString() )).thenReturn(UUID.randomUUID());
+        when(tracker.getTrackerOperation( anyString(), any( UUID.class ) )).thenReturn( mock( TrackerOperationView.class ) );
+        uninstallClusterCommand.setTracker( tracker );
         uninstallClusterCommand.doExecute();
 
         // assertions

@@ -9,6 +9,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -132,6 +133,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         hadoopManager.getPluginDAO()
                      .saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "Hadoop cluster data saved into database" );
+
+        //subscribe to alerts
+        try
+        {
+            hadoopManager.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
     }
 
 
@@ -143,6 +154,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         catch ( CommandException e )
         {
+            LOG.error( "Error while executing \"" + command + "\"." );
             e.printStackTrace();
         }
     }

@@ -16,6 +16,7 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -51,6 +52,8 @@ public class HadoopImplTest
     Environment environment;
     @Mock
     PluginDAO pluginDAO;
+    @Mock
+    Monitor monitor;
 
     @Mock
     ContainerHost containerHost;
@@ -67,7 +70,7 @@ public class HadoopImplTest
         //when(preparedStatement.executeUpdate()).thenReturn(5);
 
 
-        hadoopImpl = new HadoopImpl();
+        hadoopImpl = new HadoopImpl( monitor );
         //        hadoopImpl.init();
         hadoopImpl.setExecutor( executorService );
         hadoopImpl.setTracker( tracker );
