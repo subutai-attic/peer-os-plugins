@@ -2,21 +2,87 @@
 
   <reference id="prestoManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.presto.api.Presto" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
     <command name="presto/list-clusters">
       <action class="org.safehaus.subutai.plugin.presto.cli.ListClustersCommand">
         <property name="prestoManager" ref="prestoManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="presto/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.presto.cli.UninstallClusterCommand">
         <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
       </action>
     </command>
+
+    <command name="presto/install-cluster">
+      <action class="org.safehaus.subutai.plugin.presto.cli.InstallClusterCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="environmentManager" ref="environmentManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/start-cluster">
+      <action class="org.safehaus.subutai.plugin.presto.cli.StartAllNodesCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/stop-cluster">
+      <action class="org.safehaus.subutai.plugin.presto.cli.StopAllNodesCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/start-node">
+      <action class="org.safehaus.subutai.plugin.presto.cli.StartServiceCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/stop-node">
+      <action class="org.safehaus.subutai.plugin.presto.cli.StopServiceCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/check-cluster">
+      <action class="org.safehaus.subutai.plugin.presto.cli.CheckAllNodesCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+    <command name="presto/check-node">
+      <action class="org.safehaus.subutai.plugin.presto.cli.StatusServiceCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="presto/describe-cluster">
+      <action class="org.safehaus.subutai.plugin.presto.cli.DescribeClusterCommand">
+        <property name="prestoManager" ref="prestoManager" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
   </command-bundle>
 
 </blueprint>

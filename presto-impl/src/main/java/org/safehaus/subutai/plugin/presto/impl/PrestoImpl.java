@@ -177,7 +177,11 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        return null;
+        PrestoClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.DESTROY );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -214,11 +218,33 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
 
     @Override
+    public UUID startAllNodes( final String clusterName )
+    {
+        PrestoClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID stopAllNodes( final String clusterName )
     {
         PrestoClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID checkAllNodes( final String clusterName )
+    {
+        PrestoClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.STATUS_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }

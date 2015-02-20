@@ -12,7 +12,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 public interface Presto extends ApiBase<PrestoClusterConfig>
 {
 
-
     public UUID uninstallCluster( PrestoClusterConfig config );
 
     public UUID addWorkerNode( String clusterName, String lxcHostname );
@@ -21,7 +20,11 @@ public interface Presto extends ApiBase<PrestoClusterConfig>
 
     //public UUID changeCoordinatorNode( String clusterName, String newMasterHostname );
 
+    public UUID startAllNodes( String clusterName );
+
     public UUID stopAllNodes( String clusterName );
+
+    public UUID checkAllNodes( String clusterName );
 
     /**
      * Starts the specified node
