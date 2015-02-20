@@ -292,7 +292,7 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     @Override
     public void onEnvironmentDestroyed( final UUID uuid )
     {
-        LOGGER.info( String.format( "Cassandra environment event: Environment destroyed: %s", uuid ) );
+        LOGGER.info( String.format( "Hive environment event: Environment destroyed: %s", uuid ) );
 
         List<HiveConfig> clusterConfigs = getClusters();
         for ( final HiveConfig clusterConfig : clusterConfigs )
