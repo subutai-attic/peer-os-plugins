@@ -1,12 +1,5 @@
 package org.safehaus.subutai.plugin.pig.rest;
 
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -17,109 +10,51 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.CollectionUtil;
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.pig.api.Pig;
-import org.safehaus.subutai.plugin.pig.api.PigConfig;
-
-import com.google.common.collect.Lists;
 
 
-public class RestService
+public interface RestService
 {
-
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Pig pigManager;
-
-
-    public RestService( final Pig pigManager )
-    {
-        this.pigManager = pigManager;
-    }
-
-
-    //create cluster
-    @POST
-    @Path( "clusters" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "config" ) String config )
-    {
-        TrimmedConfig trimmedConfig = JsonUtil.fromJson( config, TrimmedConfig.class );
-        PigConfig pigConfig = new PigConfig();
-        pigConfig.setClusterName( trimmedConfig.getClusterName() );
-        pigConfig.setHadoopClusterName( trimmedConfig.getHadoopClusterName() );
-
-        if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getNodes() ) )
-        {
-            Set<UUID> nodes = new HashSet<>();
-            for ( String hostname : trimmedConfig.getNodes() )
-            {
-                nodes.add( UUID.fromString( hostname ) );
-            }
-            pigConfig.getNodes().addAll( nodes );
-        }
-
-        UUID uuid = pigManager.installCluster( pigConfig );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
-    //destroy cluster
-    @DELETE
-    @Path( "clusters/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        UUID uuid = pigManager.uninstallCluster( clusterName );
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
-
 
     //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getClusters()
-    {
-
-        List<PigConfig> configs = pigManager.getClusters();
-        ArrayList<String> clusterNames = Lists.newArrayList();
-
-        for ( PigConfig config : configs )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
     //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        PigConfig config = pigManager.getCluster( clusterName );
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+
+    //install cluster
+    @POST
+    @Path( "clusters/install" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @QueryParam( "nodes" ) String nodes );
+
+
+    //destroy cluster
+    @DELETE
+    @Path( "clusters/destroy/{clusterName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //add node
+    @POST
+    @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
     //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{lxchostname}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName,
-                                @PathParam( "lxchostname" ) String node )
-    {
-        UUID uuid = pigManager.destroyNode( clusterName, node );
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 }
