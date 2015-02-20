@@ -245,7 +245,17 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
 
     public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-        if ( !( result.hasSucceeded() ) )
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( new RequestBuilder( Commands.checkIfInstalled ) );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && (statusResult.getStdOut().contains( HiveConfig.PRODUCT_KEY.toLowerCase()) ) )  )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
