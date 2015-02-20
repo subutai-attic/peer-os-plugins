@@ -30,6 +30,7 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
     public Response listClusters()
     {
 
@@ -45,6 +46,8 @@ public class RestServiceImpl implements RestService
         return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
+
+    @Override
     public Response getCluster( final String clusterName )
     {
         NutchConfig config = nutchManager.getCluster( clusterName );
@@ -54,6 +57,7 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String nodeIds )
     {
         Preconditions.checkNotNull( clusterName );
@@ -78,6 +82,7 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
     public Response uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -92,6 +97,7 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
     public Response addNode( final String clusterName, final String hostname )
     {
         Preconditions.checkNotNull( clusterName );
@@ -107,6 +113,7 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
     public Response destroyNode( final String clusterName, final String hostname )
     {
         Preconditions.checkNotNull( clusterName );
