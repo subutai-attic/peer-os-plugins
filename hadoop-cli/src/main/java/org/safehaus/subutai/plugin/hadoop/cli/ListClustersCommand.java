@@ -11,13 +11,15 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command :
+ *      hadoop:list-cluster
  */
 @Command( scope = "hadoop", name = "list-clusters", description = "Shows the list of Hadoop clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
     private Hadoop hadoopManager;
+
 
 
     public Hadoop getHadoopManager()
@@ -32,6 +34,7 @@ public class ListClustersCommand extends OsgiCommandSupport
     }
 
 
+    @Override
     protected Object doExecute()
     {
 

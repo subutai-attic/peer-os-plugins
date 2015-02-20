@@ -20,6 +20,7 @@ import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.core.network.api.NetworkManager;
 import org.safehaus.subutai.core.peer.api.PeerManager;
@@ -65,9 +66,28 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private HadoopAlertListener hadoopAlertListener;
 
 
-    public HadoopImpl()
+    public HadoopImpl( Monitor monitor )
     {
+        this.monitor = monitor;
+        hadoopAlertListener = new HadoopAlertListener( this );
+        monitor.addAlertListener( hadoopAlertListener );
+    }
 
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( hadoopAlertListener, environment, alertSettings );
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( hadoopAlertListener, environment );
     }
 
 

@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
 
@@ -24,17 +25,19 @@ public class AddOperationHandlerTest
     UUID uuid;
     ExecutorService executorService;
     Tracker tracker;
+    Monitor monitor;
 
     @Before
     public void setUp()
     {
         executorService = mock(ExecutorService.class);
         trackerOperation = mock(TrackerOperation.class);
+        monitor = mock( Monitor.class );
         uuid = new UUID(50, 50);
         tracker = mock(Tracker.class);
 
         String clusterName = "test";
-        HadoopImpl hadoop = new HadoopImpl();
+        HadoopImpl hadoop = new HadoopImpl( monitor );
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);
@@ -50,7 +53,7 @@ public class AddOperationHandlerTest
     @Test
     public void testRun()
     {
-        HadoopImpl hadoop = new HadoopImpl();
+        HadoopImpl hadoop = new HadoopImpl( monitor );
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);

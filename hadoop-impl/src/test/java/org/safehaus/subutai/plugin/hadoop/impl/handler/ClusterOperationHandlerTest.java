@@ -161,7 +161,7 @@ public class ClusterOperationHandlerTest
     public void testLogStatusResultsWithNodeTypeNONAME()
     {
         when(commandResult.getStdOut()).thenReturn("NameNode");
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.NAMENODE);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.NAMENODE );
 
         verify(trackerOperation).addLogDone(String.format("Node state is %s", NodeState.RUNNING));
     }
@@ -171,7 +171,7 @@ public class ClusterOperationHandlerTest
     {
         CommandResult commandResult = mock(CommandResult.class);
         when(commandResult.getStdOut()).thenReturn("JobTracker");
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.JOBTRACKER);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.JOBTRACKER );
 
         verify(trackerOperation).addLogDone(String.format("Node state is %s", NodeState.RUNNING));
     }
@@ -181,7 +181,7 @@ public class ClusterOperationHandlerTest
     {
         CommandResult commandResult = mock(CommandResult.class);
         when(commandResult.getStdOut()).thenReturn("SecondaryNameNode");
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.SECONDARY_NAMENODE);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.SECONDARY_NAMENODE );
 
         verify(trackerOperation).addLogDone(String.format("Node state is %s", NodeState.RUNNING));
     }
@@ -191,7 +191,7 @@ public class ClusterOperationHandlerTest
     {
         CommandResult commandResult = mock(CommandResult.class);
         when(commandResult.getStdOut()).thenReturn("DataNode");
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.DATANODE);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.DATANODE );
 
         verify(trackerOperation).addLogDone(String.format("Node state is %s", NodeState.RUNNING));
     }
@@ -201,7 +201,7 @@ public class ClusterOperationHandlerTest
     {
         CommandResult commandResult = mock(CommandResult.class);
         when(commandResult.getStdOut()).thenReturn("TaskTracker");
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.TASKTRACKER);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.TASKTRACKER );
 
         verify(trackerOperation).addLogDone(String.format("Node state is %s", NodeState.RUNNING));
     }
@@ -210,7 +210,7 @@ public class ClusterOperationHandlerTest
     public void testLogStatusResultsWithNodeTypeSLAVE_NODE()
     {
         CommandResult commandResult = mock(CommandResult.class);
-        clusterOperationHandler.logStatusResults(trackerOperation, commandResult, NodeType.SLAVE_NODE);
+        clusterOperationHandler.logResults( trackerOperation, commandResult, NodeType.SLAVE_NODE );
 
     }
 

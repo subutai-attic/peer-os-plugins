@@ -14,7 +14,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
@@ -144,45 +144,55 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ) );
+                            result = namenode.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStartJobTrackerCommand() ) );
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStartJobTrackerCommand() ).daemon() );
                             break;
                     }
-                    logStatusResults( trackerOperation, result, nodeType );
+                    assert result != null;
+                    if ( result.hasSucceeded() ){
+                        trackerOperation.addLogDone( result.getStdOut() );
+                    } else{
+                        trackerOperation.addLogFailed( result.getStdErr() );
+                    }
                     break;
                 case STOP_ALL:
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
+                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ).daemon() );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ) );
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ).daemon() );
                             break;
                     }
-                    logStatusResults( trackerOperation, result, nodeType );
+                    assert result != null;
+                    if ( result.hasSucceeded() ){
+                        trackerOperation.addLogDone( result.getStdOut() );
+                    } else{
+                        trackerOperation.addLogFailed( result.getStdErr() );
+                    }
                     break;
                 case STATUS_ALL:
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).daemon() );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ) );
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).daemon() );
                             break;
                         case SECONDARY_NAMENODE:
                             result = secondaryNameNode
-                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).daemon() );
                             break;
                     }
-                    logStatusResults( trackerOperation, result, nodeType );
+                    logResults( trackerOperation, result, nodeType );
                     break;
                 case DECOMISSION_STATUS:
-                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ) );
-                    logStatusResults( trackerOperation, result, NodeType.SLAVE_NODE );
+                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ).daemon() );
+                    logResults( trackerOperation, result, NodeType.SLAVE_NODE );
                     break;
             }
         }
@@ -198,7 +208,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     }
 
 
-    public static void logStatusResults( TrackerOperation trackerOperation, CommandResult result, NodeType nodeType )
+    public static void logResults( TrackerOperation trackerOperation, CommandResult result, NodeType nodeType )
     {
         NodeState nodeState = NodeState.UNKNOWN;
         if ( result.getStdOut() != null )
@@ -297,7 +307,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
 
         if ( NodeState.UNKNOWN.equals( nodeState ) )
         {
-            trackerOperation.addLogFailed( String.format( "Failed to check status of node" ) );
+            trackerOperation.addLogFailed( String.format( "Unknown node state !!!" ) );
         }
         else
         {
@@ -348,20 +358,38 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
 
         if ( config == null )
         {
-            trackerOperation.addLogFailed( String.format( "Installation with name %s does not exist", clusterName ) );
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+
+        Environment environment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
 
         try
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
-            manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
+            manager.unsubscribeFromAlerts( environment );
         }
-        catch ( EnvironmentNotFoundException | EnvironmentDestructionException e )
+        catch ( MonitorException e )
         {
-            logExceptionWithMessage( "Error performing operations on environment", e );
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+        }
+
+        if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
         }
     }
 
