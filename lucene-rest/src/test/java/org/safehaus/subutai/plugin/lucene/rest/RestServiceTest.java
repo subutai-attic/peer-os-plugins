@@ -12,10 +12,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.lucene.api.Lucene;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -23,30 +27,36 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceTest
 {
-    private RestService restService;
+    private RestServiceImpl restService;
     private LuceneConfig luceneConfig;
     @Mock
     Lucene lucene;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
 
     @Before
     public void setUp() throws Exception
     {
         luceneConfig = new LuceneConfig();
-
-        restService = new RestService();
-        restService.setLuceneManager( lucene );
+        restService = new RestServiceImpl( lucene );
+        restService.setTracker( tracker );
+        when( lucene.getCluster( anyString() )).thenReturn( luceneConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
 
     }
 
 
     @Test
-    public void testGetClusters() throws Exception
+    public void testListClusters() throws Exception
     {
         List<LuceneConfig> myList = new ArrayList<>();
         myList.add( luceneConfig );
         when( lucene.getClusters() ).thenReturn( myList );
 
-        Response response = restService.getClusters();
+        Response response = restService.listClusters();
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
@@ -56,8 +66,6 @@ public class RestServiceTest
     @Test
     public void testGetCluster() throws Exception
     {
-        when( lucene.getCluster( anyString() ) ).thenReturn( luceneConfig );
-
         Response response = restService.getCluster( "test" );
 
         // assertions
@@ -68,15 +76,16 @@ public class RestServiceTest
     @Test
     public void testInstallCluster() throws Exception
     {
+        Response response = restService.installCluster( "test", "test", UUID.randomUUID().toString() );
 
+        // assertions
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        when( lucene.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.uninstallCluster( "testClusterName" );
 
         // assertions
@@ -87,20 +96,16 @@ public class RestServiceTest
     @Test
     public void testAddNode() throws Exception
     {
-        when( lucene.addNode( "testClusterName", "testLxcHostName" ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.addNode( "testClusterName", "testLxcHostName" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        when( lucene.addNode( "testClusterName", "testLxcHostName" ) ).thenReturn( UUID.randomUUID() );
-
         Response response = restService.destroyNode( "testClusterName", "testLxcHostName" );
 
         // assertions

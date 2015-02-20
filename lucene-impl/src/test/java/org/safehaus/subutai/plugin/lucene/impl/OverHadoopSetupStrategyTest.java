@@ -101,6 +101,7 @@ public class OverHadoopSetupStrategyTest
     @Test( expected = ClusterSetupException.class )
     public void testSetupClusterAlreadyExist() throws Exception
     {
+        when( luceneConfig.getClusterName() ).thenReturn( "testClusterName" );
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
@@ -143,6 +144,7 @@ public class OverHadoopSetupStrategyTest
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
         when( containerHost.isConnected() ).thenReturn( true );
+        when( hadoop.getCluster( anyString() ) ).thenReturn( null );
 
         overHadoopSetupStrategy.setup();
 
@@ -198,7 +200,7 @@ public class OverHadoopSetupStrategyTest
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
-        when( commandResult.getStdOut() ).thenReturn( "test" );
+        when( commandResult.getStdOut() ).thenReturn( LuceneConfig.PRODUCT_PACKAGE );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         overHadoopSetupStrategy.setup();
