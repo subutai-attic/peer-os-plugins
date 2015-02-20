@@ -61,7 +61,6 @@ public class MahoutClusterConfig implements ConfigBase
     public void setHadoopClusterName( final String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
-        this.clusterName = hadoopClusterName;
     }
 
 
