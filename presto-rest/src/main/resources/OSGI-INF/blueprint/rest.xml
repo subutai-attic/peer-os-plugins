@@ -12,16 +12,14 @@
 
   <reference id="prestoManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.presto.api.Presto" />
-  <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="prestoRestServiceImpl" class="org.safehaus.subutai.plugin.presto.rest.RestService">
+  <bean id="prestoRestServiceImpl" class="org.safehaus.subutai.plugin.presto.rest.RestServiceImpl">
     <argument ref="prestoManager" />
-    <argument ref="hadoopManager" />
-    <argument ref="environmentManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
+
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/presto" id="prestoRestService">
     <jaxrs:serviceBeans>
