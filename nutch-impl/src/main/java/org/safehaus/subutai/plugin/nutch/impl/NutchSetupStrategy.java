@@ -6,6 +6,7 @@ import java.util.Set;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
@@ -175,7 +176,8 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                commandUtil.execute( commands.getInstallCommand(), node );
+                CommandResult result = commandUtil.execute( commands.getInstallCommand(), node );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
@@ -183,6 +185,26 @@ class NutchSetupStrategy implements ClusterSetupStrategy
                         String.format( "Error while installing Nutch on container %s; %s", node.getHostname(),
                                 e.getMessage() ) );
             }
+        }
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( commands.getCheckInstallationCommand() );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
     }
 }

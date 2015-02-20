@@ -127,7 +127,7 @@ public class ConfigurationStep extends Panel
             @Override
             public void valueChange( Property.ValueChangeEvent e )
             {
-                wizard.getConfig().setClusterName( e.getProperty().getValue().toString().trim() );
+                config.setClusterName( e.getProperty().getValue().toString().trim() );
             }
         } );
         nameTxt.setValue( wizard.getConfig().getClusterName() );

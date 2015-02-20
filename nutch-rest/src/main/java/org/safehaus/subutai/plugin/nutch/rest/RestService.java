@@ -1,9 +1,5 @@
 package org.safehaus.subutai.plugin.nutch.rest;
 
-
-import java.util.List;
-import java.util.UUID;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -14,117 +10,51 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.nutch.api.Nutch;
-import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
-
-import com.google.common.collect.Lists;
 
 
-public class RestService
+public interface RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Nutch nutchManager;
-
-
-    public RestService( final Nutch nutchManager )
-    {
-        this.nutchManager = nutchManager;
-    }
-
-
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getClusters()
-    {
-
-        List<NutchConfig> configs = nutchManager.getClusters();
-        List<String> clusterNames = Lists.newArrayList();
-
-        for ( NutchConfig config : configs )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        NutchConfig config = nutchManager.getCluster( clusterName );
-
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @PathParam( "clusterName" ) String clusterName,
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
                                     @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes )
-    {
-
-        NutchConfig config = new NutchConfig();
-
-        config.setClusterName( clusterName );
-        config.setHadoopClusterName( hadoopClusterName );
-
-        // BUG: Getting the params as list doesn't work. For example "List<String> nodes". To fix this we get a param
-        // as plain string and use splitting.
-        for ( String node : nodes.split( "," ) )
-        {
-            config.getNodes().add( UUID.fromString( node ) );
-        }
-
-        UUID uuid = nutchManager.installCluster( config );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+                                    @QueryParam( "nodes" ) String nodes );
 
 
+    //destroy cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        UUID uuid = nutchManager.uninstallCluster( clusterName );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //add node
     @POST
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = nutchManager.addNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
+    //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{node}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "node" ) String node )
-    {
-        UUID uuid = nutchManager.destroyNode( clusterName, node );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 }
