@@ -14,7 +14,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:uninstall-cluster test \ {cluster name}
+ *      presto:uninstall-cluster test \ {cluster name}
  */
 @Command( scope = "presto", name = "uninstall-cluster", description = "Command to uninstall Presto cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport

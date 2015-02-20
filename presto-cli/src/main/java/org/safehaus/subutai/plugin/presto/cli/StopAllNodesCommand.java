@@ -13,7 +13,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:describe-cluster test \ {cluster name}
+ *      presto:stop-cluster test \ {cluster name}
  */
 @Command(scope = "presto", name = "stop-cluster", description = "Command to stop Presto cluster")
 public class StopAllNodesCommand extends OsgiCommandSupport

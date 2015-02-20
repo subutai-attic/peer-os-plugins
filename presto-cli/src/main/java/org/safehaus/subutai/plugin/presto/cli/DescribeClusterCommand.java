@@ -19,7 +19,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:describe-cluster test \ {cluster name}
+ *      presto:describe-cluster test \ {cluster name}
  */
 @Command( scope = "presto", name = "describe-cluster", description = "Shows the details of the Presto cluster." )
 public class DescribeClusterCommand extends OsgiCommandSupport

@@ -11,7 +11,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:list-clusters
+ *      presto:list-clusters
  */
 @Command( scope = "presto", name = "list-clusters", description = "Lists Presto clusters" )
 public class ListClustersCommand extends OsgiCommandSupport

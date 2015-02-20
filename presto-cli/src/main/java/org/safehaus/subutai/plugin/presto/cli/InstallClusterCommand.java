@@ -23,7 +23,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:install-cluster test \ {cluster name}
+ *      presto:install-cluster test \ {cluster name}
  *                             test \ { hadoop cluster name }
  *                             hadoop1 \ { coordinator }
  *                             [ hadoop1, hadoop2 ] \ { list of worker machines }

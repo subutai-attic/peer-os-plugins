@@ -16,7 +16,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:start-cluster test \ {cluster name}
+ *      presto:start-cluster test \ {cluster name}
  */
 @Command(scope = "presto", name = "start-cluster", description = "Command to start Prsto cluster")
 public class StartAllNodesCommand extends OsgiCommandSupport

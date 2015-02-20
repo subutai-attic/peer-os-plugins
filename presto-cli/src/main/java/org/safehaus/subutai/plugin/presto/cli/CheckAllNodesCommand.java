@@ -23,7 +23,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:check-cluster test \ {cluster name}
+ *      presto:check-cluster test \ {cluster name}
  */
 @Command(scope = "presto", name = "check-cluster", description = "Command to check Presto cluster")
 public class CheckAllNodesCommand extends OsgiCommandSupport

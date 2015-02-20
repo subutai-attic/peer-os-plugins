@@ -14,7 +14,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:start-node test \ {cluster name}
+ *      presto:start-node test \ {cluster name}
  *                        hadoop1 \ { container hostname }
  */
 @Command( scope = "presto", name = "start-node", description = "Command to start Presto service" )

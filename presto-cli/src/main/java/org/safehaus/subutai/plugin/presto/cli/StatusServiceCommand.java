@@ -14,7 +14,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      hadoop:check-node test \ {cluster name}
+ *      presto:check-node test \ {cluster name}
  *                        hadoop1 \ { container hostname }
  */
 @Command( scope = "presto", name = "check-node", description = "Command to check Cassandra service" )
