@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-public interface RestServiceInterface
+public interface RestService
 {
     @GET
     @Path( "clusters/{clusterName}" )
@@ -26,23 +26,24 @@ public interface RestServiceInterface
     public Response listClusters();
 
     @POST
-    @Path( "clusters" )
+    @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "config" ) String config );
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "sparkClusterName" ) String sparkCluserName);
 
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
     @POST
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName,
                              @PathParam( "lxcHostName" ) String lxcHostName );
 
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostName" ) String lxcHostName );

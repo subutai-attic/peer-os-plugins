@@ -15,7 +15,11 @@
 
   <bean id="sharkRestServiceImpl" class="org.safehaus.subutai.plugin.shark.rest.RestServiceImpl">
     <argument ref="sharkManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
+
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/shark" id="sharkRestServiceInterface">
     <jaxrs:serviceBeans>
