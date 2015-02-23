@@ -14,152 +14,103 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.spark.api.Spark;
-import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
-import com.google.common.collect.Lists;
-
-
-public class RestService
+public interface RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
 
-    private Spark sparkManager;
-
-
-    public RestService( final Spark sparkManager )
-    {
-        this.sparkManager = sparkManager;
-    }
-
-
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response listClusters()
-    {
-
-        List<SparkClusterConfig> configList = sparkManager.getClusters();
-        List<String> clusterNames = Lists.newArrayList();
-
-        for ( SparkClusterConfig config : configList )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        String cluster = JsonUtil.GSON.toJson( sparkManager.getCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
-    @Path( "clusters" )
+    @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "config" ) String config )
-    {
-        TrimmedSparkConfig trimmedSparkConfig = JsonUtil.GSON.fromJson( config, TrimmedSparkConfig.class );
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @QueryParam( "master" ) String master,
+                                    @QueryParam( "slaves" ) String workers );
 
 
-        SparkClusterConfig expandedConfig = new SparkClusterConfig();
-        expandedConfig.setClusterName( trimmedSparkConfig.getClusterName() );
-        expandedConfig.setHadoopClusterName( trimmedSparkConfig.getHadoopClusterName() );
-        expandedConfig.setMasterNodeId( trimmedSparkConfig.getMasterHostId() );
-        expandedConfig.getSlaveIds().addAll( trimmedSparkConfig.getSlaveHostsIds() );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.installCluster( expandedConfig ) );
-
-        return Response.status( Response.Status.ACCEPTED ).entity( operationId ).build();
-    }
-
-
+    //destroy cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.uninstallCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //add slave node
     @POST
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response addSlaveNode( @PathParam( "clusterName" ) String clusterName,
-                                  @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.addSlaveNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+                                  @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //destroy slave node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroySlaveNode( @PathParam( "clusterName" ) String clusterName,
-                                      @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.destroySlaveNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                                      @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //change master node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/{keepSlave}" )
+    @Path( "clusters/{clusterName}/change_master/nodes/{lxcHostName}/{keepSlave}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response changeMasterNode( @PathParam( "clusterName" ) String clusterName,
                                       @PathParam( "lxcHostName" ) String lxcHostName,
-                                      @PathParam( "keepSlave" ) boolean keepSlave )
-    {
-        String operationId =
-                JsonUtil.toJson( OPERATION_ID, sparkManager.changeMasterNode( clusterName, lxcHostName, keepSlave ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                                      @PathParam( "keepSlave" ) boolean keepSlave );
 
 
+    //start node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/{master}/start" )
+    @Path( "clusters/{clusterName}/start/node/{lxcHostName}/master/{master}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master )
-    {
-        String operationId =
-                JsonUtil.toJson( OPERATION_ID, sparkManager.startNode( clusterName, lxcHostName, master ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                               @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master );
 
 
+    //stop node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/{master}/stop" )
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostName}/master/{master}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
-                              @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, sparkManager.stopNode( clusterName, lxcHostName, master ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                              @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master );
 
 
+    //check node
     @GET
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/{master}" )
+    @Path( "clusters/{clusterName}/check/node/{lxcHostName}/master/{master}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response checkNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master )
-    {
-        String operationId =
-                JsonUtil.toJson( OPERATION_ID, sparkManager.checkNode( clusterName, lxcHostName, master ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                               @PathParam( "lxcHostName" ) String lxcHostName, @PathParam( "master" ) boolean master );
+
+    //start cluster
+    @PUT
+    @Path( "clusters/{clusterName}/start/master/{lxcHostName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startCluster( @PathParam( "clusterName" ) String clusterName,
+                                  @PathParam( "lxcHostName" ) String masterNodeName);
+
+
+    //stop cluster
+    @PUT
+    @Path( "clusters/{clusterName}/stop/master/{lxcHostName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopCluster( @PathParam( "clusterName" ) String clusterName,
+                                 @PathParam( "lxcHostName" ) String masterNodeName);
+
 }
