@@ -210,6 +210,22 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( prestoManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = prestoManager.checkAllNodes( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( PrestoClusterConfig.PRODUCT_KEY, uuid );

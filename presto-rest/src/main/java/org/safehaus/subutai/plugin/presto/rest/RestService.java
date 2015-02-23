@@ -16,18 +16,21 @@ import javax.ws.rs.core.Response;
 public interface RestService
 {
 
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
     @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -37,12 +40,14 @@ public interface RestService
                                     @QueryParam( "workers" ) String workers );
 
 
+    //destroy cluster
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //add node
     @POST
     @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -50,6 +55,7 @@ public interface RestService
                                    @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //destroy node
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -57,6 +63,7 @@ public interface RestService
                                        @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -64,6 +71,7 @@ public interface RestService
                                @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -71,6 +79,7 @@ public interface RestService
                               @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //check node
     @GET
     @Path( "clusters/{clusterName}/check/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -89,4 +98,11 @@ public interface RestService
     @Path( "clusters/{clusterName}/stop" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName );
 }
