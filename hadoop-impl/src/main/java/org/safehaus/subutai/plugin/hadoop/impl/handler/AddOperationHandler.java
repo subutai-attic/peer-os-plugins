@@ -87,7 +87,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
                 NodeGroup nodeGroup =
-                        new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME, Common.DEFAULT_DOMAIN_NAME,
+                        new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME,
                                 nodeCount - numberOfContainersNotBeingUsed, 1, 2,
                                 new PlacementStrategy( "ROUND_ROBIN" ) );
                 Topology topology = new Topology();

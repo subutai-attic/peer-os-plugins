@@ -216,19 +216,7 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      */
     public UUID includeNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
 
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment,
-                                                         HadoopClusterConfig hadoopClusterConfig, TrackerOperation po );
-
     public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException;
-
-
-    /**
-     * Configures cluster nodes with the given cluster configuration.
-     *
-     * @param config hadoop cluster configuration object
-     * @return
-     */
-    public UUID configureEnvironmentCluster( HadoopClusterConfig config );
 
 
     /**
@@ -237,4 +225,5 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( HadoopClusterConfig config ) throws ClusterException;
+
 }

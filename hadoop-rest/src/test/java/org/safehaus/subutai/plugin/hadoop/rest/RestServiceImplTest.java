@@ -11,6 +11,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -18,6 +21,8 @@ import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -28,12 +33,20 @@ public class RestServiceImplTest
     Hadoop hadoop;
     @Mock
     HadoopClusterConfig hadoopClusterConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
 
     @Before
     public void setUp() throws Exception
     {
         restService = new RestServiceImpl();
         restService.setHadoopManager(hadoop);
+        restService.setTracker( tracker );
+        when( hadoop.getCluster( anyString() )).thenReturn( hadoopClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
     @Test
@@ -79,7 +92,7 @@ public class RestServiceImplTest
         Response response = restService.installCluster("test", 5, 5);
 
         // assertions
-        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
     }
 
@@ -187,7 +200,7 @@ public class RestServiceImplTest
         Response response = restService.addNode("test");
 
         // assertions
-        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     }
 
     @Test

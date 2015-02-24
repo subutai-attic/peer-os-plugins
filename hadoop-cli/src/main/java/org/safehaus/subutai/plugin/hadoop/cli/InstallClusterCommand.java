@@ -82,7 +82,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setDataNodes( slaves ) ;
         config.setTaskTrackers( slaves );
         System.out.println( "Configuring " + clusterName + " hadoop cluster...");
-        UUID uuid = hadoopManager.configureEnvironmentCluster( config );
+        UUID uuid = hadoopManager.installCluster( config );
         System.out.println( "Install cluster operation is " +
                 StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
