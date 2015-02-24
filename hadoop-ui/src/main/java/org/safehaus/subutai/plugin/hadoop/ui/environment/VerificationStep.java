@@ -83,7 +83,7 @@ public class VerificationStep extends VerticalLayout
                 @Override
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
-                    UUID trackID = hadoop.configureEnvironmentCluster( wizard.getHadoopClusterConfig() );
+                    UUID trackID = hadoop.installCluster( wizard.getHadoopClusterConfig() );
                     ProgressWindow window =
                             new ProgressWindow( executorService, tracker, trackID, HadoopClusterConfig.PRODUCT_KEY );
                     window.getWindow().addCloseListener( new Window.CloseListener()
