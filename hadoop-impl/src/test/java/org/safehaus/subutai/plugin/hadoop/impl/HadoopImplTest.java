@@ -409,17 +409,6 @@ public class HadoopImplTest
 
 
     @Test
-    public void testGetClusterSetupStrategy()
-    {
-        ClusterSetupStrategy clusterStrategy =
-                hadoopImpl.getClusterSetupStrategy( environment, hadoopClusterConfig, trackerOperation );
-
-        // assertions
-        assertNotNull( clusterStrategy );
-    }
-
-
-    @Test
     public void testGetClusters()
     {
         hadoopImpl.getClusters();
