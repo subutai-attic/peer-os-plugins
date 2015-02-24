@@ -13,6 +13,8 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
+import org.safehaus.subutai.plugin.spark.api.Spark;
+import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -23,6 +25,7 @@ public class RestServiceImpl implements RestService
 {
 
     private Shark sharkManager;
+    private Spark sparkManager;
     private Tracker tracker;
 
 
@@ -50,14 +53,16 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( final String clusterName, final String sparkCluserName )
+    public Response installCluster( final String clusterName, final String sparkClusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( sparkCluserName );
+        Preconditions.checkNotNull( sparkClusterName );
 
         SharkClusterConfig config = new SharkClusterConfig();
+        SparkClusterConfig sparkConfig = sparkManager.getCluster( sparkClusterName );
+        config.getNodeIds().addAll( sparkConfig.getAllNodesIds() );
         config.setClusterName( clusterName );
-        config.setSparkClusterName( sparkCluserName );
+        config.setSparkClusterName( sparkClusterName );
 
         UUID uuid = sharkManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -195,5 +200,15 @@ public class RestServiceImpl implements RestService
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public Spark getSparkManager() {
+        return sparkManager;
+    }
+
+    public void setSparkManager( final Spark sparkManager )
+    {
+        this.sparkManager = sparkManager;
     }
 }

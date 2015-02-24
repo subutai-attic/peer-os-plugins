@@ -17,11 +17,14 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
+import org.safehaus.subutai.plugin.spark.api.Spark;
+import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +41,10 @@ public class RestServiceImplTest
     SharkClusterConfig sharkClusterConfig;
     @Mock
     TrackerOperationView trackerOperationView;
+    @Mock
+    Spark sparkManager;
+    @Mock
+    SparkClusterConfig sparkClusterConfig;
 
 
     @Before
@@ -45,11 +52,18 @@ public class RestServiceImplTest
     {
 
         sharkClusterConfig = new SharkClusterConfig();
+        sparkClusterConfig = new SparkClusterConfig();
         restService = new RestServiceImpl( shark );
         restService.setTracker( tracker );
+        restService.setSparkManager( sparkManager );
         when( shark.getCluster( anyString() )).thenReturn( sharkClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
+        List<UUID> myList = Lists.newArrayList();
+        myList.add( UUID.randomUUID() );
+        sparkClusterConfig.getAllNodesIds().addAll( myList );
+        when( sparkManager.getCluster( anyString() )).thenReturn( sparkClusterConfig );
+
     }
 
 

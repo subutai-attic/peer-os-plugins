@@ -104,6 +104,7 @@ public class ConfigurationStep extends Panel
                 {
                     SparkClusterConfig sparkConfig = ( SparkClusterConfig ) event.getProperty().getValue();
                     config.setSparkClusterName( sparkConfig.getClusterName() );
+                    config.getNodeIds().addAll( sparkConfig.getAllNodesIds() );
                 }
             }
         } );

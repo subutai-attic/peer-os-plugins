@@ -29,7 +29,7 @@ public interface RestService
     @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "sparkClusterName" ) String sparkCluserName);
+                                    @QueryParam( "sparkClusterName" ) String sparkClusterName);
 
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
