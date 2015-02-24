@@ -13,23 +13,22 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentCreationException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import org.safehaus.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -48,12 +47,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     public ClusterOperationHandler( final HadoopImpl manager, final HadoopClusterConfig config,
                                     final ClusterOperationType operationType, NodeType nodeType )
     {
-        super( manager, config.getClusterName() );
+        super( manager, config );
         this.operationType = operationType;
         this.config = config;
         this.nodeType = nodeType;
         trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
-                String.format( "Creating %s tracker object...", clusterName ) );
+                String.format( "Starting %s operation on %s(%s) cluster...",
+                        operationType, clusterName, config.getProductKey() ) );
+    }
+
+
+    public ClusterOperationHandler( final HadoopImpl manager, final HadoopClusterConfig config,
+                                    final ClusterOperationType operationType )
+    {
+        super( manager, config );
+        Preconditions.checkState( operationType.equals( ClusterOperationType.INSTALL ) );
+        this.operationType = operationType;
+        this.config = config;
+        trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
+                String.format( "Starting %s operation on %s(%s) cluster...",
+                        operationType, clusterName, config.getProductKey() ) );
     }
 
 
@@ -74,10 +87,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             case START_ALL:
             case STOP_ALL:
             case STATUS_ALL:
-                runOperationOnContainers( operationType );
-                break;
             case DECOMISSION_STATUS:
-                runOperationOnContainers( ClusterOperationType.DECOMISSION_STATUS );
+                runOperationOnContainers( operationType );
                 break;
         }
     }
@@ -103,7 +114,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            ContainerHost namenode = null;
+            ContainerHost namenode;
             try
             {
                 namenode = environment.getContainerHostById( config.getNameNode() );
@@ -114,7 +125,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         String.format( "Container host with id: %s not found", config.getNameNode().toString() ), e );
                 return;
             }
-            ContainerHost jobtracker = null;
+            ContainerHost jobtracker;
             try
             {
                 jobtracker = environment.getContainerHostById( config.getJobTracker() );
@@ -125,7 +136,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         String.format( "Container host with id: %s not found", config.getJobTracker().toString() ), e );
                 return;
             }
-            ContainerHost secondaryNameNode = null;
+            ContainerHost secondaryNameNode;
             try
             {
                 secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
@@ -144,10 +155,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
+                            result = namenode.execute(
+                                    new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStartJobTrackerCommand() ).daemon() );
+                            result = jobtracker.execute( new
+                                    RequestBuilder( Commands.getStartJobTrackerCommand() ).daemon() );
                             break;
                     }
                     assert result != null;
@@ -161,10 +174,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ).daemon() );
+                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ).daemon() );
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ) );
                             break;
                     }
                     assert result != null;
@@ -178,20 +191,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).daemon() );
+                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
                             break;
                         case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).daemon() );
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ) );
                             break;
                         case SECONDARY_NAMENODE:
                             result = secondaryNameNode
-                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).daemon() );
+                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
                             break;
                     }
                     logResults( trackerOperation, result, nodeType );
                     break;
                 case DECOMISSION_STATUS:
-                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ).daemon() );
+                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ) );
                     logResults( trackerOperation, result, NodeType.SLAVE_NODE );
                     break;
             }
@@ -319,34 +332,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     @Override
     public void setupCluster()
     {
-        if ( Strings.isNullOrEmpty( config.getClusterName() ) )
-        {
-            trackerOperation.addLogFailed( "Malformed configuration" );
-            return;
-        }
-
-        if ( manager.getCluster( clusterName ) != null )
-        {
-            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
-            return;
-        }
-
         try
         {
-            Environment env = manager.getEnvironmentManager()
-                                     .createEnvironment( config.getClusterName(), config.getTopology(), false );
-            ClusterSetupStrategy setupStrategy = manager.getClusterSetupStrategy( env, config, trackerOperation );
-            setupStrategy.setup();
-
-            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            trackerOperation.addLog( String.format( "Configuring %s environment for %s(%s) cluster",env.getName(),
+                    config.getClusterName(), config.getProductKey() ) );
+            try
+            {
+                new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
+            }
+            catch ( ClusterConfigurationException e )
+            {
+                throw new ClusterSetupException( e.getMessage() );
+            }
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
-            logExceptionWithMessage( String.format( "Failed to setup Hadoop cluster %s", clusterName ), e );
-        }
-        catch ( EnvironmentCreationException e )
-        {
-            logExceptionWithMessage( "Error creating environment with name: " + config.getClusterName(), e );
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
         }
     }
 
@@ -363,7 +366,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );

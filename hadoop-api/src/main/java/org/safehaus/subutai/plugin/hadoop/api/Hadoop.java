@@ -62,10 +62,5 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
 
     public UUID includeNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
 
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment,
-                                                         HadoopClusterConfig hadoopClusterConfig, TrackerOperation po );
-
     public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException;
-
-    public UUID configureEnvironmentCluster( HadoopClusterConfig config );
 }

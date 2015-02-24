@@ -40,7 +40,6 @@ public class ClusterOperationHandlerTest
     ClusterOperationHandler clusterOperationHandler;
     ClusterOperationHandler clusterOperationHandler1;
     ClusterOperationHandler clusterOperationHandler2;
-    ClusterOperationHandler clusterOperationHandler3;
     TrackerOperation trackerOperation;
     UUID uuid;
     ExecutorService executorService;
@@ -58,6 +57,7 @@ public class ClusterOperationHandlerTest
     {
         containerHost = mock(ContainerHost.class);
         containerHost2 = mock(ContainerHost.class);
+        PluginDAO pluginDAO = mock(PluginDAO.class);
         Set<ContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
         mySet.add(containerHost2);
@@ -74,24 +74,25 @@ public class ClusterOperationHandlerTest
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         when(hadoop.getTracker()).thenReturn(tracker);
+        when(hadoop.getPluginDAO()).thenReturn(pluginDAO);
         when(hadoop.getEnvironmentManager()).thenReturn(environmentManager);
         when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
         when(environment.getContainerHostById( uuid )).thenReturn(containerHost);
 
-        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyBoolean() ) )
+        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyString() , anyBoolean() ) )
                 .thenReturn(environment);
         when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
+        when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn(uuid);
 
         when(hadoopClusterConfig.getClusterName()).thenReturn("test");
+        when(hadoopClusterConfig.getEnvironmentId() ).thenReturn( uuid );
 
         clusterOperationHandler = new ClusterOperationHandler(hadoop, hadoopClusterConfig, ClusterOperationType
-                .INSTALL, NodeType.NAMENODE);
+                .INSTALL);
         clusterOperationHandler1 = new ClusterOperationHandler(hadoop, hadoopClusterConfig, ClusterOperationType
-                .UNINSTALL, NodeType.JOBTRACKER);
+                                .UNINSTALL, NodeType.JOBTRACKER);
         clusterOperationHandler2 = new ClusterOperationHandler(hadoop, hadoopClusterConfig, ClusterOperationType
-                .STATUS_ALL, NodeType.SECONDARY_NAMENODE);
-        clusterOperationHandler3 = new ClusterOperationHandler(hadoop, hadoopClusterConfig, ClusterOperationType
-                .DECOMISSION_STATUS, NodeType.MASTER_NODE);
+                .INSTALL, NodeType.NAMENODE);
     }
 
     @Test
@@ -127,15 +128,15 @@ public class ClusterOperationHandlerTest
         when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
 
         // NodeType.NAMENODE
-        clusterOperationHandler.runOperationOnContainers(ClusterOperationType.START_ALL);
-        clusterOperationHandler.runOperationOnContainers(ClusterOperationType.STOP_ALL);
-        clusterOperationHandler.runOperationOnContainers(ClusterOperationType.STATUS_ALL);
-        clusterOperationHandler.runOperationOnContainers(ClusterOperationType.DECOMISSION_STATUS);
+        clusterOperationHandler2.runOperationOnContainers( ClusterOperationType.START_ALL );
+        clusterOperationHandler2.runOperationOnContainers( ClusterOperationType.STOP_ALL );
+        clusterOperationHandler2.runOperationOnContainers( ClusterOperationType.STATUS_ALL );
+        clusterOperationHandler2.runOperationOnContainers( ClusterOperationType.DECOMISSION_STATUS );
 
         // NodeType.JOBTRACKER
-        clusterOperationHandler1.runOperationOnContainers(ClusterOperationType.START_ALL);
-        clusterOperationHandler1.runOperationOnContainers(ClusterOperationType.STOP_ALL);
-        clusterOperationHandler1.runOperationOnContainers(ClusterOperationType.STATUS_ALL);
+        clusterOperationHandler1.runOperationOnContainers( ClusterOperationType.START_ALL );
+        clusterOperationHandler1.runOperationOnContainers( ClusterOperationType.STOP_ALL );
+        clusterOperationHandler1.runOperationOnContainers( ClusterOperationType.STATUS_ALL );
 
 
         // asserts for RunOperationOnContainers method

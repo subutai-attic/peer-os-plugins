@@ -14,7 +14,6 @@ import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.settings.Common;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -29,7 +28,6 @@ import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
-import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -37,7 +35,6 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
-import org.safehaus.subutai.plugin.hadoop.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
 import org.safehaus.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandler;
 import org.slf4j.Logger;
@@ -553,13 +550,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     }
 
 
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment environment,
-                                                         HadoopClusterConfig hadoopClusterConfig, TrackerOperation po )
-    {
-        return new HadoopSetupStrategy( environment, hadoopClusterConfig, po, this );
-    }
-
-
     @Override
     public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException
     {
@@ -571,15 +561,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
         return new Blueprint(
                 String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
                 Sets.newHashSet( nodeGroup ) );
-    }
-
-
-    public UUID configureEnvironmentCluster( final HadoopClusterConfig config )
-    {
-        Preconditions.checkNotNull( config, "Configuration is null" );
-        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
     }
 
 
