@@ -33,10 +33,10 @@ public class SparkAlertListener implements AlertListener
     public static final String SPARK_ALERT_LISTENER = "SPARK_ALERT_LISTENER";
     private SparkImpl spark;
     private CommandUtil commandUtil = new CommandUtil();
-    private static final int MAX_RAM_QUOTA_MB = 2048;
-    private static final int RAM_QUOTA_INCREMENT_MB = 512;
-    private static final int MAX_CPU_QUOTA_PERCENT = 80;
-    private static final int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static double MAX_RAM_QUOTA_MB;
+    private static final int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    private static final int MAX_CPU_QUOTA_PERCENT = 100;
+    private static final int CPU_QUOTA_INCREMENT_PERCENT = 15;
 
 
     public SparkAlertListener( final SparkImpl spark )
@@ -101,8 +101,11 @@ public class SparkAlertListener implements AlertListener
             return;
         }
 
-
         boolean isMasterNode = targetCluster.getMasterNodeId().equals( sourceHost.getId() );
+
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Spark process pid
         int sparkPID;
@@ -123,7 +126,7 @@ public class SparkAlertListener implements AlertListener
         //confirm that Spark is causing the stress, otherwise no-op
         MonitoringSettings thresholds = spark.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.9;
+        double redLine = 0.7;
         boolean isCpuStressedBySpark = false;
         boolean isRamStressedBySpark = false;
 
@@ -153,25 +156,33 @@ public class SparkAlertListener implements AlertListener
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
 
+                if ( ramQuota < MAX_RAM_QUOTA_MB ) {
 
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
-                    //we can increase RAM quota
-                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota ) {
 
-                    quotaIncreased = true;
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.",
+                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                        //we can increase RAM quota
+                        sourceHost.setRamQuota( newRamQuota );
+
+                        quotaIncreased = true;
+                    }
                 }
             }
-            else
-            {
 
+            if ( isCpuStressedBySpark )
+            {
                 //read current CPU quota
                 int cpuQuota = sourceHost.getCpuQuota();
-
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-                {
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT ) {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.",
+                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -184,6 +195,7 @@ public class SparkAlertListener implements AlertListener
             }
 
             // add new node
+            LOG.info( "Adding new node to {} spark cluster", targetCluster.getClusterName() );
             HadoopClusterConfig hadoopClusterConfig =
                     spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
             if ( hadoopClusterConfig == null )
