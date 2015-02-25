@@ -24,6 +24,7 @@ import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.safehaus.subutai.server.ui.component.TerminalWindow;
 
+import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
@@ -205,10 +206,14 @@ public class Manager
                         environment = environmentManager.findEnvironment( sparkInfo.getEnvironmentId() );
                         Set<UUID> nodeIds = new HashSet<>( sparkInfo.getAllNodesIds() );
                         nodeIds.removeAll( config.getNodeIds() );
-                        Set<ContainerHost> availableNodes;
+                        Set<ContainerHost> availableNodes = Sets.newHashSet();
                         try
                         {
-                            availableNodes = environment.getContainerHostsByIds( nodeIds );
+                            if( nodeIds.size() == 0 )
+                            {
+                                throw new ContainerHostNotFoundException( "All nodes in corresponding Spark cluster have Shark installed");
+                            }
+                            availableNodes.addAll( environment.getContainerHostsByIds( nodeIds ) );
                             AddNodeWindow win =
                                     new AddNodeWindow( shark, executorService, tracker, config, availableNodes );
                             contentRoot.getUI().addWindow( win );

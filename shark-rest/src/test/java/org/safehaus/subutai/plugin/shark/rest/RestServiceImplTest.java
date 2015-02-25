@@ -11,14 +11,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
+import org.safehaus.subutai.plugin.spark.api.Spark;
+import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -28,17 +34,36 @@ public class RestServiceImplTest
 {
     private RestServiceImpl restService;
     @Mock
-
     Shark shark;
     @Mock
+    Tracker tracker;
+    @Mock
     SharkClusterConfig sharkClusterConfig;
+    @Mock
+    TrackerOperationView trackerOperationView;
+    @Mock
+    Spark sparkManager;
+    @Mock
+    SparkClusterConfig sparkClusterConfig;
 
 
     @Before
     public void setUp()
     {
 
+        sharkClusterConfig = new SharkClusterConfig();
+        sparkClusterConfig = new SparkClusterConfig();
         restService = new RestServiceImpl( shark );
+        restService.setTracker( tracker );
+        restService.setSparkManager( sparkManager );
+        when( shark.getCluster( anyString() )).thenReturn( sharkClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
+        List<UUID> myList = Lists.newArrayList();
+        myList.add( UUID.randomUUID() );
+        sparkClusterConfig.getAllNodesIds().addAll( myList );
+        when( sparkManager.getCluster( anyString() )).thenReturn( sparkClusterConfig );
+
     }
 
 
@@ -48,25 +73,19 @@ public class RestServiceImplTest
         List<SharkClusterConfig> myList = Lists.newArrayList();
         myList.add( sharkClusterConfig );
         when( shark.getClusters() ).thenReturn( myList );
-        when( sharkClusterConfig.getClusterName() ).thenReturn( "test" );
 
-        restService.listClusters();
+        Response response = restService.listClusters();
+
+        // assertions
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testGetCluster()
     {
-        SharkClusterConfig sharkClusterConfig1 = new SharkClusterConfig();
-        sharkClusterConfig1.setClusterName( "test" );
-        when( shark.getCluster( anyString() ) ).thenReturn( sharkClusterConfig1 );
-        restService.getCluster( "test" );
-
         Response response = restService.getCluster( "test" );
 
-        // assertions
-        assertEquals( "test", sharkClusterConfig1.getClusterName() );
-        assertEquals( sharkClusterConfig1, shark.getCluster( "test" ) );
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
@@ -74,20 +93,16 @@ public class RestServiceImplTest
     @Test
     public void testInstallCluster()
     {
-
-        when( shark.installCluster( any( SharkClusterConfig.class ) ) ).thenReturn( UUID.randomUUID() );
-        Response response = restService.installCluster( JsonUtil.toJson( new SharkClusterConfig() ) );
+        Response response = restService.installCluster( "test", "test" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testUninstallCluster()
     {
-        when( shark.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
-        restService.uninstallCluster( "test" );
         Response response = restService.uninstallCluster( "test" );
 
         // assertions
@@ -98,20 +113,16 @@ public class RestServiceImplTest
     @Test
     public void testAddNode()
     {
-        when( shark.addNode( anyString(), anyString() ) ).thenReturn( UUID.randomUUID() );
-        restService.addNode( "test", "test" );
         Response response = restService.addNode( "test", "test" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testDestroyNode()
     {
-        when( shark.destroyNode( anyString(), anyString() ) ).thenReturn( UUID.randomUUID() );
-        restService.destroyNode( "test", "test" );
         Response response = restService.destroyNode( "test", "test" );
 
         // assertions
@@ -122,8 +133,6 @@ public class RestServiceImplTest
     @Test
     public void testActualizeMasterIP()
     {
-        when( shark.actualizeMasterIP( anyString() ) ).thenReturn( UUID.randomUUID() );
-        restService.actualizeMasterIP( "test" );
         Response response = restService.actualizeMasterIP( "test" );
 
         // assertions

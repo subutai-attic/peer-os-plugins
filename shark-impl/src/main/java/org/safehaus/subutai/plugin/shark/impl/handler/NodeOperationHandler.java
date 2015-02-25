@@ -128,6 +128,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
         trackerOperation.addLog( "Updating db..." );
 
         manager.saveConfig( config );
+        trackerOperation.addLogDone(
+                SharkClusterConfig.PRODUCT_KEY + " is uninstalled from node " + node.getHostname()
+                        + " successfully." );
     }
 
 
@@ -197,6 +200,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
         config.getNodeIds().add( node.getId() );
 
         manager.saveConfig( config );
+        trackerOperation.addLogDone(
+                SharkClusterConfig.PRODUCT_KEY + " is installed on node " + node.getHostname()
+                        + " successfully." );
 
         //subscribe to alerts
         try
