@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
@@ -151,7 +152,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             try
             {
                 CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
-                processResult( node, result );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
@@ -166,6 +167,26 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
         if ( !result.hasSucceeded() )
         {
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( new RequestBuilder( Commands.checkCommand) );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( LuceneConfig.PRODUCT_PACKAGE ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
