@@ -71,24 +71,27 @@ public class NodeOperationHandlerTest
         when(commandResult.getStdOut()).thenReturn("NameNode");
         Set<ContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
-        mySet.add(containerHost2);
+        mySet.add( containerHost2 );
         when(hadoopImpl.getEnvironmentManager()).thenReturn(environmentManager);
         when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
         when(environment.getId()).thenReturn(uuid);
-        when(environment.getContainerHosts()).thenReturn(mySet);
+        when( environment.getContainerHosts() ).thenReturn( mySet );
+        when( hadoopClusterConfig.getNameNode() ).thenReturn( UUID.randomUUID() );
+        when( hadoopClusterConfig.getJobTracker() ).thenReturn( UUID.randomUUID() );
         Iterator<ContainerHost> iterator = mock(Iterator.class);
         when(mySet.iterator()).thenReturn(iterator);
-        when(iterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(iterator.next()).thenReturn(containerHost).thenReturn(containerHost2);
-        when(containerHost.getHostname()).thenReturn("test");
+        when(iterator.hasNext()).thenReturn(true).thenReturn( true ).thenReturn(false);
+        when( iterator.next() ).thenReturn(containerHost).thenReturn(containerHost2);
+        when( containerHost.getHostname() ).thenReturn("test");
         when(containerHost2.getHostname()).thenReturn("test");
         when(hadoopImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(hadoopImpl.getCluster(anyString())).thenReturn(hadoopClusterConfig);
+        when(tracker.createTrackerOperation( anyString(), anyString() )).thenReturn(trackerOperation);
+        when(containerHost.execute( any( RequestBuilder.class ) )).thenReturn(commandResult);
+        when(hadoopImpl.getCluster( anyString() )).thenReturn(hadoopClusterConfig);
         when(hadoopClusterConfig.getNameNode()).thenReturn(UUID.randomUUID());
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(hadoopImpl.getPluginDAO()).thenReturn(pluginDAO);
+        when(environment.getContainerHostById( any( UUID.class ) )).thenReturn(containerHost);
+        when( environment.getContainerHostById( any( UUID.class ) ).getId() ).thenReturn( UUID.randomUUID() );
+        when(hadoopImpl.getPluginDAO()).thenReturn( pluginDAO );
 
         nodeOperationHandler =
                 new NodeOperationHandler(hadoopImpl, "test", "test", NodeOperationType.INSTALL, NodeType.NAMENODE);

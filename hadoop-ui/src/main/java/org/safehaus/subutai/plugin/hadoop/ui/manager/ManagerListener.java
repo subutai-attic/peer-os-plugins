@@ -186,9 +186,6 @@ public class ManagerListener
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            // stop all nodes before removing cluster information
-                            hadoopManager.getHadoop().stopNameNode( hadoopManager.getHadoopCluster() );
-                            hadoopManager.getHadoop().stopJobTracker( hadoopManager.getHadoopCluster() );
                             UUID trackID = hadoopManager.getHadoop().removeCluster(
                                     hadoopManager.getHadoopCluster().getClusterName() );
                             ProgressWindow window =
