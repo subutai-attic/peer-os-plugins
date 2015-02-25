@@ -229,7 +229,7 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    //                                    refreshClustersInfo();
+                                    refreshClustersInfo();
                                     checkAllBtn.click();
                                 }
                             } );

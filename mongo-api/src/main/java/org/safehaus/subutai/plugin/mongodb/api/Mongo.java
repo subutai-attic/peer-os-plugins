@@ -61,6 +61,24 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
     public UUID stopNode( String clusterName, String lxcHostName );
 
     /**
+     * Starts the specified node
+     *
+     * @param clusterName - name of cluster
+     *
+     * @return - UUID of operation to track
+     */
+    public UUID startAllNodes( String clusterName );
+
+    /**
+     * Stops the specified node
+     *
+     * @param clusterName - name of cluster
+     *
+     * @return - UUID of operation to track
+     */
+    public UUID stopAllNodes( String clusterName );
+
+    /**
      * Checks status of the specified node
      *
      * @param clusterName - name of cluster

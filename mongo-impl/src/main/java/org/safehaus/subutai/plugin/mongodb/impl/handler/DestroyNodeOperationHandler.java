@@ -8,10 +8,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.peer.Peer;
-import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
@@ -38,7 +35,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
 
     public DestroyNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ));
         this.lxcHostname = lxcHostname;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Destroying %s in %s", lxcHostname, clusterName ) );
@@ -136,25 +133,13 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                     UUID.fromString( node.getContainerHost().getEnvironmentId() ) );
             manager.unsubscribeFromAlerts( environment );
 
-            if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
-            {
-                ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
-                trackerOperation.addLog( "Purging subutai-mongo from containers." );
-                logResults( trackerOperation,
-                        Arrays.asList( executeCommand( Commands.getStopMongodbService(), containerHost ) ) );
-            }
-            else if ( config.getInstallationType() == InstallationType.STANDALONE )
-            {
-                //destroy lxc
-                trackerOperation.addLog( "Destroying lxc container..." );
+            ContainerHost containerHost = environment.getContainerHostById( node.getContainerHost().getId() );
+            trackerOperation.addLog( "Purging subutai-mongo from containers." );
+            logResults( trackerOperation,
+                    Arrays.asList( executeCommand( Commands.getStopMongodbService(), containerHost ) ) );
 
-                Peer peer = manager.getPeerManager().getPeer( node.getPeerId() );
-
-                peer.destroyContainer( ( ContainerHost ) node );
-                trackerOperation.addLog( "Lxc container destroyed successfully" );
-            }
         }
-        catch ( PeerException | MongoException | MonitorException | ContainerHostNotFoundException e )
+        catch ( MongoException | MonitorException | ContainerHostNotFoundException e )
         {
             trackerOperation.addLogFailed(
                     String.format( "Could not destroy lxc container. Use LXC module to cleanup, skipping..." ) );
