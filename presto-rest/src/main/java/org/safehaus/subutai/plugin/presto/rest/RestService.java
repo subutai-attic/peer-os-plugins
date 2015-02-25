@@ -1,11 +1,6 @@
 package org.safehaus.subutai.plugin.presto.rest;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -17,149 +12,97 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
-import org.safehaus.subutai.plugin.presto.api.Presto;
-import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 
-import com.google.common.collect.Sets;
-
-
-public class RestService
+public interface RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Presto prestoManager;
-    private Hadoop hadoopManager;
-    private EnvironmentManager environmentManager;
-
-
-    public RestService( final Presto prestoManager, final Hadoop hadoopManager,
-                        final EnvironmentManager environmentManager )
-    {
-        this.prestoManager = prestoManager;
-        this.hadoopManager = hadoopManager;
-        this.environmentManager = environmentManager;
-    }
-
-
+    //list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response listClusters()
-    {
-
-        List<PrestoClusterConfig> configList = prestoManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
-
-        for ( PrestoClusterConfig config : configList )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
+    public Response listClusters();
 
 
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        String cluster = JsonUtil.GSON.toJson( prestoManager.getCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //install cluster
     @POST
-    @Path( "clusters" )
+    @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "config" ) String config )
-    {
-        TrimmedPrestoConfig trimmedPrestoConfig = JsonUtil.GSON.fromJson( config, TrimmedPrestoConfig.class );
-
-        //fill cluster config
-        PrestoClusterConfig expandedConfig = new PrestoClusterConfig();
-        expandedConfig.setClusterName( trimmedPrestoConfig.getClusterName() );
-        expandedConfig.setHadoopClusterName( trimmedPrestoConfig.getHadoopClusterName() );
-        expandedConfig.setCoordinatorNode( UUID.fromString( trimmedPrestoConfig.getCoordinatorHost() ) );
-        Set<UUID> workers = Sets.newHashSet();
-        for ( String workerId : trimmedPrestoConfig.getWorkersHost() )
-        {
-            workers.add( UUID.fromString( workerId ) );
-        }
-        expandedConfig.getWorkers().addAll( workers );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.installCluster( expandedConfig ) );
-
-        return Response.status( Response.Status.ACCEPTED ).entity( operationId ).build();
-    }
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @QueryParam( "master" ) String master,
+                                    @QueryParam( "workers" ) String workers );
 
 
+    //destroy cluster
     @DELETE
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/destroy/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.uninstallCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
+    //add node
     @POST
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/worker" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response addWorkerNode( @PathParam( "clusterName" ) String clusterName,
-                                   @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.addWorkerNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
+                                   @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/worker" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyWorkerNode( @PathParam( "clusterName" ) String clusterName,
-                                       @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId =
-                JsonUtil.toJson( OPERATION_ID, prestoManager.destroyWorkerNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                                       @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //start node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/start" )
+    @Path( "clusters/{clusterName}/start/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.startNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                               @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //stop node
     @PUT
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}/stop" )
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
-                              @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.stopNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                              @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+    //check node
     @GET
-    @Path( "clusters/{clusterName}/nodes/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/check/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response checkNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "lxcHostName" ) String lxcHostName )
-    {
-        String operationId = JsonUtil.toJson( OPERATION_ID, prestoManager.checkNode( clusterName, lxcHostName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+                               @PathParam( "lxcHostName" ) String lxcHostName );
+
+    //start cluster
+    @PUT
+    @Path( "clusters/{clusterName}/start" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //stop cluster
+    @PUT
+    @Path( "clusters/{clusterName}/stop" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName );
 }
