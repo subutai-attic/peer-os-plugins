@@ -24,6 +24,7 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.CommandType;
@@ -130,17 +131,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     }
                     break;
                 case DESTROY:
-                    if ( config.getSetupType() == SetupType.OVER_HADOOP
-                            || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
-                    {
-                        containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) );
-                        config.getNodes().remove( containerHost.getId() );
-                        manager.getPluginDAO().saveInfo( config.getProductKey(), config.getClusterName(), config );
-                    }
-                    else
-                    {
-                        destroyNode( containerHost );
-                    }
+                    destroyNode( containerHost );
                     getManager().unsubscribeFromAlerts( environment );
                     break;
             }
@@ -375,39 +366,103 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
 
     public void destroyNode( ContainerHost host )
     {
-        EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        try
+        ZookeeperClusterConfig config = manager.getCluster( clusterName );
+        if( config.getSetupType().equals( SetupType.OVER_ENVIRONMENT ))
         {
+            removeNode( host );
+        }
+        else if( config.getSetupType().equals( SetupType.OVER_HADOOP ))
+        {
+            uninstallNode( host );
+        }
+        else
+        {
+            EnvironmentManager environmentManager = manager.getEnvironmentManager();
+            try
+            {
+                config = manager.getCluster( clusterName );
+                environmentManager.destroyContainer( host, true, true );
+                config.getNodes().remove( host.getId() );
+                manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+                ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
+                try
+                {
+                    configurator
+                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                }
+                catch ( ClusterConfigurationException e )
+                {
+                    e.printStackTrace();
+                }
+                trackerOperation.addLog( String.format( "Cluster information is updated" ) );
+                trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
+            }
+            catch ( EnvironmentModificationException e )
+            {
+                LOGGER.error( String.format( "Error clearing database records for environment with id: %s.",
+                        host.getEnvironmentId() ) );
+                trackerOperation.addLogFailed(
+                        String.format( "Error clearing database records for environment with id: %s.",
+                                host.getEnvironmentId() ) );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
+                LOGGER.error( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ), e );
+                trackerOperation
+                        .addLogFailed( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
+            }
+
+        }
+    }
+
+    private void removeNode( final ContainerHost host)
+    {
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
             ZookeeperClusterConfig config = manager.getCluster( clusterName );
-            environmentManager.destroyContainer( host, true, true );
             config.getNodes().remove( host.getId() );
             manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+            // configure cluster again
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             try
             {
                 configurator
                         .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
             }
-            catch ( ClusterConfigurationException e )
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
                 e.printStackTrace();
             }
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
-        }
-        catch ( EnvironmentModificationException e )
+
+    }
+
+    private void uninstallNode( final ContainerHost host )
+    {
+        CommandResult result = null;
+        try
         {
-            LOGGER.error( String.format( "Error clearing database records for environment with id: %s.",
-                    host.getEnvironmentId() ) );
-            trackerOperation.addLogFailed(
-                    String.format( "Error clearing database records for environment with id: %s.",
-                            host.getEnvironmentId() ) );
+            host.execute( new RequestBuilder( Commands.getStopCommand() ) );
+            result = host.execute( new RequestBuilder( Commands.getUninstallCommand() ) );
+            if ( result.hasSucceeded() )
+            {
+                ZookeeperClusterConfig config = manager.getCluster( clusterName );
+                config.getNodes().remove( host.getId() );
+                manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+                trackerOperation.addLogDone(
+                        ZookeeperClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+                                + " successfully." );
+            }
+            else
+            {
+                trackerOperation.addLogFailed(
+                        "Could not uninstall " + ZookeeperClusterConfig.PRODUCT_KEY + " from node " + host.getHostname() );
+            }
         }
-        catch ( EnvironmentNotFoundException e )
+        catch ( CommandException e )
         {
-            LOGGER.error( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ), e );
-            trackerOperation
-                    .addLogFailed( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
+            e.printStackTrace();
         }
+
     }
 }

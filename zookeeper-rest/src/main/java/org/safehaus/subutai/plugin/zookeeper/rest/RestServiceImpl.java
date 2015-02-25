@@ -9,10 +9,18 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+
+import com.google.common.base.Preconditions;
 
 
 /**
@@ -23,19 +31,12 @@ public class RestServiceImpl implements RestService
 {
 
     private Zookeeper zookeeperManager;
-
+    private Tracker tracker;
     private EnvironmentManager environmentManager;
 
-
-    public EnvironmentManager getEnvironmentManager()
+    public RestServiceImpl( final Zookeeper zookeeperManager )
     {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
+        this.zookeeperManager = zookeeperManager;
     }
 
 
@@ -67,102 +68,273 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response createCluster( String config )
+    public Response configureCluster( final String environmentId, final String clusterName, final String nodes )
     {
-        TrimmedZKConfig trimmedZKConfig = JsonUtil.fromJson( config, TrimmedZKConfig.class );
-        ZookeeperClusterConfig expandedConfig = new ZookeeperClusterConfig();
-
-        expandedConfig.setClusterName( trimmedZKConfig.getClusterName() );
-        expandedConfig.setNumberOfNodes( trimmedZKConfig.getNumberOfNodes() );
-        expandedConfig.setSetupType( trimmedZKConfig.getSetupType() );
-        if ( trimmedZKConfig.getNodes() != null && !trimmedZKConfig.getNodes().isEmpty() )
+        Preconditions.checkNotNull( environmentId );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( nodes );
+        Environment environment = null;
+        try
         {
-            Set<UUID> nodes = new HashSet<>();
-            for ( UUID node : expandedConfig.getNodes() )
-            {
-                nodes.add( node );
-            }
-            expandedConfig.setNodes( nodes );
+            environment = environmentManager.findEnvironment( UUID.fromString( environmentId ) );
         }
-        String operationId = wrapUUID( zookeeperManager.installCluster( expandedConfig ) );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        if( environment == null)
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Could not find environment with id : " + environmentId ).build();
+        }
+        if( zookeeperManager.getCluster( clusterName ) != null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "There is already a cluster with same name!" ).build();
+        }
+        ZookeeperClusterConfig config = new ZookeeperClusterConfig();
+        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setClusterName( clusterName );
+        Set<UUID> allNodes = new HashSet<>();
+        String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
+        for( String node : configNodes )
+        {
+            allNodes.add( UUID.fromString( node ) );
+        }
+        config.getNodes().addAll( allNodes );
+        config.setSetupType( SetupType.OVER_ENVIRONMENT );
+        UUID uuid = zookeeperManager.installCluster( config );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+
+
     }
 
 
-    private String wrapUUID( UUID uuid )
+    @Override
+    public Response installCluster( final String clusterName, final String hadoopClusterName, final String nodes )
     {
-        return JsonUtil.toJson( "OPERATION_ID", uuid );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hadoopClusterName );
+        Preconditions.checkNotNull( nodes );
+        ZookeeperClusterConfig config = new ZookeeperClusterConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        Set<UUID> allNodes = new HashSet<>();
+        String[] configNodes = nodes.replaceAll( "//s+", "" ).split( "," );
+        for( String node : configNodes )
+        {
+            allNodes.add( UUID.fromString( node ) );
+        }
+        config.getNodes().addAll( allNodes );
+        config.setSetupType( SetupType.OVER_HADOOP );
+        UUID uuid = zookeeperManager.installCluster( config );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
+
 
 
     @Override
     public Response destroyCluster( String clusterName )
     {
-        String operationId = wrapUUID( zookeeperManager.uninstallCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.uninstallCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response startNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( zookeeperManager.startNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.startNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response startAllNodes( final String clusterName )
     {
-        String operationId = wrapUUID( zookeeperManager.startAllNodes( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.startAllNodes( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response stopNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( zookeeperManager.stopNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.stopNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response stopAllNodes( final String clusterName )
     {
-        String operationId = wrapUUID( zookeeperManager.stopAllNodes( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.stopAllNodes( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response destroyNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( zookeeperManager.destroyNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.destroyNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response checkNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( zookeeperManager.checkNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.checkNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response addNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( zookeeperManager.addNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.addNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response addNodeStandalone( final String clusterName )
     {
-        String operationId = wrapUUID( zookeeperManager.addNode( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.addNode( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    private Response createResponse( UUID uuid, OperationState state ){
+        TrackerOperationView po = tracker.getTrackerOperation( ZookeeperClusterConfig.PRODUCT_KEY, uuid );
+        if ( state == OperationState.FAILED ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED ){
+            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+        }
+        else {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+        }
+    }
+
+    private OperationState waitUntilOperationFinish( UUID uuid ){
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( ZookeeperClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 200 * 1000 ) )
+            {
+                break;
+            }
+        }
+        return state;
+    }
+
+    public Tracker getTracker(){
+        return tracker;
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 }
