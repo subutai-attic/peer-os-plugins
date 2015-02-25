@@ -14,6 +14,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -24,7 +25,9 @@ import org.slf4j.LoggerFactory;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.server.Sizeable;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
@@ -65,6 +68,7 @@ public class Manager
     protected final static String EXCLUDE_INCLUDE_BUTTON_DEFAULT_CAPTION = "Exclude/Include";
     protected final static String MASTERS_TABLE_CAPTION = "Masters Nodes";
     protected final static String SLAVES_TABLE_CAPTION = "Slaves Nodes";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
 
 
     private final ComboBox clusterList;
@@ -81,14 +85,15 @@ public class Manager
     protected ProgressBar progressBar;
     protected int processCount = 0;
     private Button checkAllButton;
-    private HadoopClusterConfig hadoopCluster;
+    private HadoopClusterConfig hadoopCluster = new HadoopClusterConfig();
     private String decommissionStatus;
     private ManagerListener managerListener;
+    private CheckBox autoScaleBtn;
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
-    public Manager( ExecutorService executorService, Tracker tracker, Hadoop hadoop,
+    public Manager( ExecutorService executorService, Tracker tracker, final Hadoop hadoop,
                     EnvironmentManager environmentManager ) throws NamingException
     {
         super();
@@ -186,6 +191,39 @@ public class Manager
         addNodeButton.addClickListener( managerListener.addNodeButtonListener() );
         controlsContent.addComponent( addNodeButton );
 
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( "default" );
+        controlsContent.addComponent( autoScaleBtn );
+        autoScaleBtn.setValue( hadoopCluster.isAutoScaling() );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( hadoopCluster.getClusterName() == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    hadoopCluster.setAutoScaling( value );
+                    try
+                    {
+                        hadoop.saveConfig( hadoopCluster );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
+
+
         HorizontalLayout configContent = new HorizontalLayout();
         configContent.setSpacing( true );
 
@@ -252,6 +290,7 @@ public class Manager
                 replicationFactor.setValue( hadoopCluster.getReplicationFactor().toString() );
                 domainName.setValue( hadoopCluster.getDomainName() );
                 slaveNodeCount.setValue( hadoopCluster.getAllSlaveNodes().size() + "" );
+                autoScaleBtn.setValue( hadoopCluster.isAutoScaling() );
             }
             catch ( EnvironmentNotFoundException e )
             {

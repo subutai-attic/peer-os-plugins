@@ -320,32 +320,42 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             namenode.execute(
                     new RequestBuilder( Commands.getExcludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
 
-            // stop data node
-            host.execute( new RequestBuilder( Commands.getStopDataNodeCommand() ) );
+            // start datanode if namenode is already running
+            if ( isClusterRunning( namenode ) ){
+                // stop data node
+                host.execute( new RequestBuilder( Commands.getStopDataNodeCommand() ) );
 
-            // start data node
-            host.execute( new RequestBuilder( Commands.getStartDataNodeCommand() ) );
+                // start data node
+                host.execute( new RequestBuilder( Commands.getStartDataNodeCommand() ) );
 
-            // refresh name node
-            namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
-
+                // refresh name node
+                namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
+            }
 
             /** TaskTracker Operations */
             // set task tracker
-            jobtracker.execute( new RequestBuilder( Commands.getSetTaskTrackerCommand( host.getHostname() ) ) );
+            // check if namenode and jobtracker are on different containers
+            if ( ! namenode.getId().equals( jobtracker.getId() ) ){
+                jobtracker.execute( new RequestBuilder( Commands.getSetTaskTrackerCommand( host.getHostname() ) ) );
+            }
 
             // remove task tracker from dfs.exclude
             jobtracker.execute( new RequestBuilder(
                     Commands.getExcludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
 
-            // stop task tracker
-            host.execute( new RequestBuilder( Commands.getStopTaskTrackerCommand() ) );
+            // start tasktracker if namenode is already running
+            if ( isClusterRunning(  namenode ) )
+            {
+                // stop task tracker
+                host.execute( new RequestBuilder( Commands.getStopTaskTrackerCommand() ) );
 
-            // start task tracker
-            host.execute( new RequestBuilder( Commands.getStartTaskTrackerCommand() ) );
+                // start task tracker
+                host.execute( new RequestBuilder( Commands.getStartTaskTrackerCommand() ) );
 
-            // refresh job tracker
-            jobtracker.execute( new RequestBuilder( Commands.getRefreshJobTrackerCommand() ) );
+                // refresh job tracker
+                jobtracker.execute( new RequestBuilder( Commands.getRefreshJobTrackerCommand() ) );
+            }
+
         }
         catch ( CommandException e )
         {
@@ -357,6 +367,23 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
         trackerOperation.addLogDone( "Cluster info saved to DB" );
     }
 
+
+    private boolean isClusterRunning( ContainerHost namenode ){
+        try
+        {
+            CommandResult result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+            if ( result.hasSucceeded() ){
+                if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
+                    return true;
+                }
+            }
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     private void logExceptionWithMessage( String message, Exception e )
     {

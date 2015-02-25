@@ -97,6 +97,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     public void removeCluster()
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
+        // before removing cluster, stop it first.
+        manager.stopNameNode( config );
+        manager.stopJobTracker( config );
         if ( config == null )
         {
             trackerOperation.addLogFailed(
@@ -358,6 +361,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     public void destroyCluster()
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
+        // before removing cluster, stop it first.
+        manager.stopNameNode( config );
+        manager.stopJobTracker( config );
 
         if ( config == null )
         {

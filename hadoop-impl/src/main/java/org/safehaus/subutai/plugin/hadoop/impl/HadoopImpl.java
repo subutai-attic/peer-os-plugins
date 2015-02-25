@@ -26,6 +26,7 @@ import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -47,7 +48,6 @@ import com.google.common.collect.Sets;
 
 public class HadoopImpl implements Hadoop, EnvironmentEventListener
 {
-    public static final int INITIAL_CAPACITY = 2;
     private static final Logger LOG = LoggerFactory.getLogger( HadoopImpl.class.getName() );
     private Tracker tracker;
     private ExecutorService executor;
@@ -561,6 +561,18 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
         return new Blueprint(
                 String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
                 Sets.newHashSet( nodeGroup ) );
+    }
+
+
+    @Override
+    public void saveConfig( final HadoopClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
     }
 
 

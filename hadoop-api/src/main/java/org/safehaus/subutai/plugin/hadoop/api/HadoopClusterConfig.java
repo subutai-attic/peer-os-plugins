@@ -41,6 +41,7 @@ public class HadoopClusterConfig implements ConfigBase
         taskTrackers = new ArrayList<>();
         blockedAgents = new HashSet<>();
         topology = new Topology();
+        autoScaling = false;
     }
 
 

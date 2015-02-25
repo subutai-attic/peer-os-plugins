@@ -2,9 +2,12 @@ package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -14,11 +17,11 @@ import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.network.api.NetworkManagerException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hadoop.impl.Commands;
 import org.safehaus.subutai.plugin.hadoop.impl.HadoopImpl;
@@ -48,24 +51,22 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
     @Override
     public void run()
     {
-        for ( int i = 0; i < nodeCount; i++ )
-        {
-            addNode();
-        }
+        addNode();
     }
 
 
     /**
-     * Steps: 1) Creates a new container from hadoop template 2) Include node
+     * Steps:
+     *   1) Creates a new container from hadoop template
+     *   2) Include node
      */
     public void addNode()
     {
-
         try
         {
             LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
             EnvironmentManager environmentManager = manager.getEnvironmentManager();
-
+            Set<ContainerHost> newlyCreatedContainers = new HashSet<>();
             /**
              * first check if there are containers in environment that is not being used in hadoop cluster,
              * if yes, then do not create new containers.
@@ -75,14 +76,18 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             boolean allContainersNotBeingUsed = false;
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
-                if ( !config.getAllNodes().contains( containerHost.getId() ) )
+                if ( ! config.getAllNodes().contains( containerHost.getId() ) )
                 {
-                    allContainersNotBeingUsed = true;
-                    numberOfContainersNotBeingUsed++;
+                    if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) ){
+                        if ( ! isThisNodeUsedInOtherClusters( containerHost.getId() ) ){
+                            allContainersNotBeingUsed = true;
+                            numberOfContainersNotBeingUsed++;
+                        }
+                    }
                 }
             }
 
-            if ( ( !allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
+            if ( ( ! allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
             {
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
@@ -107,33 +112,36 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                environmentManager.growEnvironment( config.getEnvironmentId(), topology, true );
+                newlyCreatedContainers = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                for ( ContainerHost host : newlyCreatedContainers ){
+                    config.getDataNodes().add( host.getId() );
+                    config.getTaskTrackers().add( host.getId() );
+                    trackerOperation.addLog( host.getHostname() + " is added as slave node." );
+                }
             }
             else
             {
                 trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
-            }
-
-
-            // update cluster configuration on DB
-            int count = 0;
-            Set<ContainerHost> newlyCreatedContainers = new HashSet<>();
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
-            {
-                if ( !config.getAllNodes().contains( containerHost.getId() ) )
+                // update cluster configuration on DB
+                int count = 0;
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                for ( ContainerHost containerHost : environment.getContainerHosts() )
                 {
-                    if ( count <= nodeCount )
+                    if ( !config.getAllNodes().contains( containerHost.getId() ) )
                     {
-                        config.getDataNodes().add( containerHost.getId() );
-                        config.getTaskTrackers().add( containerHost.getId() );
-                        trackerOperation.addLog( containerHost.getHostname() + " is added as slave node." );
-                        count++;
-                        newlyCreatedContainers.add( containerHost );
+                        if ( count <= nodeCount )
+                        {
+                            config.getDataNodes().add( containerHost.getId() );
+                            config.getTaskTrackers().add( containerHost.getId() );
+                            trackerOperation.addLog( containerHost.getHostname() + " is added as slave node." );
+                            count++;
+                            newlyCreatedContainers.add( containerHost );
+                        }
                     }
                 }
             }
-            manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+
+            manager.saveConfig( config );
 
             // configure ssh keys
             Set<ContainerHost> allNodes = new HashSet<>();
@@ -162,11 +170,16 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
         {
             logExceptionWithMessage( "Error executing operations with environment", e );
         }
+        catch ( ClusterException e )
+        {
+            LOGGER.error( "Could not save cluster configuration", e );
+            e.printStackTrace();
+        }
     }
 
 
     /**
-     * Configures new added slave node.
+     * Configures newly added slave node.
      *
      * @param config hadoop configuration
      * @param containerHost node to be configured
@@ -174,7 +187,6 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
      */
     private void configureSlaveNode( HadoopClusterConfig config, ContainerHost containerHost, Environment environment )
     {
-
         try
         {
             // Clear configuration files
@@ -211,5 +223,16 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
     {
         LOGGER.error( message, e );
         trackerOperation.addLogFailed( message );
+    }
+
+
+    private boolean isThisNodeUsedInOtherClusters( UUID uuid ){
+        List<HadoopClusterConfig> configs = manager.getClusters();
+        for ( HadoopClusterConfig config1 : configs ){
+            if ( config1.getAllNodes().contains( uuid ) ){
+                return true;
+            }
+        }
+        return false;
     }
 }
