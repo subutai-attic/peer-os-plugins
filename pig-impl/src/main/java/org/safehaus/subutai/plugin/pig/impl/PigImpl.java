@@ -118,7 +118,7 @@ public class PigImpl implements Pig, EnvironmentEventListener
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        return null;
+        return uninstallCluster( getCluster( clusterName ) );
     }
 
 
