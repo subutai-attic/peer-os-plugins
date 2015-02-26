@@ -114,10 +114,6 @@ public interface MongoClusterConfig extends ConfigBase
 
     void setAutoScaling( boolean autoScaling );
 
-//    InstallationType getInstallationType();
-//
-//    void setInstallationType( InstallationType installationType );
-
     Topology getTopology();
 
     void setTopology( Topology topology );

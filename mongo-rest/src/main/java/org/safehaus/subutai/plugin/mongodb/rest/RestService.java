@@ -29,16 +29,6 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getCluster( @PathParam("clusterName") String clusterName );
 
-//    //configure cluster
-//    @POST
-//    @Path("configure_environment")
-//    @Produces({ MediaType.APPLICATION_JSON })
-//    public Response configureCluster( @FormParam("environmentId") String environmentId, @FormParam( "clusterName" ) String clusterName,
-//                                      @FormParam( "domainName" ) String domainName, @FormParam( "replicaSetName" ) String replicaSetName,
-//                                      @FormParam( "configServersPort" ) int configServersPort, @FormParam( "dataNodePort" ) int dataNodePort,
-//                                      @FormParam( "routerPort" ) int routerPort, @FormParam( "dataNodes" ) String dataNodes,
-//                                      @FormParam( "configNodes" ) String configNodes, @FormParam( "routerNodes" ) String routerNodes );
-
 
     //configure cluster
     @POST

@@ -27,7 +27,6 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 
 import com.google.gson.annotations.Expose;
 
-//import org.safehaus.subutai.common.protocol.Agent;
 
 
 /**

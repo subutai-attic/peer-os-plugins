@@ -17,7 +17,7 @@ public class StartNodeOperationHandler extends AbstractOperationHandler<MongoImp
 
     public StartNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.lxcHostname = lxcHostname;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Starting node %s in %s", lxcHostname, clusterName ) );

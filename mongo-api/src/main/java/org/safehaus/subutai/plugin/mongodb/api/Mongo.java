@@ -104,5 +104,4 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
     public MongoClusterConfig newMongoClusterConfigInstance();
 
 
-    public UUID configureEnvironmentCluster( MongoClusterConfig config );
 }

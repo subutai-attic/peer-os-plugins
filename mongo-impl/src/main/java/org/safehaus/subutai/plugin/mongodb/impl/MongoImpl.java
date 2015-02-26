@@ -64,7 +64,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
     private static final Logger LOG = LoggerFactory.getLogger( MongoImpl.class.getName() );
     private Tracker tracker;
-    //    private ContainerManager containerManager;
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private Commands commands;
@@ -202,14 +201,13 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID installCluster( MongoClusterConfig config )
     {
 
-        //        Preconditions.checkNotNull( config, "Configuration is null" );
-        //
-        //        AbstractOperationHandler operationHandler = new InstallOperationHandler( this, config );
-        //
-        //        executor.execute( operationHandler );
-        //
-        //        return operationHandler.getTrackerId();
-        return null;
+        Preconditions.checkNotNull( config, "Configuration is null" );
+
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentOperationHandler( this, config );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
     }
 
 
@@ -218,19 +216,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         AbstractOperationHandler operationHandler = new UninstallOperationHandler( this, clusterName );
         executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    public UUID configureEnvironmentCluster( MongoClusterConfig config )
-    {
-
-        Preconditions.checkNotNull( config, "Configuration is null" );
-
-        AbstractOperationHandler operationHandler = new ConfigureEnvironmentOperationHandler( this, config );
-
-        executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 

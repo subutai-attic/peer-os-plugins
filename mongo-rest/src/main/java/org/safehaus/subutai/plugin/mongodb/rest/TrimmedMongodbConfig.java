@@ -13,9 +13,6 @@ import org.safehaus.subutai.common.settings.Common;
 import com.google.common.collect.Sets;
 
 
-/**
- * @author dilshat
- */
 public class TrimmedMongodbConfig
 {
 

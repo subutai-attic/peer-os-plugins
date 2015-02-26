@@ -25,9 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * Created by talas on 1/15/15.
- */
+
 public class MongoAlertListener implements AlertListener
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( MongoAlertListener.class );

@@ -6,11 +6,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -23,7 +20,6 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 
 import com.google.common.base.Preconditions;
 
-import sun.security.provider.certpath.OCSPResponse;
 
 
 /**
@@ -114,7 +110,7 @@ public class RestServiceImpl implements RestService
             }
             mongoConfig.getRouterHostIds().addAll( nodes );
         }
-        UUID uuid = mongo.configureEnvironmentCluster( mongoConfig );
+        UUID uuid = mongo.installCluster( mongoConfig );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
 

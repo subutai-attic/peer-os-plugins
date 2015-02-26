@@ -18,9 +18,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 
-/**
- * @author dilshat
- */
+
 public class WelcomeStep extends VerticalLayout
 {
 
@@ -59,7 +57,6 @@ public class WelcomeStep extends VerticalLayout
             {
                 wizard.init();
                 wizard.setInstallOverEnvironment( true );
-                //wizard.getMongoClusterConfig().setInstallationType( InstallationType.OVER_ENVIRONMENT );
                 wizard.next();
             }
         } );

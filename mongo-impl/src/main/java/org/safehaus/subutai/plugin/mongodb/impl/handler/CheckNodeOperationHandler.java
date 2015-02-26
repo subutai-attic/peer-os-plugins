@@ -19,7 +19,7 @@ public class CheckNodeOperationHandler extends AbstractMongoOperationHandler<Mon
 
     public CheckNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.lxcHostname = lxcHostname;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Checking state of %s in %s", lxcHostname, clusterName ) );

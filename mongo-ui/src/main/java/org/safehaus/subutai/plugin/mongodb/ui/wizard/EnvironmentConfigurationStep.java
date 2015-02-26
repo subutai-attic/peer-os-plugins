@@ -40,9 +40,7 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
-/**
- * @author dilshat
- */
+
 public class EnvironmentConfigurationStep extends VerticalLayout
 {
     Logger LOGGER = LoggerFactory.getLogger( EnvironmentConfigurationStep.class );

@@ -22,9 +22,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 
-/**
- * @author dilshat
- */
+
 public class ConfigurationStep extends VerticalLayout
 {
 
