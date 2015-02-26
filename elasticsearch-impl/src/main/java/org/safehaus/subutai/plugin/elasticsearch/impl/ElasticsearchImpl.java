@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -218,6 +217,27 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+
+    @Override
+    public UUID startCluster ( final String clusterName ){
+        ElasticsearchClusterConfiguration config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID stopCluster ( final String clusterName ){
+        ElasticsearchClusterConfiguration config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }

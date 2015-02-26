@@ -49,6 +49,23 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      */
     public UUID removeCluster( String clusterName );
 
+
+    /**
+     * Start all nodes in cluster
+     * @param clusterName cluster name
+     * @return
+     */
+    public UUID startCluster( String clusterName );
+
+
+    /**
+     * Stop all nodes in cluster
+     * @param clusterName cluster name
+     * @return
+     */
+    public UUID stopCluster( String clusterName );
+
+
     /**
      * Saves/Updates cluster config in database
      *

@@ -9,19 +9,19 @@ import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfigu
 public class Commands
 {
 
-    public RequestBuilder getStatusCommand()
+    public static RequestBuilder getStatusCommand()
     {
         return new RequestBuilder( "service elasticsearch status" );
     }
 
 
-    public RequestBuilder getStartCommand()
+    public static RequestBuilder getStartCommand()
     {
         return new RequestBuilder( "service elasticsearch start" );
     }
 
 
-    public RequestBuilder getStopCommand()
+    public static RequestBuilder getStopCommand()
     {
         return new RequestBuilder( "service elasticsearch stop" );
     }

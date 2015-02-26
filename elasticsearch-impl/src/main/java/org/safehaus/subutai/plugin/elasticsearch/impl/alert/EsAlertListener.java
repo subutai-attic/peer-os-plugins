@@ -28,10 +28,10 @@ public class EsAlertListener implements AlertListener
 
     public static final String ES_ALERT_LISTENER = "ES_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static double MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    private static int MAX_CPU_QUOTA_PERCENT = 100;
+    private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
 
     private ElasticsearchImpl elasticsearch;
 
@@ -105,6 +105,9 @@ public class EsAlertListener implements AlertListener
             return;
         }
 
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out process pid
         int processPID = 0;
@@ -124,7 +127,7 @@ public class EsAlertListener implements AlertListener
         //confirm that ES is causing the stress, otherwise no-op
         MonitoringSettings thresholds = elasticsearch.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.9;
+        double redLine = 0.7;
         boolean isCpuStressedByES = false;
         boolean isRamStressedByES = false;
 
@@ -150,30 +153,37 @@ public class EsAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRamStressedByES )
-            {
+            if ( isRamStressedByES ) {
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
 
+                if ( ramQuota < MAX_RAM_QUOTA_MB ) {
 
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
-                    //we can increase RAM quota
-                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota ) {
 
-                    quotaIncreased = true;
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.",
+                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                        //we can increase RAM quota
+                        sourceHost.setRamQuota( newRamQuota );
+
+                        quotaIncreased = true;
+                    }
                 }
             }
-            else if ( isCpuStressedByES )
-            {
 
+            if ( isCpuStressedByES )
+            {
                 //read current CPU quota
                 int cpuQuota = sourceHost.getCpuQuota();
-
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-                {
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT ) {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.",
+                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -185,8 +195,7 @@ public class EsAlertListener implements AlertListener
                 return;
             }
 
-            // add new node
-
+            LOG.info( "Adding new node to {} cluster ...", targetCluster.getClusterName() );
             //filter out all nodes which already belong to ES cluster
             for ( Iterator<ContainerHost> iterator = containers.iterator(); iterator.hasNext(); )
             {

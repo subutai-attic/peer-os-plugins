@@ -29,6 +29,7 @@
     <module>elasticsearch-api</module>
     <module>elasticsearch-impl</module>
     <module>elasticsearch-ui</module>
+    <module>elasticsearch-cli</module>
     <module>elasticsearch-rest</module>
     <module>elasticsearch-kar</module>
   </modules>
