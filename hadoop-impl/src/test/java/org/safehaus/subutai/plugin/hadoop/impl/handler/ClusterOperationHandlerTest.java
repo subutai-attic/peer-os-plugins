@@ -79,8 +79,6 @@ public class ClusterOperationHandlerTest
         when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
         when(environment.getContainerHostById( uuid )).thenReturn(containerHost);
 
-        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyString() , anyBoolean() ) )
-                .thenReturn(environment);
         when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
         when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn(uuid);
 

@@ -2,13 +2,16 @@ package org.safehaus.subutai.plugin.hadoop.rest;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
@@ -51,16 +54,28 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( String clusterName, int numberOfSlaveNodes, int numberOfReplicas )
+    public Response configureCluster( final String config )
     {
-        HadoopClusterConfig hadoopClusterConfig = new HadoopClusterConfig();
-        hadoopClusterConfig.setClusterName( clusterName );
-        hadoopClusterConfig.setCountOfSlaveNodes( numberOfSlaveNodes );
-        hadoopClusterConfig.setReplicationFactor( numberOfReplicas );
+        TrimmedHadoopConfig trimmedHadoopConfig = JsonUtil.fromJson( config, TrimmedHadoopConfig.class );
+        HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
+        hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
+        hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
+        hadoopConfig.setEnvironmentId( UUID.fromString( trimmedHadoopConfig.getEnvironmentId() ) );
+        hadoopConfig.setJobTracker( UUID.fromString( trimmedHadoopConfig.getJobTracker() ) );
+        hadoopConfig.setNameNode( UUID.fromString( trimmedHadoopConfig.getNameNode() ) );
+        hadoopConfig.setSecondaryNameNode( UUID.fromString( trimmedHadoopConfig.getSecNameNode() ) );
 
-        UUID uuid = hadoopManager.installCluster( hadoopClusterConfig );
+        if( !CollectionUtil.isCollectionEmpty( trimmedHadoopConfig.getSlaves() ))
+        {
+            Set<UUID> slaveNodes = new HashSet<>();
+            for( String node : trimmedHadoopConfig.getSlaves() )
+            {
+                slaveNodes.add( UUID.fromString( node ) );
+            }
+            hadoopConfig.getDataNodes().addAll( slaveNodes );
+        }
 
-        waitUntilOperationFinish( uuid );
+        UUID uuid = hadoopManager.installCluster( hadoopConfig );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
