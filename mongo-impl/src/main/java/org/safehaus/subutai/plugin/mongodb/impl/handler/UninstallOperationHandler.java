@@ -15,9 +15,7 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
-import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
@@ -36,7 +34,7 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
 
     public UninstallOperationHandler( MongoImpl manager, String clusterName )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         po = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Destroying cluster %s", clusterName ) );
     }
@@ -65,27 +63,20 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
             Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             manager.unsubscribeFromAlerts( environment );
 
-            if ( config.getInstallationType() == InstallationType.STANDALONE )
+
+            po.addLog( "Stopping mongo containers." );
+            Set<ContainerHost> containerHosts = environment.getContainerHostsByIds( config.getAllNodeIds() );
+            List<CommandResult> commandResults = new ArrayList<>();
+            for ( final ContainerHost containerHost : containerHosts )
             {
-                po.addLog( "Destroying lxc containers" );
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
-                po.addLog( "Lxc containers successfully destroyed" );
+                commandResults.add( commandUtil.execute(
+                        new RequestBuilder( Commands.getStopMongodbService().getCommand() ),
+                        containerHost ) );
             }
-            else if ( config.getInstallationType() == InstallationType.OVER_ENVIRONMENT )
-            {
-                po.addLog( "Purging subutai-hadoop from containers." );
-                Set<ContainerHost> containerHosts = environment.getContainerHostsByIds( config.getAllNodeIds() );
-                List<CommandResult> commandResults = new ArrayList<>();
-                for ( final ContainerHost containerHost : containerHosts )
-                {
-                    commandResults.add( commandUtil.execute(
-                            new RequestBuilder( Commands.getStopMongodbService().getCommand() ),
-                            containerHost ) );
-                }
-                logResults( po, commandResults );
-            }
+            logResults( po, commandResults );
+
         }
-        catch ( ContainerHostNotFoundException | EnvironmentDestructionException | EnvironmentNotFoundException |
+        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException |
                 MonitorException | CommandException ex )
         {
             po.addLogFailed( "Operations failed" );

@@ -8,7 +8,6 @@ import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
@@ -19,9 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.annotations.Expose;
 
 
-/**
- * Created by timur on 11/14/14.
- */
 public abstract class MongoNodeImpl implements MongoNode
 {
     static final Logger LOG = LoggerFactory.getLogger( MongoNodeImpl.class );

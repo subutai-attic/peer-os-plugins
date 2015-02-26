@@ -47,7 +47,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 
     public AddNodeOperationHandler( MongoImpl manager, String clusterName, NodeType nodeType )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.nodeType = nodeType;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Adding %s to %s...", nodeType, clusterName ) );

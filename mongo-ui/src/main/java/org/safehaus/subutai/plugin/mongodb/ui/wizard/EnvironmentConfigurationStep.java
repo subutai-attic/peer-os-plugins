@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.StringUtil;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -39,9 +40,7 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
-/**
- * @author dilshat
- */
+
 public class EnvironmentConfigurationStep extends VerticalLayout
 {
     Logger LOGGER = LoggerFactory.getLogger( EnvironmentConfigurationStep.class );
@@ -329,9 +328,17 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         }
 
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
+        List<Environment> environmentList = new ArrayList<>();
+        for( Environment env : environments )
+        {
+            if( isTemplateExists( env.getContainerHosts() ))
+            {
+                environmentList.add( env );
+            }
+        }
         final BeanContainer<String, Environment> container = new BeanContainer<>( Environment.class );
         container.setBeanIdProperty( "name" );
-        container.addAll( environments );
+        container.addAll( environmentList );
 
         ComboBox envList = new ComboBox( "Select environment" );
         envList.setId( "envList" );
@@ -370,6 +377,26 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
         return envList;
     }
+
+    private boolean isTemplateExists( Set<ContainerHost> containerHosts )
+    {
+        for ( ContainerHost host : containerHosts )
+        {
+            try
+            {
+                if ( host.getTemplate().getProducts().contains( MongoClusterConfig.PACKAGE_NAME ) )
+                {
+                    return true;
+                }
+            }
+            catch ( PeerException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
 
 
     private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,

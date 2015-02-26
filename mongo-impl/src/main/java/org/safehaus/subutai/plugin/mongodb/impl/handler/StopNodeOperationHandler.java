@@ -17,7 +17,7 @@ public class StopNodeOperationHandler extends AbstractOperationHandler<MongoImpl
 
     public StopNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.lxcHostname = lxcHostname;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Stopping node %s in %s", lxcHostname, clusterName ) );

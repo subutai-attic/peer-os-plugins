@@ -17,7 +17,6 @@ import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.plugin.mongodb.api.InstallationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
 import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
@@ -28,7 +27,6 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 
 import com.google.gson.annotations.Expose;
 
-//import org.safehaus.subutai.common.protocol.Agent;
 
 
 /**
@@ -100,8 +98,6 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     @Expose
     private boolean autoScaling;
 
-    @Expose
-    private InstallationType installationType;
 
     private Topology topology;
 
@@ -566,19 +562,6 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
         this.autoScaling = autoScaling;
     }
 
-
-    @Override
-    public InstallationType getInstallationType()
-    {
-        return installationType;
-    }
-
-
-    @Override
-    public void setInstallationType( final InstallationType installationType )
-    {
-        this.installationType = installationType;
-    }
 
 
     @Override

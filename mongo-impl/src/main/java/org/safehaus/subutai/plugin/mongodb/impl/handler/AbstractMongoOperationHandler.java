@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by talas on 1/16/15.
- */
 public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends ConfigBase>
         extends AbstractOperationHandler<T, V>
 {

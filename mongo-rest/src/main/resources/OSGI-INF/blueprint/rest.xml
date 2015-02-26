@@ -10,11 +10,17 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="mongodbManager" availability="mandatory"
+  <reference id="mongo" availability="mandatory"
              interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <bean id="mongodbRestServiceImpl" class="org.safehaus.subutai.plugin.mongodb.rest.RestServiceImpl">
-    <property name="mongodbManager" ref="mongodbManager" />
+    <argument ref="mongo" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
   </bean>
 
   <jaxrs:server address="/mongodb" id="mongodbRestService">

@@ -47,9 +47,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
 
-/**
- * @author dilshat
- */
+
 public class Manager
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
@@ -229,7 +227,7 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    //                                    refreshClustersInfo();
+                                    refreshClustersInfo();
                                     checkAllBtn.click();
                                 }
                             } );

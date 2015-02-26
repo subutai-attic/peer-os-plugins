@@ -23,9 +23,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
 
-/**
- * @author dilshat
- */
+
 public class EnvironmentVerificationStep extends VerticalLayout
 {
 
@@ -85,7 +83,7 @@ public class EnvironmentVerificationStep extends VerticalLayout
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackID = mongo.configureEnvironmentCluster( wizard.getMongoClusterConfig() );
+                UUID trackID = mongo.installCluster( wizard.getMongoClusterConfig() );
                 ProgressWindow window =
                         new ProgressWindow( executorService, tracker, trackID, MongoClusterConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()

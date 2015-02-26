@@ -14,9 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * Created by talas on 1/8/15.
- */
+
 public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
 {
     private final MongoClusterConfig config;
@@ -25,7 +23,7 @@ public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandl
 
     public ConfigureEnvironmentOperationHandler( final MongoImpl manager, final MongoClusterConfig config )
     {
-        super( manager, config.getClusterName() );
+        super( manager, config );
         this.config = config;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Configuring %s cluster...", config.getClusterName() ) );
