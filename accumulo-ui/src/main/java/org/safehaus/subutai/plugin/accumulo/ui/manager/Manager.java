@@ -369,6 +369,13 @@ public class Manager
                     }
                 }
 
+                if ( myHostSet.isEmpty() )
+                {
+                    Notification
+                            .show( "Please revise hadoop and zookeeper clusters for existence for additional nodes." );
+                    return;
+                }
+
                 AddNodeWindow w =
                         new AddNodeWindow( accumulo, executorService, tracker, accumuloClusterConfig, myHostSet,
                                 NodeType.ACCUMULO_TABLET_SERVER );
@@ -443,6 +450,13 @@ public class Manager
                     {
                         LOGGER.error( "Error applying operation on environment/container" );
                     }
+                }
+
+                if ( myHostSet.isEmpty() )
+                {
+                    Notification
+                            .show( "Please revise hadoop and zookeeper clusters for existence for additional nodes." );
+                    return;
                 }
 
                 AddNodeWindow w =
@@ -771,8 +785,8 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
-                                    containerHost.getHostname(),
-                                    table == tracersTable ? NodeType.ACCUMULO_TRACER : NodeType.ACCUMULO_LOGGER );
+                                    containerHost.getHostname(), table == tracersTable ? NodeType.ACCUMULO_TRACER :
+                                                                 NodeType.ACCUMULO_TABLET_SERVER );
 
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -960,6 +974,7 @@ public class Manager
                 clusterCombo.setValue( mongoClusterInfos.iterator().next() );
             }
         }
+        refreshUI();
     }
 
 

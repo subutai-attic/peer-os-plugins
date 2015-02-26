@@ -526,62 +526,94 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
+    /**
+     * Completely uninstalls accumulo package from container host if it is not one of master nodes otherwise triggers
+     * reconfigure operation on top of cluster for new cluster structure
+     *
+     * @param host - target container host
+     * @param nodeType - node type being removed
+     *
+     * @return - result of uninstall command
+     */
     private CommandResult uninstallProductOnNode( ContainerHost host, NodeType nodeType )
     {
         CommandResult result = null;
+        switch ( nodeType )
+        {
+            case ACCUMULO_TRACER:
+                if ( config.getTracers().size() <= 1 )
+                {
+                    trackerOperation.addLogFailed( "Could not uninstall last tracer of cluster." );
+                    return null;
+                }
+                break;
+            case ACCUMULO_TABLET_SERVER:
+                if ( config.getSlaves().size() <= 1 )
+                {
+                    trackerOperation.addLogFailed( "Could not uninstall last tablet server of cluster." );
+                    return null;
+                }
+                break;
+        }
         try
         {
-            result = host.execute( new RequestBuilder(
-                    Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME
-                            .toLowerCase() ) );
-            if ( result.hasSucceeded() )
+            UUID targetHostId = host.getId();
+            if ( !targetHostId.equals( config.getGcNode() ) &&
+                    !targetHostId.equals( config.getMonitor() ) &&
+                    !targetHostId.equals( config.getMasterNode() ) )
             {
-                switch ( nodeType )
+                result = host.execute( new RequestBuilder(
+                        Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME
+                                .toLowerCase() ) );
+                if ( !result.hasSucceeded() )
                 {
-                    case ACCUMULO_TRACER:
-                        config.getTracers().remove( host.getId() );
-                        break;
-                    case ACCUMULO_TABLET_SERVER:
-                        config.getSlaves().remove( host.getId() );
-                        break;
+                    trackerOperation.addLogFailed(
+                            "Could not uninstall " + AccumuloClusterConfig.PRODUCT_KEY + " from node " + hostname );
+                    return result;
                 }
+            }
 
-                // Configure all nodes again
+
+            switch ( nodeType )
+            {
+                case ACCUMULO_TRACER:
+                    config.getTracers().remove( host.getId() );
+                    break;
+                case ACCUMULO_TABLET_SERVER:
+                    config.getSlaves().remove( host.getId() );
+                    break;
+            }
+
+            // Configure all nodes again
+            try
+            {
+                Environment environment;
                 try
                 {
-                    Environment environment;
-                    try
-                    {
-                        environment = manager.getEnvironmentManager().findEnvironment(
-                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
-                    }
-                    catch ( EnvironmentNotFoundException e )
-                    {
-                        String msg = String.format( "Environment with id: %s doesn't exists.",
-                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId().toString() );
-                        trackerOperation.addLogFailed( msg );
-                        LOGGER.error( msg, e );
-                        return null;
-                    }
-                    manager.unsubscribeFromAlerts( environment );
-                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, environment );
+                    environment = manager.getEnvironmentManager().findEnvironment(
+                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
                 }
-                catch ( ClusterConfigurationException | MonitorException e )
+                catch ( EnvironmentNotFoundException e )
                 {
-                    LOGGER.error( "Error configuring nodes after uninstall operation.", e );
+                    String msg = String.format( "Environment with id: %s doesn't exists.",
+                            hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId().toString() );
+                    trackerOperation.addLogFailed( msg );
+                    LOGGER.error( msg, e );
+                    return null;
                 }
-
-
-                manager.getPluginDAO().saveInfo( AccumuloClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLog(
-                        AccumuloClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
-                                + " successfully." );
+                manager.unsubscribeFromAlerts( environment );
+                new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, environment );
             }
-            else
+            catch ( ClusterConfigurationException | MonitorException e )
             {
-                trackerOperation.addLogFailed(
-                        "Could not uninstall " + AccumuloClusterConfig.PRODUCT_KEY + " from node " + hostname );
+                LOGGER.error( "Error configuring nodes after uninstall operation.", e );
             }
+
+
+            manager.getPluginDAO().saveInfo( AccumuloClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+            trackerOperation.addLog(
+                    AccumuloClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+                            + " successfully." );
         }
         catch ( CommandException e )
         {
