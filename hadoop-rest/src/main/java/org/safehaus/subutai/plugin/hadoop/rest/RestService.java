@@ -8,6 +8,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -27,13 +28,13 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getCluster( @PathParam("clusterName") String clusterName );
 
-    //create cluster
+
+    //configure cluster
     @POST
-    @Path("clusters")
+    @Path("configure_environment")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response installCluster( @PathParam("clusterName") String clusterName,
-                                    @PathParam("numberOfSlaveNodes") int numberOfSlaveNodes,
-                                    @PathParam("numberOfReplicas") int numberOfReplicas );
+    public Response configureCluster( @QueryParam( "config" ) String config);
+
 
     //uninstall cluster
     @DELETE

@@ -29,6 +29,10 @@ import static org.mockito.Mockito.when;
 public class RestServiceImplTest
 {
     private RestServiceImpl restService;
+    private String testConfig =
+            "{\"clusterName\": \"test\",\"domainName\": \"intra.lan\",\"replicationFactor\": " +
+                    "\"1\", \"environmentId\": \""+UUID.randomUUID().toString()+"\", \"nameNode\": \""+UUID.randomUUID().toString()+"\",\"jobTracker\": \""+UUID.randomUUID().toString()+"\"," +
+                    "\"secNameNode\": \""+UUID.randomUUID().toString()+"\",\"slaves\": [\""+UUID.randomUUID().toString()+"\",\""+UUID.randomUUID().toString()+"\"]}";
     @Mock
     Hadoop hadoop;
     @Mock
@@ -86,10 +90,10 @@ public class RestServiceImplTest
     }
 
     @Test
-    public void testInstallCluster() throws Exception
+    public void testConfigureCluster() throws Exception
     {
-        when(hadoop.installCluster(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
-        Response response = restService.installCluster("test", 5, 5);
+        //when(hadoop.installCluster(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        Response response = restService.configureCluster( testConfig );
 
         // assertions
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
