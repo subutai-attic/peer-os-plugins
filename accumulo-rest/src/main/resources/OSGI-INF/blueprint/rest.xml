@@ -15,13 +15,13 @@
              interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
   <reference id="hadoop" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
-  <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <bean id="accumuloRestServiceImpl" class="org.safehaus.subutai.plugin.accumulo.rest.RestServiceImpl">
-    <property name="accumuloManager" ref="accumuloManager" />
+    <argument ref="accumuloManager" />
     <property name="hadoop" ref="hadoop" />
-    <property name="environmentManager" ref="environmentManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
 
   <jaxrs:server address="/accumulo" id="accumuloRestService">

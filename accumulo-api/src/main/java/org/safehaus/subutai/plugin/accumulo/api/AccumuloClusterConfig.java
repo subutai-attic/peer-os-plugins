@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
 
@@ -18,6 +19,7 @@ public class AccumuloClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Accumulo";
     public static final String PRODUCT_NAME = "accumulo";
+    public static final String PRODUCT_PACKAGE = ( Common.PACKAGE_PREFIX + PRODUCT_KEY ).toLowerCase();
     private String clusterName = "";
     private String instanceName = "";
     private String password = "";

@@ -53,6 +53,11 @@ public class Commands
                 .withTimeout( 30 );
     }
 
+    public static RequestBuilder getPackageQueryCommand( String packageName )
+    {
+        return new RequestBuilder( String.format( "dpkg -s %s" , packageName) ).withTimeout( 30 );
+    }
+
 
     public static String getClearTracerCommand( String hostname )
     {

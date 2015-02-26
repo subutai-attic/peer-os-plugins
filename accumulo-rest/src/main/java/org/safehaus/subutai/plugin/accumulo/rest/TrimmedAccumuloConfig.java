@@ -24,6 +24,7 @@ public class TrimmedAccumuloConfig
     private Set<String> tracers;
     private Set<String> slaves;
     private String hadoopClusterName = "";
+    private String zkClusterName = "";
 
 
     public String getClusterName()
@@ -77,5 +78,71 @@ public class TrimmedAccumuloConfig
     public String getHadoopClusterName()
     {
         return hadoopClusterName;
+    }
+
+
+    public void setClusterName( final String clusterName )
+    {
+        this.clusterName = clusterName;
+    }
+
+
+    public void setInstanceName( final String instanceName )
+    {
+        this.instanceName = instanceName;
+    }
+
+
+    public void setPassword( final String password )
+    {
+        this.password = password;
+    }
+
+
+    public void setMasterNode( final String masterNode )
+    {
+        this.masterNode = masterNode;
+    }
+
+
+    public void setGcNode( final String gcNode )
+    {
+        this.gcNode = gcNode;
+    }
+
+
+    public void setMonitor( final String monitor )
+    {
+        this.monitor = monitor;
+    }
+
+
+    public void setTracers( final Set<String> tracers )
+    {
+        this.tracers = tracers;
+    }
+
+
+    public void setSlaves( final Set<String> slaves )
+    {
+        this.slaves = slaves;
+    }
+
+
+    public void setHadoopClusterName( final String hadoopClusterName )
+    {
+        this.hadoopClusterName = hadoopClusterName;
+    }
+
+
+    public String getZkClusterName()
+    {
+        return zkClusterName;
+    }
+
+
+    public void setZkClusterName( final String zkClusterName )
+    {
+        this.zkClusterName = zkClusterName;
     }
 }
