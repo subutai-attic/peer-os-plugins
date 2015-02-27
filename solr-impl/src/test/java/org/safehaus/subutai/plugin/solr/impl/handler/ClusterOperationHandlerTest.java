@@ -71,8 +71,6 @@ public class ClusterOperationHandlerTest
         // mock setupCluster
         when( solrImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyString(), anyBoolean() ) )
-                .thenReturn( environment );
         when( solrImpl.getClusterSetupStrategy( environment, solrClusterConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
     }
