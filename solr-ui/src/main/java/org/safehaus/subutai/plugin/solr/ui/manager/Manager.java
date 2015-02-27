@@ -6,7 +6,6 @@
 package org.safehaus.subutai.plugin.solr.ui.manager;
 
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -35,11 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.BeanContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -109,6 +106,20 @@ public class Manager
         controlsContent.addComponent( clusterNameLabel );
 
         clusterCombo = new ComboBox();
+        clusterCombo.setId( "SlrClusterCombo" );
+        clusterCombo.setImmediate( true );
+        clusterCombo.setTextInputAllowed( false );
+        clusterCombo.setWidth( 150, Sizeable.Unit.PIXELS );
+        clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                solrClusterConfig = ( SolrClusterConfig ) event.getProperty().getValue();
+                refreshUI();
+            }
+        } );
+
         controlsContent.addComponent( clusterCombo );
 
 
@@ -162,7 +173,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = solr.uninstallCluster( solrClusterConfig );
+                            UUID trackID = solr.uninstallCluster( solrClusterConfig.getClusterName() );
                             final ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     SolrClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -405,34 +416,37 @@ public class Manager
 
     public void refreshClustersInfo()
     {
-        List<SolrClusterConfig> environments = new ArrayList<>( solr.getClusters() );
+        List<SolrClusterConfig> clusters = solr.getClusters();
+        SolrClusterConfig clusterInfo = ( SolrClusterConfig ) clusterCombo.getValue();
+        clusterCombo.removeAllItems();
 
-        final BeanContainer<String, SolrClusterConfig> container = new BeanContainer<>( SolrClusterConfig.class );
-        container.setBeanIdProperty( "clusterName" );
-        container.addAll( environments );
-
-        clusterCombo.setId( "SlrClusterCombo" );
-        clusterCombo.setItemCaptionPropertyId( "clusterName" );
-        clusterCombo.setItemCaptionMode( AbstractSelect.ItemCaptionMode.PROPERTY );
-        clusterCombo.setImmediate( true );
-        clusterCombo.setNullSelectionAllowed( false );
-        clusterCombo.setTextInputAllowed( false );
-        clusterCombo.setNullSelectionAllowed( false );
-        clusterCombo.setWidth( 150, Sizeable.Unit.PIXELS );
-        clusterCombo.setContainerDataSource( container );
-        clusterCombo.addValueChangeListener( new Property.ValueChangeListener()
+        if ( clusters == null || clusters.isEmpty() )
         {
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
+            PROGRESS_ICON.setVisible( false );
+            return;
+        }
+
+        for ( SolrClusterConfig solrConfig : clusters )
+        {
+            clusterCombo.addItem( solrConfig );
+            clusterCombo.setItemCaption( solrConfig , solrConfig.getClusterName());
+        }
+
+        if ( clusterInfo != null)
+        {
+            for ( SolrClusterConfig config : clusters )
             {
-                if ( event.getProperty().getValue() == null )
+                if ( config.getClusterName().equals( clusterInfo.getClusterName() ) )
                 {
-                    clusterCombo.setValue( solrClusterConfig.getClusterName() );
+                    clusterCombo.setValue( config );
+                    return;
                 }
-                solrClusterConfig = container.getItem( clusterCombo.getValue().toString() ).getBean();
-                refreshUI();
             }
-        } );
+        }
+        else
+        {
+            clusterCombo.setValue( clusters.iterator().next() );
+        }
     }
 
 

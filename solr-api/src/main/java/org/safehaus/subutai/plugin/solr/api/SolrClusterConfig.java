@@ -64,7 +64,7 @@ public class SolrClusterConfig implements ConfigBase
 
     public int getNumberOfNodes()
     {
-        return numberOfNodes;
+        return nodes.size();
     }
 
 

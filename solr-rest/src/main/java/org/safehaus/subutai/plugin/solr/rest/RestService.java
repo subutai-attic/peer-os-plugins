@@ -18,53 +18,48 @@ public interface RestService
 
     //list clusters
     @GET
-    @Path("clusters")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Path( "clusters" )
+    @Produces( { MediaType.APPLICATION_JSON } )
     public Response listClusters();
 
-    //view cluster info
-    @GET
-    @Path("clusters/{clustername}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response getCluster( @PathParam("clustername") String clustername );
-
-    //create cluster
+    //install cluster
     @POST
-    @Path("clusters")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response createCluster( @QueryParam("config") String config );
+    @Path( "clusters/install" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response createCluster( @QueryParam( "clusterName" ) String clusterName,
+                                   @QueryParam( "environmentId" ) String environmentId,
+                                   @QueryParam( "nodes" ) String nodes );
 
     //destroy cluster
     @DELETE
-    @Path("clusters/{clusterName}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response destroyCluster( @PathParam("clusterName") String clusterName );
+    @Path( "clusters/destroy/{clusterName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response destroyCluster( @PathParam( "clusterName" ) String clusterName );
 
-    //start node
-    @PUT
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/start")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response startNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
-
-    //stop node
-    @PUT
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}/stop")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response stopNode( @PathParam("clusterName") String clusterName,
-                              @PathParam("lxcHostname") String lxcHostname );
-
-    //destroy node
-    @DELETE
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response destroyNode( @PathParam("clusterName") String clusterName,
-                                 @PathParam("lxcHostname") String lxcHostname );
+    //view cluster info
+    @GET
+    @Path( "clusters/{clustername}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getCluster( @PathParam( "clustername" ) String clustername );
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/nodes/{lxcHostname}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response checkNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+    @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String lxcHostname );
+
+    //start node
+    @PUT
+    @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String lxcHostname );
+
+    //stop node
+    @PUT
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopNode( @PathParam( "clusterName" ) String clusterName,
+                              @PathParam( "lxcHostname" ) String lxcHostname );
 }
