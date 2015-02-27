@@ -144,7 +144,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     @Override
     public UUID uninstallCluster( final SolrClusterConfig config )
     {
-        return null;
+        return uninstallCluster( getCluster( config.getClusterName() ) );
     }
 
 
