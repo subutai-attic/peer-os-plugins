@@ -1,7 +1,9 @@
 package org.safehaus.subutai.plugin.solr.impl.handler;
 
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,19 +76,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( environment, config, trackerOperation );
             clusterSetupStrategy.setup();
-            //            Environment env = manager.getEnvironmentManager()
-            //                                     .createEnvironment( config.getClusterName(), config
-            // .getEnvironmentTopology(),
-            //                                             "sshKey", false );
-            //            //                                     .buildEnvironment( manager
-            // .getDefaultEnvironmentBlueprint( config
-            //            // ) );
-            //
-            //            ClusterSetupStrategy clusterSetupStrategy =
-            //                    manager.getClusterSetupStrategy( env, config, trackerOperation );
-            //            clusterSetupStrategy.setup();
-            //
-            //            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
         }
         catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
@@ -119,8 +108,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
             trackerOperation.addLogFailed( "Error getting environment" );
             return;
         }
-        Set<ContainerHost> hostSet = environment.getContainerHosts();
-        for ( final ContainerHost containerHost : hostSet )
+
+        Set<ContainerHost> clusterHosts = new HashSet<>();
+        Set<UUID> solrNodes = new HashSet<>( config.getNodes() );
+        for ( ContainerHost host : environment.getContainerHosts() )
+        {
+            if ( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ) && solrNodes
+                    .contains( host.getId() ) )
+            {
+                clusterHosts.add( host );
+            }
+        }
+
+
+        for ( final ContainerHost containerHost : clusterHosts )
         {
             try
             {
@@ -146,7 +147,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         Preconditions.checkNotNull( config, "Configuration is null !!!" );
         switch ( operationType )
         {
-            case INSTALL_OVER_ENV:
+            case INSTALL:
                 setupCluster();
                 break;
             case UNINSTALL:

@@ -131,22 +131,20 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        return null;
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        SolrClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
     }
 
 
     @Override
     public UUID uninstallCluster( final SolrClusterConfig config )
     {
-        Preconditions
-                .checkArgument( !Strings.isNullOrEmpty( config.getClusterName() ), "Cluster name is null or empty" );
-
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );
-
-        executor.execute( operationHandler );
-
-        return operationHandler.getTrackerId();
+        return null;
     }
 
 

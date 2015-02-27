@@ -1,7 +1,9 @@
 package org.safehaus.subutai.plugin.solr.impl;
 
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
@@ -80,20 +82,20 @@ public class SolrSetupStrategy implements ClusterSetupStrategy
                     environment.getContainerHosts().size(), config.getNumberOfNodes() ) );
         }
 
-        //        Set<UUID> solrNodes = new HashSet<>(config.getNodes());
-        //        for ( ContainerHost host : environment.getContainerHosts() )
-        //        {
-        //            if( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ))
-        //            {
-        //                solrNodes.add( host.getId() );
-        //            }
-        //
-        //        }
-        //
-        //        config.setNodes( solrNodes );
+        Set<ContainerHost> clusterHosts = new HashSet<>();
+        Set<UUID> solrNodes = new HashSet<>( config.getNodes() );
+        for ( ContainerHost host : environment.getContainerHosts() )
+        {
+            if ( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ) && solrNodes
+                    .contains( host.getId() ) )
+            {
+                clusterHosts.add( host );
+            }
+        }
+
         po.addLog( "Starting solr service on nodes" );
 
-        Set<ContainerHost> clusterHosts = environment.getContainerHosts();
+
         for ( final ContainerHost clusterHost : clusterHosts )
         {
             try
