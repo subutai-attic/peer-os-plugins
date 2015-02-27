@@ -1,10 +1,6 @@
 package org.safehaus.subutai.plugin.sqoop.rest;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -15,90 +11,46 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
-import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
-import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
-import org.safehaus.subutai.plugin.sqoop.api.setting.ExportSetting;
-import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
-import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
-import com.google.common.base.Strings;
-
-
-public class RestService
+/**
+ * Created by ermek on 2/27/15.
+ */
+public interface RestService
 {
-
-    private static final String OPERATION_ID = "OPERATION_ID";
-
-    private Sqoop sqoopManager;
-
-
-    public void setSqoopManager( Sqoop sqoopManager )
-    {
-        this.sqoopManager = sqoopManager;
-    }
-
-
+    // list clusters
     @GET
     @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getClusters()
-    {
+    public Response getClusters();
 
-        List<SqoopConfig> configs = sqoopManager.getClusters();
-        ArrayList<String> clusterNames = new ArrayList();
+    // install cluster
+    @POST
+    @Path( "clusters/install" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
+                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @QueryParam( "nodes" ) String nodes);
 
-        for ( SqoopConfig config : configs )
-        {
-            clusterNames.add( config.getClusterName() );
-        }
+    // remove cluster
+    @DELETE
+    @Path( "clusters/destroy/{clusterName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
-        String clusters = JsonUtil.GSON.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
-    }
-
-
+    // view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response getCluster( @PathParam( "clusterName" ) String clusterName )
-    {
-        SqoopConfig config = sqoopManager.getCluster( clusterName );
+    public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
-    }
-
-
-    @POST
-    @Path( "clusters" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "config" ) String config )
-    {
-
-        SqoopConfig sqoopConfig = JsonUtil.fromJson( config, SqoopConfig.class );
-
-        UUID uuid = sqoopManager.installCluster( sqoopConfig );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
+    // destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/nodes/{hostname}" )
+    @Path( "clusters/{clusterName}/destroy/node/{hostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "hostname" ) String hostname )
-    {
-        UUID uuid = sqoopManager.destroyNode( clusterName, hostname );
+                                 @PathParam( "hostname" ) String hostname );
 
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
-
-
+    // import data
     @POST
     @Path( "importData" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -106,51 +58,11 @@ public class RestService
                                 @QueryParam( "importAllTables" ) String importAllTables,
                                 @QueryParam( "datasourceDatabase" ) String datasourceDatabase,
                                 @QueryParam( "datasourceTableName" ) String datasourceTableName,
-                                @QueryParam( "datasourceColumnFamily" ) String datasourceColumnFamily )
-    {
-        ImportSetting settings = new ImportSetting();
+                                @QueryParam( "datasourceColumnFamily" ) String datasourceColumnFamily );
 
-        DataSourceType type = DataSourceType.valueOf( dataSourceType );
-        settings.setType( type );
-
-        if ( !Strings.isNullOrEmpty( importAllTables ) )
-        {
-            settings.addParameter( ImportParameter.IMPORT_ALL_TABLES, importAllTables );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceDatabase ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_DATABASE, datasourceDatabase );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceTableName ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_TABLE_NAME, datasourceTableName );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceColumnFamily ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_COLUMN_FAMILY, datasourceColumnFamily );
-        }
-
-        UUID uuid = sqoopManager.importData( settings );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
-    }
-
-
+    // export data
     @GET
     @Path( "exportData" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response exportData( @QueryParam( "hdfsPath" ) String hdfsPath )
-    {
-        ExportSetting setting = new ExportSetting();
-        setting.setHdfsPath( hdfsPath );
-
-        UUID uuid = sqoopManager.exportData( setting );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
-    }
+    public Response exportData( @QueryParam( "hdfsPath" ) String hdfsPath );
 }

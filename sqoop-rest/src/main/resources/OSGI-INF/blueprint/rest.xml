@@ -12,14 +12,18 @@
   </cxf:bus>
 
   <reference id="sqoopManager" availability="mandatory" interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.sqoop.rest.RestService">
+  <bean id="RestServiceImpl" class="org.safehaus.subutai.plugin.sqoop.rest.RestServiceImpl">
     <property name="sqoopManager" ref="sqoopManager" />
+    <property name="tracker" ref="tracker" />
+
   </bean>
 
   <jaxrs:server address="/sqoop" id="sqoopRestService">
     <jaxrs:serviceBeans>
-      <ref component-id="restService" />
+      <ref component-id="RestServiceImpl" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
 
