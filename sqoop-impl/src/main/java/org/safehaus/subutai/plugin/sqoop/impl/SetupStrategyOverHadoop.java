@@ -134,6 +134,8 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         }
 
         to.addLog( "Saving to db..." );
+        config.setEnvironmentId( environment.getId() );
+
         boolean saved = manager.getPluginDao().saveInfo( SqoopConfig.PRODUCT_KEY, config.getClusterName(), config );
         if ( saved )
         {
