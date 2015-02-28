@@ -30,8 +30,8 @@ public class Wizard
     private ZookeeperClusterConfig zookeeperClusterConfig = new ZookeeperClusterConfig();
 
 
-
-    public Wizard( ExecutorService executorService, Storm storm, Zookeeper zookeeper,  Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Storm storm, Zookeeper zookeeper, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -61,7 +61,7 @@ public class Wizard
             }
             case 2:
             {
-                component = new NodeSelectionStep( zookeeper, this, environmentManager );
+                component = new ConfigurationStep( zookeeper, this, environmentManager );
                 break;
             }
             case 3:
@@ -102,11 +102,10 @@ public class Wizard
     }
 
 
-    protected void init( boolean externalZookeeper )
+    protected void init()
     {
         step = 1;
         config = new StormClusterConfiguration();
-        config.setExternalZookeeper( externalZookeeper );
         putForm();
     }
 
@@ -126,5 +125,22 @@ public class Wizard
     public void setZookeeperClusterConfig( final ZookeeperClusterConfig zookeeperClusterConfig )
     {
         this.zookeeperClusterConfig = zookeeperClusterConfig;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void clearConfig()
+    {
+        config = new StormClusterConfiguration();
+    }
+
+    public Storm getStormManager()
+    {
+        return storm;
     }
 }
