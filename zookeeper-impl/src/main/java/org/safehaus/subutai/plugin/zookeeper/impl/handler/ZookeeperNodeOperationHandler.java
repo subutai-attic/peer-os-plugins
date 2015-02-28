@@ -239,8 +239,9 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 //if envHost is not in zoo cluster add it else create new one.
                 if ( envContainerHosts.isEmpty() )
                 {
-                    NodeGroup nodeGroup = new NodeGroup( "Zookeeper NodeGroup", ZookeeperClusterConfig.TEMPLATE_NAME,
-                            Common.DEFAULT_DOMAIN_NAME, 1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                    NodeGroup nodeGroup = new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME,
+                            1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+
                     Topology topology = new Topology();
                     topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
                     johnnyRawSet.addAll( environment.growEnvironment( topology, false ) );

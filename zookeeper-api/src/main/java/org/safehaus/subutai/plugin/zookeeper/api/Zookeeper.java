@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -144,5 +145,15 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID configureEnvironmentCluster( ZookeeperClusterConfig config );
+
+
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( ZookeeperClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final ZookeeperClusterConfig config ) throws ClusterException;
 }
 

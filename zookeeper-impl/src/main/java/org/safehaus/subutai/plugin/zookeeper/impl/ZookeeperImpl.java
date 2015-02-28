@@ -23,6 +23,7 @@ import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -68,7 +69,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     {
         this.monitor = monitor;
         this.zookeeperAlertListener = new ZookeeperAlertListener( this );
-        this.monitor.addAlertListener( zookeeperAlertListener );
+        monitor.addAlertListener( zookeeperAlertListener );
     }
 
 
@@ -228,6 +229,32 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         executor.execute( operationHandler );
 
         return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public void saveConfig( final ZookeeperClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+
+    }
+
+
+    @Override
+    public void deleteConfig( final ZookeeperClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.deleteInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+
     }
 
 
