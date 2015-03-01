@@ -1,22 +1,21 @@
 package org.safehaus.subutai.plugin.common;
 
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.safehaus.subutai.plugin.common.impl.EmfUtil;
-import org.safehaus.subutai.plugin.common.impl.PluginDataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import org.safehaus.subutai.core.identity.api.IdentityManager;
+import org.safehaus.subutai.plugin.common.impl.EmfUtil;
+import org.safehaus.subutai.plugin.common.impl.PluginDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -30,11 +29,13 @@ public class PluginDAO
     private EmfUtil emfUtil = new EmfUtil();
 
     private PluginDataService dataService;
+    private IdentityManager identityManager;
+
 
 
     public PluginDAO( DataSource dataSource ) throws SQLException
     {
-        this.dataService = new PluginDataService( emfUtil.getEmf() );
+        this.dataService = new PluginDataService( emfUtil.getEmf(), identityManager );
     }
 
 
@@ -46,7 +47,7 @@ public class PluginDAO
     public PluginDAO( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
     {
         Preconditions.checkNotNull( dataSource, "GsonBuilder is null" );
-        this.dataService = new PluginDataService( emfUtil.getEmf(), gsonBuilder );
+        this.dataService = new PluginDataService( emfUtil.getEmf(), identityManager , gsonBuilder );
     }
 
 
@@ -222,5 +223,15 @@ public class PluginDAO
             LOG.error( e.getMessage(), e );
         }
         return false;
+    }
+
+
+    public IdentityManager getIdentityManager() {
+        return identityManager;
+    }
+
+
+    public void setIdentityManager( IdentityManager identityManager ) {
+        this.identityManager = identityManager;
     }
 }

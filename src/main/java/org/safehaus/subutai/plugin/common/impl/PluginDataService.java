@@ -27,9 +27,10 @@ public class PluginDataService
     private User user;
     private IdentityManager identityManager;
 
-    public PluginDataService( final EntityManagerFactory emf ) throws SQLException
+    public PluginDataService( final EntityManagerFactory emf, IdentityManager identityManager ) throws SQLException
     {
         this.emf = emf;
+        this.identityManager = identityManager;
         try
         {
             this.emf.createEntityManager().close();
@@ -42,12 +43,14 @@ public class PluginDataService
     }
 
 
-    public PluginDataService( final EntityManagerFactory emf, final GsonBuilder gsonBuilder )
+    public PluginDataService( final EntityManagerFactory emf, IdentityManager identityManager , final GsonBuilder gsonBuilder )
     {
         Preconditions.checkNotNull( emf, "EntityManagerFactory cannot be null." );
+        Preconditions.checkNotNull( identityManager, "IdentityManager cannot be null." );
         Preconditions.checkNotNull( gsonBuilder, "GsonBuilder cannot be null." );
 
         this.emf = emf;
+        this.identityManager = identityManager;
         setUser( identityManager.getUser() );
         gson = gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create();
     }
@@ -301,5 +304,10 @@ public class PluginDataService
 
     private void setUser( User user ) {
         this.user = user;
+    }
+
+
+    public void setIdentityManager( IdentityManager identityManager ) {
+        this.identityManager = identityManager;
     }
 }
