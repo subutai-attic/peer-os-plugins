@@ -1,22 +1,22 @@
 package org.safehaus.subutai.plugin.common.impl;
 
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.safehaus.subutai.core.identity.api.IdentityManager;
+import org.safehaus.subutai.core.identity.api.User;
+import org.safehaus.subutai.plugin.common.model.ClusterDataEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
-import org.safehaus.subutai.plugin.common.model.ClusterDataEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class PluginDataService
@@ -24,7 +24,8 @@ public class PluginDataService
     private EntityManagerFactory emf;
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Logger LOGGER = LoggerFactory.getLogger( PluginDataService.class );
-
+    private User user;
+    private IdentityManager identityManager;
 
     public PluginDataService( final EntityManagerFactory emf ) throws SQLException
     {
@@ -37,6 +38,7 @@ public class PluginDataService
         {
             throw new SQLException( e );
         }
+        setUser( identityManager.getUser() );
     }
 
 
@@ -46,6 +48,7 @@ public class PluginDataService
         Preconditions.checkNotNull( gsonBuilder, "GsonBuilder cannot be null." );
 
         this.emf = emf;
+        setUser( identityManager.getUser() );
         gson = gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create();
     }
 
@@ -59,7 +62,7 @@ public class PluginDataService
             source = source.toUpperCase();
             key = key.toUpperCase();
             em.getTransaction().begin();
-            ClusterDataEntity entity = new ClusterDataEntity( source, key, infoJson );
+            ClusterDataEntity entity = new ClusterDataEntity( source, key, infoJson, user.getId() );
             em.merge( entity );
             em.flush();
             em.getTransaction().commit();
@@ -87,7 +90,7 @@ public class PluginDataService
             source = source.toUpperCase();
             key = key.toUpperCase();
             em.getTransaction().begin();
-            ClusterDataEntity entity = new ClusterDataEntity( source, key, info );
+            ClusterDataEntity entity = new ClusterDataEntity( source, key, info, user.getId() );
             em.merge( entity );
             em.flush();
             em.getTransaction().commit();
@@ -117,8 +120,11 @@ public class PluginDataService
             em.getTransaction().begin();
 
             List<String> infoList =
-                    em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source", String.class )
-                      .setParameter( "source", source ).getResultList();
+                    em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source " +
+                            "and cd.userId = :userId", String.class )
+                            .setParameter( "source", source )
+                            .setParameter( "userId", user.getId() )
+                            .getResultList();
             for ( final String info : infoList )
             {
                 result.add( gson.fromJson( info, clazz ) );
@@ -152,10 +158,12 @@ public class PluginDataService
             key = key.toUpperCase();
             em.getTransaction().begin();
             TypedQuery<String> query = em.createQuery(
-                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id",
+                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id " +
+                            "and cd.userId = :userId",
                     String.class );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
+            query.setParameter( "userId", user.getId() );
 
             List<String> infoList = query.getResultList();
             if ( infoList.size() > 0 )
@@ -190,8 +198,11 @@ public class PluginDataService
             em.getTransaction().begin();
 
             result =
-                    em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source", String.class )
-                      .setParameter( "source", source ).getResultList();
+                    em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source " +
+                            "and cd.userId = :userId", String.class )
+                            .setParameter( "source", source )
+                            .setParameter( "userId", user.getId() )
+                            .getResultList();
 
             em.getTransaction().commit();
         }
@@ -221,10 +232,12 @@ public class PluginDataService
             key = key.toUpperCase();
             em.getTransaction().begin();
             TypedQuery<String> query = em.createQuery(
-                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id",
+                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id " +
+                            "and cd.userId = :userId",
                     String.class );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
+            query.setParameter( "userId", user.getId() );
 
             List<String> infoList = query.getResultList();
             if ( infoList.size() > 0 )
@@ -258,9 +271,11 @@ public class PluginDataService
             key = key.toUpperCase();
             em.getTransaction().begin();
             Query query =
-                    em.createQuery( "DELETE FROM ClusterDataEntity cd WHERE cd.source = :source and cd.id = :id" );
+                    em.createQuery( "DELETE FROM ClusterDataEntity cd WHERE cd.source = :source and cd.id = :id " +
+                            "and cd.userId = :userId" );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
+            query.setParameter( "userId", user.getId() );
             query.executeUpdate();
             em.getTransaction().commit();
         }
@@ -276,5 +291,15 @@ public class PluginDataService
         {
             em.close();
         }
+    }
+
+
+    public User getUser() {
+        return user;
+    }
+
+
+    private void setUser( User user ) {
+        this.user = user;
     }
 }
