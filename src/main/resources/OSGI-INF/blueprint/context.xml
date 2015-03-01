@@ -7,7 +7,6 @@
 
   <bean id="pluginDAO" class="org.safehaus.subutai.plugin.common.PluginDAO" >
     <property name="identityManager" ref="identityManager" />
-
   </bean>
 
 
