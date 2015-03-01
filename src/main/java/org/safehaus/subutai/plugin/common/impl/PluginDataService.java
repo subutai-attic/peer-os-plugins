@@ -310,4 +310,9 @@ public class PluginDataService
     public void setIdentityManager( IdentityManager identityManager ) {
         this.identityManager = identityManager;
     }
+
+
+    public IdentityManager getIdentityManager() {
+        return identityManager;
+    }
 }
