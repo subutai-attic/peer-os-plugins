@@ -16,5 +16,7 @@ public enum NodeOperationType
     CHECK_INSTALLATION,
     IMPORT,
     EXPORT,
-    DECOMISSION_STATUS
+    DECOMISSION_STATUS,
+    FETCH_DB,
+    FETCH_TABLES,
 }
