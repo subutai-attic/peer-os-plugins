@@ -1,11 +1,9 @@
 package org.safehaus.subutai.plugin.storm.impl;
 
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +14,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.protocol.Criteria;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
@@ -77,22 +76,22 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
 
         // check installed packages
-//        for ( ContainerHost n : environment.getContainerHosts() )
-//        {
-//            try
-//            {
-//                if ( !n.getTemplate().getProducts().contains( Commands.PACKAGE_NAME ) )
-//                {
-//                    throw new ClusterSetupException(
-//                            String.format( "Node %s does not have Storm installed", n.getHostname() ) );
-//                }
-//            }
-//            catch ( PeerException e )
-//            {
-//                logException( String.format( "Couldn't get container template" ), e );
-//                return null;
-//            }
-//        }
+        for ( ContainerHost n : environment.getContainerHosts() )
+        {
+            try
+            {
+                if ( !n.getTemplate().getProducts().contains( Commands.PACKAGE_NAME ) )
+                {
+                    throw new ClusterSetupException(
+                            String.format( "Node %s does not have Storm installed", n.getHostname() ) );
+                }
+            }
+            catch ( PeerException e )
+            {
+                logException( String.format( "Couldn't get container template" ), e );
+                return null;
+            }
+        }
 
         if ( manager.getCluster( config.getClusterName() ) != null )
         {
@@ -107,8 +106,6 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             }
 
             String n = config.getZookeeperClusterName();
-            List<ZookeeperClusterConfig> myList = new ArrayList<>(  );
-            myList.addAll( manager.getZookeeperManager().getClusters() );
             ZookeeperClusterConfig zk = manager.getZookeeperManager().getCluster( n );
             if ( zk == null )
             {

@@ -60,8 +60,7 @@ public class ConfigurationStep extends Panel
     {
         this.wizard = wizard;
         this.zookeeper = zookeeper;
-//        wizard.getStormManager().set
-//        (( org.safehaus.subutai.plugin.storm.impl.StormImpl )wizard.getStormManager()).setZookeeperManager( zookeeper );
+        this.environmentManager = environmentManager;
 
         installationControls = new GridLayout( 1, 3 );
         installationControls.setSizeFull();
@@ -143,6 +142,18 @@ public class ConfigurationStep extends Panel
                     allNodesSelect.removeAllItems();
                     nimbusNode.removeAllItems();
                 }
+                Environment env = null;
+                try
+                {
+                    env = environmentManager.findEnvironment( wizard.getConfig().getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOGGER.error( "Environment not found with id: " + wizard.getConfig().getEnvironmentId().toString(),
+                            e );
+                    return;
+                }
+                fillUpComboBox( allNodesSelect, env );
             }
         } );
 
@@ -320,7 +331,7 @@ public class ConfigurationStep extends Panel
             masterNodeCombo.setValue( wizard.getConfig().getNimbus() );
         }
 
-        hl = new HorizontalLayout( zkClustersCombo, masterNodeCombo );
+//        hl = new HorizontalLayout( zkClustersCombo, masterNodeCombo );
         nimbusElem = new Panel( "Nimbus node", hl );
         nimbusElem.setSizeUndefined();
         nimbusElem.setStyleName( "default" );
@@ -359,9 +370,11 @@ public class ConfigurationStep extends Panel
         installationControls.addComponent( clusterNameTxtFld );
         installationControls.addComponent( domainNameTxtFld );
         installationControls.addComponent( envCombo );
-        installationControls.addComponent( nimbusNode );
+        installationControls.addComponent( zkClustersCombo );
+        installationControls.addComponent( masterNodeCombo );
+//        installationControls.addComponent( nimbusNode );
         installationControls.addComponent( allNodesSelect );
-        installationControls.addComponent( hl );
+//        installationControls.addComponent( hl );
         installationControls.addComponent( buttons );
 
         setContent( installationControls );
@@ -482,7 +495,7 @@ public class ConfigurationStep extends Panel
 
     private ComboBox makeMasterNodeComboBox( final Wizard wizard )
     {
-        ComboBox cb = new ComboBox( "Nodes" );
+        ComboBox cb = new ComboBox( "Chose Nimbus Node" );
 
         cb.setId( "StormConfMasterNodes" );
         cb.setImmediate( true );

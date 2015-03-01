@@ -40,6 +40,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         environmentManager = stormManager.getEnvironmentManager();
     }
 
+    /**
+     * TODO: configuration of External Installation should modify
+     */
 
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
