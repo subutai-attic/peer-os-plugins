@@ -92,7 +92,7 @@ public class StormClusterConfiguration implements ConfigBase
 
     public int getSupervisorsCount()
     {
-        return supervisorsCount;
+        return supervisors.size();
     }
 
 

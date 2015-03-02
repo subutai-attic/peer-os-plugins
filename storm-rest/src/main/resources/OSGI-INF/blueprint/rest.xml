@@ -15,16 +15,20 @@
 
   <reference id="stormManager" availability="mandatory" interface="org.safehaus.subutai.plugin.storm.api.Storm" />
   <reference id="zookeeperManager" availability="mandatory" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.storm.rest.RestService">
+  <bean id="RestServiceImpl" class="org.safehaus.subutai.plugin.storm.rest.RestServiceImpl">
     <property name="environmentManager" ref="environmentManager" />
     <property name="stormManager" ref="stormManager" />
     <property name="zookeeperManager" ref="zookeeperManager" />
+    <property name="tracker" ref="tracker" />
+
   </bean>
 
   <jaxrs:server address="/storm" id="stormRestService">
     <jaxrs:serviceBeans>
-      <ref component-id="restService" />
+      <ref component-id="RestServiceImpl" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
 

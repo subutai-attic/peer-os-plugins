@@ -82,7 +82,6 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         catch ( ContainerHostNotFoundException e )
         {
             logException( String.format( "Error getting container host by name: %s", hostname ), e );
-            return;
         }
         // Check if the container is on external environment
         if ( config.isExternalZookeeper() && containerHost == null )
