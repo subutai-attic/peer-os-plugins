@@ -25,9 +25,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
-/**
- * Created by ermek on 2/28/15.
- */
 public class VerificationStep extends VerticalLayout
 {
     private Environment environment;

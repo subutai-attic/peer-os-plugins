@@ -34,9 +34,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 
 
-/**
- * Created by ermek on 2/28/15.
- */
 public class ConfigurationStep extends Panel
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );

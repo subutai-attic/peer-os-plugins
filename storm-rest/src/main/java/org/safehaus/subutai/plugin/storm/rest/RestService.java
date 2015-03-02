@@ -13,9 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-/**
- * Created by ermek on 3/2/15.
- */
 public interface RestService
 {
     // list clusters
