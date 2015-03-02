@@ -25,7 +25,8 @@ import com.vaadin.ui.VerticalLayout;
 public class HBaseComponent extends CustomComponent
 {
 
-    public HBaseComponent( ExecutorService executor, HBase hBase, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public HBaseComponent( ExecutorService executor, HBase hBase, Hadoop hadoop, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 
@@ -52,7 +53,7 @@ public class HBaseComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
-                    manager.checkAllNodes();
+                    // manager.checkAllNodes();
                 }
             }
         } );

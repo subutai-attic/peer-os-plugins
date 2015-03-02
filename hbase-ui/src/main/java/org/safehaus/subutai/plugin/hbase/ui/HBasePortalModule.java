@@ -36,13 +36,12 @@ public class HBasePortalModule implements PortalModule
     private EnvironmentManager environmentManager;
 
 
-    public HBasePortalModule(HBase hBase, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
+    public HBasePortalModule( HBase hBase, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.hBase = hBase;
         this.hadoop = hadoop;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-
     }
 
 

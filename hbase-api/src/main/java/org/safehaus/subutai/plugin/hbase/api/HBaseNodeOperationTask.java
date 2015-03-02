@@ -7,6 +7,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
 
@@ -16,9 +17,11 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
     private final ContainerHost containerHost;
     private NodeOperationType operationType;
     private HBase hbase;
+    private NodeType nodeType;
+
 
     public HBaseNodeOperationTask( HBase hbase, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                   NodeOperationType operationType,
+                                   NodeOperationType operationType, NodeType nodeType,
                                    org.safehaus.subutai.plugin.common.api.CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, hbase.getCluster( clusterName ), completeEvent, trackID, containerHost );
@@ -26,6 +29,7 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
         this.clusterName = clusterName;
         this.containerHost = containerHost;
         this.operationType = operationType;
+        this.nodeType = nodeType;
     }
 
 
@@ -36,13 +40,24 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
         switch ( operationType )
         {
             case STATUS:
-                trackID = hbase.checkNode( clusterName, containerHost.getHostname() );
+                trackID = hbase.checkNode( clusterName, containerHost.getHostname(), nodeType );
                 break;
             case START:
+                switch ( nodeType )
+                {
+                    case HREGIONSERVER:
+                        trackID = hbase.startRegionServer( clusterName, containerHost.getHostname() );
+                        break;
+                }
                 break;
             case STOP:
+                switch ( nodeType )
+                {
+                    case HREGIONSERVER:
+                        trackID = hbase.stopRegionServer( clusterName, containerHost.getHostname() );
+                        break;
+                }
                 break;
-
         }
         return trackID;
     }
@@ -51,7 +66,7 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
     @Override
     public String getProductStoppedIdentifier()
     {
-        return NodeState.STOPPED.name();
+        return "NOT running";
     }
 
 

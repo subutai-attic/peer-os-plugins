@@ -13,15 +13,6 @@ public class Commands
     public final static String PACKAGE_NAME = Common.PACKAGE_PREFIX + HBaseConfig.PRODUCT_KEY.toLowerCase();
 
 
-    public RequestBuilder getInstallDialogCommand()
-    {
-
-        return new RequestBuilder( "apt-get --assume-yes --force-yes install dialog" ).withTimeout( 360 )
-                                                                                      .withStdOutRedirection(
-                                                                                              OutputRedirection.NO );
-    }
-
-
     public static RequestBuilder getInstallCommand()
     {
 
@@ -31,18 +22,9 @@ public class Commands
     }
 
 
-    public RequestBuilder getUninstallCommand()
-    {
-
-        return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 360 )
-                                                                                             .withStdOutRedirection(
-                                                                                                     OutputRedirection.NO );
-    }
-
-
     public static RequestBuilder getStartCommand()
     {
-        return new RequestBuilder( "service hbase start &" );
+        return new RequestBuilder( "service hbase start" ).daemon();
     }
 
 
@@ -60,7 +42,13 @@ public class Commands
 
     public static RequestBuilder getConfigBackupMastersCommand( String backUpMasters )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh %s", backUpMasters ) );
+        return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh add %s", backUpMasters ) );
+    }
+
+
+    public static RequestBuilder getRemoveBackupMasterCommand( String backUpMaster )
+    {
+        return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh remove %s", backUpMaster ) );
     }
 
 
@@ -72,7 +60,25 @@ public class Commands
 
     public static RequestBuilder getConfigRegionCommand( String regionServers )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && region.sh %s", regionServers ) );
+        return new RequestBuilder( String.format( ". /etc/profile && region.sh add %s", regionServers ) );
+    }
+
+
+    public static RequestBuilder getRemoveRegionServerCommand( String regionServer )
+    {
+        return new RequestBuilder( String.format( ". /etc/profile && region.sh remove %s", regionServer ) );
+    }
+
+
+    public static RequestBuilder getRemoveRegionServerCommand()
+    {
+        return new RequestBuilder( String.format( ". /etc/profile && region.sh remove" ) );
+    }
+
+
+    public static RequestBuilder getRemoveBackupMastersCommand()
+    {
+        return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh remove" ) );
     }
 
 
@@ -89,11 +95,59 @@ public class Commands
     }
 
 
-    public static RequestBuilder getStartRegionServer(){
-        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh start regionserver " );
+    public static RequestBuilder getStartRegionServer()
+    {
+        return new RequestBuilder( ". /etc/profile &&  hbase-daemon.sh start regionserver " ).daemon();
     }
 
-    public static RequestBuilder getStopRegionServer(){
-        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh stop regionserver " );
+
+    public static RequestBuilder getStopRegionServer()
+    {
+        return new RequestBuilder( ". /etc/profile &&  service hbase-region start " );
+    }
+
+
+    public static RequestBuilder getStartHMaster()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh start master" );
+    }
+
+
+    public static RequestBuilder getStopHMaster()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemon.sh stop master" );
+    }
+
+
+    public static RequestBuilder getStartBackupMaster()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemons.sh start master-backup" );
+    }
+
+
+    public static RequestBuilder getStopBackupMaster()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemons.sh stop master-backup" );
+    }
+
+
+    public static RequestBuilder getStartHquorum()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemons.sh start zookeeper" );
+    }
+
+
+    public static RequestBuilder getStopHquorum()
+    {
+        return new RequestBuilder( ". /etc/profile && hbase-daemons.sh stop zookeeper" );
+    }
+
+
+    public RequestBuilder getUninstallCommand()
+    {
+
+        return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 360 )
+                                                                                             .withStdOutRedirection(
+                                                                                                     OutputRedirection.NO );
     }
 }

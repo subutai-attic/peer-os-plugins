@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 
 
 public interface HBase extends ApiBase<HBaseConfig>
@@ -23,10 +24,15 @@ public interface HBase extends ApiBase<HBaseConfig>
 
     public UUID startCluster( String clusterName );
 
-    public UUID checkNode( String clusterName, String hostname );
+    public UUID startRegionServer( String clusterName, String hostname );
+
+    public UUID stopRegionServer( String clustername, String hostname );
+
+    public UUID checkNode( String clusterName, String hostname, NodeType nodeType );
 
     public UUID addNode( String clusterName );
 
-    public void saveConfig( final HBaseConfig config ) throws ClusterException;;
+    public void saveConfig( final HBaseConfig config ) throws ClusterException;
 
+    ;
 }

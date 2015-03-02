@@ -10,10 +10,14 @@
       <cxf:logging />
     </cxf:features>
   </cxf:bus>
-  <reference id="hbaseManager" availability="mandatory" interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
+  <reference id="hbaseManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <bean id="restService" class="org.safehaus.subutai.plugin.hbase.rest.RestServiceImpl">
     <property name="hbaseManager" ref="hbaseManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
 
   <jaxrs:server address="/hbase" id="hbaseRestService">

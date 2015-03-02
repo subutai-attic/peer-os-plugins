@@ -18,7 +18,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 
 import com.google.common.base.Strings;
 
@@ -187,14 +186,6 @@ public class HBaseSetupStrategy
         {
             throw new ClusterSetupException(
                     m + String.format( "Cluster '%s' already exists", config.getClusterName() ) );
-        }
-
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            if ( config.getAllNodes() == null || config.getAllNodes().isEmpty() )
-            {
-                throw new ClusterSetupException( m + "Target nodes not specified" );
-            }
         }
     }
 }

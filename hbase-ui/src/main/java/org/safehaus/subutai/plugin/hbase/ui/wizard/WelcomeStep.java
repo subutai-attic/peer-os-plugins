@@ -7,7 +7,6 @@ package org.safehaus.subutai.plugin.hbase.ui.wizard;
 
 
 import org.safehaus.subutai.common.util.FileUtil;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 import org.safehaus.subutai.plugin.hbase.ui.HBasePortalModule;
 
 import com.vaadin.server.FileResource;
@@ -46,16 +45,9 @@ public class WelcomeStep extends Panel
         Button next = new Button( "Start" );
         next.setId( "HbaseStartOverHadoop" );
         next.addStyleName( "default" );
-        next.addClickListener( new NextClickHandler( wizard, SetupType.OVER_HADOOP ) );
+        next.addClickListener( new NextClickHandler( wizard ) );
         grid.addComponent( next, 4, 4, 4, 4 );
         grid.setComponentAlignment( next, Alignment.BOTTOM_RIGHT );
-
-//        Button next2 = new Button( "Start with-Hadoop installation" );
-//        next2.setId( "HbaseStartWithHadoop" );
-//        next2.addStyleName( "default" );
-//        next2.addClickListener( new NextClickHandler( wizard, SetupType.WITH_HADOOP ) );
-//        grid.addComponent( next2, 5, 4, 5, 4 );
-//        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
 
         setContent( grid );
     }
@@ -65,13 +57,11 @@ public class WelcomeStep extends Panel
     {
 
         private final Wizard wizard;
-        private final SetupType setupType;
 
 
-        public NextClickHandler( Wizard wizard, SetupType setupType )
+        public NextClickHandler( Wizard wizard )
         {
             this.wizard = wizard;
-            this.setupType = setupType;
         }
 
 
@@ -79,7 +69,6 @@ public class WelcomeStep extends Panel
         public void buttonClick( Button.ClickEvent clickEvent )
         {
             wizard.init();
-            wizard.getConfig().setSetupType( setupType );
             wizard.next();
         }
     }

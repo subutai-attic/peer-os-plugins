@@ -31,27 +31,19 @@ import org.slf4j.LoggerFactory;
  */
 public class HBaseAlertListener implements AlertListener
 {
-    private static final Logger LOG = LoggerFactory.getLogger( HBaseAlertListener.class.getName() );
-
     public static final String HBASE_ALERT_LISTENER = "HBASE_ALERT_LISTENER";
-    private HBaseImpl hbase;
-    private CommandUtil commandUtil = new CommandUtil();
+    private static final Logger LOG = LoggerFactory.getLogger( HBaseAlertListener.class.getName() );
     private static int MAX_RAM_QUOTA_MB = 2048;
     private static int RAM_QUOTA_INCREMENT_MB = 512;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private HBaseImpl hbase;
+    private CommandUtil commandUtil = new CommandUtil();
 
 
     public HBaseAlertListener( final HBaseImpl hbase )
     {
         this.hbase = hbase;
-    }
-
-
-    private void throwAlertException( String context, Exception e ) throws AlertException
-    {
-        LOG.error( context, e );
-        throw new AlertException( context, e );
     }
 
 
@@ -280,6 +272,13 @@ public class HBaseAlertListener implements AlertListener
                 }
             }
         }
+    }
+
+
+    private void throwAlertException( String context, Exception e ) throws AlertException
+    {
+        LOG.error( context, e );
+        throw new AlertException( context, e );
     }
 
 
