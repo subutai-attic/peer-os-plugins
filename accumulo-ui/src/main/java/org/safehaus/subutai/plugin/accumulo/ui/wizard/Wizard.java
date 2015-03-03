@@ -39,7 +39,8 @@ public class Wizard
     private ZookeeperClusterConfig zookeeperClusterConfig = new ZookeeperClusterConfig();
 
 
-    public Wizard( ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Zookeeper zookeeper, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Zookeeper zookeeper,
+                   Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.accumulo = accumulo;

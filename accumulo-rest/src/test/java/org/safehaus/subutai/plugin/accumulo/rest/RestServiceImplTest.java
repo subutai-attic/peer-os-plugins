@@ -18,7 +18,6 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -33,11 +32,13 @@ public class RestServiceImplTest
 {
     private RestServiceImpl restService;
     private AccumuloClusterConfig accumuloClusterConfig;
-    private String config2 =
-            "{\"clusterName\": \"test\",\"instanceName\": \"instance-name\",\"password\": " +
-                    "\"password\",\"masterNode\": \""+UUID.randomUUID().toString()+"\",\"gcNode\": \""+UUID.randomUUID().toString()+"\"," +
-                    "\"monitor\": \""+UUID.randomUUID().toString()+"\",\"tracers\": [\""+UUID.randomUUID().toString()+"\",\""+UUID.randomUUID().toString()+"\"],\"slaves\": " +
-                    "[\""+UUID.randomUUID().toString()+"\",\""+UUID.randomUUID().toString()+"\"]}";
+    private String config2 = "{\"clusterName\": \"test\",\"instanceName\": \"instance-name\",\"password\": " +
+            "\"password\",\"masterNode\": \"" + UUID.randomUUID().toString() + "\",\"gcNode\": \"" + UUID.randomUUID()
+                                                                                                         .toString()
+            + "\"," +
+            "\"monitor\": \"" + UUID.randomUUID().toString() + "\",\"tracers\": [\"" + UUID.randomUUID().toString()
+            + "\",\"" + UUID.randomUUID().toString() + "\"],\"slaves\": " +
+            "[\"" + UUID.randomUUID().toString() + "\",\"" + UUID.randomUUID().toString() + "\"]}";
     @Mock
     Accumulo accumulo;
     @Mock
@@ -60,8 +61,8 @@ public class RestServiceImplTest
         restService.setTracker( tracker );
         restService.setHadoop( hadoop );
         restService.setAccumuloManager( accumulo );
-        when( accumulo.getCluster( anyString() )).thenReturn( accumuloClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( accumulo.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
@@ -175,5 +176,4 @@ public class RestServiceImplTest
     {
         restService.getHadoop();
     }
-
 }

@@ -9,13 +9,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -36,10 +32,12 @@ public class RestServiceImpl implements RestService
     private Hadoop hadoop;
     private Tracker tracker;
 
+
     public RestServiceImpl( final Accumulo accumuloManager )
     {
         this.accumuloManager = accumuloManager;
     }
+
 
     @Override
     public Response listClusters()
@@ -59,7 +57,7 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         AccumuloClusterConfig config = accumuloManager.getCluster( clusterName );
-        if( config == null )
+        if ( config == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found " ).build();
@@ -80,10 +78,8 @@ public class RestServiceImpl implements RestService
         expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
         expandedConfig.setZookeeperClusterName( trimmedAccumuloConfig.getZkClusterName() );
         expandedConfig.setMasterNode( UUID.fromString( trimmedAccumuloConfig.getMasterNode() ) );
-        expandedConfig
-                .setGcNode( UUID.fromString( trimmedAccumuloConfig.getGcNode() ) );
-        expandedConfig
-                .setMonitor( UUID.fromString( trimmedAccumuloConfig.getMonitor() ) );
+        expandedConfig.setGcNode( UUID.fromString( trimmedAccumuloConfig.getGcNode() ) );
+        expandedConfig.setMonitor( UUID.fromString( trimmedAccumuloConfig.getMonitor() ) );
 
         Set<UUID> tracers = new HashSet<>();
         Set<UUID> slaves = new HashSet<>();
@@ -105,12 +101,11 @@ public class RestServiceImpl implements RestService
     }
 
 
-
     @Override
     public Response destroyCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( accumuloManager.getCluster( clusterName ) == null )
+        if ( accumuloManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -125,7 +120,7 @@ public class RestServiceImpl implements RestService
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( accumuloManager.getCluster( clusterName ) == null )
+        if ( accumuloManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -141,7 +136,7 @@ public class RestServiceImpl implements RestService
     public Response stopCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( accumuloManager.getCluster( clusterName ) == null )
+        if ( accumuloManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -157,18 +152,18 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( nodeType );
-        if( accumuloManager.getCluster( clusterName ) == null )
+        if ( accumuloManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
         NodeType accumuloNodeType = null;
         nodeType = nodeType.toLowerCase();
-        if( nodeType.contains( "tracer" ))
+        if ( nodeType.contains( "tracer" ) )
         {
             accumuloNodeType = NodeType.ACCUMULO_TRACER;
         }
-        else if( nodeType.contains( "tablet" ))
+        else if ( nodeType.contains( "tablet" ) )
         {
             accumuloNodeType = NodeType.ACCUMULO_TABLET_SERVER;
         }
@@ -187,18 +182,18 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( nodeType );
-        if( accumuloManager.getCluster( clusterName ) == null )
+        if ( accumuloManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
         NodeType accumuloNodeType = null;
         nodeType = nodeType.toLowerCase();
-        if( nodeType.contains( "tracer" ))
+        if ( nodeType.contains( "tracer" ) )
         {
             accumuloNodeType = NodeType.ACCUMULO_TRACER;
         }
-        else if( nodeType.contains( "tablet" ))
+        else if ( nodeType.contains( "tablet" ) )
         {
             accumuloNodeType = NodeType.ACCUMULO_TABLET_SERVER;
         }
@@ -217,7 +212,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if ( accumuloManager.getCluster( clusterName ) == null ){
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -257,20 +253,26 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private Response createResponse( UUID uuid, OperationState state ){
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -300,7 +302,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
+
+    public Tracker getTracker()
+    {
         return tracker;
     }
 

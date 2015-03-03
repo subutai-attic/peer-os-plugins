@@ -85,20 +85,23 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
 
 
     /**
-     * Adds passed properties to accumulo cluster to all container hosts within cluster
-     * and restarts cluster master node
+     * Adds passed properties to accumulo cluster to all container hosts within cluster and restarts cluster master
+     * node
+     *
      * @param clusterName - cluster name
      * @param propertyName - property key
      * @param propertyValue - property value
+     *
      * @return - tracker operation id
      */
     public UUID addProperty( String clusterName, String propertyName, String propertyValue );
 
     /**
-     * Removes property from accumulo cluster over all container hosts within cluster
-     * and restarts cluster master node
+     * Removes property from accumulo cluster over all container hosts within cluster and restarts cluster master node
+     *
      * @param clusterName - cluster name
      * @param propertyName - property key to remove
+     *
      * @return - tracker operation id
      */
     public UUID removeProperty( String clusterName, String propertyName );

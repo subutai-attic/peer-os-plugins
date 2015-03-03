@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 @RunWith(MockitoJUnitRunner.class)
 public class AddPropertyOperationHandlerTest
 {
@@ -58,24 +59,25 @@ public class AddPropertyOperationHandlerTest
     public void setUp() throws Exception
     {
         uuid = UUID.randomUUID();
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(accumuloImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( accumuloImpl.getTracker() ).thenReturn( tracker );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( trackerOperation.getId() ).thenReturn( uuid );
 
-        addPropertyOperationHandler = new AddPropertyOperationHandler(accumuloImpl, "testCluster", "testProperty",
-                "testPropertyValue");
+        addPropertyOperationHandler =
+                new AddPropertyOperationHandler( accumuloImpl, "testCluster", "testProperty", "testPropertyValue" );
 
         // mock run method
         Set<ContainerHost> mySet = new HashSet<>();
-        mySet.add(containerHost);
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
+        mySet.add( containerHost );
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when(environment.getContainerHostsByIds(anySetOf(UUID.class))).thenReturn(mySet);
-        when(containerHost.execute(new RequestBuilder(Commands.getAddPropertyCommand("testProperty",
-                "testPropertyValue")))).thenReturn(commandResult);
-
+        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( containerHost.execute(
+                new RequestBuilder( Commands.getAddPropertyCommand( "testProperty", "testPropertyValue" ) ) ) )
+                .thenReturn( commandResult );
     }
+
 
     @Test
     public void testGetTrackerId() throws Exception
@@ -83,9 +85,10 @@ public class AddPropertyOperationHandlerTest
         UUID id = addPropertyOperationHandler.getTrackerId();
 
         // assertions
-        assertNotNull(uuid);
-        assertEquals(uuid, id);
+        assertNotNull( uuid );
+        assertEquals( uuid, id );
     }
+
 
     @Test
     public void testRunCommandResultNotSucceeded() throws Exception
@@ -93,11 +96,12 @@ public class AddPropertyOperationHandlerTest
         addPropertyOperationHandler.run();
     }
 
+
     @Test
     public void testRun() throws Exception
     {
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( Commands.stopCommand ) ).thenReturn( commandResult );
         when( containerHost.execute( Commands.startCommand ) ).thenReturn( commandResult );
 
@@ -105,21 +109,23 @@ public class AddPropertyOperationHandlerTest
         addPropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getAddPropertyCommand("testProperty",
-                "testPropertyValue")));
-        assertTrue(commandResult.hasSucceeded());
-        verify(trackerOperation).addLog("Property added successfully to node " + containerHost.getHostname());
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getAddPropertyCommand( "testProperty", "testPropertyValue" ) ) );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLog( "Property added successfully to node " + containerHost.getHostname() );
         verify( containerHost ).execute( Commands.stopCommand );
         verify( containerHost ).execute( Commands.startCommand );
-        verify(trackerOperation).addLogDone( "Done" );
+        verify( trackerOperation ).addLogDone( "Done" );
     }
+
+
     @Test
 
     public void testRunShouldThrowsCommandException() throws Exception
     {
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( Commands.stopCommand ) ).thenThrow( CommandException.class );
         when( containerHost.execute( Commands.startCommand ) ).thenThrow( CommandException.class );
 
@@ -127,11 +133,10 @@ public class AddPropertyOperationHandlerTest
         addPropertyOperationHandler.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(Commands.getAddPropertyCommand("testProperty",
-                "testPropertyValue")));
-        assertTrue(commandResult.hasSucceeded());
-        verify(trackerOperation).addLog("Property added successfully to node " + containerHost.getHostname());
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost )
+                .execute( new RequestBuilder( Commands.getAddPropertyCommand( "testProperty", "testPropertyValue" ) ) );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLog( "Property added successfully to node " + containerHost.getHostname() );
     }
-
 }

@@ -149,10 +149,9 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
                 {
                     try
                     {
-                        host.execute( Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ));
-                        //checkInstalled( host, result, AccumuloClusterConfig.PRODUCT_PACKAGE );
-                        result = host.execute( Commands.getPackageQueryCommand(
-                                AccumuloClusterConfig.PRODUCT_PACKAGE ) );
+                        host.execute( Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
+                        result = host.execute(
+                                Commands.getPackageQueryCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
                         String output = result.getStdOut() + result.getStdErr();
                         if ( output.contains( "install ok installed" ) )
                         {
@@ -218,25 +217,5 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
             e.printStackTrace();
         }
         return isInstalled;
-    }
-
-    public void checkInstalled( ContainerHost host, CommandResult result, String productPackage) throws ClusterSetupException
-    {
-        CommandResult statusResult;
-        try
-        {
-            statusResult = host.execute( new RequestBuilder( Commands.checkIfInstalled ) );
-        }
-        catch ( CommandException e )
-        {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
-        }
-
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( productPackage ) ) )
-        {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
-            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
-                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
-        }
     }
 }

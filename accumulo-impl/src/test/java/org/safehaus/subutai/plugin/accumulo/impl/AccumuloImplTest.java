@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class AccumuloImplTest
 {
     private AccumuloImpl accumuloImpl;
@@ -207,7 +207,7 @@ public class AccumuloImplTest
     }
 
 
-    @Test( expected = NullPointerException.class )
+    @Test(expected = NullPointerException.class)
     public void testInit() throws Exception
     {
         accumuloImpl.init();
@@ -363,6 +363,7 @@ public class AccumuloImplTest
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
         assertEquals( uuid, id );
     }
+
 
     @Test
     public void testOnEnvironmentCreated() throws Exception

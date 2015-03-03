@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class RemovePropertyOperationHandlerTest
 {
     private RemovePropertyOperationHandler removePropertyOperationHandler;
@@ -134,7 +134,7 @@ public class RemovePropertyOperationHandlerTest
     }
 
 
-    @Test( expected = NullPointerException.class )
+    @Test(expected = NullPointerException.class)
     public void testRunWhenCommandResultHasNotSucceeded2() throws Exception
     {
         // mock run method

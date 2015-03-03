@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class AccumuloOverZkNHadoopSetupStrategyTest
 {
     private AccumuloOverZkNHadoopSetupStrategy accumuloOverZkNHadoopSetupStrategy;
@@ -142,14 +142,14 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenMalformedConfiguration() throws ClusterSetupException
     {
         accumuloOverZkNHadoopSetupStrategy.setup();
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenClusterNameExists() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
@@ -161,7 +161,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenHadoopClusterConfigIsNull() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
@@ -175,7 +175,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenZookeperClusterConfigIsNull() throws ClusterSetupException
     {
         Set<UUID> myUUID = new HashSet<>();
@@ -191,7 +191,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenNodesNotBelongToHadoopCluster() throws ClusterSetupException
     {
         Set<UUID> myUUID2 = new HashSet<>();
@@ -248,7 +248,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupWhenCommandResultNotSucceded2()
             throws CommandException, ClusterSetupException, ContainerHostNotFoundException
     {
@@ -277,7 +277,7 @@ public class AccumuloOverZkNHadoopSetupStrategyTest
     }
 
 
-    @Test( expected = ClusterSetupException.class )
+    @Test(expected = ClusterSetupException.class)
     public void testSetupShouldThrowsClusterSetupException() throws Exception
     {
         List<UUID> myList = new ArrayList<>();
