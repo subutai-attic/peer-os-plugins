@@ -26,7 +26,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.OperationType;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
-import org.safehaus.subutai.plugin.shark.impl.alert.SharkAlertListener;
 import org.safehaus.subutai.plugin.shark.impl.handler.ClusterOperationHandler;
 import org.safehaus.subutai.plugin.shark.impl.handler.NodeOperationHandler;
 import org.safehaus.subutai.plugin.spark.api.Spark;
@@ -50,7 +49,6 @@ public class SharkImpl implements Shark, EnvironmentEventListener
     private Monitor monitor;
 
     protected Commands commands;
-    private SharkAlertListener sharkAlertListener;
 
 
     public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, Monitor monitor )
@@ -59,8 +57,6 @@ public class SharkImpl implements Shark, EnvironmentEventListener
         this.environmentManager = environmentManager;
         this.sparkManager = sparkManager;
         this.monitor = monitor;
-        sharkAlertListener = new SharkAlertListener( this );
-        monitor.addAlertListener( sharkAlertListener );
     }
 
 
@@ -76,21 +72,9 @@ public class SharkImpl implements Shark, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( sharkAlertListener, environment, alertSettings );
-    }
-
-
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( sharkAlertListener, environment );
     }
 
 

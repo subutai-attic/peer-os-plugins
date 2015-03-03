@@ -15,7 +15,6 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.shark.api.Shark;
 import org.safehaus.subutai.plugin.shark.api.SharkClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.Spark;
@@ -30,7 +29,6 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -66,7 +64,6 @@ public class Manager
     private final Shark shark;
     private final EnvironmentManager environmentManager;
     private Environment environment;
-    private CheckBox autoScaleBtn;
 
 
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
@@ -149,37 +146,6 @@ public class Manager
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
         controlsContent.addComponent( PROGRESS_ICON );
-
-        //auto scale button
-        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
-        autoScaleBtn.setValue( false );
-        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
-        controlsContent.addComponent( autoScaleBtn );
-        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent event )
-            {
-                if ( config == null )
-                {
-                    show( "Select cluster" );
-                }
-                else
-                {
-                    boolean value = ( Boolean ) event.getProperty().getValue();
-                    config.setAutoScaling( value );
-                    try
-                    {
-                        shark.saveConfig( config );
-                    }
-                    catch ( ClusterException e )
-                    {
-                        show( e.getMessage() );
-                    }
-                }
-            }
-        } );
-
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
     }
@@ -346,7 +312,6 @@ public class Manager
             {
                 environment = environmentManager.findEnvironment( config.getEnvironmentId() );
                 populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodeIds() ) );
-                autoScaleBtn.setValue( config.isAutoScaling() );
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
             {
