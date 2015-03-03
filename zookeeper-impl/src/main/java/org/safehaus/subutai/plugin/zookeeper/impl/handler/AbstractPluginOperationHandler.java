@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extends ConfigBase> extends
-        AbstractOperationHandler<T, V>
+public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extends ConfigBase>
+        extends AbstractOperationHandler<T, V>
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( AbstractPluginOperationHandler.class );
@@ -31,10 +31,12 @@ public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extend
         super( manager, config );
     }
 
+
     public AbstractPluginOperationHandler( final T manager, final String clusterName )
     {
         super( manager, clusterName );
     }
+
 
     protected CommandResult executeCommand( ContainerHost containerHost, String command )
     {
@@ -55,9 +57,12 @@ public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extend
     public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
     {
         List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList ) {
-            if ( ! commandResult.hasSucceeded() )
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
                 failedCommands.add( commandResult );
+            }
         }
         return failedCommands;
     }
@@ -67,10 +72,16 @@ public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extend
     {
         Preconditions.checkNotNull( commandResultList );
         for ( CommandResult commandResult : commandResultList )
+        {
             po.addLog( commandResult.getStdOut() );
+        }
         if ( po.getState() == OperationState.FAILED )
+        {
             po.addLogFailed( "" );
+        }
         else
+        {
             po.addLogDone( "" );
+        }
     }
 }

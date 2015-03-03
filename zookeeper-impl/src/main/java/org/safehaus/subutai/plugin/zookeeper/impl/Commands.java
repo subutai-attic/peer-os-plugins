@@ -69,16 +69,15 @@ public class Commands
 
     public static String getConfigureClusterCommand( String zooCfgFileContents, String zooCfgFilePath, int id )
     {
-        return String.format( ". /etc/profile && zookeeper-setID.sh %s && echo '%s' > %s", id,
-                            zooCfgFileContents, zooCfgFilePath );
+        return String.format( ". /etc/profile && zookeeper-setID.sh %s && echo '%s' > %s", id, zooCfgFileContents,
+                zooCfgFilePath );
     }
 
 
     public static String getAddPropertyCommand( String fileName, String propertyName, String propertyValue )
     {
-        return
-                String.format( ". /etc/profile && zookeeper-property.sh add %s %s %s", fileName, propertyName,
-                        propertyValue );
+        return String.format( ". /etc/profile && zookeeper-property.sh add %s %s %s", fileName, propertyName,
+                propertyValue );
     }
 
 

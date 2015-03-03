@@ -34,6 +34,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
+
     public RestServiceImpl( final Zookeeper zookeeperManager )
     {
         this.zookeeperManager = zookeeperManager;
@@ -82,12 +83,13 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        if( environment == null)
+        if ( environment == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "Could not find environment with id : " + environmentId ).build();
         }
-        if( zookeeperManager.getCluster( clusterName ) != null ){
+        if ( zookeeperManager.getCluster( clusterName ) != null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "There is already a cluster with same name!" ).build();
         }
@@ -96,7 +98,7 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         Set<UUID> allNodes = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
-        for( String node : configNodes )
+        for ( String node : configNodes )
         {
             allNodes.add( UUID.fromString( node ) );
         }
@@ -105,8 +107,6 @@ public class RestServiceImpl implements RestService
         UUID uuid = zookeeperManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
-
-
     }
 
 
@@ -121,7 +121,7 @@ public class RestServiceImpl implements RestService
         config.setHadoopClusterName( hadoopClusterName );
         Set<UUID> allNodes = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "//s+", "" ).split( "," );
-        for( String node : configNodes )
+        for ( String node : configNodes )
         {
             allNodes.add( UUID.fromString( node ) );
         }
@@ -133,12 +133,11 @@ public class RestServiceImpl implements RestService
     }
 
 
-
     @Override
     public Response destroyCluster( String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -154,7 +153,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -169,7 +168,7 @@ public class RestServiceImpl implements RestService
     public Response startAllNodes( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -185,7 +184,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -200,7 +199,7 @@ public class RestServiceImpl implements RestService
     public Response stopAllNodes( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -216,7 +215,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -232,7 +231,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -248,7 +247,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -263,7 +262,7 @@ public class RestServiceImpl implements RestService
     public Response addNodeStandalone( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( zookeeperManager.getCluster( clusterName ) == null )
+        if ( zookeeperManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -274,20 +273,26 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private Response createResponse( UUID uuid, OperationState state ){
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( ZookeeperClusterConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -317,7 +322,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
+
+    public Tracker getTracker()
+    {
         return tracker;
     }
 
@@ -326,6 +333,7 @@ public class RestServiceImpl implements RestService
     {
         this.tracker = tracker;
     }
+
 
     public EnvironmentManager getEnvironmentManager()
     {

@@ -52,16 +52,16 @@
       <artifactId>org.apache.karaf.shell.console</artifactId>
     </dependency>
     <!--<dependency>-->
-      <!--<groupId>org.osgi</groupId>-->
-      <!--<artifactId>org.osgi.compendium</artifactId>-->
-      <!--<version>4.3.1</version>-->
-      <!--<scope>provided</scope>-->
+    <!--<groupId>org.osgi</groupId>-->
+    <!--<artifactId>org.osgi.compendium</artifactId>-->
+    <!--<version>4.3.1</version>-->
+    <!--<scope>provided</scope>-->
     <!--</dependency>-->
     <!--<dependency>-->
-      <!--<groupId>org.apache.servicemix.bundles</groupId>-->
-      <!--<artifactId>org.apache.servicemix.bundles.junit</artifactId>-->
-      <!--<version>4.10_1</version>-->
-      <!--<scope>test</scope>-->
+    <!--<groupId>org.apache.servicemix.bundles</groupId>-->
+    <!--<artifactId>org.apache.servicemix.bundles.junit</artifactId>-->
+    <!--<version>4.10_1</version>-->
+    <!--<scope>test</scope>-->
     <!--</dependency>-->
   </dependencies>
 

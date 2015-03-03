@@ -32,18 +32,17 @@ public interface RestService
     @POST
     @Path("configure_environment/{environmentId}/clusterName/{clusterName}/nodes/{nodes}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response configureCluster( @PathParam( "environmentId" ) String environmentId,
-                                      @PathParam( "clusterName" ) String clusterName,
-                                      @PathParam( "nodes" ) String nodes );
+    public Response configureCluster( @PathParam("environmentId") String environmentId,
+                                      @PathParam("clusterName") String clusterName, @PathParam("nodes") String nodes );
 
 
     //install cluster over hadoop
     @POST
-    @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes );
+    @Path("clusters/install")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response installCluster( @QueryParam("clusterName") String clusterName,
+                                    @QueryParam("hadoopClusterName") String hadoopClusterName,
+                                    @QueryParam("nodes") String nodes );
 
     //destroy cluster
     @DELETE

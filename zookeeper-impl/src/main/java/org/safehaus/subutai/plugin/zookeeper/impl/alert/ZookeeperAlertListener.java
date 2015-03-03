@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.zookeeper.impl.alert;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +21,6 @@ import org.safehaus.subutai.plugin.zookeeper.impl.Commands;
 import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 
 public class ZookeeperAlertListener implements AlertListener
@@ -159,19 +157,15 @@ public class ZookeeperAlertListener implements AlertListener
                     // if available quota on resource host is greater than 10 % of calculated increase amount,
                     // increase quota, otherwise scale horizontally
                     int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if( MAX_RAM_QUOTA_MB > newRamQuota )
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
                     {
-                        LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.",
-                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                        LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
 
                         //we can increase RAM quota
                         sourceHost.setRamQuota( newRamQuota );
                         quotaIncreased = true;
                     }
-
-
-
-
                 }
             }
             if ( isCpuStressedByZookeeper )
@@ -183,8 +177,8 @@ public class ZookeeperAlertListener implements AlertListener
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.",
-                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
+                    LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
                     //we can increase CPU quota
                     sourceHost.setCpuQuota( newCpuQuota );
 
@@ -200,45 +194,10 @@ public class ZookeeperAlertListener implements AlertListener
 
             // add new node
             LOGGER.info( "Adding new node to {} zookeeper cluster", targetCluster.getClusterName() );
-//            ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( targetCluster.getClusterName() );
-//            if ( zookeeperClusterConfig == null )
-//            {
-//                throw new Exception( String.format( "Zookeeper cluster %s not found", targetCluster.getClusterName() ),
-//                        null );
-//            }
-//
-//            Set<UUID> availableNodes = zookeeperClusterConfig.getNodes();
-//            availableNodes.removeAll( targetCluster.getNodes() );
-//
-//            //no available nodes -> notify user
-//            if ( availableNodes.isEmpty() )
-//            {
-//                notifyUser();
-//            }
-//            //add first available node
-//            else
-//            {
-//                UUID newNodeId = availableNodes.iterator().next();
-//                String newNodeHostName = null;
-//                for ( ContainerHost containerHost : containers )
-//                {
-//                    if ( containerHost.getId().equals( newNodeId ) )
-//                    {
-//                        newNodeHostName = containerHost.getHostname();
-//                        break;
-//                    }
-//                }
-//
-//                if ( newNodeHostName == null )
-//                {
-//                    throw new Exception(
-//                            String.format( "Could not obtain available spark node from environment by id %s",
-//                                    newNodeId ), null );
-//                }
 
-                //launch node addition process
-                zookeeper.addNode( targetCluster.getClusterName() );
-            }
+            //launch node addition process
+            zookeeper.addNode( targetCluster.getClusterName() );
+        }
         else
         {
             notifyUser();

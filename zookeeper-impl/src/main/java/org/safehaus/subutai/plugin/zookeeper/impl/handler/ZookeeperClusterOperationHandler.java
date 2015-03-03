@@ -3,12 +3,9 @@ package org.safehaus.subutai.plugin.zookeeper.impl.handler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
@@ -96,7 +93,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
                         }
                     }
@@ -106,7 +104,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
                         }
                     }
@@ -116,7 +115,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
                         }
                     }
@@ -135,7 +135,8 @@ public class ZookeeperClusterOperationHandler
     @Override
     public void setupCluster()
     {
-        try {
+        try
+        {
             if ( Strings.isNullOrEmpty( zookeeperClusterConfig.getClusterName() ) )
             {
                 trackerOperation.addLogFailed( "Malformed configuration" );
@@ -186,7 +187,6 @@ public class ZookeeperClusterOperationHandler
             LOG.error( "Error in setupCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to setup cluster : %s", e.getMessage() ) );
         }
-
     }
 
 

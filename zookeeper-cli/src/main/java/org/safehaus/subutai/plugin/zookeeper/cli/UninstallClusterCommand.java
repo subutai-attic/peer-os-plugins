@@ -14,7 +14,6 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-
 /**
  * Displays the last log entries
  */

@@ -31,7 +31,8 @@ public class ZookeeperPortalModule implements PortalModule
     private final Tracker tracker;
 
 
-    public ZookeeperPortalModule( Zookeeper zookeeper, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
+    public ZookeeperPortalModule( Zookeeper zookeeper, Hadoop hadoop, Tracker tracker,
+                                  EnvironmentManager environmentManager )
     {
         this.zookeeper = zookeeper;
         this.hadoop = hadoop;
