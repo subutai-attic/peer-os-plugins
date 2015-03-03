@@ -7,5 +7,5 @@ Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Architecture: all
 Version: [[project.version]]
-Pre-Depends: subutai-repo-cassandra-subutai-template (= 2.1.1)
+Pre-Depends: subutai-repo-cassandra-subutai-template (= 2.1.1), plugin-common
 Description: This package contains kar file of Subutai Cassandra plugin that runs  on subutai server application.
