@@ -33,10 +33,10 @@ public class PrestoAlertListener implements AlertListener
     public static final String PRESTO_ALERT_LISTENER = "PRESTO_ALERT_LISTENER";
     private PrestoImpl presto;
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static double MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    private static int MAX_CPU_QUOTA_PERCENT = 100;
+    private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
 
 
     public PrestoAlertListener( final PrestoImpl presto )
@@ -107,6 +107,11 @@ public class PrestoAlertListener implements AlertListener
             return;
         }
 
+
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+
         //figure out process pid
         int prestoPID = 0;
         try
@@ -126,7 +131,7 @@ public class PrestoAlertListener implements AlertListener
         //confirm that Presto is causing the stress, otherwise no-op
         MonitoringSettings thresholds = presto.getAlertSettings();
         double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.9;
+        double redLine = 0.7;
         boolean isCpuStressed = false;
         boolean isRamStressed = false;
 
@@ -160,8 +165,16 @@ public class PrestoAlertListener implements AlertListener
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
+                    // if available quota on resource host is greater than 10 % of calculated increase amount.
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.",
+                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                    }
                     //we can increase RAM quota
-                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( newRamQuota );
 
                     quotaIncreased = true;
                 }
@@ -175,7 +188,10 @@ public class PrestoAlertListener implements AlertListener
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.",
+                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -188,6 +204,7 @@ public class PrestoAlertListener implements AlertListener
             }
 
             // add new node
+            LOG.info( "Adding new node to {} presto cluster", targetCluster.getClusterName() );
             HadoopClusterConfig hadoopClusterConfig =
                     presto.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
             if ( hadoopClusterConfig == null )
