@@ -40,7 +40,7 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
         switch ( operationType )
         {
             case STATUS:
-                trackID = hbase.checkNode( clusterName, containerHost.getHostname(), nodeType );
+                trackID = hbase.checkNode( clusterName, containerHost.getHostname() );
                 break;
             case START:
                 switch ( nodeType )

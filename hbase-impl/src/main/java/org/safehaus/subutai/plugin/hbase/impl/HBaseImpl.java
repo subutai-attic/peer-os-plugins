@@ -216,7 +216,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( hostname );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeType.HREGIONSERVER, NodeOperationType.DESTROY );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.DESTROY );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -252,7 +252,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeType.HREGIONSERVER, NodeOperationType.START );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.START );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -264,19 +264,19 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeType.HREGIONSERVER, NodeOperationType.STOP );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.STOP );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
     @Override
-    public UUID checkNode( final String clusterName, final String hostname, NodeType nodeType )
+    public UUID checkNode( final String clusterName, final String hostname )
     {
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, nodeType, NodeOperationType.STATUS );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -351,7 +351,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeType.HREGIONSERVER, NodeOperationType.ADD );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }

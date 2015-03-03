@@ -28,7 +28,7 @@ public interface HBase extends ApiBase<HBaseConfig>
 
     public UUID stopRegionServer( String clustername, String hostname );
 
-    public UUID checkNode( String clusterName, String hostname, NodeType nodeType );
+    public UUID checkNode( String clusterName, String hostname );
 
     public UUID addNode( String clusterName );
 

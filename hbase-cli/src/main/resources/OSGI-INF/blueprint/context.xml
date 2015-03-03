@@ -4,6 +4,8 @@
              interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
   <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
@@ -44,6 +46,14 @@
       <action class="org.safehaus.subutai.plugin.hbase.cli.StopClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="hbase/check-cluster">
+      <action class="org.safehaus.subutai.plugin.hbase.cli.CheckClusterCommand">
+        <property name="hbaseManager" ref="hbaseManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 

@@ -38,12 +38,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     private NodeOperationType operationType;
     private HBaseConfig config;
     private ContainerHost node;
-    private NodeType nodeType;
     private Environment environment;
 
 
     public NodeOperationHandler( final HBaseImpl manager, final HBaseConfig config, final String hostname,
-                                 NodeType nodeType, NodeOperationType operationType )
+                                 NodeOperationType operationType )
     {
         super( manager, config );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( hostname ), "Invalid hostname" );
@@ -51,7 +50,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         this.hostname = hostname;
         this.operationType = operationType;
         this.config = config;
-        this.nodeType = nodeType;
         try
         {
             this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -109,24 +107,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         switch ( operationType )
         {
             case START:
-                try
-                {
-                    startNode( host, nodeType );
-                }
-                catch ( ClusterException e )
-                {
-                    e.printStackTrace();
-                }
                 break;
             case STOP:
-                try
-                {
-                    stopNode( host, nodeType );
-                }
-                catch ( ClusterException e )
-                {
-                    e.printStackTrace();
-                }
                 break;
             case STATUS:
                 checkServiceStatus( host );
@@ -262,107 +244,35 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private void startNode( ContainerHost host, NodeType nodeType ) throws ClusterException
-    {
-
-        switch ( nodeType )
-        {
-            case HMASTER:
-                // To be able start HMaster, you should also start HQuorumPeers.
-                startNStopHQuorumPeers( NodeOperationType.START );
-                executeCommand( host, Commands.getStartHMaster() );
-                break;
-            case HQUORUMPEER:
-                executeCommand( host, Commands.getStartHquorum() );
-                break;
-            case HREGIONSERVER:
-                executeCommand( host, Commands.getStartRegionServer() );
-                break;
-            case BACKUPMASTER:
-                executeCommand( host, Commands.getStartBackupMaster() );
-                break;
-        }
-    }
-
-
-    private void startNStopHQuorumPeers( NodeOperationType type )
-    {
-        for ( UUID uuid : config.getQuorumPeers() )
-        {
-            try
-            {
-                ContainerHost host = environment.getContainerHostById( uuid );
-                try
-                {
-                    switch ( type )
-                    {
-                        case START:
-                            executeCommand( host, Commands.getStartHquorum() );
-                            break;
-                        case STOP:
-                            executeCommand( host, Commands.getStopHquorum() );
-                            break;
-                    }
-                }
-                catch ( ClusterException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    private void stopNode( ContainerHost host, NodeType nodeType ) throws ClusterException
-    {
-
-        switch ( nodeType )
-        {
-            case HMASTER:
-                startNStopHQuorumPeers( NodeOperationType.STOP );
-                executeCommand( host, Commands.getStopHMaster() );
-                break;
-            case HQUORUMPEER:
-                executeCommand( host, Commands.getStopHquorum() );
-                break;
-            case HREGIONSERVER:
-                executeCommand( host, Commands.getStopRegionServer() );
-                break;
-            case BACKUPMASTER:
-                executeCommand( host, Commands.getStopBackupMaster() );
-                break;
-        }
-    }
-
-
     private void checkServiceStatus( ContainerHost host )
     {
         try
         {
             boolean isLogged = false;
+
+            List<NodeType> roles = findNodeRoles( host );
+
             CommandResult result = node.execute( Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
             {
                 String output[] = result.getStdOut().split( "\n" );
                 for ( String part : output )
                 {
+                    for ( NodeType role : roles ){
 
-                    if ( nodeType.equals( NodeType.BACKUPMASTER ) )
-                    {
-                        nodeType = NodeType.HMASTER;
-                    }
-                    if ( part.toLowerCase().contains( nodeType.name().toLowerCase() ) )
-                    {
-                        trackerOperation.addLog( part );
-                        isLogged = true;
-                        break;
+                        if ( role.equals( NodeType.BACKUPMASTER ) )
+                        {
+                            role = NodeType.HMASTER;
+                        }
+                        if ( part.toLowerCase().contains( role.name().toLowerCase() ) )
+                        {
+                            trackerOperation.addLog( part );
+                            isLogged = true;
+                            break;
+                        }
                     }
                 }
-                if ( !isLogged )
+                if ( ! isLogged )
                 {
                     trackerOperation.addLog( result.getStdOut() );
                 }

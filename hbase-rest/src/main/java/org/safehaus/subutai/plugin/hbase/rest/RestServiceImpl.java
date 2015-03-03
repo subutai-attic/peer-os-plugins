@@ -155,7 +155,7 @@ public class RestServiceImpl implements RestService
     public Response checkNode( final String clusterName, final String hostname )
     {
         // todo node type should be given
-        UUID uuid = hbaseManager.checkNode( clusterName, hostname, NodeType.MASTER_NODE );
+        UUID uuid = hbaseManager.checkNode( clusterName, hostname );
 
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
