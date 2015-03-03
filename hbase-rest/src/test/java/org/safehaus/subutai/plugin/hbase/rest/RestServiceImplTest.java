@@ -58,16 +58,17 @@ public class RestServiceImplTest
         assertEquals( hBase, restService.getHbaseManager() );
     }
 
-    //    @Test
-    //    public void testCheckNode()
-    //    {
-    //        when(hBase.checkNode(anyString(), any(String.class ))).thenReturn(UUID.randomUUID());
-    //
-    //        Response response = restService.checkNode("test", UUID.randomUUID().toString());
-    //
-    //        // assertions
-    //        assertEquals(Response.Status.OK.getStatusCode(),response.getStatus());
-    //    }
+
+    @Test
+    public void testCheckNode()
+    {
+        when(hBase.checkNode(anyString(), any(String.class ))).thenReturn(UUID.randomUUID());
+
+        Response response = restService.checkNode("test", UUID.randomUUID().toString());
+
+        // assertions
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),response.getStatus());
+    }
 
 
     @Test
