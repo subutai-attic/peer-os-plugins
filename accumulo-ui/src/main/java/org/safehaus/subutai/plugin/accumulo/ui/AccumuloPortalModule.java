@@ -37,14 +37,14 @@ public class AccumuloPortalModule implements PortalModule
     private EnvironmentManager environmentManager;
 
 
-    public AccumuloPortalModule(Accumulo accumulo, Tracker tracker, Hadoop hadoop, Zookeeper zookeeper, EnvironmentManager environmentManager)
+    public AccumuloPortalModule( Accumulo accumulo, Tracker tracker, Hadoop hadoop, Zookeeper zookeeper,
+                                 EnvironmentManager environmentManager )
     {
         this.accumulo = accumulo;
         this.tracker = tracker;
         this.hadoop = hadoop;
         this.zookeeper = zookeeper;
         this.environmentManager = environmentManager;
-
     }
 
 

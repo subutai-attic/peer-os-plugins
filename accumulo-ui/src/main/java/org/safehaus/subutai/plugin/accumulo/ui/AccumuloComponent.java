@@ -26,7 +26,8 @@ import com.vaadin.ui.VerticalLayout;
 public class AccumuloComponent extends CustomComponent
 {
 
-    public AccumuloComponent( ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Zookeeper zookeeper, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public AccumuloComponent( ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, Zookeeper zookeeper,
+                              Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
     {
 
         setSizeFull();

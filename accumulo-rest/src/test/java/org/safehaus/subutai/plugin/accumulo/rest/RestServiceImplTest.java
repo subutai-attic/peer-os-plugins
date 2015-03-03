@@ -12,12 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -31,34 +31,39 @@ import static org.mockito.Mockito.when;
 public class RestServiceImplTest
 {
     private RestServiceImpl restService;
-    private String config2 =
-            "{\"clusterName\": \"my-accumulo-cluster\",\"instanceName\": \"instance-name\",\"password\": " +
-                    "\"password\",\"masterNode\": \"master-node-hostname\",\"gcNode\": \"gc-node-hostname\"," +
-                    "\"monitor\": \"monitor-node-hostname\",\"tracers\": [\"lxc-2\",\"lxc-1\"],\"slaves\": " +
-                    "[\"lxc-3\",\"lxc-4\"]}";
+    private AccumuloClusterConfig accumuloClusterConfig;
+    private String config2 = "{\"clusterName\": \"test\",\"instanceName\": \"instance-name\",\"password\": " +
+            "\"password\",\"masterNode\": \"" + UUID.randomUUID().toString() + "\",\"gcNode\": \"" + UUID.randomUUID()
+                                                                                                         .toString()
+            + "\"," +
+            "\"monitor\": \"" + UUID.randomUUID().toString() + "\",\"tracers\": [\"" + UUID.randomUUID().toString()
+            + "\",\"" + UUID.randomUUID().toString() + "\"],\"slaves\": " +
+            "[\"" + UUID.randomUUID().toString() + "\",\"" + UUID.randomUUID().toString() + "\"]}";
     @Mock
     Accumulo accumulo;
     @Mock
     Hadoop hadoop;
     @Mock
-    EnvironmentManager environmentManager;
-    @Mock
     HadoopClusterConfig hadoopClusterConfig;
     @Mock
-    AccumuloClusterConfig accumuloClusterConfig;
-    @Mock
-    Environment environment;
-    @Mock
     ContainerHost containerHost;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
 
 
     @Before
     public void setUp() throws Exception
     {
-        restService = new RestServiceImpl();
+        restService = new RestServiceImpl( accumulo );
+        accumuloClusterConfig = new AccumuloClusterConfig();
+        restService.setTracker( tracker );
         restService.setHadoop( hadoop );
-        restService.setEnvironmentManager( environmentManager );
         restService.setAccumuloManager( accumulo );
+        when( accumulo.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
 
@@ -68,8 +73,6 @@ public class RestServiceImplTest
         List<AccumuloClusterConfig> myList = new ArrayList<>();
         myList.add( accumuloClusterConfig );
         when( accumulo.getClusters() ).thenReturn( myList );
-        when( accumuloClusterConfig.getClusterName() ).thenReturn( "test" );
-
 
         Response response = restService.listClusters();
 
@@ -81,30 +84,29 @@ public class RestServiceImplTest
     @Test
     public void testGetCluster() throws Exception
     {
-        AccumuloClusterConfig accumuloClusterConfig1 = new AccumuloClusterConfig();
-        when( accumulo.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig1 );
+        Response response = restService.getCluster( "test" );
 
-        restService.getCluster( "test" );
+        // assertions
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
-    public void testCreateCluster() throws Exception
+    public void testInstallCluster() throws Exception
     {
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( UUID.randomUUID() );
-        when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
-        when( accumulo.installCluster( accumuloClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        restService.createCluster( config2 );
+        Response response = restService.installCluster( config2 );
+
+        // assertions
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testDestroyCluster() throws Exception
     {
-        when( accumulo.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.destroyCluster( "test" );
 
         // assertions
@@ -115,7 +117,6 @@ public class RestServiceImplTest
     @Test
     public void testStartCluster() throws Exception
     {
-        when( accumulo.startCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.startCluster( "test" );
 
         // assertions
@@ -126,7 +127,6 @@ public class RestServiceImplTest
     @Test
     public void testStopCluster() throws Exception
     {
-        when( accumulo.stopCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.stopCluster( "test" );
 
         // assertions
@@ -137,18 +137,16 @@ public class RestServiceImplTest
     @Test
     public void testAddNode() throws Exception
     {
-        when( accumulo.addNode( anyString(), anyString(), any( NodeType.class ) ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.addNode( "test", "test", "MASTER_NODE" );
 
         // assertions
-        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        when( accumulo.destroyNode( anyString(), anyString(), any( NodeType.class ) ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.destroyNode( "test", "test", "MASTER_NODE" );
 
         // assertions
@@ -159,7 +157,6 @@ public class RestServiceImplTest
     @Test
     public void testCheckNode() throws Exception
     {
-        when( accumulo.checkNode( anyString(), anyString() ) ).thenReturn( UUID.randomUUID() );
         Response response = restService.checkNode( "test", "test" );
 
         // assertions
@@ -178,12 +175,5 @@ public class RestServiceImplTest
     public void testGetHadoop() throws Exception
     {
         restService.getHadoop();
-    }
-
-
-    @Test
-    public void testGetEnvironmentManager() throws Exception
-    {
-        restService.getEnvironmentManager();
     }
 }

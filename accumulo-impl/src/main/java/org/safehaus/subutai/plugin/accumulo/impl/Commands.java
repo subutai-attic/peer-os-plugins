@@ -54,6 +54,12 @@ public class Commands
     }
 
 
+    public static RequestBuilder getPackageQueryCommand( String packageName )
+    {
+        return new RequestBuilder( String.format( "dpkg -s %s", packageName ) ).withTimeout( 30 );
+    }
+
+
     public static String getClearTracerCommand( String hostname )
     {
         return ". /etc/profile && accumuloMastersConf.sh tracers clear " + hostname;

@@ -44,6 +44,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 @RunWith(MockitoJUnitRunner.class)
 public class ClusterOperationHandlerTest
 {
@@ -82,32 +83,37 @@ public class ClusterOperationHandlerTest
     @Mock
     PluginDAO pluginDAO;
 
+
     @Before
     public void setUp() throws CommandException, EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         // mock constructor
         uuid = UUID.randomUUID();
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(accumuloImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( accumuloImpl.getTracker() ).thenReturn( tracker );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( trackerOperation.getId() ).thenReturn( uuid );
 
         // mock runOperationOnContainers method
-        when(accumuloImpl.getEnvironmentManager()).thenReturn(environmentManager);
+        when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when(environment.getContainerHostById(any(UUID.class))).thenReturn(containerHost);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
-        clusterOperationHandler = new ClusterOperationHandler(accumuloImpl, accumuloClusterConfig,
-                hadoopClusterConfig, zookeeperClusterConfig, ClusterOperationType.INSTALL);
-        clusterOperationHandler2 = new ClusterOperationHandler(accumuloImpl, accumuloClusterConfig,
-                hadoopClusterConfig, zookeeperClusterConfig, ClusterOperationType.UNINSTALL);
-        clusterOperationHandler3 = new ClusterOperationHandler(accumuloImpl, accumuloClusterConfig,
-                hadoopClusterConfig, zookeeperClusterConfig, ClusterOperationType.START_ALL);
-        clusterOperationHandler4 = new ClusterOperationHandler(accumuloImpl, accumuloClusterConfig,
-                hadoopClusterConfig, zookeeperClusterConfig, ClusterOperationType.STOP_ALL);
-        clusterOperationHandler5 = new ClusterOperationHandler(accumuloImpl, accumuloClusterConfig,
-                hadoopClusterConfig, zookeeperClusterConfig, ClusterOperationType.STATUS_ALL);
+        clusterOperationHandler = new ClusterOperationHandler( accumuloImpl, accumuloClusterConfig, hadoopClusterConfig,
+                zookeeperClusterConfig, ClusterOperationType.INSTALL );
+        clusterOperationHandler2 =
+                new ClusterOperationHandler( accumuloImpl, accumuloClusterConfig, hadoopClusterConfig,
+                        zookeeperClusterConfig, ClusterOperationType.UNINSTALL );
+        clusterOperationHandler3 =
+                new ClusterOperationHandler( accumuloImpl, accumuloClusterConfig, hadoopClusterConfig,
+                        zookeeperClusterConfig, ClusterOperationType.START_ALL );
+        clusterOperationHandler4 =
+                new ClusterOperationHandler( accumuloImpl, accumuloClusterConfig, hadoopClusterConfig,
+                        zookeeperClusterConfig, ClusterOperationType.STOP_ALL );
+        clusterOperationHandler5 =
+                new ClusterOperationHandler( accumuloImpl, accumuloClusterConfig, hadoopClusterConfig,
+                        zookeeperClusterConfig, ClusterOperationType.STATUS_ALL );
 
         // mock setup method
         when( accumuloClusterConfig.getMasterNode() ).thenReturn( UUID.randomUUID() );
@@ -153,6 +159,7 @@ public class ClusterOperationHandlerTest
         when( environment.getContainerHosts() ).thenReturn( mySet );
     }
 
+
     @Test
     public void testRunWithClusterOperationTypeInstall() throws CommandException, EnvironmentNotFoundException
     {
@@ -160,33 +167,34 @@ public class ClusterOperationHandlerTest
 
         // assertions
         assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
-        verify(trackerOperation).addLogDone("Accumulo cluster data saved into database");
+        verify( trackerOperation ).addLogDone( "Accumulo cluster data saved into database" );
     }
+
 
     @Test
     public void testRunWithClusterOperationTypeUninstall() throws CommandException
     {
         Set<UUID> mySet = new HashSet<>();
-        mySet.add(uuid);
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(accumuloClusterConfig.getAllNodes()).thenReturn(mySet);
-        when(commandResult.hasSucceeded()).thenReturn(true);
-        when(accumuloImpl.getPluginDAO()).thenReturn(pluginDAO);
+        mySet.add( uuid );
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( mySet );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
+        when( accumuloImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         clusterOperationHandler2.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(
-                Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                        .toLowerCase()));
-        assertTrue(commandResult.hasSucceeded());
-        verify(trackerOperation).addLog(
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost ).execute( new RequestBuilder(
+                Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
+        assertTrue( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLog(
                 AccumuloClusterConfig.PRODUCT_KEY + " is uninstalled from node " + containerHost.getHostname()
-                        + " successfully.");
-        verify(trackerOperation).addLog(AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS.");
-        verify(accumuloImpl).getPluginDAO();
+                        + " successfully." );
+        verify( trackerOperation ).addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
+        verify( accumuloImpl ).getPluginDAO();
     }
+
 
     @Test
     public void testRunWithClusterOperationTypeStartAll() throws CommandException, EnvironmentNotFoundException
@@ -195,8 +203,9 @@ public class ClusterOperationHandlerTest
 
         // assertions
         assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
-        assertTrue(commandResult.hasSucceeded());
+        assertTrue( commandResult.hasSucceeded() );
     }
+
 
     @Test
     public void testRunWithClusterOperationTypeStopAll() throws EnvironmentNotFoundException
@@ -205,8 +214,9 @@ public class ClusterOperationHandlerTest
 
         // assertions
         assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
-        assertTrue(commandResult.hasSucceeded());
+        assertTrue( commandResult.hasSucceeded() );
     }
+
 
     @Test
     public void testRunWithClusterOperationTypeStatusAll() throws EnvironmentNotFoundException
@@ -216,51 +226,52 @@ public class ClusterOperationHandlerTest
 
         // assertions
         assertEquals( environment, accumuloImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
-        assertTrue(commandResult.hasSucceeded());
+        assertTrue( commandResult.hasSucceeded() );
     }
+
 
     @Test
     public void testRunShouldThrowClusterSetupException() throws CommandException
     {
-        when(hadoop.getCluster(anyString())).thenThrow(ClusterSetupException.class);
-        when(accumuloImpl.getCluster(anyString())).thenReturn(null);
+        when( hadoop.getCluster( anyString() ) ).thenThrow( ClusterSetupException.class );
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( null );
 
         clusterOperationHandler.run();
     }
 
+
     @Test
     public void testRunWhenCommandResultHasNotSucceeded() throws CommandException
     {
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(commandResult.hasSucceeded()).thenReturn(false);
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( commandResult.hasSucceeded() ).thenReturn( false );
 
         clusterOperationHandler2.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
-        verify(containerHost).execute(new RequestBuilder(
-                Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                        .toLowerCase()));
-        assertFalse(commandResult.hasSucceeded());
-        verify(trackerOperation).addLogFailed(
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
+        verify( containerHost ).execute( new RequestBuilder(
+                Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
+        assertFalse( commandResult.hasSucceeded() );
+        verify( trackerOperation ).addLogFailed(
                 "Could not uninstall " + AccumuloClusterConfig.PRODUCT_KEY + " from node " + containerHost
-                        .getHostname());
-
+                        .getHostname() );
     }
+
 
     @Test
     public void testRunShouldThrowsCommandException() throws CommandException
     {
-        when(accumuloImpl.getCluster(anyString())).thenReturn(accumuloClusterConfig);
-        when(containerHost.execute(new RequestBuilder(
+        when( accumuloImpl.getCluster( anyString() ) ).thenReturn( accumuloClusterConfig );
+        when( containerHost.execute( new RequestBuilder(
                 Commands.uninstallCommand + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                        .toLowerCase() ))).thenThrow(CommandException.class);
-        when(commandResult.hasSucceeded()).thenReturn(false);
+                        .toLowerCase() ) ) ).thenThrow( CommandException.class );
+        when( commandResult.hasSucceeded() ).thenReturn( false );
 
         clusterOperationHandler2.run();
 
         // assertions
-        assertNotNull(accumuloImpl.getCluster(anyString()));
+        assertNotNull( accumuloImpl.getCluster( anyString() ) );
     }
 
 /*

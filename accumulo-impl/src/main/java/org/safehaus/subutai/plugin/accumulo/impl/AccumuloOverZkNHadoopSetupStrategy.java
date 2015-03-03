@@ -145,14 +145,13 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
             }
             if ( checkIfProductIsInstalled( host, HadoopClusterConfig.PRODUCT_NAME ) )
             {
-                if ( !checkIfProductIsInstalled( host, AccumuloClusterConfig.PRODUCT_NAME ) )
+                if ( !checkIfProductIsInstalled( host, AccumuloClusterConfig.PRODUCT_PACKAGE ) )
                 {
                     try
                     {
-                        host.execute( Commands.getInstallCommand(
-                                Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ) );
-                        result = host.execute( Commands.getListOfPackageInstalledWithPrefix(
-                                Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME.toLowerCase() ) );
+                        host.execute( Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
+                        result = host.execute(
+                                Commands.getPackageQueryCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
                         String output = result.getStdOut() + result.getStdErr();
                         if ( output.contains( "install ok installed" ) )
                         {

@@ -9,15 +9,16 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+
+import com.google.common.base.Preconditions;
 
 
 /**
@@ -29,7 +30,13 @@ public class RestServiceImpl implements RestService
 
     private Accumulo accumuloManager;
     private Hadoop hadoop;
-    private EnvironmentManager environmentManager;
+    private Tracker tracker;
+
+
+    public RestServiceImpl( final Accumulo accumuloManager )
+    {
+        this.accumuloManager = accumuloManager;
+    }
 
 
     @Override
@@ -49,106 +56,170 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getCluster( final String clusterName )
     {
+        AccumuloClusterConfig config = accumuloManager.getCluster( clusterName );
+        if ( config == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found " ).build();
+        }
         String cluster = JsonUtil.toJson( accumuloManager.getCluster( clusterName ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
 
     @Override
-    public Response createCluster( final String config )
+    public Response installCluster( final String config )
     {
+        TrimmedAccumuloConfig trimmedAccumuloConfig = JsonUtil.fromJson( config, TrimmedAccumuloConfig.class );
+        AccumuloClusterConfig expandedConfig = new AccumuloClusterConfig();
+        expandedConfig.setClusterName( trimmedAccumuloConfig.getClusterName() );
+        expandedConfig.setInstanceName( trimmedAccumuloConfig.getInstanceName() );
+        expandedConfig.setPassword( trimmedAccumuloConfig.getPassword() );
+        expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
+        expandedConfig.setZookeeperClusterName( trimmedAccumuloConfig.getZkClusterName() );
+        expandedConfig.setMasterNode( UUID.fromString( trimmedAccumuloConfig.getMasterNode() ) );
+        expandedConfig.setGcNode( UUID.fromString( trimmedAccumuloConfig.getGcNode() ) );
+        expandedConfig.setMonitor( UUID.fromString( trimmedAccumuloConfig.getMonitor() ) );
 
-        try
+        Set<UUID> tracers = new HashSet<>();
+        Set<UUID> slaves = new HashSet<>();
+        for ( String tracer : trimmedAccumuloConfig.getTracers() )
         {
-            TrimmedAccumuloConfig trimmedAccumuloConfig = JsonUtil.fromJson( config, TrimmedAccumuloConfig.class );
-            AccumuloClusterConfig expandedConfig = new AccumuloClusterConfig();
-            expandedConfig.setClusterName( trimmedAccumuloConfig.getClusterName() );
-            expandedConfig.setInstanceName( trimmedAccumuloConfig.getInstanceName() );
-            expandedConfig.setPassword( trimmedAccumuloConfig.getPassword() );
-            expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
-            Environment environment = environmentManager
-                    .findEnvironment( hadoop.getCluster( expandedConfig.getHadoopClusterName() ).getEnvironmentId() );
-            expandedConfig.setMasterNode(
-                    environment.getContainerHostByHostname( trimmedAccumuloConfig.getMasterNode() ).getId() );
-            expandedConfig
-                    .setGcNode( environment.getContainerHostByHostname( trimmedAccumuloConfig.getGcNode() ).getId() );
-            expandedConfig
-                    .setMonitor( environment.getContainerHostByHostname( trimmedAccumuloConfig.getMonitor() ).getId() );
-
-            Set<UUID> tracers = new HashSet<>();
-            Set<UUID> slaves = new HashSet<>();
-            for ( String tracer : trimmedAccumuloConfig.getTracers() )
-            {
-                tracers.add( environment.getContainerHostByHostname( tracer ).getId() );
-            }
-            for ( String slave : trimmedAccumuloConfig.getSlaves() )
-            {
-                slaves.add( environment.getContainerHostByHostname( slave ).getId() );
-            }
-
-            expandedConfig.setTracers( tracers );
-            expandedConfig.setSlaves( slaves );
-
-            String operationId = wrapUUID( accumuloManager.installCluster( expandedConfig ) );
-            return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+            tracers.add( UUID.fromString( tracer ) );
         }
-        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        for ( String slave : trimmedAccumuloConfig.getSlaves() )
         {
-            e.printStackTrace();
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
+            slaves.add( UUID.fromString( slave ) );
         }
+
+        expandedConfig.setTracers( tracers );
+        expandedConfig.setSlaves( slaves );
+
+        UUID uuid = accumuloManager.installCluster( expandedConfig );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response destroyCluster( final String clusterName )
     {
-        String operationId = wrapUUID( accumuloManager.uninstallCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.uninstallCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response startCluster( final String clusterName )
     {
-        String operationId = wrapUUID( accumuloManager.startCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.startCluster( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response stopCluster( final String clusterName )
     {
-        String operationId = wrapUUID( accumuloManager.stopCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.stopCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response addNode( final String clusterName, final String lxcHostname, final String nodeType )
+    public Response addNode( final String clusterName, final String lxcHostname, String nodeType )
     {
-        NodeType accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
-
-        String operationId = wrapUUID( accumuloManager.addNode( clusterName, lxcHostname, accumuloNodeType ) );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( nodeType );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        NodeType accumuloNodeType = null;
+        nodeType = nodeType.toLowerCase();
+        if ( nodeType.contains( "tracer" ) )
+        {
+            accumuloNodeType = NodeType.ACCUMULO_TRACER;
+        }
+        else if ( nodeType.contains( "tablet" ) )
+        {
+            accumuloNodeType = NodeType.ACCUMULO_TABLET_SERVER;
+        }
+        else
+        {
+            accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
+        }
+        UUID uuid = accumuloManager.addNode( clusterName, accumuloNodeType );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response destroyNode( final String clusterName, final String lxcHostname, final String nodeType )
+    public Response destroyNode( final String clusterName, final String lxcHostname, String nodeType )
     {
-        NodeType accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
-
-        String operationId = wrapUUID( accumuloManager.destroyNode( clusterName, lxcHostname, accumuloNodeType ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( nodeType );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        NodeType accumuloNodeType = null;
+        nodeType = nodeType.toLowerCase();
+        if ( nodeType.contains( "tracer" ) )
+        {
+            accumuloNodeType = NodeType.ACCUMULO_TRACER;
+        }
+        else if ( nodeType.contains( "tablet" ) )
+        {
+            accumuloNodeType = NodeType.ACCUMULO_TABLET_SERVER;
+        }
+        else
+        {
+            accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
+        }
+        UUID uuid = accumuloManager.destroyNode( clusterName, lxcHostname, accumuloNodeType );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response checkNode( final String clusterName, final String lxcHostname )
     {
-        String operationId = wrapUUID( accumuloManager.checkNode( clusterName, lxcHostname ) );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostname );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.checkNode( clusterName, lxcHostname );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
@@ -182,14 +253,64 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public EnvironmentManager getEnvironmentManager()
+    private Response createResponse( UUID uuid, OperationState state )
     {
-        return environmentManager;
+        TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+        if ( state == OperationState.FAILED )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED )
+        {
+            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+        }
     }
 
 
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    private OperationState waitUntilOperationFinish( UUID uuid )
     {
-        this.environmentManager = environmentManager;
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 200 * 1000 ) )
+            {
+                break;
+            }
+        }
+        return state;
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
     }
 }

@@ -113,6 +113,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         switch ( clusterOperationType )
         {
             case START_ALL:
+                manager.getHadoopManager().startNameNode( hadoopConfig );
                 result = executeCommand( containerHost, Commands.startCommand );
                 break;
             case STOP_ALL:

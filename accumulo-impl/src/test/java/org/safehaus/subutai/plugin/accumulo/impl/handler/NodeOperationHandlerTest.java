@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class NodeOperationHandlerTest
 {
     private NodeOperationHandler nodeOperationHandler;
@@ -295,7 +295,7 @@ public class NodeOperationHandlerTest
     }
 
 
-    @Test( expected = ClusterConfigurationException.class )
+    @Test(expected = ClusterConfigurationException.class)
     public void testRunWithNodeOperationTypeInstallClusterConfigurationException() throws Exception
     {
         when( accumuloImpl.getEnvironmentManager() ).thenThrow( ClusterConfigurationException.class );
