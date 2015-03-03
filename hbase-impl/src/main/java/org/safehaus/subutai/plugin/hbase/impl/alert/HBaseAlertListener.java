@@ -112,7 +112,7 @@ public class HBaseAlertListener implements AlertListener
         }
 
 
-        List<NodeType> nodeRoles = targetCluster.getNodeRoles( targetCluster, sourceHost );
+        List<NodeType> nodeRoles = targetCluster.getNodeRoles( sourceHost );
 
         double totalRamUsage = 0;
         double totalCpuUsage = 0;

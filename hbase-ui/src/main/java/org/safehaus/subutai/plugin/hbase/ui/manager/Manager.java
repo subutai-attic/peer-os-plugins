@@ -6,7 +6,6 @@
 package org.safehaus.subutai.plugin.hbase.ui.manager;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -261,8 +260,6 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            // stop services before removing cluster !!!
-                            stopAllNodes();
                             UUID trackID = hbase.uninstallCluster( config.getClusterName() );
                             ProgressWindow window =
                                     new ProgressWindow( executor, tracker, trackID, HBaseConfig.PRODUCT_KEY );
@@ -367,7 +364,7 @@ public class Manager
                     return;
                 }
 
-                Environment environment = null;
+                Environment environment;
                 try
                 {
                     environment = environmentManager
@@ -504,7 +501,7 @@ public class Manager
                         .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
                 final ContainerHost host = environment.getContainerHostById( containerHost );
 
-                final List<NodeType> roles = getNodeRoles( config, host );
+                final List<NodeType> roles = config.getNodeRoles( host );
                 for ( final NodeType role : roles )
                 {
                     final Label resultHolder = new Label();
@@ -731,30 +728,6 @@ public class Manager
         {
             nodesTable.removeAllItems();
         }
-    }
-
-
-    private List<NodeType> getNodeRoles( HBaseConfig config, ContainerHost containerHost )
-    {
-        List<NodeType> nodeRoles = new ArrayList<>();
-
-        if ( config.getHbaseMaster().equals( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HMASTER );
-        }
-        if ( config.getRegionServers().contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HREGIONSERVER );
-        }
-        if ( config.getQuorumPeers().contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HQUORUMPEER );
-        }
-        if ( config.getBackupMasters().contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.BACKUPMASTER );
-        }
-        return nodeRoles;
     }
 
 

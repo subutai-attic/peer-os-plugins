@@ -20,26 +20,20 @@ public class InstallHBaseClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "hbase cluster "
-            + "name" )
-    String clusterName;
+            + "name" ) String clusterName;
     @Argument( index = 1, name = "hadoopClusterName", description = "The hostname list of worker nodes", required =
             true,
-            multiValued = false )
-    String hadoopClusterName;
+            multiValued = false ) String hadoopClusterName;
     @Argument( index = 2, name = "hmaster", description = "The hostname of HMaster node", required = true,
-            multiValued = false )
-    String hmaster;
+            multiValued = false ) String hmaster;
     @Argument( index = 3, name = "regionServers", description = "The hostname list of region server nodes", required
             = true,
-            multiValued = false )
-    String regionServers[] = null;
+            multiValued = false ) String regionServers[] = null;
     @Argument( index = 4, name = "quorumPeers", description = "The hostname list of quorum peer nodes", required = true,
-            multiValued = false )
-    String quorumPeers[] = null;
+            multiValued = false ) String quorumPeers[] = null;
     @Argument( index = 5, name = "backupMasters", description = "The hostname list of backup master nodes", required
             = true,
-            multiValued = false )
-    String backupMasters[] = null;
+            multiValued = false ) String backupMasters[] = null;
     private Tracker tracker;
     private HBase hbaseManager;
     private Hadoop hadoopManager;

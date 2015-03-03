@@ -23,7 +23,6 @@ import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
@@ -34,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-
-//import org.safehaus.subutai.plugin.common.PluginDAO;
 
 
 public class HBaseImpl implements HBase, EnvironmentEventListener
@@ -68,12 +65,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public MonitoringSettings getAlertSettings()
-    {
-        return alertSettings;
-    }
-
-
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         getMonitor().startMonitoring( hBaseAlertListener, environment, alertSettings );
@@ -95,106 +86,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public HBaseAlertListener gethBaseAlertListener()
-    {
-        return hBaseAlertListener;
-    }
-
-
-    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
-    {
-        this.hBaseAlertListener = hBaseAlertListener;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
-    }
-
-
-    public ExecutorService getExecutor()
-    {
-        return executor;
-    }
-
-
-    public void setExecutor( final ExecutorService executor )
-    {
-        this.executor = executor;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public void init()
-    {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
-        this.commands = new Commands();
-        this.executor = Executors.newCachedThreadPool();
-    }
-
-
-    public void destroy()
-    {
-        executor.shutdown();
-    }
-
-
-    public Commands getCommands()
-    {
-        return commands;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
     }
 
 
@@ -241,30 +132,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID startRegionServer( final String clusterName, String hostname )
-    {
-        Preconditions.checkNotNull( clusterName );
-        HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.START );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID stopRegionServer( final String clusterName, String hostname )
-    {
-        Preconditions.checkNotNull( clusterName );
-        HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.STOP );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -411,6 +278,112 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
                 LOG.info( String.format( "Cluster: %s destroyed in environment", clusterConfig.getClusterName() ) );
             }
         }
+    }
+
+
+    public void init()
+    {
+        try
+        {
+            this.pluginDAO = new PluginDAO( null );
+        }
+        catch ( SQLException e )
+        {
+            LOG.error( e.getMessage(), e );
+        }
+
+        this.commands = new Commands();
+        this.executor = Executors.newCachedThreadPool();
+    }
+
+
+    public void destroy()
+    {
+        executor.shutdown();
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public HBaseAlertListener gethBaseAlertListener()
+    {
+        return hBaseAlertListener;
+    }
+
+
+    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
+    {
+        this.hBaseAlertListener = hBaseAlertListener;
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
+    }
+
+
+    public ExecutorService getExecutor()
+    {
+        return executor;
+    }
+
+
+    public void setExecutor( final ExecutorService executor )
+    {
+        this.executor = executor;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Commands getCommands()
+    {
+        return commands;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }
 

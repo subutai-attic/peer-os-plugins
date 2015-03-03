@@ -9,11 +9,11 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
@@ -140,35 +140,24 @@ public class HBaseSetupStrategy
 
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            try
-            {
-                new ClusterConfiguration( trackerOperation, manager, hadoop ).configureCluster( config, env );
-            }
-            catch ( ClusterConfigurationException e )
-            {
-                throw new ClusterSetupException( e.getMessage() );
-            }
+            new ClusterConfiguration( trackerOperation, manager, hadoop ).configureCluster( config, environment );
         }
-        catch ( ClusterSetupException | EnvironmentNotFoundException e )
+        catch ( ClusterConfigurationException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup cluster %s : %s", config.getClusterName(), e.getMessage() ) );
+            throw new ClusterSetupException( e.getMessage() );
         }
 
 
         trackerOperation.addLog( "Saving to db..." );
-        boolean saved = manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config );
-
-        if ( saved )
+        try
         {
+            manager.saveConfig( config );
             trackerOperation.addLog( "Installation info successfully saved" );
         }
-        else
+        catch ( ClusterException e )
         {
             throw new ClusterSetupException( "Failed to save installation info" );
         }
-
         return config;
     }
 
@@ -180,12 +169,6 @@ public class HBaseSetupStrategy
         if ( config.getClusterName() == null || config.getClusterName().isEmpty() )
         {
             throw new ClusterSetupException( m + "Cluster name not specified" );
-        }
-
-        if ( manager.getCluster( config.getClusterName() ) != null )
-        {
-            throw new ClusterSetupException(
-                    m + String.format( "Cluster '%s' already exists", config.getClusterName() ) );
         }
     }
 }

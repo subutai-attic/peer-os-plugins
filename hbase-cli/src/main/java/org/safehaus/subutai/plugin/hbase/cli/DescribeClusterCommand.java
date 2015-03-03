@@ -14,8 +14,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false )
-    String clusterName = null;
+            multiValued = false ) String clusterName = null;
     private HBase hbaseManager;
 
 

@@ -18,8 +18,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 public class StartClusterCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false )
-    String clusterName = null;
+            multiValued = false ) String clusterName = null;
     private Tracker tracker;
     private HBase hbaseManager;
 

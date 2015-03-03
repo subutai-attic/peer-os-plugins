@@ -15,8 +15,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 public class UninstallHBaseClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "Delete cluster" )
-    String clusterName;
+    @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "Delete cluster"
+    ) String
+            clusterName;
     private HBase hbaseManager;
     private Tracker tracker;
 

@@ -10,27 +10,65 @@ import java.util.UUID;
 
 import org.safehaus.subutai.plugin.common.api.ApiBase;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
-import org.safehaus.subutai.plugin.common.api.NodeType;
 
 
 public interface HBase extends ApiBase<HBaseConfig>
 {
+    /**
+     * Install HBase cluster using ready environments.
+     *
+     * @param config - cluster configuration object
+     */
     public UUID installCluster( HBaseConfig config );
 
+
+    /**
+     * Destroys hbase node (regionserver) from hbase cluster. Note that this method just supports removing region
+     * servers.
+     *
+     * @param clusterName cluster name
+     * @param hostname hostname to be removed from cluster
+     */
     public UUID destroyNode( final String clusterName, final String hostname );
 
+
+    /**
+     * Stops HBase cluster
+     *
+     * @param clusterName - cluster name
+     */
     public UUID stopCluster( String clusterName );
 
+
+    /**
+     * Starts HBase cluster
+     *
+     * @param clusterName - cluster name
+     */
     public UUID startCluster( String clusterName );
 
-    public UUID startRegionServer( String clusterName, String hostname );
 
-    public UUID stopRegionServer( String clustername, String hostname );
-
+    /**
+     * Checks hbase services on given node
+     *
+     * @param clusterName cluster name
+     * @param hostname hostname of node to be checked
+     */
     public UUID checkNode( String clusterName, String hostname );
 
+
+    /**
+     * Adds new node to given cluster
+     *
+     * @param clusterName cluster name
+     */
     public UUID addNode( String clusterName );
 
-    public void saveConfig( final HBaseConfig config ) throws ClusterException;
 
+    /**
+     * Saves configuration object into database
+     *
+     * @param config HBase cluster configuration object
+     */
+    public void saveConfig( final HBaseConfig config ) throws ClusterException;
 }

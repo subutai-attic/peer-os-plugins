@@ -43,20 +43,8 @@ public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements
                 trackID = hbase.checkNode( clusterName, containerHost.getHostname() );
                 break;
             case START:
-                switch ( nodeType )
-                {
-                    case HREGIONSERVER:
-                        trackID = hbase.startRegionServer( clusterName, containerHost.getHostname() );
-                        break;
-                }
                 break;
             case STOP:
-                switch ( nodeType )
-                {
-                    case HREGIONSERVER:
-                        trackID = hbase.stopRegionServer( clusterName, containerHost.getHostname() );
-                        break;
-                }
                 break;
         }
         return trackID;

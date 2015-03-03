@@ -15,8 +15,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 public class StopClusterCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false )
-    String clusterName = null;
+            multiValued = false ) String clusterName = null;
     private Tracker tracker;
     private HBase hbaseManager;
 

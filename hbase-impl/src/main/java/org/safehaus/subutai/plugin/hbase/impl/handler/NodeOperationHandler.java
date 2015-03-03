@@ -1,7 +1,6 @@
 package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -73,32 +72,23 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     @Override
     public void run()
     {
-        try
+        Iterator iterator = environment.getContainerHosts().iterator();
+        ContainerHost host = null;
+        while ( iterator.hasNext() )
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            Iterator iterator = environment.getContainerHosts().iterator();
-            ContainerHost host = null;
-            while ( iterator.hasNext() )
+            host = ( ContainerHost ) iterator.next();
+            if ( host.getHostname().equals( hostname ) )
             {
-                host = ( ContainerHost ) iterator.next();
-                if ( host.getHostname().equals( hostname ) )
-                {
-                    break;
-                }
+                break;
             }
+        }
 
-            if ( host == null )
-            {
-                trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
-                return;
-            }
-            runCommand( host, operationType );
-        }
-        catch ( EnvironmentNotFoundException e )
+        if ( host == null )
         {
-            LOG.error( "Environment not found", e );
-            trackerOperation.addLogFailed( "Environment not found" );
+            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+            return;
         }
+        runCommand( host, operationType );
     }
 
 
@@ -213,7 +203,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         try
         {
             ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
-
             CommandResult result = executeCommand( hmaster, Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
             {
@@ -250,7 +239,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         {
             boolean isLogged = false;
 
-            List<NodeType> roles = findNodeRoles( host );
+            List<NodeType> roles = config.getNodeRoles( host );
 
             CommandResult result = node.execute( Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
@@ -258,7 +247,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                 String output[] = result.getStdOut().split( "\n" );
                 for ( String part : output )
                 {
-                    for ( NodeType role : roles ){
+                    for ( NodeType role : roles )
+                    {
 
                         if ( role.equals( NodeType.BACKUPMASTER ) )
                         {
@@ -272,7 +262,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                         }
                     }
                 }
-                if ( ! isLogged )
+                if ( !isLogged )
                 {
                     trackerOperation.addLog( result.getStdOut() );
                 }
@@ -307,7 +297,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
         }
 
-        List<NodeType> roles = findNodeRoles( node );
+        List<NodeType> roles = config.getNodeRoles( node );
         if ( roles.size() == 1 )
         {
             // case 1.1
@@ -352,7 +342,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
     {
-
         CommandResult result = null;
         try
         {
@@ -390,32 +379,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    protected List<NodeType> findNodeRoles( ContainerHost node )
-    {
-        List<NodeType> roles = new ArrayList<>();
-        if ( config.getHbaseMaster().equals( node.getId() ) )
-        {
-            roles.add( NodeType.HMASTER );
-        }
-        if ( config.getQuorumPeers().contains( node.getId() ) )
-        {
-            roles.add( NodeType.HQUORUMPEER );
-        }
-        if ( config.getBackupMasters().contains( node.getId() ) )
-        {
-            roles.add( NodeType.BACKUPMASTER );
-        }
-        if ( config.getRegionServers().contains( node.getId() ) )
-        {
-            roles.add( NodeType.HREGIONSERVER );
-        }
-        return roles;
-    }
-
-
     public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
     {
-
         return executeCommand( host, command, false );
     }
 }

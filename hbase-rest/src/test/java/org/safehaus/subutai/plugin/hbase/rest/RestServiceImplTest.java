@@ -28,12 +28,9 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
-    @Mock
-    HBase hBase;
-    @Mock
-    HBaseConfig hBaseConfig;
-    @Mock
-    Tracker tracker;
+    @Mock HBase hBase;
+    @Mock HBaseConfig hBaseConfig;
+    @Mock Tracker tracker;
     private RestServiceImpl restService;
 
 
@@ -62,12 +59,12 @@ public class RestServiceImplTest
     @Test
     public void testCheckNode()
     {
-        when(hBase.checkNode(anyString(), any(String.class ))).thenReturn(UUID.randomUUID());
+        when( hBase.checkNode( anyString(), any( String.class ) ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.checkNode("test", UUID.randomUUID().toString());
+        Response response = restService.checkNode( "test", UUID.randomUUID().toString() );
 
         // assertions
-        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),response.getStatus());
+        assertEquals( Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus() );
     }
 
 

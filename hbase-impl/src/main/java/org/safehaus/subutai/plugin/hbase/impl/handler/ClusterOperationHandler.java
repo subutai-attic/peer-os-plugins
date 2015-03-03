@@ -94,7 +94,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStopCommand() );
             if ( result.hasSucceeded() )
@@ -117,11 +116,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Container host not found", e );
             trackerOperation.addLogFailed( "Container host not found" );
         }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOG.error( "Environment not found", e );
-            trackerOperation.addLogFailed( "Environment not found" );
-        }
     }
 
 
@@ -129,7 +123,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             // start hadoop before starting hbase cluster
             manager.getHadoopManager()
@@ -155,11 +148,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Container host not found", e );
             trackerOperation.addLogFailed( "Container host not found" );
         }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOG.error( "Environment not found", e );
-            trackerOperation.addLogFailed( "Environment not found" );
-        }
     }
 
 
@@ -168,7 +156,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             //setup HBase cluster
             trackerOperation.addLog( "Installing cluster..." );
             HBaseSetupStrategy strategy =
@@ -183,10 +170,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Error in setupCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to setup cluster : %s", e.getMessage() ) );
         }
-        catch ( EnvironmentNotFoundException e )
-        {
-            e.printStackTrace();
-        }
     }
 
 
@@ -195,20 +178,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            if ( environment == null )
-            {
-                throw new ClusterException(
-                        String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
-            }
-
             Set<ContainerHost> hbaseNodes = environment.getContainerHostsByIds( config.getAllNodes() );
 
             if ( hbaseNodes.size() < config.getAllNodes().size() )
             {
                 throw new ClusterException( "Found fewer HBase nodes in environment than exist" );
             }
-
 
             for ( ContainerHost node : hbaseNodes )
             {
@@ -218,8 +193,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
                 }
             }
 
-            RequestBuilder uninstallCommand = manager.getCommands().getUninstallCommand();
+            // stop hbase cluster before removing hbase debian package
+            manager.stopCluster( clusterName );
 
+            RequestBuilder uninstallCommand = Commands.getUninstallCommand();
 
             trackerOperation.addLog( "Uninstalling HBase..." );
 
@@ -233,7 +210,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
                 throw new ClusterException( "Could not remove cluster info" );
             }
 
-
             trackerOperation.addLogDone( "HBase uninstalled successfully" );
         }
         catch ( ClusterException e )
@@ -246,17 +222,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             LOG.error( "Container host not found", e );
             trackerOperation.addLogFailed( "Container host not found" );
         }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOG.error( "Environment not found", e );
-            trackerOperation.addLogFailed( "Environment not found" );
-        }
     }
 
 
     public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
     {
-
         CommandResult result;
         try
         {

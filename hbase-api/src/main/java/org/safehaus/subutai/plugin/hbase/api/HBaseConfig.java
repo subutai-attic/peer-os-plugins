@@ -222,7 +222,7 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public List<NodeType> getNodeRoles( HBaseConfig clusterConfig, final ContainerHost containerHost )
+    public List<NodeType> getNodeRoles( final ContainerHost containerHost )
     {
         List<NodeType> nodeRoles = new ArrayList<>();
 
@@ -237,6 +237,10 @@ public class HBaseConfig implements ConfigBase
         if ( quorumPeers.contains( containerHost.getId() ) )
         {
             nodeRoles.add( NodeType.HQUORUMPEER );
+        }
+        if ( backupMasters.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.BACKUPMASTER );
         }
         return nodeRoles;
     }
