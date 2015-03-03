@@ -10,7 +10,6 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -169,16 +168,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             trackerOperation.addLog( "Setting up cluster..." );
             s.setup();
             trackerOperation.addLogDone( "Cluster setup completed" );
-
-            //subscribe to alerts
-            try
-            {
-                manager.subscribeToAlerts( environment );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterSetupException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
         }
         catch ( ClusterSetupException e )
         {
@@ -244,15 +233,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
 
 
             trackerOperation.addLogDone( "Shark uninstalled successfully" );
-
-            try
-            {
-                manager.unsubscribeFromAlerts( environment );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( e );
-            }
         }
         catch ( ClusterException e )
         {
