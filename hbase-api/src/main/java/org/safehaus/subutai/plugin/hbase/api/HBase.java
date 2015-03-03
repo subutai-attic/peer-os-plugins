@@ -15,7 +15,6 @@ import org.safehaus.subutai.plugin.common.api.NodeType;
 
 public interface HBase extends ApiBase<HBaseConfig>
 {
-
     public UUID installCluster( HBaseConfig config );
 
     public UUID destroyNode( final String clusterName, final String hostname );
@@ -34,5 +33,4 @@ public interface HBase extends ApiBase<HBaseConfig>
 
     public void saveConfig( final HBaseConfig config ) throws ClusterException;
 
-    ;
 }
