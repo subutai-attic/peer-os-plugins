@@ -577,7 +577,7 @@ public class Manager
                                     startNStopButton.setEnabled( false );
                                     destroyBtn.setEnabled( false );
 
-                                    executor.execute(N
+                                    executor.execute(
                                             new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
                                                     NodeOperationType.STOP, role,
                                                     new org.safehaus.subutai.plugin.common.api.CompleteEvent()
@@ -654,7 +654,6 @@ public class Manager
                             PROGRESS_ICON.setVisible( true );
                             checkBtn.setEnabled( false );
                             destroyBtn.setEnabled( false );
-                            startNStopButton.setEnabled( false );
                             executor.execute( new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
                                     NodeOperationType.STATUS, role,
                                     new org.safehaus.subutai.plugin.common.api.CompleteEvent()
@@ -669,21 +668,16 @@ public class Manager
                                                 {
                                                     checkBtn.setEnabled( true );
                                                     destroyBtn.setEnabled( true );
-                                                    startNStopButton.setCaption( STOP_BUTTON_CAPTION );
-                                                    startNStopButton.setEnabled( true );
                                                 }
                                                 else if ( state.equals( NodeState.STOPPED ) )
                                                 {
                                                     checkBtn.setEnabled( true );
                                                     destroyBtn.setEnabled( true );
-                                                    startNStopButton.setCaption( START_BUTTON_CAPTION );
-                                                    startNStopButton.setEnabled( true );
                                                 }
                                                 else if ( state.equals( NodeState.UNKNOWN ) )
                                                 {
                                                     checkBtn.setEnabled( true );
                                                     destroyBtn.setEnabled( true );
-                                                    startNStopButton.setEnabled( true );
                                                 }
                                                 resultHolder.setValue( state.name() );
                                                 PROGRESS_ICON.setVisible( false );
