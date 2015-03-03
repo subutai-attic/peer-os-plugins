@@ -65,7 +65,6 @@ public class ListHBaseClustersCommandTest
         myList.add( hBaseConfig );
 
         when( hBase.getClusters() ).thenReturn( myList );
-
         listHBaseClustersCommand.doExecute();
 
         // assertions

@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
@@ -132,6 +134,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             case ADD:
                 addNode();
                 break;
+            case DESTROY:
+                try
+                {
+                    removeNode();
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Could not remove region server !", e );
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 
@@ -172,8 +185,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                     manager.saveConfig( config );
 
                     configureExistingNodes( node );
-                    new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() )
-                            .configureNewRegionServerNode( config, environment, node );
+                    try
+                    {
+                        new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() )
+                                .configureNewRegionServerNode( config, environment, node );
+                    }
+                    catch ( ClusterConfigurationException e )
+                    {
+                        LOG.error( "Error while configuration !", e );
+                        e.printStackTrace();
+                    }
 
 
                     // check if HMaster is running, then start new region server.
@@ -191,22 +212,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             {
                 e.printStackTrace();
             }
-            return;
-        }
-        //subscribe to alerts
-        try
-        {
-            manager.subscribeToAlerts( node );
-        }
-        catch ( MonitorException e )
-        {
+
             try
             {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+                manager.subscribeToAlerts( node );
             }
-            catch ( ClusterException e1 )
+            catch ( MonitorException e )
             {
-                e1.printStackTrace();
+                LOG.error( "Error while subscribing to alert !", e );
+                e.printStackTrace();
             }
         }
     }
@@ -369,6 +383,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
 
     private void removeNode() throws ClusterException
     {
+        /**
+         * 1) sanity checks
+         * 2) find role node and determine if it is just regionserver or not
+         *    case 1.1: if just regionserver, then remove HBase debian package from that node.
+         *    case 1.2: else just remove regionserver entry from configuration files and stop regionserver service
+         * 3) Update configuration entry in database
+         */
 
         //check if node is in the cluster
         if ( !config.getAllNodes().contains( node.getId() ) )
@@ -376,22 +397,44 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
         }
 
-        if ( config.getAllNodes().size() == 1 )
+        List<NodeType> roles = findNodeRoles( node );
+        if ( roles.size() == 1 )
         {
-            throw new ClusterException( "This is the last node in the cluster. Please, destroy cluster instead" );
+            // case 1.1
+            // uninstall hbase from that node
+            trackerOperation.addLog( "Removing HBase from node..." );
+            CommandResult result = executeCommand( node, Commands.getUninstallCommand() );
+            if ( result.hasSucceeded() )
+            {
+                trackerOperation.addLog( "HBase is removed successfully" );
+            }
+
+            // configure other nodes in cluster
+            trackerOperation.addLog( "Notifying other nodes in cluster..." );
+            ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                    Commands.getRemoveRegionServerCommand( node.getHostname() ), environment );
+
+            trackerOperation.addLog( "Updating cluster information.." );
+            // update configuration
+            config.getRegionServers().remove( node.getId() );
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated successfully" );
         }
-
-        trackerOperation.addLog( "Uninstalling HBase..." );
-
-        executeCommand( node, manager.getCommands().getUninstallCommand(), true );
-
-        config.getAllNodes().remove( node.getId() );
-
-        trackerOperation.addLog( "Updating db..." );
-
-        if ( !manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        else
         {
-            throw new ClusterException( "Could not update cluster info" );
+            // case 1.2
+            // configure other nodes in cluster
+            trackerOperation.addLog( "Notifying other nodes in cluster..." );
+            ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                    Commands.getRemoveRegionServerCommand( node.getHostname() ), environment );
+
+            executeCommand( node, Commands.getStopRegionServer() );
+
+            trackerOperation.addLog( "Updating cluster information.." );
+            // update configuration
+            config.getRegionServers().remove( node.getId() );
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated successfully" );
         }
     }
 
@@ -434,6 +477,29 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             }
         }
         return result;
+    }
+
+
+    protected List<NodeType> findNodeRoles( ContainerHost node )
+    {
+        List<NodeType> roles = new ArrayList<>();
+        if ( config.getHbaseMaster().equals( node.getId() ) )
+        {
+            roles.add( NodeType.HMASTER );
+        }
+        if ( config.getQuorumPeers().contains( node.getId() ) )
+        {
+            roles.add( NodeType.HQUORUMPEER );
+        }
+        if ( config.getBackupMasters().contains( node.getId() ) )
+        {
+            roles.add( NodeType.BACKUPMASTER );
+        }
+        if ( config.getRegionServers().contains( node.getId() ) )
+        {
+            roles.add( NodeType.HREGIONSERVER );
+        }
+        return roles;
     }
 
 

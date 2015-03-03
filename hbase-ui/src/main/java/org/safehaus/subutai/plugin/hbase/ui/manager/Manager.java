@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
@@ -92,9 +91,6 @@ public class Manager
     private final Tracker tracker;
     private final String MESSAGE = "No cluster is installed !";
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
-    private final Pattern HMASTER_PATTERN = Pattern.compile( ".*(HMaster.+?g).*" );
-    private final Pattern REGION_PATTERN = Pattern.compile( ".*(HRegionServer.+?g).*" );
-    private final Pattern QUORUM_PATTERN = Pattern.compile( ".*(HQuorumPeer.+?g).*" );
     private final EnvironmentManager environmentManager;
     private HBaseConfig config = new HBaseConfig();
     private Table nodesTable = null;
@@ -459,7 +455,6 @@ public class Manager
     private void startAllNodes()
     {
         PROGRESS_ICON.setVisible( true );
-        startHadoopCluster();
         disableOREnableAllButtonsOnTable( nodesTable, false );
         executor.execute( new StartTask( hbase, tracker, config.getClusterName(), new CompleteEvent()
         {
@@ -473,13 +468,6 @@ public class Manager
                 }
             }
         } ) );
-    }
-
-
-    private void startHadoopCluster()
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-        hadoop.startNameNode( hadoopClusterConfig );
     }
 
 
@@ -589,7 +577,7 @@ public class Manager
                                     startNStopButton.setEnabled( false );
                                     destroyBtn.setEnabled( false );
 
-                                    executor.execute(
+                                    executor.execute(N
                                             new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
                                                     NodeOperationType.STOP, role,
                                                     new org.safehaus.subutai.plugin.common.api.CompleteEvent()
@@ -615,44 +603,40 @@ public class Manager
                             @Override
                             public void buttonClick( final Button.ClickEvent clickEvent )
                             {
-                                PROGRESS_ICON.setVisible( true );
-                                if ( startNStopButton.getCaption().equals( START_BUTTON_CAPTION ) )
+                                if ( config.getRegionServers().size() == 1 )
                                 {
-                                    executor.execute(
-                                            new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
-                                                    NodeOperationType.START, role,
-                                                    new org.safehaus.subutai.plugin.common.api.CompleteEvent()
-                                                    {
+                                    show( "This is the last region server in the cluster. Please, destroy cluster "
+                                            + "instead" );
+                                    return;
+                                }
 
-                                                        @Override
-                                                        public void onComplete( final NodeState state )
-                                                        {
-                                                            synchronized ( PROGRESS_ICON )
-                                                            {
-                                                                PROGRESS_ICON.setVisible( false );
-                                                                checkBtn.click();
-                                                            }
-                                                        }
-                                                    }, null ) );
-                                }
-                                else if ( startNStopButton.getCaption().equals( STOP_BUTTON_CAPTION ) )
+                                ConfirmationDialog alert = new ConfirmationDialog(
+                                        String.format( "Do you want to destroy %s node ?", host.getHostname() ), "Yes",
+                                        "No" );
+                                alert.getOk().addClickListener( new Button.ClickListener()
                                 {
-                                    executor.execute(
-                                            new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
-                                                    NodeOperationType.STOP, role,
-                                                    new org.safehaus.subutai.plugin.common.api.CompleteEvent()
-                                                    {
-                                                        @Override
-                                                        public void onComplete( final NodeState state )
-                                                        {
-                                                            synchronized ( PROGRESS_ICON )
-                                                            {
-                                                                PROGRESS_ICON.setVisible( false );
-                                                                checkBtn.click();
-                                                            }
-                                                        }
-                                                    }, null ) );
-                                }
+                                    @Override
+                                    public void buttonClick( Button.ClickEvent clickEvent )
+                                    {
+                                        PROGRESS_ICON.setVisible( true );
+                                        UUID track = hbase.destroyNode( config.getClusterName(), host.getHostname() );
+                                        ProgressWindow window =
+                                                new ProgressWindow( executor, tracker, track, HBaseConfig.PRODUCT_KEY );
+                                        window.getWindow().addCloseListener( new Window.CloseListener()
+                                        {
+                                            @Override
+                                            public void windowClose( Window.CloseEvent closeEvent )
+                                            {
+                                                PROGRESS_ICON.setVisible( false );
+                                                refreshClustersInfo();
+                                                checkAllBtn.click();
+                                            }
+                                        } );
+                                        contentRoot.getUI().addWindow( window.getWindow() );
+                                    }
+                                } );
+
+                                contentRoot.getUI().addWindow( alert.getAlert() );
                             }
                         } );
                     }
@@ -719,21 +703,6 @@ public class Manager
                 LOGGER.error( "Environment not found", e );
             }
         }
-    }
-
-
-    public Label getHmasterNodeState()
-    {
-        for ( Object o : nodesTable.getItemIds() )
-        {
-            int rowId = ( Integer ) o;
-            Item row = nodesTable.getItem( rowId );
-            if ( row.getItemProperty( NODE_ROLE_COLUMN_CAPTION ).getValue().equals( NodeType.HMASTER.name() ) )
-            {
-                return ( Label ) row.getItemProperty( STATUS_COLUMN_CAPTION ).getValue();
-            }
-        }
-        return null;
     }
 
 
@@ -824,46 +793,6 @@ public class Manager
             }
         }
     }
-
-
-    //    private String parseStatus( String result, NodeType role )
-    //    {
-    //        StringBuilder sb = new StringBuilder();
-    //
-    //        if ( result.contains( "not connected" ) )
-    //        {
-    //            sb.append( "Host is not connected !" );
-    //            return sb.toString();
-    //        }
-    //
-    //        switch ( role ){
-    //            case HMASTER:
-    //                sb.append( parseStatus( result, HMASTER_PATTERN ) );
-    //                break;
-    //            case HREGIONSERVER:
-    //                sb.append( parseStatus( result, REGION_PATTERN ) );
-    //                break;
-    //            case HQUORUMPEER:
-    //                sb.append( parseStatus( result, QUORUM_PATTERN ) );
-    //                break;
-    //            case BACKUPMASTER:
-    //                sb.append( parseStatus( result, HMASTER_PATTERN ) );
-    //                break;
-    //        }
-    //        return sb.toString();
-    //    }
-
-
-    //    private String parseStatus( String result, Pattern pattern )
-    //    {
-    //        StringBuilder parsedResult = new StringBuilder();
-    //        Matcher masterMatcher = pattern.matcher( result );
-    //        if ( masterMatcher.find() )
-    //        {
-    //            parsedResult.append( masterMatcher.group( 1 ) );
-    //        }
-    //        return parsedResult.toString() + "\n";
-    //    }
 
 
     private Table createTableTemplate( String caption )

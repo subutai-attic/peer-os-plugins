@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.AlertListener;
@@ -33,8 +34,8 @@ public class HBaseAlertListener implements AlertListener
 {
     public static final String HBASE_ALERT_LISTENER = "HBASE_ALERT_LISTENER";
     private static final Logger LOG = LoggerFactory.getLogger( HBaseAlertListener.class.getName() );
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
+    private static double MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
     private HBaseImpl hbase;
@@ -71,24 +72,29 @@ public class HBaseAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = hbase.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
-        if ( environment == null )
-        {
-            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
-            return;
-        }
-
-        //get environment containers and find alert's source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
-
+        Environment environment;
         ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        Set<ContainerHost> containers;
+        try
         {
-            if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
+            environment = hbase.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+            //get environment containers and find alert's source host
+
+            containers = environment.getContainerHosts();
+
+            for ( ContainerHost containerHost : containers )
             {
-                sourceHost = containerHost;
-                break;
+                if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
+                {
+                    sourceHost = containerHost;
+                    break;
+                }
             }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Could not find environment with id {}", targetCluster.getEnvironmentId() );
+            return;
         }
 
         if ( sourceHost == null )
@@ -110,7 +116,7 @@ public class HBaseAlertListener implements AlertListener
 
         double totalRamUsage = 0;
         double totalCpuUsage = 0;
-        double redLine = 0.9;
+        double redLine = 0.7;
 
         // confirm that Hadoop is causing the stress, otherwise no-op
         MonitoringSettings thresholds = hbase.getAlertSettings();
@@ -191,16 +197,25 @@ public class HBaseAlertListener implements AlertListener
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
 
-
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
-                    //we can increase RAM quota
-                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
 
-                    quotaIncreased = true;
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
+                        //we can increase RAM quota
+                        sourceHost.setRamQuota( newRamQuota );
+
+                        quotaIncreased = true;
+                    }
                 }
             }
-            else if ( isCPUStressedByHBase )
+
+            if ( isCPUStressedByHBase )
             {
 
                 //read current CPU quota
@@ -208,8 +223,12 @@ public class HBaseAlertListener implements AlertListener
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
+
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -268,7 +287,7 @@ public class HBaseAlertListener implements AlertListener
                 if ( isSourceNodeUnderStressBySlaveNodes( ramConsumption, cpuConsumption ) )
                 {
                     // add new nodes to hbase cluster (horizontal scaling)
-                    hbase.addNode( targetCluster.getClusterName(), NodeType.HREGIONSERVER.name() );
+                    hbase.addNode( targetCluster.getClusterName(), newNodeHostName );
                 }
             }
         }
@@ -317,19 +336,15 @@ public class HBaseAlertListener implements AlertListener
     }
 
 
-    protected String parseService( String output, String target ) throws AlertException
+    protected String parseService( String output, String target )
     {
-        Matcher m = Pattern.compile( "(?m)^.*$" ).matcher( output );
-        if ( m.find() )
+        String inputArray[] = output.split( "\n" );
+        for ( String part : inputArray )
         {
-            if ( m.group().toLowerCase().contains( target.toLowerCase() ) )
+            if ( part.toLowerCase().contains( target ) )
             {
-                return m.group();
+                return part;
             }
-        }
-        else
-        {
-            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
         }
         return null;
     }

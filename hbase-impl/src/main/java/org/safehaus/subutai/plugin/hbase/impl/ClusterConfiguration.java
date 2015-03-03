@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -151,6 +152,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         config.setEnvironmentId( environment.getId() );
         hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "HBase cluster data saved into database" );
+
+        try
+        {
+            hBase.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            LOG.error( "Failed to subscribe to alerts !", e );
+            e.printStackTrace();
+        }
     }
 
 
@@ -199,6 +210,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
     public void configureNewRegionServerNode( ConfigBase configBase, Environment environment, ContainerHost host )
+            throws ClusterConfigurationException
     {
         HBaseConfig config = ( HBaseConfig ) configBase;
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
@@ -310,5 +322,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         config.setEnvironmentId( environment.getId() );
         hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "HBase cluster data saved into database" );
+
+
+        //subscribe to alerts
+        try
+        {
+            hBase.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
     }
 }

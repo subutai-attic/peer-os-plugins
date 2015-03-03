@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.hbase.cli;
 
 
-import java.util.UUID;
-
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
@@ -11,10 +9,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-/**
- * Displays the last log entries
- */
-@Command( scope = "hbase", name = "describe-cluster", description = "Shows the details of the Cassandra cluster." )
+@Command( scope = "hbase", name = "describe-cluster", description = "Shows the details of the HBase cluster." )
 public class DescribeClusterCommand extends OsgiCommandSupport
 {
 
@@ -22,18 +17,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String clusterName = null;
     private HBase hbaseManager;
-
-
-    public HBase getHbaseManager()
-    {
-        return hbaseManager;
-    }
-
-
-    public void setHbaseManager( HBase hbaseManager )
-    {
-        this.hbaseManager = hbaseManager;
-    }
 
 
     protected Object doExecute()
@@ -46,16 +29,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             sb.append( "Domain name: " ).append( config.getDomainName() ).append( "\n" );
             sb.append( "Master node: " ).append( config.getHbaseMaster() ).append( "\n" );
             sb.append( "Backup master node: " ).append( config.getBackupMasters() ).append( "\n" );
-            sb.append( "Region nodes:" ).append( "\n" );
-            for ( UUID agent : config.getRegionServers() )
-            {
-                sb.append( agent ).append( "\n" );
-            }
-            sb.append( "Quorum nodes:" ).append( "\n" );
-            for ( UUID agent : config.getQuorumPeers() )
-            {
-                sb.append( agent ).append( "\n" );
-            }
+            sb.append( "Region nodes: " ).append( config.getRegionServers() ).append( "\n" );
+            sb.append( "Quorum nodes: " ).append( config.getQuorumPeers() ).append( "\n" );
             System.out.println( sb.toString() );
         }
         else
@@ -64,5 +39,17 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
+    }
+
+
+    public HBase getHbaseManager()
+    {
+        return hbaseManager;
+    }
+
+
+    public void setHbaseManager( HBase hbaseManager )
+    {
+        this.hbaseManager = hbaseManager;
     }
 }

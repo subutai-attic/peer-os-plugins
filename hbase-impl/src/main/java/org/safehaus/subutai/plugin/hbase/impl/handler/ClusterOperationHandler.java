@@ -131,6 +131,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+            // start hadoop before starting hbase cluster
+            manager.getHadoopManager()
+                   .startNameNode( manager.getHadoopManager().getCluster( config.getHadoopClusterName() ) );
             CommandResult result = hmaster.execute( Commands.getStartCommand() );
             if ( result.hasSucceeded() )
             {

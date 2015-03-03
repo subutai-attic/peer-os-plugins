@@ -143,7 +143,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getUninstallCommand()
+    public static RequestBuilder getUninstallCommand()
     {
 
         return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 360 )

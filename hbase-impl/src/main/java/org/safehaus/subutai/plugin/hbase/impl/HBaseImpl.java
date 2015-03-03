@@ -74,9 +74,9 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().activateMonitoring( host, alertSettings );
+        getMonitor().startMonitoring( hBaseAlertListener, environment, alertSettings );
     }
 
 
@@ -89,6 +89,12 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void setMonitor( final Monitor monitor )
     {
         this.monitor = monitor;
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
@@ -206,15 +212,13 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     @Override
     public UUID destroyNode( final String clusterName, final String hostname )
     {
-        // TODO
-        //        Preconditions.checkNotNull( clusterName );
-        //        Preconditions.checkNotNull( hostname );
-        //        HBaseConfig config = getCluster( clusterName );
-        //        AbstractOperationHandler operationHandler =
-        //                new NodeOperationHandler( this, config, hostname, NodeOperationType.EXCLUDE );
-        //        executor.execute( operationHandler );
-        //        return operationHandler.getTrackerId();
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hostname );
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, hostname, NodeType.HREGIONSERVER, NodeOperationType.DESTROY );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 

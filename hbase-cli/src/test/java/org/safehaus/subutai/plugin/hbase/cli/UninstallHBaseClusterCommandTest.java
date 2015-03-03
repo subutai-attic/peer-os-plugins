@@ -5,12 +5,14 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
-import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -89,10 +91,14 @@ public class UninstallHBaseClusterCommandTest
         uninstallHBaseClusterCommand.setHbaseManager( hBase );
         UUID uuid = new UUID( 50, 50 );
         when( hBase.uninstallCluster( anyString() ) ).thenReturn( uuid );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) )
+                .thenReturn( mock( TrackerOperationView.class ) );
+
         uninstallHBaseClusterCommand.doExecute();
 
         // assertions
         verify( hBase ).uninstallCluster( anyString() );
-        verify( tracker ).printOperationLog( HBaseConfig.PRODUCT_KEY, uuid, 30000 );
+        when( StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) ).thenReturn( OperationState.FAILED );
+        assertEquals( OperationState.FAILED, StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
     }
 }
