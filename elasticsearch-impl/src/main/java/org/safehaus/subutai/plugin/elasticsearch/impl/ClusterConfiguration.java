@@ -10,6 +10,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
@@ -80,6 +81,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             manager.saveConfig( clusterConfiguration );
         }
         catch ( ClusterException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
+
+        //subscribe to alerts
+        try
+        {
+            manager.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
         {
             throw new ClusterConfigurationException( e );
         }

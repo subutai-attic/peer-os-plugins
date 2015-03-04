@@ -1,9 +1,8 @@
 package org.safehaus.subutai.plugin.elasticsearch.impl.handler;
 
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -27,6 +26,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
+import org.safehaus.subutai.plugin.elasticsearch.impl.Commands;
 import org.safehaus.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,80 @@ public class ClusterOperationHandler
             case ADD:
                 addNode();
                 break;
+            case START_ALL:
+            case STOP_ALL:
+                startNStop( operationType );
+                break;
+        }
+    }
 
+
+    private void startNStop( final ClusterOperationType operationType )
+    {
+        boolean isSuccessful = true;
+        try
+        {
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            switch ( operationType ){
+                case START_ALL:
+                    for ( UUID uuid : config.getNodes() ){
+                        try
+                        {
+                            ContainerHost host = env.getContainerHostById( uuid );
+                            try
+                            {
+                                trackerOperation.addLog( "Staring elasticsearch on node " + host.getHostname() );
+                                CommandResult result = host.execute( Commands.getStartCommand() );
+                                if ( ! result.hasSucceeded() ){
+                                    isSuccessful = false;
+                                }
+                            }
+                            catch ( CommandException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+                case STOP_ALL:
+                    for ( UUID uuid : config.getNodes() ){
+                        try
+                        {
+                            ContainerHost host = env.getContainerHostById( uuid );
+                            try
+                            {
+                                trackerOperation.addLog( "Stopping elasticsearch on node " + host.getHostname() );
+                                CommandResult result = host.execute( Commands.getStartCommand() );
+                                if ( ! result.hasSucceeded() ){
+                                    isSuccessful = false;
+                                }
+                            }
+                            catch ( CommandException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        if ( isSuccessful ){
+            trackerOperation.addLogDone( "All Elasticsearch nodes is started succesfully" );
+        }
+        else{
+            trackerOperation.addLogFailed( "Failed to start all Elasticsearch nodes" );
         }
     }
 
@@ -175,6 +248,7 @@ public class ClusterOperationHandler
         }
     }
 
+
     private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
     {
         ContainerHost unusedNode = null;
@@ -198,6 +272,7 @@ public class ClusterOperationHandler
         }
         return checkUnusedNode( unusedNode );
     }
+
 
     private ContainerHost checkUnusedNode( ContainerHost node )
     {
@@ -226,6 +301,8 @@ public class ClusterOperationHandler
         }
         try
         {
+            // stop cluster before removing it
+            manager.stopCluster( config.getClusterName() );
             manager.deleteConfig( config );
             trackerOperation.addLogDone( "Cluster removed from database" );
         }
@@ -310,32 +387,23 @@ public class ClusterOperationHandler
             return;
         }
 
-        trackerOperation.addLog( "Uninstalling ES..." );
-        Set<ContainerHost> esNodes;
-        try
-        {
-            esNodes = environment.getContainerHostsByIds( config.getNodes() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            trackerOperation.addLogFailed( String.format( "Error accessing environment containers: %s", e ) );
-            return;
-        }
-        for ( ContainerHost node : esNodes )
-        {
-            executeCommand( node, manager.getCommands().getUninstallCommand() );
-        }
-        manager.getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() );
-
+        manager.stopCluster( config.getClusterName() );
         try
         {
             manager.unsubscribeFromAlerts( environment );
         }
         catch ( MonitorException e )
         {
-            LOG.error( "Failed to unsubscribe from alerts", e );
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
         }
 
-        trackerOperation.addLogDone( "Cluster destroyed" );
+        if ( manager.getPluginDAO().deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+        }
     }
 }
