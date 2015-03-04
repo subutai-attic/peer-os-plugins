@@ -4,12 +4,15 @@ package org.safehaus.subutai.plugin.common.impl;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.identity.api.IdentityManager;
 import org.safehaus.subutai.core.identity.api.User;
 import org.safehaus.subutai.plugin.common.model.ClusterDataEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -23,14 +26,13 @@ public class PluginDataService
 {
     private EntityManagerFactory emf;
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final Logger LOGGER = LoggerFactory.getLogger( PluginDataService.class );
-    private User user;
+    private static final Logger LOG = LoggerFactory.getLogger( PluginDataService.class );
     private IdentityManager identityManager;
 
-    public PluginDataService( final EntityManagerFactory emf, IdentityManager identityManager ) throws SQLException
+    public PluginDataService( final EntityManagerFactory emf ) throws SQLException
     {
+        init();
         this.emf = emf;
-        this.identityManager = identityManager;
         try
         {
             this.emf.createEntityManager().close();
@@ -39,33 +41,48 @@ public class PluginDataService
         {
             throw new SQLException( e );
         }
-        setUser( identityManager.getUser() );
     }
 
 
-    public PluginDataService( final EntityManagerFactory emf, IdentityManager identityManager , final GsonBuilder gsonBuilder )
+    public PluginDataService( final EntityManagerFactory emf, final GsonBuilder gsonBuilder )
     {
         Preconditions.checkNotNull( emf, "EntityManagerFactory cannot be null." );
-        Preconditions.checkNotNull( identityManager, "IdentityManager cannot be null." );
         Preconditions.checkNotNull( gsonBuilder, "GsonBuilder cannot be null." );
-
+        init();
         this.emf = emf;
-        this.identityManager = identityManager;
-        setUser( identityManager.getUser() );
         gson = gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create();
     }
 
+
+    public void init()
+    {
+        ServiceLocator serviceLocator = new ServiceLocator();
+        try {
+            identityManager = serviceLocator.getService( IdentityManager.class );
+        }
+        catch ( NamingException e ) {
+            LOG.error( e.getMessage() );
+            e.printStackTrace();
+        }
+    }
 
     public void update( String source, String key, final Object info ) throws SQLException
     {
         String infoJson = gson.toJson( info );
         EntityManager em = emf.createEntityManager();
+        Long userId = null;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
             key = key.toUpperCase();
             em.getTransaction().begin();
-            ClusterDataEntity entity = new ClusterDataEntity( source, key, infoJson, user.getId() );
+            ClusterDataEntity entity = new ClusterDataEntity( source, key, infoJson, userId );
             em.merge( entity );
             em.flush();
             em.getTransaction().commit();
@@ -88,12 +105,19 @@ public class PluginDataService
     public void update( String source, String key, final String info ) throws SQLException
     {
         EntityManager em = emf.createEntityManager();
+        Long userId = null;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
             key = key.toUpperCase();
             em.getTransaction().begin();
-            ClusterDataEntity entity = new ClusterDataEntity( source, key, info, user.getId() );
+            ClusterDataEntity entity = new ClusterDataEntity( source, key, info, userId );
             em.merge( entity );
             em.flush();
             em.getTransaction().commit();
@@ -117,6 +141,14 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         List<T> result = new ArrayList<>();
+        Long userId;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+            return null;
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -126,7 +158,7 @@ public class PluginDataService
                     em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source " +
                             "and cd.userId = :userId", String.class )
                             .setParameter( "source", source )
-                            .setParameter( "userId", user.getId() )
+                            .setParameter( "userId", userId )
                             .getResultList();
             for ( final String info : infoList )
             {
@@ -155,6 +187,15 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         T result = null;
+        Long userId;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+            return null;
+        }
+
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -166,7 +207,7 @@ public class PluginDataService
                     String.class );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
-            query.setParameter( "userId", user.getId() );
+            query.setParameter( "userId", userId );
 
             List<String> infoList = query.getResultList();
             if ( infoList.size() > 0 )
@@ -195,6 +236,14 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         List<String> result = new ArrayList<>();
+        Long userId;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+            return null;
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -204,7 +253,7 @@ public class PluginDataService
                     em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source " +
                             "and cd.userId = :userId", String.class )
                             .setParameter( "source", source )
-                            .setParameter( "userId", user.getId() )
+                            .setParameter( "userId", userId )
                             .getResultList();
 
             em.getTransaction().commit();
@@ -229,6 +278,14 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         String result = null;
+        Long userId;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+            return null;
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -240,7 +297,7 @@ public class PluginDataService
                     String.class );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
-            query.setParameter( "userId", user.getId() );
+            query.setParameter( "userId", userId );
 
             List<String> infoList = query.getResultList();
             if ( infoList.size() > 0 )
@@ -268,6 +325,13 @@ public class PluginDataService
     public void remove( String source, String key ) throws SQLException
     {
         EntityManager em = emf.createEntityManager();
+        Long userId = null;
+        try {
+            userId = identityManager.getUser().getId();
+        } catch ( Exception e ) {
+            LOG.error( "Could not retrieve current user!" );
+        }
+        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -278,7 +342,7 @@ public class PluginDataService
                             "and cd.userId = :userId" );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
-            query.setParameter( "userId", user.getId() );
+            query.setParameter( "userId", userId );
             query.executeUpdate();
             em.getTransaction().commit();
         }
@@ -294,16 +358,6 @@ public class PluginDataService
         {
             em.close();
         }
-    }
-
-
-    public User getUser() {
-        return user;
-    }
-
-
-    private void setUser( User user ) {
-        this.user = user;
     }
 
 

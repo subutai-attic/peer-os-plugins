@@ -6,16 +6,21 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+
+import org.safehaus.subutai.common.util.ServiceLocator;
+import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.identity.api.IdentityManager;
 import org.safehaus.subutai.plugin.common.impl.EmfUtil;
 import org.safehaus.subutai.plugin.common.impl.PluginDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -29,13 +34,11 @@ public class PluginDAO
     private EmfUtil emfUtil = new EmfUtil();
 
     private PluginDataService dataService;
-    private IdentityManager identityManager;
-
 
 
     public PluginDAO( DataSource dataSource ) throws SQLException
     {
-        this.dataService = new PluginDataService( emfUtil.getEmf(), identityManager );
+        this.dataService = new PluginDataService( emfUtil.getEmf() );
     }
 
 
@@ -47,14 +50,7 @@ public class PluginDAO
     public PluginDAO( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
     {
         Preconditions.checkNotNull( dataSource, "GsonBuilder is null" );
-        this.dataService = new PluginDataService( emfUtil.getEmf(), identityManager , gsonBuilder );
-    }
-
-
-    protected void setupDb() throws SQLException
-    {
-
-
+        this.dataService = new PluginDataService( emfUtil.getEmf() , gsonBuilder );
     }
 
 
@@ -63,7 +59,6 @@ public class PluginDAO
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( key ), "Key is null or empty" );
         Preconditions.checkNotNull( info, "Info is null" );
-
 
         try
         {
@@ -223,15 +218,5 @@ public class PluginDAO
             LOG.error( e.getMessage(), e );
         }
         return false;
-    }
-
-
-    public IdentityManager getIdentityManager() {
-        return identityManager;
-    }
-
-
-    public void setIdentityManager( IdentityManager identityManager ) {
-        this.identityManager = identityManager;
     }
 }
