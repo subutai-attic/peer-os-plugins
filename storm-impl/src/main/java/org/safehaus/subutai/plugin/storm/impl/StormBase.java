@@ -33,7 +33,7 @@ public abstract class StormBase implements Storm
     protected ExecutorService executor;
     protected PeerManager peerManager;
     protected Monitor monitor;
-    private StormAlertListener stormAlertListener;
+    protected StormAlertListener stormAlertListener;
 
 
     public void setExecutor( ExecutorService executor )

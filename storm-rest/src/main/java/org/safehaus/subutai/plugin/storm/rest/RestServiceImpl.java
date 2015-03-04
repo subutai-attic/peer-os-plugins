@@ -155,7 +155,7 @@ public class RestServiceImpl implements RestService
 
         config.setSupervisors( uuidSet );
 
-        UUID uuid = stormManager.configureEnvironmentCluster( config );
+        UUID uuid = stormManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }

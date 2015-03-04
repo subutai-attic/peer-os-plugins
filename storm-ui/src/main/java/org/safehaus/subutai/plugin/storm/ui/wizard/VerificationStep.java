@@ -99,7 +99,7 @@ public class VerificationStep extends VerticalLayout
                 @Override
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
-                    UUID trackID = storm.configureEnvironmentCluster( wizard.getConfig() );
+                    UUID trackID = storm.installCluster( wizard.getConfig() );
                     ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                             StormClusterConfiguration.PRODUCT_KEY );
                     window.getWindow().addCloseListener( new Window.CloseListener()
@@ -175,7 +175,7 @@ public class VerificationStep extends VerticalLayout
                 public void buttonClick( Button.ClickEvent event )
                 {
 
-                    UUID trackID = storm.configureEnvironmentCluster( wizard.getConfig() );
+                    UUID trackID = storm.installCluster( wizard.getConfig() );
                     ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                             StormClusterConfiguration.PRODUCT_NAME );
                     window.getWindow().addCloseListener( new Window.CloseListener()

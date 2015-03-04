@@ -513,15 +513,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             return;
         }
 
-        try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
-
         if ( manager.getPluginDAO().deleteInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
         {
             trackerOperation.addLogDone( "Cluster information deleted from database" );
@@ -529,6 +520,15 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         else
         {
             trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+        }
+
+        try
+        {
+            manager.unsubscribeFromAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
         }
     }
 
