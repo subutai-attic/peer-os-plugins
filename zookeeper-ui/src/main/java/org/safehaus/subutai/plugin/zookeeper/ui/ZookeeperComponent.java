@@ -20,7 +20,8 @@ import com.vaadin.ui.VerticalLayout;
 public class ZookeeperComponent extends CustomComponent
 {
 
-    public ZookeeperComponent( ExecutorService executorService, Zookeeper zookeeper, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public ZookeeperComponent( ExecutorService executorService, Zookeeper zookeeper, Hadoop hadoop, Tracker tracker,
+                               EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 

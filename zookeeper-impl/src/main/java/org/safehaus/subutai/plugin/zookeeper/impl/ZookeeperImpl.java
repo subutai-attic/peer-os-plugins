@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
-import org.safehaus.subutai.common.util.UUIDUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
@@ -23,6 +22,7 @@ import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 
 //TODO: Add parameter validation
@@ -68,7 +67,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     {
         this.monitor = monitor;
         this.zookeeperAlertListener = new ZookeeperAlertListener( this );
-        this.monitor.addAlertListener( zookeeperAlertListener );
+        monitor.addAlertListener( zookeeperAlertListener );
     }
 
 
@@ -228,6 +227,30 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         executor.execute( operationHandler );
 
         return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public void saveConfig( final ZookeeperClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final ZookeeperClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !pluginDAO.deleteInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
     }
 
 

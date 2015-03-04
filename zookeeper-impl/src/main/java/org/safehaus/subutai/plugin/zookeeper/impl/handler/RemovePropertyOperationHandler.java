@@ -22,8 +22,8 @@ import com.google.common.base.Strings;
 
 
 /**
-* Handles ZK config property removal
-*/
+ * Handles ZK config property removal
+ */
 public class RemovePropertyOperationHandler extends AbstractOperationHandler<ZookeeperImpl, ZookeeperClusterConfig>
 {
     private final String fileName;
@@ -91,7 +91,8 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
             return;
         }
         List<CommandResult> commandResultList = new ArrayList<>();
-        for ( ContainerHost zookeeperNode : zookeeperNodes ) {
+        for ( ContainerHost zookeeperNode : zookeeperNodes )
+        {
             try
             {
                 CommandResult commandResult = zookeeperNode.execute( new RequestBuilder( removePropertyCommand ) );
@@ -110,7 +111,8 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
             commandResultList = new ArrayList<>();
             String restartCommand = manager.getCommands().getRestartCommand();
 
-            for ( ContainerHost zookeeperNode : zookeeperNodes ) {
+            for ( ContainerHost zookeeperNode : zookeeperNodes )
+            {
                 try
                 {
                     CommandResult commandResult = zookeeperNode.execute( new RequestBuilder( restartCommand ) );
@@ -121,7 +123,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
                     e.printStackTrace();
                 }
             }
-                trackerOperation.addLogDone( String.format( "Cluster %s restarted succesfully", clusterName ) );
+            trackerOperation.addLogDone( String.format( "Cluster %s restarted succesfully", clusterName ) );
         }
         else
         {
@@ -130,8 +132,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
             {
                 stringBuilder.append( commandResult.getStdErr() );
             }
-            trackerOperation.addLogFailed(
-                    String.format( "Removing property failed: %s", stringBuilder.toString() ) );
+            trackerOperation.addLogFailed( String.format( "Removing property failed: %s", stringBuilder.toString() ) );
         }
     }
 
@@ -139,9 +140,12 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
     public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
     {
         List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList ) {
-            if ( ! commandResult.hasSucceeded() )
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
                 failedCommands.add( commandResult );
+            }
         }
         return failedCommands;
     }

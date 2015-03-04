@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -38,6 +39,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -71,6 +73,7 @@ public class Manager
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
     final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn, addNodeBtn;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final GridLayout contentRoot;
@@ -82,6 +85,7 @@ public class Manager
     private final Tracker tracker;
     private final ExecutorService executorService;
     private ZookeeperClusterConfig config;
+    private CheckBox autoScaleBtn;
 
 
     public Manager( final ExecutorService executorService, final Zookeeper zookeeper, final Hadoop hadoop,
@@ -168,6 +172,37 @@ public class Manager
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    config.setAutoScaling( value );
+                    try
+                    {
+                        zookeeper.saveConfig( config );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
         addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, destroyClusterBtn,
                 addNodeBtn );
@@ -747,6 +782,7 @@ public class Manager
             }
 
             populateTable( nodesTable, getZookeeperNodes( environment.getContainerHosts() ) );
+            autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else
         {

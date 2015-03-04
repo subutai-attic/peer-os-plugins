@@ -12,7 +12,7 @@
 
   <reference id="zookeeperManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
-  <reference id="tracker"  availability="mandatory"
+  <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />

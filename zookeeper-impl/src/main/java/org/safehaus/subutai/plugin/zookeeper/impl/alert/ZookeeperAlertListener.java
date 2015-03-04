@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.zookeeper.impl.alert;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,19 +23,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * Created by talas on 1/15/15.
- */
 public class ZookeeperAlertListener implements AlertListener
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperAlertListener.class );
     private ZookeeperImpl zookeeper;
     public static final String ZOOKEEPER_ALERT_LISTENER = "ZOOKEEPER_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static int MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    private static int MAX_CPU_QUOTA_PERCENT = 100;
+    private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
 
 
     public ZookeeperAlertListener( final ZookeeperImpl zookeeper )
@@ -124,7 +120,7 @@ public class ZookeeperAlertListener implements AlertListener
         //confirm that Zookeeper is causing the stress, otherwise no-op
         MonitoringSettings thresholds = zookeeper.getAlertSettings();
         double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.9;
+        double redLine = 0.7;
         boolean isCpuStressedByZookeeper = false;
         boolean isRamStressedByZookeeper = false;
 
@@ -158,24 +154,33 @@ public class ZookeeperAlertListener implements AlertListener
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
-                    //we can increase RAM quota
-                    zookeeper.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
+                        LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
 
-                    quotaIncreased = true;
+                        //we can increase RAM quota
+                        sourceHost.setRamQuota( newRamQuota );
+                        quotaIncreased = true;
+                    }
                 }
             }
             if ( isCpuStressedByZookeeper )
             {
 
                 //read current CPU quota
-                int cpuQuota = zookeeper.getQuotaManager().getCpuQuota( sourceHost.getId() );
+                int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
                     //we can increase CPU quota
-                    zookeeper.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -188,45 +193,10 @@ public class ZookeeperAlertListener implements AlertListener
             }
 
             // add new node
-            ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( targetCluster.getClusterName() );
-            if ( zookeeperClusterConfig == null )
-            {
-                throw new Exception( String.format( "Zookeeper cluster %s not found", targetCluster.getClusterName() ),
-                        null );
-            }
+            LOGGER.info( "Adding new node to {} zookeeper cluster", targetCluster.getClusterName() );
 
-            Set<UUID> availableNodes = zookeeperClusterConfig.getNodes();
-            availableNodes.removeAll( targetCluster.getNodes() );
-
-            //no available nodes -> notify user
-            if ( availableNodes.isEmpty() )
-            {
-                notifyUser();
-            }
-            //add first available node
-            else
-            {
-                UUID newNodeId = availableNodes.iterator().next();
-                String newNodeHostName = null;
-                for ( ContainerHost containerHost : containers )
-                {
-                    if ( containerHost.getId().equals( newNodeId ) )
-                    {
-                        newNodeHostName = containerHost.getHostname();
-                        break;
-                    }
-                }
-
-                if ( newNodeHostName == null )
-                {
-                    throw new Exception(
-                            String.format( "Could not obtain available spark node from environment by id %s",
-                                    newNodeId ), null );
-                }
-
-                //launch node addition process
-                zookeeper.addNode( targetCluster.getClusterName(), newNodeHostName );
-            }
+            //launch node addition process
+            zookeeper.addNode( targetCluster.getClusterName() );
         }
         else
         {

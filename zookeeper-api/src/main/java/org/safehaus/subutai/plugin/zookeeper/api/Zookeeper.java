@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -20,9 +21,8 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
     /**
      * Setup zookeeper cluster with given cluster configuration
      *
-     * @param config - cluster configuration object {@link org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig}
-     *
-     * @return
+     * @param config - cluster configuration object {@link org.safehaus.subutai.plugin.zookeeper.api
+     * .ZookeeperClusterConfig}
      */
     public UUID installCluster( ZookeeperClusterConfig config );
 
@@ -32,6 +32,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      *
      * @param clusterName cluster name
      * @param lxcHostname container's hostname
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID startNode( String clusterName, String lxcHostname );
@@ -42,6 +43,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      *
      * @param clusterName cluster name
      * @param lxcHostname container's hostname
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID stopNode( String clusterName, String lxcHostname );
@@ -51,6 +53,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * Starts zookeeper service on all nodes on given cluster
      *
      * @param clusterName cluster name
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID stopAllNodes( String clusterName );
@@ -60,6 +63,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * Stops zookeeper service on all nodes on given cluster
      *
      * @param clusterName cluster name
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID startAllNodes( String clusterName );
@@ -70,6 +74,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      *
      * @param clusterName cluster name
      * @param lxcHostname container's hostname
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID checkNode( String clusterName, String lxcHostname );
@@ -79,6 +84,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * Adds nodes to given cluster
      *
      * @param clusterName cluster name
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID addNode( String clusterName );
@@ -86,17 +92,19 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
 
     /**
      * Adds given node to given cluster
+     *
      * @param clusterName name of cluster
      * @param lxcHostname node hostname to be added to zookeeper cluster
-     * @return
      */
     public UUID addNode( String clusterName, String lxcHostname );
 
 
     /**
      * Destroys node on given cluster
+     *
      * @param clusterName cluster name
      * @param lxcHostname container's hostname
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID destroyNode( String clusterName, String lxcHostname );
@@ -109,6 +117,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * @param fileName file name that property will be injected. (e.g. zoo.cfg)
      * @param propertyName property name (e.g. dataDir )
      * @param propertyValue property value (e.g. /var/zookeeper )
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID addProperty( String clusterName, String fileName, String propertyName, String propertyValue );
@@ -120,6 +129,7 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * @param clusterName cluster name
      * @param fileName file name that property will be injected. (e.g. zoo.cfg)
      * @param propertyName property name (e.g. dataDir )
+     *
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID removeProperty( String clusterName, String fileName, String propertyName );
@@ -133,16 +143,28 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
      * Returns various commands to operate on zookeeper nodes such as start, stop, status etc.
      *
      * @param commandType {@link org.safehaus.subutai.plugin.zookeeper.api.CommandType}
+     *
      * @return command string ( e.g service zookeeper start )
      */
     public String getCommand( CommandType commandType );
 
 
     /**
+     * @param config zookeeper cluster config object {@link org.safehaus.subutai.plugin.zookeeper.api
+     * .ZookeeperClusterConfig}
      *
-     * @param config zookeeper cluster config object {@link org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig}
      * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
      */
     public UUID configureEnvironmentCluster( ZookeeperClusterConfig config );
+
+
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( ZookeeperClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( final ZookeeperClusterConfig config ) throws ClusterException;
 }
 
