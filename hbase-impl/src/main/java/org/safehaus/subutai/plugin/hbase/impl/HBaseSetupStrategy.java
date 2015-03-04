@@ -2,23 +2,28 @@ package org.safehaus.subutai.plugin.hbase.impl;
 
 
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
+import org.safehaus.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
@@ -26,11 +31,13 @@ import com.google.common.base.Strings;
 public class HBaseSetupStrategy
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger( HBaseSetupStrategy.class.getName() );
     private Hadoop hadoop;
     private HBaseImpl manager;
     private HBaseConfig config;
     private Environment environment;
     private TrackerOperation trackerOperation;
+    private CommandUtil commandUtil;
 
 
     public HBaseSetupStrategy( HBaseImpl manager, Hadoop hadoop, HBaseConfig config, Environment environment,
@@ -41,6 +48,7 @@ public class HBaseSetupStrategy
         this.environment = environment;
         this.trackerOperation = po;
         this.hadoop = hadoop;
+        this.commandUtil = new CommandUtil();
     }
 
 
@@ -93,83 +101,41 @@ public class HBaseSetupStrategy
         // Check installed packages
         trackerOperation.addLog( "Installing HBase..." );
 
-        for ( Iterator<ContainerHost> it = nodes.iterator(); it.hasNext(); )
+        try
         {
-            ContainerHost node = it.next();
-            try
+            Set<Host> hostSet = getHosts( config, environment );
+            Map<Host, CommandResult> resultMap = commandUtil.executeParallel( Commands.getInstallCommand(), hostSet );
+            if ( ClusterOperationHandler.isAllSuccessful( resultMap, hostSet ) )
             {
-                CommandResult result = node.execute( Commands.getCheckInstalledCommand() );
-                if ( result.hasSucceeded() && result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-                {
-                    trackerOperation
-                            .addLog( String.format( "Node %s has already HBase installed.", node.getHostname() ) );
-                    it.remove();
-                }
-            }
-            catch ( CommandException ex )
-            {
-                throw new ClusterSetupException( ex );
+                trackerOperation.addLog( "HBase debian package is installed on all containers successfully" );
             }
         }
-
-        if ( nodes.isEmpty() )
+        catch ( CommandException e )
         {
-            throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
-        }
-
-
-        for ( ContainerHost node : nodes )
-        {
-            try
-            {
-                CommandResult result = node.execute( Commands.getInstallCommand() );
-
-                if ( result.hasSucceeded() )
-                {
-                    trackerOperation.addLog( "HBase installed on " + node.getHostname() );
-                }
-                else
-                {
-                    throw new ClusterSetupException( "Failed to install HBase on " + node.getHostname() );
-                }
-            }
-            catch ( CommandException ex )
-            {
-                throw new ClusterSetupException( ex );
-            }
+            LOG.error( "Error while executing commands in parallel", e );
+            e.printStackTrace();
         }
 
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            try
-            {
-                new ClusterConfiguration( trackerOperation, manager, hadoop ).configureCluster( config, env );
-            }
-            catch ( ClusterConfigurationException e )
-            {
-                throw new ClusterSetupException( e.getMessage() );
-            }
+            new ClusterConfiguration( trackerOperation, manager, hadoop ).configureCluster( config, environment );
         }
-        catch ( ClusterSetupException | EnvironmentNotFoundException e )
+        catch ( ClusterConfigurationException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup cluster %s : %s", config.getClusterName(), e.getMessage() ) );
+            throw new ClusterSetupException( e.getMessage() );
         }
 
 
         trackerOperation.addLog( "Saving to db..." );
-        boolean saved = manager.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config );
-
-        if ( saved )
+        try
         {
+            manager.saveConfig( config );
             trackerOperation.addLog( "Installation info successfully saved" );
         }
-        else
+        catch ( ClusterException e )
         {
             throw new ClusterSetupException( "Failed to save installation info" );
         }
-
         return config;
     }
 
@@ -182,19 +148,23 @@ public class HBaseSetupStrategy
         {
             throw new ClusterSetupException( m + "Cluster name not specified" );
         }
+    }
 
-        if ( manager.getCluster( config.getClusterName() ) != null )
-        {
-            throw new ClusterSetupException(
-                    m + String.format( "Cluster '%s' already exists", config.getClusterName() ) );
-        }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+    public static Set<Host> getHosts( HBaseConfig config, Environment environment )
+    {
+        Set<Host> hosts = new HashSet<>();
+        for ( UUID uuid : config.getAllNodes() )
         {
-            if ( config.getAllNodes() == null || config.getAllNodes().isEmpty() )
+            try
             {
-                throw new ClusterSetupException( m + "Target nodes not specified" );
+                hosts.add( environment.getContainerHostById( uuid ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
             }
         }
+        return hosts;
     }
 }

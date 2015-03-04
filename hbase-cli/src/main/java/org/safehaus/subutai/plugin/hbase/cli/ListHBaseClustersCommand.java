@@ -10,31 +10,15 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-/**
- * Displays the last log entries
- */
-@Command( scope = "hbase", name = "list-clusters", description = "mydescription" )
+@Command( scope = "hbase", name = "list-clusters", description = "Lists clusters" )
 public class ListHBaseClustersCommand extends OsgiCommandSupport
 {
 
     private HBase hbaseManager;
 
 
-    public HBase getHbaseManager()
-    {
-        return hbaseManager;
-    }
-
-
-    public void setHbaseManager( HBase hbaseManager )
-    {
-        this.hbaseManager = hbaseManager;
-    }
-
-
     protected Object doExecute()
     {
-
         List<HBaseConfig> configs = hbaseManager.getClusters();
         StringBuilder sb = new StringBuilder();
 
@@ -46,5 +30,17 @@ public class ListHBaseClustersCommand extends OsgiCommandSupport
         System.out.println( sb.toString() );
 
         return null;
+    }
+
+
+    public HBase getHbaseManager()
+    {
+        return hbaseManager;
+    }
+
+
+    public void setHbaseManager( HBase hbaseManager )
+    {
+        this.hbaseManager = hbaseManager;
     }
 }

@@ -16,7 +16,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +34,8 @@ public class VerificationStep extends Panel
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
+
     public VerificationStep( final Tracker tracker, final HBase hbase, final ExecutorService executor,
                              final Wizard wizard )
     {
@@ -65,44 +66,36 @@ public class VerificationStep extends Panel
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "HBase Cluster Name", wizard.getConfig().getClusterName() );
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
-        {
-            try
-            {
-                cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
-                cfgView.addStringCfg( "Master Node",
-                        environment.getContainerHostById( wizard.getConfig().getHbaseMaster() ).getHostname() );
-                for ( UUID host : wizard.getConfig().getRegionServers() )
-                {
-                    cfgView.addStringCfg( "Region Servers", environment.getContainerHostById( host ).getHostname() );
-                }
 
-                for ( UUID host : wizard.getConfig().getQuorumPeers() )
-                {
-                    cfgView.addStringCfg( "Quorum Peers", environment.getContainerHostById( host ).getHostname() );
-                }
-
-                for ( UUID host : wizard.getConfig().getBackupMasters() )
-                {
-                    cfgView.addStringCfg( "Backup Masters", environment.getContainerHostById( host ).getHostname() );
-                }
-                cfgView.addStringCfg( "Environment ID", config.getEnvironmentId().toString() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOGGER.error( "Container hosts not found", e );
-                Notification.show( "Error accessing container host", "Couldn't get some container hosts",
-                        Notification.Type.ERROR_MESSAGE );
-                return;
-            }
-        }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+        try
         {
-            cfgView.addStringCfg( "Hadoop cluster name", hc.getClusterName() );
-            cfgView.addStringCfg( "Number of Hadoop slave nodes", hc.getCountOfSlaveNodes() + "" );
-            cfgView.addStringCfg( "Replication factor", hc.getReplicationFactor() + "" );
-            cfgView.addStringCfg( "Domain name", hc.getDomainName() );
+            cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
+            cfgView.addStringCfg( "Master Node",
+                    environment.getContainerHostById( wizard.getConfig().getHbaseMaster() ).getHostname() );
+            for ( UUID host : wizard.getConfig().getRegionServers() )
+            {
+                cfgView.addStringCfg( "Region Servers", environment.getContainerHostById( host ).getHostname() );
+            }
+
+            for ( UUID host : wizard.getConfig().getQuorumPeers() )
+            {
+                cfgView.addStringCfg( "Quorum Peers", environment.getContainerHostById( host ).getHostname() );
+            }
+
+            for ( UUID host : wizard.getConfig().getBackupMasters() )
+            {
+                cfgView.addStringCfg( "Backup Masters", environment.getContainerHostById( host ).getHostname() );
+            }
+            cfgView.addStringCfg( "Environment ID", config.getEnvironmentId().toString() );
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Container hosts not found", e );
+            Notification.show( "Error accessing container host", "Couldn't get some container hosts",
+                    Notification.Type.ERROR_MESSAGE );
+            return;
+        }
+
 
         Button install = new Button( "Install" );
         install.addStyleName( "default" );
@@ -114,8 +107,7 @@ public class VerificationStep extends Panel
             {
                 UUID trackId = null;
                 trackId = hbase.installCluster( config );
-                ProgressWindow window =
-                        new ProgressWindow( executor, tracker, trackId, HBaseConfig.PRODUCT_KEY );
+                ProgressWindow window = new ProgressWindow( executor, tracker, trackId, HBaseConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {
                     @Override

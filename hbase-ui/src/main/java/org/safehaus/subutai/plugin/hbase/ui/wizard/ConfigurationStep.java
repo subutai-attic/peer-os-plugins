@@ -21,7 +21,6 @@ import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
-import org.safehaus.subutai.plugin.hbase.api.SetupType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +42,9 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
     private final Hadoop hadoop;
     private final Wizard wizard;
-    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard )
@@ -108,23 +107,11 @@ public class ConfigurationStep extends Panel
         buttons.addComponent( next );
 
         content.addComponent( nameTxt );
-        if ( wizard.getConfig().getSetupType() == SetupType.OVER_HADOOP )
-        {
-            addOverHadoopComponents( content, wizard.getConfig() );
-        }
-        else if ( wizard.getConfig().getSetupType() == SetupType.WITH_HADOOP )
-        {
-            addWithHadoopComponents( content, wizard.getConfig() );
-        }
+        addOverHadoopComponents( content, wizard.getConfig() );
+
         content.addComponent( buttons );
 
         setContent( layout );
-    }
-
-
-    private void addWithHadoopComponents( final GridLayout content, final HBaseConfig config )
-    {
-
     }
 
 
@@ -281,7 +268,8 @@ public class ConfigurationStep extends Panel
                         LOGGER.error( "Environment not found.", e );
                     }
                 }
-                else{
+                else
+                {
                     regionServers.removeAllItems();
                     quorumPeers.removeAllItems();
                     backUpMasters.removeAllItems();
@@ -461,7 +449,7 @@ public class ConfigurationStep extends Panel
 
     private Set<ContainerHost> getHadoopContainerHosts( HadoopClusterConfig hadoopInfo )
     {
-        Environment hadoopEnvironment = null;
+        Environment hadoopEnvironment;
         try
         {
             hadoopEnvironment = wizard.getEnvironmentManager().findEnvironment( hadoopInfo.getEnvironmentId() );
@@ -492,60 +480,29 @@ public class ConfigurationStep extends Panel
             return;
         }
 
-        if ( config.getSetupType() == SetupType.OVER_HADOOP )
+        if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) )
         {
-            if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) )
-            {
-                show( "Please, select Hadoop cluster" );
-            }
-            else if ( config.getHbaseMaster() == null )
-            {
-                show( "Please, select master node" );
-            }
-            else if ( CollectionUtil.isCollectionEmpty( config.getRegionServers() ) )
-            {
-                show( "Please, select nodes for region servers" );
-            }
-            else if ( CollectionUtil.isCollectionEmpty( config.getQuorumPeers() ) )
-            {
-                show( "Please, select nodes for quorum peers" );
-            }
-            else if ( CollectionUtil.isCollectionEmpty( config.getBackupMasters() ) )
-            {
-                show( "Please, select for back up masters" );
-            }
-            else
-            {
-                wizard.next();
-            }
+            show( "Please, select Hadoop cluster" );
         }
-        else if ( config.getSetupType() == SetupType.WITH_HADOOP )
+        else if ( config.getHbaseMaster() == null )
         {
-            HadoopClusterConfig hc = wizard.getHadoopConfig();
-            if ( hc.getClusterName() == null || hc.getClusterName().isEmpty() )
-            {
-                show( "Enter Hadoop cluster name" );
-            }
-            else if ( hc.getCountOfSlaveNodes() <= 0 )
-            {
-                show( "Invalid number of Hadoop slave nodes" );
-            }
-            else if ( hc.getReplicationFactor() <= 0 )
-            {
-                show( "Invalid replication factor" );
-            }
-            else if ( hc.getDomainName() == null || hc.getDomainName().isEmpty() )
-            {
-                show( "Enter Hadoop domain name" );
-            }
-            else
-            {
-                wizard.next();
-            }
+            show( "Please, select master node" );
+        }
+        else if ( CollectionUtil.isCollectionEmpty( config.getRegionServers() ) )
+        {
+            show( "Please, select nodes for region servers" );
+        }
+        else if ( CollectionUtil.isCollectionEmpty( config.getQuorumPeers() ) )
+        {
+            show( "Please, select nodes for quorum peers" );
+        }
+        else if ( CollectionUtil.isCollectionEmpty( config.getBackupMasters() ) )
+        {
+            show( "Please, select for back up masters" );
         }
         else
         {
-            show( "Installation type not supported" );
+            wizard.next();
         }
     }
 

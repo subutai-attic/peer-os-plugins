@@ -34,30 +34,21 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-//import org.safehaus.subutai.plugin.common.PluginDAO;
-
 
 public class HBaseImpl implements HBase, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( HBaseImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    protected ExecutorService executor;
     private Hadoop hadoopManager;
     private Tracker tracker;
-    protected ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Commands commands;
     private HBaseAlertListener hBaseAlertListener;
     private Monitor monitor;
     private QuotaManager quotaManager;
-
-    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-
-
-    public MonitoringSettings getAlertSettings()
-    {
-        return alertSettings;
-    }
 
 
     public HBaseImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
@@ -74,21 +65,9 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public HBaseAlertListener gethBaseAlertListener()
-    {
-        return hBaseAlertListener;
-    }
-
-
-    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
-    {
-        this.hBaseAlertListener = hBaseAlertListener;
+        getMonitor().startMonitoring( hBaseAlertListener, environment, alertSettings );
     }
 
 
@@ -104,103 +83,9 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public PluginDAO getPluginDAO()
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
-        return pluginDAO;
-    }
-
-
-    public void setPluginDAO( final PluginDAO pluginDAO )
-    {
-        this.pluginDAO = pluginDAO;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
-    }
-
-
-    public ExecutorService getExecutor()
-    {
-        return executor;
-    }
-
-
-    public void setExecutor( final ExecutorService executor )
-    {
-        this.executor = executor;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public void init()
-    {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
-        this.commands = new Commands();
-        this.executor = Executors.newCachedThreadPool();
-    }
-
-
-    public void destroy()
-    {
-        executor.shutdown();
-    }
-
-
-    public Commands getCommands()
-    {
-        return commands;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
+        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
@@ -222,19 +107,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( hostname );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.EXCLUDE );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
-    @Override
-    public UUID addNode( final String clusterName )
-    {
-        Preconditions.checkNotNull( clusterName );
-        HBaseConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.DESTROY );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -277,6 +150,42 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
 
     @Override
+    public UUID addNode( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public void saveConfig( final HBaseConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    public PluginDAO getPluginDAO()
+    {
+        return pluginDAO;
+    }
+
+
+    public void setPluginDAO( final PluginDAO pluginDAO )
+    {
+        this.pluginDAO = pluginDAO;
+    }
+
+
+    @Override
     public UUID uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -304,21 +213,14 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
 
     @Override
-    public UUID addNode( final String clusterName, final String nodeType )
+    public UUID addNode( final String clusterName, final String hostname )
     {
-        return addNode( clusterName );
-    }
-
-
-    @Override
-    public void saveConfig( final HBaseConfig config ) throws ClusterException
-    {
-        Preconditions.checkNotNull( config );
-
-        if ( !getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, config.getClusterName(), config ) )
-        {
-            throw new ClusterException( "Could not save cluster info" );
-        }
+        Preconditions.checkNotNull( clusterName );
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.ADD );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -376,6 +278,112 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
                 LOG.info( String.format( "Cluster: %s destroyed in environment", clusterConfig.getClusterName() ) );
             }
         }
+    }
+
+
+    public void init()
+    {
+        try
+        {
+            this.pluginDAO = new PluginDAO( null );
+        }
+        catch ( SQLException e )
+        {
+            LOG.error( e.getMessage(), e );
+        }
+
+        this.commands = new Commands();
+        this.executor = Executors.newCachedThreadPool();
+    }
+
+
+    public void destroy()
+    {
+        executor.shutdown();
+    }
+
+
+    public MonitoringSettings getAlertSettings()
+    {
+        return alertSettings;
+    }
+
+
+    public HBaseAlertListener gethBaseAlertListener()
+    {
+        return hBaseAlertListener;
+    }
+
+
+    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
+    {
+        this.hBaseAlertListener = hBaseAlertListener;
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
+    }
+
+
+    public ExecutorService getExecutor()
+    {
+        return executor;
+    }
+
+
+    public void setExecutor( final ExecutorService executor )
+    {
+        this.executor = executor;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Commands getCommands()
+    {
+        return commands;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }
 

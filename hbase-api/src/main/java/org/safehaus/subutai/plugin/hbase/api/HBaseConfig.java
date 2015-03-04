@@ -20,7 +20,7 @@ public class HBaseConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "HBase";
-    public static final String TEMPLATE_NAME = "HBase";
+    public static final String PRODUCT_NAME = "HBase";
     private UUID uuid;
     private String clusterName = "";
     private UUID hbaseMaster;
@@ -29,7 +29,6 @@ public class HBaseConfig implements ConfigBase
     private Set<UUID> backupMasters = Sets.newHashSet();
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private Set<UUID> hadoopNodes = new HashSet<>();
-    private SetupType setupType;
     private UUID environmentId;
     private String hadoopClusterName;
     private UUID hadoopNameNode;
@@ -39,6 +38,7 @@ public class HBaseConfig implements ConfigBase
     public HBaseConfig()
     {
         this.uuid = UUID.fromString( UUIDUtil.generateTimeBasedUUID().toString() );
+        autoScaling = false;
     }
 
 
@@ -99,18 +99,6 @@ public class HBaseConfig implements ConfigBase
     public void setEnvironmentId( final UUID environmentId )
     {
         this.environmentId = environmentId;
-    }
-
-
-    public SetupType getSetupType()
-    {
-        return setupType;
-    }
-
-
-    public void setSetupType( final SetupType setupType )
-    {
-        this.setupType = setupType;
     }
 
 
@@ -186,26 +174,6 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public List<NodeType> getNodeRoles( HBaseConfig clusterConfig, final ContainerHost containerHost )
-    {
-        List<NodeType> nodeRoles = new ArrayList<>();
-
-        if ( hbaseMaster.equals( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HMASTER );
-        }
-        if ( regionServers.contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HREGIONSERVER );
-        }
-        if ( quorumPeers.contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HQUORUMPEER );
-        }
-        return nodeRoles;
-    }
-
-
     public UUID getHbaseMaster()
     {
         return hbaseMaster;
@@ -251,5 +219,29 @@ public class HBaseConfig implements ConfigBase
     public void setBackupMasters( Set<UUID> backupMasters )
     {
         this.backupMasters = backupMasters;
+    }
+
+
+    public List<NodeType> getNodeRoles( final ContainerHost containerHost )
+    {
+        List<NodeType> nodeRoles = new ArrayList<>();
+
+        if ( hbaseMaster.equals( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HMASTER );
+        }
+        if ( regionServers.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HREGIONSERVER );
+        }
+        if ( quorumPeers.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.HQUORUMPEER );
+        }
+        if ( backupMasters.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.BACKUPMASTER );
+        }
+        return nodeRoles;
     }
 }

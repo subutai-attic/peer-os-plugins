@@ -35,7 +35,8 @@ public class Wizard
     private HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
 
 
-    public Wizard( ExecutorService executor, HBase hbase, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Wizard( ExecutorService executor, HBase hbase, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
         this.executor = executor;
         this.hbase = hbase;
