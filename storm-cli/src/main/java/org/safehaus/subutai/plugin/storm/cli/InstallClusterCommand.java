@@ -19,8 +19,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "storm cluster "
-            + "name" ) String
-            clusterName;
+            + "name" ) String clusterName;
 
     @Argument( index = 1, name = "environmentId", description = "The environment id",
             required = true, multiValued = false ) String environmentId;
