@@ -40,6 +40,19 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormClusterOperationHandlerTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock StormImpl stormImpl;
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock PeerManager peerManager;
     private StormClusterOperationHandler stormClusterOperationHandler;
     private StormClusterOperationHandler stormClusterOperationHandler2;
     private StormClusterOperationHandler stormClusterOperationHandler3;
@@ -50,32 +63,6 @@ public class StormClusterOperationHandlerTest
     private UUID uuid;
     private Set<ContainerHost> mySet;
     private Set<UUID> myUUID;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    StormImpl stormImpl;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    PeerManager peerManager;
 
 
     @Before
@@ -112,7 +99,7 @@ public class StormClusterOperationHandlerTest
                 .thenReturn( clusterSetupStrategy );
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
         when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
@@ -347,7 +334,6 @@ public class StormClusterOperationHandlerTest
 
         stormClusterOperationHandler6.run();
     }
-
 
 
     @Test

@@ -14,8 +14,9 @@
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <reference id="stormManager" availability="mandatory" interface="org.safehaus.subutai.plugin.storm.api.Storm" />
-  <reference id="zookeeperManager" availability="mandatory" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
-  <reference id="tracker"  availability="mandatory"
+  <reference id="zookeeperManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+  <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <bean id="RestServiceImpl" class="org.safehaus.subutai.plugin.storm.rest.RestServiceImpl">

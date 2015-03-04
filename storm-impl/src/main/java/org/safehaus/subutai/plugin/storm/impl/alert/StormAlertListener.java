@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.metric.ProcessResourceUsage;
@@ -15,7 +16,6 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.AlertListener;
 import org.safehaus.subutai.core.metric.api.ContainerHostMetric;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
-import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
@@ -30,27 +30,19 @@ import org.slf4j.LoggerFactory;
  */
 public class StormAlertListener implements AlertListener
 {
-    private static final Logger LOG = LoggerFactory.getLogger( StormAlertListener.class.getName() );
-
     public static final String STORM_ALERT_LISTENER = "STORM_ALERT_LISTENER";
-    private StormImpl storm;
-    private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
+    private static final Logger LOG = LoggerFactory.getLogger( StormAlertListener.class.getName() );
+    private static double MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private StormImpl storm;
+    private CommandUtil commandUtil = new CommandUtil();
 
 
     public StormAlertListener( final StormImpl storm )
     {
         this.storm = storm;
-    }
-
-
-    private void throwAlertException( String context, Exception e ) throws AlertException
-    {
-        LOG.error( context, e );
-        throw new AlertException( context, e );
     }
 
 
@@ -116,9 +108,9 @@ public class StormAlertListener implements AlertListener
         int stormPID = 0;
         try
         {
-            CommandResult result = commandUtil.execute( isMasterNode ? new RequestBuilder( Commands.make(
-                    CommandType.STATUS, StormService.NIMBUS) ):new RequestBuilder(
-                    Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ), sourceHost );
+            CommandResult result = commandUtil.execute(
+                    isMasterNode ? new RequestBuilder( Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) :
+                    new RequestBuilder( Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ), sourceHost );
             stormPID = parsePid( result.getStdOut() );
         }
         catch ( NumberFormatException | CommandException e )
@@ -151,6 +143,9 @@ public class StormAlertListener implements AlertListener
             return;
         }
 
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //auto-scaling is enabled -> scale cluster
         if ( targetCluster.isAutoScaling() )
@@ -163,16 +158,22 @@ public class StormAlertListener implements AlertListener
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
 
-
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                // if available quota on resource host is greater than 10 % of calculated increase amount,
+                // increase quota, otherwise scale horizontally
+                int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                if ( MAX_RAM_QUOTA_MB > newRamQuota )
                 {
+
+                    LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                            sourceHost.getRamQuota(), newRamQuota );
                     //we can increase RAM quota
-                    sourceHost.setRamQuota( Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    sourceHost.setRamQuota( newRamQuota );
 
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressedByStorm )
+
+            if ( isCpuStressedByStorm )
             {
 
                 //read current CPU quota
@@ -180,8 +181,12 @@ public class StormAlertListener implements AlertListener
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
+
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -203,18 +208,10 @@ public class StormAlertListener implements AlertListener
     }
 
 
-    protected String parseService( String output, String target ) throws AlertException
+    private void throwAlertException( String context, Exception e ) throws AlertException
     {
-        Matcher m = Pattern.compile("(?m)^.*$").matcher( output );
-        if ( m.find() ){
-            if ( m.group().toLowerCase().contains( target.toLowerCase() ) ){
-                return m.group();
-            }
-        }
-        else{
-            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
-        }
-        return null;
+        LOG.error( context, e );
+        throw new AlertException( context, e );
     }
 
 
@@ -246,6 +243,24 @@ public class StormAlertListener implements AlertListener
     public String getSubscriberId()
     {
         return STORM_ALERT_LISTENER;
+    }
+
+
+    protected String parseService( String output, String target ) throws AlertException
+    {
+        Matcher m = Pattern.compile( "(?m)^.*$" ).matcher( output );
+        if ( m.find() )
+        {
+            if ( m.group().toLowerCase().contains( target.toLowerCase() ) )
+            {
+                return m.group();
+            }
+        }
+        else
+        {
+            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
+        }
+        return null;
     }
 }
 

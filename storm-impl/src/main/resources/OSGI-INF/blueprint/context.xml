@@ -9,6 +9,8 @@
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="org.safehaus.subutai.core.peer.api.PeerManager" />
+  <reference id="monitor" availability="mandatory"
+             interface="org.safehaus.subutai.core.metric.api.Monitor" />
 
   <bean id="storm-impl" scope="singleton" class="org.safehaus.subutai.plugin.storm.impl.StormImpl"
         init-method="init" destroy-method="destroy">
@@ -16,6 +18,7 @@
     <property name="zookeeperManager" ref="zookeeperManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
+    <argument ref="monitor" />
   </bean>
 
   <service ref="storm-impl" interface="org.safehaus.subutai.plugin.storm.api.Storm" />

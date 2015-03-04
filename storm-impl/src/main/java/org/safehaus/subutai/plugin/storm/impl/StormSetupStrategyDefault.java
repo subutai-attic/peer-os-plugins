@@ -36,8 +36,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
     private static final Logger LOGGER = LoggerFactory.getLogger( StormSetupStrategyDefault.class );
     private final StormImpl manager;
     private final StormClusterConfiguration config;
-    private Environment environment;
     private final TrackerOperation po;
+    private Environment environment;
     private ContainerHost nimbusHost;
 
 
@@ -46,6 +46,21 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         this.manager = manager;
         this.config = config;
         this.po = po;
+    }
+
+
+    public static PlacementStrategy getNodePlacementStrategyByNodeType( NodeType nodeType )
+    {
+        switch ( nodeType )
+        {
+            case STORM_NIMBUS:
+                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_CPU", true ) ) );
+            case STORM_SUPERVISOR:
+                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_RAM", true ) ) );
+
+            default:
+                return new PlacementStrategy( "ROUND_ROBIN" );
+        }
     }
 
 
@@ -380,21 +395,6 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
 
         return null;
-    }
-
-
-    public static PlacementStrategy getNodePlacementStrategyByNodeType( NodeType nodeType )
-    {
-        switch ( nodeType )
-        {
-            case STORM_NIMBUS:
-                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_CPU", true ) ) );
-            case STORM_SUPERVISOR:
-                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_RAM", true ) ) );
-
-            default:
-                return new PlacementStrategy( "ROUND_ROBIN" );
-        }
     }
 
 

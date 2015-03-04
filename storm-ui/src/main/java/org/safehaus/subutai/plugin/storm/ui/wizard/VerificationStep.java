@@ -25,15 +25,16 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+
 public class VerificationStep extends VerticalLayout
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
     private Environment environment;
     private EnvironmentManager environmentManager;
-    private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
 
 
     public VerificationStep( final Storm storm, final ExecutorService executorService, final Tracker tracker,
-                             final Wizard wizard, final EnvironmentManager environmentManager)
+                             final Wizard wizard, final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
         setSizeFull();
@@ -51,7 +52,7 @@ public class VerificationStep extends VerticalLayout
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", wizard.getConfig().getClusterName() );
         cfgView.addStringCfg( "Domain Name", wizard.getConfig().getDomainName() );
-        if ( !config.isExternalZookeeper())
+        if ( !config.isExternalZookeeper() )
         {
             String selectedNodes = "";
             try
@@ -85,7 +86,8 @@ public class VerificationStep extends VerticalLayout
                 LOGGER.error( "Container host not found.", e );
                 return;
             }
-            cfgView.addStringCfg( "Nodes to be configured as supervisor", selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
+            cfgView.addStringCfg( "Nodes to be configured as supervisor",
+                    selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );
             cfgView.addStringCfg( "Nimbus Node", nimbusNodeNode.getHostname() + "" );
             cfgView.addStringCfg( "Environment UUID", wizard.getConfig().getEnvironmentId() + "" );
 
@@ -97,9 +99,9 @@ public class VerificationStep extends VerticalLayout
                 @Override
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
-                    UUID trackID = storm.configureEnvironmentCluster( wizard.getConfig() );
-                    ProgressWindow window =
-                            new ProgressWindow( executorService, tracker, trackID, StormClusterConfiguration.PRODUCT_KEY );
+                    UUID trackID = storm.installCluster( wizard.getConfig() );
+                    ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                            StormClusterConfiguration.PRODUCT_KEY );
                     window.getWindow().addCloseListener( new Window.CloseListener()
                     {
                         @Override
@@ -173,15 +175,15 @@ public class VerificationStep extends VerticalLayout
                 public void buttonClick( Button.ClickEvent event )
                 {
 
-                    UUID trackID = storm.configureEnvironmentCluster( wizard.getConfig() );
-                    ProgressWindow window =
-                            new ProgressWindow( executorService, tracker, trackID, StormClusterConfiguration.PRODUCT_NAME );
+                    UUID trackID = storm.installCluster( wizard.getConfig() );
+                    ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                            StormClusterConfiguration.PRODUCT_NAME );
                     window.getWindow().addCloseListener( new Window.CloseListener()
                     {
                         @Override
                         public void windowClose( Window.CloseEvent closeEvent )
                         {
-                            wizard.init( );
+                            wizard.init();
                         }
                     } );
                     getUI().addWindow( window.getWindow() );

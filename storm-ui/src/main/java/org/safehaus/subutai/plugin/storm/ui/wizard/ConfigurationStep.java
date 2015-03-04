@@ -139,7 +139,7 @@ public class ConfigurationStep extends Panel
                     allNodesSelect.removeAllItems();
                     nimbusNode.removeAllItems();
                 }
-                Environment env = null;
+                Environment env;
                 try
                 {
                     env = environmentManager.findEnvironment( wizard.getConfig().getEnvironmentId() );
@@ -166,7 +166,7 @@ public class ConfigurationStep extends Panel
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                Environment env = null;
+                Environment env;
                 try
                 {
                     env = environmentManager.findEnvironment( wizard.getConfig().getEnvironmentId() );
@@ -328,7 +328,7 @@ public class ConfigurationStep extends Panel
             masterNodeCombo.setValue( wizard.getConfig().getNimbus() );
         }
 
-//        hl = new HorizontalLayout( zkClustersCombo, masterNodeCombo );
+        //        hl = new HorizontalLayout( zkClustersCombo, masterNodeCombo );
         nimbusElem = new Panel( "Nimbus node", hl );
         nimbusElem.setSizeUndefined();
         nimbusElem.setStyleName( "default" );
@@ -369,12 +369,35 @@ public class ConfigurationStep extends Panel
         installationControls.addComponent( envCombo );
         installationControls.addComponent( zkClustersCombo );
         installationControls.addComponent( masterNodeCombo );
-//        installationControls.addComponent( nimbusNode );
+        //        installationControls.addComponent( nimbusNode );
         installationControls.addComponent( allNodesSelect );
-//        installationControls.addComponent( hl );
+        //        installationControls.addComponent( hl );
         installationControls.addComponent( buttons );
 
         setContent( installationControls );
+    }
+
+
+    private ComboBox makeMasterNodeComboBox( final Wizard wizard )
+    {
+        ComboBox cb = new ComboBox( "Chose Nimbus Node" );
+
+        cb.setId( "StormConfMasterNodes" );
+        cb.setImmediate( true );
+        cb.setTextInputAllowed( false );
+        cb.setRequired( true );
+        cb.setNullSelectionAllowed( false );
+        cb.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            @Override
+            public void valueChange( Property.ValueChangeEvent event )
+            {
+                ContainerHost serverNode = ( ContainerHost ) event.getProperty().getValue();
+                wizard.getConfig().setNimbus( serverNode.getId() );
+            }
+        } );
+        return cb;
     }
 
 
@@ -418,6 +441,12 @@ public class ConfigurationStep extends Panel
         } );
 
         setContent( installationControls );
+    }
+
+
+    private void show( String notification )
+    {
+        Notification.show( notification );
     }
 
 
@@ -481,34 +510,5 @@ public class ConfigurationStep extends Panel
         {
             target.removeAllItems();
         }
-    }
-
-
-    private void show( String notification )
-    {
-        Notification.show( notification );
-    }
-
-
-    private ComboBox makeMasterNodeComboBox( final Wizard wizard )
-    {
-        ComboBox cb = new ComboBox( "Chose Nimbus Node" );
-
-        cb.setId( "StormConfMasterNodes" );
-        cb.setImmediate( true );
-        cb.setTextInputAllowed( false );
-        cb.setRequired( true );
-        cb.setNullSelectionAllowed( false );
-        cb.addValueChangeListener( new Property.ValueChangeListener()
-        {
-
-            @Override
-            public void valueChange( Property.ValueChangeEvent event )
-            {
-                ContainerHost serverNode = ( ContainerHost ) event.getProperty().getValue();
-                wizard.getConfig().setNimbus( serverNode.getId() );
-            }
-        } );
-        return cb;
     }
 }

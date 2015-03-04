@@ -17,7 +17,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -46,7 +46,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     private static final Logger LOG = LoggerFactory.getLogger( StormClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private StormClusterConfiguration config;
-    private String hostname;
     private Environment environment;
 
 
@@ -312,6 +311,18 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         configureNStart( newSupervisorNode, config, environment );
 
         trackerOperation.addLogDone( "Finished." );
+
+        // subscribe to alerts
+        try
+        {
+            manager.subscribeToAlerts( newSupervisorNode );
+        }
+        catch ( MonitorException e )
+        {
+            assert newSupervisorNode != null;
+            LOG.error( newSupervisorNode.getHostname() + " could not get subscribed to alerts.", e );
+            e.printStackTrace();
+        }
     }
 
 
@@ -481,6 +492,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     public void destroyCluster()
     {
         StormClusterConfiguration config = manager.getCluster( clusterName );
+        // before removing cluster, stop it first.
+        manager.stopAll( config.getClusterName() );
+
         if ( config == null )
         {
             trackerOperation.addLogFailed(
@@ -488,61 +502,41 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             return;
         }
 
+        Environment environment;
         try
         {
-            trackerOperation.addLog( "Destroying environment..." );
-            try
-            {
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), false, false );
-            }
-            catch ( EnvironmentDestructionException e )
-            {
-                logException( String.format( "Error while destroying environment id: %s",
-                        config.getEnvironmentId().toString() ), e );
-                return;
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId().toString() ),
-                        e );
-                return;
-            }
-            if ( config.isExternalZookeeper() )
-            {
-                ZookeeperClusterConfig zookeeperClusterConfig =
-                        manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                Environment zookeeperEnvironment = null;
-                try
-                {
-                    zookeeperEnvironment = manager.getEnvironmentManager()
-                                                  .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException( String.format( "Environment not found by id: %s",
-                            zookeeperClusterConfig.getEnvironmentId().toString() ), e );
-                    return;
-                }
-                ContainerHost nimbusNode = null;
-                try
-                {
-                    nimbusNode = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ),
-                            e );
-                    return;
-                }
-                nimbusNode.execute( new RequestBuilder( Commands.make( CommandType.PURGE ) ) );
-            }
-            manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
-            trackerOperation.addLogDone( "Cluster destroyed" );
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
         }
-        catch ( CommandException e )
+        catch ( EnvironmentNotFoundException e )
         {
-            logException( "Error uninstalling storm package", e );
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
         }
+
+        if ( manager.getPluginDAO().deleteInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+        }
+
+        try
+        {
+            manager.unsubscribeFromAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+        }
+    }
+
+
+    private void logException( String msg, Exception e )
+    {
+        LOG.error( msg, e );
+        trackerOperation.addLogFailed( msg );
     }
 
 
@@ -561,12 +555,5 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         {
             po.addLogDone( "" );
         }
-    }
-
-
-    private void logException( String msg, Exception e )
-    {
-        LOG.error( msg, e );
-        trackerOperation.addLogFailed( msg );
     }
 }

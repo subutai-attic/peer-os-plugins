@@ -11,12 +11,14 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
+import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
+import org.safehaus.subutai.plugin.storm.impl.alert.StormAlertListener;
 import org.safehaus.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
@@ -30,18 +32,22 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
 
-    public StormImpl()
-    {
 
+    public StormImpl( Monitor monitor1 )
+    {
+        this.monitor = monitor1;
+        this.stormAlertListener = new StormAlertListener( this );
+        monitor.addAlertListener( stormAlertListener );
     }
 
 
     @Override
     public UUID installCluster( StormClusterConfiguration config )
     {
-        AbstractOperationHandler h = new StormClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
-        executor.execute( h );
-        return h.getTrackerId();
+        Preconditions.checkNotNull( config, "Configuration is null" );
+        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -78,16 +84,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
-    public UUID checkNode( String clusterName, String hostname )
-    {
-        AbstractOperationHandler h =
-                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.STATUS );
-        executor.execute( h );
-        return h.getTrackerId();
-    }
-
-
-    @Override
     public UUID startNode( String clusterName, String hostname )
     {
         AbstractOperationHandler h =
@@ -98,10 +94,40 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
+    public UUID startAll( String clusterName )
+    {
+        AbstractOperationHandler h =
+                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL );
+        executor.execute( h );
+        return h.getTrackerId();
+    }
+
+
+    @Override
     public UUID stopNode( String clusterName, String hostname )
     {
         AbstractOperationHandler h =
                 new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
+        executor.execute( h );
+        return h.getTrackerId();
+    }
+
+
+    @Override
+    public UUID stopAll( String clusterName )
+    {
+        AbstractOperationHandler h =
+                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL );
+        executor.execute( h );
+        return h.getTrackerId();
+    }
+
+
+    @Override
+    public UUID checkNode( String clusterName, String hostname )
+    {
+        AbstractOperationHandler h =
+                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.STATUS );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -156,15 +182,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     }
 
 
-    public UUID configureEnvironmentCluster( final StormClusterConfiguration config )
-    {
-        Preconditions.checkNotNull( config, "Configuration is null" );
-        AbstractOperationHandler operationHandler = new ConfigureEnvironmentClusterHandler( this, config );
-        executor.execute( operationHandler );
-        return operationHandler.getTrackerId();
-    }
-
-
     @Override
     public void saveConfig( final StormClusterConfiguration config ) throws ClusterException
     {
@@ -174,7 +191,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
         {
             throw new ClusterException( "Could not save cluster info" );
         }
-
     }
 
 
@@ -187,7 +203,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
         {
             throw new ClusterException( "Could not delete cluster info" );
         }
-
     }
 
 
@@ -208,7 +223,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
         }
         LOG.info( String.format( "Environment: %s has been grown with containers: %s", environment.getName(),
                 containerNames.toString() ) );
-
     }
 
 
@@ -221,8 +235,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
             {
-                LOG.info(
-                        String.format( "Storm environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Storm environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 if ( clusterConfig.getAllNodes().contains( containerHostId ) )
                 {
@@ -244,7 +258,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
                 }
             }
         }
-
     }
 
 
@@ -258,8 +271,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( uuid ) )
             {
-                LOG.info(
-                        String.format( "Storm environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Storm environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 try
                 {

@@ -39,37 +39,25 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormSetupStrategyDefaultTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock StormImpl stormImpl;
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock Template template;
     private StormSetupStrategyDefault stormSetupStrategyDefault;
     private UUID uuid;
     private Set<ContainerHost> mySet;
     private Set<UUID> myUUID;
     private Set<String> myString;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    StormImpl stormImpl;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    Template template;
+
 
     @Before
     public void setUp() throws Exception
@@ -82,7 +70,7 @@ public class StormSetupStrategyDefaultTest
         myUUID = new HashSet<>();
         myUUID.add( uuid );
 
-        myString = new HashSet<>(  );
+        myString = new HashSet<>();
         myString.add( Commands.PACKAGE_NAME );
 
         // mock constructor
@@ -111,23 +99,23 @@ public class StormSetupStrategyDefaultTest
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupEnvironmentNotSpecified() throws Exception
     {
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( null );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( null );
 
         stormSetupStrategyDefault.setup();
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupEnvironmentHasNoNodes() throws Exception
     {
         stormSetupStrategyDefault.setup();
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupNoStormInstalled() throws Exception
     {
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -137,7 +125,7 @@ public class StormSetupStrategyDefaultTest
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupExternalZookeeperException() throws Exception
     {
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -149,7 +137,7 @@ public class StormSetupStrategyDefaultTest
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupClusterAlreadyExist() throws Exception
     {
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -161,7 +149,7 @@ public class StormSetupStrategyDefaultTest
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testSetupExternalZookeeperNimbusIsNotPartOfCluster() throws Exception
     {
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -185,9 +173,9 @@ public class StormSetupStrategyDefaultTest
         when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
         when( containerHost.getNodeGroupName() ).thenReturn( StormService.SUPERVISOR.toString() );
         when( containerHost.getId() ).thenReturn( uuid );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         stormSetupStrategyDefault.setup();
@@ -204,9 +192,9 @@ public class StormSetupStrategyDefaultTest
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
         when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
         when( containerHost.getId() ).thenReturn( uuid );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
         when( containerHost.getNodeGroupName() ).thenReturn( StormService.NIMBUS.toString() );
         when( containerHost.getIpByInterfaceName( anyString() ) ).thenReturn( "test" );

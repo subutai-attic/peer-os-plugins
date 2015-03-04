@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -19,38 +20,61 @@ import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import org.safehaus.subutai.plugin.common.PluginDAO;
-
 
 public abstract class StormBase implements Storm
 {
 
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     protected Tracker tracker;
     protected Zookeeper zookeeperManager;
     protected EnvironmentManager environmentManager;
-
     protected PluginDAO pluginDAO;
     protected ExecutorService executor;
     protected PeerManager peerManager;
     protected Monitor monitor;
-    private StormAlertListener stormAlertListener;
+    protected StormAlertListener stormAlertListener;
 
-    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
-    public void setExecutor(ExecutorService executor)
+    public void setExecutor( ExecutorService executor )
     {
         this.executor = executor;
     }
+
 
     public MonitoringSettings getAlertSettings()
     {
         return alertSettings;
     }
 
+
     public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public Monitor getMonitor()
+    {
+        return monitor;
+    }
+
+
+    public void setMonitor( final Monitor monitor )
+    {
+        this.monitor = monitor;
+    }
+
+
+    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    {
+        getMonitor().startMonitoring( stormAlertListener, environment, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( stormAlertListener, environment );
     }
 
 
@@ -78,18 +102,6 @@ public abstract class StormBase implements Storm
         }
 
         executor = Executors.newCachedThreadPool();
-    }
-
-
-    public Monitor getMonitor()
-    {
-        return monitor;
-    }
-
-
-    public void setMonitor( final Monitor monitor )
-    {
-        this.monitor = monitor;
     }
 
 

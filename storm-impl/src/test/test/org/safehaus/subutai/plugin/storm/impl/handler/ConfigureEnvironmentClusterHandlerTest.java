@@ -38,36 +38,23 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class ConfigureEnvironmentClusterHandlerTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock StormImpl stormImpl;
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock PeerManager peerManager;
     private ConfigureEnvironmentClusterHandler configureEnvironmentClusterHandler;
     private UUID uuid;
     private Set<ContainerHost> mySet;
     private Set<UUID> myUUID;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    StormImpl stormImpl;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    PeerManager peerManager;
 
 
     @Before
@@ -125,7 +112,7 @@ public class ConfigureEnvironmentClusterHandlerTest
         when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
         when( containerHost.getId() ).thenReturn( uuid );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         configureEnvironmentClusterHandler.run();

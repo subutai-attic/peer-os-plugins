@@ -54,7 +54,7 @@ public class WelcomeStep extends Panel
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-                wizard.init( );
+                wizard.init();
                 wizard.getConfig().setExternalZookeeper( false );
                 wizard.next();
             }

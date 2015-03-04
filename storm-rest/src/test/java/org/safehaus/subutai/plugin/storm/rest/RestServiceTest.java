@@ -36,27 +36,19 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceTest
 {
+    @Mock Tracker tracker;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Storm storm;
+    @Mock EnvironmentManager environmentManager;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock Environment environment;
+    @Mock ContainerHost containerHost;
+    @Mock TrackerOperationView trackerOperationView;
     private RestServiceImpl restService;
     private StormClusterConfiguration stormClusterConfiguration;
     private UUID uuid;
-    @Mock
-    Tracker tracker;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Storm storm;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    Environment environment;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    TrackerOperationView trackerOperationView;
+
 
     @Before
     public void setUp() throws Exception
@@ -80,9 +72,8 @@ public class RestServiceTest
         when( containerHost.getId() ).thenReturn( UUID.randomUUID() );
         when( storm.installCluster( any( StormClusterConfiguration.class ) ) ).thenReturn( UUID.randomUUID() );
         when( storm.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
-
     }
 
 
@@ -137,41 +128,46 @@ public class RestServiceTest
     @Test
     public void testInstallClusterExternalZookeeper() throws Exception
     {
-//        Response response = restService.installCluster( "test", false, "testZookeeperClusterName", "testNimbus", UUID.randomUUID().toString() );
+        //        Response response = restService.installCluster( "test", false, "testZookeeperClusterName",
+        // "testNimbus", UUID.randomUUID().toString() );
 
         // assertions
-//        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
+        //        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testInstallCluster() throws Exception
     {
-//        Response response = restService.installCluster( "test", true, "testZookeeperClusterName", "testNimbus", "5" );
+        //        Response response = restService.installCluster( "test", true, "testZookeeperClusterName",
+        // "testNimbus", "5" );
 
         // assertions
-//        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
+        //        assertEquals( Response.Status.CREATED.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testInstallClusterExternalZookeeperNoEnvironment() throws EnvironmentNotFoundException
     {
-//        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        //        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow(
+        // EnvironmentNotFoundException.class );
 
-//        Response response = restService.installCluster( "test", true, "testZookeeperClusterName", "testNimbus", "5" );
+        //        Response response = restService.installCluster( "test", true, "testZookeeperClusterName",
+        // "testNimbus", "5" );
 
         // assertions
-//        assertEquals( Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus() );
+        //        assertEquals( Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus() );
     }
 
 
     @Test
     public void testInstallClusterExternalZookeeperNoContainerHost() throws ContainerHostNotFoundException
     {
-//        when( environment.getContainerHostByHostname( anyString() ) ).thenThrow( ContainerHostNotFoundException.class );
+        //        when( environment.getContainerHostByHostname( anyString() ) ).thenThrow(
+        // ContainerHostNotFoundException.class );
 
-//        restService.installCluster( "test", true, "testZookeeperClusterName", "testNimbus", "5" );
+        //        restService.installCluster( "test", true, "testZookeeperClusterName", "testNimbus", "5" );
     }
 
 
@@ -232,7 +228,6 @@ public class RestServiceTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 
@@ -245,6 +240,5 @@ public class RestServiceTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 }

@@ -35,34 +35,21 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormImplTest
 {
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Commands commands;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ContainerHost containerHost;
+    @Mock CommandResult commandResult;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock RequestBuilder requestBuilder;
+    @Mock ExecutorService executorService;
+    @Mock org.safehaus.subutai.core.metric.api.Monitor monitor;
     private StormImpl stormImpl;
     private UUID uuid;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Commands commands;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    RequestBuilder requestBuilder;
-    @Mock
-    ExecutorService executorService;
-    @Mock
-    org.safehaus.subutai.core.metric.api.Monitor monitor;
 
 
     @Before
@@ -341,4 +328,5 @@ public class StormImplTest
         when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
         stormImpl.onEnvironmentDestroyed( uuid );
-    }}
+    }
+}
