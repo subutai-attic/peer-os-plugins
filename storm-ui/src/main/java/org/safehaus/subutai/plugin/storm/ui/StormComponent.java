@@ -24,7 +24,8 @@ public class StormComponent extends CustomComponent
     private final Wizard wizard;
 
 
-    public StormComponent( ExecutorService executorService, Storm storm, Zookeeper zookeeper,  Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public StormComponent( ExecutorService executorService, Storm storm, Zookeeper zookeeper, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         manager = new Manager( executorService, storm, zookeeper, tracker, environmentManager );
         wizard = new Wizard( executorService, storm, zookeeper, tracker, environmentManager );

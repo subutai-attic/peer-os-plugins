@@ -38,6 +38,19 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormNodeOperationHandlerTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock StormImpl stormImpl;
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock PeerManager peerManager;
     private StormNodeOperationHandler stormNodeOperationHandler;
     private StormNodeOperationHandler stormNodeOperationHandler2;
     private StormNodeOperationHandler stormNodeOperationHandler3;
@@ -45,32 +58,6 @@ public class StormNodeOperationHandlerTest
     private UUID uuid;
     private Set<ContainerHost> mySet;
     private Set<UUID> myUUID;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    StormImpl stormImpl;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    PeerManager peerManager;
 
 
     @Before
@@ -95,8 +82,8 @@ public class StormNodeOperationHandlerTest
                 new StormNodeOperationHandler( stormImpl, "testClusterName", "testHostName", NodeOperationType.STOP );
         stormNodeOperationHandler3 =
                 new StormNodeOperationHandler( stormImpl, "testClusterName", "testHostName", NodeOperationType.STATUS );
-        stormNodeOperationHandler4 =
-                new StormNodeOperationHandler( stormImpl, "testClusterName", "testHostName", NodeOperationType.DESTROY );
+        stormNodeOperationHandler4 = new StormNodeOperationHandler( stormImpl, "testClusterName", "testHostName",
+                NodeOperationType.DESTROY );
 
         // mock run method
         when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
@@ -108,7 +95,7 @@ public class StormNodeOperationHandlerTest
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
         when( containerHost.getId() ).thenReturn( uuid );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( zookeeper.getCommand( any( CommandType.class) ) ).thenReturn( "testCommand" );
+        when( zookeeper.getCommand( any( CommandType.class ) ) ).thenReturn( "testCommand" );
     }
 
 
@@ -179,7 +166,6 @@ public class StormNodeOperationHandlerTest
     }
 
 
-
     @Test
     public void testRunOperationTypeStop() throws Exception
     {
@@ -239,6 +225,7 @@ public class StormNodeOperationHandlerTest
         verify( trackerOperation ).addLog( "Destroying " + "testHostName" + " node." );
         verify( trackerOperation ).addLogDone( "Container " + "testHostName" + " is destroyed!" );
     }
+
 
     @Test
     public void testDestroyNode() throws Exception

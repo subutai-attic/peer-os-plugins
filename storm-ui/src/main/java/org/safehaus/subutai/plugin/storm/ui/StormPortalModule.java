@@ -23,14 +23,14 @@ public class StormPortalModule implements PortalModule
 {
     public static final String MODULE_IMAGE = "storm.png";
     protected static final Logger LOG = Logger.getLogger( StormPortalModule.class.getName() );
-    private ExecutorService executor;
     private final Storm storm;
     private final Tracker tracker;
-    private Zookeeper zookeeper;
     private final EnvironmentManager environmentManager;
+    private ExecutorService executor;
+    private Zookeeper zookeeper;
 
 
-    public StormPortalModule( Storm storm, Zookeeper zookeeper,  Tracker tracker, EnvironmentManager environmentManager)
+    public StormPortalModule( Storm storm, Zookeeper zookeeper, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.storm = storm;
         this.zookeeper = zookeeper;

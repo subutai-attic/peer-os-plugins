@@ -38,6 +38,6 @@ public class CommandsTest
     @Test
     public void testConfigure() throws Exception
     {
-        commands.configure( "cmd", "proffile","property","value" );
+        commands.configure( "cmd", "proffile", "property", "value" );
     }
 }

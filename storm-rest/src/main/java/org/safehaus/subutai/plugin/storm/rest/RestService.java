@@ -26,7 +26,7 @@ public interface RestService
     @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "environmentId") String environmentId,
+                                    @QueryParam( "environmentId" ) String environmentId,
                                     @QueryParam( "externalZookeeper" ) boolean externalZookeeper,
                                     @QueryParam( "zookeeperClusterName" ) String zookeeperClusterName,
                                     @QueryParam( "nimbus" ) String nimbus,
@@ -62,7 +62,8 @@ public interface RestService
     @PUT
     @Path( "clusters/{clusterName}/stop/nodes/{hostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "hostname" ) String hostname );
+    public Response stopNode( @PathParam( "clusterName" ) String clusterName,
+                              @PathParam( "hostname" ) String hostname );
 
     // add node
     @POST

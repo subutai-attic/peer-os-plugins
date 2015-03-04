@@ -10,7 +10,6 @@
   <reference id="environmentManager"
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
-
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.storm.ui.StormPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="storm" />

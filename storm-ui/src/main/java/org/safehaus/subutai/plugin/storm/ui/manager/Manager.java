@@ -17,6 +17,7 @@ import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
@@ -38,6 +39,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -51,8 +53,6 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
-
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
     protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
@@ -72,18 +72,21 @@ public class Manager
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String ADD_NODE_BUTTON_CAPTION = "Add Node";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
     private static final String MESSAGE = "No cluster is installed !";
-    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     final Button refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, removeCluster, addNodeBtn;
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final Table masterTable, workersTable;
     private final Storm storm;
     private final ExecutorService executorService;
     private final Tracker tracker;
+    private final EnvironmentManager environmentManager;
     private StormClusterConfiguration config;
     private Zookeeper zookeeper;
-    private final EnvironmentManager environmentManager;
+    private CheckBox autoScaleBtn;
 
 
     public Manager( final ExecutorService executorService, final Storm storm, Zookeeper zookeeper,
@@ -112,6 +115,7 @@ public class Manager
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
@@ -133,6 +137,7 @@ public class Manager
             }
         } );
         controlsContent.addComponent( clusterCombo );
+        controlsContent.setComponentAlignment( clusterCombo, Alignment.MIDDLE_CENTER );
 
 
         /** Refresh Cluster button */
@@ -147,24 +152,28 @@ public class Manager
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
 
         /** Check all button */
         checkAllBtn = new Button( CHECK_ALL_BUTTON_CAPTION );
         checkAllBtn.setId( "StormCheckAllBtn" );
         addClickListener( checkAllBtn );
         controlsContent.addComponent( checkAllBtn );
+        controlsContent.setComponentAlignment( checkAllBtn, Alignment.MIDDLE_CENTER );
 
         /** Start all button */
         startAllBtn = new Button( START_ALL_BUTTON_CAPTION );
         startAllBtn.setId( "StormStartAllBtn" );
         addClickListener( startAllBtn );
         controlsContent.addComponent( startAllBtn );
+        controlsContent.setComponentAlignment( startAllBtn, Alignment.MIDDLE_CENTER );
 
         /** Stop all button */
         stopAllBtn = new Button( STOP_ALL_BUTTON_CAPTION );
         stopAllBtn.setId( "StormStopAllBtn" );
         addClickListener( stopAllBtn );
         controlsContent.addComponent( stopAllBtn );
+        controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Remove Cluster button */
@@ -173,6 +182,7 @@ public class Manager
         removeCluster.setDescription( "Removes cluster info from DB" );
         addClickListenerToRemoveClusterButton();
         controlsContent.addComponent( removeCluster );
+        controlsContent.setComponentAlignment( removeCluster, Alignment.MIDDLE_CENTER );
 
         /** Add Node button */
         addNodeBtn = new Button( ADD_NODE_BUTTON_CAPTION );
@@ -215,6 +225,40 @@ public class Manager
             }
         } );
         controlsContent.addComponent( addNodeBtn );
+        controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( config == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    config.setAutoScaling( value );
+                    try
+                    {
+                        storm.saveConfig( config );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
+
 
         addStyleNameToButtons( addNodeBtn, removeCluster, startAllBtn, stopAllBtn, checkAllBtn, refreshClustersBtn );
 
@@ -580,6 +624,7 @@ public class Manager
                 }
             }
             populateTable( workersTable, false, supervisorHosts );
+            autoScaleBtn.setValue( config.isAutoScaling() );
         }
         else
         {
@@ -867,6 +912,25 @@ public class Manager
     }
 
 
+    private void destroyClusterHandler()
+    {
+
+        UUID trackID = storm.uninstallCluster( config.getClusterName() );
+
+        ProgressWindow window =
+                new ProgressWindow( executorService, tracker, trackID, StormClusterConfiguration.PRODUCT_NAME );
+        window.getWindow().addCloseListener( new Window.CloseListener()
+        {
+            @Override
+            public void windowClose( Window.CloseEvent closeEvent )
+            {
+                refreshClustersInfo();
+            }
+        } );
+        contentRoot.getUI().addWindow( window.getWindow() );
+    }
+
+
     public void refreshClustersInfo()
     {
         StormClusterConfiguration current = ( StormClusterConfiguration ) clusterCombo.getValue();
@@ -902,25 +966,6 @@ public class Manager
                 }
             }
         }
-    }
-
-
-    private void destroyClusterHandler()
-    {
-
-        UUID trackID = storm.uninstallCluster( config.getClusterName() );
-
-        ProgressWindow window =
-                new ProgressWindow( executorService, tracker, trackID, StormClusterConfiguration.PRODUCT_NAME );
-        window.getWindow().addCloseListener( new Window.CloseListener()
-        {
-            @Override
-            public void windowClose( Window.CloseEvent closeEvent )
-            {
-                refreshClustersInfo();
-            }
-        } );
-        contentRoot.getUI().addWindow( window.getWindow() );
     }
 
 

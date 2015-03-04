@@ -51,15 +51,15 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 
 
@@ -97,24 +97,10 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Response getCluster( String clusterName )
+    public Response installCluster( String clusterName, String environmentId, boolean externalZookeeper,
+                                    String zookeeperClusterName, String nimbus, String supervisors )
     {
-        StormClusterConfiguration config = stormManager.getCluster( clusterName );
-        if ( config == null )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + "cluster not found" )
-                           .build();
-        }
-
-        String clusterInfo = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( clusterInfo ).build();
-    }
-
-
-    public Response installCluster( String clusterName, String environmentId, boolean externalZookeeper, String zookeeperClusterName,
-                                    String nimbus, String supervisors )
-    {
-        Set<UUID> uuidSet = new HashSet<>(  );
+        Set<UUID> uuidSet = new HashSet<>();
         StormClusterConfiguration config = new StormClusterConfiguration();
         config.setClusterName( clusterName );
         config.setExternalZookeeper( externalZookeeper );
@@ -187,6 +173,20 @@ public class RestServiceImpl implements RestService
         UUID uuid = stormManager.uninstallCluster( clusterName );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    public Response getCluster( String clusterName )
+    {
+        StormClusterConfiguration config = stormManager.getCluster( clusterName );
+        if ( config == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + "cluster not found" )
+                           .build();
+        }
+
+        String clusterInfo = JsonUtil.GSON.toJson( config );
+        return Response.status( Response.Status.OK ).entity( clusterInfo ).build();
     }
 
 

@@ -16,6 +16,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationInterface;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
@@ -39,6 +40,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.stormManager = stormManager;
         environmentManager = stormManager.getEnvironmentManager();
     }
+
 
     /**
      * TODO: configuration of External Installation should modify, especially configuration of nimbus on zookeeper node
@@ -180,6 +182,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         config.setEnvironmentId( environment.getId() );
         stormManager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_NAME, config.getClusterName(), config );
         po.addLogDone( "Cluster info successfully saved" );
+
+        try
+        {
+            stormManager.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            LOG.error( "Error while subscribing to alerts", e );
+            e.printStackTrace();
+        }
     }
 
 
@@ -242,8 +254,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException(
-                        String.format( "Environment not found by id: %s", config.getEnvironmentId().toString() ),
+                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId().toString() ),
                         e );
                 return "";
             }

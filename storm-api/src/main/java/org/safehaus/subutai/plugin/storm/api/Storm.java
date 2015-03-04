@@ -14,7 +14,11 @@ public interface Storm extends ApiBase<StormClusterConfiguration>
 
     public UUID startNode( String clusterName, String hostname );
 
+    public UUID startAll( String clusterName );
+
     public UUID stopNode( String clusterName, String hostname );
+
+    public UUID stopAll( String clusterName );
 
     public UUID checkNode( String clusterName, String hostname );
 
@@ -34,8 +38,6 @@ public interface Storm extends ApiBase<StormClusterConfiguration>
     public UUID removeCluster( String clusterName );
 
     public ClusterSetupStrategy getClusterSetupStrategy( StormClusterConfiguration config, TrackerOperation po );
-
-    UUID configureEnvironmentCluster( StormClusterConfiguration config );
 
     /**
      * Saves/Updates cluster config in database

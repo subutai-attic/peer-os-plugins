@@ -18,9 +18,8 @@ public class StormNodeOperationTask extends AbstractNodeOperationTask implements
     private NodeOperationType nodeOperationType;
 
 
-    public StormNodeOperationTask( Storm storm, Tracker tracker, String clusterName,
-                                   ContainerHost containerHost, NodeOperationType operationType,
-                                   CompleteEvent completeEvent, UUID trackID )
+    public StormNodeOperationTask( Storm storm, Tracker tracker, String clusterName, ContainerHost containerHost,
+                                   NodeOperationType operationType, CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, storm.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.storm = storm;

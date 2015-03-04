@@ -33,36 +33,23 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class ClusterConfigurationTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock StormImpl stormImpl;
+    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
+    @Mock PluginDAO pluginDAO;
+    @Mock Zookeeper zookeeper;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock ConfigBase configBase;
     private ClusterConfiguration clusterConfiguration;
     private UUID uuid;
     private Set<ContainerHost> mySet;
     private Set<UUID> myUUID;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    StormImpl stormImpl;
-    @Mock
-    StormClusterConfiguration stormClusterConfiguration;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock
-    ConfigBase configBase;
 
 
     @Before
@@ -81,7 +68,7 @@ public class ClusterConfigurationTest
         // mock
         when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
     }
@@ -90,21 +77,22 @@ public class ClusterConfigurationTest
     @Test
     public void testConfigureClusterNoEnvironmentException() throws Exception
     {
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenThrow( EnvironmentNotFoundException.class );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
 
         clusterConfiguration.configureCluster( stormClusterConfiguration, environment );
     }
+
 
     @Test
     public void testConfigureClusterNoContainerHostException() throws Exception
     {
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenThrow( ContainerHostNotFoundException.class );
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) )
+                .thenThrow( ContainerHostNotFoundException.class );
+        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
 
         clusterConfiguration.configureCluster( stormClusterConfiguration, environment );
     }
-
 }

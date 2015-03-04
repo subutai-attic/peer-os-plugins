@@ -30,6 +30,7 @@
     <module>storm-api</module>
     <module>storm-impl</module>
     <module>storm-ui</module>
+    <module>storm-cli</module>
     <module>storm-rest</module>
     <module>storm-kar</module>
   </modules>
