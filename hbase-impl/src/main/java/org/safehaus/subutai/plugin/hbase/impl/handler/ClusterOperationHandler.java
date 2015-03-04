@@ -1,15 +1,17 @@
 package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 
+import java.util.Map;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
-import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -32,6 +34,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     private ClusterOperationType operationType;
     private Environment environment;
     private HBaseConfig config;
+    private CommandUtil commandUtil;
 
 
     public ClusterOperationHandler( final HBaseImpl manager, final HBaseConfig hbaseConfig,
@@ -40,6 +43,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         this( manager, hbaseConfig );
         Preconditions.checkNotNull( hbaseConfig );
         this.operationType = operationType;
+        this.commandUtil = new CommandUtil();
         try
         {
             this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -196,13 +200,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             // stop hbase cluster before removing hbase debian package
             manager.stopCluster( clusterName );
 
-            RequestBuilder uninstallCommand = Commands.getUninstallCommand();
-
-            trackerOperation.addLog( "Uninstalling HBase..." );
-
-            for ( ContainerHost host : hbaseNodes )
+            try
             {
-                executeCommand( host, uninstallCommand );
+                Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
+                Map<Host, CommandResult> resultMap = commandUtil.executeParallel( Commands.getUninstallCommand(),
+                        HBaseSetupStrategy.getHosts( config, environment ) );
+                if ( isAllSuccessful( resultMap, hostSet ) )
+                {
+                    trackerOperation.addLog( "HBase package is removed from all nodes succesfully" );
+                }
+            }
+            catch ( CommandException e )
+            {
+                LOG.error( "Error while uninstalling HBase from nodes", e );
+                e.printStackTrace();
             }
 
             if ( !manager.getPluginDAO().deleteInfo( HBaseConfig.PRODUCT_KEY, clusterName ) )
@@ -225,22 +236,16 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public static boolean isAllSuccessful( Map<Host, CommandResult> resultMap, Set<Host> hosts )
     {
-        CommandResult result;
-        try
+        boolean allSuccess = true;
+        for ( Host host : hosts )
         {
-            result = host.execute( command );
+            if ( !resultMap.get( host ).hasSucceeded() )
+            {
+                allSuccess = false;
+            }
         }
-        catch ( CommandException e )
-        {
-            throw new ClusterException( e );
-        }
-        if ( !result.hasSucceeded() )
-        {
-            throw new ClusterException( String.format( "Error on container %s: %s", host.getHostname(),
-                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
-        }
-        return result;
+        return allSuccess;
     }
 }

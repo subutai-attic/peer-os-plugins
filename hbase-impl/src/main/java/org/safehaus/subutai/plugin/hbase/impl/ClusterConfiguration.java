@@ -1,14 +1,17 @@
 package org.safehaus.subutai.plugin.hbase.impl;
 
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -190,21 +193,28 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public static void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command,
                                                      Environment environment )
     {
-        for ( UUID uuid : allUUIDs )
+        CommandUtil commandUtil = new CommandUtil();
+        try
         {
+            Set<Host> hosts = new HashSet<>();
+            for ( UUID uuid : allUUIDs )
+            {
+                hosts.add( environment.getContainerHostById( uuid ) );
+            }
             try
             {
-                ContainerHost containerHost = environment.getContainerHostById( uuid );
-                containerHost.execute( command );
+                commandUtil.executeParallel( command, hosts );
             }
             catch ( CommandException e )
             {
-                LOG.error( "Error executing command on container", e );
+                LOG.error( "Error while executing commands in parallel", e );
+                e.printStackTrace();
             }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host by uuid: " + uuid.toString(), e );
-            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Could not get all containers", e );
+            e.printStackTrace();
         }
     }
 
