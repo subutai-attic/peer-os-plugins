@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -137,7 +138,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
             LOG.error( e.getMessage(), e );
         }
 
-        executor = Executors.newSingleThreadExecutor();
+        executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 
