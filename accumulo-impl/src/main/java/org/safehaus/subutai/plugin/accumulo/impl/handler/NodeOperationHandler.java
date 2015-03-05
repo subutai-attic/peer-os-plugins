@@ -467,8 +467,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         try
         {
 
-            result = host.execute( Commands.getInstallCommand(
-                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 3600 ) );
+            result = host.execute( Commands.getInstallCommand().withTimeout( 3600 ) );
             if ( result.hasSucceeded() )
             {
                 switch ( nodeType )

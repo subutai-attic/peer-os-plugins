@@ -29,6 +29,7 @@ import org.safehaus.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
 import org.safehaus.subutai.plugin.accumulo.impl.handler.RemovePropertyOperationHandler;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
@@ -46,6 +47,7 @@ import com.google.common.base.Strings;
 public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( AccumuloImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     protected Commands commands;
     private Tracker tracker;
     private Hadoop hadoopManager;
@@ -55,7 +57,6 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     private PluginDAO pluginDAO;
     private DataSource dataSource;
     private Monitor monitor;
-    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private QuotaManager quotaManager;
     private AccumuloAlertListener accumuloAlertListener;
 
@@ -66,18 +67,6 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
         this.monitor = monitor;
         this.accumuloAlertListener = new AccumuloAlertListener( this );
         this.monitor.addAlertListener( this.accumuloAlertListener );
-    }
-
-
-    public void setPluginDAO( final PluginDAO pluginDAO )
-    {
-        this.pluginDAO = pluginDAO;
-    }
-
-
-    public PluginDAO getPluginDAO()
-    {
-        return pluginDAO;
     }
 
 
@@ -340,21 +329,45 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
+    @Override
+    public void saveConfig( final AccumuloClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().saveInfo( AccumuloClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    public PluginDAO getPluginDAO()
+    {
+        return pluginDAO;
+    }
+
+
+    public void setPluginDAO( final PluginDAO pluginDAO )
+    {
+        this.pluginDAO = pluginDAO;
+    }
+
+
+    @Override
+    public void deleteConfig( final AccumuloClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( AccumuloClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not delete cluster info" );
+        }
+    }
+
+
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         getMonitor().startMonitoring( accumuloAlertListener, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( accumuloAlertListener, environment );
     }
 
 
@@ -367,6 +380,18 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     public void setMonitor( final Monitor monitor )
     {
         this.monitor = monitor;
+    }
+
+
+    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    {
+        getMonitor().activateMonitoring( host, alertSettings );
+    }
+
+
+    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    {
+        getMonitor().stopMonitoring( accumuloAlertListener, environment );
     }
 
 

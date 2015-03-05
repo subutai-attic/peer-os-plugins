@@ -32,14 +32,12 @@ public class AccumuloAlertListener implements AlertListener
 {
     private static final String ACCUMOLO_ALERT_LISTENER = "ACCUMOLO_ALERT_LISTENER";
     private static final Logger LOGGER = LoggerFactory.getLogger( AccumuloAlertListener.class );
-
-    private AccumuloImpl accumulo;
-    private CommandUtil commandUtil = new CommandUtil();
-
     private static int MAX_RAM_QUOTA_MB = 2048;
     private static int RAM_QUOTA_INCREMENT_MB = 512;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private AccumuloImpl accumulo;
+    private CommandUtil commandUtil = new CommandUtil();
 
 
     public AccumuloAlertListener( final AccumuloImpl accumulo )

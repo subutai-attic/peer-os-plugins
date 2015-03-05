@@ -30,6 +30,12 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
+    @Mock Accumulo accumulo;
+    @Mock Hadoop hadoop;
+    @Mock HadoopClusterConfig hadoopClusterConfig;
+    @Mock ContainerHost containerHost;
+    @Mock Tracker tracker;
+    @Mock TrackerOperationView trackerOperationView;
     private RestServiceImpl restService;
     private AccumuloClusterConfig accumuloClusterConfig;
     private String config2 = "{\"clusterName\": \"test\",\"instanceName\": \"instance-name\",\"password\": " +
@@ -39,18 +45,6 @@ public class RestServiceImplTest
             "\"monitor\": \"" + UUID.randomUUID().toString() + "\",\"tracers\": [\"" + UUID.randomUUID().toString()
             + "\",\"" + UUID.randomUUID().toString() + "\"],\"slaves\": " +
             "[\"" + UUID.randomUUID().toString() + "\",\"" + UUID.randomUUID().toString() + "\"]}";
-    @Mock
-    Accumulo accumulo;
-    @Mock
-    Hadoop hadoop;
-    @Mock
-    HadoopClusterConfig hadoopClusterConfig;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    Tracker tracker;
-    @Mock
-    TrackerOperationView trackerOperationView;
 
 
     @Before

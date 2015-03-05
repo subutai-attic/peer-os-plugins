@@ -28,8 +28,8 @@ import com.google.common.base.Strings;
  */
 public class RemovePropertyOperationHandler extends AbstractOperationHandler<AccumuloImpl, AccumuloClusterConfig>
 {
-    private final String propertyName;
     private static final Logger LOGGER = LoggerFactory.getLogger( RemovePropertyOperationHandler.class );
+    private final String propertyName;
 
 
     public RemovePropertyOperationHandler( AccumuloImpl manager, String clusterName, String propertyName )

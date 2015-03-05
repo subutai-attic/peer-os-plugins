@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import javax.sql.DataSource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -49,57 +50,35 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class AccumuloImplTest
 {
+    @Mock AccumuloClusterConfig accumuloClusterConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ContainerHost containerHost;
+    @Mock CommandResult commandResult;
+    @Mock DataSource dataSource;
+    @Mock PluginDAO pluginDAO;
+    @Mock ExecutorService executor;
+    @Mock Commands commands;
+    @Mock Hadoop hadoop;
+    @Mock Zookeeper zookeeper;
+    @Mock Connection connection;
+    @Mock PreparedStatement preparedStatement;
+    @Mock ResultSet resultSet;
+    @Mock ResultSetMetaData resultSetMetaData;
+    @Mock HadoopClusterConfig hadoopClusterConfig;
+    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock Monitor monitor;
+    @Mock QuotaManager quotaManager;
     private AccumuloImpl accumuloImpl;
     private UUID uuid;
-    @Mock
-    AccumuloClusterConfig accumuloClusterConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    DataSource dataSource;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    ExecutorService executor;
-    @Mock
-    Commands commands;
-    @Mock
-    Hadoop hadoop;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    Connection connection;
-    @Mock
-    PreparedStatement preparedStatement;
-    @Mock
-    ResultSet resultSet;
-    @Mock
-    ResultSetMetaData resultSetMetaData;
-    @Mock
-    HadoopClusterConfig hadoopClusterConfig;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
-
-    @Mock
-    Monitor monitor;
-
-    @Mock
-    QuotaManager quotaManager;
 
 
+    @Ignore
     @Before
     public void setUp() throws Exception
     {
@@ -207,7 +186,7 @@ public class AccumuloImplTest
     }
 
 
-    @Test(expected = NullPointerException.class)
+    @Test( expected = NullPointerException.class )
     public void testInit() throws Exception
     {
         accumuloImpl.init();

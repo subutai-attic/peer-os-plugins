@@ -1,15 +1,19 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.metric.api.MonitorException;
@@ -38,6 +42,7 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
     private final AccumuloClusterConfig accumuloClusterConfig;
     private final HadoopClusterConfig hadoopClusterConfig;
     private final Environment environment;
+    private CommandUtil commandUtil;
 
 
     public AccumuloOverZkNHadoopSetupStrategy( final Environment environment,
@@ -55,6 +60,7 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
         this.hadoopClusterConfig = hadoopClusterConfig;
         this.accumuloManager = accumuloManager;
         this.environment = environment;
+        this.commandUtil = new CommandUtil();
     }
 
 
@@ -106,86 +112,123 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
         /** start hadoop and zk clusters */
         accumuloManager.getHadoopManager().startNameNode( hadoopClusterConfig );
+        accumuloManager.getZkManager().startAllNodes( zookeeperClusterConfig.getClusterName() );
 
-        /** start Zookeeper cluster */
-        for ( UUID nodeId : zookeeperClusterConfig.getNodes() )
-        {
-            try
-            {
-                accumuloManager.getZkManager().startNode( zookeeperClusterConfig.getClusterName(),
-                        environment.getContainerHostById( nodeId ).getHostname() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId,
-                        environment.getName() );
-                trackerOperation.addLogFailed( msg );
-                LOGGER.error( msg, e );
-                return null;
-            }
-        }
 
         trackerOperation.addLog( "Installing Accumulo..." );
-        for ( UUID uuid : accumuloClusterConfig.getAllNodes() )
+
+        Set<Host> hostSet = getHosts( accumuloClusterConfig, environment );
+        try
         {
-            CommandResult result;
-            ContainerHost host = null;
-            try
+            Map<Host, CommandResult> resultMap =
+                    commandUtil.executeParallel( new RequestBuilder( Commands.checkIfInstalled ), hostSet );
+            if ( !isProductInstalledOnAllNodes( resultMap, hostSet, HadoopClusterConfig.PRODUCT_NAME ) )
             {
-                host = environment.getContainerHostById( uuid );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                String msg =
-                        String.format( "Container host with id: %s doesn't exists in environment: %s", uuid.toString(),
-                                environment.getName() );
-                trackerOperation.addLogFailed( msg );
-                LOGGER.error( msg, e );
+                trackerOperation.addLogFailed( "Hadoop is not installed on all nodes" );
                 return null;
             }
-            if ( checkIfProductIsInstalled( host, HadoopClusterConfig.PRODUCT_NAME ) )
+
+            resultMap = commandUtil.executeParallel( new RequestBuilder( Commands.checkIfInstalled ), hostSet );
+            if ( isProductNotInstalledOnAllNodes( resultMap, hostSet, AccumuloClusterConfig.PRODUCT_NAME ) )
             {
-                if ( !checkIfProductIsInstalled( host, AccumuloClusterConfig.PRODUCT_PACKAGE ) )
-                {
-                    try
-                    {
-                        host.execute( Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
-                        result = host.execute(
-                                Commands.getPackageQueryCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
-                        String output = result.getStdOut() + result.getStdErr();
-                        if ( output.contains( "install ok installed" ) )
-                        {
-                            trackerOperation.addLog(
-                                    AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() );
-                        }
-                        else
-                        {
-                            trackerOperation.addLogFailed(
-                                    AccumuloClusterConfig.PRODUCT_KEY + " is not installed on node " + host
-                                            .getTemplateName() );
-                            throw new ClusterSetupException( String.format( "Couldn't install %s package on node %s",
-                                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME, host.getHostname() ) );
-                        }
-                    }
-                    catch ( CommandException e )
-                    {
-                        String msg = String.format( "Error executing install command on container host." );
-                        trackerOperation.addLogFailed( msg );
-                        LOGGER.error( msg, e );
-                    }
-                }
-                else
-                {
-                    trackerOperation
-                            .addLog( String.format( "Node %s already has Accumulo installed", host.getHostname() ) );
-                }
+                trackerOperation.addLogFailed( "Some nodes has already accumulo package installed. Aborting..." );
+                return null;
+            }
+
+            resultMap = commandUtil.executeParallel( Commands.getInstallCommand(), hostSet );
+            if ( isAllSuccessful( resultMap, hostSet ) )
+            {
+                trackerOperation.addLog( "Accumulo package is installed on all nodes successfully" );
             }
             else
             {
-                throw new ClusterSetupException(
-                        String.format( "Node %s has no Hadoop installation", host.getHostname() ) );
+                trackerOperation.addLogFailed( "Accumulo is NOT installed on all nodes successfully !" );
+                throw new ClusterSetupException( String.format( "Couldn't install Accumulo on all nodes" ) );
             }
+
+
+            //            Map<Host, CommandResult> resultMap = commandUtil.executeParallel(
+            //                    Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE.toLowerCase() ),
+            // hostSet );
+            //            if ( isAllSuccessful( resultMap, hostSet ) ){
+            //
+            //            }
         }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
+
+
+        //        for ( UUID uuid : accumuloClusterConfig.getAllNodes() )
+        //        {
+        //            CommandResult result;
+        //            ContainerHost host = null;
+        //
+        //
+        //
+        //            try
+        //            {
+        //                host = environment.getContainerHostById( uuid );
+        //            }
+        //            catch ( ContainerHostNotFoundException e )
+        //            {
+        //                String msg =
+        //                        String.format( "Container host with id: %s doesn't exists in environment: %s", uuid
+        // .toString(),
+        //                                environment.getName() );
+        //                trackerOperation.addLogFailed( msg );
+        //                LOGGER.error( msg, e );
+        //                return null;
+        //            }
+        //
+        //            if ( checkIfProductIsInstalled( host, HadoopClusterConfig.PRODUCT_NAME ) )
+        //            {
+        //                if ( !checkIfProductIsInstalled( host, AccumuloClusterConfig.PRODUCT_PACKAGE ) )
+        //                {
+        //                    try
+        //                    {
+        //                        host.execute( Commands.getInstallCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
+        //                        result = host.execute(
+        //                                Commands.getPackageQueryCommand( AccumuloClusterConfig.PRODUCT_PACKAGE ) );
+        //                        String output = result.getStdOut() + result.getStdErr();
+        //                        if ( output.contains( "install ok installed" ) )
+        //                        {
+        //                            trackerOperation.addLog(
+        //                                    AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + host
+        // .getHostname() );
+        //                        }
+        //                        else
+        //                        {
+        //                            trackerOperation.addLogFailed(
+        //                                    AccumuloClusterConfig.PRODUCT_KEY + " is not installed on node " + host
+        //                                            .getTemplateName() );
+        //                            throw new ClusterSetupException( String.format( "Couldn't install %s package on
+        // node %s",
+        //                                    Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_NAME, host
+        // .getHostname() ) );
+        //                        }
+        //                    }
+        //                    catch ( CommandException e )
+        //                    {
+        //                        String msg = String.format( "Error executing install command on container host." );
+        //                        trackerOperation.addLogFailed( msg );
+        //                        LOGGER.error( msg, e );
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    trackerOperation
+        //                            .addLog( String.format( "Node %s already has Accumulo installed", host
+        // .getHostname() ) );
+        //                }
+        //            }
+        //            else
+        //            {
+        //                throw new ClusterSetupException(
+        //                        String.format( "Node %s has no Hadoop installation", host.getHostname() ) );
+        //            }
+        //        }
 
         try
         {
@@ -198,6 +241,68 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( e.getMessage() );
         }
         return accumuloClusterConfig;
+    }
+
+
+    public static Set<Host> getHosts( AccumuloClusterConfig config, Environment environment )
+    {
+        Set<Host> hosts = new HashSet<>();
+        for ( UUID uuid : config.getAllNodes() )
+        {
+            try
+            {
+                hosts.add( environment.getContainerHostById( uuid ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        return hosts;
+    }
+
+
+    public static boolean isAllSuccessful( Map<Host, CommandResult> resultMap, Set<Host> hosts )
+    {
+        boolean allSuccess = true;
+        for ( Host host : hosts )
+        {
+            if ( !resultMap.get( host ).hasSucceeded() )
+            {
+                allSuccess = false;
+            }
+        }
+        return allSuccess;
+    }
+
+
+    public static boolean isProductInstalledOnAllNodes( Map<Host, CommandResult> resultMap, Set<Host> hosts,
+                                                        String productName )
+    {
+        boolean installedOnAllNodes = true;
+        for ( Host host : hosts )
+        {
+            if ( !resultMap.get( host ).getStdOut().toLowerCase().contains( productName.toLowerCase() ) )
+            {
+                installedOnAllNodes = false;
+            }
+        }
+        return installedOnAllNodes;
+    }
+
+
+    public static boolean isProductNotInstalledOnAllNodes( Map<Host, CommandResult> resultMap, Set<Host> hosts,
+                                                           String productName )
+    {
+        boolean installedOnAllNodes = false;
+        for ( Host host : hosts )
+        {
+            if ( resultMap.get( host ).getStdOut().toLowerCase().contains( productName.toLowerCase() ) )
+            {
+                installedOnAllNodes = true;
+            }
+        }
+        return installedOnAllNodes;
     }
 
 

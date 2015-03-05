@@ -33,57 +33,15 @@ public class TrimmedAccumuloConfig
     }
 
 
-    public String getInstanceName()
-    {
-        return instanceName;
-    }
-
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-
-    public String getMasterNode()
-    {
-        return masterNode;
-    }
-
-
-    public String getGcNode()
-    {
-        return gcNode;
-    }
-
-
-    public String getMonitor()
-    {
-        return monitor;
-    }
-
-
-    public Set<String> getTracers()
-    {
-        return tracers;
-    }
-
-
-    public Set<String> getSlaves()
-    {
-        return slaves;
-    }
-
-
-    public String getHadoopClusterName()
-    {
-        return hadoopClusterName;
-    }
-
-
     public void setClusterName( final String clusterName )
     {
         this.clusterName = clusterName;
+    }
+
+
+    public String getInstanceName()
+    {
+        return instanceName;
     }
 
 
@@ -93,9 +51,21 @@ public class TrimmedAccumuloConfig
     }
 
 
+    public String getPassword()
+    {
+        return password;
+    }
+
+
     public void setPassword( final String password )
     {
         this.password = password;
+    }
+
+
+    public String getMasterNode()
+    {
+        return masterNode;
     }
 
 
@@ -105,9 +75,21 @@ public class TrimmedAccumuloConfig
     }
 
 
+    public String getGcNode()
+    {
+        return gcNode;
+    }
+
+
     public void setGcNode( final String gcNode )
     {
         this.gcNode = gcNode;
+    }
+
+
+    public String getMonitor()
+    {
+        return monitor;
     }
 
 
@@ -117,15 +99,33 @@ public class TrimmedAccumuloConfig
     }
 
 
+    public Set<String> getTracers()
+    {
+        return tracers;
+    }
+
+
     public void setTracers( final Set<String> tracers )
     {
         this.tracers = tracers;
     }
 
 
+    public Set<String> getSlaves()
+    {
+        return slaves;
+    }
+
+
     public void setSlaves( final Set<String> slaves )
     {
         this.slaves = slaves;
+    }
+
+
+    public String getHadoopClusterName()
+    {
+        return hadoopClusterName;
     }
 
 

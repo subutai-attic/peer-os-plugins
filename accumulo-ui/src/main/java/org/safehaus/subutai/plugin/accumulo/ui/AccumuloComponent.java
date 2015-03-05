@@ -56,7 +56,6 @@ public class AccumuloComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
-                    manager.checkAll();
                 }
             }
         } );

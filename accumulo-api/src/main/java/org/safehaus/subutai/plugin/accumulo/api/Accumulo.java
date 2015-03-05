@@ -9,6 +9,7 @@ package org.safehaus.subutai.plugin.accumulo.api;
 import java.util.UUID;
 
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 
 
@@ -105,4 +106,13 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
      * @return - tracker operation id
      */
     public UUID removeProperty( String clusterName, String propertyName );
+
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( AccumuloClusterConfig config ) throws ClusterException;
+
+    public void deleteConfig( AccumuloClusterConfig config ) throws ClusterException;
 }

@@ -223,36 +223,6 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private String wrapUUID( UUID uuid )
-    {
-        return JsonUtil.toJson( "OPERATION_ID", uuid );
-    }
-
-
-    public Accumulo getAccumuloManager()
-    {
-        return accumuloManager;
-    }
-
-
-    public void setAccumuloManager( final Accumulo accumuloManager )
-    {
-        this.accumuloManager = accumuloManager;
-    }
-
-
-    public Hadoop getHadoop()
-    {
-        return hadoop;
-    }
-
-
-    public void setHadoop( final Hadoop hadoop )
-    {
-        this.hadoop = hadoop;
-    }
-
-
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
@@ -300,6 +270,36 @@ public class RestServiceImpl implements RestService
             }
         }
         return state;
+    }
+
+
+    private String wrapUUID( UUID uuid )
+    {
+        return JsonUtil.toJson( "OPERATION_ID", uuid );
+    }
+
+
+    public Accumulo getAccumuloManager()
+    {
+        return accumuloManager;
+    }
+
+
+    public void setAccumuloManager( final Accumulo accumuloManager )
+    {
+        this.accumuloManager = accumuloManager;
+    }
+
+
+    public Hadoop getHadoop()
+    {
+        return hadoop;
+    }
+
+
+    public void setHadoop( final Hadoop hadoop )
+    {
+        this.hadoop = hadoop;
     }
 
 
