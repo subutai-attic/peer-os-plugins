@@ -33,8 +33,8 @@ public class InstallOperationHandlerTest
         when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
         when( config.getClusterName() ).thenReturn( "test" );
         when( zookeeperMock.getCluster( anyString() ) ).thenReturn( config );
-        AbstractOperationHandler operationHandler = new ZookeeperClusterOperationHandler( zookeeperMock, config,
-                ClusterOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( zookeeperMock, config, ClusterOperationType.INSTALL );
         operationHandler.run();
 
         assertTrue( operationHandler.getTrackerOperation().getLog().contains( "already exists" ) );
@@ -56,8 +56,8 @@ public class InstallOperationHandlerTest
         when( zookeeperMock.getEnvironmentManager() ).thenReturn( mock( EnvironmentManager.class ) );
         when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
         when( zookeeperMock.getCluster( anyString() ) ).thenReturn( new ZookeeperClusterConfig() );
-        AbstractOperationHandler operationHandler = new ZookeeperClusterOperationHandler( zookeeperMock, config,
-                ClusterOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( zookeeperMock, config, ClusterOperationType.INSTALL );
         operationHandler.run();
 
         assertTrue( operationHandler.getTrackerOperation().getLog().contains( "Malformed configuration" ) );
@@ -79,8 +79,8 @@ public class InstallOperationHandlerTest
         when( zookeeperMock.getEnvironmentManager() ).thenReturn( mock( EnvironmentManager.class ) );
         when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
         when( zookeeperMock.getCluster( anyString() ) ).thenReturn( new ZookeeperClusterConfig() );
-        AbstractOperationHandler operationHandler = new ZookeeperClusterOperationHandler( zookeeperMock, config,
-                ClusterOperationType.INSTALL );
+        AbstractOperationHandler operationHandler =
+                new ZookeeperClusterOperationHandler( zookeeperMock, config, ClusterOperationType.INSTALL );
         operationHandler.run();
 
         assertTrue( operationHandler.getTrackerOperation().getLog().contains( "Malformed configuration" ) );

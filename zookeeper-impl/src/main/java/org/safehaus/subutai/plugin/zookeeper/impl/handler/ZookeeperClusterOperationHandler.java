@@ -16,6 +16,7 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
@@ -99,7 +100,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
                         }
                     }
@@ -109,7 +111,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
                         }
                     }
@@ -119,7 +122,8 @@ public class ZookeeperClusterOperationHandler
                                          .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        if ( config.getNodes().contains( containerHost.getId() ) ){
+                        if ( config.getNodes().contains( containerHost.getId() ) )
+                        {
                             commandResultList.add( executeCommand( containerHost, Commands.getStatusCommand() ) );
                         }
                     }
@@ -138,35 +142,57 @@ public class ZookeeperClusterOperationHandler
     @Override
     public void setupCluster()
     {
-        if ( Strings.isNullOrEmpty( zookeeperClusterConfig.getClusterName() ) )
-        {
-            trackerOperation.addLogFailed( "Malformed configuration" );
-            return;
-        }
-
-        if ( manager.getCluster( clusterName ) != null )
-        {
-            trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
-            return;
-        }
-
         try
         {
-            Environment env = null;
+            if ( Strings.isNullOrEmpty( zookeeperClusterConfig.getClusterName() ) )
+            {
+                trackerOperation.addLogFailed( "Malformed configuration" );
+                return;
+            }
 
-            ClusterSetupStrategy clusterSetupStrategy =
-                    manager.getClusterSetupStrategy( env, zookeeperClusterConfig, trackerOperation );
-            clusterSetupStrategy.setup();
+            if ( manager.getCluster( clusterName ) != null )
+            {
+                trackerOperation.addLogFailed( String.format( "Cluster with name '%s' already exists", clusterName ) );
+                return;
+            }
 
-            trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+            try
+            {
+                Environment env = null;
+                try
+                {
+                    env = manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    throw new ClusterException( String.format( "Could not find environment of Hadoop cluster by id %s",
+                            zookeeperClusterConfig.getEnvironmentId() ) );
+                }
+
+                ClusterSetupStrategy clusterSetupStrategy =
+                        manager.getClusterSetupStrategy( env, zookeeperClusterConfig, trackerOperation );
+                clusterSetupStrategy.setup();
+
+                trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
+                manager.subscribeToAlerts( env );
+            }
+            catch ( ClusterSetupException e )
+            {
+                trackerOperation.addLogFailed(
+                        String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
+                                clusterName, e.getMessage() ) );
+                LOG.error( String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
+                        clusterName, e.getMessage() ), e );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
         }
-        catch ( ClusterSetupException e )
+        catch ( ClusterException e )
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
-                            clusterName, e.getMessage() ) );
-            LOG.error( String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
-                    clusterName, e.getMessage() ), e );
+            LOG.error( "Error in setupCluster", e );
+            trackerOperation.addLogFailed( String.format( "Failed to setup cluster : %s", e.getMessage() ) );
         }
     }
 

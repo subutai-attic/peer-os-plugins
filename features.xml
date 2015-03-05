@@ -1,9 +1,9 @@
 <features name="zookeeper-plugin" version="2.0.4">
   <feature name="zookeeper-plugin" version="2.0.4">
-    <bundle> mvn:org.safehaus.subutai/zookeeper-plugin-api/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/zookeeper-plugin-impl/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/zookeeper-plugin-ui/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/zookeeper-plugin-cli/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/zookeeper-plugin-rest/2.0.4</bundle>
+    <bundle>mvn:org.safehaus.subutai/zookeeper-plugin-api/2.0.4</bundle>
+    <bundle>mvn:org.safehaus.subutai/zookeeper-plugin-impl/2.0.4</bundle>
+    <bundle>mvn:org.safehaus.subutai/zookeeper-plugin-ui/2.0.4</bundle>
+    <bundle>mvn:org.safehaus.subutai/zookeeper-plugin-cli/2.0.4</bundle>
+    <bundle>mvn:org.safehaus.subutai/zookeeper-plugin-rest/2.0.4</bundle>
   </feature>
 </features>

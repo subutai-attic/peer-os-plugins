@@ -20,7 +20,6 @@ import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -111,8 +110,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             switch ( operationType )
             {
                 case START:
-                    commandResultList.add(
-                            containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
+                    commandResultList
+                            .add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
                     break;
                 case STOP:
                     commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
@@ -239,8 +238,10 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 //if envHost is not in zoo cluster add it else create new one.
                 if ( envContainerHosts.isEmpty() )
                 {
-                    NodeGroup nodeGroup = new NodeGroup( "Zookeeper NodeGroup", ZookeeperClusterConfig.TEMPLATE_NAME,
-                            Common.DEFAULT_DOMAIN_NAME, 1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                    NodeGroup nodeGroup =
+                            new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME, 1,
+                                    1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+
                     Topology topology = new Topology();
                     topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
                     johnnyRawSet.addAll( environment.growEnvironment( topology, false ) );
@@ -321,14 +322,17 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             }
 
             // check if cluster is already running, then newly added node should be started automatically.
-            RequestBuilder checkClusterIsRunning = new RequestBuilder( manager.getCommand( CommandType.STATUS ) ) ;
+            RequestBuilder checkClusterIsRunning = new RequestBuilder( manager.getCommand( CommandType.STATUS ) );
             ContainerHost host = zookeeperEnvironment.getContainerHostById( config.getNodes().iterator().next() );
             try
             {
                 CommandResult result = commandUtil.execute( checkClusterIsRunning, host );
-                if ( result.hasSucceeded() ){
-                    if ( result.getStdOut().contains( "pid" ) ){
-                        commandUtil.execute( new RequestBuilder( manager.getCommand( CommandType.START ) ).daemon(), newNode );
+                if ( result.hasSucceeded() )
+                {
+                    if ( result.getStdOut().contains( "pid" ) )
+                    {
+                        commandUtil.execute( new RequestBuilder( manager.getCommand( CommandType.START ) ).daemon(),
+                                newNode );
                     }
                 }
             }
@@ -367,11 +371,11 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
     public void destroyNode( ContainerHost host )
     {
         ZookeeperClusterConfig config = manager.getCluster( clusterName );
-        if( config.getSetupType().equals( SetupType.OVER_ENVIRONMENT ))
+        if ( config.getSetupType().equals( SetupType.OVER_ENVIRONMENT ) )
         {
             removeNode( host );
         }
-        else if( config.getSetupType().equals( SetupType.OVER_HADOOP ))
+        else if ( config.getSetupType().equals( SetupType.OVER_HADOOP ) )
         {
             uninstallNode( host );
         }
@@ -387,8 +391,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
                 try
                 {
-                    configurator
-                            .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                    configurator.configureCluster( config,
+                            environmentManager.findEnvironment( config.getEnvironmentId() ) );
                 }
                 catch ( ClusterConfigurationException e )
                 {
@@ -413,31 +417,30 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                         .addLogFailed(
                                 String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
             }
-
         }
     }
 
-    private void removeNode( final ContainerHost host)
+
+    private void removeNode( final ContainerHost host )
     {
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-            ZookeeperClusterConfig config = manager.getCluster( clusterName );
-            config.getNodes().remove( host.getId() );
-            manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-            // configure cluster again
-            ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
-            try
-            {
-                configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-            }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-            {
-                e.printStackTrace();
-            }
-            trackerOperation.addLog( String.format( "Cluster information is updated" ) );
-            trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
-
+        ZookeeperClusterConfig config = manager.getCluster( clusterName );
+        config.getNodes().remove( host.getId() );
+        manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+        // configure cluster again
+        ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
+        try
+        {
+            configurator.configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+        }
+        catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+        {
+            e.printStackTrace();
+        }
+        trackerOperation.addLog( String.format( "Cluster information is updated" ) );
+        trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
     }
+
 
     private void uninstallNode( final ContainerHost host )
     {
@@ -458,13 +461,13 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             else
             {
                 trackerOperation.addLogFailed(
-                        "Could not uninstall " + ZookeeperClusterConfig.PRODUCT_KEY + " from node " + host.getHostname() );
+                        "Could not uninstall " + ZookeeperClusterConfig.PRODUCT_KEY + " from node " + host
+                                .getHostname() );
             }
         }
         catch ( CommandException e )
         {
             e.printStackTrace();
         }
-
     }
 }

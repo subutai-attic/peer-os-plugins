@@ -12,7 +12,6 @@
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
-
   <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.zookeeper.ui.ZookeeperPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="zookeeper" />
