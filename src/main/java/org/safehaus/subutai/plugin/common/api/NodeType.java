@@ -27,4 +27,5 @@ public enum NodeType
     HMASTER,
     HREGIONSERVER,
     HQUORUMPEER,
+    BACKUPMASTER,
 }

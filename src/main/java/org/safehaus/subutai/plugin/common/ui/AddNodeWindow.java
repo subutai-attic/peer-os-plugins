@@ -64,7 +64,7 @@ public class AddNodeWindow extends Window
         for ( ContainerHost node : nodes )
         {
             availableNodesComboBox.addItem( node );
-            availableNodesComboBox.setItemCaption( node, node.toString() );
+            availableNodesComboBox.setItemCaption( node, node.getHostname() );
         }
         availableNodesComboBox.setValue( nodes.iterator().next() );
 
