@@ -24,7 +24,6 @@ import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
-import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.CommandType;
@@ -112,7 +111,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             switch ( operationType )
             {
                 case START:
-                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
+                    commandResultList.add(
+                            containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
                     break;
                 case STOP:
                     commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
@@ -395,7 +395,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     e.printStackTrace();
                 }
                 trackerOperation.addLog( String.format( "Cluster information is updated" ) );
-                trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
+                trackerOperation.addLogDone(
+                        String.format( "Container %s is removed from cluster", host.getHostname() ) );
             }
             catch ( EnvironmentModificationException e )
             {
@@ -409,7 +410,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             {
                 LOGGER.error( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ), e );
                 trackerOperation
-                        .addLogFailed( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
+                        .addLogFailed(
+                                String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
             }
 
         }
