@@ -64,12 +64,12 @@ public class Manager
     protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
     protected static final String STOP_BUTTON_CAPTION = "Stop";
+    protected static final String START_STOP_BUTTON_CAPTION = "Start/Stop";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
     protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
     protected static final String ADD_NODE_BUTTON_CAPTION = "Add Node";
     protected static final String HOST_COLUMN_CAPTION = "Host";
     protected static final String IP_COLUMN_CAPTION = "IP List";
-    protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String BUTTON_STYLE_NAME = "default";
     private static final String MESSAGE = "No cluster is installed !";
@@ -405,114 +405,43 @@ public class Manager
     public void startAllNodes()
     {
 
-        Set<ContainerHost> containerHosts = new HashSet<>();
-        Environment environment;
-        try
+        if ( nodesTable != null )
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOGGER.error( String.format( "Couldn't get environment for id: %s", config.getEnvironmentId().toString() ),
-                    e );
-            return;
-        }
-        for ( UUID agentID : config.getNodes() )
-        {
-            try
+            for ( Object o : nodesTable.getItemIds() )
             {
-                containerHosts.add( environment.getContainerHostById( agentID ) );
+                int rowId = ( Integer ) o;
+                Item row = nodesTable.getItem( rowId );
+                HorizontalLayout availableOperationsLayout =
+                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
+                if ( availableOperationsLayout != null )
+                {
+                    Button startBtn = getButton( availableOperationsLayout, START_BUTTON_CAPTION );
+                    if ( startBtn != null )
+                    {
+                        startBtn.click();
+                    }
+                }
             }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOGGER.error( String.format( "Couldn't find container host with id: %s", agentID ) );
-            }
-        }
-        for ( ContainerHost host : containerHosts )
-        {
-            PROGRESS_ICON.setVisible( true );
-            disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute(
-                    new NodeOperationTask( zookeeper, tracker, config.getClusterName(), host, NodeOperationType.START,
-                            new CompleteEvent()
-                            {
-                                @Override
-                                public void onComplete( NodeState nodeState )
-                                {
-                                    synchronized ( PROGRESS_ICON )
-                                    {
-                                        disableOREnableAllButtonsOnTable( nodesTable, true );
-                                        checkNodesStatus();
-                                    }
-                                }
-                            }, null ) );
         }
     }
 
 
     public void stopAllNodes()
     {
-        Set<ContainerHost> containerHosts = new HashSet<>();
-        Environment environment;
-        try
+        if ( nodesTable != null )
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOGGER.error( String.format( "Couldn't get environment for id: %s", config.getEnvironmentId().toString() ),
-                    e );
-            return;
-        }
-        for ( UUID agentID : config.getNodes() )
-        {
-            try
-            {
-                containerHosts.add( environment.getContainerHostById( agentID ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOGGER.error( String.format( "Couldn't find container host with id: %s", agentID ) );
-            }
-        }
-
-        for ( ContainerHost host : containerHosts )
-        {
-            PROGRESS_ICON.setVisible( true );
-            disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute(
-                    new NodeOperationTask( zookeeper, tracker, config.getClusterName(), host, NodeOperationType.STOP,
-                            new CompleteEvent()
-                            {
-                                @Override
-                                public void onComplete( NodeState nodeState )
-                                {
-                                    synchronized ( PROGRESS_ICON )
-                                    {
-                                        disableOREnableAllButtonsOnTable( nodesTable, true );
-                                        checkNodesStatus();
-                                    }
-                                }
-                            }, null ) );
-        }
-    }
-
-
-    public void disableOREnableAllButtonsOnTable( Table table, boolean value )
-    {
-        if ( table != null )
-        {
-            for ( Object o : table.getItemIds() )
+            for ( Object o : nodesTable.getItemIds() )
             {
                 int rowId = ( Integer ) o;
-                Item row = table.getItem( rowId );
+                Item row = nodesTable.getItem( rowId );
                 HorizontalLayout availableOperationsLayout =
                         ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
                 if ( availableOperationsLayout != null )
                 {
-                    for ( Component component : availableOperationsLayout )
+                    Button stopBtn = getButton( availableOperationsLayout, STOP_BUTTON_CAPTION );
+                    if ( stopBtn != null )
                     {
-                        component.setEnabled( value );
+                        stopBtn.click();
                     }
                 }
             }
@@ -537,9 +466,6 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            // stop all nodes before deleting cluster information from DB.
-                            zookeeper.stopAllNodes( config.getClusterName() );
-
                             UUID trackID = zookeeper.uninstallCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     ZookeeperClusterConfig.PRODUCT_KEY );
@@ -812,23 +738,21 @@ public class Manager
         {
             final Label resultHolder = new Label();
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            final Button startBtn = new Button( START_BUTTON_CAPTION );
-            final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
+            final Button startNstopButton = new Button( START_STOP_BUTTON_CAPTION );
+
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
 
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-zookeeperCheck" );
-            startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-zookeeperStart" );
-            stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-zookeeperStop" );
             destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-zookeeperDestroy" );
+            startNstopButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-zookeeperStartStop" );
 
             HorizontalLayout availableOperations = new HorizontalLayout();
             availableOperations.setSpacing( true );
             availableOperations.addStyleName( "default" );
 
-            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
-            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+            addGivenComponents( availableOperations, checkBtn, startNstopButton, destroyBtn );
+            addStyleNameToButtons( checkBtn, destroyBtn, startNstopButton );
 
-            disableButtons( stopBtn, startBtn );
             PROGRESS_ICON.setVisible( false );
 
             table.addItem( new Object[] {
@@ -836,11 +760,49 @@ public class Manager
                     availableOperations
             }, null );
 
+            checkBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent event )
+                {
+                    PROGRESS_ICON.setVisible( true );
+                    disableButtons( startNstopButton, checkBtn, destroyBtn );
+                    executorService.execute(
+                            new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
+                                    NodeOperationType.STATUS, new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        if ( nodeState.equals( NodeState.RUNNING ) )
+                                        {
+                                            startNstopButton.setEnabled( true );
+                                            startNstopButton.setCaption( STOP_BUTTON_CAPTION );
+                                        }
+                                        else if ( nodeState.equals( NodeState.STOPPED ) )
+                                        {
+                                            startNstopButton.setEnabled( true );
+                                            startNstopButton.setCaption( START_BUTTON_CAPTION );
+                                        }
+                                        else if ( nodeState.equals( NodeState.UNKNOWN ) )
+                                        {
+                                            startNstopButton.setEnabled( true );
+                                            startNstopButton.setCaption( START_STOP_BUTTON_CAPTION );
+                                        }
+                                        resultHolder.setValue( nodeState.name() );
+                                        PROGRESS_ICON.setVisible( false );
+                                        checkBtn.setEnabled( true );
+                                        destroyBtn.setEnabled( true );
+                                    }
+                                }
+                            }, null ) );
+                }
+            } );
 
-            addCheckButtonClickListener( containerHost, resultHolder, startBtn, stopBtn, destroyBtn, checkBtn );
-            addStartButtonClickListener( containerHost, startBtn, stopBtn, destroyBtn, checkBtn );
-            addStopButtonClickListener( containerHost, startBtn, stopBtn, destroyBtn, checkBtn );
-            addDestroyButtonClickListener( containerHost, startBtn, stopBtn, destroyBtn, checkBtn, destroyBtn );
+            addStartNStopButtonClickListener( containerHost, startNstopButton, destroyBtn, checkBtn );
+            addDestroyButtonClickListener( containerHost, destroyBtn, checkBtn, destroyBtn );
         }
     }
 
@@ -936,114 +898,52 @@ public class Manager
     }
 
 
-    public void addStopButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    public void addStartNStopButtonClickListener( final ContainerHost containerHost, final Button... buttons )
     {
-        getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
+        final Button startNstopButton = getButton( START_STOP_BUTTON_CAPTION, buttons );
+        startNstopButton.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 PROGRESS_ICON.setVisible( true );
                 disableButtons( buttons );
-                executorService.execute(
-                        new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.STOP, new CompleteEvent()
-                        {
-                            @Override
-                            public void onComplete( NodeState nodeState )
+                if ( startNstopButton.getCaption().equals( START_BUTTON_CAPTION ) ){
+                    executorService.execute(
+                            new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
+                                    NodeOperationType.START, new CompleteEvent()
                             {
-                                synchronized ( PROGRESS_ICON )
+                                @Override
+                                public void onComplete( NodeState nodeState )
                                 {
-                                    disableOREnableAllButtonsOnTable( nodesTable, true );
-                                    checkNodesStatus();
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                                    }
                                 }
-                            }
-                        }, null ) );
+                            }, null ) );
+                }
+                else if ( startNstopButton.getCaption().equals( STOP_BUTTON_CAPTION ) ){
+                    PROGRESS_ICON.setVisible( true );
+                    disableButtons( buttons );
+                    executorService.execute(
+                            new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
+                                    NodeOperationType.STOP, new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                                    }
+                                }
+                            }, null ) );
+                }
             }
         } );
-    }
-
-
-    public void addStartButtonClickListener( final ContainerHost containerHost, final Button... buttons )
-    {
-        getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                PROGRESS_ICON.setVisible( true );
-                disableButtons( buttons );
-                executorService.execute(
-                        new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.START, new CompleteEvent()
-                        {
-                            @Override
-                            public void onComplete( NodeState nodeState )
-                            {
-                                synchronized ( PROGRESS_ICON )
-                                {
-                                    disableOREnableAllButtonsOnTable( nodesTable, true );
-                                    checkNodesStatus();
-                                }
-                            }
-                        }, null ) );
-            }
-        } );
-    }
-
-
-    public void addCheckButtonClickListener( final ContainerHost containerHost, final Label resultHolder,
-                                             final Button... buttons )
-    {
-        getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                PROGRESS_ICON.setVisible( true );
-                disableButtons( buttons );
-                executorService.execute(
-                        new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
-                                NodeOperationType.STATUS, new CompleteEvent()
-                        {
-                            @Override
-                            public void onComplete( NodeState nodeState )
-                            {
-                                synchronized ( PROGRESS_ICON )
-                                {
-                                    if ( nodeState.equals( NodeState.RUNNING ) )
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    }
-                                    else if ( nodeState.equals( NodeState.STOPPED ) )
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                    }
-                                    else if ( nodeState.equals( NodeState.UNKNOWN ) )
-                                    {
-                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    }
-                                    resultHolder.setValue( nodeState.name() );
-                                    PROGRESS_ICON.setVisible( false );
-                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                }
-                            }
-                        }, null ) );
-            }
-        } );
-    }
-
-
-    public void enableButtons( Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            b.setEnabled( true );
-        }
     }
 
 

@@ -399,8 +399,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     e.printStackTrace();
                 }
                 trackerOperation.addLog( String.format( "Cluster information is updated" ) );
-                trackerOperation
-                        .addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
+                trackerOperation.addLogDone(
+                        String.format( "Container %s is removed from cluster", host.getHostname() ) );
             }
             catch ( EnvironmentModificationException e )
             {
@@ -413,8 +413,9 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             catch ( EnvironmentNotFoundException e )
             {
                 LOGGER.error( String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ), e );
-                trackerOperation.addLogFailed(
-                        String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
+                trackerOperation
+                        .addLogFailed(
+                                String.format( "Couldn't find environment with id: %s", host.getEnvironmentId() ) );
             }
         }
     }
