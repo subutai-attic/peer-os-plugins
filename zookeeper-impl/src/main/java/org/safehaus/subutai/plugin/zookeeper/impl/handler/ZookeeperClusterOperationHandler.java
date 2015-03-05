@@ -3,6 +3,8 @@ package org.safehaus.subutai.plugin.zookeeper.impl.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,6 +16,7 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.core.env.api.exception.EnvironmentDestructionException;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -24,6 +27,7 @@ import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.impl.Commands;
 import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperImpl;
+import org.safehaus.subutai.plugin.zookeeper.impl.ZookeeperOverHadoopSetupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +46,7 @@ public class ZookeeperClusterOperationHandler
     private ClusterOperationType operationType;
     private ZookeeperClusterConfig zookeeperClusterConfig;
     private String hostName;
+    private CommandUtil commandUtil;
 
 
     public ZookeeperClusterOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
@@ -52,6 +57,7 @@ public class ZookeeperClusterOperationHandler
         this.zookeeperClusterConfig = config;
         trackerOperation = manager.getTracker().createTrackerOperation( config.getProductKey(),
                 String.format( "Running %s operation on %s...", operationType, clusterName ) );
+        this.commandUtil = new CommandUtil();
     }
 
 
@@ -65,6 +71,7 @@ public class ZookeeperClusterOperationHandler
         this.hostName = hostName;
         trackerOperation = manager.getTracker().createTrackerOperation( zookeeperClusterConfig.getProductKey(),
                 String.format( "Running %s operation on %s...", operationType, clusterName ) );
+        this.commandUtil = new CommandUtil();
     }
 
 
@@ -178,6 +185,9 @@ public class ZookeeperClusterOperationHandler
             return;
         }
 
+        // stop all nodes before removing zookeeper
+        manager.stopAllNodes( clusterName );
+
         try
         {
             if ( config.getSetupType() == SetupType.OVER_HADOOP || config.getSetupType() == SetupType.OVER_ENVIRONMENT )
@@ -185,16 +195,20 @@ public class ZookeeperClusterOperationHandler
                 trackerOperation.addLog( "Uninstalling zookeeper from nodes" );
                 Environment zookeeperEnvironment =
                         manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-                for ( ContainerHost containerHost : zookeeperEnvironment.getContainerHostsByIds( config.getNodes() ) )
+
+                Set<Host> hostSet = ZookeeperOverHadoopSetupStrategy.getHosts( config.getNodes(), zookeeperEnvironment );
+
+                try
                 {
-                    try
-                    {
-                        containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) );
+                    Map<Host, CommandResult> resultMap = commandUtil
+                            .executeParallel( new RequestBuilder( Commands.getUninstallCommand() ), hostSet );
+                    if ( ZookeeperOverHadoopSetupStrategy.isAllSuccessful( resultMap, hostSet ) ){
+                        trackerOperation.addLog( "Zookeeper is uninstalled from all containers successfully" );
                     }
-                    catch ( CommandException e )
-                    {
-                        LOG.warn( "Couldn't execute command, but still removing from database.", e );
-                    }
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
                 }
             }
             else
@@ -208,7 +222,7 @@ public class ZookeeperClusterOperationHandler
                     manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() ) );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( MonitorException | ContainerHostNotFoundException |
+        catch ( MonitorException |
                 EnvironmentDestructionException | EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );

@@ -431,9 +431,6 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            // stop all nodes before deleting cluster information from DB.
-                            zookeeper.stopAllNodes( config.getClusterName() );
-
                             UUID trackID = zookeeper.uninstallCluster( config.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     ZookeeperClusterConfig.PRODUCT_KEY );
