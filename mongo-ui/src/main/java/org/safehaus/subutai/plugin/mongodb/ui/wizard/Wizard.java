@@ -21,7 +21,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 
 
-
 public class Wizard
 {
 

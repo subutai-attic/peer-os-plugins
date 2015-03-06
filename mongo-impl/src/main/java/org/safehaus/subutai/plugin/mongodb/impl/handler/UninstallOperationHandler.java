@@ -1,8 +1,8 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -10,10 +10,9 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
-import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -31,6 +30,7 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
     private final TrackerOperation po;
     private CommandUtil commandUtil = new CommandUtil();
     private static final Logger LOGGER = LoggerFactory.getLogger( UninstallOperationHandler.class );
+
 
     public UninstallOperationHandler( MongoImpl manager, String clusterName )
     {
@@ -65,19 +65,14 @@ public class UninstallOperationHandler extends AbstractMongoOperationHandler<Mon
 
 
             po.addLog( "Stopping mongo containers." );
-            Set<ContainerHost> containerHosts = environment.getContainerHostsByIds( config.getAllNodeIds() );
-            List<CommandResult> commandResults = new ArrayList<>();
-            for ( final ContainerHost containerHost : containerHosts )
-            {
-                commandResults.add( commandUtil.execute(
-                        new RequestBuilder( Commands.getStopMongodbService().getCommand() ),
-                        containerHost ) );
-            }
-            logResults( po, commandResults );
 
+            Set<Host> hostSet = Commands.getHosts( config.getAllNodeIds(), environment );
+            RequestBuilder stopRequest = new RequestBuilder( Commands.getStopMongodbService().getCommand() );
+            Map<Host, CommandResult> resultMap = commandUtil.executeParallel( stopRequest, hostSet );
+            List<CommandResult> commandResults = Commands.getCommandResults( resultMap, hostSet );
+            logResults( po, commandResults );
         }
-        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException |
-                MonitorException | CommandException ex )
+        catch ( EnvironmentNotFoundException | MonitorException | CommandException ex )
         {
             po.addLogFailed( "Operations failed" );
             LOGGER.error( "Operations failed", ex );

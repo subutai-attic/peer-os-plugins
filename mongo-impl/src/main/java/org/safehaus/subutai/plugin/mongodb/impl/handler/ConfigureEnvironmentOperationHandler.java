@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -12,7 +13,6 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 
 public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
@@ -49,10 +49,11 @@ public class ConfigureEnvironmentOperationHandler extends AbstractOperationHandl
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, config, trackerOperation );
             clusterSetupStrategy.setup();
+            manager.subscribeToAlerts( env );
 
             trackerOperation.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
         }
-        catch ( ClusterSetupException | EnvironmentNotFoundException e )
+        catch ( MonitorException | ClusterSetupException | EnvironmentNotFoundException e )
         {
             LOGGER.error( String.format( "Failed to configure cluster %s", clusterName ), e );
             trackerOperation.addLogFailed( String.format( "Failed to configure cluster %s", clusterName ) );

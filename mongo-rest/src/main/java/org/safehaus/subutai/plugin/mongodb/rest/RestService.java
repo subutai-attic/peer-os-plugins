@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.mongodb.rest;
 
 
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -34,7 +33,7 @@ public interface RestService
     @POST
     @Path("configure_environment")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response configureCluster( @QueryParam( "config" ) String config);
+    public Response configureCluster( @QueryParam("config") String config );
 
     //destroy cluster
     @DELETE
@@ -58,24 +57,24 @@ public interface RestService
 
     //start cluster
     @PUT
-    @Path( "clusters/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response startCluster( @PathParam( "clusterName" ) String clusterName );
+    @Path("clusters/{clusterName}/start")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response startCluster( @PathParam("clusterName") String clusterName );
 
 
     //stop cluster
     @PUT
-    @Path( "clusters/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+    @Path("clusters/{clusterName}/stop")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response stopCluster( @PathParam("clusterName") String clusterName );
 
 
     //destroy node
     @DELETE
-    @Path("clusters/{clusterName}/destroy/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/destroy/node/{lxcHostname}/type/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
-                                 @PathParam("lxcHostname") String lxcHostname );
+                                 @PathParam("lxcHostname") String lxcHostname, @PathParam("nodeType") String nodeType );
 
     //check node status
     @GET
@@ -86,7 +85,7 @@ public interface RestService
 
     //add node
     @POST
-    @Path( "clusters/{clusterName}/add/node/type/{nodeType}" )
+    @Path("clusters/{clusterName}/add/node/type/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeType" ) String nodeType );
+    public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("nodeType") String nodeType );
 }

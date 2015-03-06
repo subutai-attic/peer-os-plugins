@@ -1,24 +1,26 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
-
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
-import org.safehaus.subutai.common.peer.ContainerHost;
 
 
 public class StartAllOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
 {
     private ClusterOperationType operationType;
-    public StartAllOperationHandler( final MongoImpl manager, final MongoClusterConfig config, ClusterOperationType operationType )
+
+
+    public StartAllOperationHandler( final MongoImpl manager, final MongoClusterConfig config,
+                                     ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
@@ -31,7 +33,7 @@ public class StartAllOperationHandler extends AbstractOperationHandler<MongoImpl
     public void run()
     {
         MongoClusterConfig config = manager.getCluster( clusterName );
-        if(config == null )
+        if ( config == null )
         {
             trackerOperation.addLogFailed( String.format( "Cluster with name %s does not exist", clusterName ) );
             return;
@@ -39,7 +41,7 @@ public class StartAllOperationHandler extends AbstractOperationHandler<MongoImpl
 
         trackerOperation.addLog( "Starting nodes.." );
 
-        for( UUID uuid : config.getAllNodeIds() )
+        for ( UUID uuid : config.getAllNodeIds() )
         {
             ContainerHost host = null;
             MongoNode node = null;
@@ -66,8 +68,8 @@ public class StartAllOperationHandler extends AbstractOperationHandler<MongoImpl
             }
             catch ( ContainerHostNotFoundException e )
             {
-                trackerOperation.addLogFailed(
-                        "Error getting environment by id: " + config.getEnvironmentId().toString() );
+                trackerOperation
+                        .addLogFailed( "Error getting environment by id: " + config.getEnvironmentId().toString() );
                 return;
             }
             catch ( MongoException e )
@@ -76,6 +78,5 @@ public class StartAllOperationHandler extends AbstractOperationHandler<MongoImpl
                 return;
             }
         }
-
     }
 }

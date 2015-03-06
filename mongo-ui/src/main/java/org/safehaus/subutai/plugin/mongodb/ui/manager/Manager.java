@@ -18,6 +18,7 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
@@ -35,7 +36,9 @@ import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -45,7 +48,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
-
 
 
 public class Manager
@@ -66,6 +68,8 @@ public class Manager
     protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
+
     final Button refreshClustersBtn, startAllBtn, stopAllBtn, checkAllBtn, destroyClusterBtn;
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final GridLayout contentRoot;
@@ -78,6 +82,8 @@ public class Manager
     private final Label cfgSrvPort;
     private final Label routerPort;
     private final Label dataNodePort;
+    private CheckBox autoScaleBtn;
+
     private final ExecutorService executorService;
     private final Tracker tracker;
     private final Mongo mongo;
@@ -86,8 +92,7 @@ public class Manager
 
 
     public Manager( final ExecutorService executorService, final Mongo mongo,
-                    final EnvironmentManager environmentManager, final Tracker tracker )
-            throws NamingException
+                    final EnvironmentManager environmentManager, final Tracker tracker ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -142,6 +147,7 @@ public class Manager
             public void buttonClick( Button.ClickEvent clickEvent )
             {
                 refreshClustersInfo();
+                checkAllBtn.click();
             }
         } );
 
@@ -265,8 +271,7 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             //TODO add comboBox representing available peers and nodes
-                            UUID trackID =
-                                    mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.ROUTER_NODE);
+                            UUID trackID = mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.ROUTER_NODE );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -274,7 +279,7 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    //                                    refreshClustersInfo();
+                                    refreshClustersInfo();
                                     checkAllBtn.click();
                                 }
                             } );
@@ -310,8 +315,7 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             //TODO add comboBox representing available peers
-                            UUID trackID =
-                                    mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.DATA_NODE);
+                            UUID trackID = mongo.addNode( mongoClusterConfig.getClusterName(), NodeType.DATA_NODE );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -319,7 +323,7 @@ public class Manager
                                 @Override
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
-                                    //                                    refreshClustersInfo();
+                                    refreshClustersInfo();
                                     checkAllBtn.click();
                                 }
                             } );
@@ -338,6 +342,37 @@ public class Manager
 
         controlsContent.addComponent( addRouterBtn );
         controlsContent.addComponent( addDataNodeBtn );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( BUTTON_STYLE_NAME );
+        controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( mongoClusterConfig == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    mongoClusterConfig.setAutoScaling( value );
+                    try
+                    {
+                        mongo.saveConfig( mongoClusterConfig );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
         HorizontalLayout configContent = new HorizontalLayout();
         configContent.setSpacing( true );
@@ -452,6 +487,7 @@ public class Manager
             cfgSrvPort.setValue( mongoClusterConfig.getCfgSrvPort() + "" );
             routerPort.setValue( mongoClusterConfig.getRouterPort() + "" );
             dataNodePort.setValue( mongoClusterConfig.getDataNodePort() + "" );
+            autoScaleBtn.setValue( mongoClusterConfig.isAutoScaling() );
         }
         else
         {
@@ -484,7 +520,7 @@ public class Manager
             startBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStart" );
 
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId(node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStop" );
+            stopBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStop" );
 
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoDestroy" );
@@ -501,8 +537,8 @@ public class Manager
             addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
 
             table.addItem( new Object[] {
-                    node.getContainerHost().getHostname(), node.getContainerHost().getIpByInterfaceName( "eth0" ), nodeType.name(), resultHolder,
-                    availableOperations
+                    node.getContainerHost().getHostname(), node.getContainerHost().getIpByInterfaceName( "eth0" ),
+                    nodeType.name(), resultHolder, availableOperations
             }, null );
 
 
@@ -514,27 +550,27 @@ public class Manager
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute(
-                        new CheckTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
-                            new CompleteEvent()
-                            {
-                                public void onComplete( NodeState state )
-                                {
-                                    synchronized ( PROGRESS_ICON )
+                            new CheckTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
+                                    new CompleteEvent()
                                     {
-                                        if ( state == NodeState.RUNNING )
+                                        public void onComplete( NodeState state )
                                         {
-                                            stopBtn.setEnabled( true );
+                                            synchronized ( PROGRESS_ICON )
+                                            {
+                                                if ( state == NodeState.RUNNING )
+                                                {
+                                                    stopBtn.setEnabled( true );
+                                                }
+                                                else if ( state == NodeState.STOPPED )
+                                                {
+                                                    startBtn.setEnabled( true );
+                                                }
+                                                resultHolder.setValue( state.name() );
+                                                enableButtons( destroyBtn, checkBtn );
+                                                PROGRESS_ICON.setVisible( false );
+                                            }
                                         }
-                                        else if ( state == NodeState.STOPPED )
-                                        {
-                                            startBtn.setEnabled( true );
-                                        }
-                                        resultHolder.setValue( state.name() );
-                                        enableButtons( destroyBtn, checkBtn );
-                                        PROGRESS_ICON.setVisible( false );
-                                    }
-                                }
-                            } ) );
+                                    } ) );
                 }
             } );
 
@@ -546,18 +582,18 @@ public class Manager
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute(
-                        new StartTask( mongo, tracker, nodeType, mongoClusterConfig.getClusterName(),
-                                node.getHostname(), new CompleteEvent()
-                        {
-                            public void onComplete( NodeState state )
+                            new StartTask( mongo, tracker, nodeType, mongoClusterConfig.getClusterName(),
+                                    node.getHostname(), new CompleteEvent()
                             {
-                                synchronized ( PROGRESS_ICON )
+                                public void onComplete( NodeState state )
                                 {
-                                    enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                    checkBtn.click();
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+                                        checkBtn.click();
+                                    }
                                 }
-                            }
-                        } ) );
+                            } ) );
                 }
             } );
 
@@ -569,18 +605,18 @@ public class Manager
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute(
-                        new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
-                                new CompleteEvent()
-                                {
-                                    public void onComplete( NodeState state )
+                            new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
+                                    new CompleteEvent()
                                     {
-                                        synchronized ( PROGRESS_ICON )
+                                        public void onComplete( NodeState state )
                                         {
-                                            enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                            checkBtn.click();
+                                            synchronized ( PROGRESS_ICON )
+                                            {
+                                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+                                                checkBtn.click();
+                                            }
                                         }
-                                    }
-                                } ) );
+                                    } ) );
                 }
             } );
 
@@ -596,7 +632,8 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), node.getHostname() );
+                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), node.getHostname(),
+                                    nodeType );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
@@ -605,6 +642,7 @@ public class Manager
                                 public void windowClose( Window.CloseEvent closeEvent )
                                 {
                                     refreshClustersInfo();
+                                    checkAllBtn.click();
                                 }
                             } );
                             contentRoot.getUI().addWindow( window.getWindow() );

@@ -6,10 +6,12 @@
 package org.safehaus.subutai.plugin.mongodb.api;
 
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.Topology;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
@@ -24,6 +26,7 @@ public interface MongoClusterConfig extends ConfigBase
     public static final String PRODUCT_NAME = "mongo";
     public static final String TEMPLATE_NAME = "mongo";
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_NAME.toLowerCase();
+
 
     String getTemplateName();
 
@@ -85,6 +88,10 @@ public interface MongoClusterConfig extends ConfigBase
 
     MongoDataNode findPrimaryNode() throws MongoException;
 
+    void setPrimaryNode( String node );
+
+    String getPrimaryNode();
+
     MongoNode findNode( String lxcHostname );
 
 
@@ -119,4 +126,6 @@ public interface MongoClusterConfig extends ConfigBase
     void setTopology( Topology topology );
 
     void removeNode( UUID nodeId );
+
+    public List<NodeType> getNodeRoles( ContainerHost containerHost );
 }

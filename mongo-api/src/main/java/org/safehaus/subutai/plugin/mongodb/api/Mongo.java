@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ApiBase;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 
@@ -38,7 +39,7 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
      *
      * @return - UUID of operation to track
      */
-    public UUID destroyNode( String clusterName, String lxcHostName );
+    public UUID destroyNode( String clusterName, String lxcHostName, NodeType nodeType );
 
     /**
      * Starts the specified node
@@ -103,5 +104,17 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
 
     public MongoClusterConfig newMongoClusterConfigInstance();
 
+    /**
+     * Saves/Updates cluster config in database
+     *
+     * @param config - config to update
+     */
+    public void saveConfig( MongoClusterConfig config ) throws ClusterException;
 
+    /**
+     * Deletes cluster config in database
+     *
+     * @param config config to be deleted
+     */
+    public void deleteConfig( MongoClusterConfig config ) throws ClusterException;
 }

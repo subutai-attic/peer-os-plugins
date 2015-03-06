@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
@@ -31,12 +32,14 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
 {
     private final String lxcHostname;
     private static final Logger LOGGER = LoggerFactory.getLogger( DestroyNodeOperationHandler.class );
+    private final NodeType whichNode;
 
 
-    public DestroyNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname )
+    public DestroyNodeOperationHandler( MongoImpl manager, String clusterName, String lxcHostname, NodeType whichNode )
     {
-        super( manager, manager.getCluster( clusterName ));
+        super( manager, manager.getCluster( clusterName ) );
         this.lxcHostname = lxcHostname;
+        this.whichNode = whichNode;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Destroying %s in %s", lxcHostname, clusterName ) );
     }
@@ -65,26 +68,29 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             return;
         }
 
-        final NodeType nodeType = config.getNodeType( node );
-        if ( nodeType == NodeType.CONFIG_NODE && config.getConfigServers().size() == 1 )
-        {
-            trackerOperation.addLogFailed(
-                    "This is the last configuration server in the cluster. Please, destroy cluster instead" );
-            return;
-        }
-        if ( nodeType == NodeType.DATA_NODE && config.getDataNodes().size() == 1 )
-        {
-            trackerOperation
-                    .addLogFailed( "This is the last data node in the cluster. Please, destroy cluster instead" );
-            return;
-        }
-        if ( nodeType == NodeType.ROUTER_NODE && config.getRouterServers().size() == 1 )
-        {
-            trackerOperation.addLogFailed( "This is the last router in the cluster. Please, destroy cluster instead" );
-            return;
-        }
         try
         {
+            List<NodeType> roles = config.getNodeRoles( node.getContainerHost() );
+
+            final NodeType nodeType = config.getNodeType( node );
+            if ( nodeType == NodeType.CONFIG_NODE && config.getConfigServers().size() == 1 )
+            {
+                trackerOperation.addLogFailed(
+                        "This is the last configuration server in the cluster. Please, destroy cluster instead" );
+                return;
+            }
+            if ( nodeType == NodeType.DATA_NODE && config.getDataNodes().size() == 1 )
+            {
+                trackerOperation
+                        .addLogFailed( "This is the last data node in the cluster. Please, destroy cluster instead" );
+                return;
+            }
+            if ( nodeType == NodeType.ROUTER_NODE && config.getRouterServers().size() == 1 )
+            {
+                trackerOperation
+                        .addLogFailed( "This is the last router in the cluster. Please, destroy cluster instead" );
+                return;
+            }
             if ( nodeType == NodeType.CONFIG_NODE )
             {
 
@@ -119,7 +125,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 config.setNumberOfDataNodes( config.getNumberOfDataNodes() - 1 );
                 //unregister from primary
                 trackerOperation.addLog( "Unregistering this node from replica set..." );
-                MongoDataNode primaryDataNode = config.findPrimaryNode();
+                MongoDataNode primaryDataNode = ( MongoDataNode ) config.findNode( config.getPrimaryNode() );
                 primaryDataNode.unRegisterSecondaryNode( dataNode );
             }
             else if ( nodeType == NodeType.ROUTER_NODE )
@@ -129,6 +135,7 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
                 config.getRouterHostIds().remove( node.getContainerHost().getId() );
             }
 
+
             Environment environment = manager.getEnvironmentManager().findEnvironment(
                     UUID.fromString( node.getContainerHost().getEnvironmentId() ) );
             manager.unsubscribeFromAlerts( environment );
@@ -137,7 +144,6 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
             trackerOperation.addLog( "Purging subutai-mongo from containers." );
             logResults( trackerOperation,
                     Arrays.asList( executeCommand( Commands.getStopMongodbService(), containerHost ) ) );
-
         }
         catch ( MongoException | MonitorException | ContainerHostNotFoundException e )
         {
@@ -161,3 +167,4 @@ public class DestroyNodeOperationHandler extends AbstractMongoOperationHandler<M
         trackerOperation.addLogDone( "Cluster information updated in database" );
     }
 }
+

@@ -6,11 +6,18 @@
 package org.safehaus.subutai.plugin.mongodb.impl.common;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
+import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.settings.Common;
@@ -59,6 +66,12 @@ public class Commands
     public static CommandDef getStopMongodbService()
     {
         return new CommandDef( "Stop mongodb service", "service mongodb stop", Timeouts.STOP_NODE_TIMEOUT_SEC );
+    }
+
+
+    public static CommandDef getKillAllMongoProcesses()
+    {
+        return new CommandDef( "Kill all mongo processes", "pkillall mongod", Timeouts.STOP_NODE_TIMEOUT_SEC );
     }
 
 
@@ -324,5 +337,41 @@ public class Commands
         return new CommandDef( "Check node(s)",
                 String.format( "mongo --host %s.%s --port %s", hostname, domainName, port ),
                 Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+    }
+
+
+    public static RequestBuilder getPidCommand()
+    {
+        return new RequestBuilder( " ps aux | grep '[m]ongod --config' | awk  -F ' ' '{print $2}' " ).withTimeout( 30 );
+    }
+
+
+    public static Set<Host> getHosts( Set<UUID> uuids, Environment environment )
+    {
+        Set<Host> hostSet = new HashSet<>();
+        for ( UUID uuid : uuids )
+        {
+            try
+            {
+                hostSet.add( environment.getContainerHostById( uuid ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        return hostSet;
+    }
+
+
+    public static List<CommandResult> getCommandResults( Map<Host, CommandResult> map, Set<Host> hosts )
+    {
+        List<CommandResult> commandResults = new ArrayList<>();
+        for ( Host host : hosts )
+        {
+
+            commandResults.add( map.get( host ) );
+        }
+        return commandResults;
     }
 }

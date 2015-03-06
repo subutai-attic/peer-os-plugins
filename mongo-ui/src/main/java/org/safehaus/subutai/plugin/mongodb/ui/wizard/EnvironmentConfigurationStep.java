@@ -40,7 +40,6 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
-
 public class EnvironmentConfigurationStep extends VerticalLayout
 {
     Logger LOGGER = LoggerFactory.getLogger( EnvironmentConfigurationStep.class );
@@ -329,9 +328,9 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
         List<Environment> environmentList = new ArrayList<>();
-        for( Environment env : environments )
+        for ( Environment env : environments )
         {
-            if( isTemplateExists( env.getContainerHosts() ))
+            if ( isTemplateExists( env.getContainerHosts() ) )
             {
                 environmentList.add( env );
             }
@@ -378,6 +377,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         return envList;
     }
 
+
     private boolean isTemplateExists( Set<ContainerHost> containerHosts )
     {
         for ( ContainerHost host : containerHosts )
@@ -396,7 +396,6 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         }
         return false;
     }
-
 
 
     private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,

@@ -16,7 +16,6 @@ import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
-import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -130,8 +129,9 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
                     Topology topology = config.getTopology();
                     if ( topology == null )
                     {
-                        NodeGroup nodeGroup = new NodeGroup( nodeType.name(), MongoClusterConfig.TEMPLATE_NAME,
-                                Common.DEFAULT_DOMAIN_NAME, 1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                        NodeGroup nodeGroup =
+                                new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, 1, 1,
+                                        1, new PlacementStrategy( "ROUND_ROBIN" ) );
                         topology = new Topology();
                         topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
                     }
@@ -213,11 +213,6 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
         clusterMembers.add( newDataNode.getContainerHost() );
         try
         {
-            //            for ( Host c : clusterMembers )
-            //            {
-            //                c.addIpHostToEtcHosts( config.getDomainName(), clusterMembers, Common.IP_MASK );
-            //            }
-
             newDataNode.setReplicaSetName( config.getReplicaSetName() );
             trackerOperation.addLog( String.format( "Set replica set name succeeded" ) );
             trackerOperation.addLog( String.format( "Stopping node..." ) );
@@ -227,7 +222,7 @@ public class AddNodeOperationHandler extends AbstractMongoOperationHandler<Mongo
 
             trackerOperation.addLog( String.format( "Data node started successfully" ) );
 
-            MongoDataNode primaryNode = config.findPrimaryNode();
+            MongoDataNode primaryNode = ( MongoDataNode ) config.findNode( config.getPrimaryNode() );
 
             if ( primaryNode != null )
             {

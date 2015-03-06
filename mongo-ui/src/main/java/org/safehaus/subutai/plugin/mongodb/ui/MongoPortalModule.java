@@ -24,7 +24,6 @@ import org.safehaus.subutai.server.ui.api.PortalModule;
 import com.vaadin.ui.Component;
 
 
-
 public class MongoPortalModule implements PortalModule
 {
     public static final String MODULE_IMAGE = "mongodb.png";
@@ -35,8 +34,7 @@ public class MongoPortalModule implements PortalModule
     private final EnvironmentManager environmentManager;
 
 
-    public MongoPortalModule( Mongo mongo, EnvironmentManager environmentManager,
-                              Tracker tracker )
+    public MongoPortalModule( Mongo mongo, EnvironmentManager environmentManager, Tracker tracker )
     {
         this.mongo = mongo;
         this.environmentManager = environmentManager;
@@ -74,6 +72,7 @@ public class MongoPortalModule implements PortalModule
     {
         return FileUtil.getFile( MongoPortalModule.MODULE_IMAGE, this );
     }
+
 
     public Component createComponent()
     {

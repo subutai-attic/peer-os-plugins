@@ -23,7 +23,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
 
-
 public class EnvironmentVerificationStep extends VerticalLayout
 {
 

@@ -21,11 +21,11 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
 
-
 public class MongoComponent extends CustomComponent
 {
 
-    public MongoComponent( ExecutorService executorService, Mongo mongo, EnvironmentManager environmentManager, Tracker tracker ) throws NamingException
+    public MongoComponent( ExecutorService executorService, Mongo mongo, EnvironmentManager environmentManager,
+                           Tracker tracker ) throws NamingException
     {
         setSizeFull();
 
@@ -36,7 +36,7 @@ public class MongoComponent extends CustomComponent
         TabSheet mongoSheet = new TabSheet();
         mongoSheet.setSizeFull();
         final Manager manager = new Manager( executorService, mongo, environmentManager, tracker );
-        Wizard wizard = new Wizard( executorService, mongo, tracker, environmentManager);
+        Wizard wizard = new Wizard( executorService, mongo, tracker, environmentManager );
         mongoSheet.addTab( wizard.getContent(), "Install" );
         mongoSheet.getTab( 0 ).setId( "InstallTab" );
         mongoSheet.addTab( manager.getContent(), "Manage" );
