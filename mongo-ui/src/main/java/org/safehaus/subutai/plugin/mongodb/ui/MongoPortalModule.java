@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.util.FileUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
@@ -45,7 +46,7 @@ public class MongoPortalModule implements PortalModule
 
     public void init()
     {
-        executor = Executors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
