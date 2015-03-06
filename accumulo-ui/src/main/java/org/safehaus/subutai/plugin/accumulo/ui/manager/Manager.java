@@ -730,12 +730,68 @@ public class Manager
                     }
                 } );
             }
+        }
+    }
+
+
+    private void populateTracersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
+    {
+        table.removeAllItems();
+        for ( final ContainerHost containerHost : containerHosts )
+        {
+            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
+            final Label resultHolder = new Label();
+            resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
+
+            HorizontalLayout availableOperations = new HorizontalLayout();
+            availableOperations.setSpacing( true );
+
+            addGivenComponents( availableOperations, checkBtn, destroyBtn );
+            addStyleName( checkBtn, destroyBtn, availableOperations );
+
+            table.addItem( new Object[] {
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                    filterNodeRole( NodeType.ACCUMULO_TRACER.name() ), resultHolder, availableOperations
+            }, null );
+
+            checkBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent event )
+                {
+                    PROGRESS_ICON.setVisible( true );
+                    disableButtons( checkBtn, destroyBtn );
+                    executorService.execute( new CheckTask( accumulo, tracker, accumuloClusterConfig.getClusterName(),
+                            containerHost.getHostname(), new CompleteEvent()
+                    {
+                        public void onComplete( String result )
+                        {
+                            synchronized ( PROGRESS_ICON )
+                            {
+                                resultHolder.setValue( parseStatus( result, NodeType.ACCUMULO_TRACER ) );
+                                enableButtons( checkBtn, destroyBtn );
+                                PROGRESS_ICON.setVisible( false );
+                            }
+                        }
+                    } ) );
+                }
+            } );
 
             destroyBtn.addClickListener( new Button.ClickListener()
             {
                 @Override
                 public void buttonClick( Button.ClickEvent event )
                 {
+
+                    if ( accumuloClusterConfig.getTracers().size() == 1 )
+                    {
+                        show( "This is last tracer node in cluster, please destroy whole cluster" );
+                        return;
+                    }
+
                     ConfirmationDialog alert = new ConfirmationDialog(
                             String.format( "Do you want to destroy the %s node?", containerHost.getHostname() ), "Yes",
                             "No" );
@@ -745,8 +801,7 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
-                                    containerHost.getHostname(), table == tracersTable ? NodeType.ACCUMULO_TRACER :
-                                                                 NodeType.ACCUMULO_TABLET_SERVER );
+                                    containerHost.getHostname(), NodeType.ACCUMULO_TRACER );
 
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -768,53 +823,6 @@ public class Manager
     }
 
 
-    private void populateTracersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
-    {
-        table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
-        {
-            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
-            final Label resultHolder = new Label();
-            resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
-
-            HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.setSpacing( true );
-
-            addGivenComponents( availableOperations, checkBtn );
-            addStyleName( checkBtn, availableOperations );
-
-            table.addItem( new Object[] {
-                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
-                    filterNodeRole( NodeType.ACCUMULO_TRACER.name() ), resultHolder, availableOperations
-            }, null );
-
-            checkBtn.addClickListener( new Button.ClickListener()
-            {
-                @Override
-                public void buttonClick( Button.ClickEvent event )
-                {
-                    PROGRESS_ICON.setVisible( true );
-                    disableButtons( checkBtn );
-                    executorService.execute( new CheckTask( accumulo, tracker, accumuloClusterConfig.getClusterName(),
-                            containerHost.getHostname(), new CompleteEvent()
-                    {
-                        public void onComplete( String result )
-                        {
-                            synchronized ( PROGRESS_ICON )
-                            {
-                                resultHolder.setValue( parseStatus( result, NodeType.ACCUMULO_TRACER ) );
-                                enableButtons( checkBtn );
-                                PROGRESS_ICON.setVisible( false );
-                            }
-                        }
-                    } ) );
-                }
-            } );
-        }
-    }
-
-
     private void populateTabletServersTable( final Table table, Set<ContainerHost> containerHosts,
                                              final boolean masters )
     {
@@ -823,14 +831,16 @@ public class Manager
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
             final Label resultHolder = new Label();
             resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
 
             HorizontalLayout availableOperations = new HorizontalLayout();
             availableOperations.setSpacing( true );
 
-            addGivenComponents( availableOperations, checkBtn );
-            addStyleName( checkBtn, availableOperations );
+            addGivenComponents( availableOperations, checkBtn, destroyBtn );
+            addStyleName( checkBtn, destroyBtn, availableOperations );
 
             table.addItem( new Object[] {
                     containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
@@ -843,7 +853,7 @@ public class Manager
                 public void buttonClick( Button.ClickEvent event )
                 {
                     PROGRESS_ICON.setVisible( true );
-                    disableButtons( checkBtn );
+                    disableButtons( checkBtn, destroyBtn );
                     executorService.execute( new CheckTask( accumulo, tracker, accumuloClusterConfig.getClusterName(),
                             containerHost.getHostname(), new CompleteEvent()
                     {
@@ -852,11 +862,50 @@ public class Manager
                             synchronized ( PROGRESS_ICON )
                             {
                                 resultHolder.setValue( parseStatus( result, NodeType.ACCUMULO_TABLET_SERVER ) );
-                                enableButtons( checkBtn );
+                                enableButtons( checkBtn, destroyBtn );
                                 PROGRESS_ICON.setVisible( false );
                             }
                         }
                     } ) );
+                }
+            } );
+
+            destroyBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent event )
+                {
+                    if ( accumuloClusterConfig.getSlaves().size() == 1 )
+                    {
+                        show( "This is last tablet server in cluster, please destroy whole cluster" );
+                        return;
+                    }
+
+                    ConfirmationDialog alert = new ConfirmationDialog(
+                            String.format( "Do you want to destroy the %s node?", containerHost.getHostname() ), "Yes",
+                            "No" );
+                    alert.getOk().addClickListener( new Button.ClickListener()
+                    {
+                        @Override
+                        public void buttonClick( Button.ClickEvent clickEvent )
+                        {
+                            UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
+                                    containerHost.getHostname(), NodeType.ACCUMULO_TABLET_SERVER );
+
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                    AccumuloClusterConfig.PRODUCT_KEY );
+                            window.getWindow().addCloseListener( new Window.CloseListener()
+                            {
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
+                                {
+                                    refreshClustersInfo();
+                                }
+                            } );
+                            contentRoot.getUI().addWindow( window.getWindow() );
+                        }
+                    } );
+                    contentRoot.getUI().addWindow( alert.getAlert() );
                 }
             } );
         }

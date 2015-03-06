@@ -5,11 +5,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
-import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
@@ -31,6 +32,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private static final Logger LOGGER = LoggerFactory.getLogger( ClusterConfiguration.class );
     private TrackerOperation trackerOperation;
     private AccumuloImpl accumuloManager;
+    private CommandUtil commandUtil;
 
 
     public ClusterConfiguration( final AccumuloImpl accumuloManager, final TrackerOperation trackerOperation )
@@ -39,6 +41,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         Preconditions.checkNotNull( trackerOperation, "Product Operation is null" );
         this.trackerOperation = trackerOperation;
         this.accumuloManager = accumuloManager;
+        this.commandUtil = new CommandUtil();
     }
 
 
@@ -57,33 +60,39 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
         /** configure cluster */
-        for ( UUID uuid : accumuloClusterConfig.getAllNodes() )
+        Set<Host> hostSet = Util.getHosts( accumuloClusterConfig, environment );
+        try
         {
-            ContainerHost host = getHost( environment, uuid );
-
             // configure master node
-            executeCommand( host, Commands.getAddMasterCommand( master.getHostname() ) );
+            commandUtil.executeParallel( Commands.getAddMasterCommand( master.getHostname() ), hostSet );
 
             // configure GC node
-            executeCommand( host, Commands.getAddGCCommand( gc.getHostname() ) );
+            commandUtil.executeParallel( Commands.getAddGCCommand( gc.getHostname() ), hostSet );
 
             // configure monitor node
-            executeCommand( host, Commands.getAddMonitorCommand( monitor.getHostname() ) );
+            commandUtil.executeParallel( Commands.getAddMonitorCommand( monitor.getHostname() ), hostSet );
 
             // configure tracers
-            executeCommand( host, Commands.getAddTracersCommand(
-                    serializeSlaveNodeNames( environment, accumuloClusterConfig.getTracers() ) ) );
+            commandUtil.executeParallel( Commands.getAddTracersCommand(
+                    serializeSlaveNodeNames( environment, accumuloClusterConfig.getTracers() ) ), hostSet );
 
             // configure slaves
-            executeCommand( host, Commands.getAddSlavesCommand(
-                    serializeSlaveNodeNames( environment, accumuloClusterConfig.getSlaves() ) ) );
+            commandUtil.executeParallel( Commands.getAddSlavesCommand(
+                    serializeSlaveNodeNames( environment, accumuloClusterConfig.getSlaves() ) ), hostSet );
 
             // configure zookeeper
-            executeCommand( host, Commands.getBindZKClusterCommand( serializeZKNodeNames( zookeeperClusterConfig ) ) );
+            commandUtil.executeParallel(
+                    Commands.getBindZKClusterCommand( serializeZKNodeNames( zookeeperClusterConfig ) ), hostSet );
+        }
+        catch ( CommandException e )
+        {
+            LOGGER.error( "Error while running configuration commands", e );
+            e.printStackTrace();
+            return;
         }
 
         // init accumulo instance
-        executeCommand( master, Commands.getInitCommand( accumuloClusterConfig.getInstanceName(),
+        Util.executeCommand( master, Commands.getInitCommand( accumuloClusterConfig.getInstanceName(),
                 accumuloClusterConfig.getPassword() ) );
 
 
@@ -132,20 +141,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         zkNodesCommaSeparated.delete( zkNodesCommaSeparated.length() - 1, zkNodesCommaSeparated.length() );
         return zkNodesCommaSeparated.toString();
-    }
-
-
-    private void executeCommand( ContainerHost host, RequestBuilder commandBuilder )
-    {
-        try
-        {
-            host.execute( commandBuilder );
-        }
-        catch ( CommandException e )
-        {
-            LOGGER.error( "Error executing command.", e );
-            trackerOperation.addLogFailed( "Error executing command. " + e.getMessage() );
-        }
     }
 
 

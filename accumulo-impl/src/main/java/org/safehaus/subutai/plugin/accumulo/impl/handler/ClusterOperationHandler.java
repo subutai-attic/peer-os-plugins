@@ -14,13 +14,12 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
-import org.safehaus.subutai.common.tracker.OperationState;
-import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloOverZkNHadoopSetupStrategy;
 import org.safehaus.subutai.plugin.accumulo.impl.Commands;
+import org.safehaus.subutai.plugin.accumulo.impl.Util;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -112,15 +111,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         {
             case START_ALL:
                 manager.getHadoopManager().startNameNode( hadoopConfig );
-                executeCommand( containerHost, Commands.startCommand );
+                Util.executeCommand( containerHost, Commands.startCommand );
                 break;
             case STOP_ALL:
-                executeCommand( containerHost, Commands.stopCommand );
+                Util.executeCommand( containerHost, Commands.stopCommand );
                 break;
             case STATUS_ALL:
                 for ( ContainerHost host : environment.getContainerHosts() )
                 {
-                    executeCommand( host, Commands.statusCommand );
+                    Util.executeCommand( host, Commands.statusCommand );
                 }
                 break;
         }
@@ -158,13 +157,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
 
         // stop cluster before destroying cluster
         UUID uuid = manager.stopCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        Set<Host> hostSet = AccumuloOverZkNHadoopSetupStrategy.getHosts( config, environment );
+        Util.waitUntilOperationFinish( manager, uuid );
+        Set<Host> hostSet = Util.getHosts( config, environment );
         try
         {
             Map<Host, CommandResult> resultMap =
                     commandUtil.executeParallel( new RequestBuilder( Commands.uninstallCommand ), hostSet );
-            if ( AccumuloOverZkNHadoopSetupStrategy.isAllSuccessful( resultMap, hostSet ) )
+            if ( Util.isAllSuccessful( resultMap, hostSet ) )
             {
                 trackerOperation.addLog( "Accumulo is uninstalled from all nodes successfully" );
             }
@@ -189,7 +188,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             return;
         }
 
-        CommandResult result = executeCommand( namenode, Commands.getRemoveAccumuloFromHFDSCommand() );
+        CommandResult result = Util.executeCommand( namenode, Commands.getRemoveAccumuloFromHFDSCommand() );
 
         if ( result.hasSucceeded() )
         {
@@ -219,51 +218,5 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         {
             e.printStackTrace();
         }
-    }
-
-
-    private void waitUntilOperationFinish( UUID uuid )
-    {
-        long start = System.currentTimeMillis();
-
-        while ( !Thread.interrupted() )
-        {
-            TrackerOperationView po =
-                    manager.getTracker().getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
-            if ( po != null )
-            {
-                if ( po.getState() != OperationState.RUNNING )
-                {
-                    break;
-                }
-            }
-            try
-            {
-                Thread.sleep( 1000 );
-            }
-            catch ( InterruptedException ex )
-            {
-                break;
-            }
-            if ( System.currentTimeMillis() - start > 120 * 1000 )
-            {
-                break;
-            }
-        }
-    }
-
-
-    private CommandResult executeCommand( ContainerHost containerHost, RequestBuilder commandRequest )
-    {
-        CommandResult result = null;
-        try
-        {
-            result = containerHost.execute( commandRequest );
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( "Could not execute command correctly. ", e );
-        }
-        return result;
     }
 }

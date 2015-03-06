@@ -205,11 +205,11 @@ public class AccumuloAlertListener implements AlertListener
             cpuStressedByAccumulo = true;
         }
 
-        //        if ( !( ramStressedByAccumulo || cpuStressedByAccumulo ) )
-        //        {
-        //            LOGGER.info( "Accumulo cluster runs ok" );
-        //            return;
-        //        }
+        if ( !( ramStressedByAccumulo || cpuStressedByAccumulo ) )
+        {
+            LOGGER.info( "Accumulo cluster runs ok" );
+            return;
+        }
 
 
         //auto-scaling is enabled -> scale cluster

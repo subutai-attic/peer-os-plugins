@@ -70,72 +70,6 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
-    public ExecutorService getExecutor()
-    {
-        return executor;
-    }
-
-
-    public void setExecutor( final ExecutorService executor )
-    {
-        this.executor = executor;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public Commands getCommands()
-    {
-        return commands;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
-    public void setHadoopManager( final Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
-    public Zookeeper getZkManager()
-    {
-        return zkManager;
-    }
-
-
-    public void setZkManager( final Zookeeper zkManager )
-    {
-        this.zkManager = zkManager;
-    }
-
-
     public void init()
     {
         try
@@ -476,5 +410,71 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
                 getPluginDAO().deleteInfo( AccumuloClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
             }
         }
+    }
+
+
+    public ExecutorService getExecutor()
+    {
+        return executor;
+    }
+
+
+    public void setExecutor( final ExecutorService executor )
+    {
+        this.executor = executor;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public Commands getCommands()
+    {
+        return commands;
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( final Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
+    }
+
+
+    public Zookeeper getZkManager()
+    {
+        return zkManager;
+    }
+
+
+    public void setZkManager( final Zookeeper zkManager )
+    {
+        this.zkManager = zkManager;
     }
 }
