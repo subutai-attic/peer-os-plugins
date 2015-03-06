@@ -29,7 +29,7 @@ public class ZookeeperAlertListener implements AlertListener
     private ZookeeperImpl zookeeper;
     public static final String ZOOKEEPER_ALERT_LISTENER = "ZOOKEEPER_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
-    private static int MAX_RAM_QUOTA_MB;
+    private static double MAX_RAM_QUOTA_MB;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 100;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
@@ -100,6 +100,10 @@ public class ZookeeperAlertListener implements AlertListener
                     containerHostMetric.getHost() ) );
             return;
         }
+
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Zookeeper process pid
         int zookeeperPid = 0;
