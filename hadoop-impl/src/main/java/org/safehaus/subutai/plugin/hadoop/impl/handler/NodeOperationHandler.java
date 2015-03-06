@@ -34,8 +34,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     private String hostname;
     private NodeOperationType operationType;
     private NodeType nodeType;
-    private ExecutorService executor = Executors.newCachedThreadPool();
-
 
     public NodeOperationHandler( final HadoopImpl manager, final String clusterName, final String hostname,
                                  NodeOperationType operationType, NodeType nodeType )

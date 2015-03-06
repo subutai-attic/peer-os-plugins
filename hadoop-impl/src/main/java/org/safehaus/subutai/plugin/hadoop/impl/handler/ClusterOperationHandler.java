@@ -1,8 +1,6 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
@@ -41,7 +39,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     private ClusterOperationType operationType;
     private HadoopClusterConfig config;
     private NodeType nodeType;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final HadoopImpl manager, final HadoopClusterConfig config,
