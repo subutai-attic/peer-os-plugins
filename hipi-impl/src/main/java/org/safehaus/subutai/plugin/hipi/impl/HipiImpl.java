@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -40,7 +40,6 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
     private PluginDAO pluginDao;
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
-    //private DataSource dataSource;
     private Hadoop hadoopManager;
 
 
@@ -95,7 +94,7 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
         {
             LOG.error( e.getMessage(), e );
         }
-        executor = Executors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
