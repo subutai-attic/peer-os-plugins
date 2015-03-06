@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
 import org.safehaus.subutai.common.environment.Environment;
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -81,7 +81,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
             LOG.error( e.getMessage(), e );
         }
 
-        executor = Executors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
