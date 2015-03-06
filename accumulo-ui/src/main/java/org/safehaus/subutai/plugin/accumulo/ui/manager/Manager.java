@@ -107,7 +107,7 @@ public class Manager
         contentRoot.setSpacing( true );
         contentRoot.setMargin( true );
         contentRoot.setSizeFull();
-        contentRoot.setRows( 17 );
+        contentRoot.setRows( 10 );
         contentRoot.setColumns( 1 );
 
         //tables go here
@@ -199,9 +199,9 @@ public class Manager
         controlsContent.setComponentAlignment( PROGRESS_ICON, Alignment.MIDDLE_CENTER );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
-        contentRoot.addComponent( mastersTable, 0, 2, 0, 6 );
-        contentRoot.addComponent( tracersTable, 0, 7, 0, 11 );
-        contentRoot.addComponent( slavesTable, 0, 12, 0, 16 );
+        contentRoot.addComponent( mastersTable, 0, 1, 0, 3 );
+        contentRoot.addComponent( tracersTable, 0, 4, 0, 6 );
+        contentRoot.addComponent( slavesTable, 0, 7, 0, 9 );
     }
 
 
@@ -268,113 +268,6 @@ public class Manager
         } );
         return checkAllBtn;
     }
-
-
-    //    private HorizontalLayout getAddPropertyLayout()
-    //    {
-    //        HorizontalLayout customPropertyContent = new HorizontalLayout();
-    //        customPropertyContent.setSpacing( true );
-    //
-    //        Label propertyNameLabel = new Label( "Property Name" );
-    //        customPropertyContent.addComponent( propertyNameLabel );
-    //        final TextField propertyNameTextField = new TextField();
-    //        propertyNameTextField.setId( "propertyNameTxt" );
-    //        customPropertyContent.addComponent( propertyNameTextField );
-    //
-    //        removePropertyBtn = new Button( "Remove" );
-    //        removePropertyBtn.setId( "removePropertyBtn" );
-    //        removePropertyBtn.addStyleName( "default" );
-    //        removePropertyBtn.addClickListener( new Button.ClickListener()
-    //        {
-    //            @Override
-    //            public void buttonClick( Button.ClickEvent clickEvent )
-    //            {
-    //                if ( accumuloClusterConfig != null )
-    //                {
-    //                    String propertyName = propertyNameTextField.getValue();
-    //                    if ( Strings.isNullOrEmpty( propertyName ) )
-    //                    {
-    //                        Notification.show( "Please, specify property name to remove" );
-    //                    }
-    //                    else
-    //                    {
-    //                        UUID trackID = accumulo.removeProperty( accumuloClusterConfig.getClusterName(),
-    // propertyName );
-    //
-    //                        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-    //                                AccumuloClusterConfig.PRODUCT_KEY );
-    //                        window.getWindow().addCloseListener( new Window.CloseListener()
-    //                        {
-    //                            @Override
-    //                            public void windowClose( Window.CloseEvent closeEvent )
-    //                            {
-    //                                refreshClustersInfo();
-    //                            }
-    //                        } );
-    //                        contentRoot.getUI().addWindow( window.getWindow() );
-    //                    }
-    //                }
-    //                else
-    //                {
-    //                    Notification.show( "Please, select cluster" );
-    //                }
-    //            }
-    //        } );
-    //        customPropertyContent.addComponent( removePropertyBtn );
-    //
-    //        Label propertyValueLabel = new Label( "Property Value" );
-    //        customPropertyContent.addComponent( propertyValueLabel );
-    //        final TextField propertyValueTextField = new TextField();
-    //        propertyValueTextField.setId( "propertyValueTxt" );
-    //        customPropertyContent.addComponent( propertyValueTextField );
-    //
-    //        addPropertyBtn = new Button( "Add" );
-    //        addPropertyBtn.setId( "addProperty" );
-    //        addPropertyBtn.addStyleName( "default" );
-    //        addPropertyBtn.addClickListener( new Button.ClickListener()
-    //        {
-    //            @Override
-    //            public void buttonClick( Button.ClickEvent clickEvent )
-    //            {
-    //                if ( accumuloClusterConfig != null )
-    //                {
-    //                    String propertyName = propertyNameTextField.getValue();
-    //                    String propertyValue = propertyValueTextField.getValue();
-    //                    if ( Strings.isNullOrEmpty( propertyName ) )
-    //                    {
-    //                        Notification.show( "Please, specify property name to add" );
-    //                    }
-    //                    else if ( Strings.isNullOrEmpty( propertyValue ) )
-    //                    {
-    //                        Notification.show( "Please, specify property name to set" );
-    //                    }
-    //                    else
-    //                    {
-    //                        UUID trackID = accumulo.addProperty( accumuloClusterConfig.getClusterName(), propertyName,
-    //                                propertyValue );
-    //
-    //                        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-    //                                AccumuloClusterConfig.PRODUCT_KEY );
-    //                        window.getWindow().addCloseListener( new Window.CloseListener()
-    //                        {
-    //                            @Override
-    //                            public void windowClose( Window.CloseEvent closeEvent )
-    //                            {
-    //                                refreshClustersInfo();
-    //                            }
-    //                        } );
-    //                        contentRoot.getUI().addWindow( window.getWindow() );
-    //                    }
-    //                }
-    //                else
-    //                {
-    //                    Notification.show( "Please, select cluster" );
-    //                }
-    //            }
-    //        } );
-    //        customPropertyContent.addComponent( addPropertyBtn );
-    //        return customPropertyContent;
-    //    }
 
 
     private Button getAddSlaveButton()
@@ -558,7 +451,6 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            stopClusterBtn.click();
                             UUID trackID = accumulo.uninstallCluster( accumuloClusterConfig.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -1036,7 +928,7 @@ public class Manager
     }
 
 
-    private String convertEnumValues( NodeType role )
+    public String convertEnumValues( NodeType role )
     {
         switch ( role )
         {

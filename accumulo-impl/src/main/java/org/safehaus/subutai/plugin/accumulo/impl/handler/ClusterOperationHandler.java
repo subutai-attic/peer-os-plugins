@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -13,6 +14,8 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -153,6 +156,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             return;
         }
 
+        // stop cluster before destroying cluster
+        UUID uuid = manager.stopCluster( clusterName );
+        waitUntilOperationFinish( uuid );
         Set<Host> hostSet = AccumuloOverZkNHadoopSetupStrategy.getHosts( config, environment );
         try
         {
@@ -187,10 +193,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
 
         if ( result.hasSucceeded() )
         {
+            trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
             try
             {
                 manager.unsubscribeFromAlerts( environment );
-                trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
             }
             catch ( MonitorException e )
             {
@@ -212,6 +218,37 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         catch ( ClusterException e )
         {
             e.printStackTrace();
+        }
+    }
+
+
+    private void waitUntilOperationFinish( UUID uuid )
+    {
+        long start = System.currentTimeMillis();
+
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po =
+                    manager.getTracker().getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > 120 * 1000 )
+            {
+                break;
+            }
         }
     }
 

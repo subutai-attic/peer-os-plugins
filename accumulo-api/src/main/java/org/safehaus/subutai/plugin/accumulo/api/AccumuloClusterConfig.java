@@ -216,6 +216,34 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
+    public List<NodeType> getNodeRoles( final UUID uuid )
+    {
+        List<NodeType> roles = new ArrayList<>();
+
+        if ( masterNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MASTER );
+        }
+        if ( monitor.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MONITOR );
+        }
+        if ( gcNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_GC );
+        }
+        if ( tracers.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TRACER );
+        }
+        if ( slaves.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TABLET_SERVER );
+        }
+        return roles;
+    }
+
+
     public UUID getMasterNode()
     {
         return masterNode;

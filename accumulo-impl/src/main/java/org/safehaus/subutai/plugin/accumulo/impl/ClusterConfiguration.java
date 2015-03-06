@@ -93,8 +93,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                accumuloClusterConfig );
 
         // start cluster
-        trackerOperation.addLog( "Starting cluster ..." );
-        executeCommand( master, Commands.startCommand );
+        // trackerOperation.addLog( "Starting cluster ..." );
+        // executeCommand( master, Commands.startCommand );
 
         trackerOperation.addLogDone( AccumuloClusterConfig.PRODUCT_KEY + " cluster data saved into database" );
     }

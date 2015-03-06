@@ -15,11 +15,10 @@ public class Commands
             "apt-get --force-yes --assume-yes purge " + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
                     .toLowerCase();
 
-    public static final RequestBuilder startCommand =
-            new RequestBuilder( "/etc/init.d/accumulo start" ).withTimeout( 30 );
+    public static final RequestBuilder startCommand = new RequestBuilder( "/etc/init.d/accumulo start" ).daemon();
 
     public static final RequestBuilder stopCommand =
-            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 30 );
+            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 180 );
 
     public static final RequestBuilder statusCommand =
             new RequestBuilder( "/etc/init.d/accumulo status" ).withTimeout( 30 );
