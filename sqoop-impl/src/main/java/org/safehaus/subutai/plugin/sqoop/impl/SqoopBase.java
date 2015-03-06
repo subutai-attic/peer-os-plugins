@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
@@ -40,7 +41,7 @@ public abstract class SqoopBase implements Sqoop
             LOG.error( "Failed to init DAO", e );
         }
 
-        executor = Executors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
