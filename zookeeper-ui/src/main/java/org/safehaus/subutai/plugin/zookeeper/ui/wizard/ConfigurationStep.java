@@ -309,6 +309,7 @@ public class ConfigurationStep extends Panel
         {
             hadoopClustersCombo.setValue( hadoopClusterConfigs.iterator().next() );
             hadoopInfo = hadoopClusterConfigs.iterator().next();
+            wizard.getConfig().setEnvironmentId( hadoopInfo.getEnvironmentId() );
         }
 
         List<UUID> allHadoopNodes = new ArrayList<>();
@@ -320,7 +321,7 @@ public class ConfigurationStep extends Panel
 
         Set<UUID> allHadoopNodeSet = new HashSet<>();
         allHadoopNodeSet.addAll( allHadoopNodes );
-        Environment hadoopEnvironment;
+        final Environment hadoopEnvironment;
         final Set<ContainerHost> hadoopNodes = new HashSet<>();
         if ( hadoopInfo != null )
         {
@@ -367,6 +368,7 @@ public class ConfigurationStep extends Panel
                     wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
                     wizard.setHadoopClusterConfig( hadoopInfo );
                     wizard.getConfig().setNodes( new HashSet<UUID>() );
+                    wizard.getConfig().setEnvironmentId( hadoopInfo.getEnvironmentId() );
                 }
             }
         } );
