@@ -11,6 +11,7 @@ import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -26,16 +27,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 
-/**
- * Created by ebru on 06.11.2014.
- */
+
 public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, SolrClusterConfig>
         implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private SolrClusterConfig config;
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private ExecutorService executor = SubutaiExecutors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final SolrImpl manager, final SolrClusterConfig config,
