@@ -3,8 +3,8 @@ package org.safehaus.subutai.plugin.etl.impl;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
@@ -26,7 +26,7 @@ public class ETLImpl implements ETL
 
     public void init()
     {
-        executor = Executors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
