@@ -32,27 +32,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class AddPropertyOperationHandlerTest
 {
+    @Mock AccumuloImpl accumuloImpl;
+    @Mock AccumuloClusterConfig accumuloClusterConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ContainerHost containerHost;
+    @Mock CommandResult commandResult;
     private AddPropertyOperationHandler addPropertyOperationHandler;
     private UUID uuid;
-    @Mock
-    AccumuloImpl accumuloImpl;
-    @Mock
-    AccumuloClusterConfig accumuloClusterConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    CommandResult commandResult;
 
 
     @Before

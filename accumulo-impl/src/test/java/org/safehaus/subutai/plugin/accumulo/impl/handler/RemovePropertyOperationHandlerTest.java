@@ -32,29 +32,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class RemovePropertyOperationHandlerTest
 {
+    @Mock AccumuloImpl accumuloImpl;
+    @Mock AccumuloClusterConfig accumuloClusterConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock ContainerHost containerHost;
+    @Mock CommandResult commandResult;
+    @Mock ClusterSetupStrategy clusterSetupStrategy;
     private RemovePropertyOperationHandler removePropertyOperationHandler;
     private UUID uuid;
-    @Mock
-    AccumuloImpl accumuloImpl;
-    @Mock
-    AccumuloClusterConfig accumuloClusterConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ClusterSetupStrategy clusterSetupStrategy;
 
 
     @Before
@@ -134,7 +125,7 @@ public class RemovePropertyOperationHandlerTest
     }
 
 
-    @Test(expected = NullPointerException.class)
+    @Test( expected = NullPointerException.class )
     public void testRunWhenCommandResultHasNotSucceeded2() throws Exception
     {
         // mock run method

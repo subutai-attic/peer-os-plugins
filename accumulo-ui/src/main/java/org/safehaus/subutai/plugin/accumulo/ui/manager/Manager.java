@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
@@ -24,6 +22,7 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
@@ -34,13 +33,14 @@ import org.safehaus.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
@@ -50,14 +50,11 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 
 
 public class Manager
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
-
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
     protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
@@ -73,17 +70,13 @@ public class Manager
     protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
     protected static final String STATUS_COLUMN_CAPTION = "Status";
     protected static final String STYLE_NAME = "default";
+    private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
+    private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
     private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final GridLayout contentRoot;
     private final Table mastersTable;
     private final Table tracersTable;
     private final Table slavesTable;
-    private final Pattern MASTER_PATTERN = Pattern.compile( ".*(Master.+?g).*" );
-    private final Pattern GC_PATTERN = Pattern.compile( ".*(GC.+?g).*" );
-    private final Pattern MONITOR_PATTERN = Pattern.compile( ".*(Monitor.+?g).*" );
-    private final Pattern TRACER_PATTERN = Pattern.compile( ".*(Tracer.+?g).*" );
-    private final Pattern LOGGER_PATTERN = Pattern.compile( ".*(Logger.+?g).*" );
-    private final Pattern TABLET_SERVER_PATTERN = Pattern.compile( ".*(Tablet Server.+?g).*" );
     private final Accumulo accumulo;
     private final Hadoop hadoop;
     private final Zookeeper zookeeper;
@@ -91,13 +84,15 @@ public class Manager
     private final ExecutorService executorService;
     private final EnvironmentManager environmentManager;
     private ComboBox clusterCombo;
+    private CheckBox autoScaleBtn;
     private AccumuloClusterConfig accumuloClusterConfig;
     private Button refreshClustersBtn, checkAllBtn, startClusterBtn, stopClusterBtn, destroyClusterBtn, addTracerBtn,
-            addTabletServerButton, addPropertyBtn, removePropertyBtn;
+            addTabletServerButton;
 
 
-    public Manager( final ExecutorService executorService, Accumulo accumulo, Hadoop hadoop, final Zookeeper zookeeper,
-                    Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public Manager( final ExecutorService executorService, final Accumulo accumulo, Hadoop hadoop,
+                    final Zookeeper zookeeper, Tracker tracker, EnvironmentManager environmentManager )
+            throws NamingException
     {
 
         this.executorService = executorService;
@@ -112,7 +107,7 @@ public class Manager
         contentRoot.setSpacing( true );
         contentRoot.setMargin( true );
         contentRoot.setSizeFull();
-        contentRoot.setRows( 17 );
+        contentRoot.setRows( 10 );
         contentRoot.setColumns( 1 );
 
         //tables go here
@@ -125,35 +120,99 @@ public class Manager
 
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
+
+        ComboBox clustersCombo = getClusterCombo();
+        controlsContent.addComponent( clustersCombo );
+        controlsContent.setComponentAlignment( clustersCombo, Alignment.MIDDLE_CENTER );
+
+        refreshClustersBtn = getRefreshClustersButton();
+        controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
+
+        checkAllBtn = getCheckAllButton();
+        controlsContent.addComponent( checkAllBtn );
+        controlsContent.setComponentAlignment( checkAllBtn, Alignment.MIDDLE_CENTER );
+
+        startClusterBtn = getStartAllButton();
+        controlsContent.addComponent( startClusterBtn );
+        controlsContent.setComponentAlignment( startClusterBtn, Alignment.MIDDLE_CENTER );
+
+        stopClusterBtn = getStopAllButton();
+        controlsContent.addComponent( stopClusterBtn );
+        controlsContent.setComponentAlignment( stopClusterBtn, Alignment.MIDDLE_CENTER );
+
+        destroyClusterBtn = getDestroyClusterButton();
+        controlsContent.addComponent( destroyClusterBtn );
+        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
+
+        addTracerBtn = getAddTracerNodeButton();
+        controlsContent.addComponent( addTracerBtn );
+        controlsContent.setComponentAlignment( addTracerBtn, Alignment.MIDDLE_CENTER );
+
+        addTabletServerButton = getAddSlaveButton();
+        controlsContent.addComponent( addTabletServerButton );
+        controlsContent.setComponentAlignment( addTabletServerButton, Alignment.MIDDLE_CENTER );
+
+        //auto scale button
+        autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
+        autoScaleBtn.setValue( false );
+        autoScaleBtn.addStyleName( "default" );
+        controlsContent.addComponent( autoScaleBtn );
+        controlsContent.setComponentAlignment( autoScaleBtn, Alignment.MIDDLE_CENTER );
+        autoScaleBtn.addValueChangeListener( new Property.ValueChangeListener()
+        {
+            @Override
+            public void valueChange( final Property.ValueChangeEvent event )
+            {
+                if ( accumuloClusterConfig == null )
+                {
+                    show( "Select cluster" );
+                }
+                else
+                {
+                    boolean value = ( Boolean ) event.getProperty().getValue();
+                    accumuloClusterConfig.setAutoScaling( value );
+                    try
+                    {
+                        accumulo.saveConfig( accumuloClusterConfig );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        show( e.getMessage() );
+                    }
+                }
+            }
+        } );
 
 
-        controlsContent.addComponent( getClusterCombo() );
-        controlsContent.addComponent( getRefreshClustersButton() );
-        controlsContent.addComponent( getCheckAllButton() );
-        controlsContent.addComponent( getStartAllButton() );
-        controlsContent.addComponent( getStopAllButton() );
-        controlsContent.addComponent( getDestroyClusterButton() );
-        controlsContent.addComponent( getAddTracerNodeButton() );
-        controlsContent.addComponent( getAddSlaveButton() );
-
-        HorizontalLayout customPropertyContent = getAddPropertyLayout();
-        controlsContent.addComponent( customPropertyContent );
-
-        addStyleName( refreshClustersBtn, startClusterBtn, stopClusterBtn, addTabletServerButton, addTracerBtn,
-                addPropertyBtn, checkAllBtn, removePropertyBtn, destroyClusterBtn );
+        addStyleName( refreshClustersBtn, checkAllBtn, startClusterBtn, stopClusterBtn, destroyClusterBtn, addTracerBtn,
+                addTabletServerButton );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
         controlsContent.addComponent( PROGRESS_ICON );
+        controlsContent.setComponentAlignment( PROGRESS_ICON, Alignment.MIDDLE_CENTER );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
-        contentRoot.addComponent( customPropertyContent, 0, 1 );
-        contentRoot.addComponent( mastersTable, 0, 2, 0, 6 );
-        contentRoot.addComponent( tracersTable, 0, 7, 0, 11 );
-        contentRoot.addComponent( slavesTable, 0, 12, 0, 16 );
+        contentRoot.addComponent( mastersTable, 0, 1, 0, 3 );
+        contentRoot.addComponent( tracersTable, 0, 4, 0, 6 );
+        contentRoot.addComponent( slavesTable, 0, 7, 0, 9 );
+    }
+
+
+    /**
+     * Shows notification with the given argument
+     *
+     * @param notification notification which will shown.
+     */
+    private void show( String notification )
+    {
+        Notification.show( notification );
     }
 
 
@@ -171,7 +230,6 @@ public class Manager
             {
                 accumuloClusterConfig = ( AccumuloClusterConfig ) event.getProperty().getValue();
                 refreshUI();
-                checkAll();
             }
         } );
         return clusterCombo;
@@ -209,112 +267,6 @@ public class Manager
             }
         } );
         return checkAllBtn;
-    }
-
-
-    private HorizontalLayout getAddPropertyLayout()
-    {
-        HorizontalLayout customPropertyContent = new HorizontalLayout();
-        customPropertyContent.setSpacing( true );
-
-        Label propertyNameLabel = new Label( "Property Name" );
-        customPropertyContent.addComponent( propertyNameLabel );
-        final TextField propertyNameTextField = new TextField();
-        propertyNameTextField.setId( "propertyNameTxt" );
-        customPropertyContent.addComponent( propertyNameTextField );
-
-        removePropertyBtn = new Button( "Remove" );
-        removePropertyBtn.setId( "removePropertyBtn" );
-        removePropertyBtn.addStyleName( "default" );
-        removePropertyBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                if ( accumuloClusterConfig != null )
-                {
-                    String propertyName = propertyNameTextField.getValue();
-                    if ( Strings.isNullOrEmpty( propertyName ) )
-                    {
-                        Notification.show( "Please, specify property name to remove" );
-                    }
-                    else
-                    {
-                        UUID trackID = accumulo.removeProperty( accumuloClusterConfig.getClusterName(), propertyName );
-
-                        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                AccumuloClusterConfig.PRODUCT_KEY );
-                        window.getWindow().addCloseListener( new Window.CloseListener()
-                        {
-                            @Override
-                            public void windowClose( Window.CloseEvent closeEvent )
-                            {
-                                refreshClustersInfo();
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( window.getWindow() );
-                    }
-                }
-                else
-                {
-                    Notification.show( "Please, select cluster" );
-                }
-            }
-        } );
-        customPropertyContent.addComponent( removePropertyBtn );
-
-        Label propertyValueLabel = new Label( "Property Value" );
-        customPropertyContent.addComponent( propertyValueLabel );
-        final TextField propertyValueTextField = new TextField();
-        propertyValueTextField.setId( "propertyValueTxt" );
-        customPropertyContent.addComponent( propertyValueTextField );
-
-        addPropertyBtn = new Button( "Add" );
-        addPropertyBtn.setId( "addProperty" );
-        addPropertyBtn.addStyleName( "default" );
-        addPropertyBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                if ( accumuloClusterConfig != null )
-                {
-                    String propertyName = propertyNameTextField.getValue();
-                    String propertyValue = propertyValueTextField.getValue();
-                    if ( Strings.isNullOrEmpty( propertyName ) )
-                    {
-                        Notification.show( "Please, specify property name to add" );
-                    }
-                    else if ( Strings.isNullOrEmpty( propertyValue ) )
-                    {
-                        Notification.show( "Please, specify property name to set" );
-                    }
-                    else
-                    {
-                        UUID trackID = accumulo.addProperty( accumuloClusterConfig.getClusterName(), propertyName,
-                                propertyValue );
-
-                        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                AccumuloClusterConfig.PRODUCT_KEY );
-                        window.getWindow().addCloseListener( new Window.CloseListener()
-                        {
-                            @Override
-                            public void windowClose( Window.CloseEvent closeEvent )
-                            {
-                                refreshClustersInfo();
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( window.getWindow() );
-                    }
-                }
-                else
-                {
-                    Notification.show( "Please, select cluster" );
-                }
-            }
-        } );
-        customPropertyContent.addComponent( addPropertyBtn );
-        return customPropertyContent;
     }
 
 
@@ -499,7 +451,6 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            stopClusterBtn.click();
                             UUID trackID = accumulo.uninstallCluster( accumuloClusterConfig.getClusterName() );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -697,17 +648,21 @@ public class Manager
             {
                 environment = environmentManager.findEnvironment(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() );
-                populateTable( slavesTable, environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ),
-                        false );
-                populateTable( tracersTable, environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ),
-                        false );
+
+
+                populateTabletServersTable( slavesTable,
+                        environment.getContainerHostsByIds( accumuloClusterConfig.getSlaves() ), false );
+
+                populateTracersTable( tracersTable,
+                        environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ), false );
 
 
                 Set<ContainerHost> masters = new HashSet<>();
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getMasterNode() ) );
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getGcNode() ) );
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getMonitor() ) );
-                populateTable( mastersTable, masters, true );
+                populateMastersTable( mastersTable, masters, true );
+                autoScaleBtn.setValue( accumuloClusterConfig.isAutoScaling() );
             }
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
             {
@@ -723,7 +678,7 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
+    private void populateMastersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
     {
         table.removeAllItems();
         for ( final ContainerHost containerHost : containerHosts )
@@ -739,13 +694,67 @@ public class Manager
             availableOperations.setSpacing( true );
 
             // TODO: think about adding destroy button !!!
+            addGivenComponents( availableOperations, checkBtn );
+            addStyleName( checkBtn, destroyBtn, availableOperations );
+
+            List<NodeType> rolesOfNode = accumuloClusterConfig.getMasterNodeRoles( containerHost.getId() );
+            for ( final NodeType role : rolesOfNode )
+            {
+
+                table.addItem( new Object[] {
+                        containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                        filterNodeRole( role.name() ), resultHolder, availableOperations
+                }, null );
+
+                checkBtn.addClickListener( new Button.ClickListener()
+                {
+                    @Override
+                    public void buttonClick( Button.ClickEvent event )
+                    {
+                        PROGRESS_ICON.setVisible( true );
+                        disableButtons( checkBtn, destroyBtn );
+                        executorService.execute(
+                                new CheckTask( accumulo, tracker, accumuloClusterConfig.getClusterName(),
+                                        containerHost.getHostname(), new CompleteEvent()
+                                {
+                                    public void onComplete( String result )
+                                    {
+                                        synchronized ( PROGRESS_ICON )
+                                        {
+                                            resultHolder.setValue( parseStatus( result, role ) );
+                                            enableButtons( destroyBtn, checkBtn );
+                                            PROGRESS_ICON.setVisible( false );
+                                        }
+                                    }
+                                } ) );
+                    }
+                } );
+            }
+        }
+    }
+
+
+    private void populateTracersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
+    {
+        table.removeAllItems();
+        for ( final ContainerHost containerHost : containerHosts )
+        {
+            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
+            final Label resultHolder = new Label();
+            resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
+
+            HorizontalLayout availableOperations = new HorizontalLayout();
+            availableOperations.setSpacing( true );
+
             addGivenComponents( availableOperations, checkBtn, destroyBtn );
             addStyleName( checkBtn, destroyBtn, availableOperations );
 
-            final String nodeRole = findNodeRoles( containerHost );
             table.addItem( new Object[] {
-                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), nodeRole, resultHolder,
-                    availableOperations
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                    filterNodeRole( NodeType.ACCUMULO_TRACER.name() ), resultHolder, availableOperations
             }, null );
 
             checkBtn.addClickListener( new Button.ClickListener()
@@ -762,8 +771,8 @@ public class Manager
                         {
                             synchronized ( PROGRESS_ICON )
                             {
-                                resultHolder.setValue( parseStatus( result, nodeRole ) );
-                                enableButtons( destroyBtn, checkBtn );
+                                resultHolder.setValue( parseStatus( result, NodeType.ACCUMULO_TRACER ) );
+                                enableButtons( checkBtn, destroyBtn );
                                 PROGRESS_ICON.setVisible( false );
                             }
                         }
@@ -776,6 +785,13 @@ public class Manager
                 @Override
                 public void buttonClick( Button.ClickEvent event )
                 {
+
+                    if ( accumuloClusterConfig.getTracers().size() == 1 )
+                    {
+                        show( "This is last tracer node in cluster, please destroy whole cluster" );
+                        return;
+                    }
+
                     ConfirmationDialog alert = new ConfirmationDialog(
                             String.format( "Do you want to destroy the %s node?", containerHost.getHostname() ), "Yes",
                             "No" );
@@ -785,8 +801,7 @@ public class Manager
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
                             UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
-                                    containerHost.getHostname(), table == tracersTable ? NodeType.ACCUMULO_TRACER :
-                                                                 NodeType.ACCUMULO_TABLET_SERVER );
+                                    containerHost.getHostname(), NodeType.ACCUMULO_TRACER );
 
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     AccumuloClusterConfig.PRODUCT_KEY );
@@ -805,6 +820,102 @@ public class Manager
                 }
             } );
         }
+    }
+
+
+    private void populateTabletServersTable( final Table table, Set<ContainerHost> containerHosts,
+                                             final boolean masters )
+    {
+        table.removeAllItems();
+        for ( final ContainerHost containerHost : containerHosts )
+        {
+            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
+            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
+            final Label resultHolder = new Label();
+            resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
+
+            HorizontalLayout availableOperations = new HorizontalLayout();
+            availableOperations.setSpacing( true );
+
+            addGivenComponents( availableOperations, checkBtn, destroyBtn );
+            addStyleName( checkBtn, destroyBtn, availableOperations );
+
+            table.addItem( new Object[] {
+                    containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
+                    filterNodeRole( NodeType.ACCUMULO_TABLET_SERVER.name() ), resultHolder, availableOperations
+            }, null );
+
+            checkBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent event )
+                {
+                    PROGRESS_ICON.setVisible( true );
+                    disableButtons( checkBtn, destroyBtn );
+                    executorService.execute( new CheckTask( accumulo, tracker, accumuloClusterConfig.getClusterName(),
+                            containerHost.getHostname(), new CompleteEvent()
+                    {
+                        public void onComplete( String result )
+                        {
+                            synchronized ( PROGRESS_ICON )
+                            {
+                                resultHolder.setValue( parseStatus( result, NodeType.ACCUMULO_TABLET_SERVER ) );
+                                enableButtons( checkBtn, destroyBtn );
+                                PROGRESS_ICON.setVisible( false );
+                            }
+                        }
+                    } ) );
+                }
+            } );
+
+            destroyBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( Button.ClickEvent event )
+                {
+                    if ( accumuloClusterConfig.getSlaves().size() == 1 )
+                    {
+                        show( "This is last tablet server in cluster, please destroy whole cluster" );
+                        return;
+                    }
+
+                    ConfirmationDialog alert = new ConfirmationDialog(
+                            String.format( "Do you want to destroy the %s node?", containerHost.getHostname() ), "Yes",
+                            "No" );
+                    alert.getOk().addClickListener( new Button.ClickListener()
+                    {
+                        @Override
+                        public void buttonClick( Button.ClickEvent clickEvent )
+                        {
+                            UUID trackID = accumulo.destroyNode( accumuloClusterConfig.getClusterName(),
+                                    containerHost.getHostname(), NodeType.ACCUMULO_TABLET_SERVER );
+
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                    AccumuloClusterConfig.PRODUCT_KEY );
+                            window.getWindow().addCloseListener( new Window.CloseListener()
+                            {
+                                @Override
+                                public void windowClose( Window.CloseEvent closeEvent )
+                                {
+                                    refreshClustersInfo();
+                                }
+                            } );
+                            contentRoot.getUI().addWindow( window.getWindow() );
+                        }
+                    } );
+                    contentRoot.getUI().addWindow( alert.getAlert() );
+                }
+            } );
+        }
+    }
+
+
+    private String filterNodeRole( String role )
+    {
+        int index = role.indexOf( "_" );
+        return role.substring( ( index + 1 ), role.length() );
     }
 
 
@@ -844,102 +955,44 @@ public class Manager
     }
 
 
-    private String parseStatus( String result, String roles )
+    private String parseStatus( String result, NodeType role )
     {
         StringBuilder sb = new StringBuilder();
-
+        String roleString = convertEnumValues( role );
         if ( result.contains( "not connected" ) )
         {
-            sb.append( "Agent is not connected !" );
+            sb.append( "Container is not connected !" );
             return sb.toString();
         }
+        String results[] = result.split( "\n" );
+        for ( String part : results )
+        {
 
-        // A nodes has multiple role
-        if ( roles.contains( "," ) )
-        {
-            String nodeRoles[] = roles.split( "," );
-            for ( String role : nodeRoles )
+            if ( part.toLowerCase().contains( roleString.toLowerCase() ) )
             {
-                parseNFillStringBuilder( result, role.trim(), sb );
+                return part;
             }
-        }
-        else
-        {
-            parseNFillStringBuilder( result, roles.trim(), sb );
-        }
-        if ( sb.length() > 0 )
-        {
-            return sb.toString().substring( 0, ( sb.length() - 2 ) );
         }
         return null;
     }
 
 
-    private StringBuilder parseNFillStringBuilder( String result, String roles, StringBuilder sb )
+    public String convertEnumValues( NodeType role )
     {
-        switch ( roles )
+        switch ( role )
         {
-            case "Master":
-                sb.append( parseStatus( result, MASTER_PATTERN ) ).append( ", " );
-                break;
-            case "GC":
-                sb.append( parseStatus( result, GC_PATTERN ) ).append( ", " );
-                break;
-            case "Monitor":
-                sb.append( parseStatus( result, MONITOR_PATTERN ) ).append( ", " );
-                break;
-            case "Tracer":
-                sb.append( parseStatus( result, TRACER_PATTERN ) ).append( ", " );
-                break;
-            case "Logger":
-                sb.append( parseStatus( result, LOGGER_PATTERN ) ).append( ", " );
-                break;
-            case "Tablet_Server":
-                sb.append( parseStatus( result, TABLET_SERVER_PATTERN ) ).append( ", " );
-                break;
-        }
-        return sb;
-    }
-
-
-    private String parseStatus( String result, Pattern pattern )
-    {
-        StringBuilder parsedResult = new StringBuilder();
-        Matcher masterMatcher = pattern.matcher( result );
-        if ( masterMatcher.find() )
-        {
-            parsedResult.append( masterMatcher.group( 1 ) );
-        }
-        return parsedResult.toString();
-    }
-
-
-    private String findNodeRoles( ContainerHost node )
-    {
-        StringBuilder sb = new StringBuilder();
-        if ( accumuloClusterConfig.getMasterNode().equals( node.getId() ) )
-        {
-            sb.append( "Master" ).append( ", " );
-        }
-        if ( accumuloClusterConfig.getGcNode().equals( node.getId() ) )
-        {
-            sb.append( "GC" ).append( ", " );
-        }
-        if ( accumuloClusterConfig.getMonitor().equals( node.getId() ) )
-        {
-            sb.append( "Monitor" ).append( ", " );
-        }
-        if ( accumuloClusterConfig.getTracers().contains( node.getId() ) )
-        {
-            sb.append( "Tracer" ).append( ", " );
-        }
-        if ( accumuloClusterConfig.getSlaves().contains( node.getId() ) )
-        {
-            sb.append( "Tablet_Server" ).append( ", " );
-        }
-        if ( sb.length() > 0 )
-        {
-            return sb.toString().substring( 0, ( sb.length() - 2 ) );
+            case ACCUMULO_MASTER:
+                return "Master";
+            case ACCUMULO_GC:
+                return "GC";
+            case ACCUMULO_MONITOR:
+                return "Monitor";
+            case ACCUMULO_TABLET_SERVER:
+                return "Tablet Server";
+            case ACCUMULO_TRACER:
+                return "Accumulo Tracer";
+            case ACCUMULO_LOGGER:
+                return "Logger";
         }
         return null;
     }

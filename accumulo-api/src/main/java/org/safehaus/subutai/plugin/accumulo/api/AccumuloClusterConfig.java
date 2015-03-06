@@ -6,12 +6,15 @@
 package org.safehaus.subutai.plugin.accumulo.api;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.NodeType;
 
 
 public class AccumuloClusterConfig implements ConfigBase
@@ -176,6 +179,68 @@ public class AccumuloClusterConfig implements ConfigBase
             return true;
         }
         return true;
+    }
+
+
+    public List<NodeType> getMasterNodeRoles( UUID uuid )
+    {
+        List<NodeType> roles = new ArrayList<>();
+        if ( masterNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MASTER );
+        }
+        if ( monitor.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MONITOR );
+        }
+        if ( gcNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_GC );
+        }
+        return roles;
+    }
+
+
+    public List<NodeType> getSlaveNodeRoles( UUID uuid )
+    {
+        List<NodeType> roles = new ArrayList<>();
+        if ( tracers.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TRACER );
+        }
+        if ( slaves.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TABLET_SERVER );
+        }
+        return roles;
+    }
+
+
+    public List<NodeType> getNodeRoles( final UUID uuid )
+    {
+        List<NodeType> roles = new ArrayList<>();
+
+        if ( masterNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MASTER );
+        }
+        if ( monitor.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_MONITOR );
+        }
+        if ( gcNode.equals( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_GC );
+        }
+        if ( tracers.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TRACER );
+        }
+        if ( slaves.contains( uuid ) )
+        {
+            roles.add( NodeType.ACCUMULO_TABLET_SERVER );
+        }
+        return roles;
     }
 
 

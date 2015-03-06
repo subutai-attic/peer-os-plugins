@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.accumulo.impl;
 
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 
 
 public class Commands
@@ -10,13 +11,14 @@ public class Commands
 
     public static final String installCommand = "apt-get --force-yes --assume-yes install ";
 
-    public static final String uninstallCommand = "apt-get --force-yes --assume-yes purge ";
+    public static final String uninstallCommand =
+            "apt-get --force-yes --assume-yes purge " + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
+                    .toLowerCase();
 
-    public static final RequestBuilder startCommand =
-            new RequestBuilder( "/etc/init.d/accumulo start" ).withTimeout( 30 );
+    public static final RequestBuilder startCommand = new RequestBuilder( "/etc/init.d/accumulo start" ).daemon();
 
     public static final RequestBuilder stopCommand =
-            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 30 );
+            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 180 );
 
     public static final RequestBuilder statusCommand =
             new RequestBuilder( "/etc/init.d/accumulo status" ).withTimeout( 30 );
@@ -24,9 +26,11 @@ public class Commands
     public static final String checkIfInstalled = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
 
 
-    public static RequestBuilder getInstallCommand( String arg )
+    public static RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + arg ).withTimeout( 1800 );
+        return new RequestBuilder(
+                "apt-get --force-yes --assume-yes install " + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
+                        .toLowerCase() ).withTimeout( 1800 );
     }
 
 

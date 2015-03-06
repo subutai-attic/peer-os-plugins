@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.accumulo.impl.alert;
 
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -8,7 +9,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.environment.Environment;
@@ -25,21 +25,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * Created by talas on 1/17/15.
- */
 public class AccumuloAlertListener implements AlertListener
 {
+    private static final Logger LOG = LoggerFactory.getLogger( AccumuloAlertListener.class.getName() );
     private static final String ACCUMOLO_ALERT_LISTENER = "ACCUMOLO_ALERT_LISTENER";
     private static final Logger LOGGER = LoggerFactory.getLogger( AccumuloAlertListener.class );
-
-    private AccumuloImpl accumulo;
-    private CommandUtil commandUtil = new CommandUtil();
-
-    private static int MAX_RAM_QUOTA_MB = 2048;
-    private static int RAM_QUOTA_INCREMENT_MB = 512;
+    private static final String PID_STRING = "pid";
+    private static double MAX_RAM_QUOTA_MB;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private AccumuloImpl accumulo;
+    private CommandUtil commandUtil = new CommandUtil();
 
 
     public AccumuloAlertListener( final AccumuloImpl accumulo )
@@ -108,39 +105,107 @@ public class AccumuloAlertListener implements AlertListener
             return;
         }
 
-        //figure out accumulo process pid
-        int accumuloPid = 0;
-        try
+        // Set 80 percent of the available ram capacity of the resource host
+        // to maximum ram quota limit assignable to the container
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+
+        double totalRamUsage = 0;
+        double totalCpuUsage = 0;
+        double redLine = 0.7;
+
+        List<NodeType> nodeRoles = targetCluster.getNodeRoles( sourceHost.getId() );
+        HashMap<NodeType, Double> ramConsumption = new HashMap<>();
+        HashMap<NodeType, Double> cpuConsumption = new HashMap<>();
+
+        for ( NodeType nodeType : nodeRoles )
         {
-            CommandResult result = commandUtil.execute( Commands.statusCommand, sourceHost );
-            accumuloPid = parsePid( result.getStdOut() );
-        }
-        catch ( NumberFormatException | CommandException e )
-        {
-            throw new Exception( "Error obtaining accumulo process PID", e );
+            int pid = 0;
+            switch ( nodeType )
+            {
+                case ACCUMULO_MASTER:
+                    CommandResult result = commandUtil.execute( Commands.statusCommand, sourceHost );
+                    String output = parseService( result.getStdOut(), convertEnumValues( nodeType ) );
+                    if ( !output.toLowerCase().contains( PID_STRING ) )
+                    {
+                        break;
+                    }
+                    pid = parsePid( output );
+                    break;
+                case ACCUMULO_MONITOR:
+                    result = commandUtil.execute( Commands.statusCommand, sourceHost );
+                    output = parseService( result.getStdOut(), convertEnumValues( nodeType ) );
+                    if ( !output.toLowerCase().contains( PID_STRING ) )
+                    {
+                        break;
+                    }
+                    pid = parsePid( output );
+                    break;
+                case ACCUMULO_GC:
+                    result = commandUtil.execute( Commands.statusCommand, sourceHost );
+                    output = parseService( result.getStdOut(), convertEnumValues( nodeType ) );
+                    if ( !output.toLowerCase().contains( PID_STRING ) )
+                    {
+                        break;
+                    }
+                    pid = parsePid( output );
+                    break;
+                case ACCUMULO_TRACER:
+                    result = commandUtil.execute( Commands.statusCommand, sourceHost );
+                    output = parseService( result.getStdOut(), convertEnumValues( nodeType ) );
+                    if ( !output.toLowerCase().contains( PID_STRING ) )
+                    {
+                        break;
+                    }
+                    pid = parsePid( output );
+                case ACCUMULO_TABLET_SERVER:
+                    result = commandUtil.execute( Commands.statusCommand, sourceHost );
+                    output = parseService( result.getStdOut(), convertEnumValues( nodeType ) );
+                    if ( !output.toLowerCase().contains( PID_STRING ) )
+                    {
+                        break;
+                    }
+                    pid = parsePid( output );
+                    break;
+            }
+            if ( pid != 0 )
+            {
+                ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                ramConsumption.put( nodeType, processResourceUsage.getUsedRam() );
+                cpuConsumption.put( nodeType, processResourceUsage.getUsedCpu() );
+            }
         }
 
-        //get accumulo process resource usage by accumulo pid
-        ProcessResourceUsage processResourceUsage =
-                accumulo.getMonitor().getProcessResourceUsage( sourceHost, accumuloPid );
+        for ( NodeType nodeType : nodeRoles )
+        {
+            if ( ramConsumption.get( nodeType ) != null )
+            {
+                totalRamUsage = +ramConsumption.get( nodeType );
+            }
+            if ( cpuConsumption.get( nodeType ) != null )
+            {
+                totalCpuUsage = +cpuConsumption.get( nodeType );
+            }
+        }
+
 
         //confirm that accumulo is causing the stress, otherwise no-op
         MonitoringSettings thresholds = accumulo.getAlertSettings();
-        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.9;
-        boolean cpuStressedByMongo = false;
-        boolean ramStressedByMongo = false;
+        double ramLimit =
+                containerHostMetric.getTotalRam() * ( ( double ) thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        boolean cpuStressedByAccumulo = false;
+        boolean ramStressedByAccumulo = false;
 
-        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+        if ( totalRamUsage >= ramLimit * redLine )
         {
-            ramStressedByMongo = true;
-        }
-        if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
-        {
-            cpuStressedByMongo = true;
+            ramStressedByAccumulo = true;
         }
 
-        if ( !ramStressedByMongo && !cpuStressedByMongo )
+        if ( totalCpuUsage >= thresholds.getCpuAlertThreshold() * redLine )
+        {
+            cpuStressedByAccumulo = true;
+        }
+
+        if ( !( ramStressedByAccumulo || cpuStressedByAccumulo ) )
         {
             LOGGER.info( "Accumulo cluster runs ok" );
             return;
@@ -153,22 +218,30 @@ public class AccumuloAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( ramStressedByMongo )
+            if ( ramStressedByAccumulo )
             {
                 //read current RAM quota
                 int ramQuota = accumulo.getQuotaManager().getRamQuota( sourceHost.getId() );
 
-
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
-                    //we can increase RAM quota
-                    accumulo.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
 
-                    quotaIncreased = true;
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
+                        //we can increase RAM quota
+                        sourceHost.setRamQuota( newRamQuota );
+
+                        quotaIncreased = true;
+                    }
                 }
             }
-            if ( cpuStressedByMongo )
+
+            if ( cpuStressedByAccumulo )
             {
 
                 //read current CPU quota
@@ -176,9 +249,12 @@ public class AccumuloAlertListener implements AlertListener
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
+
                     //we can increase CPU quota
-                    accumulo.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+                    sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
                 }
@@ -238,7 +314,7 @@ public class AccumuloAlertListener implements AlertListener
                 if ( newNodeHostName == null )
                 {
                     throw new Exception(
-                            String.format( "Could not obtain available spark node from environment by id %s",
+                            String.format( "Could not obtain available Accumulo node from environment by id %s",
                                     newNodeId ), null );
                 }
 
@@ -253,6 +329,20 @@ public class AccumuloAlertListener implements AlertListener
     }
 
 
+    protected String parseService( String output, String target )
+    {
+        String inputArray[] = output.split( "\n" );
+        for ( String part : inputArray )
+        {
+            if ( part.toLowerCase().contains( target.toLowerCase() ) )
+            {
+                return part;
+            }
+        }
+        return null;
+    }
+
+
     @Override
     public String getSubscriberId()
     {
@@ -260,9 +350,9 @@ public class AccumuloAlertListener implements AlertListener
     }
 
 
-    protected int parsePid( String output ) throws Exception
+    protected int parsePid( String output ) throws AlertException
     {
-        Pattern p = Pattern.compile( "process\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
+        Pattern p = Pattern.compile( "pid\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
 
         Matcher m = p.matcher( output );
 
@@ -272,8 +362,37 @@ public class AccumuloAlertListener implements AlertListener
         }
         else
         {
-            throw new Exception( String.format( "Could not parse PID from %s", output ), null );
+            throwAlertException( String.format( "Could not parse PID from %s", output ), null );
         }
+        return 0;
+    }
+
+
+    private void throwAlertException( String context, Exception e ) throws AlertException
+    {
+        LOG.error( context, e );
+        throw new AlertException( context, e );
+    }
+
+
+    public String convertEnumValues( NodeType role )
+    {
+        switch ( role )
+        {
+            case ACCUMULO_MASTER:
+                return "Master";
+            case ACCUMULO_GC:
+                return "GC";
+            case ACCUMULO_MONITOR:
+                return "Monitor";
+            case ACCUMULO_TABLET_SERVER:
+                return "Tablet Server";
+            case ACCUMULO_TRACER:
+                return "Accumulo Tracer";
+            case ACCUMULO_LOGGER:
+                return "Logger";
+        }
+        return null;
     }
 
 

@@ -498,8 +498,6 @@ public class ConfigurationStep extends Panel
             return set;
         }
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
-        ZookeeperClusterConfig zookeeperClusterConfig =
-                zookeeper.getCluster( wizard.getConfig().getZookeeperClusterName() );
         List<AccumuloClusterConfig> accumuloClusterConfigs = accumulo.getClusters();
         List<UUID> allowedNodes = new ArrayList<>( slaves );
 
@@ -517,17 +515,14 @@ public class ConfigurationStep extends Panel
 
         for ( UUID uuid : allowedNodes )
         {
-            if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
+            try
             {
-                try
-                {
-                    set.add( environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
-                                               .getContainerHostById( uuid ) );
-                }
-                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
-                {
-                    LOGGER.error( "Error applying operation on environment/container" );
-                }
+                set.add( environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+                                           .getContainerHostById( uuid ) );
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                LOGGER.error( "Error applying operation on environment/container" );
             }
         }
         return set;
@@ -609,8 +604,7 @@ public class ConfigurationStep extends Panel
         for ( UUID agent : allowedNodes )
         {
             ContainerHost host = getHost( agent );
-            if ( host != null && zookeeperClusterConfig.getNodes().contains( agent ) && !excludeNodes
-                    .contains( agent ) )
+            if ( host != null && !excludeNodes.contains( agent ) )
             {
                 target.addItem( host.getId() );
                 target.setItemCaption( host.getId(), host.getHostname() );
