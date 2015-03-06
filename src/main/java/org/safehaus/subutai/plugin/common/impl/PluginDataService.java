@@ -343,22 +343,13 @@ public class PluginDataService
     public void remove( String source, String key ) throws SQLException
     {
         EntityManager em = emf.createEntityManager();
-        Long userId;
-        try {
-            userId = identityManager.getUser().getId();
-        } catch ( Exception e ) {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
-        }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
             key = key.toUpperCase();
             em.getTransaction().begin();
             Query query =
-                    em.createQuery( "DELETE FROM ClusterDataEntity cd WHERE cd.source = :source and cd.id = :id"
-                            , String.class );
+                    em.createQuery( "DELETE FROM ClusterDataEntity cd WHERE cd.source = :source and cd.id = :id" );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
             query.executeUpdate();
