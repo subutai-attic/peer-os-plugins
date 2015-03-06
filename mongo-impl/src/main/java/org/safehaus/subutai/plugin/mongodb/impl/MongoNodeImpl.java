@@ -61,7 +61,7 @@ public abstract class MongoNodeImpl implements MongoNode
                 Commands.getCheckInstanceRunningCommand( containerHost.getHostname(), domainName, port );
         try
         {
-            CommandResult commandResult = execute( commandDef.build(true).withTimeout( 10 ) );
+            CommandResult commandResult = execute( commandDef.build( true ).withTimeout( 10 ) );
             if ( commandResult.getStdOut().contains( "couldn't connect to server" ) )
             {
                 return false;
@@ -92,9 +92,6 @@ public abstract class MongoNodeImpl implements MongoNode
 
     /**
      * We need this config parameter to be able start router nodes successfully.
-     *
-     * @param config
-     * @throws MongoException
      */
     @Override
     public abstract void start( MongoClusterConfig config ) throws MongoException;

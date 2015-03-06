@@ -312,6 +312,7 @@ public class MongoDbSetupStrategy implements ClusterSetupStrategy
                 if ( primaryDataNode == null )
                 {
                     primaryDataNode = dataNode;
+                    config.setPrimaryNode( primaryDataNode.getHostname() );
                     primaryDataNode.initiateReplicaSet();
                     po.addLog( "Primary data node: " + dataNode.getHostname() );
                 }

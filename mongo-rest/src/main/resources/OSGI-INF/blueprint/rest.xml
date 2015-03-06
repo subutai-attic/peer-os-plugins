@@ -12,7 +12,7 @@
 
   <reference id="mongo" availability="mandatory"
              interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
-  <reference id="tracker"  availability="mandatory"
+  <reference id="tracker" availability="mandatory"
              interface="org.safehaus.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
              interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />

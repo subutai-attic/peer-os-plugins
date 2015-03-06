@@ -19,7 +19,6 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.api.Timeouts;
 
 
-
 public class StartTask implements Runnable
 {
 

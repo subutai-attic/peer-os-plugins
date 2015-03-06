@@ -29,10 +29,12 @@ import org.safehaus.subutai.core.peer.api.PeerManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.PluginDAO;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
@@ -74,6 +76,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private QuotaManager quotaManager;
     private MongoAlertListener mongoAlertListener;
+
+    private MongoDataNode primaryNode;
 
 
     public MongoImpl( Monitor monitor )
@@ -301,13 +305,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public UUID destroyNode( final String clusterName, final String lxcHostname )
+    public UUID destroyNode( final String clusterName, final String lxcHostname, final NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
 
 
-        AbstractOperationHandler operationHandler = new DestroyNodeOperationHandler( this, clusterName, lxcHostname );
+        AbstractOperationHandler operationHandler =
+                new DestroyNodeOperationHandler( this, clusterName, lxcHostname, nodeType );
 
         executor.execute( operationHandler );
 
@@ -347,8 +352,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID startAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new StartAllOperationHandler( this, getCluster( clusterName ),
-                ClusterOperationType.START_ALL );
+        AbstractOperationHandler operationHandler =
+                new StartAllOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -358,8 +363,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID stopAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new StartAllOperationHandler( this, getCluster( clusterName ),
-                ClusterOperationType.STOP_ALL );
+        AbstractOperationHandler operationHandler =
+                new StartAllOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -413,6 +418,33 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public MongoClusterConfig newMongoClusterConfigInstance()
     {
         return new MongoClusterConfigImpl();
+    }
+
+
+    @Override
+    public void saveConfig( final MongoClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping()
+                                     .excludeFieldsWithoutExposeAnnotation().create();
+        String jsonConfig = gson.toJson( config.prepare() );
+        if ( !getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), jsonConfig ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
+    }
+
+
+    @Override
+    public void deleteConfig( final MongoClusterConfig config ) throws ClusterException
+    {
+        Preconditions.checkNotNull( config );
+
+        if ( !getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            throw new ClusterException( "Could not save cluster info" );
+        }
     }
 
 

@@ -10,7 +10,6 @@ import com.vaadin.data.Item;
 import com.vaadin.ui.TreeTable;
 
 
-
 public class ConfigView
 {
 

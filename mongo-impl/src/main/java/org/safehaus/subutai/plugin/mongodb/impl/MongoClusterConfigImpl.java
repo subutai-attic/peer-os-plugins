@@ -6,8 +6,10 @@
 package org.safehaus.subutai.plugin.mongodb.impl;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,7 +28,6 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 
 import com.google.gson.annotations.Expose;
-
 
 
 /**
@@ -61,6 +62,9 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     private int routerPort = 27018;
     @Expose
     private int dataNodePort = 27017;
+
+    @Expose
+    private String primaryNode;
 
     @Expose
     private Set<MongoConfigNodeImpl> configServersImpl = new HashSet<>();
@@ -396,6 +400,20 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
 
 
     @Override
+    public void setPrimaryNode( final String node )
+    {
+        this.primaryNode = node;
+    }
+
+
+    @Override
+    public String getPrimaryNode()
+    {
+        return primaryNode;
+    }
+
+
+    @Override
     public MongoNode findNode( final String lxcHostname )
     {
         MongoNode result = null;
@@ -470,7 +488,8 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
                 + domainName + ", numberOfConfigServers=" + numberOfConfigServers + ", numberOfRouters="
                 + numberOfRouters + ", numberOfDataNodes=" + numberOfDataNodes + ", cfgSrvPort=" + cfgSrvPort
                 + ", routerPort=" + routerPort + ", dataNodePort=" + dataNodePort + ", configServers=" + configServers
-                + ", routerServers=" + routerServers + ", dataNodes=" + dataNodes + '}';
+                + ", routerServers=" + routerServers + ", dataNodes=" + dataNodes + ", primaryNode=" + primaryNode
+                + '}';
     }
 
 
@@ -563,7 +582,6 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
     }
 
 
-
     @Override
     public Topology getTopology()
     {
@@ -630,5 +648,27 @@ public class MongoClusterConfigImpl implements MongoClusterConfig
             }
         }
         this.dataHostIds.remove( nodeId );
+    }
+
+
+    @Override
+    public List<NodeType> getNodeRoles( final ContainerHost containerHost )
+    {
+
+        List<NodeType> nodeRoles = new ArrayList<>();
+
+        if ( configHostIds.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.CONFIG_NODE );
+        }
+        if ( dataHostIds.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.DATA_NODE );
+        }
+        if ( routerHostIds.contains( containerHost.getId() ) )
+        {
+            nodeRoles.add( NodeType.ROUTER_NODE );
+        }
+        return nodeRoles;
     }
 }

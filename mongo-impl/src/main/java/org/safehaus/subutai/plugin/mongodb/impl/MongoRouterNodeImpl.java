@@ -40,8 +40,8 @@ public class MongoRouterNodeImpl extends MongoNodeImpl implements MongoRouterNod
     {
         configServers = config.getConfigServers();
         Preconditions.checkNotNull( configServers, "Config servers is null" );
-        CommandDef commandDef = Commands.getStartRouterCommandLine( port, cfgSrvPort, domainName,
-                config.getConfigServers() );
+        CommandDef commandDef =
+                Commands.getStartRouterCommandLine( port, cfgSrvPort, domainName, config.getConfigServers() );
         try
         {
             CommandResult commandResult = containerHost.execute( commandDef.build( true ) );

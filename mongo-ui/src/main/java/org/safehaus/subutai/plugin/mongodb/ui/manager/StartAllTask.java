@@ -48,7 +48,7 @@ public class StartAllTask implements Runnable
             try
             {
                 routerNode.setConfigServers( mongoClusterConfig.getConfigServers() );
-                routerNode.start(mongoClusterConfig);
+                routerNode.start( mongoClusterConfig );
             }
             catch ( MongoException e )
             {
@@ -60,7 +60,7 @@ public class StartAllTask implements Runnable
         {
             try
             {
-                dataNode.start(mongoClusterConfig);
+                dataNode.start( mongoClusterConfig );
             }
             catch ( MongoException e )
             {

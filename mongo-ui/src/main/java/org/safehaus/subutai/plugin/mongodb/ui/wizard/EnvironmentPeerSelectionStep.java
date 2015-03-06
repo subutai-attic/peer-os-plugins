@@ -39,7 +39,6 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 
-
 public class EnvironmentPeerSelectionStep extends VerticalLayout
 {
     Logger LOGGER = LoggerFactory.getLogger( EnvironmentPeerSelectionStep.class );

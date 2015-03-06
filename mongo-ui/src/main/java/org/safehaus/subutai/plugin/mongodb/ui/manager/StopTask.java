@@ -18,7 +18,6 @@ import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.Timeouts;
 
 
-
 public class StopTask implements Runnable
 {
 

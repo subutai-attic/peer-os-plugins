@@ -1,5 +1,6 @@
 package org.safehaus.subutai.plugin.mongodb.rest;
 
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,6 @@ import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import com.google.common.base.Preconditions;
 
 
-
 /**
  * REST implementation of MongoDB API
  */
@@ -33,11 +33,11 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
+
     public RestServiceImpl( final Mongo mongo )
     {
         this.mongo = mongo;
     }
-
 
 
     @Override
@@ -58,7 +58,7 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         MongoClusterConfig config = mongo.getCluster( clusterName );
-        if( config == null )
+        if ( config == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found " ).build();
@@ -113,7 +113,6 @@ public class RestServiceImpl implements RestService
         UUID uuid = mongo.installCluster( mongoConfig );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
-
     }
 
 
@@ -121,7 +120,7 @@ public class RestServiceImpl implements RestService
     public Response destroyCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( mongo.getCluster( clusterName ) == null )
+        if ( mongo.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -137,7 +136,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -152,7 +152,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -166,7 +167,8 @@ public class RestServiceImpl implements RestService
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -180,7 +182,8 @@ public class RestServiceImpl implements RestService
     public Response stopCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -191,15 +194,30 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response destroyNode( final String clusterName, final String lxcHostname )
+    public Response destroyNode( final String clusterName, final String lxcHostname, final String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.destroyNode( clusterName, lxcHostname );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+
+        UUID uuid = mongo.destroyNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -210,7 +228,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -225,20 +244,21 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( nodeType );
-        if ( mongo.getCluster( clusterName ) == null ){
+        if ( mongo.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
         NodeType type = null;
-        if( nodeType.contains( "config" ))
+        if ( nodeType.contains( "config" ) )
         {
             type = NodeType.CONFIG_NODE;
         }
-        else if( nodeType.contains( "data" ))
+        else if ( nodeType.contains( "data" ) )
         {
             type = NodeType.DATA_NODE;
         }
-        else if( nodeType.contains( "router" ))
+        else if ( nodeType.contains( "router" ) )
         {
             type = NodeType.ROUTER_NODE;
         }
@@ -247,20 +267,27 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-    private Response createResponse( UUID uuid, OperationState state ){
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -290,7 +317,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
+
+    public Tracker getTracker()
+    {
         return tracker;
     }
 
