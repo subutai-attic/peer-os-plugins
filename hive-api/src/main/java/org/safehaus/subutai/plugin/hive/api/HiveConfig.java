@@ -104,6 +104,12 @@ public class HiveConfig implements ConfigBase
     }
 
 
+    public void setClients( Set<UUID> clients )
+    {
+        this.clients = clients;
+    }
+
+
     public Set<UUID> getAllNodes()
     {
         Set<UUID> allNodes = new HashSet<>();

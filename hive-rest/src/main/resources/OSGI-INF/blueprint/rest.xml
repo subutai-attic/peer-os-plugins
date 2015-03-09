@@ -13,14 +13,17 @@
 
   <reference id="hiveManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hive.api.Hive" />
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.hive.rest.RestService">
+  <bean id="RestServiceImpl" class="org.safehaus.subutai.plugin.hive.rest.RestServiceImpl">
     <argument ref="hiveManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
 
-  <jaxrs:server address="/hive" id="hiveRestService">
+  <jaxrs:server address="/hive" id="RestService">
     <jaxrs:serviceBeans>
-      <ref component-id="restService" />
+      <ref component-id="RestServiceImpl" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
 
