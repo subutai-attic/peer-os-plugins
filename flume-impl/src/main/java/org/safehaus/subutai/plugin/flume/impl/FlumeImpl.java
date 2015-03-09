@@ -52,6 +52,16 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
         this.hadoopManager = hadoopManager;
     }
 
+    public void setPluginDao(PluginDAO pluginDao)
+    {
+        this.pluginDao = pluginDao;
+    }
+
+
+    public void setExecutor(ExecutorService executor)
+    {
+        this.executor = executor;
+    }
 
     public Tracker getTracker()
     {
