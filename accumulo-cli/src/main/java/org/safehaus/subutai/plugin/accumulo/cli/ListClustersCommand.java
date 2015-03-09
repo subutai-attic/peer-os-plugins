@@ -10,27 +10,11 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-/**
- * Displays the last log entries
- */
 @Command( scope = "accumulo", name = "list-clusters", description = "mydescription" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
     private Accumulo accumuloManager;
-
-
-    public Accumulo getAccumuloManager()
-    {
-        return accumuloManager;
-    }
-
-
-    public void setAccumuloManager( Accumulo accumuloManager )
-    {
-        this.accumuloManager = accumuloManager;
-    }
-
 
     protected Object doExecute()
     {
@@ -48,5 +32,17 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
 
         return null;
+    }
+
+
+    public Accumulo getAccumuloManager()
+    {
+        return accumuloManager;
+    }
+
+
+    public void setAccumuloManager( Accumulo accumuloManager )
+    {
+        this.accumuloManager = accumuloManager;
     }
 }
