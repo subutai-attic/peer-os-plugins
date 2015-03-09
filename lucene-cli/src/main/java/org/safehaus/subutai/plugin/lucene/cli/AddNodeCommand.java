@@ -12,17 +12,30 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * sample command : lucene:uninstall-cluster test \ {cluster name}
+ * sample command : lucene:add-node test \ {cluster name} haddop1 \ {node}
  */
-@Command( scope = "lucene", name = "uninstall-cluster", description = "Command to uninstall Lucene cluster" )
-public class UninstallClusterCommand extends OsgiCommandSupport
+@Command( scope = "lucene", name = "add-node", description = "Command to add node to Lucene cluster" )
+public class AddNodeCommand extends OsgiCommandSupport
 {
-
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
             multiValued = false )
     String clusterName = null;
+    @Argument( index = 1, name = "node", description = "Add container", required = true,
+            multiValued = false )
+    String node = null;
     private Lucene luceneManager;
     private Tracker tracker;
+
+
+    @Override
+    protected Object doExecute() throws Exception
+    {
+        System.out.println( "Adding " + node + " node..." );
+        UUID uuid = luceneManager.addNode( clusterName, node );
+        System.out.println(
+                "Start cluster operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        return null;
+    }
 
 
     public Tracker getTracker()
@@ -46,15 +59,5 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     public void setLuceneManager( Lucene luceneManager )
     {
         this.luceneManager = luceneManager;
-    }
-
-
-    protected Object doExecute()
-    {
-        UUID uuid = luceneManager.uninstallCluster( clusterName );
-
-        System.out.println(
-                "Uninstall operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) + "." );
-        return null;
     }
 }
