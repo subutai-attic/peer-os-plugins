@@ -7,7 +7,6 @@ package org.safehaus.subutai.plugin.accumulo.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -134,11 +133,9 @@ public class ConfigurationStep extends Panel
                 wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
 
                 setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                //                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(),
-                //                        new HashSet<>( Arrays.asList( wizard.getConfig().getMasterNode() ) ) );
-                //                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<>(
-                //                        Arrays.asList( wizard.getConfig().getMasterNode(), wizard.getConfig()
-                // .getGcNode() ) ) );
+                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+
                 setTwinSelectDS( tracersSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
                 setTwinSelectDS( slavesSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
             }
@@ -154,9 +151,8 @@ public class ConfigurationStep extends Panel
                         HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                         //reset relevant controls
                         setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<>( hadoopInfo.getAllNodes() ) );
-                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(),
-                                new HashSet<>( hadoopInfo.getAllNodes() ) );
+                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
 
                         setTwinSelectDS( tracersSelect,
                                 getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
@@ -199,10 +195,6 @@ public class ConfigurationStep extends Panel
                     {
                         UUID masterNode = ( UUID ) event.getProperty().getValue();
                         wizard.getConfig().setMasterNode( masterNode );
-                        HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
-                        List<UUID> hadoopNodes = hadoopInfo.getAllNodes();
-                        setComboDS( gcNodeCombo, hadoopNodes,
-                                new HashSet<>( Arrays.asList( wizard.getConfig().getMasterNode() ) ) );
                     }
                 }
             } );
@@ -216,10 +208,6 @@ public class ConfigurationStep extends Panel
                     {
                         UUID gcNode = ( UUID ) event.getProperty().getValue();
                         wizard.getConfig().setGcNode( gcNode );
-                        HadoopClusterConfig hadoopClusterConfig =
-                                hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
-                        setComboDS( monitorNodeCombo, hadoopClusterConfig.getAllNodes(), new HashSet<>(
-                                Arrays.asList( wizard.getConfig().getMasterNode(), wizard.getConfig().getGcNode() ) ) );
                     }
                 }
             } );

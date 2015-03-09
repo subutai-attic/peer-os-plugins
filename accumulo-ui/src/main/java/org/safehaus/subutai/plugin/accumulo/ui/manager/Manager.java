@@ -683,23 +683,23 @@ public class Manager
         table.removeAllItems();
         for ( final ContainerHost containerHost : containerHosts )
         {
-            final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
-            final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
-            final Label resultHolder = new Label();
-            resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
-
-            HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.setSpacing( true );
-
-            // TODO: think about adding destroy button !!!
-            addGivenComponents( availableOperations, checkBtn );
-            addStyleName( checkBtn, destroyBtn, availableOperations );
-
             List<NodeType> rolesOfNode = accumuloClusterConfig.getMasterNodeRoles( containerHost.getId() );
             for ( final NodeType role : rolesOfNode )
             {
+                final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
+                checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
+
+                final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
+                destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloDestroy" );
+
+                final Label resultHolder = new Label();
+                resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "accumuloResult" );
+
+                HorizontalLayout availableOperations = new HorizontalLayout();
+                availableOperations.setSpacing( true );
+
+                addGivenComponents( availableOperations, checkBtn );
+                addStyleName( checkBtn, destroyBtn, availableOperations );
 
                 table.addItem( new Object[] {
                         containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ),
