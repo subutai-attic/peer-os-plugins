@@ -66,7 +66,7 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
     /*
      * Below setup method sends install commands in parallel to containers, but
-     * this parallel execution does now work properly.
+     * this parallel execution does not work properly.
      */
     public AccumuloClusterConfig setup1() throws ClusterSetupException
     {
