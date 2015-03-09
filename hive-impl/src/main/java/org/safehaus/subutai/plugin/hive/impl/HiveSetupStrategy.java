@@ -175,11 +175,11 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
             if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
             {
                 server.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
             }
             if ( !checkIfProductIsInstalled( server, "derby" ) )
             {
-                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" ) );
+                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" ).withTimeout( 600 ) );
             }
         }
         catch ( CommandException e )

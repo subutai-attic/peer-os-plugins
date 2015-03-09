@@ -148,7 +148,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             try
             {
                 result = host.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().add( host.getId() );
