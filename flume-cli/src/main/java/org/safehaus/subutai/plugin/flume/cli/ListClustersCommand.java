@@ -10,27 +10,9 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-/**
- * Displays the last log entries
- */
 @Command( scope = "flume", name = "list-clusters", description = "mydescription" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
-
-    private Flume flumeManager;
-
-
-    public Flume getFlumeManager()
-    {
-        return flumeManager;
-    }
-
-
-    public void setFlumeManager( Flume flumeManager )
-    {
-        this.flumeManager = flumeManager;
-    }
-
 
     @Override
     protected Object doExecute()
@@ -51,4 +33,20 @@ public class ListClustersCommand extends OsgiCommandSupport
 
         return null;
     }
+
+
+    private Flume flumeManager;
+
+
+    public Flume getFlumeManager()
+    {
+        return flumeManager;
+    }
+
+
+    public void setFlumeManager( Flume flumeManager )
+    {
+        this.flumeManager = flumeManager;
+    }
+
 }

@@ -14,44 +14,44 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-/**
- * Displays the last log entries
- */
-@Command( scope = "flume", name = "uninstall-cluster", description = "Command to uninstall Flume cluster" )
-public class UninstallClusterCommand extends OsgiCommandSupport
+@Command( scope = "flume", name = "start-cluster", description = "Starts cluster" )
+public class StartNodeCommand extends OsgiCommandSupport
 {
-
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
             multiValued = false )
     String clusterName = null;
-    private Flume flumeManager;
+
+    @Argument( index = 1, name = "hostname", description = "The hostname of flume node.", required = true,
+            multiValued = false )
+    String hostname = null;
+
     private Tracker tracker;
+    private Flume flumeManager;
+
 
     @Override
-    protected Object doExecute()
+    protected Object doExecute() throws Exception
     {
-        UUID uuid = flumeManager.uninstallCluster( clusterName );
-        int logSize = 0;
+        UUID uuid = flumeManager.startNode( clusterName, hostname );
+        System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) + "." );
+        return null;
+    }
+
+
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
+        OperationState state = null;
+        long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
         {
             TrackerOperationView po = tracker.getTrackerOperation( FlumeConfig.PRODUCT_KEY, uuid );
             if ( po != null )
             {
-                if ( logSize != po.getLog().length() )
-                {
-                    System.out.print( po.getLog().substring( logSize, po.getLog().length() ) );
-                    System.out.flush();
-                    logSize = po.getLog().length();
-                }
                 if ( po.getState() != OperationState.RUNNING )
                 {
+                    state = po.getState();
                     break;
                 }
-            }
-            else
-            {
-                System.out.println( "Product operation not found. Check logs" );
-                break;
             }
             try
             {
@@ -61,9 +61,14 @@ public class UninstallClusterCommand extends OsgiCommandSupport
             {
                 break;
             }
+            if ( System.currentTimeMillis() - start > ( 180 * 1000 ) )
+            {
+                break;
+            }
         }
-        return null;
+        return state;
     }
+
 
     public Tracker getTracker()
     {
@@ -71,7 +76,7 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setTracker( Tracker tracker )
+    public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
@@ -83,9 +88,8 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setFlumeManager( Flume flumeManager )
+    public void setFlumeManager( final Flume flumeManager )
     {
         this.flumeManager = flumeManager;
     }
-
 }

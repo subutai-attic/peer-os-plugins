@@ -5,19 +5,55 @@
              interface="org.safehaus.subutai.plugin.flume.api.Flume" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
-    <command name="flume/list-clusters">
-      <action class="org.safehaus.subutai.plugin.flume.cli.ListClustersCommand">
-        <property name="flumeManager" ref="flumeManager" />
-      </action>
-    </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
-    <command name="flume/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.flume.cli.UninstallClusterCommand">
+    <command name="flume/describe-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.DescribeClusterCommand">
         <property name="flumeManager" ref="flumeManager" />
       </action>
     </command>
+
+    <command name="flume/list-clusters">
+      <action class="org.safehaus.subutai.plugin.flume.cli.ListHBaseClustersCommand">
+        <property name="flumeManager" ref="flumeManager" />
+      </action>
+    </command>
+
+    <command name="flume/uninstall-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.UninstallHBaseClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/install-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.InstallHBaseClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/start-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.StartNodeCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/stop-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.StopNodeCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/check-cluster">
+      <action class="org.safehaus.subutai.plugin.flume.cli.CheckClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
   </command-bundle>
 
 </blueprint>
