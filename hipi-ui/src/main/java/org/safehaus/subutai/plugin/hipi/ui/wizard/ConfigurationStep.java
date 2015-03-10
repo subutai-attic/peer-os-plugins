@@ -2,14 +2,12 @@ package org.safehaus.subutai.plugin.hipi.ui.wizard;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -37,9 +35,9 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+    final Wizard wizard;
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
-    final Wizard wizard;
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
@@ -143,10 +141,9 @@ public class ConfigurationStep extends Panel
                     Set<ContainerHost> hadoopNodes;
                     try
                     {
-                        hadoopNodes =
-                                environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() )
-                                                      .getContainerHostsByIds(
-                                                              Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        hadoopNodes = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() )
+                                                        .getContainerHostsByIds(
+                                                                Sets.newHashSet( hadoopInfo.getAllNodes() ) );
                     }
                     catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
                     {
@@ -154,8 +151,6 @@ public class ConfigurationStep extends Panel
                         return;
                     }
                     select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
-
-
                 }
             }
         } );

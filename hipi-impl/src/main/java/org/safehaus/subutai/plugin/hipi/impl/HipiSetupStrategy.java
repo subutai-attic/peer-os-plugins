@@ -28,12 +28,12 @@ import com.google.common.base.Strings;
 
 public class HipiSetupStrategy implements ClusterSetupStrategy
 {
-    private Environment environment;
     final HipiImpl manager;
     final HipiConfig config;
     final TrackerOperation trackerOperation;
-    private Set<ContainerHost> nodes;
     CommandUtil commandUtil = new CommandUtil();
+    private Environment environment;
+    private Set<ContainerHost> nodes;
 
 
     public HipiSetupStrategy( HipiImpl manager, HipiConfig config, TrackerOperation trackerOperation )
@@ -211,22 +211,24 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Installation info successfully saved" );
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+
+    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
         {
-           statusResult = commandUtil.execute( new RequestBuilder(
-                   CommandFactory.build( NodeOperationType.CHECK_INSTALLATION )), host);
+            statusResult = commandUtil
+                    .execute( new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) ),
+                            host );
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) ) )
         {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

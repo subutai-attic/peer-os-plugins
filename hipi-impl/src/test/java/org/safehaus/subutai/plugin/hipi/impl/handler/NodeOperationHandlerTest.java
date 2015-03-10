@@ -36,25 +36,18 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class NodeOperationHandlerTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock HipiImpl hipiImpl;
+    @Mock HipiConfig hipiConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
     private NodeOperationHandler nodeOperationHandler;
     private NodeOperationHandler nodeOperationHandler2;
     private UUID uuid;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    HipiImpl hipiImpl;
-    @Mock
-    HipiConfig hipiConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
+
 
     @Before
     public void setUp() throws Exception
@@ -158,7 +151,7 @@ public class NodeOperationHandlerTest
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>(  );
+        Set<UUID> mySet = new HashSet<>();
         mySet.add( uuid );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
 
@@ -173,9 +166,9 @@ public class NodeOperationHandlerTest
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>(  );
+        Set<UUID> mySet = new HashSet<>();
         mySet.add( uuid );
-        mySet.add( new UUID( 5,5 ) );
+        mySet.add( new UUID( 5, 5 ) );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
 
         nodeOperationHandler2.run();
@@ -183,18 +176,19 @@ public class NodeOperationHandlerTest
 
 
     @Test
-    public void testRunExcludeCommandResultNotSucceeded() throws EnvironmentNotFoundException, ContainerHostNotFoundException, CommandException
+    public void testRunExcludeCommandResultNotSucceeded()
+            throws EnvironmentNotFoundException, ContainerHostNotFoundException, CommandException
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>(  );
+        Set<UUID> mySet = new HashSet<>();
         mySet.add( uuid );
-        mySet.add( new UUID( 5,5 ) );
+        mySet.add( new UUID( 5, 5 ) );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( containerHost.getId() ).thenReturn( uuid );
-        when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
         nodeOperationHandler2.run();
     }
@@ -208,12 +202,12 @@ public class NodeOperationHandlerTest
         when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>(  );
+        Set<UUID> mySet = new HashSet<>();
         mySet.add( uuid );
-        mySet.add( new UUID( 5,5 ) );
+        mySet.add( new UUID( 5, 5 ) );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( containerHost.getId() ).thenReturn( uuid );
-        when( containerHost.execute( any(RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
         when( containerHost.getHostname() ).thenReturn( "HostName" );
 

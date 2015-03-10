@@ -26,7 +26,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
-    public RestServiceImpl ( final Hipi hipiManager )
+    public RestServiceImpl( final Hipi hipiManager )
     {
         this.hipiManager = hipiManager;
     }
@@ -46,6 +46,7 @@ public class RestServiceImpl implements RestService
         String clusters = JsonUtil.GSON.toJson( clusterNames );
         return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
+
 
     public Response getCluster( final String clusterName )
     {
@@ -83,7 +84,7 @@ public class RestServiceImpl implements RestService
     public Response uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( hipiManager.getCluster( clusterName ) == null )
+        if ( hipiManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -98,7 +99,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( hipiManager.getCluster( clusterName ) == null )
+        if ( hipiManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -113,7 +114,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( hipiManager.getCluster( clusterName ) == null )
+        if ( hipiManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -123,20 +124,27 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-    private Response createResponse( UUID uuid, OperationState state ){
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( HipiConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -166,7 +174,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
+
+    public Tracker getTracker()
+    {
         return tracker;
     }
 

@@ -53,6 +53,12 @@ public class HipiConfig implements ConfigBase
     }
 
 
+    public void setNodes( Set<UUID> nodes )
+    {
+        this.nodes = nodes;
+    }
+
+
     @Override
     public String toString()
     {
