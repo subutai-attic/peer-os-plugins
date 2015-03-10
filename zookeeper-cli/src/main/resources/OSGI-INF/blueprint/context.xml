@@ -3,6 +3,10 @@
 
   <reference id="zookeeperManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="zookeeper/list-clusters">
@@ -10,12 +14,53 @@
         <property name="zookeeperManager" ref="zookeeperManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="zookeeper/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.zookeeper.cli.UninstallClusterCommand">
         <property name="zookeeperManager" ref="zookeeperManager" />
+      </action>
+    </command>
+
+    <command name="zookeeper/install-cluster">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.InstallClusterCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="environmentManager" ref="environmentManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="zookeeper/start-cluster">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.StartAllNodesCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="zookeeper/stop-cluster">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.StopAllNodesCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="zookeeper/start-node">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.StartServiceCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="zookeeper/stop-node">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.StopServiceCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="zookeeper/check-node">
+      <action class="org.safehaus.subutai.plugin.zookeeper.cli.StatusServiceCommand">
+        <property name="zookeeperManager" ref="zookeeperManager" />
+        <property name="tracker" ref="tracker" />
       </action>
     </command>
   </command-bundle>
