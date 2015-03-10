@@ -1,5 +1,6 @@
 package org.safehaus.subutai.plugin.solr.impl;
 
+
 public class Commands
 {
 

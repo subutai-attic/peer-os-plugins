@@ -8,7 +8,6 @@ package org.safehaus.subutai.plugin.solr.ui;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import javax.naming.NamingException;
@@ -34,7 +33,7 @@ public class SolrPortalModule implements PortalModule
     private final Solr solr;
 
 
-    public SolrPortalModule( Solr solr, Tracker tracker, EnvironmentManager environmentManager)
+    public SolrPortalModule( Solr solr, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.solr = solr;
         this.tracker = tracker;

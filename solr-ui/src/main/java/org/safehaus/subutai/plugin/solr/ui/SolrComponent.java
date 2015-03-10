@@ -24,7 +24,8 @@ import com.vaadin.ui.VerticalLayout;
 public class SolrComponent extends CustomComponent
 {
 
-    public SolrComponent( ExecutorService executorService, Solr solr, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public SolrComponent( ExecutorService executorService, Solr solr, Tracker tracker,
+                          EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 

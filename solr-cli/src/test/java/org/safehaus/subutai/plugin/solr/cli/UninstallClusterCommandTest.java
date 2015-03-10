@@ -34,13 +34,15 @@ public class UninstallClusterCommandTest
     @Mock
     SolrClusterConfig solrClusterConfig;
 
+
     @Before
     public void setUp() throws Exception
     {
         uninstallClusterCommand = new UninstallClusterCommand();
         uninstallClusterCommand.setSolrManager( solr );
-        uninstallClusterCommand.setTracker(tracker);
+        uninstallClusterCommand.setTracker( tracker );
     }
+
 
     @Test
     public void testGetTracker() throws Exception
@@ -48,9 +50,10 @@ public class UninstallClusterCommandTest
         uninstallClusterCommand.getTracker();
 
         // assertions
-        assertNotNull(uninstallClusterCommand.getTracker());
-        assertEquals( tracker,uninstallClusterCommand.getTracker() );
+        assertNotNull( uninstallClusterCommand.getTracker() );
+        assertEquals( tracker, uninstallClusterCommand.getTracker() );
     }
+
 
     @Test
     public void testGetPrestoManager() throws Exception
@@ -58,33 +61,35 @@ public class UninstallClusterCommandTest
         uninstallClusterCommand.getSolrManager();
 
         // assertions
-        assertNotNull(uninstallClusterCommand.getSolrManager());
-        assertEquals( solr,uninstallClusterCommand.getSolrManager() );
+        assertNotNull( uninstallClusterCommand.getSolrManager() );
+        assertEquals( solr, uninstallClusterCommand.getSolrManager() );
     }
+
 
     @Test
     public void testDoExecute() throws Exception
     {
-        when(solr.uninstallCluster(anyString())).thenReturn( UUID.randomUUID());
-        when(tracker.getTrackerOperation(anyString(),any(UUID.class))).thenReturn(trackerOperationView);
-        when(trackerOperationView.getLog()).thenReturn("test");
+        when( solr.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
+        when( trackerOperationView.getLog() ).thenReturn( "test" );
 
         uninstallClusterCommand.doExecute();
 
         // assertions
-        assertNotNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
+        assertNotNull( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) );
     }
+
 
     @Test
     public void testDoExecuteRunning() throws Exception
     {
-        when(solr.uninstallCluster(anyString())).thenReturn(UUID.randomUUID());
-        when(tracker.getTrackerOperation(anyString(),any(UUID.class))).thenReturn(null);
-        when(trackerOperationView.getLog()).thenReturn("test");
+        when( solr.uninstallCluster( anyString() ) ).thenReturn( UUID.randomUUID() );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( null );
+        when( trackerOperationView.getLog() ).thenReturn( "test" );
 
         uninstallClusterCommand.doExecute();
 
         //assertions
-        assertNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
+        assertNull( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) );
     }
 }

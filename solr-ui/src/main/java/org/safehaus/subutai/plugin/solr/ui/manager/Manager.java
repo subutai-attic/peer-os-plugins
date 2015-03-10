@@ -429,10 +429,10 @@ public class Manager
         for ( SolrClusterConfig solrConfig : clusters )
         {
             clusterCombo.addItem( solrConfig );
-            clusterCombo.setItemCaption( solrConfig , solrConfig.getClusterName());
+            clusterCombo.setItemCaption( solrConfig, solrConfig.getClusterName() );
         }
 
-        if ( clusterInfo != null)
+        if ( clusterInfo != null )
         {
             for ( SolrClusterConfig config : clusters )
             {

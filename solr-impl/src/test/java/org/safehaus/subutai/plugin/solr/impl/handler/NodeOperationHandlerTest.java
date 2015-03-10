@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class NodeOperationHandlerTest
 {
     private NodeOperationHandler nodeOperationHandler;
@@ -145,6 +145,7 @@ public class NodeOperationHandlerTest
         nodeOperationHandler.logStatusResults( trackerOperation, commandResult );
     }
 
+
     @Test
     public void testLogStatusResults2()
     {
@@ -152,5 +153,4 @@ public class NodeOperationHandlerTest
 
         nodeOperationHandler.logStatusResults( trackerOperation, commandResult );
     }
-
 }

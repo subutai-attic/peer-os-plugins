@@ -60,22 +60,22 @@ public class WelcomeStep extends VerticalLayout
             }
         } );
 
-//        Button next2 = new Button( "Start from scratch" );
-//        next2.setId( "SlrWelStart2" );
-//        next2.addStyleName( "default" );
-//        next2.setWidth( 170, Unit.PIXELS );
-//        grid.addComponent( next2, 6, 4, 6, 4 );
-//        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
-//
-//        next2.addClickListener( new Button.ClickListener()
-//        {
-//            @Override
-//            public void buttonClick( Button.ClickEvent clickEvent )
-//            {
-//                wizard.init();
-//                wizard.next();
-//            }
-//        } );
+        //        Button next2 = new Button( "Start from scratch" );
+        //        next2.setId( "SlrWelStart2" );
+        //        next2.addStyleName( "default" );
+        //        next2.setWidth( 170, Unit.PIXELS );
+        //        grid.addComponent( next2, 6, 4, 6, 4 );
+        //        grid.setComponentAlignment( next2, Alignment.BOTTOM_RIGHT );
+        //
+        //        next2.addClickListener( new Button.ClickListener()
+        //        {
+        //            @Override
+        //            public void buttonClick( Button.ClickEvent clickEvent )
+        //            {
+        //                wizard.init();
+        //                wizard.next();
+        //            }
+        //        } );
 
         addComponent( grid );
     }

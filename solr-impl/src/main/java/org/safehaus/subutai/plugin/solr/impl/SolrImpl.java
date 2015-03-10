@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Blueprint;
 import org.safehaus.subutai.common.environment.Environment;
@@ -53,10 +52,12 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
     }
 
-    public void setPluginDAO(PluginDAO pluginDAO)
+
+    public void setPluginDAO( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
+
 
     public PluginDAO getPluginDAO()
     {
