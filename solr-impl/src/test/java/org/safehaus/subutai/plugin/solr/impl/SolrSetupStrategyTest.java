@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class SolrSetupStrategyTest
 {
     private SolrSetupStrategy solrSetupStrategy;
@@ -43,6 +43,7 @@ public class SolrSetupStrategyTest
     ContainerHost containerHost;
     @Mock
     PluginDAO pluginDAO;
+
 
     @Before
     public void setUp() throws Exception
@@ -63,7 +64,7 @@ public class SolrSetupStrategyTest
     @Test(expected = ClusterSetupException.class)
     public void testSetupClusterAlreadyExist() throws Exception
     {
-        when(solrClusterConfig.getClusterName()).thenReturn( "test" );
+        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
         when( solrClusterConfig.getNumberOfNodes() ).thenReturn( 5 );
         when( solrImpl.getCluster( anyString() ) ).thenReturn( solrClusterConfig );
 
@@ -74,9 +75,9 @@ public class SolrSetupStrategyTest
     @Test(expected = ClusterSetupException.class)
     public void testSetupEnvironmentNoNodes() throws Exception
     {
-        when(solrClusterConfig.getClusterName()).thenReturn( "test" );
+        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
         when( solrClusterConfig.getNumberOfNodes() ).thenReturn( 5 );
-        Set<ContainerHost> mySet = new HashSet<>(  );
+        Set<ContainerHost> mySet = new HashSet<>();
         when( environment.getContainerHosts() ).thenReturn( mySet );
 
         solrSetupStrategy.setup();
@@ -86,9 +87,9 @@ public class SolrSetupStrategyTest
     @Test(expected = ClusterSetupException.class)
     public void testSetupNodesRequired() throws Exception
     {
-        when(solrClusterConfig.getClusterName()).thenReturn( "test" );
+        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
         when( solrClusterConfig.getNumberOfNodes() ).thenReturn( 5 );
-        Set<ContainerHost> mySet = new HashSet<>(  );
+        Set<ContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( environment.getContainerHosts() ).thenReturn( mySet );
 
@@ -99,9 +100,9 @@ public class SolrSetupStrategyTest
     @Test
     public void testSetup() throws Exception
     {
-        when(solrClusterConfig.getClusterName()).thenReturn( "test" );
+        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
         when( solrClusterConfig.getNumberOfNodes() ).thenReturn( 1 );
-        Set<ContainerHost> mySet = new HashSet<>(  );
+        Set<ContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         mySet.add( containerHost );
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -113,8 +114,7 @@ public class SolrSetupStrategyTest
 
         // assertions
         verify( trackerOperation ).addLog( "Saving cluster information to database..." );
-        assertNotNull(solrImpl.getPluginDAO());
+        assertNotNull( solrImpl.getPluginDAO() );
         verify( trackerOperation ).addLog( "Cluster information saved to database" );
     }
-
 }

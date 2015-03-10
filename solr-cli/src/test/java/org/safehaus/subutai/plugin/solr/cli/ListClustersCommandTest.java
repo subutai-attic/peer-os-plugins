@@ -27,6 +27,7 @@ public class ListClustersCommandTest
     @Mock
     SolrClusterConfig solrClusterConfig;
 
+
     @Before
     public void setUp() throws Exception
     {
@@ -34,14 +35,15 @@ public class ListClustersCommandTest
         listClustersCommand.setSolrManager( solr );
     }
 
+
     @Test
     public void testGetPrestoManager() throws Exception
     {
         listClustersCommand.getSolrManager();
 
         // assertions
-        assertNotNull(listClustersCommand.getSolrManager());
-        assertEquals( solr,listClustersCommand.getSolrManager() );
+        assertNotNull( listClustersCommand.getSolrManager() );
+        assertEquals( solr, listClustersCommand.getSolrManager() );
     }
 
 
@@ -49,9 +51,9 @@ public class ListClustersCommandTest
     public void testDoExecute() throws Exception
     {
         List<SolrClusterConfig> myList = new ArrayList<>();
-        myList.add(solrClusterConfig);
-        when(solr.getClusters()).thenReturn(myList);
-        when(solrClusterConfig.getClusterName()).thenReturn("testPresto");
+        myList.add( solrClusterConfig );
+        when( solr.getClusters() ).thenReturn( myList );
+        when( solrClusterConfig.getClusterName() ).thenReturn( "testPresto" );
 
         listClustersCommand.doExecute();
 
@@ -59,11 +61,12 @@ public class ListClustersCommandTest
         assertNotNull( solr.getClusters() );
     }
 
+
     @Test
     public void testDoExecuteNoConfigs() throws Exception
     {
         List<SolrClusterConfig> myList = new ArrayList<>();
-        when(solr.getClusters()).thenReturn(myList);
+        when( solr.getClusters() ).thenReturn( myList );
 
         listClustersCommand.doExecute();
 

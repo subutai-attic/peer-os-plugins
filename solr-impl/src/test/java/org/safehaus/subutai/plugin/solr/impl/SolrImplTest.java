@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class SolrImplTest
 {
     private SolrImpl solrImpl;
@@ -170,12 +170,12 @@ public class SolrImplTest
     @Test
     public void testUninstallCluster1() throws Exception
     {
-//        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
-//        UUID id = solrImpl.uninstallCluster( solrClusterConfig );
-//
-//        // assertions
-//        assertNotNull( solrImpl.uninstallCluster( solrClusterConfig ) );
-//        assertEquals( uuid, id );
+        //        when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
+        //        UUID id = solrImpl.uninstallCluster( solrClusterConfig );
+        //
+        //        // assertions
+        //        assertNotNull( solrImpl.uninstallCluster( solrClusterConfig ) );
+        //        assertEquals( uuid, id );
     }
 
 
@@ -260,19 +260,6 @@ public class SolrImplTest
 
         // assertions
         assertNotNull( solrImpl.getClusterSetupStrategy( environment, solrClusterConfig, trackerOperation ) );
-    }
-
-
-    @Test
-    public void testGetDefaultEnvironmentBlueprint() throws Exception
-    {
-        when( solrClusterConfig.getTemplateName() ).thenReturn( "test" );
-        when( solrClusterConfig.getNumberOfNodes() ).thenReturn( 5 );
-
-        solrImpl.getDefaultEnvironmentBlueprint( solrClusterConfig );
-
-        // assertions
-        assertNotNull( solrImpl.getDefaultEnvironmentBlueprint( solrClusterConfig ) );
     }
 
 

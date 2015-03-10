@@ -25,7 +25,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class RestServiceImplTest
 {
     private RestServiceImpl restService;
@@ -49,7 +49,7 @@ public class RestServiceImplTest
         restService.setTracker( tracker );
         solrClusterConfig = new SolrClusterConfig();
         when( solr.getCluster( anyString() ) ).thenReturn( solrClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
@@ -114,6 +114,7 @@ public class RestServiceImplTest
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 
+
     @Test
     public void testDestroyCluster()
     {
@@ -129,7 +130,8 @@ public class RestServiceImplTest
     @Test
     public void testCreateCluster()
     {
-        Response response = restService.createCluster( "test", "144ba15f-8788-4470-9b9c-ed51c90cfbae", "c6fd2f0f-1450-4a0f-916e-5a2b33977d0d" );
+        Response response = restService.createCluster( "test", "144ba15f-8788-4470-9b9c-ed51c90cfbae",
+                "c6fd2f0f-1450-4a0f-916e-5a2b33977d0d" );
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
