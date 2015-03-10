@@ -21,11 +21,10 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class ListClustersCommandTest
 {
+    @Mock Hipi hipi;
+    @Mock HipiConfig hipiConfig;
     private ListClustersCommand listClustersCommand;
-    @Mock
-    Hipi hipi;
-    @Mock
-    HipiConfig hipiConfig;
+
 
     @Before
     public void setUp() throws Exception
@@ -34,14 +33,15 @@ public class ListClustersCommandTest
         listClustersCommand.setHipiManager( hipi );
     }
 
+
     @Test
-    public void testGetPrestoManager() throws Exception
+    public void testGetHipiManager() throws Exception
     {
         listClustersCommand.getHipiManager();
 
         // assertions
-        assertNotNull(listClustersCommand.getHipiManager());
-        assertEquals( hipi,listClustersCommand.getHipiManager() );
+        assertNotNull( listClustersCommand.getHipiManager() );
+        assertEquals( hipi, listClustersCommand.getHipiManager() );
     }
 
 
@@ -49,9 +49,9 @@ public class ListClustersCommandTest
     public void testDoExecute() throws Exception
     {
         List<HipiConfig> myList = new ArrayList<>();
-        myList.add(hipiConfig);
-        when(hipi.getClusters()).thenReturn(myList);
-        when(hipiConfig.getClusterName()).thenReturn("testPresto");
+        myList.add( hipiConfig );
+        when( hipi.getClusters() ).thenReturn( myList );
+        when( hipiConfig.getClusterName() ).thenReturn( "testPresto" );
 
         listClustersCommand.doExecute();
 
@@ -59,11 +59,12 @@ public class ListClustersCommandTest
         assertNotNull( hipi.getClusters() );
     }
 
+
     @Test
     public void testDoExecuteNoConfigs() throws Exception
     {
         List<HipiConfig> myList = new ArrayList<>();
-        when(hipi.getClusters()).thenReturn(myList);
+        when( hipi.getClusters() ).thenReturn( myList );
 
         listClustersCommand.doExecute();
 

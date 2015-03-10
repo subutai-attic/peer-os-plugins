@@ -1,0 +1,125 @@
+package org.safehaus.subutai.plugin.hipi.cli;
+
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
+import org.safehaus.subutai.plugin.hipi.api.Hipi;
+import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
+
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+
+@Command( scope = "hipi", name = "install-cluster", description = "Command to install Hipi cluster" )
+public class InstallClusterCommand extends OsgiCommandSupport
+{
+
+    @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "flume cluster "
+            + "name" ) String clusterName;
+
+    @Argument( index = 1, name = "hadoopClusterName", description = "The hadoop cluster name", required = true,
+            multiValued = false ) String hadoopClusterName;
+
+    @Argument( index = 2, name = "nodes", description = "The list of nodes that Hipi will be installed", required =
+            true,
+            multiValued = false ) String nodes[];
+
+
+    private Tracker tracker;
+    private Hipi hipiManager;
+    private Hadoop hadoopManager;
+
+
+    protected Object doExecute()
+    {
+        HipiConfig config = new HipiConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+
+        Set<UUID> nodesSet = new HashSet<>();
+        for ( String uuid : nodes )
+        {
+            nodesSet.add( UUID.fromString( uuid ) );
+        }
+        config.setNodes( nodesSet );
+        UUID uuid = hipiManager.installCluster( config );
+        System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) + "." );
+        return null;
+    }
+
+
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HipiConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 180 * 1000 ) )
+            {
+                break;
+            }
+        }
+        return state;
+    }
+
+
+    public Tracker getTracker()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public Hipi getHipiManager()
+    {
+        return hipiManager;
+    }
+
+
+    public void setHipiManager( final Hipi hipiManager )
+    {
+        this.hipiManager = hipiManager;
+    }
+
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoopManager;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
+    }
+}

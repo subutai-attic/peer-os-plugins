@@ -29,8 +29,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
         implements ClusterOperationHandlerInterface
 {
     private static final Log LOG = LogFactory.getLog( ClusterOperationHandler.class );
-    private ClusterOperationType operationType;
     CommandUtil commandUtil = new CommandUtil();
+    private ClusterOperationType operationType;
 
 
     public ClusterOperationHandler( final HipiImpl manager, final HipiConfig config,
@@ -41,6 +41,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
         this.operationType = operationType;
         trackerOperation = manager.getTracker().createTrackerOperation( HipiConfig.PRODUCT_KEY,
                 String.format( "Executing %s operation on cluster %s", operationType.name(), clusterName ) );
+    }
+
+
+    @Override
+    public void run()
+    {
+        runOperationOnContainers( this.operationType );
     }
 
 
@@ -152,12 +159,5 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             LOG.error( "Error in destroyCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to uninstall cluster: %s", e.getMessage() ) );
         }
-    }
-
-
-    @Override
-    public void run()
-    {
-        runOperationOnContainers( this.operationType );
     }
 }

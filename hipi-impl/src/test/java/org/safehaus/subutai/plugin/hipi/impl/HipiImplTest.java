@@ -34,28 +34,18 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class HipiImplTest
 {
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock HipiConfig hipiConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
+    @Mock Hadoop hadoop;
+    @Mock PluginDAO pluginDAO;
+    @Mock ExecutorService executorService;
     private HipiImpl hipiImpl;
     private UUID uuid;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    HipiConfig hipiConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
-    @Mock
-    Hadoop hadoop;
-    @Mock
-    PluginDAO pluginDAO;
-    @Mock
-    ExecutorService executorService;
 
 
     @Before

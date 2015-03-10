@@ -13,6 +13,7 @@ public class CommandFactoryTest
 {
     private CommandFactory commandFactory;
 
+
     @Before
     public void setUp() throws Exception
     {

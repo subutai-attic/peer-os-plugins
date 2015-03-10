@@ -33,32 +33,22 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class HipiSetupStrategyTest
 {
+    @Mock HadoopClusterConfig hadoopClusterConfig;
+    @Mock Hadoop hadoop;
+    @Mock CommandResult commandResult;
+    @Mock ContainerHost containerHost;
+    @Mock HipiImpl hipiImpl;
+    @Mock HipiConfig hipiConfig;
+    @Mock Tracker tracker;
+    @Mock EnvironmentManager environmentManager;
+    @Mock TrackerOperation trackerOperation;
+    @Mock Environment environment;
     private HipiSetupStrategy hipiSetupStrategy;
     private UUID uuid;
     private Set<UUID> mySet;
     private List<UUID> myList;
     private Set<ContainerHost> myCont;
     private List<HipiConfig> myHipi;
-    @Mock
-    HadoopClusterConfig hadoopClusterConfig;
-    @Mock
-    Hadoop hadoop;
-    @Mock
-    CommandResult commandResult;
-    @Mock
-    ContainerHost containerHost;
-    @Mock
-    HipiImpl hipiImpl;
-    @Mock
-    HipiConfig hipiConfig;
-    @Mock
-    Tracker tracker;
-    @Mock
-    EnvironmentManager environmentManager;
-    @Mock
-    TrackerOperation trackerOperation;
-    @Mock
-    Environment environment;
 
 
     @Before
@@ -69,13 +59,13 @@ public class HipiSetupStrategyTest
         mySet.add( uuid );
         mySet.add( uuid );
 
-        myList = new ArrayList<>(  );
+        myList = new ArrayList<>();
         myList.add( uuid );
 
-        myCont = new HashSet<>(  );
+        myCont = new HashSet<>();
         myCont.add( containerHost );
 
-        myHipi = new ArrayList<>(  );
+        myHipi = new ArrayList<>();
         myHipi.add( hipiConfig );
 
         hipiSetupStrategy = new HipiSetupStrategy( hipiImpl, hipiConfig, trackerOperation );
@@ -142,7 +132,7 @@ public class HipiSetupStrategyTest
         when( hipiConfig.getHadoopClusterName() ).thenReturn( "testHadoopClusterName" );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
 
         hipiSetupStrategy.setup();
     }
@@ -155,7 +145,7 @@ public class HipiSetupStrategyTest
         when( hipiConfig.getHadoopClusterName() ).thenReturn( "testHadoopClusterName" );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
 
         hipiSetupStrategy.setup();
@@ -169,7 +159,7 @@ public class HipiSetupStrategyTest
         when( hipiConfig.getHadoopClusterName() ).thenReturn( "testHadoopClusterName" );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
 
         hipiSetupStrategy.setup();
     }
@@ -182,7 +172,7 @@ public class HipiSetupStrategyTest
         when( hipiConfig.getHadoopClusterName() ).thenReturn( "testHadoopClusterName" );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
         when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( myCont );
 

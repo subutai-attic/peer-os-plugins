@@ -1,10 +1,6 @@
 package org.safehaus.subutai.plugin.hipi.rest;
 
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -14,12 +10,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.safehaus.subutai.common.util.JsonUtil;
-import org.safehaus.subutai.plugin.hipi.api.Hipi;
-import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-
-import com.google.common.collect.Sets;
 
 
 public interface RestService
@@ -66,5 +56,6 @@ public interface RestService
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
+                                 @PathParam( "lxcHostname" ) String node );
 }

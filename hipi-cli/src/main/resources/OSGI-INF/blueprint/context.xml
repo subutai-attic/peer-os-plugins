@@ -1,8 +1,11 @@
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
-    >
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="hipiManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.hipi.api.Hipi" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="hipi/list-clusters">
@@ -10,14 +13,21 @@
         <property name="hipiManager" ref="hipiManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="hipi/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.hipi.cli.UninstallClusterCommand">
         <property name="hipiManager" ref="hipiManager" />
       </action>
     </command>
+
+    <command name="hipi/install-cluster">
+      <action class="org.safehaus.subutai.plugin.hipi.cli.InstallClusterCommand">
+        <property name="hipiManager" ref="hipiManager" />
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
   </command-bundle>
 
 </blueprint>

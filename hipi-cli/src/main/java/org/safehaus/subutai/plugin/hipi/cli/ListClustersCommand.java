@@ -17,18 +17,6 @@ public class ListClustersCommand extends OsgiCommandSupport
     private Hipi hipiManager;
 
 
-    public Hipi getHipiManager()
-    {
-        return hipiManager;
-    }
-
-
-    public void setHipiManager( Hipi hipiManager )
-    {
-        this.hipiManager = hipiManager;
-    }
-
-
     protected Object doExecute()
     {
         List<HipiConfig> configList = hipiManager.getClusters();
@@ -41,9 +29,21 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
         else
         {
-            System.out.println( "No Lucene cluster" );
+            System.out.println( "No Hipi cluster" );
         }
 
         return null;
+    }
+
+
+    public Hipi getHipiManager()
+    {
+        return hipiManager;
+    }
+
+
+    public void setHipiManager( Hipi hipiManager )
+    {
+        this.hipiManager = hipiManager;
     }
 }

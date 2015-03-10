@@ -17,7 +17,6 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hipi.api.Hipi;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
-import org.safehaus.subutai.plugin.hipi.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -28,14 +27,12 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceTest
 {
+    @Mock Hipi hipi;
+    @Mock Tracker tracker;
+    @Mock TrackerOperationView trackerOperationView;
     private RestServiceImpl restService;
     private HipiConfig hipiConfig;
-    @Mock
-    Hipi hipi;
-    @Mock
-    Tracker tracker;
-    @Mock
-    TrackerOperationView trackerOperationView;
+
 
     @Before
     public void setUp() throws Exception
@@ -43,8 +40,8 @@ public class RestServiceTest
         hipiConfig = new HipiConfig();
         restService = new RestServiceImpl( hipi );
         restService.setTracker( tracker );
-        when( hipi.getCluster( anyString() )).thenReturn( hipiConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( hipi.getCluster( anyString() ) ).thenReturn( hipiConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
@@ -80,7 +77,6 @@ public class RestServiceTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 

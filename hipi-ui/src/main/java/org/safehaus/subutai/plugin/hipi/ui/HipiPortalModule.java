@@ -28,11 +28,11 @@ public class HipiPortalModule implements PortalModule
 {
     public static final String MODULE_IMAGE = "hipi.png";
     protected static final Logger LOG = Logger.getLogger( HipiPortalModule.class.getName() );
-    private ExecutorService executor;
     private final Hipi hipi;
     private final Tracker tracker;
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
+    private ExecutorService executor;
 
 
     public HipiPortalModule( Hipi hipi, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
