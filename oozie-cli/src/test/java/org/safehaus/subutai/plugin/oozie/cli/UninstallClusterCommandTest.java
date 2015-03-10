@@ -54,11 +54,11 @@ public class UninstallClusterCommandTest
     @Test
     public void testGetPrestoManager() throws Exception
     {
-        uninstallClusterCommand.getOozeManager();
+        uninstallClusterCommand.getOozieManager();
 
         // assertions
-        assertNotNull(uninstallClusterCommand.getOozeManager());
-        assertEquals( oozie,uninstallClusterCommand.getOozeManager() );
+        assertNotNull(uninstallClusterCommand.getOozieManager());
+        assertEquals( oozie,uninstallClusterCommand.getOozieManager() );
     }
 
     @Test
