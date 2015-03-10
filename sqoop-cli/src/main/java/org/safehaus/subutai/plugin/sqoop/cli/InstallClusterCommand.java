@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
+import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -25,7 +26,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command :
- *      presto:install-cluster test \ {cluster name}
+ *      sqoop:install-cluster test \ {cluster name}
  *                             test \ { hadoop cluster name }
  *                             [ sqoop1, sqoop2 ] \ { list of nodes }
  */
@@ -41,9 +42,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false)
     String hadoopClusterName  = null;
 
-    @Argument(index = 3, name = "nodes", description = "The hostname list of nodes", required = true,
+    @Argument(index = 2, name = "nodes", description = "The list of nodes", required = true,
             multiValued = false)
-    String workers[] = null;
+    String nodes[] = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Sqoop sqoopManager;
@@ -57,28 +58,30 @@ public class InstallClusterCommand extends OsgiCommandSupport
         try
         {
             Environment environment = environmentManager.findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
-            try
-            {
+
                 SqoopConfig config = new SqoopConfig();
                 config.setClusterName( clusterName );
                 config.setHadoopClusterName( hadoopClusterName );
                 Set<UUID> workerUUIS = new HashSet<>();
-                for ( String hostname : workers ){
-                    workerUUIS.add( environment.getContainerHostByHostname( hostname ).getId() );
+                for ( String node : nodes ){
+                    if( checkGivenUUID( environment, UUID.fromString( node ) ))
+                    {
+                        workerUUIS.add( UUID.fromString( node ) );
+                    }
+                    else {
+                        System.out.println( "Could not find container host with given uuid : " + node );
+                        return null;
+                    }
+
                 }
                 config.setNodes( workerUUIS );
                 config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-                System.out.println( "Installing presto cluster..." );
+                System.out.println( "Installing sqoop cluster..." );
                 UUID uuid = getSqoopManager().installCluster( config );
                 System.out.println(
                         "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Could not find container host !!!" );
-                e.printStackTrace();
-            }
+
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -87,6 +90,15 @@ public class InstallClusterCommand extends OsgiCommandSupport
         }
 
         return null;
+    }
+
+    private boolean checkGivenUUID( Environment environment, UUID uuid ){
+        for ( ContainerHost host : environment.getContainerHosts() ){
+            if ( host.getId().equals( uuid ) ){
+                return true;
+            }
+        }
+        return false;
     }
 
     protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
