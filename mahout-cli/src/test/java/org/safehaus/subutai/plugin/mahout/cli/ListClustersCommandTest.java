@@ -52,7 +52,7 @@ public class ListClustersCommandTest
         List<MahoutClusterConfig> myList = new ArrayList<>();
         myList.add( mahoutClusterConfig );
         when( mahout.getClusters() ).thenReturn( myList );
-        when( mahoutClusterConfig.getClusterName() ).thenReturn( "testPresto" );
+        when( mahoutClusterConfig.getClusterName() ).thenReturn( "test" );
 
         listClustersCommand.doExecute();
     }
