@@ -2,6 +2,12 @@
 
   <reference id="sqoopManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="sqoop/list-clusters">
@@ -9,12 +15,26 @@
         <property name="sqoopManager" ref="sqoopManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="sqoop/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.sqoop.cli.UninstallClusterCommand">
         <property name="sqoopManager" ref="sqoopManager" />
+      </action>
+    </command>
+
+    <command name="sqoop/install-cluster">
+      <action class="org.safehaus.subutai.plugin.sqoop.cli.InstallClusterCommand">
+        <property name="sqoopManager" ref="sqoopManager" />
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="environmentManager" ref="environmentManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="sqoop/describe-cluster">
+      <action class="org.safehaus.subutai.plugin.sqoop.cli.InstallClusterCommand">
+        <property name="sqoopManager" ref="sqoopManager" />
+        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
   </command-bundle>
