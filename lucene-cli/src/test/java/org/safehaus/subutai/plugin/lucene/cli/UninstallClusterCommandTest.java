@@ -15,6 +15,7 @@ import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +39,7 @@ public class UninstallClusterCommandTest
         uninstallClusterCommand = new UninstallClusterCommand();
         uninstallClusterCommand.setLuceneManager( lucene );
         uninstallClusterCommand.setTracker(tracker);
+        when( tracker.getTrackerOperation( anyString(), any(UUID.class) )).thenReturn( trackerOperationView );
     }
 
     @Test

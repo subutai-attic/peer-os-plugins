@@ -1,8 +1,13 @@
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
-    >
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="luceneManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.lucene.api.Lucene" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
