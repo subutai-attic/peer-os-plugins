@@ -87,9 +87,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             {
                 case START:
                     result = host.execute( new RequestBuilder( Commands.startCommand ) );
+                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
                     break;
                 case STOP:
                     result = host.execute( new RequestBuilder( Commands.stopCommand ) );
+                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
                     break;
                 case STATUS:
                     result = host.execute( new RequestBuilder( Commands.statusCommand ) );
