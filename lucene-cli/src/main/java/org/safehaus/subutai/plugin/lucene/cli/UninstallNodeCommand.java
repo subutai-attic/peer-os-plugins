@@ -12,9 +12,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * sample command : lucene:add-node test \ {cluster name} haddop1 \ {node}
+ * sample command : lucene:uninstall-node test \ {cluster name} haddop1 \ {node}
  */
-@Command( scope = "lucene", name = "add-node", description = "Command to uninstall node from Lucene cluster" )
+@Command( scope = "lucene", name = "uninstall-node", description = "Command to uninstall node from Lucene cluster" )
 public class UninstallNodeCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
