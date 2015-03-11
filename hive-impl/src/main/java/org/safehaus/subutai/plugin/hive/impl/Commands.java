@@ -20,6 +20,13 @@ public class Commands
 
     public static final String statusCommand = "service hive-thrift status";
 
+    public static final String startDerbyCommand = "service derby start";
+
+    public static final String stopDerbyCommand = "service derby stop";
+
+    public static final String statusDerbyCommand = "service derby status";
+
+
     public static final String checkIfInstalled = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
 
 

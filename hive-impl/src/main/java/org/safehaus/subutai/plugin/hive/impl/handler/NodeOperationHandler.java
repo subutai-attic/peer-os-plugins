@@ -87,9 +87,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             {
                 case START:
                     result = host.execute( new RequestBuilder( Commands.startCommand ) );
+                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
                     break;
                 case STOP:
                     result = host.execute( new RequestBuilder( Commands.stopCommand ) );
+                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
                     break;
                 case STATUS:
                     result = host.execute( new RequestBuilder( Commands.statusCommand ) );
@@ -148,7 +150,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             try
             {
                 result = host.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().add( host.getId() );

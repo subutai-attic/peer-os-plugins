@@ -56,7 +56,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             if ( !containerHost.getId().equals( server.getId() ) )
             {
                 po.addLog( "Configuring client node : " + containerHost.getHostname() );
-                executeCommand( containerHost, Commands.configureClient( containerHost ) );
+                executeCommand( containerHost, Commands.configureClient( server ) );
             }
         }
         hiveConfig.setEnvironmentId( environment.getId() );
