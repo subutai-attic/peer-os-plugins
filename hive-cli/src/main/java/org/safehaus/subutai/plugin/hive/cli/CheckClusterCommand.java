@@ -27,7 +27,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
  *    hive:check-cluster test \ {cluster name}
  */
 @Command(scope = "hive", name = "check-cluster", description = "Command to check Hive cluster")
-public class CheckAllNodesCommand extends OsgiCommandSupport
+public class CheckClusterCommand extends OsgiCommandSupport
 {
     @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
             multiValued = false)
@@ -35,7 +35,7 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     private Hive hiveManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-    private static final Logger LOG = LoggerFactory.getLogger( CheckAllNodesCommand.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
 
     @Override
     protected Object doExecute() throws Exception

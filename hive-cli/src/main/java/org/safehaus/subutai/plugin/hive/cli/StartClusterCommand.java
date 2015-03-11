@@ -15,14 +15,13 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * sample command :
- *      hive:start-cluster test \ {cluster name} haddop1 \ {server} 
+ * sample command : hive:start-cluster test \ {cluster name} haddop1 \ {server}
  */
-@Command(scope = "hive", name = "start-node", description = "Command to start node of Hive cluster")
+@Command( scope = "hive", name = "start-node", description = "Command to start node of Hive cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     @Argument( index = 1, name = "server", description = "The hostname of server container", required = true,
             multiValued = false )
@@ -34,14 +33,15 @@ public class StartClusterCommand extends OsgiCommandSupport
     @Override
     protected Object doExecute() throws Exception
     {
-        System.out.println( "Starting " + clusterName + " presto cluster..." );
+        System.out.println( "Starting " + clusterName + " hive cluster..." );
         UUID uuid = hiveManager.startNode( clusterName, server );
-        System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) ) ;
+        System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 
 
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -63,7 +63,7 @@ public class StartClusterCommand extends OsgiCommandSupport
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 90  * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
             {
                 break;
             }
@@ -94,5 +94,4 @@ public class StartClusterCommand extends OsgiCommandSupport
     {
         this.tracker = tracker;
     }
-
 }

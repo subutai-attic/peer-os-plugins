@@ -12,7 +12,8 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command :
+ *      hive:uninstall-cluster test \ {cluster name}
  */
 @Command( scope = "hive", name = "uninstall-cluster", description = "Command to uninstall Hive cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport

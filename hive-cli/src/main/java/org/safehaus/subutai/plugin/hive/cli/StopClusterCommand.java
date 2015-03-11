@@ -31,7 +31,7 @@ public class StopClusterCommand extends OsgiCommandSupport
     @Override
     protected Object doExecute() throws Exception
     {
-        System.out.println( "Starting " + clusterName + " presto cluster..." );
+        System.out.println( "Starting " + clusterName + " hive cluster..." );
         UUID uuid = hiveManager.stopNode( clusterName, server );
         System.out.println( "Start cluster operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) ) ;
         return null;
