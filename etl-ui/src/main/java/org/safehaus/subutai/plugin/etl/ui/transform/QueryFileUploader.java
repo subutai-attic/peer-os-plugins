@@ -28,7 +28,7 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
 {
     public File file;
     final Embedded queryFile;
-    private static final String UPLOAD_PATH = "/tmp/uploads/";
+    public static final String UPLOAD_PATH = "/tmp/";
 
     public QueryFileUploader( Embedded queryFile ){
         this.queryFile = queryFile;
@@ -93,8 +93,7 @@ public class QueryFileUploader implements Upload.Receiver, Upload.SucceededListe
 
 
     public File createNewFile( String fileName ){
-        String content = "";
-        File file = new File("/tmp/uploads/" + fileName);
+        File file = new File( UPLOAD_PATH + fileName);
         try
         {
             PrintWriter out = new PrintWriter( file );

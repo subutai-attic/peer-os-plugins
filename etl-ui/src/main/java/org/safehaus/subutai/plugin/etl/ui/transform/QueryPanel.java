@@ -143,7 +143,7 @@ public class QueryPanel extends VerticalLayout
             public void buttonClick( final Button.ClickEvent event )
             {
                 final QuestionDialog questionDialog =
-                        new QuestionDialog<String>( CREATE_FILE_ACTION, "Name your file...",
+                        new QuestionDialog<>( CREATE_FILE_ACTION, "Name your file...",
                                 String.class, "Create", "Cancel" );
                 questionDialog.getOk().addClickListener( new Button.ClickListener()
                 {
@@ -153,7 +153,7 @@ public class QueryPanel extends VerticalLayout
                         if ( questionDialog.getInputField().getValue() != null ){
                             String fileName = questionDialog.getInputField().getValue();
                             File newFile = receiver.createNewFile( fileName );
-                            Notification.show( fileName + " is created under /tmp/uploads." );
+                            Notification.show( fileName + " is created under " + QueryFileUploader.UPLOAD_PATH + "." );
                             receiver.setFile( newFile );
                             receiver.showUploadedText( contentOfQueryFile, newFile );
                             contentOfQueryFile.setCaption( "Content of \"" + newFile.getName() + "\" query file:" );
