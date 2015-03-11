@@ -12,9 +12,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * sample command : mahout:add-node test \ {cluster name} haddop1 \ {node}
+ * sample command : mahout:uninstall-node test \ {cluster name} haddop1 \ {node}
  */
-@Command( scope = "mahout", name = "add-node", description = "Command to uninstall node from Mahout cluster" )
+@Command( scope = "mahout", name = "uninstall-node", description = "Command to uninstall node from Mahout cluster" )
 public class UninstallNodeCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
