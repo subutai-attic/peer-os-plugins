@@ -19,7 +19,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.slf4j.Logger;
@@ -205,17 +204,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
 
     public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
     {
-        CommandResult statusResult;
-        try
-        {
-            statusResult = commandUtil.execute( new RequestBuilder( Commands.checkCommand ), host);
-        }
-        catch ( CommandException e )
-        {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
-        }
-
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PigConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded()  ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

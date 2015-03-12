@@ -26,10 +26,9 @@ public class PigConfig implements ConfigBase
     }
 
 
-    public PigConfig setClusterName( String clusterName )
+    public void setClusterName( String clusterName )
     {
         this.clusterName = clusterName;
-        return this;
     }
 
 
@@ -52,6 +51,10 @@ public class PigConfig implements ConfigBase
         return nodes;
     }
 
+    public void setNodes( Set<UUID> nodes)
+    {
+        this.nodes = nodes;
+    }
 
     @Override
     public String toString()
@@ -69,7 +72,6 @@ public class PigConfig implements ConfigBase
     public void setHadoopClusterName( String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
-        this.clusterName = hadoopClusterName;
     }
 
 

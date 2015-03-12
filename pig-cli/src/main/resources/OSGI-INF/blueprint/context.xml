@@ -26,9 +26,8 @@
     <command name="pig/install-cluster">
       <action class="org.safehaus.subutai.plugin.pig.cli.InstallClusterCommand">
         <property name="pigManager" ref="pigManager" />
-        <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
+        <property name="hadoopManager" ref="hadoopManager" />
       </action>
     </command>
 
@@ -43,7 +42,6 @@
       <action class="org.safehaus.subutai.plugin.pig.cli.AddNodeCommand">
         <property name="pigManager" ref="pigManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
@@ -51,7 +49,6 @@
       <action class="org.safehaus.subutai.plugin.pig.cli.UninstallNodeCommand">
         <property name="pigManager" ref="pigManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 

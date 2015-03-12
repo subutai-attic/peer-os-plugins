@@ -33,7 +33,7 @@ public class UninstallNodeCommand extends OsgiCommandSupport
         System.out.println( "Uninstalling " + node + " node..." );
         UUID uuid = pigManager.destroyNode( clusterName, node );
         System.out.println(
-                "Start cluster operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+                "Uninstall node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 
