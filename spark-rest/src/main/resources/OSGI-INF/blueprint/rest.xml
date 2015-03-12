@@ -14,9 +14,13 @@
   <reference id="sparkManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.spark.api.Spark" />
 
-  <bean id="sparkRestService" class="org.safehaus.subutai.plugin.spark.rest.RestService">
+  <bean id="sparkRestService" class="org.safehaus.subutai.plugin.spark.rest.RestServiceImpl">
     <argument ref="sparkManager" />
+    <property name="tracker" ref="tracker" />
   </bean>
+
+  <reference id="tracker"  availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/spark" id="sparkRestServiceImpl">
     <jaxrs:serviceBeans>
