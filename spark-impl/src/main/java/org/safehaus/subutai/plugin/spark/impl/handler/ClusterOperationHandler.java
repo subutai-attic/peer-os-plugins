@@ -128,7 +128,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
 
             CommandResult result = executeCommand( master, manager.getCommands().getStartAllCommand() );
 
-            if ( !result.getStdOut().contains( "starting" ) )
+            if ( ! result.getStdOut().contains( "starting" ) )
             {
                 trackerOperation.addLogFailed( "Failed to start cluster" );
             }

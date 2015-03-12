@@ -62,6 +62,10 @@ public class SparkClusterConfig implements ConfigBase
     }
 
 
+    public void setSlavesId( Set<UUID> slaves ){
+        slaveIds = slaves;
+    }
+
     public void setMasterNodeId( final UUID masterNodeId )
     {
         this.masterNodeId = masterNodeId;
