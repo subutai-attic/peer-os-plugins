@@ -5,12 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.mahout.api.Mahout;
@@ -45,45 +41,27 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Mahout mahoutManager;
     private Hadoop hadoopManager;
-    private EnvironmentManager environmentManager;
     private Tracker tracker;
 
 
     @Override
     protected Object doExecute() throws Exception
     {
-        try
-        {
-            Environment environment = environmentManager
-                    .findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
-            try
-            {
-                MahoutClusterConfig config = new MahoutClusterConfig();
-                config.setClusterName( clusterName );
-                config.setHadoopClusterName( hadoopClusterName );
-                Set<UUID> workerUUIS = new HashSet<>();
-                for ( String hostname : nodes )
-                {
-                    workerUUIS.add( environment.getContainerHostByHostname( hostname ).getId() );
-                }
-                config.getNodes().addAll( workerUUIS );
-                config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+        MahoutClusterConfig config = new MahoutClusterConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-                System.out.println( "Installing lucene cluster..." );
-                UUID uuid = mahoutManager.installCluster( config );
-                System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Could not find container host !!!" );
-                e.printStackTrace();
-            }
-        }
-        catch ( EnvironmentNotFoundException e )
+        Set<UUID> nodeSet = new HashSet<>();
+        for ( String uuid : nodes )
         {
-            LOG.error( "Could not find environment !!!" );
-            e.printStackTrace();
+            nodeSet.add( UUID.fromString( uuid ) );
         }
+        config.setNodes( nodeSet );
+
+        System.out.println( "Installing lucene cluster..." );
+        UUID uuid = mahoutManager.installCluster( config );
+        System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
 
         return null;
     }
@@ -129,7 +107,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     public void setMahoutManager( final Mahout mahoutManager )
     {
-        this.mahoutManager= mahoutManager;
+        this.mahoutManager = mahoutManager;
     }
 
 
@@ -154,17 +132,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

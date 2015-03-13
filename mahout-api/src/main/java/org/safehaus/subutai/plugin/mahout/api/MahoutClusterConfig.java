@@ -64,6 +64,12 @@ public class MahoutClusterConfig implements ConfigBase
     }
 
 
+    public void setNodes( Set<UUID> nodes )
+    {
+        this.nodes = nodes;
+    }
+
+
     public UUID getEnvironmentId()
     {
         return environmentId;

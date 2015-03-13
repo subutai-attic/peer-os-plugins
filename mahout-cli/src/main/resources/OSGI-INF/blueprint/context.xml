@@ -29,7 +29,6 @@
       <action class="org.safehaus.subutai.plugin.mahout.cli.InstallClusterCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
@@ -45,7 +44,6 @@
       <action class="org.safehaus.subutai.plugin.mahout.cli.AddNodeCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
@@ -53,7 +51,6 @@
       <action class="org.safehaus.subutai.plugin.mahout.cli.UninstallNodeCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
   
