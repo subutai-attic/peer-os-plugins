@@ -5,12 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.lucene.api.Lucene;
@@ -44,46 +40,28 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Lucene luceneManager;
-    private Hadoop hadoopManager;
-    private EnvironmentManager environmentManager;
     private Tracker tracker;
+    private Hadoop hadoopManager;
 
 
     @Override
     protected Object doExecute() throws Exception
     {
-        try
-        {
-            Environment environment = environmentManager
-                    .findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
-            try
-            {
-                LuceneConfig config = new LuceneConfig();
-                config.setClusterName( clusterName );
-                config.setHadoopClusterName( hadoopClusterName );
-                Set<UUID> workerUUIS = new HashSet<>();
-                for ( String hostname : nodes )
-                {
-                    workerUUIS.add( environment.getContainerHostByHostname( hostname ).getId() );
-                }
-                config.getNodes().addAll( workerUUIS );
-                config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+        LuceneConfig config = new LuceneConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-                System.out.println( "Installing lucene cluster..." );
-                UUID uuid = luceneManager.installCluster( config );
-                System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Could not find container host !!!" );
-                e.printStackTrace();
-            }
-        }
-        catch ( EnvironmentNotFoundException e )
+        Set<UUID> nodesSet = new HashSet<>();
+        for ( String uuid : nodes )
         {
-            LOG.error( "Could not find environment !!!" );
-            e.printStackTrace();
+            nodesSet.add( UUID.fromString( uuid ) );
         }
+        config.setNodes( nodesSet );
+
+        System.out.println( "Installing lucene cluster..." );
+        UUID uuid = luceneManager.installCluster( config );
+        System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
 
         return null;
     }
@@ -154,17 +132,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

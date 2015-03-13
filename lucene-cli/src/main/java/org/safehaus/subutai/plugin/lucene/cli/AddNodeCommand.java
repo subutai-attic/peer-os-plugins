@@ -33,7 +33,7 @@ public class AddNodeCommand extends OsgiCommandSupport
         System.out.println( "Adding " + node + " node..." );
         UUID uuid = luceneManager.addNode( clusterName, node );
         System.out.println(
-                "Start cluster operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+                "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 

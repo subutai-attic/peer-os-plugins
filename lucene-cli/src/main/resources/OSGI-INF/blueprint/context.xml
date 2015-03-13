@@ -27,9 +27,8 @@
     <command name="lucene/install-cluster">
       <action class="org.safehaus.subutai.plugin.lucene.cli.InstallClusterCommand">
         <property name="luceneManager" ref="luceneManager" />
-        <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
+        <property name="hadoopManager" ref="hadoopManager" />
       </action>
     </command>
 
@@ -44,7 +43,6 @@
       <action class="org.safehaus.subutai.plugin.lucene.cli.AddNodeCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
@@ -52,7 +50,6 @@
       <action class="org.safehaus.subutai.plugin.lucene.cli.UninstallNodeCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
