@@ -29,7 +29,6 @@
       <action class="org.safehaus.subutai.plugin.nutch.cli.InstallClusterCommand">
         <property name="nutchManager" ref="nutchManager" />
         <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
@@ -45,7 +44,6 @@
       <action class="org.safehaus.subutai.plugin.nutch.cli.AddNodeCommand">
         <property name="nutchManager" ref="nutchManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
@@ -53,7 +51,6 @@
       <action class="org.safehaus.subutai.plugin.nutch.cli.UninstallNodeCommand">
         <property name="nutchManager" ref="nutchManager" />
         <property name="tracker" ref="tracker" />
-        <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 

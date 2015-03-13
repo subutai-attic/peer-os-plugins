@@ -53,6 +53,12 @@ public class NutchConfig implements ConfigBase
     }
 
 
+    public void setNodes( Set<UUID> nodes )
+    {
+        this.nodes = nodes;
+    }
+
+
     @Override
     public String toString()
     {
@@ -69,7 +75,6 @@ public class NutchConfig implements ConfigBase
     public void setHadoopClusterName( String hadoopClusterName )
     {
         this.hadoopClusterName = hadoopClusterName;
-        this.clusterName = hadoopClusterName;
     }
 
 
