@@ -29,7 +29,6 @@
       <action class="org.safehaus.subutai.plugin.hive.cli.InstallClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
@@ -60,6 +59,20 @@
       <action class="org.safehaus.subutai.plugin.hive.cli.DescribeClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+    <command name="hive/add-node">
+      <action class="org.safehaus.subutai.plugin.hive.cli.AddNodeCommand">
+        <property name="hiveManager" ref="hiveManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="hive/uninstall-node">
+      <action class="org.safehaus.subutai.plugin.hive.cli.UninstallNodeCommand">
+        <property name="hiveManager" ref="hiveManager" />
+        <property name="tracker" ref="tracker" />
       </action>
     </command>
 

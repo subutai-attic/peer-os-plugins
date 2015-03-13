@@ -15,7 +15,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
  * sample command :
  *      hive:stop-cluster test \ {cluster name} haddop1 \ {server}
  */
-@Command(scope = "hive", name = "start-node", description = "Command to start node of Hive cluster")
+@Command(scope = "hive", name = "stop-node", description = "Command to stop node of Hive cluster")
 public class StopClusterCommand extends OsgiCommandSupport
 {
     @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
@@ -31,9 +31,9 @@ public class StopClusterCommand extends OsgiCommandSupport
     @Override
     protected Object doExecute() throws Exception
     {
-        System.out.println( "Starting " + clusterName + " hive cluster..." );
+        System.out.println( "Stopping " + clusterName + " hive cluster..." );
         UUID uuid = hiveManager.stopNode( clusterName, server );
-        System.out.println( "Start cluster operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) ) ;
+        System.out.println( "Stop cluster operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) ) ;
         return null;
     }
 

@@ -3,9 +3,6 @@ package org.safehaus.subutai.plugin.hive.cli;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -21,54 +18,36 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-
 /**
- * sample command :
- *    hive:check-cluster test \ {cluster name}
+ * sample command : hive:check-cluster test \ {cluster name}
  */
-@Command(scope = "hive", name = "check-cluster", description = "Command to check Hive cluster")
+@Command( scope = "hive", name = "check-cluster", description = "Command to check Hive cluster" )
 public class CheckClusterCommand extends OsgiCommandSupport
 {
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
+    @Argument( index = 1, name = "server", description = "The hostname of server container", required = true,
+            multiValued = false )
+    String server = null;
     private Hive hiveManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
 
+
     @Override
     protected Object doExecute() throws Exception
     {
         System.out.println( "Checking cluster nodes ... " );
-        HiveConfig config = hiveManager.getCluster( clusterName );
-        for ( UUID uuid : config.getAllNodes() ){
-            try
-            {
-                Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                try
-                {
-                    String hostname = environment.getContainerHostById( uuid ).getHostname();
-                    UUID checkUUID = hiveManager.statusCheck( clusterName, hostname );
-                    System.out.println( hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    LOG.error( "Could not find container host." );
-                    e.printStackTrace();
-                }
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Could not find environment." );
-                e.printStackTrace();
-            }
-        }
+        UUID checkUUID = hiveManager.statusCheck( clusterName, server );
+        System.out.println( server + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
         return null;
     }
 
 
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         NodeState state = NodeState.UNKNOWN;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -78,11 +57,11 @@ public class CheckClusterCommand extends OsgiCommandSupport
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().toLowerCase().contains( NodeState.STOPPED.name().toLowerCase() ) )
+                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
                     {
                         state = NodeState.STOPPED;
                     }
-                    else if ( po.getLog().toLowerCase().contains( NodeState.RUNNING.name().toLowerCase() ) )
+                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
                     {
                         state = NodeState.RUNNING;
                     }
@@ -112,9 +91,9 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setHiveManager( Hive hiveManager)
+    public void setHiveManager( Hive hiveManager )
     {
-        this.hiveManager= hiveManager;
+        this.hiveManager = hiveManager;
     }
 
 
@@ -140,5 +119,4 @@ public class CheckClusterCommand extends OsgiCommandSupport
     {
         this.environmentManager = environmentManager;
     }
-
 }

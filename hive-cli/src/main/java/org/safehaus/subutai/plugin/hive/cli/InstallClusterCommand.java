@@ -6,10 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hive.api.Hive;
@@ -49,46 +45,27 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Hive hiveManager;
     private Hadoop hadoopManager;
-    private EnvironmentManager environmentManager;
     private Tracker tracker;
 
 
     protected Object doExecute() throws IOException
     {
-        try
-        {
-            Environment environment = environmentManager
-                    .findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
-            try
-            {
-                HiveConfig config = new HiveConfig();
-                config.setClusterName( clusterName );
-                config.setHadoopClusterName( hadoopClusterName );
-                config.setServer( environment.getContainerHostByHostname( server ).getId() );
-                Set<UUID> workerUUIS = new HashSet<>();
-                for ( String hostname : clients )
-                {
-                    workerUUIS.add( environment.getContainerHostByHostname( hostname ).getId() );
-                }
-                config.setClients( workerUUIS );
-                config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+        HiveConfig config = new HiveConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+        config.setServer( UUID.fromString( server ) );
 
-                System.out.println( "Installing hive cluster..." );
-                UUID uuid = hiveManager.installCluster( config );
-                System.out.println(
-                        "Install operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Could not find container host !!!" );
-                e.printStackTrace();
-            }
-        }
-        catch ( EnvironmentNotFoundException e )
+        Set<UUID> nodeSet = new HashSet<>();
+        for ( String uuid : clients )
         {
-            LOG.error( "Could not find environment !!!" );
-            e.printStackTrace();
+            nodeSet.add( UUID.fromString( uuid ) );
         }
+        config.setClients( nodeSet );
+
+        System.out.println( "Installing hive cluster..." );
+        UUID uuid = hiveManager.installCluster( config );
+        System.out.println( "Install operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
 
         return null;
     }
@@ -127,17 +104,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }
