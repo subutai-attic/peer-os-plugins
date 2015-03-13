@@ -121,7 +121,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
         CommandResult result = null;
         try
         {
-            result = host.execute( new RequestBuilder( Commands.uninstallCommand ).withTimeout( 600 ) );
+            result = host.execute( new RequestBuilder( Commands.uninstallCommand ).withTimeout( 1000 ) );
             if ( result.hasSucceeded() )
             {
                 config.getNodes().remove( host.getId() );
