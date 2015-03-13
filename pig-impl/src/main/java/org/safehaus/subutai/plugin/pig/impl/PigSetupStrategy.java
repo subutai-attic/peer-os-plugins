@@ -182,7 +182,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
             {
                 try
                 {
-                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ), node );
+                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ), node );
                     checkInstalled( node,result );
                 }
                 catch ( CommandException e )
