@@ -90,7 +90,7 @@ public class QueryPanel extends VerticalLayout
 
 
         // Create the upload with a caption and set receiver later
-        Upload upload = new Upload("", receiver);
+        Upload upload = new Upload("", receiver );
         upload.setButtonCaption("Start Upload");
         upload.addStyleName( "default" );
         upload.addSucceededListener(receiver);
@@ -174,18 +174,10 @@ public class QueryPanel extends VerticalLayout
         final TextArea std_err_logs = new TextArea();
         std_err_logs.setSizeFull();
         std_err_logs.setRows( rowSize );
-        std_err_logs.addValueChangeListener( new Property.ValueChangeListener()
-        {
-            @Override
-            public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
-            {
-                Notification.show( "Error !!!" );
-            }
-        } );
 
 
         final QueryType queryType = type;
-        Button runQueryButton = new Button( "Run Query File" );
+        final Button runQueryButton = new Button( "Run Query File" );
         runQueryButton.addStyleName( "default" );
         runQueryButton.addClickListener( new Button.ClickListener()
         {
@@ -204,15 +196,6 @@ public class QueryPanel extends VerticalLayout
                 receiver.setFile( newFile );
                 receiver.saveChanges( contentOfQueryFile, newFile );
                 receiver.showUploadedText( contentOfQueryFile, newFile );
-
-                try
-                {
-                    receiver.copyFile( containerHost, receiver.getFile() );
-                }
-                catch ( IOException e )
-                {
-                    e.printStackTrace();
-                }
                 switch ( queryType ){
                     case HIVE:
                         etlTransformManager.executorService.execute( new Runnable()
@@ -220,10 +203,18 @@ public class QueryPanel extends VerticalLayout
                             @Override
                             public void run()
                             {
+                                try
+                                {
+                                    receiver.copyFile( containerHost, receiver.getFile() );
+                                }
+                                catch ( IOException e )
+                                {
+                                    e.printStackTrace();
+                                }
                                 CommandResult result = executeCommand( containerHost, ". /etc/profile && hive -f " +
                                         receiver.getFile().getAbsolutePath() );
                                 if ( result.hasSucceeded() ){
-                                    std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdOut() + "\n" );
+                                    std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdErr() + "\n" + result.getStdOut() + "\n" );
                                     std_err_logs.setValue( std_err_logs.getValue() + "\n" + result.getStdErr() );
                                 }
                                 progressBar.setVisible( false );
@@ -236,6 +227,17 @@ public class QueryPanel extends VerticalLayout
                             @Override
                             public void run()
                             {
+                                try
+                                {
+                                    receiver.copyFile( containerHost, receiver.getFile() );
+                                }
+                                catch ( IOException e )
+                                {
+                                    e.printStackTrace();
+                                }
+                                /*
+                                 TODO : find a way to run pig queries without export JAVA_HOME
+                                 */
                                 CommandResult result = executeCommand( containerHost, ". /etc/profile && "
                                                                         + "export JAVA_HOME=" + JAVA_HOME + " && "
                                                                         + "pig -x mapreduce " +
@@ -275,14 +277,14 @@ public class QueryPanel extends VerticalLayout
         final VerticalLayout tab1 = new VerticalLayout();
         tab1.setSizeFull();
         tab1.setSpacing( true );
-        tab1.setCaption( "std_out" );
+        tab1.setCaption( "Output" );
         tabsheet.addTab(tab1);
         tab1.addComponent( std_logs );
 
         final VerticalLayout tab2 = new VerticalLayout();
         tab2.setSizeFull();
         tab2.setSpacing( true );
-        tab2.setCaption( "std_err");
+        tab2.setCaption( "Errors");
         tabsheet.addTab(tab2);
         tab2.addComponent( std_err_logs );
 
