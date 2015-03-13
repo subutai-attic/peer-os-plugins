@@ -3,9 +3,6 @@ package org.safehaus.subutai.plugin.oozie.cli;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
-import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -22,52 +19,36 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * sample command :
- *    oozie:check-cluster test \ {cluster name}
+ * sample command : oozie:check-cluster test \ {cluster name}
  */
-@Command(scope = "oozie", name = "check-cluster", description = "Command to check Oozie cluster")
+@Command( scope = "oozie", name = "check-cluster", description = "Command to check Oozie cluster" )
 public class CheckClusterCommand extends OsgiCommandSupport
 {
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
+    @Argument( index = 1, name = "server", description = "The hostname of server container", required = true,
+            multiValued = false )
+    String server = null;
     private Oozie oozieManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
 
+
     @Override
     protected Object doExecute() throws Exception
     {
         System.out.println( "Checking cluster nodes ... " );
-        OozieClusterConfig config = oozieManager.getCluster( clusterName );
-        for ( UUID uuid : config.getAllNodes() ){
-            try
-            {
-                Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                try
-                {
-                    String hostname = environment.getContainerHostById( uuid ).getHostname();
-                    UUID checkUUID = oozieManager.checkNode( clusterName, hostname );
-                    System.out.println( hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    LOG.error( "Could not find container host." );
-                    e.printStackTrace();
-                }
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Could not find environment." );
-                e.printStackTrace();
-            }
-        }
+        UUID checkUUID = oozieManager.checkNode( clusterName, server );
+        System.out.println( server + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
+
         return null;
     }
 
 
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         NodeState state = NodeState.UNKNOWN;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -77,11 +58,11 @@ public class CheckClusterCommand extends OsgiCommandSupport
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().toLowerCase().contains( NodeState.STOPPED.name().toLowerCase() ) )
+                    if ( po.getLog().contains( "Oozie Server is not running" ) )
                     {
                         state = NodeState.STOPPED;
                     }
-                    else if ( po.getLog().toLowerCase().contains( NodeState.RUNNING.name().toLowerCase() ) )
+                    else if ( po.getLog().contains( "Oozie Server is running" ) )
                     {
                         state = NodeState.RUNNING;
                     }
@@ -111,9 +92,9 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setOozieManager( Oozie oozieManager)
+    public void setOozieManager( Oozie oozieManager )
     {
-        this.oozieManager= oozieManager;
+        this.oozieManager = oozieManager;
     }
 
 
@@ -139,5 +120,4 @@ public class CheckClusterCommand extends OsgiCommandSupport
     {
         this.environmentManager = environmentManager;
     }
-
 }

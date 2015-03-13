@@ -29,7 +29,6 @@
       <action class="org.safehaus.subutai.plugin.oozie.cli.InstallClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="hadoopManager" ref="hadoopManager" />
-        <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
@@ -62,7 +61,21 @@
         <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
-  
+
+    <command name="oozie/add-node">
+      <action class="org.safehaus.subutai.plugin.oozie.cli.AddNodeCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/uninstall-node">
+      <action class="org.safehaus.subutai.plugin.oozie.cli.UninstallNodeCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
   </command-bundle>
-  
+
 </blueprint>
