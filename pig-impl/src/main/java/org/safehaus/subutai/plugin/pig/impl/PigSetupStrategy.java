@@ -204,7 +204,17 @@ class PigSetupStrategy implements ClusterSetupStrategy
 
     public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
     {
-        if ( !( result.hasSucceeded()  ) )
+        CommandResult statusResult;
+        try
+        {
+            statusResult = commandUtil.execute( new RequestBuilder( Commands.checkCommand ), host);
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PigConfig.PRODUCT_PACKAGE ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
