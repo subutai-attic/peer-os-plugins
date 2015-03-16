@@ -5,22 +5,37 @@ import java.util.UUID;
 
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.nutch.api.Nutch;
-import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
-@Command( scope = "nutch", name = "uninstall-cluster", description = "Command to uninstall Nutch cluster" )
-public class UninstallClusterCommand extends OsgiCommandSupport
+/**
+ * sample command : nutch:add-node test \ {cluster name} haddop1 \ {node}
+ */
+@Command( scope = "nutch", name = "add-node", description = "Command to add node to Nutch cluster" )
+public class AddNodeCommand extends OsgiCommandSupport
 {
-
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
             multiValued = false )
     String clusterName = null;
+    @Argument( index = 1, name = "node", description = "Add container", required = true,
+            multiValued = false )
+    String node = null;
     private Nutch nutchManager;
     private Tracker tracker;
+
+
+    @Override
+    protected Object doExecute() throws Exception
+    {
+        System.out.println( "Adding " + node + " node..." );
+        UUID uuid = nutchManager.addNode( clusterName, node );
+        System.out.println(
+                "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        return null;
+    }
 
 
     public Tracker getTracker()
@@ -41,18 +56,8 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setNutchManager( Nutch nutchManager )
+    public void setNutchManager( final Nutch nutchManager )
     {
         this.nutchManager = nutchManager;
-    }
-
-
-    protected Object doExecute()
-    {
-        UUID uuid = nutchManager.uninstallCluster( clusterName );
-
-        tracker.printOperationLog( NutchConfig.PRODUCT_KEY, uuid, 10 * 60 * 1000 );
-
-        return null;
     }
 }

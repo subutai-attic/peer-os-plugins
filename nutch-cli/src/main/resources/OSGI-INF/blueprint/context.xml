@@ -3,21 +3,57 @@
 
   <reference id="nutchManager" availability="mandatory"
              interface="org.safehaus.subutai.plugin.nutch.api.Nutch" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
     <command name="nutch/list-clusters">
       <action class="org.safehaus.subutai.plugin.nutch.cli.ListClustersCommand">
         <property name="nutchManager" ref="nutchManager" />
       </action>
     </command>
-  </command-bundle>
 
-  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="nutch/uninstall-cluster">
       <action class="org.safehaus.subutai.plugin.nutch.cli.UninstallClusterCommand">
         <property name="nutchManager" ref="nutchManager" />
+        <property name="tracker" ref="tracker" />
       </action>
     </command>
-  </command-bundle>
 
+    <command name="nutch/install-cluster">
+      <action class="org.safehaus.subutai.plugin.nutch.cli.InstallClusterCommand">
+        <property name="nutchManager" ref="nutchManager" />
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="nutch/describe-cluster">
+      <action class="org.safehaus.subutai.plugin.nutch.cli.DescribeClusterCommand">
+        <property name="nutchManager" ref="nutchManager" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+    <command name="nutch/add-node">
+      <action class="org.safehaus.subutai.plugin.nutch.cli.AddNodeCommand">
+        <property name="nutchManager" ref="nutchManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="nutch/uninstall-node">
+      <action class="org.safehaus.subutai.plugin.nutch.cli.UninstallNodeCommand">
+        <property name="nutchManager" ref="nutchManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+  </command-bundle>
+  
 </blueprint>
