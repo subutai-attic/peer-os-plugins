@@ -26,10 +26,9 @@ public class NutchConfig implements ConfigBase
     }
 
 
-    public NutchConfig setClusterName( String clusterName )
+    public void setClusterName( String clusterName )
     {
         this.clusterName = clusterName;
-        return this;
     }
 
 
