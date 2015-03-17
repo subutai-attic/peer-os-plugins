@@ -36,7 +36,7 @@ public class CommandsTest
         // assertions
         assertNotNull( commands.getInstallCommand() );
         assertEquals(
-                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 360 )
+                new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 1000 )
                                                                                                 .withStdOutRedirection(
                                                                                                         OutputRedirection.NO ),
                 requestBuilder );
