@@ -11,9 +11,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command : mahout:list-clusters
  */
-@Command( scope = "mahout", name = "list-clusters", description = "mydescription" )
+@Command( scope = "mahout", name = "list-clusters", description = "Lists Mahout clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
@@ -44,7 +44,7 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
         else
         {
-            System.out.println( "No Mahout cluster" );
+            System.out.println( "There is no Mahout cluster" );
         }
 
         return null;

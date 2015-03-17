@@ -18,7 +18,7 @@ public class Commands
     public RequestBuilder getInstallCommand()
     {
         return new RequestBuilder( "apt-get --force-yes --assume-yes install " + MahoutClusterConfig.PRODUCT_PACKAGE )
-                .withTimeout( 360 ).withStdOutRedirection( OutputRedirection.NO );
+                .withTimeout( 1000 ).withStdOutRedirection( OutputRedirection.NO );
     }
 
 
