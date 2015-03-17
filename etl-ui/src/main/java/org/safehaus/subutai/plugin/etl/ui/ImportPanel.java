@@ -279,7 +279,7 @@ public class ImportPanel extends ImportExportBase
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-                if ( host.getId() == null  ){
+                if ( host == null  ){
                     Notification.show( "Please select sqoop node!" );
                     return;
                 }
@@ -341,7 +341,7 @@ public class ImportPanel extends ImportExportBase
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-                if ( host.getId() == null  ){
+                if ( host == null  ){
                     Notification.show( "Please select sqoop node!" );
                     return;
                 }
