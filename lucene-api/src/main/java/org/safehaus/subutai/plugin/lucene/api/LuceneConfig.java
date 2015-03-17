@@ -52,6 +52,11 @@ public class LuceneConfig implements ConfigBase
     }
 
 
+    public void setNodes(Set<UUID> nodes)
+    {
+        this.nodes = nodes;
+    }
+
     @Override
     public String toString()
     {

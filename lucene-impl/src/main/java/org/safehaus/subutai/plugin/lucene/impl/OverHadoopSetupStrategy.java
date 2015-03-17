@@ -15,7 +15,6 @@ import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
@@ -151,7 +150,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         {
             try
             {
-                CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+                CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
                 checkInstalled( node, result );
             }
             catch ( CommandException e )

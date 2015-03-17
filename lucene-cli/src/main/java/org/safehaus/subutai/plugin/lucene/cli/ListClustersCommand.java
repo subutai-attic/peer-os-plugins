@@ -9,8 +9,10 @@ import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
-@Command( scope = "lucene", name = "list-clusters", description = "mydescription" )
+/**
+ * sample command : lucene:list-clusters
+ */
+@Command( scope = "lucene", name = "list-clusters", description = "Lists Lucene clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
