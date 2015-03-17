@@ -51,6 +51,11 @@
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>hadoop-plugin-api</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

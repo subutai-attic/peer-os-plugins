@@ -11,9 +11,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command : oozie:list-clusters
  */
-@Command( scope = "oozie", name = "list-clusters", description = "mydescription" )
+@Command( scope = "oozie", name = "list-clusters", description = "Lists Oozie clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
