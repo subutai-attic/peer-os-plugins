@@ -106,7 +106,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         CommandResult result = null;
         try
         {
-            result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+            result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
             if ( result.hasSucceeded() )
             {
                 config.getNodes().add( host.getId() );

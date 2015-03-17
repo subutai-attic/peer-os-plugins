@@ -19,7 +19,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.slf4j.Logger;
@@ -183,7 +182,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
             {
                 try
                 {
-                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ), node );
+                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ), node );
                     checkInstalled( node,result );
                 }
                 catch ( CommandException e )
