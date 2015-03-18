@@ -66,9 +66,9 @@ public class ETLExtractManager extends ETLBaseManager
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                progressIcon.setVisible( true );
                 if ( event.getProperty().getValue() != null )
                 {
+                    progressIcon.setVisible( true );
                     final HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     sqoopSelection.setValue( null );
                     sqoopSelection.removeAllItems();
