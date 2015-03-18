@@ -3,11 +3,8 @@ package org.safehaus.subutai.plugin.oozie.cli;
 
 import java.util.UUID;
 
-import org.safehaus.subutai.common.tracker.OperationState;
-import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
-import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -15,17 +12,25 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command :
+ *      oozie:uninstall-cluster test \ {cluster name}
  */
 @Command( scope = "oozie", name = "uninstall-cluster", description = "Command to uninstall Oozie cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
-
-    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false )
-    String clusterName = null;
+    @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "Delete cluster" )
+    String clusterName;
     private Oozie oozieManager;
     private Tracker tracker;
+
+
+    protected Object doExecute()
+    {
+        UUID uuid = oozieManager.uninstallCluster( clusterName );
+        System.out.println(
+                "Uninstall operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) + "." );
+        return null;
+    }
 
 
     public Tracker getTracker()
@@ -40,52 +45,14 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setOozieManager( Oozie oozieManager )
-    {
-        this.oozieManager = oozieManager;
-    }
-
-
-    public Oozie getOozeManager()
+    public Oozie getOozieManager()
     {
         return oozieManager;
     }
 
 
-    protected Object doExecute()
+    public void setOozieManager( Oozie oozieManager )
     {
-        UUID uuid = oozieManager.uninstallCluster( clusterName );
-        int logSize = 0;
-        while ( !Thread.interrupted() )
-        {
-            TrackerOperationView po = tracker.getTrackerOperation( OozieClusterConfig.PRODUCT_KEY, uuid );
-            if ( po != null )
-            {
-                if ( logSize != po.getLog().length() )
-                {
-                    System.out.print( po.getLog().substring( logSize, po.getLog().length() ) );
-                    System.out.flush();
-                    logSize = po.getLog().length();
-                }
-                if ( po.getState() != OperationState.RUNNING )
-                {
-                    break;
-                }
-            }
-            else
-            {
-                System.out.println( "Product operation not found. Check logs" );
-                break;
-            }
-            try
-            {
-                Thread.sleep( 1000 );
-            }
-            catch ( InterruptedException ex )
-            {
-                break;
-            }
-        }
-        return null;
+        this.oozieManager = oozieManager;
     }
 }

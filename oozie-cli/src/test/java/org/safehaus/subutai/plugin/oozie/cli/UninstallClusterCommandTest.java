@@ -15,7 +15,6 @@ import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -39,6 +38,7 @@ public class UninstallClusterCommandTest
         uninstallClusterCommand = new UninstallClusterCommand();
         uninstallClusterCommand.setOozieManager( oozie );
         uninstallClusterCommand.setTracker(tracker);
+        when( tracker.getTrackerOperation( anyString(), any(UUID.class) ) ).thenReturn( trackerOperationView );
     }
 
     @Test
@@ -54,11 +54,11 @@ public class UninstallClusterCommandTest
     @Test
     public void testGetPrestoManager() throws Exception
     {
-        uninstallClusterCommand.getOozeManager();
+        uninstallClusterCommand.getOozieManager();
 
         // assertions
-        assertNotNull(uninstallClusterCommand.getOozeManager());
-        assertEquals( oozie,uninstallClusterCommand.getOozeManager() );
+        assertNotNull(uninstallClusterCommand.getOozieManager());
+        assertEquals( oozie,uninstallClusterCommand.getOozieManager() );
     }
 
     @Test
@@ -73,18 +73,4 @@ public class UninstallClusterCommandTest
         // assertions
         assertNotNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
     }
-
-    @Test
-    public void testDoExecuteRunning() throws Exception
-    {
-        when(oozie.uninstallCluster(anyString())).thenReturn(UUID.randomUUID());
-        when(tracker.getTrackerOperation(anyString(),any(UUID.class))).thenReturn(null);
-        when(trackerOperationView.getLog()).thenReturn("test");
-
-        uninstallClusterCommand.doExecute();
-
-        //assertions
-        assertNull( tracker.getTrackerOperation( anyString(),any(UUID.class) ) );
-    }
-
 }
