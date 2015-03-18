@@ -11,26 +11,12 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command : hive:list-clusters
  */
-@Command(scope = "hive", name = "list-clusters", description = "mydescription")
+@Command( scope = "hive", name = "list-clusters", description = "Lists Hive clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
-
-
     private Hive hiveManager;
-
-
-    public Hive getHiveManager()
-    {
-        return hiveManager;
-    }
-
-
-    public void setHiveManager( Hive hiveManager )
-    {
-        this.hiveManager = hiveManager;
-    }
 
 
     protected Object doExecute()
@@ -45,9 +31,20 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
         else
         {
-            System.out.println( "No Hive cluster" );
+            System.out.println( "There is no Hive cluster" );
         }
-
         return null;
+    }
+
+
+    public Hive getHiveManager()
+    {
+        return hiveManager;
+    }
+
+
+    public void setHiveManager( Hive hiveManager )
+    {
+        this.hiveManager = hiveManager;
     }
 }
