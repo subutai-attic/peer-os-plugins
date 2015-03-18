@@ -15,7 +15,8 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
- * Displays the last log entries
+ * sample command :
+ *      mahout:uninstall-cluster test \ {cluster name}
  */
 @Command( scope = "mahout", name = "uninstall-cluster", description = "Command to uninstall Mahout cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
