@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 
@@ -17,6 +18,7 @@ public class SparkClusterConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Spark";
+    public static final String PRODUCT_PACKAGE = ( Common.PACKAGE_PREFIX + PRODUCT_KEY ).toLowerCase();
 
     private String clusterName = "";
     private String hadoopClusterName = "";
