@@ -117,7 +117,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
             ContainerHost node = it.next();
             try
             {
-                CommandResult res = node.execute( new RequestBuilder( s ) );
+                CommandResult res = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
                 if ( res.hasSucceeded() )
                 {
                     to.addLog( "Sqoop installed on " + node.getHostname() );
