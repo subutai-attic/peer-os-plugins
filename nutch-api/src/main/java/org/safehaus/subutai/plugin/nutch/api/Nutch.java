@@ -11,7 +11,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 
 public interface Nutch extends ApiBase<NutchConfig>
 {
-
     public UUID destroyNode( String clusterName, String lxcHostname );
 
     public ClusterSetupStrategy getClusterSetupStrategy( NutchConfig config, TrackerOperation po );

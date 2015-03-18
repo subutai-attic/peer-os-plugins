@@ -9,8 +9,10 @@ import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
-@Command( scope = "nutch", name = "list-clusters", description = "mydescription" )
+/**
+ * sample command : nutch:list-clusters
+ */
+@Command( scope = "nutch", name = "list-clusters", description = "Lists Nutch clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
@@ -41,7 +43,7 @@ public class ListClustersCommand extends OsgiCommandSupport
         }
         else
         {
-            System.out.println( "No Lucene cluster" );
+            System.out.println( "No Nutch cluster" );
         }
 
         return null;
