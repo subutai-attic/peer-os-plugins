@@ -160,14 +160,14 @@ public abstract class ImportExportBase extends VerticalLayout
         final VerticalLayout tab1 = new VerticalLayout();
         tab1.setSizeFull();
         tab1.setSpacing( true );
-        tab1.setCaption( "std_out" );
+        tab1.setCaption( "Output" );
         tabsheet.addTab(tab1);
         tab1.addComponent( std_logs );
 
         final VerticalLayout tab2 = new VerticalLayout();
         tab2.setSizeFull();
         tab2.setSpacing( true );
-        tab2.setCaption( "std_err");
+        tab2.setCaption( "Errors");
         tabsheet.addTab(tab2);
         tab2.addComponent( std_err_logs );
 
