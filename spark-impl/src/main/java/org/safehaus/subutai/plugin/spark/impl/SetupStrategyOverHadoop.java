@@ -19,6 +19,7 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -201,7 +202,8 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             RequestBuilder installCommand = manager.getCommands().getInstallCommand();
             for ( ContainerHost node : nodesToInstallSpark )
             {
-                executeCommand( node, installCommand );
+                CommandResult result = executeCommand( node, installCommand );
+                checkInstalled( node, result );
             }
         }
 
@@ -251,5 +253,25 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
         return result;
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( manager.getCommands().getCheckInstalledCommand() );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( SparkClusterConfig.PRODUCT_PACKAGE ) ) )
+        {
+            po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }
