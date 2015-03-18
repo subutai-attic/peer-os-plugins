@@ -1,13 +1,58 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="pigManager" availability="mandatory" interface="org.safehaus.subutai.plugin.pig.api.Pig" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
     <command name="pig/list-clusters">
       <action class="org.safehaus.subutai.plugin.pig.cli.ListClustersCommand">
         <property name="pigManager" ref="pigManager" />
       </action>
     </command>
+
+    <command name="pig/uninstall-cluster">
+      <action class="org.safehaus.subutai.plugin.pig.cli.UninstallClusterCommand">
+        <property name="pigManager" ref="pigManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="pig/install-cluster">
+      <action class="org.safehaus.subutai.plugin.pig.cli.InstallClusterCommand">
+        <property name="pigManager" ref="pigManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="hadoopManager" ref="hadoopManager" />
+      </action>
+    </command>
+
+    <command name="pig/describe-cluster">
+      <action class="org.safehaus.subutai.plugin.pig.cli.DescribeClusterCommand">
+        <property name="pigManager" ref="pigManager" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+    <command name="pig/add-node">
+      <action class="org.safehaus.subutai.plugin.pig.cli.AddNodeCommand">
+        <property name="pigManager" ref="pigManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="pig/uninstall-node">
+      <action class="org.safehaus.subutai.plugin.pig.cli.UninstallNodeCommand">
+        <property name="pigManager" ref="pigManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+
   </command-bundle>
 
 </blueprint>

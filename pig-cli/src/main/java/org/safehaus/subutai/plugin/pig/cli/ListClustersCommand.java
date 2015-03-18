@@ -9,8 +9,10 @@ import org.safehaus.subutai.plugin.pig.api.PigConfig;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
-@Command( scope = "pig", name = "list-clusters", description = "mydescription" )
+/**
+ * sample command : pig:list-clusters
+ */
+@Command( scope = "pig", name = "list-clusters", description = "Lists Pig clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
