@@ -178,7 +178,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     @Override
-    public UUID startCluster( final String clusterName, final String lxcHostname )
+    public UUID startCluster( final String clusterName )
     {
         SparkClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
@@ -205,7 +205,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     @Override
-    public UUID stopCluster( final String clusterName, final String lxcHostname )
+    public UUID stopCluster( final String clusterName )
     {
         SparkClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
