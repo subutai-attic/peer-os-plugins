@@ -111,4 +111,11 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopCluster( @PathParam( "clusterName" ) String clusterName);
 
+
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName);
+
 }

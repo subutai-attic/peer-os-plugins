@@ -218,6 +218,19 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     @Override
+    public UUID checkCluster( final String clusterName )
+    {
+        SparkClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.STATUS_ALL );
+
+        executor.execute( operationHandler );
+
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
     public UUID checkNode( final String clusterName, final String lxcHostname, final boolean master )
     {
         SparkClusterConfig config = getCluster( clusterName );

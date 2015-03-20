@@ -64,6 +64,13 @@ public interface Spark extends ApiBase<SparkClusterConfig>
     public UUID stopCluster( String clusterName );
 
     /**
+     * Checks the status of the specified cluster
+     * @param clusterName - name the cluster
+     * @return - UUID of operation to track
+     */
+    public UUID checkCluster( String clusterName);
+
+    /**
      * Checks status of the specified node
      *
      * @param clusterName - name of cluster
