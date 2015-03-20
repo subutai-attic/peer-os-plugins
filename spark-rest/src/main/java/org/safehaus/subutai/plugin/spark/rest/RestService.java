@@ -100,17 +100,22 @@ public interface RestService
 
     //start cluster
     @PUT
-    @Path( "clusters/{clusterName}/start/master/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/start" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response startCluster( @PathParam( "clusterName" ) String clusterName,
-                                  @PathParam( "lxcHostName" ) String masterNodeName);
+    public Response startCluster( @PathParam( "clusterName" ) String clusterName);
 
 
     //stop cluster
     @PUT
-    @Path( "clusters/{clusterName}/stop/master/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/stop" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response stopCluster( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "lxcHostName" ) String masterNodeName);
+    public Response stopCluster( @PathParam( "clusterName" ) String clusterName);
+
+
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName);
 
 }

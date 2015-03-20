@@ -200,7 +200,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startCluster( final String clusterName, final String masterNodeName )
+    public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
         if ( sparkManager.getCluster( clusterName ) == null )
@@ -208,14 +208,14 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = sparkManager.startCluster( clusterName, masterNodeName );
+        UUID uuid = sparkManager.startCluster( clusterName );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response stopCluster( final String clusterName, final String masterNodeName )
+    public Response stopCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
         if ( sparkManager.getCluster( clusterName ) == null )
@@ -223,7 +223,22 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = sparkManager.stopCluster( clusterName, masterNodeName );
+        UUID uuid = sparkManager.stopCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( sparkManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = sparkManager.checkCluster( clusterName );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }

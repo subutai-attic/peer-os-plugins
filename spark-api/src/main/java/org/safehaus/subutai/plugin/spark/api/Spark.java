@@ -36,11 +36,10 @@ public interface Spark extends ApiBase<SparkClusterConfig>
      * Stops the specified node
      *
      * @param clusterName - name of cluster
-     * @param lxcHostName - master node name
      *
      * @return - UUID of operation to track
      */
-    public UUID startCluster( String clusterName, String lxcHostName );
+    public UUID startCluster( String clusterName );
 
     /**
      * Stops the specified node
@@ -59,11 +58,17 @@ public interface Spark extends ApiBase<SparkClusterConfig>
      * Stops the specified node
      *
      * @param clusterName - name of cluster
-     * @param lxcHostName - master node name
      *
      * @return - UUID of operation to track
      */
-    public UUID stopCluster( String clusterName, String lxcHostName );
+    public UUID stopCluster( String clusterName );
+
+    /**
+     * Checks the status of the specified cluster
+     * @param clusterName - name the cluster
+     * @return - UUID of operation to track
+     */
+    public UUID checkCluster( String clusterName);
 
     /**
      * Checks status of the specified node
