@@ -205,10 +205,10 @@ public class HadoopAlertListener implements AlertListener
         for ( NodeType nodeType : nodeRoles )
         {
             if ( ramConsumption.get( nodeType ) != null ){
-                totalRamUsage = +ramConsumption.get( nodeType );
+                totalRamUsage += ramConsumption.get( nodeType );
             }
             if ( cpuConsumption.get( nodeType ) != null ){
-                totalCpuUsage = +cpuConsumption.get( nodeType );
+                totalCpuUsage += cpuConsumption.get( nodeType );
             }
         }
 
