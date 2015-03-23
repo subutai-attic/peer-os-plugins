@@ -242,8 +242,6 @@ public class Manager
         contentRoot.addComponent( configContent, 0, 1 );
         contentRoot.addComponent( masterNodesTable, 0, 2, 0, 10 );
         contentRoot.addComponent( slaveNodesTable, 0, 11, 0, 38 );
-
-        checkAllButton.click();
     }
 
 
