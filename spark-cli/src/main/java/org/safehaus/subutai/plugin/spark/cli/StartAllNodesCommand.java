@@ -50,7 +50,7 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             try
             {
                 String sparkMasterHostname = environment.getContainerHostById( sparkMaster ).getHostname();
-                UUID uuid = sparkManager.startCluster( clusterName, sparkMasterHostname );
+                UUID uuid = sparkManager.startCluster( clusterName );
                 System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) ) ;
             }
             catch ( ContainerHostNotFoundException e )
