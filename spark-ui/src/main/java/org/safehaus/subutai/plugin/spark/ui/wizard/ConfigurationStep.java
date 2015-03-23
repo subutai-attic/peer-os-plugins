@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.spark.ui.wizard;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -307,7 +308,12 @@ public class ConfigurationStep extends Panel
 
                     try
                     {
-                        slaveNodesSelect.setValue( hadoopEnvironment.getContainerHostsByIds( config.getSlaveIds() ) );
+                        List<ContainerHost> containerHostList = new ArrayList<ContainerHost>();
+                        for( UUID id : config.getSlaveIds())
+                        {
+                            containerHostList.add( hadoopEnvironment.getContainerHostById( id ) );
+                        }
+                        slaveNodesSelect.setValue( containerHostList );
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
