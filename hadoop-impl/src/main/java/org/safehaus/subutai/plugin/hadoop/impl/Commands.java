@@ -213,4 +213,8 @@ public class Commands
                 replicationFactor;
     }
 
+    public static String getClearDataDirectory(){
+        return " rm -rf /var/lib/hadoop-root/";
+    }
+
 }
