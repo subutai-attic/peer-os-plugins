@@ -11,7 +11,6 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.ui.environment.EnvironmentWizard;
 import org.safehaus.subutai.plugin.hadoop.ui.manager.Manager;
-import org.safehaus.subutai.plugin.hadoop.ui.wizard.Wizard;
 
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -21,6 +20,7 @@ import com.vaadin.ui.VerticalLayout;
 public class HadoopComponent extends CustomComponent
 {
     private final Manager manager;
+    final EnvironmentWizard environmentWizard;
 
     public HadoopComponent( ExecutorService executorService, Tracker tracker, Hadoop hadoop, EnvironmentManager environmentManager, HostRegistry hostRegistry ) throws NamingException
     {
@@ -34,12 +34,9 @@ public class HadoopComponent extends CustomComponent
         sheet.setSizeFull();
 
         manager = new Manager( executorService, tracker, hadoop, environmentManager );
-        final Wizard wizard = new Wizard( executorService, hadoop, hostRegistry, tracker );
-        final EnvironmentWizard environmentWizard =
+        environmentWizard =
                 new EnvironmentWizard( executorService, hadoop, hostRegistry, tracker, environmentManager );
 
-//        sheet.addTab( wizard.getContent(), "Install" );
-//        sheet.getTab( 0 ).setId( "HadoopInstallTab" );
         sheet.addTab( environmentWizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "HadoopEnvironmentTab" );
         sheet.addTab( manager.getContent(), "Manage" );
@@ -54,6 +51,7 @@ public class HadoopComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
+                    manager.getCheckAllButton().click();
                 }
             }
         } );
