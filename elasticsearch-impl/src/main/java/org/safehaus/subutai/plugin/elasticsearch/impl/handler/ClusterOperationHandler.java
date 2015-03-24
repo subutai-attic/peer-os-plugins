@@ -77,6 +77,7 @@ public class ClusterOperationHandler
                 break;
             case START_ALL:
             case STOP_ALL:
+            case STATUS_ALL:
                 startNStop( operationType );
                 break;
         }
@@ -138,6 +139,29 @@ public class ClusterOperationHandler
                         }
                     }
                     break;
+                case STATUS_ALL:_ALL:
+                    for ( UUID uuid : config.getNodes() ){
+                        try
+                        {
+                            ContainerHost host = env.getContainerHostById( uuid );
+                            try
+                            {
+                                trackerOperation.addLog( "Checking elasticsearch on node " + host.getHostname() );
+                                CommandResult result = host.execute( Commands.getStatusCommand() );
+                                NodeOperationHandler.logResults( trackerOperation, result );
+
+                            }
+                            catch ( CommandException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        catch ( ContainerHostNotFoundException e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                    return;
             }
         }
         catch ( EnvironmentNotFoundException e )

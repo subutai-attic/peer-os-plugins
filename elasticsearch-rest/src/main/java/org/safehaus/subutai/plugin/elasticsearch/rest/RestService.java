@@ -39,6 +39,25 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName );
+
+    //start cluster
+    @PUT
+    @Path( "clusters/{clusterName}/start" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //stop cluster
+    @PUT
+    @Path( "clusters/{clusterName}/stop" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+
     //check node
     @GET
     @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
