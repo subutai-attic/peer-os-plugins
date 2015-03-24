@@ -1,15 +1,19 @@
 package org.safehaus.subutai.plugin.hadoop.impl.handler;
 
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
@@ -97,6 +101,30 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         // before removing cluster, stop it first.
         manager.stopNameNode( config );
         manager.stopJobTracker( config );
+
+        // clear "/var/lib/hadoop-root" directories
+        try
+        {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            CommandUtil commandUtil = new CommandUtil();
+            Set<Host> hostSet = new HashSet<>();
+            for ( ContainerHost host : environment.getContainerHosts() ){
+                hostSet.add( host );
+            }
+            try
+            {
+                commandUtil.executeParallel( new RequestBuilder( Commands.getClearDataDirectory() ), hostSet );
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
         if ( config == null )
         {
             trackerOperation.addLogFailed(
