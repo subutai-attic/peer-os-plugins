@@ -168,7 +168,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         //configuration replication factor
-        ComboBox replicationFactorComboBox = new ComboBox( "Choose replication factor for slave nodes",
+        final ComboBox replicationFactorComboBox = new ComboBox( "Choose replication factor for slave nodes",
                 Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ) );
         replicationFactorComboBox.setId( "HadoopReplicationFactorComboBox" );
         replicationFactorComboBox.setImmediate( true );
@@ -215,6 +215,9 @@ public class ConfigurationStep extends VerticalLayout
                 if ( Strings.isNullOrEmpty( wizard.getHadoopClusterConfig().getClusterName() ) )
                 {
                     show( "Please provide cluster name" );
+                }
+                else if ( (int) replicationFactorComboBox.getValue() > wizard.getHadoopClusterConfig().getDataNodes().size() ){
+                    show( "Replication factor could NOT be bigger than slave nodes count !!!");
                 }
                 else
                 {
