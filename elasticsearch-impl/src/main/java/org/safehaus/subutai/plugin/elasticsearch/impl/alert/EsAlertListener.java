@@ -105,9 +105,9 @@ public class EsAlertListener implements AlertListener
             return;
         }
 
-        // Set 80 percent of the available ram capacity of the resource host
+        // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.5;
 
         //figure out process pid
         int processPID = 0;
@@ -126,7 +126,7 @@ public class EsAlertListener implements AlertListener
 
         //confirm that ES is causing the stress, otherwise no-op
         MonitoringSettings thresholds = elasticsearch.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double ramLimit = metric.getTotalRam() * thresholds.getRamAlertThreshold() / 100; // 0.8
         double redLine = 0.7;
         boolean isCpuStressedByES = false;
         boolean isRamStressedByES = false;
