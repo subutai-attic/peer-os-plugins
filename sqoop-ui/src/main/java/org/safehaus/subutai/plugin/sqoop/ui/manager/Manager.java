@@ -370,6 +370,10 @@ public class Manager
             public void buttonClick( Button.ClickEvent event )
             {
 
+                if ( config.getNodes().size() == 1 ){
+                    show( "This is the last sqoop node in the cluster, please destroy whole cluster!" );
+                    return;
+                }
                 ConfirmationDialog alert = new ConfirmationDialog(
                         String.format( "Do you want to destroy the %s node?", node.getHostname() ), "Yes", "No" );
                 alert.getOk().addClickListener( new Button.ClickListener()
