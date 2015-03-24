@@ -334,6 +334,7 @@ public class Manager
                 {
                     importPanel.setHost( node );
                     importPanel.setType( null );
+                    importPanel.setClusterName( config.getClusterName() );
                     sqoopComponent.addTab( importPanel );
                 }
             } );
@@ -344,6 +345,7 @@ public class Manager
                 public void buttonClick( Button.ClickEvent event )
                 {
                     exportPanel.setHost( node );
+                    exportPanel.setClusterName( config.getClusterName() );
                     sqoopComponent.addTab( exportPanel );
                 }
             } );
