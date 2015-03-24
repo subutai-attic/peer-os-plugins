@@ -67,6 +67,51 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if( elasticsearch.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = elasticsearch.checkCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response startCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if( elasticsearch.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = elasticsearch.startCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response stopCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if( elasticsearch.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = elasticsearch.stopCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
     public Response configureCluster( final String environmentId, final String clusterName, final String nodes )
     {
         Preconditions.checkNotNull( environmentId );
