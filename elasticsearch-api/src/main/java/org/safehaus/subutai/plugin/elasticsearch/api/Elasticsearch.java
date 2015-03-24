@@ -67,6 +67,15 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
 
 
     /**
+     * Check all nodes in cluster
+     * @param clusterName cluster name
+     * @return
+     */
+    public UUID checkCluster( String clusterName );
+
+
+
+    /**
      * Saves/Updates cluster config in database
      *
      * @param config - config to update
