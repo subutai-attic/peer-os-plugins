@@ -888,9 +888,9 @@ public class Manager
     {
         if ( config.getSeedNodes().contains( UUID.fromString( agentUUID.toString() ) ) )
         {
-            return "Seed";
+            return "Seed + Data";
         }
-        return "Not Seed";
+        return "Data";
     }
 
 
