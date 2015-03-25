@@ -145,7 +145,7 @@ public class NodeSelectionStep extends Panel
                     hc = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hc.getClusterName() );
 
-                    //                    ContainerHost selected;
+                    // ContainerHost selected;
                     if ( config.getServer() != null )
                     {
                         try
