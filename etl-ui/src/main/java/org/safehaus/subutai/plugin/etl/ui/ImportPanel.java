@@ -75,7 +75,7 @@ public class ImportPanel extends ImportExportBase
     {
         ImportSetting s = new ImportSetting();
         s.setType( type );
-        s.setClusterName( clusterName );
+        s.setClusterName( UIUtil.findSqoopClusterName( sqoop, host.getId() ) );
         s.setHostname( host.getHostname() );
 
         if ( databases.getValue() == null ){

@@ -1,6 +1,12 @@
 package org.safehaus.subutai.plugin.etl.ui;
 
 
+import java.util.List;
+import java.util.UUID;
+
+import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
+import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
+
 import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractTextField;
@@ -85,5 +91,15 @@ public class UIUtil
         AbstractTextField textField = isPassword ? new PasswordField( label ) : new TextField( label );
         textField.setSizeFull();
         return textField;
+    }
+
+    public static String findSqoopClusterName( Sqoop sqoop, UUID uuid ){
+        List<SqoopConfig> sqoopConfigList = sqoop.getClusters();
+        for( SqoopConfig config : sqoopConfigList ){
+            if ( config.getNodes().contains( uuid ) ){
+                return config.getClusterName();
+            }
+        }
+        return null;
     }
 }

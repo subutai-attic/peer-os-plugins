@@ -135,7 +135,7 @@ public class ETLLoadManager extends ETLBaseManager
                     ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
                     exportPanel.setHost( containerHost );
                     SqoopConfig config = findSqoopConfigOfContainerHost( sqoop.getClusters(), containerHost );
-                    exportPanel.setClusterName( config.getClusterName() );
+                    exportPanel.setSqoopClusterName( config.getClusterName() );
                 }
             }
         } );

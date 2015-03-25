@@ -52,7 +52,7 @@ public class ExportPanel extends ImportExportBase
     ExportSetting makeSettings()
     {
         ExportSetting s = new ExportSetting();
-        s.setClusterName( clusterName );
+        s.setClusterName( sqoopClusterName );
         s.setHostname( host.getHostname() );
         s.setConnectionString( connStringField.getValue() );
         s.setTableName( tableField.getValue() );

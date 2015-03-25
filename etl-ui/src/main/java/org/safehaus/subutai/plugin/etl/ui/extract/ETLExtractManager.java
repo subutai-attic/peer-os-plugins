@@ -138,7 +138,7 @@ public class ETLExtractManager extends ETLBaseManager
                     ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
                     importPanel.setHost( containerHost );
                     SqoopConfig config = findSqoopConfigOfContainerHost( sqoop.getClusters(), containerHost );
-                    importPanel.setClusterName( config.getClusterName() );
+                    importPanel.setSqoopClusterName( config.getClusterName() );
                 }
             }
         } );

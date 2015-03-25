@@ -27,7 +27,7 @@ public abstract class ImportExportBase extends VerticalLayout
 {
 
     private final Tracker tracker;
-    protected String clusterName;
+    protected String sqoopClusterName;
     protected ContainerHost host;
     protected List<Field> fields = new ArrayList<>();
     AbstractTextField connStringField;
@@ -58,15 +58,15 @@ public abstract class ImportExportBase extends VerticalLayout
     }
 
 
-    public String getClusterName()
+    public String getSqoopClusterName()
     {
-        return clusterName;
+        return sqoopClusterName;
     }
 
 
-    public void setClusterName( String clusterName )
+    public void setSqoopClusterName( String sqoopClusterName )
     {
-        this.clusterName = clusterName;
+        this.sqoopClusterName = sqoopClusterName;
     }
 
 
