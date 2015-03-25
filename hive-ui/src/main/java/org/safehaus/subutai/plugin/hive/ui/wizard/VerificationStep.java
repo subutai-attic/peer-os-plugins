@@ -120,6 +120,7 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
+                wizard.clearConfig();
                 wizard.back();
             }
         } );

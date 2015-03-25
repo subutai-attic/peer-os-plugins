@@ -103,6 +103,9 @@ public class Wizard
         putForm();
     }
 
+    public void clearConfig(){
+        config = new HiveConfig();
+    }
 
     protected void init()
     {
