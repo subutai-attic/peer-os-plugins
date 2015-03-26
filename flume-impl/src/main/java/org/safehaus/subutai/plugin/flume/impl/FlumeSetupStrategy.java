@@ -57,7 +57,7 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         config.setEnvironmentId( environment.getId() );
         manager.getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config );
         po.addLog( "Cluster info saved to DB\nInstalling Flume..." );
-        //install pig,
+        //install flume,
         String s = Commands.make( CommandType.INSTALL );
         try
         {
@@ -66,7 +66,7 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
                 try
                 {
                     CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
-                    processResult( node, result );
+                    checkInstalled( node, result );
                 }
                 catch ( CommandException e )
                 {
@@ -169,11 +169,21 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-
-        if ( !result.hasSucceeded() )
+        CommandResult statusResult;
+        try
         {
+            statusResult = host.execute( new RequestBuilder( Commands.make( CommandType.STATUS ) ) );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( FlumeConfig.PACKAGE_NAME ) ) )
+        {
+            po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

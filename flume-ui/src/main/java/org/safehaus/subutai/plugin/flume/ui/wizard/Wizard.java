@@ -113,4 +113,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Flume getFlumeManager()
+    {
+        return flume;
+    }
 }
