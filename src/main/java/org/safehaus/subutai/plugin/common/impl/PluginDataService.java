@@ -269,7 +269,7 @@ public class PluginDataService
             if ( ! isAdmin ) {
                 query.setParameter( "userId", userId );
             }
-
+            result = query.getResultList();
             em.getTransaction().commit();
         }
         catch ( Exception e )
