@@ -88,7 +88,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getConfigHostIds().addAll( nodes );
+            mongoConfig.getConfigHosts().addAll( nodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getDataNodes() ) )
@@ -98,7 +98,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getDataHostIds().addAll( nodes );
+//            mongoConfig.getDataHostIds().addAll( nodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getRouterNodes() ) )
@@ -108,7 +108,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getRouterHostIds().addAll( nodes );
+            mongoConfig.getRouterHosts().addAll( nodes );
         }
         UUID uuid = mongo.installCluster( mongoConfig );
         OperationState state = waitUntilOperationFinish( uuid );

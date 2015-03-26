@@ -6,20 +6,20 @@
 package org.safehaus.subutai.plugin.mongodb.api;
 
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.safehaus.subutai.common.environment.Topology;
-import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.settings.Common;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
+
+import com.google.common.collect.Sets;
 
 
 /**
  * Holds a single mongo cluster configuration settings
  */
-public interface MongoClusterConfig extends ConfigBase
+public class MongoClusterConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "MongoDB";
@@ -27,105 +27,242 @@ public interface MongoClusterConfig extends ConfigBase
     public static final String TEMPLATE_NAME = "mongo";
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_NAME.toLowerCase();
 
+    private String clusterName = "";
+    private String replicaSetName = "repl";
+    private String domainName = Common.DEFAULT_DOMAIN_NAME;
+    private int numberOfConfigServers = 1;
+    private int numberOfRouters = 1;
+    private int numberOfDataNodes = 1;
+    private int cfgSrvPort = 27019;
+    private int routerPort = 27018;
+    private int dataNodePort = 27017;
+    private String primaryNode;
 
-    String getTemplateName();
-
-    int getNumberOfConfigServers();
-
-    void setNumberOfConfigServers( int i );
-
-    int getNumberOfRouters();
-
-    void setNumberOfRouters( int i );
-
-    int getNumberOfDataNodes();
-
-    void setNumberOfDataNodes( int value );
-
-    int getDataNodePort();
-
-    void setDataNodePort( int i );
-
-    int getRouterPort();
-
-    void setRouterPort( int i );
-
-    String getDomainName();
-
-    void setDomainName( String value );
-
-    String getReplicaSetName();
-
-    void setReplicaSetName( String value );
-
-    int getCfgSrvPort();
-
-    void setCfgSrvPort( int i );
-
-    Set<MongoConfigNode> getConfigServers();
-
-    void setConfigServers( Set<MongoConfigNode> configServers );
-
-    public Set<UUID> getAllNodeIds();
-
-    Set<MongoNode> getAllNodes();
-
-    Set<MongoDataNode> getDataNodes();
-
-    void setDataNodes( Set<MongoDataNode> dataNodes );
-
-    UUID getEnvironmentId();
-
-    void addNode( MongoNode mongoNode, NodeType nodeType );
-
-    Set<MongoRouterNode> getRouterServers();
-
-    void setRouterServers( Set<MongoRouterNode> routers );
-
-    NodeType getNodeType( MongoNode node );
-
-    void setClusterName( String clasterName );
-
-    MongoDataNode findPrimaryNode() throws MongoException;
-
-    void setPrimaryNode( String node );
-
-    String getPrimaryNode();
-
-    MongoNode findNode( String lxcHostname );
+    private Set<UUID> configHosts;
+    private Set<UUID> routerHosts;
+    private Set<UUID> dataHosts;
+    private UUID environmentId;
+    private boolean autoScaling;
 
 
-    void setEnvironmentId( UUID id );
 
-    Object prepare();
+    public Set<UUID> getAllNodes()
+    {
+        Set<UUID> allNodes = Sets.newHashSet();
+        if ( !CollectionUtil.isCollectionEmpty( configHosts ) )
+        {
+            allNodes.addAll( configHosts );
+        }
+        if ( !CollectionUtil.isCollectionEmpty( routerHosts ) )
+        {
+            allNodes.addAll( routerHosts );
+        }
+        if ( !CollectionUtil.isCollectionEmpty( dataHosts ) )
+        {
+            allNodes.addAll( dataHosts );
+        }
+
+        return allNodes;
+    }
 
 
-    Set<UUID> getConfigHostIds();
+    public void setClusterName( final String clusterName )
+    {
+        this.clusterName = clusterName;
+    }
 
 
-    void setConfigHostIds( Set<UUID> configServerNames );
+    public String getReplicaSetName()
+    {
+        return replicaSetName;
+    }
 
 
-    Set<UUID> getRouterHostIds();
+    public void setReplicaSetName( final String replicaSetName )
+    {
+        this.replicaSetName = replicaSetName;
+    }
 
 
-    void setRouterHostIds( Set<UUID> routerServerNames );
+    public String getDomainName()
+    {
+        return domainName;
+    }
 
 
-    Set<UUID> getDataHostIds();
+    public void setDomainName( final String domainName )
+    {
+        this.domainName = domainName;
+    }
 
 
-    void setDataServerIds( Set<UUID> dataServerNames );
+    public int getNumberOfConfigServers()
+    {
+        return numberOfConfigServers;
+    }
 
-    boolean isAutoScaling();
 
-    void setAutoScaling( boolean autoScaling );
+    public void setNumberOfConfigServers( final int numberOfConfigServers )
+    {
+        this.numberOfConfigServers = numberOfConfigServers;
+    }
 
-    Topology getTopology();
 
-    void setTopology( Topology topology );
+    public int getNumberOfRouters()
+    {
+        return numberOfRouters;
+    }
 
-    void removeNode( UUID nodeId );
 
-    public List<NodeType> getNodeRoles( ContainerHost containerHost );
+    public void setNumberOfRouters( final int numberOfRouters )
+    {
+        this.numberOfRouters = numberOfRouters;
+    }
+
+
+    public int getNumberOfDataNodes()
+    {
+        return numberOfDataNodes;
+    }
+
+
+    public void setNumberOfDataNodes( final int numberOfDataNodes )
+    {
+        this.numberOfDataNodes = numberOfDataNodes;
+    }
+
+
+    public int getCfgSrvPort()
+    {
+        return cfgSrvPort;
+    }
+
+
+    public void setCfgSrvPort( final int cfgSrvPort )
+    {
+        this.cfgSrvPort = cfgSrvPort;
+    }
+
+
+    public int getRouterPort()
+    {
+        return routerPort;
+    }
+
+
+    public void setRouterPort( final int routerPort )
+    {
+        this.routerPort = routerPort;
+    }
+
+
+    public int getDataNodePort()
+    {
+        return dataNodePort;
+    }
+
+
+    public void setDataNodePort( final int dataNodePort )
+    {
+        this.dataNodePort = dataNodePort;
+    }
+
+
+    public String getPrimaryNode()
+    {
+        return primaryNode;
+    }
+
+
+    public void setPrimaryNode( final String primaryNode )
+    {
+        this.primaryNode = primaryNode;
+    }
+
+
+    public Set<UUID> getConfigHosts()
+    {
+        return configHosts;
+    }
+
+
+    public void setConfigHosts( final Set<UUID> configHosts )
+    {
+        this.configHosts = configHosts;
+    }
+
+
+    public Set<UUID> getRouterHosts()
+    {
+        return routerHosts;
+    }
+
+
+    public void setRouterHosts( final Set<UUID> routerHosts )
+    {
+        this.routerHosts = routerHosts;
+    }
+
+
+    public Set<UUID> getDataHosts()
+    {
+        return dataHosts;
+    }
+
+
+    public void setDataHosts( final Set<UUID> dataHosts )
+    {
+        this.dataHosts = dataHosts;
+    }
+
+
+    public UUID getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final UUID environmentId )
+    {
+        this.environmentId = environmentId;
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
+    }
+
+
+    @Override
+    public String getClusterName()
+    {
+        return clusterName;
+    }
+
+
+    @Override
+    public String getProductName()
+    {
+        return PRODUCT_NAME;
+    }
+
+
+    @Override
+    public String getProductKey()
+    {
+        return PRODUCT_KEY;
+    }
+
+
+    public static String getTemplateName()
+    {
+        return TEMPLATE_NAME;
+    }
 }
