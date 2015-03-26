@@ -52,11 +52,6 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        po.addLog( "Updating db..." );
-        //save to db
-        config.setEnvironmentId( environment.getId() );
-        manager.getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config );
-        po.addLog( "Cluster info saved to DB\nInstalling Flume..." );
         //install flume,
         String s = Commands.make( CommandType.INSTALL );
         try
@@ -81,6 +76,12 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
             LOG.error( "Container host not found", e );
             po.addLogFailed( "Container host not found" );
         }
+
+        po.addLog( "Updating db..." );
+        //save to db
+        config.setEnvironmentId( environment.getId() );
+        manager.getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config );
+        po.addLog( "Cluster info saved to DB\nInstalling Flume..." );
     }
 
 
