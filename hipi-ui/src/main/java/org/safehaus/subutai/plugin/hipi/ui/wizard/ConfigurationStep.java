@@ -110,6 +110,7 @@ public class ConfigurationStep extends Panel
     {
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "hipiClusterName" );
+        nameTxt.setInputPrompt( "Cluster name" );
         nameTxt.setRequired( true );
         nameTxt.setValue( config.getClusterName() );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
