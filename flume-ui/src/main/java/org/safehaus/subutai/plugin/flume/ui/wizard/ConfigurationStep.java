@@ -151,11 +151,13 @@ public class ConfigurationStep extends VerticalLayout
                                 e );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = null;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes =
-                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -226,6 +228,25 @@ public class ConfigurationStep extends VerticalLayout
 
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
+    }
+
+    //exclude hadoop nodes that are already in another flume cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes)
+    {
+        List<UUID> flumeNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for( FlumeConfig flumeConfig : wizard.getFlumeManager().getClusters() )
+        {
+            flumeNodes.addAll( flumeConfig.getNodes() );
+        }
+        for( UUID node : hadoopNodes )
+        {
+            if( !flumeNodes.contains( node ))
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 
