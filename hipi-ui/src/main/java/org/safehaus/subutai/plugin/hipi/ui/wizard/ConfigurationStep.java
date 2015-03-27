@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -15,6 +16,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.hipi.api.HipiConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -35,9 +38,12 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
+
     final Wizard wizard;
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
+    private Environment hadoopEnvironment;
 
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
@@ -138,14 +144,26 @@ public class ConfigurationStep extends Panel
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
                     select.setValue( null );
                     config.getNodes().clear();
-                    Set<ContainerHost> hadoopNodes;
                     try
                     {
-                        hadoopNodes = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() )
-                                                        .getContainerHostsByIds(
-                                                                Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
                     }
-                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
+                                e );
+                        return;
+                    }
+
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    try
+                    {
+                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
+                    }
+                    catch ( ContainerHostNotFoundException e )
                     {
                         show( String.format( "Error accessing environment: %s", e ) );
                         return;
@@ -215,6 +233,26 @@ public class ConfigurationStep extends Panel
         parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
+    }
+
+
+    //exclude hadoop nodes that are already in another hipi cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> flumeNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( HipiConfig flumeConfig : wizard.getHipiManager().getClusters() )
+        {
+            flumeNodes.addAll( flumeConfig.getNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !flumeNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 

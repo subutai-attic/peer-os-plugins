@@ -112,4 +112,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Hipi getHipiManager()
+    {
+        return hipi;
+    }
 }
