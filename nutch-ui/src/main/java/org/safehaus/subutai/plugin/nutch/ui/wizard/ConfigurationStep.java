@@ -248,7 +248,7 @@ public class ConfigurationStep extends Panel
     }
 
 
-    //exclude hadoop nodes that are already in another flume cluster
+    //exclude hadoop nodes that are already in another nutch cluster
     private List<UUID> filterNodes( List<UUID> hadoopNodes )
     {
         List<UUID> nutchNodes = new ArrayList<>();
