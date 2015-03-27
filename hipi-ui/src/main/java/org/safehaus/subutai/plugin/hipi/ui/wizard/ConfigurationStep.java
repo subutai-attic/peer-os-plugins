@@ -239,15 +239,15 @@ public class ConfigurationStep extends Panel
     //exclude hadoop nodes that are already in another hipi cluster
     private List<UUID> filterNodes( List<UUID> hadoopNodes )
     {
-        List<UUID> flumeNodes = new ArrayList<>();
+        List<UUID> hipiNodes = new ArrayList<>();
         List<UUID> filteredNodes = new ArrayList<>();
-        for ( HipiConfig flumeConfig : wizard.getHipiManager().getClusters() )
+        for ( HipiConfig hipiConfig : wizard.getHipiManager().getClusters() )
         {
-            flumeNodes.addAll( flumeConfig.getNodes() );
+            hipiNodes.addAll( hipiConfig.getNodes() );
         }
         for ( UUID node : hadoopNodes )
         {
-            if ( !flumeNodes.contains( node ) )
+            if ( !hipiNodes.contains( node ) )
             {
                 filteredNodes.add( node );
             }
