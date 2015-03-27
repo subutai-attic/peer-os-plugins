@@ -16,6 +16,8 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -36,6 +38,8 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
+
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
     private Environment hadoopEnvironment;
@@ -120,6 +124,7 @@ public class ConfigurationStep extends Panel
     {
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "nutchClusterName" );
+        nameTxt.setInputPrompt( "Cluster name" );
         nameTxt.setRequired( true );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -162,11 +167,13 @@ public class ConfigurationStep extends Panel
                         return;
                     }
 
-                    Set<ContainerHost> hadoopNodes;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes =
-                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -238,6 +245,26 @@ public class ConfigurationStep extends Panel
         parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
+    }
+
+
+    //exclude hadoop nodes that are already in another flume cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> nutchNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( NutchConfig nutchConfig : wizard.getNutchManager().getClusters() )
+        {
+            nutchNodes.addAll( nutchConfig.getNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !nutchNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 

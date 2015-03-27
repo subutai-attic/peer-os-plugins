@@ -112,4 +112,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Nutch getNutchManager()
+    {
+        return nutch;
+    }
 }
