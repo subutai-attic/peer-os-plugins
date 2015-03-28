@@ -103,7 +103,15 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( HipiConfig ) event.getProperty().getValue();
-                refreshUI();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshUI();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -333,10 +341,12 @@ public class Manager
                 return;
             }
             populateTable( nodesTable, nodes );
+            PROGRESS_ICON.setVisible( false );
         }
         else
         {
             nodesTable.removeAllItems();
+            PROGRESS_ICON.setVisible( false );
         }
     }
 
@@ -425,17 +435,6 @@ public class Manager
 
     public void refreshClustersInfo()
     {
-        if ( contentRoot.getUI() != null )
-        {
-            contentRoot.getUI().access( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    PROGRESS_ICON.setVisible( false );
-                }
-            } );
-        }
         List<HipiConfig> clustersInfo = hipi.getClusters();
         HipiConfig clusterInfo = ( HipiConfig ) clusterCombo.getValue();
         clusterCombo.removeAllItems();
@@ -454,6 +453,7 @@ public class Manager
                     if ( hipiClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
                         clusterCombo.setValue( hipiClusterInfo );
+                        PROGRESS_ICON.setVisible( false );
                         return;
                     }
                 }
@@ -461,6 +461,7 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
+                PROGRESS_ICON.setVisible( false );
             }
         }
     }
