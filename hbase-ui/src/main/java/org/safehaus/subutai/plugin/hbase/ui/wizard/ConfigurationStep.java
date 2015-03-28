@@ -456,7 +456,7 @@ public class ConfigurationStep extends Panel
             Set<ContainerHost> hadoopHosts = new HashSet<>();
             for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
             {
-                if ( hadoopInfo.getAllNodes().contains( host.getId() ) )
+                if ( filterNodes( hadoopInfo.getAllNodes() ).contains( host.getId() ) )
                 {
                     hadoopHosts.add( host );
                 }
@@ -468,6 +468,25 @@ public class ConfigurationStep extends Panel
             e.printStackTrace();
         }
         return Collections.emptySet();
+    }
+
+    //exclude hadoop nodes that are already in another flume cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes)
+    {
+        List<UUID> hbaseNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for( HBaseConfig hBaseConfig : wizard.getHbase().getClusters() )
+        {
+            hbaseNodes.addAll( hBaseConfig.getAllNodes() );
+        }
+        for( UUID node : hadoopNodes )
+        {
+            if( !hbaseNodes.contains( node ))
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 
