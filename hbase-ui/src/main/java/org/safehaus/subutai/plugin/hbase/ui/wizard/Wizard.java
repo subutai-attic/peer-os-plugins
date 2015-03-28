@@ -119,6 +119,11 @@ public class Wizard
         return config;
     }
 
+    public HBase getHbase()
+    {
+        return hbase;
+    }
+
 
     public HadoopClusterConfig getHadoopConfig()
     {
