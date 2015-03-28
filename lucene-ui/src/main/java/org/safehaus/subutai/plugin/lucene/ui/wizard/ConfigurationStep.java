@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -132,12 +133,14 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    Set<ContainerHost> hadoopNodes;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() )
-                                                        .getContainerHostsByIds(
-                                                                Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        Environment environment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ))
+                        {
+                            hadoopNodes.add( environment.getContainerHostById( nodeId ));
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -214,6 +217,26 @@ public class ConfigurationStep extends Panel
         parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
+    }
+
+
+    //exclude hadoop nodes that are already in another lucene cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes)
+    {
+        List<UUID> luceneNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for( LuceneConfig flumeConfig : wizard.getLucene().getClusters() )
+        {
+            luceneNodes.addAll( flumeConfig.getNodes() );
+        }
+        for( UUID node : hadoopNodes )
+        {
+            if( !luceneNodes.contains( node ))
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 

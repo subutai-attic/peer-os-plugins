@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.lucene.impl;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -19,6 +20,7 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 class OverHadoopSetupStrategy extends LuceneSetupStrategy
@@ -59,10 +61,13 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
                             config.getClusterName() ) );
         }
         //check nodes are connected
-        Set<ContainerHost> nodes;
+        Set<ContainerHost> nodes = Sets.newHashSet();
         try
         {
-            nodes = environment.getContainerHostsByIds( config.getNodes() );
+            for( UUID nodeId : config.getNodes() )
+            {
+                nodes.add( environment.getContainerHostById( nodeId ) );
+            }
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -126,21 +131,13 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        trackerOperation.addLog( "Updating db..." );
-        config.setEnvironmentId( environment.getId() );
+        Set<ContainerHost> nodes = Sets.newHashSet();
         try
         {
-            manager.saveConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            throw new ClusterSetupException( e );
-        }
-        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Lucene..." );
-        Set<ContainerHost> nodes;
-        try
-        {
-            nodes = environment.getContainerHostsByIds( config.getNodes() );
+            for( UUID nodeId : config.getNodes() )
+            {
+                nodes.add( environment.getContainerHostById( nodeId ) );
+            }
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -158,6 +155,17 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
                 throw new ClusterSetupException( String.format( "Failed to install Lucene on server node" ) );
             }
         }
+        trackerOperation.addLog( "Updating db..." );
+        config.setEnvironmentId( environment.getId() );
+        try
+        {
+            manager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
+        }
+        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Lucene..." );
     }
 
 
