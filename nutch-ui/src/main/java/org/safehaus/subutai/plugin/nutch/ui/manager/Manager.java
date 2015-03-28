@@ -31,9 +31,11 @@ import org.safehaus.subutai.server.ui.component.TerminalWindow;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -54,6 +56,7 @@ public class Manager
     protected static final String BUTTON_STYLE_NAME = "default";
 
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
+    private final Embedded progressIndicator = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
     private final Table nodesTable;
@@ -102,7 +105,15 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( NutchConfig ) event.getProperty().getValue();
-                refreshUI();
+                progressIndicator.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshUI();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -117,7 +128,16 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                refreshClustersInfo();
+                progressIndicator.setVisible( true );
+                refreshClustersBtn.setEnabled( false );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -136,6 +156,10 @@ public class Manager
         addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
+
+        progressIndicator.setVisible( false );
+        progressIndicator.setId( "indicator" );
+        controlsContent.addComponent( progressIndicator );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
@@ -326,6 +350,14 @@ public class Manager
             {
                 hosts = environmentManager.findEnvironment( config.getEnvironmentId() )
                                           .getContainerHostsByIds( config.getNodes() );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        progressIndicator.setVisible( false );
+                    }
+                } ).start();
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -441,6 +473,16 @@ public class Manager
                 clusterCombo.setItemCaption( nutchClusterInfo,
                         nutchClusterInfo.getClusterName() + "(" + nutchClusterInfo.getHadoopClusterName() + ")" );
             }
+            new Thread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    progressIndicator.setVisible( false );
+                    refreshClustersBtn.setEnabled( true );
+                }
+            } ).start();
+
             if ( clusterInfo != null )
             {
                 for ( NutchConfig nutchConfig : clustersInfo )
