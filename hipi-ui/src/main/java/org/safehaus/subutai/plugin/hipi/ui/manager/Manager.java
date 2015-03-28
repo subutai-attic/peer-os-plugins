@@ -126,7 +126,7 @@ public class Manager
                     {
                         refreshClustersInfo();
                     }
-                } );
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -425,6 +425,17 @@ public class Manager
 
     public void refreshClustersInfo()
     {
+        if ( contentRoot.getUI() != null )
+        {
+            contentRoot.getUI().access( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    PROGRESS_ICON.setVisible( false );
+                }
+            } );
+        }
         List<HipiConfig> clustersInfo = hipi.getClusters();
         HipiConfig clusterInfo = ( HipiConfig ) clusterCombo.getValue();
         clusterCombo.removeAllItems();
@@ -451,17 +462,6 @@ public class Manager
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
             }
-        }
-        if ( contentRoot != null )
-        {
-            contentRoot.getUI().access( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    PROGRESS_ICON.setVisible( false );
-                }
-            } );
         }
     }
 
