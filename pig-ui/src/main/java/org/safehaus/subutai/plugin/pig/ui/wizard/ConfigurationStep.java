@@ -123,6 +123,7 @@ public class ConfigurationStep extends Panel
 
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "pigClusterName" );
+        nameTxt.setInputPrompt( "Cluster name" );
         nameTxt.setRequired( true );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -162,11 +163,13 @@ public class ConfigurationStep extends Panel
                         LOG.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(), e );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = null;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes =
-                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -241,6 +244,26 @@ public class ConfigurationStep extends Panel
         parent.addComponent( nameTxt );
         parent.addComponent( hadoopClusters );
         parent.addComponent( select );
+    }
+
+
+    //exclude hadoop nodes that are already in another pig cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> pigNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( PigConfig pigConfig : wizard.getPigManager().getClusters() )
+        {
+            pigNodes.addAll( pigConfig.getNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !pigNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 

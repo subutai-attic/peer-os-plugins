@@ -112,4 +112,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Pig getPigManager()
+    {
+        return pig;
+    }
 }
