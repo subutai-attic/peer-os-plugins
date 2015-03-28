@@ -182,7 +182,7 @@ public class ConfigurationStep extends VerticalLayout
             public void valueChange( Property.ValueChangeEvent event )
             {
                 wizard.getHadoopClusterConfig()
-                      .setReplicationFactor( Integer.parseInt( ( String ) event.getProperty().getValue() ) );
+                        .setReplicationFactor( Integer.parseInt( event.getProperty().getValue().toString() ) );
             }
         } );
 
