@@ -30,10 +30,12 @@ import com.google.common.base.Preconditions;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -44,6 +46,8 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
+    private final static Logger LOG = LoggerFactory.getLogger( Manager.class );
+
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
     protected static final String REFRESH_CLUSTERS_CAPTION = "Refresh Clusters";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
@@ -52,6 +56,7 @@ public class Manager
     protected static final String HOST_COLUMN_CAPTION = "Host";
     protected static final String IP_COLUMN_CAPTION = "IP List";
     protected static final String BUTTON_STYLE_NAME = "default";
+
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
     private final ComboBox clusterCombo;
@@ -62,7 +67,7 @@ public class Manager
     private final Hadoop hadoop;
     private PigConfig config;
     private final EnvironmentManager environmentManager;
-    private final static Logger LOG = LoggerFactory.getLogger( Manager.class );
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
 
     public Manager( ExecutorService executorService, Pig pig, Hadoop hadoop, Tracker tracker,
@@ -119,7 +124,15 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                refreshClustersInfo();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -140,6 +153,10 @@ public class Manager
         controlsContent.setComponentAlignment( addNodeBtn, Alignment.MIDDLE_CENTER );
 
         addStyleNameToButtons( refreshClustersBtn, destroyClusterBtn, addNodeBtn );
+
+        PROGRESS_ICON.setVisible( false );
+        PROGRESS_ICON.setId( "indicator" );
+        controlsContent.addComponent( PROGRESS_ICON );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
@@ -186,7 +203,7 @@ public class Manager
                             try
                             {
                                 hosts = environmentManager.findEnvironment( info.getEnvironmentId() )
-                                                  .getContainerHostsByIds( nodes );
+                                                          .getContainerHostsByIds( nodes );
                             }
                             catch ( ContainerHostNotFoundException e )
                             {
@@ -361,10 +378,12 @@ public class Manager
                 LOG.error( "Container host not found", e );
             }
             populateTable( nodesTable, hosts );
+            PROGRESS_ICON.setVisible( false );
         }
         else
         {
             nodesTable.removeAllItems();
+            PROGRESS_ICON.setVisible( false );
         }
     }
 
@@ -379,7 +398,7 @@ public class Manager
             destroyBtn.addStyleName( "default" );
 
             final HorizontalLayout availableOperations = new HorizontalLayout();
-            availableOperations.addStyleName( "default" );
+            availableOperations.addStyleName( BUTTON_STYLE_NAME );
             availableOperations.setSpacing( true );
 
             addGivenComponents( availableOperations, destroyBtn );
@@ -456,11 +475,12 @@ public class Manager
             }
             if ( clusterInfo != null )
             {
-                for ( PigConfig mongoClusterInfo : clustersInfo )
+                for ( PigConfig pigClusterInfo : clustersInfo )
                 {
-                    if ( mongoClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
+                    if ( pigClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
-                        clusterCombo.setValue( mongoClusterInfo );
+                        clusterCombo.setValue( pigClusterInfo );
+                        PROGRESS_ICON.setVisible( false );
                         return;
                     }
                 }
@@ -468,6 +488,7 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
+                PROGRESS_ICON.setVisible( false );
             }
         }
     }
