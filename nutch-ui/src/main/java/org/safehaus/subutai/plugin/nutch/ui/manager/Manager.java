@@ -105,15 +105,7 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( NutchConfig ) event.getProperty().getValue();
-                progressIndicator.setVisible( true );
-                new Thread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        refreshUI();
-                    }
-                } ).start();
+                refreshUI();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -350,14 +342,6 @@ public class Manager
             {
                 hosts = environmentManager.findEnvironment( config.getEnvironmentId() )
                                           .getContainerHostsByIds( config.getNodes() );
-                new Thread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        progressIndicator.setVisible( false );
-                    }
-                } ).start();
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -473,15 +457,6 @@ public class Manager
                 clusterCombo.setItemCaption( nutchClusterInfo,
                         nutchClusterInfo.getClusterName() + "(" + nutchClusterInfo.getHadoopClusterName() + ")" );
             }
-            new Thread( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    progressIndicator.setVisible( false );
-                    refreshClustersBtn.setEnabled( true );
-                }
-            } ).start();
 
             if ( clusterInfo != null )
             {
@@ -490,6 +465,8 @@ public class Manager
                     if ( nutchConfig.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
                         clusterCombo.setValue( nutchConfig );
+                        progressIndicator.setVisible( false );
+                        refreshClustersBtn.setEnabled( true );
                         return;
                     }
                 }
@@ -497,6 +474,8 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
+                progressIndicator.setVisible( false );
+                refreshClustersBtn.setEnabled( true );
             }
         }
     }
