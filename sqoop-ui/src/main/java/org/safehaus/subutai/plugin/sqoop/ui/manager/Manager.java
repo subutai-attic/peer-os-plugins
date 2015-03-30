@@ -113,15 +113,7 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( SqoopConfig ) event.getProperty().getValue();
-                PROGRESS_ICON.setVisible( true );
-                new Thread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        refreshUI();
-                    }
-                } ).start();
+                refreshUI();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -289,7 +281,6 @@ public class Manager
                     e.printStackTrace();
                 }
                 populateTable( nodesTable, nodes );
-                PROGRESS_ICON.setVisible( false );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -299,7 +290,6 @@ public class Manager
         else
         {
             nodesTable.removeAllItems();
-            PROGRESS_ICON.setVisible( false );
         }
     }
 
