@@ -1,26 +1,23 @@
 package org.safehaus.subutai.plugin.common;
 
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.safehaus.subutai.common.util.ServiceLocator;
-import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.identity.api.IdentityManager;
+import javax.sql.DataSource;
+
 import org.safehaus.subutai.plugin.common.impl.EmfUtil;
 import org.safehaus.subutai.plugin.common.impl.PluginDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 
 /**
@@ -34,6 +31,8 @@ public class PluginDAO
     private EmfUtil emfUtil = new EmfUtil();
 
     private PluginDataService dataService;
+
+    private static final ReentrantLock lock = new ReentrantLock( true );
 
 
     public PluginDAO( DataSource dataSource ) throws SQLException
@@ -50,7 +49,7 @@ public class PluginDAO
     public PluginDAO( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
     {
         Preconditions.checkNotNull( dataSource, "GsonBuilder is null" );
-        this.dataService = new PluginDataService( emfUtil.getEmf() , gsonBuilder );
+        this.dataService = new PluginDataService( emfUtil.getEmf(), gsonBuilder );
     }
 
 
@@ -62,6 +61,8 @@ public class PluginDAO
 
         try
         {
+            lock.lock();
+
             dataService.update( source, key, info );
 
             return true;
@@ -69,6 +70,10 @@ public class PluginDAO
         catch ( SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return false;
     }
@@ -83,6 +88,8 @@ public class PluginDAO
 
         try
         {
+            lock.lock();
+
             dataService.update( source, key, info );
 
             return true;
@@ -90,6 +97,10 @@ public class PluginDAO
         catch ( SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return false;
     }
@@ -111,11 +122,16 @@ public class PluginDAO
         List<T> list = new ArrayList<>();
         try
         {
+            lock.lock();
             list = dataService.getInfo( source, clazz );
         }
         catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return list;
     }
@@ -138,11 +154,17 @@ public class PluginDAO
 
         try
         {
+            lock.lock();
+
             return dataService.getInfo( source, key, clazz );
         }
         catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return null;
     }
@@ -162,11 +184,16 @@ public class PluginDAO
         List<String> list = new ArrayList<>();
         try
         {
+            lock.lock();
             list = dataService.getInfo( source );
         }
         catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return list;
     }
@@ -187,11 +214,16 @@ public class PluginDAO
 
         try
         {
+            lock.lock();
             return dataService.getInfo( source, key );
         }
         catch ( JsonSyntaxException | SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return null;
     }
@@ -210,12 +242,17 @@ public class PluginDAO
 
         try
         {
+            lock.lock();
             dataService.remove( source, key );
             return true;
         }
         catch ( SQLException e )
         {
             LOG.error( e.getMessage(), e );
+        }
+        finally
+        {
+            lock.unlock();
         }
         return false;
     }
