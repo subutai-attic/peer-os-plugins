@@ -299,7 +299,7 @@ public class PluginDataService
             {
                 query.setParameter( "userId", userId );
             }
-
+            result = query.getResultList();
             em.getTransaction().commit();
         }
         catch ( Exception e )
