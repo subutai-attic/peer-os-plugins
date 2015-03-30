@@ -103,15 +103,7 @@ public class Manager
             public void valueChange( Property.ValueChangeEvent event )
             {
                 config = ( HipiConfig ) event.getProperty().getValue();
-                PROGRESS_ICON.setVisible( true );
-                new Thread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        refreshUI();
-                    }
-                } ).start();
+                refreshUI();
             }
         } );
         controlsContent.addComponent( clusterCombo );
@@ -341,12 +333,10 @@ public class Manager
                 return;
             }
             populateTable( nodesTable, nodes );
-            PROGRESS_ICON.setVisible( false );
         }
         else
         {
             nodesTable.removeAllItems();
-            PROGRESS_ICON.setVisible( false );
         }
     }
 
