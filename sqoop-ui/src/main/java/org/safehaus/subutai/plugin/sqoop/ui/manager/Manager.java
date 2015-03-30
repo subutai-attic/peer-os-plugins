@@ -26,10 +26,12 @@ import org.safehaus.subutai.server.ui.component.TerminalWindow;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -60,14 +62,15 @@ public class Manager
     private final Tracker tracker;
     private final EnvironmentManager environmentManager;
     private final SqoopComponent sqoopComponent;
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
     private SqoopConfig config;
     private Environment environment;
     private Hadoop hadoop;
 
 
-    public Manager( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager, SqoopComponent sqoopComponent )
-            throws NamingException
+    public Manager( ExecutorService executorService, Sqoop sqoop, Hadoop hadoop, Tracker tracker,
+                    EnvironmentManager environmentManager, SqoopComponent sqoopComponent ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -125,7 +128,15 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                refreshClustersInfo();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -138,6 +149,9 @@ public class Manager
         addClickListenerToDestorClusterButton();
         controlsContent.addComponent( destroyClusterBtn );
 
+        PROGRESS_ICON.setVisible( false );
+        PROGRESS_ICON.setId( "indicator" );
+        controlsContent.addComponent( PROGRESS_ICON );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
@@ -370,7 +384,8 @@ public class Manager
             public void buttonClick( Button.ClickEvent event )
             {
 
-                if ( config.getNodes().size() == 1 ){
+                if ( config.getNodes().size() == 1 )
+                {
                     show( "This is the last sqoop node in the cluster, please destroy whole cluster!" );
                     return;
                 }
@@ -416,7 +431,8 @@ public class Manager
         for ( SqoopConfig sqoopConfig : clusters )
         {
             clusterCombo.addItem( sqoopConfig );
-            clusterCombo.setItemCaption( sqoopConfig, sqoopConfig.getClusterName() + "(" + sqoopConfig.getHadoopClusterName() + ")" );
+            clusterCombo.setItemCaption( sqoopConfig,
+                    sqoopConfig.getClusterName() + "(" + sqoopConfig.getHadoopClusterName() + ")" );
         }
 
         if ( clusterInfo != null )
@@ -426,6 +442,7 @@ public class Manager
                 if ( esConfig.getClusterName().equals( clusterInfo.getClusterName() ) )
                 {
                     clusterCombo.setValue( esConfig );
+                    PROGRESS_ICON.setVisible( false );
                     return;
                 }
             }
@@ -433,6 +450,7 @@ public class Manager
         else
         {
             clusterCombo.setValue( clusters.iterator().next() );
+            PROGRESS_ICON.setVisible( false );
         }
     }
 
