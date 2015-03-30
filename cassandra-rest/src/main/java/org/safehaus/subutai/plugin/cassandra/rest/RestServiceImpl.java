@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -20,6 +21,8 @@ import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.TrimmedCassandraClusterConfig;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -29,6 +32,7 @@ public class RestServiceImpl implements RestService
     private Cassandra cassandraManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
 
 
     @Override
@@ -196,7 +200,9 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        return Response.status( Response.Status.OK ).build();
+
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is set successfully" ).build();
     }
 
 
@@ -275,17 +281,23 @@ public class RestServiceImpl implements RestService
 
 
     private Response createResponse( UUID uuid, OperationState state ){
-        TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
-        if ( state == OperationState.FAILED ){
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
-        }
-        else if ( state == OperationState.SUCCEEDED ){
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
-        }
-        else {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
-        }
+
+            TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
+
+
+            if ( state == OperationState.FAILED ){
+                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            }
+            else if ( state == OperationState.SUCCEEDED ){
+                return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            }
+            else {
+                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            }
+
+
     }
+
 
 
     private String wrapUUID( UUID uuid )
