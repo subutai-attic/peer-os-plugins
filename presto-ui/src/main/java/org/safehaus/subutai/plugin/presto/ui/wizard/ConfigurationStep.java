@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.presto.ui.wizard;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
     private final Hadoop hadoop;
     Property.ValueChangeListener coordinatorComboChangeListener;
@@ -49,14 +51,14 @@ public class ConfigurationStep extends Panel
     private ComboBox coordinatorNodeCombo;
     private Environment hadoopEnvironment;
     private final EnvironmentManager environmentManager;
-    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
-
+    private Wizard wizard;
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
     {
 
         this.hadoop = hadoop;
         this.environmentManager = environmentManager;
+        this.wizard = wizard;
         setSizeFull();
 
         GridLayout content = new GridLayout( 1, 4 );
@@ -66,6 +68,7 @@ public class ConfigurationStep extends Panel
 
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "PrestoClusterName" );
+        nameTxt.setInputPrompt( "Cluster name" );
         nameTxt.setRequired( true );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -198,16 +201,20 @@ public class ConfigurationStep extends Panel
                 LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(), e );
                 return;
             }
-            Set<ContainerHost> hadoopNodes = null;
+            Set<ContainerHost> hadoopNodes = Sets.newHashSet();
             try
             {
-                hadoopNodes = hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                {
+                    hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                }
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOGGER.error( "Container host not found", e );
             }
             workersSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+
             for ( ContainerHost hadoopNode : hadoopNodes )
             {
                 coordinatorNodeCombo.addItem( hadoopNode );
@@ -251,11 +258,13 @@ public class ConfigurationStep extends Panel
                                 e );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = null;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes =
-                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -305,11 +314,13 @@ public class ConfigurationStep extends Panel
                                 e );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = null;
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        hadoopNodes =
-                                hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -321,16 +332,31 @@ public class ConfigurationStep extends Panel
                     {
                         workersSelect.getContainerDataSource().addItem( hadoopNode );
                     }
-                    workersSelect.removeValueChangeListener( workersSelectChangeListener );
+                    Collection ls = workersSelect.getListeners( Property.ValueChangeListener.class );
+                    Property.ValueChangeListener h =
+                            ls.isEmpty() ? null : ( Property.ValueChangeListener ) ls.iterator().next();
+                    if ( h != null )
+                    {
+                        workersSelect.removeValueChangeListener( workersSelectChangeListener );
+                    }
+
                     try
                     {
-                        workersSelect.setValue( hadoopEnvironment.getContainerHostsByIds( config.getWorkers() ) );
+                        List<ContainerHost> containerHosts = new ArrayList<>();
+                        for ( UUID id : config.getWorkers() )
+                        {
+                            containerHosts.add( hadoopEnvironment.getContainerHostById( id ) );
+                        }
+                        workersSelect.setValue( containerHosts );
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
                         LOGGER.error( "Container hosts not found", e );
                     }
-                    workersSelect.addValueChangeListener( workersSelectChangeListener );
+                    if ( h != null )
+                    {
+                        workersSelect.addValueChangeListener( workersSelectChangeListener );
+                    }
                 }
             }
         };
@@ -367,6 +393,26 @@ public class ConfigurationStep extends Panel
         parent.addComponent( hadoopClustersCombo );
         parent.addComponent( coordinatorNodeCombo );
         parent.addComponent( workersSelect );
+    }
+
+
+    //exclude hadoop nodes that are already in another presto cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> prestoNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( PrestoClusterConfig prestoConfig : wizard.getPrestoManager().getClusters() )
+        {
+            prestoNodes.addAll( prestoConfig.getAllNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !prestoNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 
