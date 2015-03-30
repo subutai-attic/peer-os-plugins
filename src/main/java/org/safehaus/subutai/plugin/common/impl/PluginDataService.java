@@ -1,9 +1,15 @@
 package org.safehaus.subutai.plugin.common.impl;
 
 
-import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.naming.NamingException;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.safehaus.subutai.common.util.ServiceLocator;
 import org.safehaus.subutai.core.identity.api.IdentityManager;
@@ -11,14 +17,9 @@ import org.safehaus.subutai.plugin.common.model.ClusterDataEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 
 public class PluginDataService
@@ -27,6 +28,7 @@ public class PluginDataService
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Logger LOG = LoggerFactory.getLogger( PluginDataService.class );
     private IdentityManager identityManager;
+
 
     public PluginDataService( final EntityManagerFactory emf ) throws SQLException
     {
@@ -56,23 +58,30 @@ public class PluginDataService
     public void init()
     {
         ServiceLocator serviceLocator = new ServiceLocator();
-        try {
+        try
+        {
             identityManager = serviceLocator.getService( IdentityManager.class );
         }
-        catch ( NamingException e ) {
+        catch ( NamingException e )
+        {
             LOG.error( e.getMessage() );
             e.printStackTrace();
         }
     }
 
+
     public void update( String source, String key, final Object info ) throws SQLException
+
     {
         String infoJson = gson.toJson( info );
         EntityManager em = emf.createEntityManager();
         Long userId;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -106,9 +115,12 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         Long userId;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -144,10 +156,13 @@ public class PluginDataService
         List<T> result = new ArrayList<>();
         Long userId;
         boolean isAdmin;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
             isAdmin = identityManager.getUser().isAdmin();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -159,9 +174,12 @@ public class PluginDataService
 
             TypedQuery<String> typedQuery = em.createQuery(
                     "select cd.info from ClusterDataEntity cd where cd.source = :source" + ( isAdmin ? "" :
-                                                                                              " and cd.userId = :userId" ),String.class );
+                                                                                             " and cd.userId = "
+                                                                                                     + ":userId" ),
+                    String.class );
             typedQuery.setParameter( "source", source );
-            if ( ! isAdmin ) {
+            if ( !isAdmin )
+            {
                 typedQuery.setParameter( "userId", userId );
             }
 
@@ -196,10 +214,13 @@ public class PluginDataService
         T result = null;
         Long userId;
         boolean isAdmin;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
             isAdmin = identityManager.getUser().isAdmin();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -211,10 +232,12 @@ public class PluginDataService
             key = key.toUpperCase();
             em.getTransaction().begin();
             TypedQuery<String> query = em.createQuery(
-                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id" +
-                            ( isAdmin ? "" : " and cd.userId = :userId" ),
+                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id" + ( isAdmin ?
+                                                                                                             "" :
+                                                                                                             " and cd.userId = :userId" ),
                     String.class );
-            if ( ! isAdmin ) {
+            if ( !isAdmin )
+            {
                 query.setParameter( "userId", userId );
             }
             query.setParameter( "source", source );
@@ -249,10 +272,13 @@ public class PluginDataService
         List<String> result = new ArrayList<>();
         Long userId;
         boolean isAdmin;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
             isAdmin = identityManager.getUser().isAdmin();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -262,11 +288,15 @@ public class PluginDataService
             source = source.toUpperCase();
             em.getTransaction().begin();
 
-            TypedQuery<String> query = em.createQuery( "select cd.info from ClusterDataEntity cd where cd.source = :source" +
-                    ( isAdmin ? "" : " and cd.userId = :userId" ), String.class );
+            TypedQuery<String> query = em.createQuery(
+                    "select cd.info from ClusterDataEntity cd where cd.source = :source" + ( isAdmin ? "" :
+                                                                                             " and cd.userId = "
+                                                                                                     + ":userId" ),
+                    String.class );
 
             query.setParameter( "source", source );
-            if ( ! isAdmin ) {
+            if ( !isAdmin )
+            {
                 query.setParameter( "userId", userId );
             }
             result = query.getResultList();
@@ -294,10 +324,13 @@ public class PluginDataService
         String result = null;
         Long userId;
         boolean isAdmin;
-        try {
+        try
+        {
             userId = identityManager.getUser().getId();
             isAdmin = identityManager.getUser().isAdmin();
-        } catch ( Exception e ) {
+        }
+        catch ( Exception e )
+        {
             LOG.error( "Could not retrieve current user!" );
             throw new SQLException( e );
         }
@@ -308,12 +341,14 @@ public class PluginDataService
             key = key.toUpperCase();
             em.getTransaction().begin();
             TypedQuery<String> query = em.createQuery(
-                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id" +
-                            ( isAdmin ? "" : " and cd.userId = :userId" ),
+                    "select cd.info from ClusterDataEntity cd where cd.source = :source and cd.id = :id" + ( isAdmin ?
+                                                                                                             "" :
+                                                                                                             " and cd.userId = :userId" ),
                     String.class );
             query.setParameter( "source", source );
             query.setParameter( "id", key );
-            if ( ! isAdmin ) {
+            if ( !isAdmin )
+            {
                 query.setParameter( "userId", userId );
             }
 
@@ -370,12 +405,14 @@ public class PluginDataService
     }
 
 
-    public void setIdentityManager( IdentityManager identityManager ) {
+    public void setIdentityManager( IdentityManager identityManager )
+    {
         this.identityManager = identityManager;
     }
 
 
-    public IdentityManager getIdentityManager() {
+    public IdentityManager getIdentityManager()
+    {
         return identityManager;
     }
 }
