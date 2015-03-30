@@ -29,7 +29,6 @@ public class PluginDAO
     private static final Logger LOG = LoggerFactory.getLogger( PluginDAO.class.getName() );
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
     private EmfUtil emfUtil = new EmfUtil();
-
     private PluginDataService dataService;
 
     private static final ReentrantLock lock = new ReentrantLock( true );
