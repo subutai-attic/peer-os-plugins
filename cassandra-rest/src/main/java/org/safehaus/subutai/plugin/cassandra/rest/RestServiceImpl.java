@@ -19,6 +19,7 @@ import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.cassandra.api.Cassandra;
 import org.safehaus.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import org.safehaus.subutai.plugin.cassandra.api.TrimmedCassandraClusterConfig;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 
 import com.google.common.base.Preconditions;
 
@@ -164,6 +165,38 @@ public class RestServiceImpl implements RestService
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( cassandraManager.getCluster( clusterName ) == null ){
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = cassandraManager.checkCluster( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            cassandraManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        return Response.status( Response.Status.OK ).build();
     }
 
 
