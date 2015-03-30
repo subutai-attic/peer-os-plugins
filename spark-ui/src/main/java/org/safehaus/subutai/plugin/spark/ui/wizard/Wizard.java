@@ -112,4 +112,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Spark getSparkManager()
+    {
+        return spark;
+    }
 }
