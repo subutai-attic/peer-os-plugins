@@ -144,4 +144,9 @@ public class Wizard
     {
         return storm;
     }
+
+    public Zookeeper getZookeeperManager()
+    {
+        return zookeeper;
+    }
 }
