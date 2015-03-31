@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.Sizeable;
@@ -283,11 +284,13 @@ public class ConfigurationStep extends Panel
                                                                                                 .toString(), e );
                         return;
                     }
-                    Set<ContainerHost> zookeeperNodes = null;
+                    Set<ContainerHost> zookeeperNodes = Sets.newHashSet();
                     try
                     {
-                        zookeeperNodes =
-                                zookeeperEnvironment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+                        for ( UUID nodeId : filterZKNodes( zookeeperClusterConfig.getNodes() ) )
+                        {
+                            zookeeperNodes.add( zookeeperEnvironment.getContainerHostById( nodeId ) );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e1 )
                     {
@@ -327,8 +330,6 @@ public class ConfigurationStep extends Panel
         {
             masterNodeCombo.setValue( wizard.getConfig().getNimbus() );
         }
-
-        //        hl = new HorizontalLayout( zkClustersCombo, masterNodeCombo );
         nimbusElem = new Panel( "Nimbus node", hl );
         nimbusElem.setSizeUndefined();
         nimbusElem.setStyleName( "default" );
@@ -369,9 +370,7 @@ public class ConfigurationStep extends Panel
         installationControls.addComponent( envCombo );
         installationControls.addComponent( zkClustersCombo );
         installationControls.addComponent( masterNodeCombo );
-        //        installationControls.addComponent( nimbusNode );
         installationControls.addComponent( allNodesSelect );
-        //        installationControls.addComponent( hl );
         installationControls.addComponent( buttons );
 
         setContent( installationControls );
@@ -480,9 +479,15 @@ public class ConfigurationStep extends Panel
     private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
     {
         Set<ContainerHost> filteredSet = new HashSet<>();
+        List<UUID> stormNodes = new ArrayList<>();
+        for ( StormClusterConfiguration stormConfig : wizard.getStormManager().getClusters() )
+        {
+            stormNodes.addAll( stormConfig.getAllNodes() );
+        }
         for ( ContainerHost containerHost : containerHosts )
         {
-            if ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) )
+            if ( ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) ) && !( stormNodes
+                    .contains( containerHost.getId() ) ) )
             {
                 filteredSet.add( containerHost );
             }
@@ -511,4 +516,24 @@ public class ConfigurationStep extends Panel
             target.removeAllItems();
         }
     }
+
+    //exclude nodes that are already in another zookeeper cluster
+    private List<UUID> filterZKNodes( Set<UUID> zookeeperNodes )
+    {
+        List<UUID> zkNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( StormClusterConfiguration stormConfig : wizard.getStormManager().getClusters() )
+        {
+            zkNodes.addAll( stormConfig.getAllNodes() );
+        }
+        for ( UUID node : zookeeperNodes )
+        {
+            if ( !zkNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
+    }
+
 }
