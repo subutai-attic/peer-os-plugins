@@ -125,4 +125,9 @@ public class Wizard
     {
         this.hadoopClusterConfig = hadoopClusterConfig;
     }
+
+    public Zookeeper getZookeeperManager()
+    {
+        return zookeeper;
+    }
 }
