@@ -87,4 +87,11 @@ public interface RestService
     @Path( "clusters/{clusterName}/remove/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+
+    //auto-scale cluster
+    @POST
+    @Path("clusters/{clusterName}/auto_scale/{scale}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+                                      @PathParam( "scale" ) boolean scale );
 }

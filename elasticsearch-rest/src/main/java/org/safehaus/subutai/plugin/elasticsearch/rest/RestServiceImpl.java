@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch;
 import org.safehaus.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
@@ -243,6 +244,30 @@ public class RestServiceImpl implements RestService
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        ElasticsearchClusterConfiguration config = elasticsearch.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            elasticsearch.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+    }
+
 
     private Response createResponse( UUID uuid, OperationState state ){
         TrackerOperationView po = tracker.getTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY, uuid );
