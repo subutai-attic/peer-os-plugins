@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.cassandra.impl.handler;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +18,8 @@ import org.safehaus.subutai.common.environment.NodeGroup;
 import org.safehaus.subutai.common.environment.Topology;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.protocol.PlacementStrategy;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
@@ -231,32 +235,57 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         {
             Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
             CommandResult result = null;
+            List<CommandResult> commandResultList = new ArrayList<>();
             switch ( clusterOperationType )
             {
                 case START_ALL:
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.startCommand );
+
                     }
+                    NodeOperationHandler.logResults( trackerOperation, result );
                     break;
                 case STOP_ALL:
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.stopCommand );
+
                     }
+                    NodeOperationHandler.logResults( trackerOperation, result );
                     break;
                 case STATUS_ALL:
                     for ( ContainerHost containerHost : environment.getContainerHosts() )
                     {
-                        result = executeCommand( containerHost, Commands.statusCommand );
+                        //executeCommand( containerHost, Commands.statusCommand );
+                        commandResultList.add( executeCommand( containerHost, Commands.statusCommand ) );
                     }
+                    logResults( trackerOperation, commandResultList );
                     break;
             }
-            NodeOperationHandler.logResults( trackerOperation, result );
+
+//            NodeOperationHandler.logResults( trackerOperation, result );
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
+        }
+    }
+
+    public void logResults( TrackerOperation po, List<CommandResult> commandResultList )
+    {
+        Preconditions.checkNotNull( commandResultList );
+        for ( CommandResult commandResult : commandResultList )
+        {
+            po.addLog( commandResult.getStdOut() );
+        }
+        if ( po.getState() == OperationState.FAILED )
+        {
+            po.addLogFailed( "" );
+        }
+        else
+        {
+            po.addLogDone( "" );
         }
     }
 
