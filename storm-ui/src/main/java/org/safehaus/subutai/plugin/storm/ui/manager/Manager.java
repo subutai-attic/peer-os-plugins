@@ -61,9 +61,6 @@ public class Manager
     protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
     protected static final String STOP_BUTTON_CAPTION = "Stop";
-    protected static final String RESTART_BUTTON_CAPTION = "Restart";
-    protected static final String RESTART_ALL_BUTTON_CAPTION = "Restart All";
-    protected static final String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Environment";
     protected static final String REMOVE_CLUSTER = "Remove Cluster";
     protected static final String DESTROY_NODE_BUTTON_CAPTION = "Destroy";
     protected static final String HOST_COLUMN_CAPTION = "Host";
@@ -654,16 +651,14 @@ public class Manager
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             final Button startBtn = new Button( START_BUTTON_CAPTION );
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            final Button restartBtn = new Button( RESTART_BUTTON_CAPTION );
             final Button destroyBtn = new Button( DESTROY_NODE_BUTTON_CAPTION );
 
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormCheck" );
             startBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormStart" );
             stopBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormStop" );
-            restartBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormRestart" );
             destroyBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-stormDestroy" );
 
-            addStyleNameToButtons( checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+            addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
 
             //            disableButtons( startBtn, stopBtn, restartBtn );
             PROGRESS_ICON.setVisible( false );
@@ -674,7 +669,7 @@ public class Manager
 
             if ( server )
             {
-                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, restartBtn );
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
                 table.addItem( new Object[] {
                         containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Nimbus",
                         resultHolder, availableOperations
@@ -682,7 +677,7 @@ public class Manager
             }
             else
             {
-                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
                 table.addItem( new Object[] {
                         containerHost.getHostname(), containerHost.getIpByInterfaceName( "eth0" ), "Supervisor",
                         resultHolder, availableOperations
@@ -690,15 +685,13 @@ public class Manager
             }
 
 
-            addClickListenerToCheckButton( containerHost, resultHolder, checkBtn, startBtn, stopBtn, restartBtn,
-                    destroyBtn );
-            addClickListenerToStartButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
-            addClickListenerToStopButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+            addClickListenerToCheckButton( containerHost, resultHolder, checkBtn, startBtn, stopBtn, destroyBtn );
+            addClickListenerToStartButton( containerHost, checkBtn, startBtn, stopBtn, destroyBtn );
+            addClickListenerToStopButton( containerHost, checkBtn, startBtn, stopBtn, destroyBtn );
             if ( !server )
             {
-                addClickListenerToDestroyButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
+                addClickListenerToDestroyButton( containerHost, checkBtn, startBtn, stopBtn, destroyBtn );
             }
-            addClickListenerToRestartButton( containerHost, checkBtn, startBtn, stopBtn, restartBtn, destroyBtn );
         }
     }
 
@@ -774,43 +767,6 @@ public class Manager
     }
 
 
-    private void addClickListenerToRestartButton( final ContainerHost containerHost, final Button... buttons )
-    {
-        getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-
-                final UUID trackId = storm.restartNode( config.getClusterName(), containerHost.getHostname() );
-
-                executorService.execute( new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        TrackerOperationView po = null;
-                        while ( po == null || po.getState() == OperationState.RUNNING )
-                        {
-                            po = tracker.getTrackerOperation( StormClusterConfiguration.PRODUCT_NAME, trackId );
-                        }
-                        boolean ok = po.getState() == OperationState.SUCCEEDED;
-                        getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( !ok );
-                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( ok );
-                        getButton( RESTART_BUTTON_CAPTION, buttons ).setEnabled( true );
-                        if ( getButton( DESTROY_NODE_BUTTON_CAPTION, buttons ) != null )
-                        {
-                            getButton( DESTROY_NODE_BUTTON_CAPTION, buttons ).setEnabled( true );
-                        }
-                    }
-                } );
-            }
-        } );
-    }
-
-
     private void addClickListenerToStartButton( final ContainerHost containerHost, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -877,7 +833,6 @@ public class Manager
                                     resultHolder.setValue( nodeState.name() );
                                     PROGRESS_ICON.setVisible( false );
                                     getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                    getButton( RESTART_BUTTON_CAPTION, buttons ).setEnabled( true );
                                     if ( getButton( DESTROY_NODE_BUTTON_CAPTION, buttons ) != null )
                                     {
                                         getButton( DESTROY_NODE_BUTTON_CAPTION, buttons ).setEnabled( true );
@@ -909,25 +864,6 @@ public class Manager
         {
             layout.addComponent( b );
         }
-    }
-
-
-    private void destroyClusterHandler()
-    {
-
-        UUID trackID = storm.uninstallCluster( config.getClusterName() );
-
-        ProgressWindow window =
-                new ProgressWindow( executorService, tracker, trackID, StormClusterConfiguration.PRODUCT_NAME );
-        window.getWindow().addCloseListener( new Window.CloseListener()
-        {
-            @Override
-            public void windowClose( Window.CloseEvent closeEvent )
-            {
-                refreshClustersInfo();
-            }
-        } );
-        contentRoot.getUI().addWindow( window.getWindow() );
     }
 
 
@@ -967,36 +903,6 @@ public class Manager
             }
         }
     }
-
-
-    private Button makeBatchOperationButton( String caption, final String itemProperty )
-    {
-        Button btn = new Button( caption );
-        btn.addStyleName( "default" );
-        btn.addClickListener( new Button.ClickListener()
-        {
-
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                Table[] tables = new Table[] { masterTable, workersTable };
-                for ( Table t : tables )
-                {
-                    for ( Object itemId : t.getItemIds() )
-                    {
-                        Item item = t.getItem( itemId );
-                        Property p = item.getItemProperty( itemProperty );
-                        if ( p != null && p.getValue() instanceof Button )
-                        {
-                            ( ( Button ) p.getValue() ).click();
-                        }
-                    }
-                }
-            }
-        } );
-        return btn;
-    }
-
 
     public Component getContent()
     {
