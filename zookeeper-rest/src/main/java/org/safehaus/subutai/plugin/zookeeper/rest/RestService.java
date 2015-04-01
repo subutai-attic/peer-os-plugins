@@ -63,6 +63,12 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response startAllNodes( @PathParam("clusterName") String clusterName );
 
+    //check all nodes
+    @GET
+    @Path("clusters/{clusterName}/check")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response checkAllNodes( @PathParam("clusterName") String clusterName );
+
     //stop node
     @PUT
     @Path("clusters/{clusterName}/stop/node/{lxcHostname}")
@@ -104,4 +110,11 @@ public interface RestService
     @Path("clusters/{clusterName}/add/node")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addNodeStandalone( @PathParam("clusterName") String clusterName );
+
+    //auto-scale cluster
+    @POST
+    @Path("clusters/{clusterName}/auto_scale/{scale}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+                                      @PathParam( "scale" ) boolean scale );
 }

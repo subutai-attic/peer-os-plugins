@@ -60,6 +60,16 @@ public interface Zookeeper extends ApiBase<ZookeeperClusterConfig>
 
 
     /**
+     * Check the status of zookeeper service on all nodes on given cluster
+     *
+     * @param clusterName cluster name
+     *
+     * @return uuid that can tracked using {@link org.safehaus.subutai.core.tracker.api.Tracker} class.
+     */
+    public UUID checkAllNodes( String clusterName );
+
+
+    /**
      * Stops zookeeper service on all nodes on given cluster
      *
      * @param clusterName cluster name
