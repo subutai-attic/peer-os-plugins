@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
@@ -63,7 +64,7 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -88,7 +89,7 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         {
             ZookeeperClusterConfig zookeeperCluster =
                     manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment = null;
+            Environment zookeeperEnvironment;
             try
             {
                 zookeeperEnvironment =
@@ -185,7 +186,7 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
     {
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         StormClusterConfiguration config = manager.getCluster( clusterName );
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = environmentManager.findEnvironment( config.getEnvironmentId() );
@@ -196,7 +197,7 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
                     e );
             return;
         }
-        ContainerHost host = null;
+        ContainerHost host;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -209,11 +210,16 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
 
         trackerOperation.addLog( "Removing " + hostname + " from cluster." );
         config.getSupervisors().remove( host.getId() );
-        manager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config );
-        trackerOperation.addLog( "Destroying " + hostname + " node." );
-        //            environmentManager.removeContainer( environment.getId(), environment.getContainerHostByHostname
-        // ( hostname ).getId() );
-        trackerOperation.addLogDone( "Container " + hostname + " is destroyed!" );
+        try
+        {
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated." );
+        }
+        catch ( ClusterException e )
+        {
+            LOG.error( "Error while saving cluster configuration." );
+            e.printStackTrace();
+        }
     }
 
 
