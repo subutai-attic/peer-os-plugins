@@ -92,60 +92,32 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 try
                 {
                     environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                    ZookeeperClusterConfig zookeeperConfig =
+                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+                    Environment zookeeperEnvironment =
+                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+                    for ( UUID uuid : config.getAllNodes() )
+                    {
+                        if ( config.getNimbus().equals( uuid ) )
+                        {
+
+                            ContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.START, StormService.NIMBUS ) ) );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.START, StormService.UI ) ) );
+                        }
+                        else if ( config.getSupervisors().contains( uuid ) )
+                        {
+                            ContainerHost containerHost = environment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
+                        }
+                    }
                 }
-                catch ( EnvironmentNotFoundException e )
+                catch ( ContainerHostNotFoundException e )
                 {
-                    logException( String.format( "Couldn't find environment with id: %s",
-                            config.getEnvironmentId().toString() ), e );
                     return;
-                }
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    if ( config.getNimbus().equals( containerHost.getId() ) )
-                    {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.START, StormService.NIMBUS ) ) );
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.START, StormService.UI ) ) );
-                    }
-                    else if ( config.getSupervisors().contains( containerHost.getId() ) )
-                    {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
-                    }
-                }
-                break;
-            case STOP_ALL:
-                try
-                {
-                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException( String.format( "Couldn't find environment by id: %s",
-                            config.getEnvironmentId().toString() ), e );
-                    return;
-                }
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
-                {
-                    if ( config.getNimbus().equals( containerHost.getId() ) )
-                    {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STOP, StormService.NIMBUS ) ) );
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STOP, StormService.UI ) ) );
-                    }
-                    else if ( config.getSupervisors().contains( containerHost.getId() ) )
-                    {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STOP, StormService.SUPERVISOR ) ) );
-                    }
-                }
-                break;
-            case STATUS_ALL:
-                try
-                {
-                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
@@ -154,15 +126,56 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                             e );
                     return;
                 }
+                break;
+            case STOP_ALL:
                 try
                 {
+                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                    ZookeeperClusterConfig zookeeperConfig =
+                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+                    Environment zookeeperEnvironment =
+                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
                     for ( UUID uuid : config.getAllNodes() )
                     {
-                        ZookeeperClusterConfig zookeeperConfig =
-                                manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                        Environment zookeeperEnvironment =
-                                manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+                        if ( config.getNimbus().equals( uuid ) )
+                        {
 
+                            ContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STOP, StormService.NIMBUS ) ) );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STOP, StormService.UI ) ) );
+                        }
+                        else if ( config.getSupervisors().contains( uuid ) )
+                        {
+                            ContainerHost containerHost = environment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STOP, StormService.SUPERVISOR ) ) );
+                        }
+                    }
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    return;
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    logException(
+                            String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
+                            e );
+                    return;
+                }
+                break;
+            case STATUS_ALL:
+                try
+                {
+                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                    ZookeeperClusterConfig zookeeperConfig =
+                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+                    Environment zookeeperEnvironment =
+                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+                    for ( UUID uuid : config.getAllNodes() )
+                    {
                         if ( config.getNimbus().equals( uuid ) )
                         {
 
