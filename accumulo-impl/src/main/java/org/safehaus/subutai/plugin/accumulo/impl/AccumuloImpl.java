@@ -176,6 +176,23 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
+    @Override
+    public UUID checkCluster( final String clusterName )
+    {
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        AccumuloClusterConfig accumuloClusterConfig = getCluster( clusterName );
+        HadoopClusterConfig hadoopClusterConfig =
+                hadoopManager.getCluster( accumuloClusterConfig.getHadoopClusterName() );
+        ZookeeperClusterConfig zookeeperClusterConfig =
+                zkManager.getCluster( accumuloClusterConfig.getZookeeperClusterName() );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, accumuloClusterConfig, hadoopClusterConfig, zookeeperClusterConfig,
+                        ClusterOperationType.STATUS_ALL );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
     public UUID checkNode( final String clusterName, final String lxcHostName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
