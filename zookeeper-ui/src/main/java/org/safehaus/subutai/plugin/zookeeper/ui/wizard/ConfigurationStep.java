@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanContainer;
 import com.vaadin.data.util.BeanItem;
@@ -47,6 +48,7 @@ import com.vaadin.ui.TwinColSelect;
 
 public class ConfigurationStep extends Panel
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
     private GridLayout installationControls;
     private TextField clusterNameTxtFld;
@@ -54,12 +56,13 @@ public class ConfigurationStep extends Panel
     private HorizontalLayout buttons;
     private ComboBox nodesCountCombo;
     private TwinColSelect zookeeperEnvHostsSelection;
-    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
-
+    private Wizard wizard;
+    private Environment hadoopEnvironment;
 
     public ConfigurationStep( final Zookeeper zookeeper, final Hadoop hadoop, final Wizard wizard,
                               EnvironmentManager environmentManager )
     {
+        this.wizard = wizard;
         installationControls = new GridLayout( 1, 5 );
         installationControls.setSizeFull();
         installationControls.setSpacing( true );
@@ -321,14 +324,16 @@ public class ConfigurationStep extends Panel
 
         Set<UUID> allHadoopNodeSet = new HashSet<>();
         allHadoopNodeSet.addAll( allHadoopNodes );
-        final Environment hadoopEnvironment;
         final Set<ContainerHost> hadoopNodes = new HashSet<>();
         if ( hadoopInfo != null )
         {
             try
             {
                 hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
-                hadoopNodes.addAll( hadoopEnvironment.getContainerHostsByIds( allHadoopNodeSet ) );
+                for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                {
+                    hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                }
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -363,6 +368,32 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     hadoopNodesSelect.setValue( null );
+                    wizard.getConfig().getNodes().clear();
+                    try
+                    {
+                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
+                                e );
+                        return;
+                    }
+
+                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    try
+                    {
+                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        {
+                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                        }
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        show( String.format( "Error accessing environment: %s", e ) );
+                        return;
+                    }
+
                     hadoopNodesSelect
                             .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
                     wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
@@ -588,6 +619,28 @@ public class ConfigurationStep extends Panel
         twinColSelect.setValue( null );
         twinColSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, environmentHosts ) );
     }
+
+
+    //exclude hadoop nodes that are already in another zookeeeper cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> zkNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( ZookeeperClusterConfig zkConfig : wizard.getZookeeperManager().getClusters() )
+        {
+            zkNodes.addAll( zkConfig.getNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !zkNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
+    }
+
+
 
 
     private void show( String notification )
