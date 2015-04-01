@@ -16,6 +16,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.zookeeper.api.SetupType;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
 import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
@@ -180,6 +181,21 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response checkAllNodes( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( zookeeperManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = zookeeperManager.checkAllNodes( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
     public Response stopNode( final String clusterName, final String lxcHostname )
     {
         Preconditions.checkNotNull( clusterName );
@@ -270,6 +286,29 @@ public class RestServiceImpl implements RestService
         UUID uuid = zookeeperManager.addNode( clusterName );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        ZookeeperClusterConfig config = zookeeperManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            zookeeperManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
     }
 
 
