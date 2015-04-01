@@ -154,7 +154,7 @@ public class Commands
     public static CommandDef getSetReplicaSetNameCommandLine( String replicaSetName )
     {
         return new CommandDef( "Set replica set name",
-                String.format( "/bin/sed -i 's/# replSet = setname/replSet = %s/1' '%s'", replicaSetName,
+                String.format( "sed -i 's/replSet =.*/replSet = %s/1' %s", replicaSetName,
                         Constants.DATA_NODE_CONF_FILE ), 30 );
     }
 
@@ -192,26 +192,26 @@ public class Commands
     }
 
 
-//    public static CommandDef getStartRouterCommandLine( int routerPort, int cfgSrvPort, String domainName,
-//                                                        Set<MongoConfigNode> configServers )
-//    {
-//
-//        StringBuilder configServersArg = new StringBuilder();
-//        for ( MongoConfigNode c : configServers )
-//        {
-//            configServersArg.append( c.getHostname() ).append( "." ).append( domainName ).
-//                    append( ":" ).append( cfgSrvPort ).append( "," );
-//        }
-//        //drop comma
-//        if ( configServersArg.length() > 0 )
-//        {
-//            configServersArg.setLength( configServersArg.length() - 1 );
-//        }
-//        return new CommandDef( "Start router(s)",
-//                String.format( "mongos --configdb %s --port %s --fork --logpath %s/mongodb.log",
-//                        configServersArg.toString(), routerPort, Constants.LOG_DIR ),
-//                Timeouts.START_ROUTER_TIMEOUT_SEC );
-//    }
+    public static CommandDef getStartRouterCommandLine( int routerPort, int cfgSrvPort, String domainName,
+                                                        Set<ContainerHost> configServers )
+    {
+
+        StringBuilder configServersArg = new StringBuilder();
+        for ( ContainerHost c : configServers )
+        {
+            configServersArg.append( c.getHostname() ).append( "." ).append( domainName ).
+                    append( ":" ).append( cfgSrvPort ).append( "," );
+        }
+        //drop comma
+        if ( configServersArg.length() > 0 )
+        {
+            configServersArg.setLength( configServersArg.length() - 1 );
+        }
+        return new CommandDef( "Start router(s)",
+                String.format( "mongos --configdb %s --port %s --fork --logpath %s/mongodb.log",
+                        configServersArg.toString(), routerPort, Constants.LOG_DIR ),
+                Timeouts.START_ROUTER_TIMEOUT_SEC );
+    }
 
 
     public static CommandDef getStartDataNodeCommandLine( int dataNodePort )

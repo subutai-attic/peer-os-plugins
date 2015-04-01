@@ -1,6 +1,9 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,9 +29,14 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoException;
+import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
+import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
+import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +77,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 setupCluster();
                 break;
             case START_ALL:
+                try
+                {
+                    startAll();
+                }
+                catch ( MongoException e )
+                {
+                    e.printStackTrace();
+                }
+                break;
             case STOP_ALL:
                 break;
             case STATUS_ALL:
@@ -83,35 +100,114 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         }
     }
 
+    private void startAll() throws MongoException
+    {
+        /** start config nodes  */
+        for ( UUID uuid : config.getConfigHosts() ){
+            startConfigNode( findHost( uuid ) );
+        }
 
-//    private void startNStopCluster( CassandraClusterConfig config, ClusterOperationType type )
-//    {
-//        for ( UUID uuid : config.getNodes() )
-//        {
-//            try
-//            {
-//                ContainerHost host = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-//                                            .getContainerHostById( uuid );
-//                switch ( type )
-//                {
-//                    case START_ALL:
-//                        host.execute( new RequestBuilder( Commands.startCommand ) );
-//                        break;
-//                    case STOP_ALL:
-//                        host.execute( new RequestBuilder( Commands.stopCommand ) );
-//                        break;
-//                }
-//            }
-//            catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException e )
-//            {
-//                trackerOperation.addLogFailed( "Failed to %s " +
-//                        ( type == ClusterOperationType.START_ALL ? "start" : "stop" )  + config.getClusterName() + " cluster" );
-//                e.printStackTrace();
-//            }
-//        }
-//        trackerOperation.addLogDone( String.format( "%s cluster %s successfully", config.getClusterName(),
-//                type == ClusterOperationType.START_ALL ? "started" : "stopped" ) );
-//    }
+        /** start router nodes  */
+        for ( UUID uuid : config.getRouterHosts() ){
+            startRouterNode( findHost( uuid ) );
+        }
+
+        /** start data nodes  */
+        for ( UUID uuid : config.getDataHosts() ){
+            startDataNode( findHost( uuid ) );
+        }
+    }
+
+
+    private ContainerHost findHost( UUID uuid ){
+        try
+        {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            try
+            {
+                return environment.getContainerHostById( uuid );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+    public void startDataNode( ContainerHost host ) throws MongoException
+    {
+        try
+        {
+            CommandDef commandDef = Commands.getStartDataNodeCommandLine( config.getDataNodePort() );
+            CommandResult commandResult = host.execute(
+                    commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
+
+
+            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
+            {
+                throw new CommandException( "Could not start mongo data instance." );
+            }
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( "Start command failed.", e );
+            throw new MongoException( "Start command failed" );
+        }
+    }
+
+
+    public void startConfigNode( ContainerHost host ) throws MongoException
+    {
+        try
+        {
+            CommandDef commandDef = Commands.getStartConfigServerCommand( config.getCfgSrvPort() );
+            CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
+
+            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
+            {
+                throw new CommandException( "Could not start mongo config instance." );
+            }
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( e.getMessage(), e );
+            throw new MongoException( e.getMessage() );
+        }
+    }
+
+
+    public void startRouterNode( ContainerHost host ) throws MongoException
+    {
+        Set<ContainerHost> configServers = new HashSet<>();
+        for ( UUID uuid : config.getConfigHosts() ){
+            configServers.add( findHost( uuid ) );
+        }
+
+        CommandDef commandDef =
+                Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
+                        config.getDomainName(), configServers );
+        try
+        {
+            CommandResult commandResult = host.execute( commandDef.build( true ) );
+
+            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
+            {
+                throw new CommandException( "Could not start mongo route instance." );
+            }
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( e.toString(), e );
+            throw new MongoException( "Could not start mongo router node:" );
+        }
+    }
 
 
     public void addNode()

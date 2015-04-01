@@ -12,17 +12,20 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration
 {
-
     private TrackerOperation po;
     private MongoImpl mongoManager;
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class );
 
 
     public ClusterConfiguration( final TrackerOperation operation, final MongoImpl mongoManager )
@@ -35,58 +38,30 @@ public class ClusterConfiguration
     public void configureCluster( MongoClusterConfig config, Environment environment )
             throws ClusterConfigurationException
     {
-
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
-
-        // TODO : run configuration commands here
-
         try
         {
-            //            for ( MongoConfigNode configNode : config.getConfigServers() )
-            //            {
-            //                po.addLog( "Starting config node: " + configNode.getHostname() );
-            //                configNode.start( config );
-            //            }
-
-            for ( UUID uuid : config.getRouterHosts() ){
-                setReplicaSetName( findContainerHost( uuid, environment ), config.getConfigHosts() );
-            }
-            for ( MongoRouterNode routerNode : config.getRouterServers() )
+            for ( UUID uuid : config.getDataHosts() )
             {
-                //                po.addLog( "Starting router node: " + routerNode.getHostname() );
-                routerNode.setConfigServers( config.getConfigServers() );
-                //                routerNode.start( config );
-            }
-
-            for ( MongoDataNode dataNode : config.getDataHosts() )
-            {
+                ContainerHost dataNode = findContainerHost( uuid, environment );
                 po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
-                dataNode.setReplicaSetName( config.getReplicaSetName() );
+                setReplicaSetName( dataNode, config.getReplicaSetName() );
             }
 
-
-            //            for ( MongoDataNode dataNode : config.getDataHosts() )
-            //            {
-            //                po.addLog( "Stopping data node: " + dataNode.getHostname() );
-            //                dataNode.stop();
-            //            }
-
-            MongoDataNode primaryDataNode = null;
-            for ( MongoDataNode dataNode : config.getDataHosts() )
+            ContainerHost datanode;
+            for ( UUID uui : config.getDataHosts() )
             {
-                //                po.addLog( "Starting data node: " + dataNode.getHostname() );
-                //                dataNode.start( config );
-                if ( primaryDataNode == null )
+                datanode = findContainerHost( uui, environment );
+                if ( config.getPrimaryNode() == null )
                 {
-                    primaryDataNode = dataNode;
-                    config.setPrimaryNode( primaryDataNode.getHostname() );
-                    primaryDataNode.initiateReplicaSet();
-                    po.addLog( "Primary data node: " + dataNode.getHostname() );
+                    config.setPrimaryNode( datanode.getId() );
+                    initiateReplicaSet( datanode, config );
+                    po.addLog( "Primary data node: " + datanode.getHostname() );
                 }
                 else
                 {
-                    po.addLog( "registering secondary data node: " + dataNode.getHostname() );
-                    primaryDataNode.registerSecondaryNode( dataNode );
+                    po.addLog( "registering secondary data node: " + datanode.getHostname() );
+                    registerSecondaryNode( datanode, config );
                 }
             }
         }
@@ -95,7 +70,6 @@ public class ClusterConfiguration
             e.printStackTrace();
             throw new ClusterConfigurationException( e );
         }
-
 
         config.setEnvironmentId( environment.getId() );
 
@@ -127,11 +101,51 @@ public class ClusterConfiguration
         try
         {
             CommandDef commandDef = Commands.getSetReplicaSetNameCommandLine( replicaSetName );
-            CommandResult commandResult = host.execute( commandDef.build().withTimeout( 90 ) );
+            host.execute( commandDef.build().withTimeout( 90 ) );
         }
         catch ( CommandException e )
         {
             throw new MongoException( "Error on setting replica set name: " );
+        }
+    }
+
+
+    public void initiateReplicaSet( ContainerHost host, MongoClusterConfig config ) throws MongoException
+    {
+        CommandDef commandDef = Commands.getInitiateReplicaSetCommandLine( config.getCfgSrvPort() );
+        try
+        {
+            CommandResult commandResult = host.execute( commandDef.build().withTimeout( 90 ) );
+
+            if ( !commandResult.getStdOut().contains( "connecting to:" ) )
+            {
+                throw new CommandException( "Could not register secondary node." );
+            }
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( commandDef.getDescription(), e );
+            throw new MongoException( "Initiate replica set error." );
+        }
+    }
+
+    public void registerSecondaryNode( final ContainerHost dataNode, MongoClusterConfig config  ) throws MongoException
+    {
+        CommandDef commandDef =
+                Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(), config.getDataNodePort(), config.getDomainName() );
+        try
+        {
+            CommandResult commandResult = dataNode.execute( commandDef.build().withTimeout( 90 ) );
+
+            if ( !commandResult.getStdOut().contains( "connecting to:" ) )
+            {
+                throw new CommandException( "Could not register secondary node." );
+            }
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( commandDef.getDescription(), e );
+            throw new MongoException( "Error on registering secondary node." );
         }
     }
 

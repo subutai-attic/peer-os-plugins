@@ -6,10 +6,7 @@
 //import org.safehaus.subutai.plugin.common.api.NodeState;
 //import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 //import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-//import org.safehaus.subutai.plugin.mongodb.api.MongoConfigNode;
-//import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 //import org.safehaus.subutai.plugin.mongodb.api.MongoException;
-//import org.safehaus.subutai.plugin.mongodb.api.MongoRouterNode;
 //
 //
 //public class StartAllTask implements Runnable

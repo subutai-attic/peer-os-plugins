@@ -22,9 +22,11 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoNodeOperationTask;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -176,13 +178,13 @@ public class Manager
         startAllBtn = new Button( START_ALL_BUTTON_CAPTION );
         startAllBtn.setId( "MongoStartAllBtn" );
         startAllBtn.addStyleName( "default" );
-        startAllBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
+//        startAllBtn.addClickListener( new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( Button.ClickEvent clickEvent )
+//            {
 //                PROGRESS_ICON.setVisible( true );
-//                executorService.execute( new StartAllTask( mongo, tracker, mongoClusterConfig, new CompleteEvent()
+//                executorService.execute( new MongoNodeOperationTask( mongo, tracker, mongoClusterConfig, new CompleteEvent()
 //                {
 //                    public void onComplete( NodeState state )
 //                    {
@@ -193,8 +195,8 @@ public class Manager
 //                        }
 //                    }
 //                } ) );
-            }
-        } );
+//            }
+//        } );
         controlsContent.addComponent( startAllBtn );
         controlsContent.setComponentAlignment( startAllBtn, Alignment.MIDDLE_CENTER );
 
@@ -577,28 +579,29 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new CheckTask( mongo, tracker, mongoClusterConfig.getClusterName(), finalNode.getHostname(),
-                                    new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), finalNode, NodeOperationType.STATUS, nodeType,
+                            new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
                                     {
-                                        public void onComplete( NodeState state )
+                                        if ( nodeState == NodeState.RUNNING )
                                         {
-                                            synchronized ( PROGRESS_ICON )
-                                            {
-                                                if ( state == NodeState.RUNNING )
-                                                {
-                                                    stopBtn.setEnabled( true );
-                                                }
-                                                else if ( state == NodeState.STOPPED )
-                                                {
-                                                    startBtn.setEnabled( true );
-                                                }
-                                                resultHolder.setValue( state.name() );
-                                                enableButtons( destroyBtn, checkBtn );
-                                                PROGRESS_ICON.setVisible( false );
-                                            }
+                                            stopBtn.setEnabled( true );
                                         }
-                                    } ) );
+                                        else if ( nodeState == NodeState.STOPPED )
+                                        {
+                                            startBtn.setEnabled( true );
+                                        }
+                                        resultHolder.setValue( nodeState.name() );
+                                        enableButtons( destroyBtn, checkBtn );
+                                        PROGRESS_ICON.setVisible( false );
+                                    }
+                                }
+                            }, null ) );
                 }
             } );
 
@@ -609,19 +612,20 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new StartTask( mongo, tracker, nodeType, mongoClusterConfig.getClusterName(),
-                                    finalNode.getHostname(), new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), finalNode, NodeOperationType.START, nodeType,
+                            new CompleteEvent()
+                    {
+                        @Override
+                        public void onComplete( NodeState nodeState )
+                        {
+                            synchronized ( PROGRESS_ICON )
                             {
-                                public void onComplete( NodeState state )
-                                {
-                                    synchronized ( PROGRESS_ICON )
-                                    {
-                                        enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                        checkBtn.click();
-                                    }
-                                }
-                            } ) );
+                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+                                checkBtn.click();
+                            }
+                        }
+                    }, null ) );
                 }
             } );
 

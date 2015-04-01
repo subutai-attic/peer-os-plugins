@@ -29,12 +29,14 @@ import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.safehaus.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
+import org.safehaus.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,18 +264,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public UUID startNode( final String clusterName, final String lxcHostname )
+    public UUID startNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-//
-//
-//        AbstractOperationHandler operationHandler = new StartNodeOperationHandler( this, clusterName, lxcHostname );
-//
-//        executor.execute( operationHandler );
-//
-//        return operationHandler.getTrackerId();
-        return null;
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.START );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
@@ -316,18 +314,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public UUID checkNode( final String clusterName, final String lxcHostname )
+    public UUID checkNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-//
-//
-//        AbstractOperationHandler operationHandler = new CheckNodeOperationHandler( this, clusterName, lxcHostname );
-//
-//        executor.execute( operationHandler );
-//
-//        return operationHandler.getTrackerId();
-        return null;
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.STATUS );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 

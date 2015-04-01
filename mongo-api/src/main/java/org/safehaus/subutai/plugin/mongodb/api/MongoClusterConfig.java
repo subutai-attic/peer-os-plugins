@@ -6,6 +6,8 @@
 package org.safehaus.subutai.plugin.mongodb.api;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +38,7 @@ public class MongoClusterConfig implements ConfigBase
     private int cfgSrvPort = 27019;
     private int routerPort = 27018;
     private int dataNodePort = 27017;
-    private String primaryNode;
+    private UUID primaryNode;
 
     private Set<UUID> configHosts;
     private Set<UUID> routerHosts;
@@ -84,18 +86,6 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public String getDomainName()
-    {
-        return domainName;
-    }
-
-
-    public void setDomainName( final String domainName )
-    {
-        this.domainName = domainName;
-    }
-
-
     public int getNumberOfConfigServers()
     {
         return numberOfConfigServers;
@@ -138,9 +128,9 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public void setCfgSrvPort( final int cfgSrvPort )
+    public void setCfgSrvPort( int cfgSrvPort )
     {
-        this.cfgSrvPort = cfgSrvPort;
+        cfgSrvPort = cfgSrvPort;
     }
 
 
@@ -150,9 +140,9 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public void setRouterPort( final int routerPort )
+    public void setRouterPort( int routerPort )
     {
-        this.routerPort = routerPort;
+        routerPort = routerPort;
     }
 
 
@@ -162,19 +152,19 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public void setDataNodePort( final int dataNodePort )
+    public void setDataNodePort( int dataNodePort )
     {
-        this.dataNodePort = dataNodePort;
+        dataNodePort = dataNodePort;
     }
 
 
-    public String getPrimaryNode()
+    public UUID getPrimaryNode()
     {
         return primaryNode;
     }
 
 
-    public void setPrimaryNode( final String primaryNode )
+    public void setPrimaryNode( final UUID primaryNode )
     {
         this.primaryNode = primaryNode;
     }
@@ -264,5 +254,32 @@ public class MongoClusterConfig implements ConfigBase
     public static String getTemplateName()
     {
         return TEMPLATE_NAME;
+    }
+
+
+    public String getDomainName()
+    {
+        return domainName;
+    }
+
+
+    public void setDomainName( final String domainName )
+    {
+        this.domainName = domainName;
+    }
+
+
+    public List<NodeType> getNodeRoles( UUID uuid ){
+        List<NodeType> roles = new ArrayList<>();
+        if ( routerHosts.contains( uuid ) ){
+            roles.add( NodeType.ROUTER_NODE );
+        }
+        if ( dataHosts.contains( uuid ) ){
+            roles.add( NodeType.DATA_NODE );
+        }
+        if ( configHosts.contains( uuid ) ){
+            roles.add( NodeType.CONFIG_NODE );
+        }
+        return roles;
     }
 }
