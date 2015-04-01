@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -145,21 +146,44 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                             e );
                     return;
                 }
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
+                try
                 {
-                    if ( config.getNimbus().equals( containerHost.getId() ) )
+                    for ( UUID uuid : config.getAllNodes() )
                     {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) );
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STATUS, StormService.UI ) ) );
-                    }
-                    else if ( config.getSupervisors().contains( containerHost.getId() ) )
-                    {
-                        commandResultList.add( executeCommand( containerHost,
-                                Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ) );
+                        ZookeeperClusterConfig zookeeperConfig =
+                                manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+                        Environment zookeeperEnvironment =
+                                manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+
+                        if ( config.getNimbus().equals( uuid ) )
+                        {
+
+                            ContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STATUS, StormService.UI ) ) );
+                        }
+                        else if ( config.getSupervisors().contains( uuid ) )
+                        {
+                            ContainerHost containerHost = environment.getContainerHostById( uuid );
+                            commandResultList.add( executeCommand( containerHost,
+                                    Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ) );
+                        }
                     }
                 }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    return;
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    logException(
+                            String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
+                            e );
+                    return;
+                }
+
                 break;
             case ADD:
                 addNode( 1 );

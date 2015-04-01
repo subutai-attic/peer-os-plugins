@@ -16,6 +16,8 @@ public interface Storm extends ApiBase<StormClusterConfiguration>
 
     public UUID startAll( String clusterName );
 
+    public UUID checkAll( String clusterName );
+
     public UUID stopNode( String clusterName, String hostname );
 
     public UUID stopAll( String clusterName );
