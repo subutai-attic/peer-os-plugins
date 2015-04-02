@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.accumulo.api.Accumulo;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 
@@ -148,6 +149,21 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.checkCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
     public Response addNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
@@ -220,6 +236,29 @@ public class RestServiceImpl implements RestService
         UUID uuid = accumuloManager.checkNode( clusterName, lxcHostname );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        AccumuloClusterConfig config = accumuloManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            accumuloManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
     }
 
 

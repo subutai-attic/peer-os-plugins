@@ -35,6 +35,16 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
 
 
     /**
+     * check accumulo service status in all container hosts within cluster configuration
+     *
+     * @param clusterName - target cluster name
+     *
+     * @return - trackerOperation id for tracking logs
+     */
+    public UUID checkCluster( String clusterName );
+
+
+    /**
      * Checks for accumulo service status
      *
      * @param clusterName - cluster name
