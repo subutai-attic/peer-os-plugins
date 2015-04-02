@@ -17,6 +17,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.storm.api.Storm;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
@@ -258,6 +259,77 @@ public class RestServiceImpl implements RestService
 
         String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
         return Response.status( Response.Status.OK ).entity( operationId ).build();
+    }
+
+
+    @Override
+    public Response checkCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( stormManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = stormManager.checkAll( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response startCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( stormManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = stormManager.startAll( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response stopCluster( final String clusterName )
+    {
+        Preconditions.checkNotNull( clusterName );
+        if ( stormManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = stormManager.stopAll( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        StormClusterConfiguration config = stormManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            stormManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
     }
 
 
