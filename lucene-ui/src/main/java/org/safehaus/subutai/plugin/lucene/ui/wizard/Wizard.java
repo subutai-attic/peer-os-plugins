@@ -114,8 +114,8 @@ public class Wizard
         return config;
     }
 
-    public Lucene getLuceneManager()
+    public Lucene getLucene()
     {
-        return lucene;
+        return  lucene;
     }
 }

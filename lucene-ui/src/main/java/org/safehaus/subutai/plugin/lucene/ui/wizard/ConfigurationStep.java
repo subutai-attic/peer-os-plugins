@@ -16,8 +16,6 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -38,12 +36,10 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends Panel
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
-
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
     final Wizard wizard;
-    private Environment hadoopEnvironment;
+
 
     public ConfigurationStep( final Hadoop hadoop, final Wizard wizard, final EnvironmentManager environmentManager )
     {
@@ -108,7 +104,6 @@ public class ConfigurationStep extends Panel
     {
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "luceneClusterName" );
-        nameTxt.setInputPrompt( "Cluster Name" );
         nameTxt.setRequired( true );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
@@ -138,29 +133,23 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    config.getNodes().clear();
-                    try
-                    {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
-                    }
-                    catch ( EnvironmentNotFoundException e )
-                    {
-                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
-                                e );
-                        return;
-                    }
-
                     Set<ContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        Environment environment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ))
                         {
-                            hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                            hadoopNodes.add( environment.getContainerHostById( nodeId ));
                         }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
                         show( String.format( "Failed obtaining environment containers: %s", e ) );
+                        return;
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        show( String.format( "Environment not found: %s", e ) );
                         return;
                     }
                     select.setValue( null );
@@ -232,17 +221,17 @@ public class ConfigurationStep extends Panel
 
 
     //exclude hadoop nodes that are already in another lucene cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<UUID> filterNodes( List<UUID> hadoopNodes)
     {
         List<UUID> luceneNodes = new ArrayList<>();
         List<UUID> filteredNodes = new ArrayList<>();
-        for ( LuceneConfig luceneConfig : wizard.getLuceneManager().getClusters() )
+        for( LuceneConfig flumeConfig : wizard.getLucene().getClusters() )
         {
-            luceneNodes.addAll( luceneConfig.getNodes() );
+            luceneNodes.addAll( flumeConfig.getNodes() );
         }
-        for ( UUID node : hadoopNodes )
+        for( UUID node : hadoopNodes )
         {
-            if ( !luceneNodes.contains( node ) )
+            if( !luceneNodes.contains( node ))
             {
                 filteredNodes.add( node );
             }
