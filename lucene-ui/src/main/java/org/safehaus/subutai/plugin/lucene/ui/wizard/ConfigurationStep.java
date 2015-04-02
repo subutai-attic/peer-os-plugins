@@ -104,6 +104,7 @@ public class ConfigurationStep extends Panel
     {
         TextField nameTxt = new TextField( "Cluster name" );
         nameTxt.setId( "luceneClusterName" );
+        nameTxt.setInputPrompt( "Cluster name" );
         nameTxt.setRequired( true );
         nameTxt.addValueChangeListener( new Property.ValueChangeListener()
         {
