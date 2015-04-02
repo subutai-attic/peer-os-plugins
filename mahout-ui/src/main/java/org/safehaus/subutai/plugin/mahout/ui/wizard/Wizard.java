@@ -117,4 +117,9 @@ public class Wizard
     {
         return config;
     }
+
+    public Mahout getMahoutManager()
+    {
+        return mahout;
+    }
 }
