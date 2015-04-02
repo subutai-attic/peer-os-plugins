@@ -68,7 +68,7 @@ public class ClusterConfiguration
         catch ( MongoException e )
         {
             e.printStackTrace();
-            throw new ClusterConfigurationException( e );
+
         }
 
         config.setEnvironmentId( environment.getId() );
@@ -82,17 +82,17 @@ public class ClusterConfiguration
             throw new ClusterConfigurationException( e );
         }
 
-        po.addLogDone( "Cassandra cluster data saved into database" );
+        po.addLogDone( "MongoDB cluster data saved into database" );
 
         //subscribe to alerts
-        try
-        {
-            mongoManager.subscribeToAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterConfigurationException( e );
-        }
+//        try
+//        {
+//            mongoManager.subscribeToAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            throw new ClusterConfigurationException( e );
+//        }
     }
 
 

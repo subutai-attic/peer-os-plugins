@@ -282,4 +282,25 @@ public class MongoClusterConfig implements ConfigBase
         }
         return roles;
     }
+
+    @Override
+    public String toString() {
+        return "MongoClusterConfig{" +
+                "clusterName='" + clusterName + '\'' +
+                ", replicaSetName='" + replicaSetName + '\'' +
+                ", domainName='" + domainName + '\'' +
+                ", numberOfConfigServers=" + numberOfConfigServers +
+                ", numberOfRouters=" + numberOfRouters +
+                ", numberOfDataNodes=" + numberOfDataNodes +
+                ", cfgSrvPort=" + cfgSrvPort +
+                ", routerPort=" + routerPort +
+                ", dataNodePort=" + dataNodePort +
+                ", primaryNode=" + primaryNode +
+                ", configHosts=" + configHosts +
+                ", routerHosts=" + routerHosts +
+                ", dataHosts=" + dataHosts +
+                ", environmentId=" + environmentId +
+                ", autoScaling=" + autoScaling +
+                '}';
+    }
 }

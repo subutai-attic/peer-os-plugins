@@ -154,7 +154,7 @@ public class Commands
     public static CommandDef getSetReplicaSetNameCommandLine( String replicaSetName )
     {
         return new CommandDef( "Set replica set name",
-                String.format( "sed -i 's/replSet =.*/replSet = %s/1' %s", replicaSetName,
+                String.format( "sed -i 's/.*replSet =.*/replSet = %s/1' %s", replicaSetName,
                         Constants.DATA_NODE_CONF_FILE ), 30 );
     }
 

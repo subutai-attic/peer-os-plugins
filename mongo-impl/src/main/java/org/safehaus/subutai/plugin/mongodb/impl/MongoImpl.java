@@ -143,41 +143,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         try
         {
-
-            GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.setExclusionStrategies( new ExclusionStrategy()
-            {
-                @Override
-                public boolean shouldSkipField( final FieldAttributes f )
-                {
-                    switch ( f.getName() )
-                    {
-                        case "configServers":
-                        case "routerServers":
-                        case "dataNodes":
-                            return true;
-                    }
-                    return false;
-                }
-
-
-                @Override
-                public boolean shouldSkipClass( final Class<?> clazz )
-                {
-                    return false;
-                }
-            } );
-
-            GSON = gsonBuilder.serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
             this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
             LOG.error( e.getMessage(), e );
         }
-        this.commands = new Commands();
 
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 

@@ -44,7 +44,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     public NodeOperationHandler( final MongoImpl manager, final String clusterName, final String hostname,
                                  NodeType nodeType ,NodeOperationType operationType )
     {
-        super( manager, clusterName );
+        super( manager, manager.getCluster( clusterName ) );
         this.hostname = hostname;
         this.clusterName = clusterName;
         this.nodeType = nodeType;
@@ -102,7 +102,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                 startNode( host );
                 break;
             case STOP:
-                manager.stopNode( clusterName, hostname );
+                stopNode( host );
                 break;
             case STATUS:
                 checkNode( host );
@@ -113,30 +113,28 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         }
     }
 
-    public boolean checkNode( ContainerHost host )
+
+    private boolean checkNode( ContainerHost host )
     {
         MongoClusterConfig config = manager.getCluster( clusterName );
-        CommandDef commandDef =
-                Commands.getCheckInstanceRunningCommand( host.getHostname(), config.getDomainName(), config.getCfgSrvPort() );
+        CommandDef commandDef = null;
         switch ( nodeType ){
             case CONFIG_NODE:
-                executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build(), host );
+                commandDef = Commands.getCheckInstanceRunningCommand(host.getHostname(),
+                        config.getDomainName(), config.getCfgSrvPort() );
                 break;
             case ROUTER_NODE:
-                Set<ContainerHost> configServers = new HashSet<>();
-                for ( UUID uuid : config.getConfigHosts() ){
-                    configServers.add( findHost( uuid ) );
-                }
-                executeCommand( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
-                        config.getDomainName(), configServers ).build(), host );
+                commandDef = Commands.getCheckInstanceRunningCommand( host.getHostname(),
+                        config.getDomainName(), config.getRouterPort() );
                 break;
             case DATA_NODE:
-                executeCommand( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build(), host );
+                commandDef = Commands.getCheckInstanceRunningCommand(host.getHostname(),
+                        config.getDomainName(), config.getDataNodePort() );
                 break;
         }
         try
         {
-            CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 10 ) );
+            CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 20 ) );
             if ( commandResult.getStdOut().contains( "couldn't connect to server" ) )
             {
                 return false;
@@ -161,7 +159,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     private void startNode( ContainerHost host ){
         switch ( nodeType ){
             case CONFIG_NODE:
-                executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build(), host );
+                executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build( true ), host );
                 break;
             case ROUTER_NODE:
                 Set<ContainerHost> configServers = new HashSet<>();
@@ -169,16 +167,21 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                     configServers.add( findHost( uuid ) );
                 }
                 executeCommand( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
-                        config.getDomainName(), configServers ).build(), host );
+                        config.getDomainName(), configServers ).build( true ), host );
                 break;
             case DATA_NODE:
-                executeCommand( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build(), host );
+                executeCommand( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), host );
                 break;
         }
     }
 
 
-    public void destroyNode( ContainerHost host )
+    private void stopNode( ContainerHost host ){
+        executeCommand( Commands.getStopNodeCommand().build(), host );
+    }
+
+
+    private void destroyNode( ContainerHost host )
     {
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try

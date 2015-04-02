@@ -6,10 +6,7 @@
 package org.safehaus.subutai.plugin.mongodb.ui.manager;
 
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
@@ -491,9 +488,45 @@ public class Manager
     {
         if ( mongoClusterConfig != null )
         {
-            populateTable( configServersTable, mongoClusterConfig.getConfigHosts(), NodeType.CONFIG_NODE );
-            populateTable( routersTable, mongoClusterConfig.getRouterHosts(), NodeType.ROUTER_NODE );
-            populateTable( dataNodesTable, mongoClusterConfig.getDataHosts(), NodeType.DATA_NODE );
+            Environment environment = null;
+            try {
+                environment = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() );
+            } catch (EnvironmentNotFoundException e) {
+                e.printStackTrace();
+            }
+            assert environment != null;
+            Set<ContainerHost> configHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getConfigHosts() )
+            {
+                try {
+                    configHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            Set<ContainerHost> routerHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getRouterHosts() )
+            {
+                try {
+                    routerHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Set<ContainerHost> dataHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getConfigHosts() )
+            {
+                try {
+                    dataHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            populateTable( configServersTable, configHosts, NodeType.CONFIG_NODE );
+            populateTable( routersTable, routerHosts, NodeType.ROUTER_NODE );
+            populateTable( dataNodesTable, dataHosts, NodeType.DATA_NODE );
             replicaSetName.setValue( mongoClusterConfig.getReplicaSetName() );
             domainName.setValue( mongoClusterConfig.getDomainName() );
             cfgSrvPort.setValue( mongoClusterConfig.getCfgSrvPort() + "" );
@@ -515,47 +548,21 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<UUID> nodes, final NodeType nodeType )
+    private void populateTable( final Table table, Set<ContainerHost> nodes, final NodeType nodeType )
     {
         table.removeAllItems();
 
-        for ( final UUID o : nodes )
+        for ( final ContainerHost node : nodes )
         {
-            ContainerHost node = null;
-            try
-            {
-                Environment environment  = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() );
-                try
-                {
-                    node = environment.getContainerHostById( o );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            assert node != null;
-
             final Label resultHolder = new Label();
-
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             checkBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoCheck" );
-
             final Button startBtn = new Button( START_BUTTON_CAPTION );
             startBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoStart" );
-
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
             stopBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoStop" );
-
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoDestroy" );
-
-            stopBtn.setEnabled( false );
-            startBtn.setEnabled( false );
 
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
 
@@ -571,16 +578,15 @@ public class Manager
             }, null );
 
 
-            final ContainerHost finalNode = node;
             checkBtn.addClickListener( new Button.ClickListener()
             {
                 @Override
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
-                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
+//                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-                            mongoClusterConfig.getClusterName(), finalNode, NodeOperationType.STATUS, nodeType,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STATUS, nodeType,
                             new CompleteEvent()
                             {
                                 @Override
@@ -611,21 +617,47 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
-                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-                            mongoClusterConfig.getClusterName(), finalNode, NodeOperationType.START, nodeType,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
                             new CompleteEvent()
-                    {
-                        @Override
-                        public void onComplete( NodeState nodeState )
-                        {
-                            synchronized ( PROGRESS_ICON )
                             {
-                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                checkBtn.click();
-                            }
-                        }
-                    }, null ) );
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        if ( nodeState == NodeState.RUNNING )
+                                        {
+                                            stopBtn.setEnabled( true );
+                                        }
+                                        else if ( nodeState == NodeState.STOPPED )
+                                        {
+                                            startBtn.setEnabled( true );
+                                        }
+                                        resultHolder.setValue( nodeState.name() );
+                                        enableButtons( destroyBtn, checkBtn );
+                                        PROGRESS_ICON.setVisible( false );
+                                    }
+                                }
+                            }, null ) );
+
+//                    PROGRESS_ICON.setVisible( true );
+////                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
+//                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+//                            mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
+//                            new CompleteEvent()
+//                    {
+//                        @Override
+//                        public void onComplete( NodeState nodeState )
+//                        {
+//                            PROGRESS_ICON.setVisible( false );
+////                            synchronized ( PROGRESS_ICON )
+////                            {
+//////                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+//////                                checkBtn.click();
+////                            }
+//                        }
+//                    }, null ) );
                 }
             } );
 
@@ -635,9 +667,9 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
-                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
+//                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute(
-                            new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), finalNode.getHostname(),
+                            new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
                                     new CompleteEvent()
                                     {
                                         public void onComplete( NodeState state )
@@ -658,13 +690,13 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     ConfirmationDialog alert = new ConfirmationDialog(
-                            String.format( "Do you want to destroy the %s node?", finalNode.getHostname() ), "Yes", "No" );
+                            String.format( "Do you want to destroy the %s node?", node.getHostname() ), "Yes", "No" );
                     alert.getOk().addClickListener( new Button.ClickListener()
                     {
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), finalNode
+                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), node
                                     .getHostname(),
                                     nodeType );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
