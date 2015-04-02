@@ -11,6 +11,7 @@ import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.presto.api.Presto;
 import org.safehaus.subutai.plugin.presto.api.PrestoClusterConfig;
 
@@ -223,6 +224,30 @@ public class RestServiceImpl implements RestService
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        PrestoClusterConfig config = prestoManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            prestoManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Auto scale cannot set successfully" ).build();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
     }
 
 
