@@ -123,7 +123,15 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                refreshClustersInfo();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -418,6 +426,7 @@ public class Manager
                     if ( mongoClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
                         clusterCombo.setValue( mongoClusterInfo );
+                        PROGRESS_ICON.setVisible( false );
                         return;
                     }
                 }
@@ -425,6 +434,7 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
+                PROGRESS_ICON.setVisible( false );
             }
         }
     }
