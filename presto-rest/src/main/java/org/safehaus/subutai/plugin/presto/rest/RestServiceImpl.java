@@ -240,7 +240,7 @@ public class RestServiceImpl implements RestService
         catch ( ClusterException e )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
-                    entity( "Auto scale is not set successfully" ).build();
+                    entity( "Auto scale cannot set successfully" ).build();
         }
         if( scale == false )
         {
