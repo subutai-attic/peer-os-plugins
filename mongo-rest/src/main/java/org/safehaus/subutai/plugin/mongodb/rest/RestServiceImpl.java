@@ -151,16 +151,17 @@ public class RestServiceImpl implements RestService
     @Override
     public Response stopNode( final String clusterName, final String lxcHostname )
     {
-        Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( lxcHostname );
-        if ( mongo.getCluster( clusterName ) == null )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
-                    entity( clusterName + " cluster not found." ).build();
-        }
-        UUID uuid = mongo.stopNode( clusterName, lxcHostname );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
+//        Preconditions.checkNotNull( clusterName );
+//        Preconditions.checkNotNull( lxcHostname );
+//        if ( mongo.getCluster( clusterName ) == null )
+//        {
+//            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+//                    entity( clusterName + " cluster not found." ).build();
+//        }
+//        UUID uuid = mongo.stopNode( clusterName, lxcHostname );
+//        OperationState state = waitUntilOperationFinish( uuid );
+//        return createResponse( uuid, state );
+        return  null;
     }
 
 

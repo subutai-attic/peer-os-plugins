@@ -604,7 +604,7 @@ public class Manager
                                         }
                                         resultHolder.setValue( nodeState.name() );
                                         enableButtons( destroyBtn, checkBtn );
-                                        PROGRESS_ICON.setVisible( false );
+                                        PROGRESS_ICON.setVisible(false);
                                     }
                                 }
                             }, null ) );
@@ -626,38 +626,11 @@ public class Manager
                                 {
                                     synchronized ( PROGRESS_ICON )
                                     {
-                                        if ( nodeState == NodeState.RUNNING )
-                                        {
-                                            stopBtn.setEnabled( true );
-                                        }
-                                        else if ( nodeState == NodeState.STOPPED )
-                                        {
-                                            startBtn.setEnabled( true );
-                                        }
-                                        resultHolder.setValue( nodeState.name() );
                                         enableButtons( destroyBtn, checkBtn );
-                                        PROGRESS_ICON.setVisible( false );
+                                        checkBtn.click();
                                     }
                                 }
                             }, null ) );
-
-//                    PROGRESS_ICON.setVisible( true );
-////                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-//                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-//                            mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
-//                            new CompleteEvent()
-//                    {
-//                        @Override
-//                        public void onComplete( NodeState nodeState )
-//                        {
-//                            PROGRESS_ICON.setVisible( false );
-////                            synchronized ( PROGRESS_ICON )
-////                            {
-//////                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-//////                                checkBtn.click();
-////                            }
-//                        }
-//                    }, null ) );
                 }
             } );
 
@@ -668,19 +641,20 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
 //                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
-                                    new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STOP, nodeType,
+                            new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
                                     {
-                                        public void onComplete( NodeState state )
-                                        {
-                                            synchronized ( PROGRESS_ICON )
-                                            {
-                                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                                checkBtn.click();
-                                            }
-                                        }
-                                    } ) );
+                                        enableButtons( destroyBtn, checkBtn );
+                                        checkBtn.click();
+                                    }
+                                }
+                            }, null ) );
                 }
             } );
 

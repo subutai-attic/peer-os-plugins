@@ -334,6 +334,13 @@ public class Commands
                 Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
     }
 
+    public static CommandDef getCheckConfigServer(){
+        return new CommandDef( "Check node", "ps axu | grep mongo[d]", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+    }
+
+    public static CommandDef getCheckRouterNode(){
+        return new CommandDef( "Check node", "ps axu | grep mongo[s]", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+    }
 
     public static RequestBuilder getPidCommand()
     {

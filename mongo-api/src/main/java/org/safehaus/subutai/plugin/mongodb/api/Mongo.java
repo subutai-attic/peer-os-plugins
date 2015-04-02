@@ -59,7 +59,7 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
      *
      * @return - UUID of operation to track
      */
-    public UUID stopNode( String clusterName, String lxcHostName );
+    public UUID stopNode( String clusterName, String lxcHostName, NodeType nodeType );
 
     /**
      * Starts the specified node

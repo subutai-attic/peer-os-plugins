@@ -248,18 +248,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public UUID stopNode( final String clusterName, final String lxcHostname )
+    public UUID stopNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-//        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-//
-//
-//        AbstractOperationHandler operationHandler = new StopNodeOperationHandler( this, clusterName, lxcHostname );
-//
-//        executor.execute( operationHandler );
-//
-//        return operationHandler.getTrackerId();
-        return null;
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.STOP );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 

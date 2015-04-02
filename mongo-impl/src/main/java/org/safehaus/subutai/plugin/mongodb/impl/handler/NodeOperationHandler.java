@@ -120,12 +120,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         CommandDef commandDef = null;
         switch ( nodeType ){
             case CONFIG_NODE:
-                commandDef = Commands.getCheckInstanceRunningCommand(host.getHostname(),
-                        config.getDomainName(), config.getCfgSrvPort() );
+                commandDef = Commands.getCheckConfigServer();
                 break;
             case ROUTER_NODE:
-                commandDef = Commands.getCheckInstanceRunningCommand( host.getHostname(),
-                        config.getDomainName(), config.getRouterPort() );
+                commandDef = Commands.getCheckRouterNode();
                 break;
             case DATA_NODE:
                 commandDef = Commands.getCheckInstanceRunningCommand(host.getHostname(),
@@ -135,17 +133,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         try
         {
             CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 20 ) );
-            if ( commandResult.getStdOut().contains( "couldn't connect to server" ) )
-            {
-                return false;
-            }
-            else if ( commandResult.getStdOut().contains( "connecting to" ) )
+            if ( ! commandResult.getStdOut().isEmpty() )
             {
                 return true;
-            }
-            else
-            {
-                return false;
             }
         }
         catch ( CommandException e )

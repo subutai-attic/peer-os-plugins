@@ -43,7 +43,7 @@ public class MongoNodeOperationTask extends AbstractNodeOperationTask implements
                 trackID = mongo.startNode( clusterName, containerHost.getHostname(), nodeType );
                 break;
             case STOP:
-                trackID = mongo.stopNode( clusterName, containerHost.getHostname() );
+                trackID = mongo.stopNode( clusterName, containerHost.getHostname(), nodeType );
                 break;
             case STATUS:
                 trackID = mongo.checkNode( clusterName, containerHost.getHostname(), nodeType );
