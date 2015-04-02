@@ -14,6 +14,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperationView;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.hbase.api.HBase;
 import org.safehaus.subutai.plugin.hbase.api.HBaseConfig;
 
@@ -159,6 +160,29 @@ public class RestServiceImpl implements RestService
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message = "enabled";
+        HBaseConfig config = hbaseManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            hbaseManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        if ( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 
