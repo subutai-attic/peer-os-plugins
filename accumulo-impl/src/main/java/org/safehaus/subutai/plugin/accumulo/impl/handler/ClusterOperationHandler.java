@@ -1,6 +1,8 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +16,8 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.peer.Host;
+import org.safehaus.subutai.common.tracker.OperationState;
+import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -107,25 +111,40 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             LOG.error( msg, e );
             return;
         }
+        List<CommandResult> commandResultList = new ArrayList<>();
         switch ( clusterOperationType )
         {
             case START_ALL:
                 manager.getHadoopManager().startNameNode( hadoopConfig );
                 Util.executeCommand( containerHost, Commands.startCommand );
+                trackerOperation.addLogDone( "Cluster is started successfully" );
                 break;
             case STOP_ALL:
                 Util.executeCommand( containerHost, Commands.stopCommand );
+                trackerOperation.addLogDone( "Cluster is stopped successfully" );
                 break;
             case STATUS_ALL:
                 for ( ContainerHost host : environment.getContainerHosts() )
                 {
-                    Util.executeCommand( host, Commands.statusCommand );
+                    trackerOperation.addLog( "Node: " + host.getHostname() );
+                    CommandResult result = Util.executeCommand( host, Commands.statusCommand );
+                    commandResultList.add( result );
+                    logResults(  trackerOperation, result );
                 }
+                trackerOperation.addLogDone( "" );
                 break;
         }
-        trackerOperation.addLogDone( "" );
+
     }
 
+    public void logResults( TrackerOperation po, CommandResult result )
+    {
+        po.addLog( result.getStdOut() );
+        if( po.getState() == OperationState.FAILED )
+        {
+            po.addLogFailed( "" );
+        }
+    }
 
     @Override
     public void setupCluster()
