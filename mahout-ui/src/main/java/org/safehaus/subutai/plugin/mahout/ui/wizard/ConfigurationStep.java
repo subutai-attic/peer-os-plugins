@@ -237,7 +237,7 @@ public class ConfigurationStep extends Panel
     }
 
 
-    //exclude hadoop nodes that are already in another hipi cluster
+    //exclude hadoop nodes that are already in another Mahout cluster
     private List<UUID> filterNodes( List<UUID> hadoopNodes )
     {
         List<UUID> mahoutNodes = new ArrayList<>();
