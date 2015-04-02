@@ -31,9 +31,11 @@ import org.safehaus.subutai.server.ui.component.TerminalWindow;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -52,6 +54,7 @@ public class Manager
     protected static final String HOST_COLUMN_CAPTION = "Host";
     protected static final String IP_COLUMN_CAPTION = "IP List";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
     final Button refreshClustersBtn, destroyClusterBtn, addNodeBtn;
     private final GridLayout contentRoot;
@@ -117,7 +120,15 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                refreshClustersInfo();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -136,6 +147,10 @@ public class Manager
         addNodeBtn.addStyleName( BUTTON_STYLE_NAME );
         addClickListenerToAddNodeButton();
         controlsContent.addComponent( addNodeBtn );
+
+        PROGRESS_ICON.setVisible( false );
+        PROGRESS_ICON.setId( "indicator" );
+        controlsContent.addComponent( PROGRESS_ICON );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
         contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
@@ -447,6 +462,7 @@ public class Manager
                     if ( luceneClusterInfo.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
                         clusterCombo.setValue( luceneClusterInfo );
+                        PROGRESS_ICON.setVisible( false );
                         return;
                     }
                 }
@@ -454,6 +470,7 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clustersInfo.iterator().next() );
+                PROGRESS_ICON.setVisible( false );
             }
         }
     }
