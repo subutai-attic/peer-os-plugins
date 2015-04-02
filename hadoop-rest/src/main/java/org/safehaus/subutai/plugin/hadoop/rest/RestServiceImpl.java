@@ -15,6 +15,7 @@ import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -196,6 +197,31 @@ public class RestServiceImpl implements RestService
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
+
+
+    @Override
+    public Response autoScaleCluster( final String clusterName, final boolean scale )
+    {
+        String message ="enabled";
+        HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            hadoopManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Auto scale cannot set successfully" ).build();
+        }
+        if( scale == false )
+        {
+            message = "disabled";
+        }
+
+        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+    }
+
 
     public Hadoop getHadoopManager()
     {
