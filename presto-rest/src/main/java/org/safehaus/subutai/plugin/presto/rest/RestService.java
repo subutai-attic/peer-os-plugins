@@ -105,4 +105,11 @@ public interface RestService
     @Path( "clusters/{clusterName}/check" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response checkCluster( @PathParam( "clusterName" ) String clusterName );
+
+    //auto-scale cluster
+    @POST
+    @Path("clusters/{clusterName}/auto_scale/{scale}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+                                      @PathParam( "scale" ) boolean scale );
 }
