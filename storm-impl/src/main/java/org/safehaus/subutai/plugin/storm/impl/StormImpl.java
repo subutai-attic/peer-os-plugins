@@ -104,6 +104,16 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
+    public UUID checkAll( final String clusterName )
+    {
+        AbstractOperationHandler h =
+                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STATUS_ALL );
+        executor.execute( h );
+        return h.getTrackerId();
+    }
+
+
+    @Override
     public UUID stopNode( String clusterName, String hostname )
     {
         AbstractOperationHandler h =

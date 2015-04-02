@@ -77,4 +77,32 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "hostname" ) String hostname );
+
+    //check cluster
+    @GET
+    @Path( "clusters/{clusterName}/check" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkCluster( @PathParam( "clusterName" ) String clusterName );
+
+    //start cluster
+    @PUT
+    @Path( "clusters/{clusterName}/start" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //stop cluster
+    @PUT
+    @Path( "clusters/{clusterName}/stop" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    //auto-scale cluster
+    @POST
+    @Path("clusters/{clusterName}/auto_scale/{scale}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+                                      @PathParam( "scale" ) boolean scale );
+
 }
