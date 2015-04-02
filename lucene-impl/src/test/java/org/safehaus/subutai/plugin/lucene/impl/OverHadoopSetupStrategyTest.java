@@ -30,6 +30,7 @@ import org.safehaus.subutai.plugin.lucene.api.LuceneConfig;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -88,6 +89,7 @@ public class OverHadoopSetupStrategyTest
 
         when( luceneImpl.getHadoopManager() ).thenReturn( hadoop );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( environment.getContainerHostById( any(UUID.class) )).thenReturn( containerHost );
     }
 
 
@@ -129,8 +131,8 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) )
-                .thenThrow( ContainerHostNotFoundException.class );
+        /*when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) )
+                .thenThrow( ContainerHostNotFoundException.class );*/
 
 
         overHadoopSetupStrategy.setup();
@@ -142,7 +144,7 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        //when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( null );
 
@@ -158,7 +160,7 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        //when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
 
@@ -174,7 +176,7 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        //when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
@@ -196,7 +198,8 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        //when( environment.getContainerHostById( UUID.randomUUID() ));
+        //when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
