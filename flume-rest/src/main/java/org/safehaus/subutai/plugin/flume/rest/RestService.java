@@ -35,9 +35,9 @@ public interface RestService
 
     //install cluster
     @POST
-    @Path( "clusters/{clusterName}" )
+    @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @PathParam( "clusterName" ) String clusterName,
+    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
                                     @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
                                     @QueryParam( "nodes" ) String nodes );
 
