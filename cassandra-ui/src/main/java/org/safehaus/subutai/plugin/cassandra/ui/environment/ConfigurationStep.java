@@ -28,9 +28,12 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends VerticalLayout
 {
+    private EnvironmentWizard wizard;
+
 
     public ConfigurationStep( final EnvironmentWizard environmentWizard )
     {
+        this.wizard = environmentWizard;
         removeAllComponents();
         setSizeFull();
 
@@ -261,9 +264,15 @@ public class ConfigurationStep extends VerticalLayout
     private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
     {
         Set<ContainerHost> filteredSet = new HashSet<>();
+        List<UUID> cassandraNodes = new ArrayList<>();
+        for ( CassandraClusterConfig cassandraConfig : wizard.getCassandraManager().getClusters() )
+        {
+            cassandraNodes.addAll( cassandraConfig.getAllNodes() );
+        }
         for ( ContainerHost containerHost : containerHosts )
         {
-            if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) )
+            if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) && !( cassandraNodes
+                    .contains( containerHost.getId() ) ) )
             {
                 filteredSet.add( containerHost );
             }
