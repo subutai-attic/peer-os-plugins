@@ -42,6 +42,7 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response installCluster( @QueryParam("clusterName") String clusterName,
                                     @QueryParam("hadoopClusterName") String hadoopClusterName,
+                                    @QueryParam( "environmentId") String environmentId,
                                     @QueryParam("nodes") String nodes );
 
     //destroy cluster
