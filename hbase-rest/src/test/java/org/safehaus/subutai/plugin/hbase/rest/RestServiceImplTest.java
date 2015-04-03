@@ -165,7 +165,7 @@ public class RestServiceImplTest
     public void testAddNode() throws Exception
     {
         when( hBase.addNode( anyString(), anyString() ) ).thenReturn( UUID.randomUUID() );
-        Response response = restService.addNode( "test", "test", "test" );
+        Response response = restService.addNode( "test", "test" );
 
         // assertions
         assertEquals( Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus() );
