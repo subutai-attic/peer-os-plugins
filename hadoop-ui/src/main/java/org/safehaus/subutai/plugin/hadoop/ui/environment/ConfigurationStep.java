@@ -36,9 +36,14 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ConfigurationStep extends VerticalLayout
 {
+    private EnvironmentWizard wizard;
+
+
     public ConfigurationStep( final EnvironmentWizard wizard, HostRegistry hostRegistry,
                               final EnvironmentManager environmentManager )
     {
+        this.wizard = wizard;
+
         setSizeFull();
         GridLayout content = new GridLayout( 1, 7 );
         content.setSizeFull();
@@ -182,7 +187,7 @@ public class ConfigurationStep extends VerticalLayout
             public void valueChange( Property.ValueChangeEvent event )
             {
                 wizard.getHadoopClusterConfig()
-                        .setReplicationFactor( Integer.parseInt( event.getProperty().getValue().toString() ) );
+                      .setReplicationFactor( Integer.parseInt( event.getProperty().getValue().toString() ) );
             }
         } );
 
@@ -216,8 +221,10 @@ public class ConfigurationStep extends VerticalLayout
                 {
                     show( "Please provide cluster name" );
                 }
-                else if ( (int) replicationFactorComboBox.getValue() > wizard.getHadoopClusterConfig().getDataNodes().size() ){
-                    show( "Replication factor could NOT be bigger than slave nodes count !!!");
+                else if ( ( int ) replicationFactorComboBox.getValue() > wizard.getHadoopClusterConfig().getDataNodes()
+                                                                               .size() )
+                {
+                    show( "Replication factor could NOT be bigger than slave nodes count !!!" );
                 }
                 else
                 {
@@ -274,9 +281,15 @@ public class ConfigurationStep extends VerticalLayout
     private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
     {
         Set<ContainerHost> filteredSet = new HashSet<>();
+        List<UUID> hadoopNodes = new ArrayList<>();
+        for ( HadoopClusterConfig hadoopConfig : wizard.getHadoopManager().getClusters() )
+        {
+            hadoopNodes.addAll( hadoopConfig.getAllNodes() );
+        }
         for ( ContainerHost containerHost : containerHosts )
         {
-            if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) )
+            if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) && !( hadoopNodes
+                    .contains( containerHost.getId() ) ) )
             {
                 filteredSet.add( containerHost );
             }
