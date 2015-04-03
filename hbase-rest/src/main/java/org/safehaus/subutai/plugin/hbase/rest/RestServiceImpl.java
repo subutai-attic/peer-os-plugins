@@ -130,9 +130,9 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response addNode( final String clusterName, final String lxcHostName, final String nodeType )
+    public Response addNode( final String clusterName, final String lxcHostName )
     {
-        UUID uuid = hbaseManager.addNode( clusterName, nodeType );
+        UUID uuid = hbaseManager.addNode( clusterName, lxcHostName );
 
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
