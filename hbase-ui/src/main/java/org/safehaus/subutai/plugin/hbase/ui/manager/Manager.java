@@ -59,6 +59,7 @@ import com.vaadin.ui.Window;
 
 public class Manager
 {
+    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
 
     public final static String START_STOP_BUTTON_DEFAULT_CAPTION = "Start/Stop";
     protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPERATIONS";
@@ -78,8 +79,9 @@ public class Manager
     protected static final String ADD_NODE_CAPTION = "Add Node";
     protected static final String TABLE_CAPTION = "All Nodes";
     protected static final String BUTTON_STYLE_NAME = "default";
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
+
     private static final String AUTO_SCALE_BUTTON_CAPTION = "Auto Scale";
-    private final static Logger LOGGER = LoggerFactory.getLogger( Manager.class );
     protected final Button refreshClustersBtn, startAllNodesBtn, stopAllNodesBtn, checkAllBtn, removeClusterBtn,
             addNodeBtn;
     private final GridLayout contentRoot;
@@ -89,7 +91,6 @@ public class Manager
     private final Hadoop hadoop;
     private final Tracker tracker;
     private final String MESSAGE = "No cluster is installed !";
-    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
     private final EnvironmentManager environmentManager;
     private HBaseConfig config = new HBaseConfig();
     private Table nodesTable = null;
@@ -156,7 +157,15 @@ public class Manager
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                refreshClustersInfo();
+                PROGRESS_ICON.setVisible( true );
+                new Thread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        refreshClustersInfo();
+                    }
+                } ).start();
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
@@ -750,6 +759,7 @@ public class Manager
                     if ( c.getClusterName().equals( clusterInfo.getClusterName() ) )
                     {
                         clusterCombo.setValue( c );
+                        PROGRESS_ICON.setVisible( false );
                         return;
                     }
                 }
@@ -757,6 +767,7 @@ public class Manager
             else
             {
                 clusterCombo.setValue( clusters.iterator().next() );
+                PROGRESS_ICON.setVisible( false );
             }
         }
     }
