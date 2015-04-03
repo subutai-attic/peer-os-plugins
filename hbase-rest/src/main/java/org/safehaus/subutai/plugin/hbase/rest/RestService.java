@@ -60,10 +60,9 @@ public interface RestService
 
     //add node
     @POST
-    @Path("clusters/{clusterName}/add/node/{lxcHostName}/{nodeType}")
+    @Path("clusters/{clusterName}/add/node/{lxcHostName}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("lxcHostName") String lxcHostName,
-                             @PathParam("nodeType") String nodeType );
+    public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("lxcHostName") String lxcHostName );
 
 
     //destroy node
