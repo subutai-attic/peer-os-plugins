@@ -18,11 +18,13 @@ import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
+import org.safehaus.subutai.plugin.mongodb.api.MongoClusterOperationTask;
 import org.safehaus.subutai.plugin.mongodb.api.MongoNodeOperationTask;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
@@ -119,7 +121,7 @@ public class Manager
         controlsContent.setSpacing( true );
         controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
-        Label clusterNameLabel = new Label( "Select the cluster" );
+        final Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
         controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
@@ -175,25 +177,23 @@ public class Manager
         startAllBtn = new Button( START_ALL_BUTTON_CAPTION );
         startAllBtn.setId( "MongoStartAllBtn" );
         startAllBtn.addStyleName( "default" );
-//        startAllBtn.addClickListener( new Button.ClickListener()
-//        {
-//            @Override
-//            public void buttonClick( Button.ClickEvent clickEvent )
-//            {
-//                PROGRESS_ICON.setVisible( true );
-//                executorService.execute( new MongoNodeOperationTask( mongo, tracker, mongoClusterConfig, new CompleteEvent()
-//                {
-//                    public void onComplete( NodeState state )
-//                    {
-//                        synchronized ( PROGRESS_ICON )
-//                        {
-//                            PROGRESS_ICON.setVisible( false );
-//                            checkAllNodes();
-//                        }
-//                    }
-//                } ) );
-//            }
-//        } );
+        startAllBtn.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent clickEvent )
+            {
+                PROGRESS_ICON.setVisible( true );
+                executorService.execute( new MongoClusterOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(),
+                        ClusterOperationType.START_ALL, new CompleteEvent()
+                {
+                    @Override
+                    public void onComplete( final NodeState state )
+                    {
+                        checkAllBtn.click();
+                    }
+                }, null ) );
+            }
+        } );
         controlsContent.addComponent( startAllBtn );
         controlsContent.setComponentAlignment( startAllBtn, Alignment.MIDDLE_CENTER );
 
@@ -570,7 +570,12 @@ public class Manager
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
+            if ( table.getCaption().equals( "Config Servers" ) ){
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
+            }
+            else{
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
+            }
 
             table.addItem( new Object[] {
                     node.getHostname(), node.getIpByInterfaceName( "eth0" ),
@@ -584,7 +589,7 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
-//                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
+                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute( new MongoNodeOperationTask( mongo, tracker,
                             mongoClusterConfig.getClusterName(), node, NodeOperationType.STATUS, nodeType,
                             new CompleteEvent()
@@ -617,6 +622,7 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
+                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute( new MongoNodeOperationTask( mongo, tracker,
                             mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
                             new CompleteEvent()
@@ -640,7 +646,7 @@ public class Manager
                 public void buttonClick( Button.ClickEvent clickEvent )
                 {
                     PROGRESS_ICON.setVisible( true );
-//                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
+                    disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
                     executorService.execute( new MongoNodeOperationTask( mongo, tracker,
                             mongoClusterConfig.getClusterName(), node, NodeOperationType.STOP, nodeType,
                             new CompleteEvent()

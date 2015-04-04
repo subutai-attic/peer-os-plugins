@@ -1,9 +1,7 @@
 package org.safehaus.subutai.plugin.mongodb.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,10 +52,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     private ClusterOperationType operationType;
     private MongoClusterConfig config;
     private CommandUtil commandUtil;
+    private NodeType nodeType;
 
 
     public ClusterOperationHandler( final MongoImpl manager, final MongoClusterConfig config,
-                                    final ClusterOperationType operationType )
+                                    final ClusterOperationType operationType, NodeType nodeType )
     {
         super( manager, config );
         this.operationType = operationType;
@@ -65,6 +64,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
         commandUtil = new CommandUtil();
+        nodeType = nodeType;
     }
 
 
@@ -87,12 +87,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 }
                 break;
             case STOP_ALL:
+                try
+                {
+                    stopAll();
+                }
+                catch ( MongoException e )
+                {
+                    e.printStackTrace();
+                }
                 break;
             case STATUS_ALL:
                 runOperationOnContainers( operationType );
                 break;
             case ADD:
-                addNode();
+                addNode( nodeType );
                 break;
             case REMOVE:
                 destroyCluster();
@@ -116,6 +124,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         for ( UUID uuid : config.getDataHosts() ){
             startDataNode( findHost( uuid ) );
         }
+        trackerOperation.addLogDone( operationType + " operation is finished." );
+    }
+
+
+    private void stopAll() throws MongoException
+    {
+        /** start config nodes  */
+        for ( UUID uuid : config.getConfigHosts() ){
+            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
+        }
+
+        /** start router nodes  */
+        for ( UUID uuid : config.getRouterHosts() ){
+            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.ROUTER_NODE );
+        }
+
+        /** start data nodes  */
+        for ( UUID uuid : config.getDataHosts() ){
+            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.DATA_NODE );
+        }
+        trackerOperation.addLogDone( operationType + " operation is finished." );
     }
 
 
@@ -148,7 +177,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             CommandDef commandDef = Commands.getStartDataNodeCommandLine( config.getDataNodePort() );
             CommandResult commandResult = host.execute(
                     commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
-
 
             if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
             {
@@ -210,93 +238,109 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     }
 
 
-    public void addNode()
+    public void addNode( NodeType nodeType )
     {
-//        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
-//        EnvironmentManager environmentManager = manager.getEnvironmentManager();
-//        NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
-//                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
-//
-//        Topology topology = new Topology();
-//
-//        topology.addNodeGroupPlacement( localPeer, nodeGroup );
-//        try
-//        {
-//            Set<ContainerHost> newNodeSet;
-//            try
-//            {
-//                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
-//            }
-//            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-//            {
-//                LOG.error( "Could not add new node(s) to environment." );
-//                throw new ClusterException( e );
-//            }
-//
-//            ContainerHost newNode = newNodeSet.iterator().next();
-//
-//            config.getNodes().add( newNode.getId() );
-//
-//            manager.saveConfig( config );
-//
-//            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-//            Environment environment;
-//            try
-//            {
-//                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-//                configurator
-//                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
-//
-//                // check if one of seeds in cassandra cluster is already running,
-//                // then newly added node should be started automatically.
-//                try
-//                {
-//                    ContainerHost coordinator = environment.getContainerHostById( config.getSeedNodes().iterator().next() );
-//                    RequestBuilder checkMasterIsRunning = new RequestBuilder( Commands.statusCommand );
-//                    CommandResult result = null;
-//                    try
-//                    {
-//                        result = commandUtil.execute( checkMasterIsRunning, coordinator );
-//                        if ( result.hasSucceeded() ){
-//                            if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
-//                                commandUtil.execute( new RequestBuilder( Commands.startCommand ), newNode );
-//                            }
-//                        }
-//                    }
-//                    catch ( CommandException e )
-//                    {
-//                        LOG.error( "Could not check if Cassandra is running on one of the seeds nodes" );
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-//                catch ( ContainerHostNotFoundException e )
-//                {
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-//            {
-//                LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
-//                throw new ClusterException( e );
-//            }
-//
-//            //subscribe to alerts
-//            try
-//            {
-//                manager.subscribeToAlerts( newNode );
-//            }
-//            catch ( MonitorException e )
-//            {
-//                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-//            }
-//            trackerOperation.addLogDone( "Node added" );
-//        }
-//        catch ( ClusterException e )
-//        {
-//            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
-//        }
+        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
+        EnvironmentManager environmentManager = manager.getEnvironmentManager();
+        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME,  MongoClusterConfig.TEMPLATE_NAME,
+                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+
+        Topology topology = new Topology();
+
+        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+        try
+        {
+            Set<ContainerHost> newNodeSet;
+            try
+            {
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+            }
+            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+            {
+                LOG.error( "Could not add new node(s) to environment." );
+                throw new ClusterException( e );
+            }
+
+            ContainerHost newNode = newNodeSet.iterator().next();
+
+            if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
+                config.getRouterHosts().add( newNode.getId() );
+            }
+            else if ( nodeType.equals( NodeType.DATA_NODE ) ){
+                config.getDataHosts().add( newNode.getId() );
+            }
+            manager.saveConfig( config );
+
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+            Environment environment;
+            try
+            {
+                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                configurator
+                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+
+                // check if one of config server nodes in mongo cluster is already running,
+                // then newly added node should be started automatically.
+                try
+                {
+                    ContainerHost coordinator = environment.getContainerHostById(
+                            config.getConfigHosts().iterator().next() );
+                    RequestBuilder checkMasterIsRunning = Commands.getCheckConfigServer().build( true );
+                    CommandResult result;
+                    try
+                    {
+                        result = commandUtil.execute( checkMasterIsRunning, coordinator );
+                        if ( result.hasSucceeded() ){
+                            if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
+                                if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
+                                    Set<ContainerHost> configServers = new HashSet<>();
+                                    for ( UUID uuid : config.getConfigHosts() ){
+                                        configServers.add( findHost( uuid ) );
+                                    }
+                                    commandUtil.execute( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
+                                            config.getDomainName(), configServers ).build( true ), newNode );
+                                }
+                                else if ( nodeType.equals( NodeType.DATA_NODE ) ){
+                                    commandUtil.execute( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), newNode );
+                                }
+
+                            }
+                        }
+                    }
+                    catch ( CommandException e )
+                    {
+                        LOG.error( "Could not check if Mongo is running on one of the seeds nodes" );
+                        e.printStackTrace();
+                    }
+
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+
+            }
+            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            {
+                LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
+                throw new ClusterException( e );
+            }
+
+            //subscribe to alerts
+            try
+            {
+                manager.subscribeToAlerts( newNode );
+            }
+            catch ( MonitorException e )
+            {
+                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            }
+            trackerOperation.addLogDone( "Node added" );
+        }
+        catch ( ClusterException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+        }
     }
 
 

@@ -8,7 +8,6 @@ package org.safehaus.subutai.plugin.mongodb.ui;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import javax.naming.NamingException;
