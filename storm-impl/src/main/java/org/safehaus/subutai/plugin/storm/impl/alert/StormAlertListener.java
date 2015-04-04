@@ -195,6 +195,8 @@ public class StormAlertListener implements AlertListener
             //quota increase is made, return
             if ( quotaIncreased )
             {
+                //TODO adding the following line for testing purposes, remove it after that
+                storm.addNode( targetCluster.getClusterName() );
                 return;
             }
 
