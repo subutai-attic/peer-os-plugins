@@ -112,17 +112,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     {
         /** start config nodes  */
         for ( UUID uuid : config.getConfigHosts() ){
-            startConfigNode( findHost( uuid ) );
+            manager.startNode(clusterName, findHost(uuid).getHostname(), NodeType.CONFIG_NODE);
         }
 
         /** start router nodes  */
         for ( UUID uuid : config.getRouterHosts() ){
-            startRouterNode( findHost( uuid ) );
+            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
         }
 
         /** start data nodes  */
         for ( UUID uuid : config.getDataHosts() ){
-            startDataNode( findHost( uuid ) );
+            manager.startNode(clusterName, findHost(uuid).getHostname(), NodeType.CONFIG_NODE);
         }
         trackerOperation.addLogDone( operationType + " operation is finished." );
     }

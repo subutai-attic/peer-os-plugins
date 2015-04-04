@@ -43,17 +43,19 @@ public interface RestService
 
     //start node
     @PUT
-    @Path("clusters/{clusterName}/start/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/start/node/{lxcHostname}/nodeType/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response startNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+                               @PathParam("lxcHostname") String lxcHostname,
+                               @PathParam("nodeType") String nodeType );
 
     //stop node
     @PUT
-    @Path("clusters/{clusterName}/stop/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/stop/node/{lxcHostname}/nodeType/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopNode( @PathParam("clusterName") String clusterName,
-                              @PathParam("lxcHostname") String lxcHostname );
+                              @PathParam("lxcHostname") String lxcHostname,
+                              @PathParam("nodeType") String nodeType );
 
     //start cluster
     @PUT
@@ -78,10 +80,11 @@ public interface RestService
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/check/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/check/node/{lxcHostname}/nodeType/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response checkNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+                               @PathParam("lxcHostname") String lxcHostname,
+                               @PathParam("nodeType") String nodeType );
 
     //add node
     @POST
