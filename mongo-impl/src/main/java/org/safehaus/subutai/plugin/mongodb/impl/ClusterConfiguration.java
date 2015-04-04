@@ -67,7 +67,6 @@ public class ClusterConfiguration
         catch ( MongoException e )
         {
             e.printStackTrace();
-
         }
 
         config.setEnvironmentId( environment.getId() );
@@ -80,7 +79,6 @@ public class ClusterConfiguration
         {
             throw new ClusterConfigurationException( e );
         }
-
         po.addLogDone( "MongoDB cluster data saved into database" );
 
         //subscribe to alerts

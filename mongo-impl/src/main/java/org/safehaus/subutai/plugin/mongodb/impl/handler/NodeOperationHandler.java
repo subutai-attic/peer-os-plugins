@@ -163,11 +163,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                 executeCommand( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), host );
                 break;
         }
+        trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is started." );
     }
 
 
     private void stopNode( ContainerHost host ){
         executeCommand( Commands.getStopNodeCommand().build(), host );
+        trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is stopped." );
     }
 
 
@@ -177,8 +179,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         try
         {
             MongoClusterConfig config = manager.getCluster( clusterName );
-            config.getAllNodes().remove( host.getId() );
+            if ( nodeType.equals( NodeType.ROUTER_NODE ) )
+            {
+                config.getRouterHosts().remove( host.getId() );
+            }
+            else if ( nodeType.equals( NodeType.DATA_NODE ) )
+            {
+                config.getDataHosts().remove( host.getId() );
+            }
             manager.saveConfig( config );
+
             // configure cluster again
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try

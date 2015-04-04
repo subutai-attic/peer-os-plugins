@@ -64,7 +64,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
         commandUtil = new CommandUtil();
-        nodeType = nodeType;
+        this.nodeType = nodeType;
     }
 
 
@@ -248,20 +248,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         Topology topology = new Topology();
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
+
+        ContainerHost newNode;
         try
         {
-            Set<ContainerHost> newNodeSet;
-            try
+            ContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
+            if( unusedNodeInEnvironment != null )
             {
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                newNode = unusedNodeInEnvironment;
             }
-            catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-            {
-                LOG.error( "Could not add new node(s) to environment." );
-                throw new ClusterException( e );
+            else {
+                Set<ContainerHost> newNodeSet;
+                try
+                {
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                }
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+                {
+                    LOG.error( "Could not add new node(s) to environment." );
+                    throw new ClusterException( e );
+                }
+                newNode = newNodeSet.iterator().next();
             }
-
-            ContainerHost newNode = newNodeSet.iterator().next();
 
             if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
                 config.getRouterHosts().add( newNode.getId() );
@@ -343,6 +351,47 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         }
     }
 
+
+    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
+    {
+        ContainerHost unusedNode = null;
+
+        try
+        {
+            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
+            for( ContainerHost host : containerHostSet )
+            {
+                if( (!config.getAllNodes().contains( host.getId())) && host.getTemplateName().equals( MongoClusterConfig.TEMPLATE_NAME ) )
+                {
+                    unusedNode = host;
+                    break;
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        return checkUnusedNode( unusedNode );
+    }
+
+
+    private ContainerHost checkUnusedNode( ContainerHost node )
+    {
+        if( node != null)
+        {
+            for( MongoClusterConfig config : manager.getClusters() )
+            {
+                if( !config.getAllNodes().contains( node.getId() ))
+                {
+                    return node;
+                }
+            }
+        }
+        return null;
+
+    }
 
     @Override
     public void setupCluster()

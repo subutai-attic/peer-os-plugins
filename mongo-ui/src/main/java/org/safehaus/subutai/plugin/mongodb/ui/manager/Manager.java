@@ -191,7 +191,7 @@ public class Manager
                     {
                         checkAllBtn.click();
                     }
-                }, null ) );
+                }, environmentManager, null ) );
             }
         } );
         controlsContent.addComponent( startAllBtn );
@@ -515,7 +515,7 @@ public class Manager
             }
 
             Set<ContainerHost> dataHosts = new HashSet<>();
-            for ( UUID uuid : mongoClusterConfig.getConfigHosts() )
+            for ( UUID uuid : mongoClusterConfig.getDataHosts() )
             {
                 try {
                     dataHosts.add( environment.getContainerHostById( uuid ) );
@@ -676,8 +676,7 @@ public class Manager
                         @Override
                         public void buttonClick( Button.ClickEvent clickEvent )
                         {
-                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), node
-                                    .getHostname(),
+                            UUID trackID = mongo.destroyNode( mongoClusterConfig.getClusterName(), node.getHostname(),
                                     nodeType );
                             ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
                                     MongoClusterConfig.PRODUCT_KEY );
