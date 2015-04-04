@@ -2,6 +2,7 @@ package org.safehaus.subutai.plugin.nutch.impl;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
@@ -22,6 +23,7 @@ import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.nutch.api.NutchConfig;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 
 class NutchSetupStrategy implements ClusterSetupStrategy
@@ -147,30 +149,21 @@ class NutchSetupStrategy implements ClusterSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        trackerOperation.addLog( "Updating db..." );
-        //save to db
-        config.setEnvironmentId( environment.getId() );
-        try
-        {
-            manager.saveConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            throw new ClusterSetupException( e );
-        }
+        Set<ContainerHost> nodes = Sets.newHashSet();
 
-        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Nutch..." );
+            for( UUID uuid : config.getNodes() )
+            {
 
-        Set<ContainerHost> nodes;
-        try
-        {
-            nodes = environment.getContainerHostsByIds( config.getNodes() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            throw new ClusterSetupException( String.format( "Failed obtaining environment containers: %s", e ) );
-        }
-
+                try
+                {
+                    nodes.add( environment.getContainerHostById( uuid ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    trackerOperation.addLog( String.format( "Failed obtaining environment containers: %s", e ) );
+                    continue;
+                }
+            }
         //install nutch,
         for ( ContainerHost node : nodes )
         {
@@ -186,6 +179,20 @@ class NutchSetupStrategy implements ClusterSetupStrategy
                                 e.getMessage() ) );
             }
         }
+
+        trackerOperation.addLog( "Updating db..." );
+        //save to db
+        config.setEnvironmentId( environment.getId() );
+        try
+        {
+            manager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
+        }
+
+        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Nutch..." );
     }
 
     public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
