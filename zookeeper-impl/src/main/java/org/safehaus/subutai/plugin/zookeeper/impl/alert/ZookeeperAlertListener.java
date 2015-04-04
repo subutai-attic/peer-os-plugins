@@ -124,7 +124,7 @@ public class ZookeeperAlertListener implements AlertListener
         //confirm that Zookeeper is causing the stress, otherwise no-op
         MonitoringSettings thresholds = zookeeper.getAlertSettings();
         double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
-        double redLine = 0.7;
+        double redLine = 0.4;
         boolean isCpuStressedByZookeeper = false;
         boolean isRamStressedByZookeeper = false;
 
@@ -193,6 +193,8 @@ public class ZookeeperAlertListener implements AlertListener
             //quota increase is made, return
             if ( quotaIncreased )
             {
+                //TODO adding the following line for testing purposes, remove it after that
+                zookeeper.addNode( targetCluster.getClusterName() );
                 return;
             }
 
