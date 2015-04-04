@@ -26,14 +26,12 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.peer.api.LocalPeer;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
-import org.safehaus.subutai.plugin.storm.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.storm.impl.CommandType;
 import org.safehaus.subutai.plugin.storm.impl.Commands;
 import org.safehaus.subutai.plugin.storm.impl.StormImpl;
@@ -58,6 +56,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     private Environment environment;
     CommandUtil commandUtil = new CommandUtil();
 
+
     public StormClusterOperationHandler( final StormImpl manager, final StormClusterConfiguration config,
                                          final ClusterOperationType operationType )
     {
@@ -80,6 +79,29 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
         List<CommandResult> commandResultList = new ArrayList<>();
+        Environment zookeeperEnvironment = null;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            if ( config.isExternalZookeeper() )
+            {
+                ZookeeperClusterConfig zookeeperConfig =
+                        manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+                zookeeperEnvironment =
+                        manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+            }
+            else
+            {
+                zookeeperEnvironment = environment;
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            logException( String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
+                    e );
+            return;
+        }
+
         switch ( clusterOperationType )
         {
             case INSTALL:
@@ -91,11 +113,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             case START_ALL:
                 try
                 {
-                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-                    ZookeeperClusterConfig zookeeperConfig =
-                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                    Environment zookeeperEnvironment =
-                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
                     for ( UUID uuid : config.getAllNodes() )
                     {
                         if ( config.getNimbus().equals( uuid ) )
@@ -119,22 +136,11 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 {
                     return;
                 }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException(
-                            String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
-                            e );
-                    return;
-                }
                 break;
             case STOP_ALL:
                 try
                 {
-                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-                    ZookeeperClusterConfig zookeeperConfig =
-                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                    Environment zookeeperEnvironment =
-                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
+
                     for ( UUID uuid : config.getAllNodes() )
                     {
                         if ( config.getNimbus().equals( uuid ) )
@@ -158,22 +164,11 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 {
                     return;
                 }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException(
-                            String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
-                            e );
-                    return;
-                }
+
                 break;
             case STATUS_ALL:
                 try
                 {
-                    environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-                    ZookeeperClusterConfig zookeeperConfig =
-                            manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                    Environment zookeeperEnvironment =
-                            manager.getEnvironmentManager().findEnvironment( zookeeperConfig.getEnvironmentId() );
                     for ( UUID uuid : config.getAllNodes() )
                     {
                         if ( config.getNimbus().equals( uuid ) )
@@ -195,13 +190,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    return;
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException(
-                            String.format( "Couldn't get environment by id: %s", config.getEnvironmentId().toString() ),
-                            e );
                     return;
                 }
 
@@ -235,8 +223,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME,
-                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+        NodeGroup nodeGroup =
+                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, 1, 0, 0,
+                        new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
@@ -246,12 +235,13 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         try
         {
             ContainerHost unUsedContainerInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
-            if( unUsedContainerInEnvironment != null )
+            if ( unUsedContainerInEnvironment != null )
             {
                 newNode = unUsedContainerInEnvironment;
                 config.getSupervisors().add( unUsedContainerInEnvironment.getId() );
             }
-            else {
+            else
+            {
                 Set<ContainerHost> newNodeSet;
                 try
                 {
@@ -277,8 +267,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException( String.format( "Couldn't find environment with id: %s",
-                        config.getEnvironmentId().toString() ), e );
+                logException(
+                        String.format( "Couldn't find environment with id: %s", config.getEnvironmentId().toString() ),
+                        e );
                 return;
             }
             configureNStart( newNode, config, environment );
@@ -305,7 +296,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     }
 
 
-
     private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
     {
         ContainerHost unusedNode = null;
@@ -314,9 +304,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         {
             Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
             Set<ContainerHost> containerHostSet = environment.getContainerHosts();
-            for( ContainerHost host : containerHostSet )
+            for ( ContainerHost host : containerHostSet )
             {
-                if( (!config.getAllNodes().contains( host.getId())) && host.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) )
+                if ( ( !config.getAllNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
+                        StormClusterConfiguration.TEMPLATE_NAME ) )
                 {
                     unusedNode = host;
                     break;
@@ -333,18 +324,17 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
     private ContainerHost checkUnusedNode( ContainerHost node )
     {
-        if( node != null)
+        if ( node != null )
         {
-            for( StormClusterConfiguration config : manager.getClusters() )
+            for ( StormClusterConfiguration config : manager.getClusters() )
             {
-                if( !config.getAllNodes().contains( node.getId() ))
+                if ( !config.getAllNodes().contains( node.getId() ) )
                 {
                     return node;
                 }
             }
         }
         return null;
-
     }
 
 
@@ -388,15 +378,20 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         try
         {
             ContainerHost node = environment.getContainerHostById( config.getNimbus() );
-            RequestBuilder checkIfNimbusNodeRunning =  new RequestBuilder( Commands.make( CommandType.STATUS, StormService.NIMBUS ) );
+            RequestBuilder checkIfNimbusNodeRunning =
+                    new RequestBuilder( Commands.make( CommandType.STATUS, StormService.NIMBUS ) );
             CommandResult result;
             try
             {
                 result = commandUtil.execute( checkIfNimbusNodeRunning, node );
-                if ( result.hasSucceeded() ){
-                    if ( ! result.getStdOut().toLowerCase().contains( "not" ) ){
-                        stormNode.execute( new RequestBuilder( Commands.make( CommandType.KILL, StormService.SUPERVISOR ) ) );
-                        stormNode.execute( new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
+                if ( result.hasSucceeded() )
+                {
+                    if ( !result.getStdOut().toLowerCase().contains( "not" ) )
+                    {
+                        stormNode.execute(
+                                new RequestBuilder( Commands.make( CommandType.KILL, StormService.SUPERVISOR ) ) );
+                        stormNode.execute(
+                                new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) );
                     }
                 }
             }
