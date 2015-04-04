@@ -39,6 +39,7 @@ public class HadoopAlertListener implements AlertListener
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
+    private static int PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY =  2048 * 1024 * 1024;
     private static final String PID_STRING = "pid";
 
 
@@ -119,15 +120,15 @@ public class HadoopAlertListener implements AlertListener
             return;
         }
 
-        // Set 80 percent of the available ram capacity of the resource host
+        // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() - ( PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY );
 
         List<NodeType> nodeRoles = HadoopClusterConfig.getNodeRoles( targetCluster, sourceHost );
 
         double totalRamUsage = 0;
         double totalCpuUsage = 0;
-        double redLine = 0.7;
+        double redLine = 0.5;
 
         // confirm that Hadoop is causing the stress, otherwise no-op
         MonitoringSettings thresholds = hadoop.getAlertSettings();
@@ -142,7 +143,7 @@ public class HadoopAlertListener implements AlertListener
             {
                 case NAMENODE:
                     CommandResult result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ), sourceHost );
+                            .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ), sourceHost );
                     String output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
                         break;
@@ -153,7 +154,7 @@ public class HadoopAlertListener implements AlertListener
                     cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
                     break;
                 case SECONDARY_NAMENODE:
-                    result = commandUtil.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ),
+                    result = commandUtil.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
                             sourceHost );
                     output = parseService( result.getStdOut(), "secondarynamenode" );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
@@ -166,7 +167,7 @@ public class HadoopAlertListener implements AlertListener
                     break;
                 case JOBTRACKER:
                     result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ), sourceHost );
+                            .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).withTimeout( 60 ), sourceHost );
                     output = parseService( result.getStdOut(),  nodeType.name().toLowerCase() );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
                         break;
@@ -178,7 +179,7 @@ public class HadoopAlertListener implements AlertListener
                     break;
                 case DATANODE:
                     result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ), sourceHost );
+                            .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ).withTimeout( 60 ), sourceHost );
                     output = parseService( result.getStdOut(),  nodeType.name().toLowerCase() );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
                         break;
@@ -187,9 +188,10 @@ public class HadoopAlertListener implements AlertListener
                     processResourceUsage = sourceHost.getProcessResourceUsage( pid );
                     ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
                     cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
+                    break;
                 case TASKTRACKER:
                     result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ), sourceHost );
+                            .execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ), sourceHost );
                     output = parseService( result.getStdOut(),  nodeType.name().toLowerCase() );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
                         break;
@@ -294,6 +296,8 @@ public class HadoopAlertListener implements AlertListener
             //quota increase is made, return
             if ( quotaIncreased )
             {
+                // TODO remove the following line when testing is finished
+                hadoop.addNode( targetCluster.getClusterName() );
                 return;
             }
 
