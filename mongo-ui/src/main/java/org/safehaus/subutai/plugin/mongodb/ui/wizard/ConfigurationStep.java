@@ -200,6 +200,9 @@ public class ConfigurationStep extends VerticalLayout
                 {
                     show( "Please provide cluster name" );
                 }
+                else if ( ( wizard.getMongoClusterConfig().getConfigHosts().size() % 2 ) == 0  ){
+                    show( "Number of config servers should be an odd number!" );
+                }
                 else
                 {
                     wizard.next();

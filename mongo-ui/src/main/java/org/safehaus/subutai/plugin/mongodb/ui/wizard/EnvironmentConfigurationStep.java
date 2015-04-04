@@ -261,6 +261,11 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                     return;
                 }
 
+                if ( ( wizard.getMongoClusterConfig().getConfigHosts().size() % 2 ) == 0  ){
+                    show( "Number of config servers should be an odd number!" );
+                    return;
+                }
+
                 if ( Strings.isNullOrEmpty( wizard.getMongoClusterConfig().getClusterName() ) )
                 {
                     show( "Please provide cluster name" );
