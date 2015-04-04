@@ -111,6 +111,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         {
             case START_ALL:
                 manager.getHadoopManager().startNameNode( hadoopConfig );
+                manager.getZkManager().startAllNodes( config.getZookeeperClusterName() );
                 Util.executeCommand( containerHost, Commands.startCommand );
                 break;
             case STOP_ALL:
