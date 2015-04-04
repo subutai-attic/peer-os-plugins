@@ -255,10 +255,16 @@ public class RestServiceImpl implements RestService
 
     public Response destroyNode( String clusterName, String hostname )
     {
+        Preconditions.checkNotNull( clusterName );
+        if ( stormManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
         UUID uuid = stormManager.destroyNode( clusterName, hostname );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
