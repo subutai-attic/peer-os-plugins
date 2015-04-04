@@ -116,7 +116,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
 
     private boolean checkNode( ContainerHost host )
     {
-        MongoClusterConfig config = manager.getCluster( clusterName );
         CommandDef commandDef = null;
         switch ( nodeType ){
             case CONFIG_NODE:
@@ -126,8 +125,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                 commandDef = Commands.getCheckRouterNode();
                 break;
             case DATA_NODE:
-                commandDef = Commands.getCheckInstanceRunningCommand(host.getHostname(),
-                        config.getDomainName(), config.getDataNodePort() );
+                commandDef = Commands.getCheckDataNode();
                 break;
         }
         try
@@ -135,6 +133,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
             CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 20 ) );
             if ( ! commandResult.getStdOut().isEmpty() )
             {
+                trackerOperation.addLogDone( nodeType.name() + " service is running on node " + host.getHostname() );
                 return true;
             }
         }
@@ -142,6 +141,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         {
             e.printStackTrace();
         }
+        trackerOperation.addLogDone( nodeType.name() + " service is NOT running on node " + host.getHostname() );
         return false;
     }
 

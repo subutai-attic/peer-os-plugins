@@ -342,6 +342,10 @@ public class Commands
         return new CommandDef( "Check node", "ps axu | grep mongo[s]", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
     }
 
+    public static CommandDef getCheckDataNode(){
+        return new CommandDef( "Check node", "ps axu | grep mongo[d]", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+    }
+
     public static RequestBuilder getPidCommand()
     {
         return new RequestBuilder( " ps aux | grep '[m]ongod --config' | awk  -F ' ' '{print $2}' " ).withTimeout( 30 );
