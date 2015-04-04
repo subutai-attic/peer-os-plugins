@@ -37,17 +37,23 @@ public class WelcomeStep extends Panel
         logoImg.setWidth( 150, Unit.PIXELS );
         grid.addComponent( logoImg, 1, 3, 2, 5 );
 
-        Button startEmbeddedZK = new Button( "Start (embedded Zookeeper)" );
+        // Button startEmbeddedZK = new Button( "Start (embedded Zookeeper)" );
+        Button startEmbeddedZK = new Button( "Start" );
         startEmbeddedZK.setId( "StormStartEmbedded" );
         startEmbeddedZK.addStyleName( "default" );
         grid.addComponent( startEmbeddedZK, 6, 4, 6, 4 );
         grid.setComponentAlignment( startEmbeddedZK, Alignment.BOTTOM_RIGHT );
 
+        /**
+         * Since containers in different environments cannot talk to each other
+         * due to the network isolation between environments, for now we need to
+         * disable external zookeeper installation type of storm plugin.
+         */
         Button startExternalZK = new Button( "Start (external Zookeeper)" );
         startExternalZK.setId( "StormExternal" );
         startExternalZK.addStyleName( "default" );
-        grid.addComponent( startExternalZK, 7, 4, 7, 4 );
-        grid.setComponentAlignment( startExternalZK, Alignment.BOTTOM_RIGHT );
+        // grid.addComponent( startExternalZK, 7, 4, 7, 4 );
+        // grid.setComponentAlignment( startExternalZK, Alignment.BOTTOM_RIGHT );
 
         startEmbeddedZK.addClickListener( new Button.ClickListener()
         {
