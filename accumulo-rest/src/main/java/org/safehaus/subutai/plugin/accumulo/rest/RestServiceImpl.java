@@ -187,7 +187,8 @@ public class RestServiceImpl implements RestService
         {
             accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
         }
-        UUID uuid = accumuloManager.addNode( clusterName, accumuloNodeType );
+        //UUID uuid = accumuloManager.addNode( clusterName, accumuloNodeType );
+        UUID uuid =accumuloManager.addNode( clusterName, lxcHostname, accumuloNodeType );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
