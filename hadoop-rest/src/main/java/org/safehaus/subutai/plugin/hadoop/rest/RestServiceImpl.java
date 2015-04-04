@@ -74,6 +74,7 @@ public class RestServiceImpl implements RestService
                 slaveNodes.add( UUID.fromString( node ) );
             }
             hadoopConfig.getDataNodes().addAll( slaveNodes );
+            hadoopConfig.getTaskTrackers().addAll( slaveNodes );
         }
 
         UUID uuid = hadoopManager.installCluster( hadoopConfig );
