@@ -436,10 +436,10 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<ContainerHost> containerHosts;
                     try
                     {
                         containerHosts = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() )
@@ -457,7 +457,7 @@ public class Manager
                     while ( iterator.hasNext() )
                     {
                         containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        if ( containerHost.getHostname().equals( containerHostname ) )
                         {
                             break;
                         }
@@ -834,26 +834,6 @@ public class Manager
         checkNodesStatus( configServersTable );
         checkNodesStatus( routersTable );
         checkNodesStatus( dataNodesTable );
-    }
-
-
-    public void startAllNodes( Table table )
-    {
-        for ( Object o : table.getItemIds() )
-        {
-            int rowId = ( Integer ) o;
-            Item row = table.getItem( rowId );
-            HorizontalLayout availableOperationsLayout =
-                    ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
-            if ( availableOperationsLayout != null )
-            {
-                Button startBtn = getButton( availableOperationsLayout, START_BUTTON_CAPTION );
-                if ( startBtn != null )
-                {
-                    startBtn.click();
-                }
-            }
-        }
     }
 
 

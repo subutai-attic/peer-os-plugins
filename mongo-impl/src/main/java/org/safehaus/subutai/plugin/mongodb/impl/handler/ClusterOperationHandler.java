@@ -243,7 +243,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME,  MongoClusterConfig.TEMPLATE_NAME,
-                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+                1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
@@ -299,7 +299,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                     {
                         result = commandUtil.execute( checkMasterIsRunning, coordinator );
                         if ( result.hasSucceeded() ){
-                            if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
+                            if ( ! result.getStdOut().isEmpty() ){
                                 if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
                                     Set<ContainerHost> configServers = new HashSet<>();
                                     for ( UUID uuid : config.getConfigHosts() ){
@@ -311,7 +311,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                                 else if ( nodeType.equals( NodeType.DATA_NODE ) ){
                                     commandUtil.execute( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), newNode );
                                 }
-
                             }
                         }
                     }

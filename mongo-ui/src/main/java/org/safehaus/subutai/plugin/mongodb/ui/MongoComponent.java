@@ -51,7 +51,7 @@ public class MongoComponent extends CustomComponent
                 if ( caption.equals( "Manage" ) )
                 {
                     manager.refreshClustersInfo();
-//                    manager.checkAllNodes();
+                    manager.checkAllNodes();
                 }
             }
         } );
