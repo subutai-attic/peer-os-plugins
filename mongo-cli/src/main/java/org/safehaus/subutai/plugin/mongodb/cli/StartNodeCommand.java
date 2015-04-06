@@ -21,13 +21,17 @@ public class StartNodeCommand extends OsgiCommandSupport
             multiValued = false )
     String hostname = null;
 
+    @Argument( index = 2, name = "type", description = "The type of mongo node.", required = true,
+            multiValued = false )
+    String nodeType = null;
+
     private Tracker tracker;
     private Mongo mongoManager;
 
     @Override
     protected Object doExecute() throws Exception
     {
-        UUID uuid = getMongoManager().startNode( clusterName, hostname );
+        UUID uuid = getMongoManager().startNode( clusterName, hostname, org.safehaus.subutai.plugin.mongodb.api.NodeType.valueOf( nodeType ) );
         System.out.println( "Start node operation is " + InstallClusterCommand.waitUntilOperationFinish(
                 getTracker(), uuid ) + "." );
         return null;

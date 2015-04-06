@@ -1,8 +1,8 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* To change this license header, choose License Headers in Project Properties.
+* To change this template file, choose Tools | Templates
+* and open the template in the editor.
+*/
 package org.safehaus.subutai.plugin.mongodb.ui.wizard;
 
 
@@ -19,7 +19,6 @@ import org.safehaus.subutai.common.peer.PeerException;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.util.StringUtil;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,7 +199,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                         ContainerHost configNode = mongoBean.getBean();
                         mongoConfigNodes.add( configNode.getId() );
                     }
-                    wizard.getMongoClusterConfig().setConfigHostIds( mongoConfigNodes );
+                    wizard.getMongoClusterConfig().setConfigHosts( mongoConfigNodes );
                     wizard.setConfigServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
@@ -223,7 +222,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                         ContainerHost dataNode = mongoBean.getBean();
                         mongoRouterNodes.add( dataNode.getId() );
                     }
-                    wizard.getMongoClusterConfig().setRouterHostIds( mongoRouterNodes );
+                    wizard.getMongoClusterConfig().setRouterHosts( mongoRouterNodes );
                     wizard.setRouterServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
@@ -247,7 +246,7 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                         ContainerHost dataNode = mongoBean.getBean();
                         mongoDataNodes.add( dataNode.getId() );
                     }
-                    wizard.getMongoClusterConfig().setDataServerIds( mongoDataNodes );
+                    wizard.getMongoClusterConfig().setDataHosts( mongoDataNodes );
                     wizard.setDataServerNames( new HashSet<>( Arrays.asList( nodes ) ) );
                 }
                 else
@@ -259,6 +258,11 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 if ( envList.getValue() == null )
                 {
                     show( "Select environment to configure." );
+                    return;
+                }
+
+                if ( ( wizard.getMongoClusterConfig().getConfigHosts().size() % 2 ) == 0  ){
+                    show( "Number of config servers should be an odd number!" );
                     return;
                 }
 
@@ -320,10 +324,10 @@ public class EnvironmentConfigurationStep extends VerticalLayout
         final Set<UUID> mongoContainerHosts = new HashSet<>();
         for ( final MongoClusterConfig clusterConfig : clusterConfigs )
         {
-            for ( final MongoNode mongoNode : clusterConfig.getAllNodes() )
-            {
-                mongoContainerHosts.add( mongoNode.getContainerHost().getId() );
-            }
+//            for ( final MongoNode mongoNode : clusterConfig.getAllNodes() )
+//            {
+//                mongoContainerHosts.add( mongoNode.getContainerHost().getId() );
+//            }
         }
 
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );

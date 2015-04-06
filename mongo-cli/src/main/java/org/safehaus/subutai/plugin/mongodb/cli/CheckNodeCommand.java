@@ -21,13 +21,17 @@ public class CheckNodeCommand extends OsgiCommandSupport
             multiValued = false )
     String hostname = null;
 
+    @Argument( index = 2, name = "type", description = "The type of mongo node.", required = true,
+            multiValued = false )
+    String nodeType = null;
+
     private Tracker tracker;
     private Mongo mongoManager;
 
     @Override
     protected Object doExecute() throws Exception
     {
-        UUID uuid = getMongoManager().checkNode( clusterName, hostname );
+        UUID uuid = getMongoManager().checkNode( clusterName, hostname, org.safehaus.subutai.plugin.mongodb.api.NodeType.valueOf( nodeType ) );
         System.out.println( "Check node operation is " + InstallClusterCommand.waitUntilOperationFinish(
                 getTracker(), uuid ) + "." );
         return null;

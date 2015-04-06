@@ -88,7 +88,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getConfigHostIds().addAll( nodes );
+            mongoConfig.getConfigHosts().addAll( nodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getDataNodes() ) )
@@ -98,7 +98,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getDataHostIds().addAll( nodes );
+            mongoConfig.getDataHosts().addAll( nodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getRouterNodes() ) )
@@ -108,7 +108,7 @@ public class RestServiceImpl implements RestService
             {
                 nodes.add( UUID.fromString( hostname ) );
             }
-            mongoConfig.getRouterHostIds().addAll( nodes );
+            mongoConfig.getRouterHosts().addAll( nodes );
         }
         UUID uuid = mongo.installCluster( mongoConfig );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -132,7 +132,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNode( final String clusterName, final String lxcHostname )
+    public Response startNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
@@ -141,14 +141,27 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.startNode( clusterName, lxcHostname );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.startNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response stopNode( final String clusterName, final String lxcHostname )
+    public Response stopNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
@@ -157,7 +170,20 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.stopNode( clusterName, lxcHostname );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.stopNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -224,7 +250,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response checkNode( final String clusterName, final String lxcHostname )
+    public Response checkNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
@@ -233,7 +259,20 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.checkNode( clusterName, lxcHostname );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.checkNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
