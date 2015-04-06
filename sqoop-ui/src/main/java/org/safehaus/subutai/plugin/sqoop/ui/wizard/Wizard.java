@@ -120,5 +120,10 @@ public class Wizard
     {
         return hadoopConfig;
     }
+
+    public Sqoop getSqoopManager()
+    {
+        return sqoop;
+    }
 }
 
