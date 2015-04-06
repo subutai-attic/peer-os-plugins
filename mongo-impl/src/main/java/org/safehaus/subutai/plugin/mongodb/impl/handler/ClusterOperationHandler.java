@@ -27,13 +27,11 @@ import org.safehaus.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.MongoException;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.mongodb.impl.MongoImpl;
-import org.safehaus.subutai.plugin.mongodb.impl.common.CommandDef;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,17 +110,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     {
         /** start config nodes  */
         for ( UUID uuid : config.getConfigHosts() ){
-            manager.startNode(clusterName, findHost(uuid).getHostname(), NodeType.CONFIG_NODE);
+            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
         }
 
         /** start router nodes  */
         for ( UUID uuid : config.getRouterHosts() ){
-            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
+            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.ROUTER_NODE );
         }
 
         /** start data nodes  */
         for ( UUID uuid : config.getDataHosts() ){
-            manager.startNode(clusterName, findHost(uuid).getHostname(), NodeType.CONFIG_NODE);
+            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.DATA_NODE );
         }
         trackerOperation.addLogDone( operationType + " operation is finished." );
     }
@@ -130,17 +128,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
     private void stopAll() throws MongoException
     {
-        /** start config nodes  */
+        /** stop config nodes  */
         for ( UUID uuid : config.getConfigHosts() ){
             manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
         }
 
-        /** start router nodes  */
+        /** stop router nodes  */
         for ( UUID uuid : config.getRouterHosts() ){
             manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.ROUTER_NODE );
         }
 
-        /** start data nodes  */
+        /** stop data nodes  */
         for ( UUID uuid : config.getDataHosts() ){
             manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.DATA_NODE );
         }
@@ -166,75 +164,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             e.printStackTrace();
         }
         return null;
-    }
-
-
-
-    public void startDataNode( ContainerHost host ) throws MongoException
-    {
-        try
-        {
-            CommandDef commandDef = Commands.getStartDataNodeCommandLine( config.getDataNodePort() );
-            CommandResult commandResult = host.execute(
-                    commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
-
-            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
-            {
-                throw new CommandException( "Could not start mongo data instance." );
-            }
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( "Start command failed.", e );
-            throw new MongoException( "Start command failed" );
-        }
-    }
-
-
-    public void startConfigNode( ContainerHost host ) throws MongoException
-    {
-        try
-        {
-            CommandDef commandDef = Commands.getStartConfigServerCommand( config.getCfgSrvPort() );
-            CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( commandDef.getTimeout() ) );
-
-            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
-            {
-                throw new CommandException( "Could not start mongo config instance." );
-            }
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( e.getMessage(), e );
-            throw new MongoException( e.getMessage() );
-        }
-    }
-
-
-    public void startRouterNode( ContainerHost host ) throws MongoException
-    {
-        Set<ContainerHost> configServers = new HashSet<>();
-        for ( UUID uuid : config.getConfigHosts() ){
-            configServers.add( findHost( uuid ) );
-        }
-
-        CommandDef commandDef =
-                Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
-                        config.getDomainName(), configServers );
-        try
-        {
-            CommandResult commandResult = host.execute( commandDef.build( true ) );
-
-            if ( !commandResult.getStdOut().contains( "child process started successfully, parent exiting" ) )
-            {
-                throw new CommandException( "Could not start mongo route instance." );
-            }
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( e.toString(), e );
-            throw new MongoException( "Could not start mongo router node:" );
-        }
     }
 
 
@@ -392,6 +321,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
     }
 
+
+    @Override
+    public void runOperationOnContainers( final ClusterOperationType clusterOperationType )
+    {
+
+    }
+
+
     @Override
     public void setupCluster()
     {
@@ -416,59 +353,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
 
     @Override
-    public void runOperationOnContainers( ClusterOperationType clusterOperationType )
-    {
-//        try
-//        {
-//            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-//            CommandResult result = null;
-//            switch ( clusterOperationType )
-//            {
-//                case START_ALL:
-//                    for ( ContainerHost containerHost : environment.getContainerHosts() )
-//                    {
-//                        result = executeCommand( containerHost, Commands.startCommand );
-//                    }
-//                    break;
-//                case STOP_ALL:
-//                    for ( ContainerHost containerHost : environment.getContainerHosts() )
-//                    {
-//                        result = executeCommand( containerHost, Commands.stopCommand );
-//                    }
-//                    break;
-//                case STATUS_ALL:
-//                    for ( ContainerHost containerHost : environment.getContainerHosts() )
-//                    {
-//                        result = executeCommand( containerHost, Commands.statusCommand );
-//                    }
-//                    break;
-//            }
-//            NodeOperationHandler.logResults( trackerOperation, result );
-//        }
-//        catch ( EnvironmentNotFoundException e )
-//        {
-//            trackerOperation.addLogFailed( "Environment not found" );
-//        }
-    }
-
-
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
-    {
-        CommandResult result = null;
-        try
-        {
-            result = containerHost.execute( new RequestBuilder( command ) );
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( "Could not execute command correctly. ", command );
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-
-    @Override
     public void destroyCluster()
     {
         MongoClusterConfig config = manager.getCluster( clusterName );
@@ -479,7 +363,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );

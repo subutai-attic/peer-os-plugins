@@ -141,7 +141,20 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.startNode( clusterName, lxcHostname, NodeType.valueOf( nodeType ) );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.startNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -157,7 +170,20 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.stopNode( clusterName, lxcHostname, NodeType.valueOf( nodeType ) );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.stopNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -233,7 +259,20 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = mongo.checkNode( clusterName, lxcHostname, NodeType.valueOf( nodeType ) );
+        NodeType type = null;
+        if ( nodeType.contains( "config" ) )
+        {
+            type = NodeType.CONFIG_NODE;
+        }
+        else if ( nodeType.contains( "data" ) )
+        {
+            type = NodeType.DATA_NODE;
+        }
+        else if ( nodeType.contains( "router" ) )
+        {
+            type = NodeType.ROUTER_NODE;
+        }
+        UUID uuid = mongo.checkNode( clusterName, lxcHostname, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }

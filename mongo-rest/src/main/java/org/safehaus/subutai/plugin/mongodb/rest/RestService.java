@@ -76,11 +76,12 @@ public interface RestService
     @Path("clusters/{clusterName}/destroy/node/{lxcHostname}/type/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
-                                 @PathParam("lxcHostname") String lxcHostname, @PathParam("nodeType") String nodeType );
+                                 @PathParam("lxcHostname") String lxcHostname,
+                                 @PathParam("nodeType") String nodeType );
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/check/node/{lxcHostname}/nodeType/{nodeType}")
+    @Path("clusters/{clusterName}/check/node/{lxcHostname}/type/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response checkNode( @PathParam("clusterName") String clusterName,
                                @PathParam("lxcHostname") String lxcHostname,
