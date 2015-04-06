@@ -16,6 +16,7 @@ import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
@@ -365,41 +366,85 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    public void onContainerDestroyed( final Environment environment, final UUID uuid )
     {
-//        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
-//        for ( final String clusterData : clusterDataList )
-//        {
-//            MongoClusterConfig clusterConfig = GSON.fromJson( clusterData, MongoClusterConfig.class );
-//            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
-//            {
-//                clusterConfig.removeNode( containerHostId );
-//                Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
-//                String json = GSON.toJson( clusterConfig );
-//                getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), json );
-//                LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
-//                        clusterConfig.getClusterName() ) );
-//            }
-//        }
+        LOG.info( String.format( "Mongo environment event: Container destroyed: %s", uuid ) );
+        List<MongoClusterConfig> clusters = getClusters();
+        for ( MongoClusterConfig clusterConfig : clusters )
+        {
+            if ( environment.getId().equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Mongo environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
-        //        List<MongoClusterConfig> clusterConfigs = getClusters();
-        //        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
-        //        {
-        //            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
-        //            {
-        //                if ( clusterConfig.getAllNodeIds().contains( containerHostId ) )
-        //                {
-        //                    clusterConfig.removeNode( containerHostId );
-        //                    Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation()
-        // .create();
-        //                    String json = GSON.toJson( clusterConfig.prepare() );
-        //                    getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName()
-        // , json );
-        //                    LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
-        //                            clusterConfig.getClusterName() ) );
-        //                }
-        //            }
-        //        }
+                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                {
+                    LOG.info( String.format( "Mongo environment event: Before: %s", clusterConfig ) );
+
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getConfigHosts() ) )
+                    {
+                        if ( clusterConfig.getConfigHosts().size() == 1 ){
+                            try
+                            {
+                                LOG.info( "Removing cluster config object, since single config server container is destroyed." );
+                                deleteConfig( clusterConfig );
+                            }
+                            catch ( ClusterException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        else {
+                            clusterConfig.getConfigHosts().remove( uuid );
+                        }
+                    }
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getRouterHosts() ) )
+                    {
+                        if ( clusterConfig.getRouterHosts().size() == 1 ){
+                            try
+                            {
+                                LOG.info( "Removing cluster config object, since single router node container is destroyed." );
+                                deleteConfig( clusterConfig );
+                            }
+                            catch ( ClusterException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        else {
+                            clusterConfig.getRouterHosts().remove( uuid );
+                        }
+                    }
+                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getDataHosts() ) )
+                    {
+                        if ( clusterConfig.getDataHosts().size() == 1 ){
+                            try
+                            {
+                                LOG.info( "Removing cluster config object, since single data node container is destroyed." );
+                                deleteConfig( clusterConfig );
+                            }
+                            catch ( ClusterException e )
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        else {
+                            clusterConfig.getDataHosts().remove( uuid );
+                        }
+                    }
+                    try
+                    {
+                        saveConfig( clusterConfig );
+                        LOG.info( String.format( "Mongo environment event: After: %s", clusterConfig ) );
+                    }
+                    catch ( ClusterException e )
+                    {
+                        LOG.error( "Error updating cluster config", e );
+                    }
+                    break;
+                }
+            }
+        }
     }
 
 
