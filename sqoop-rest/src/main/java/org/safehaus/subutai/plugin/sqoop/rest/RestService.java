@@ -50,19 +50,17 @@ public interface RestService
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "hostname" ) String hostname );
 
-    // import data
+    //import data
     @POST
-    @Path( "importData" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response importData( @QueryParam( "dataSourceType" ) String dataSourceType,
-                                @QueryParam( "importAllTables" ) String importAllTables,
-                                @QueryParam( "datasourceDatabase" ) String datasourceDatabase,
-                                @QueryParam( "datasourceTableName" ) String datasourceTableName,
-                                @QueryParam( "datasourceColumnFamily" ) String datasourceColumnFamily );
+    @Path("import")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response importData( @QueryParam( "config" ) String config );
 
-    // export data
-    @GET
-    @Path( "exportData" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response exportData( @QueryParam( "hdfsPath" ) String hdfsPath );
+
+    //export data
+    @POST
+    @Path("export")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response exportData( @QueryParam( "config" ) String config );
+
 }
