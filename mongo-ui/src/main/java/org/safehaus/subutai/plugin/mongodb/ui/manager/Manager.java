@@ -6,24 +6,26 @@
 package org.safehaus.subutai.plugin.mongodb.ui.manager;
 
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
+import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.CompleteEvent;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeState;
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoNode;
+import org.safehaus.subutai.plugin.mongodb.api.MongoClusterOperationTask;
+import org.safehaus.subutai.plugin.mongodb.api.MongoNodeOperationTask;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.server.ui.component.ConfirmationDialog;
 import org.safehaus.subutai.server.ui.component.ProgressWindow;
@@ -117,9 +119,11 @@ public class Manager
 
         final HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
+        controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
 
-        Label clusterNameLabel = new Label( "Select the cluster" );
+        final Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
         clusterCombo = new ComboBox();
         clusterCombo.setId( "MongoClusterCb" );
@@ -135,8 +139,8 @@ public class Manager
                 refreshUI();
             }
         } );
-
         controlsContent.addComponent( clusterCombo );
+        controlsContent.setComponentAlignment( clusterCombo, Alignment.MIDDLE_CENTER );
 
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
         refreshClustersBtn.setId( "MongoRefreshClustersBtn" );
@@ -152,6 +156,7 @@ public class Manager
         } );
 
         controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
 
         checkAllBtn = new Button( CHECK_ALL_BUTTON_CAPTION );
         checkAllBtn.setId( "MongoCheckAllBtn" );
@@ -167,6 +172,7 @@ public class Manager
             }
         } );
         controlsContent.addComponent( checkAllBtn );
+        controlsContent.setComponentAlignment( checkAllBtn, Alignment.MIDDLE_CENTER );
 
         startAllBtn = new Button( START_ALL_BUTTON_CAPTION );
         startAllBtn.setId( "MongoStartAllBtn" );
@@ -174,23 +180,22 @@ public class Manager
         startAllBtn.addClickListener( new Button.ClickListener()
         {
             @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
+            public void buttonClick( final Button.ClickEvent clickEvent )
             {
                 PROGRESS_ICON.setVisible( true );
-                executorService.execute( new StartAllTask( mongo, tracker, mongoClusterConfig, new CompleteEvent()
+                executorService.execute( new MongoClusterOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(),
+                        ClusterOperationType.START_ALL, new CompleteEvent()
                 {
-                    public void onComplete( NodeState state )
+                    @Override
+                    public void onComplete( final NodeState state )
                     {
-                        synchronized ( PROGRESS_ICON )
-                        {
-                            PROGRESS_ICON.setVisible( false );
-                            checkAllNodes();
-                        }
+                        checkAllBtn.click();
                     }
-                } ) );
+                }, environmentManager, null ) );
             }
         } );
         controlsContent.addComponent( startAllBtn );
+        controlsContent.setComponentAlignment( startAllBtn, Alignment.MIDDLE_CENTER );
 
         stopAllBtn = new Button( STOP_ALL_BUTTON_CAPTION );
         stopAllBtn.setId( "MongoStopAllBtn" );
@@ -206,6 +211,7 @@ public class Manager
             }
         } );
         controlsContent.addComponent( stopAllBtn );
+        controlsContent.setComponentAlignment( stopAllBtn, Alignment.MIDDLE_CENTER );
 
         destroyClusterBtn = new Button( DESTROY_CLUSTER_BUTTON_CAPTION );
         destroyClusterBtn.setId( "MongoDestroyClusterBtn" );
@@ -251,6 +257,7 @@ public class Manager
         } );
 
         controlsContent.addComponent( destroyClusterBtn );
+        controlsContent.setComponentAlignment( destroyClusterBtn, Alignment.MIDDLE_CENTER );
 
         Button addRouterBtn = new Button( "Add Router" );
         addRouterBtn.setId( "MongoAddRouterBtn" );
@@ -342,6 +349,8 @@ public class Manager
 
         controlsContent.addComponent( addRouterBtn );
         controlsContent.addComponent( addDataNodeBtn );
+        controlsContent.setComponentAlignment( addRouterBtn, Alignment.MIDDLE_CENTER );
+        controlsContent.setComponentAlignment( addDataNodeBtn, Alignment.MIDDLE_CENTER );
 
         //auto scale button
         autoScaleBtn = new CheckBox( AUTO_SCALE_BUTTON_CAPTION );
@@ -427,10 +436,10 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<ContainerHost> containerHosts;
                     try
                     {
                         containerHosts = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() )
@@ -448,7 +457,7 @@ public class Manager
                     while ( iterator.hasNext() )
                     {
                         containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        if ( containerHost.getHostname().equals( containerHostname ) )
                         {
                             break;
                         }
@@ -479,9 +488,45 @@ public class Manager
     {
         if ( mongoClusterConfig != null )
         {
-            populateTable( configServersTable, mongoClusterConfig.getConfigServers(), NodeType.CONFIG_NODE );
-            populateTable( routersTable, mongoClusterConfig.getRouterServers(), NodeType.ROUTER_NODE );
-            populateTable( dataNodesTable, mongoClusterConfig.getDataNodes(), NodeType.DATA_NODE );
+            Environment environment = null;
+            try {
+                environment = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() );
+            } catch (EnvironmentNotFoundException e) {
+                e.printStackTrace();
+            }
+            assert environment != null;
+            Set<ContainerHost> configHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getConfigHosts() )
+            {
+                try {
+                    configHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            Set<ContainerHost> routerHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getRouterHosts() )
+            {
+                try {
+                    routerHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Set<ContainerHost> dataHosts = new HashSet<>();
+            for ( UUID uuid : mongoClusterConfig.getDataHosts() )
+            {
+                try {
+                    dataHosts.add( environment.getContainerHostById( uuid ) );
+                } catch (ContainerHostNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            populateTable( configServersTable, configHosts, NodeType.CONFIG_NODE );
+            populateTable( routersTable, routerHosts, NodeType.ROUTER_NODE );
+            populateTable( dataNodesTable, dataHosts, NodeType.DATA_NODE );
             replicaSetName.setValue( mongoClusterConfig.getReplicaSetName() );
             domainName.setValue( mongoClusterConfig.getDomainName() );
             cfgSrvPort.setValue( mongoClusterConfig.getCfgSrvPort() + "" );
@@ -503,30 +548,21 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set nodes, final NodeType nodeType )
+    private void populateTable( final Table table, Set<ContainerHost> nodes, final NodeType nodeType )
     {
         table.removeAllItems();
 
-        for ( final Object o : nodes )
+        for ( final ContainerHost node : nodes )
         {
-            final MongoNode node = ( MongoNode ) o;
-
             final Label resultHolder = new Label();
-
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
-            checkBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoCheck" );
-
+            checkBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoCheck" );
             final Button startBtn = new Button( START_BUTTON_CAPTION );
-            startBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStart" );
-
+            startBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoStart" );
             final Button stopBtn = new Button( STOP_BUTTON_CAPTION );
-            stopBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoStop" );
-
+            stopBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoStop" );
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
-            destroyBtn.setId( node.getContainerHost().getIpByInterfaceName( "eth0" ) + "-mongoDestroy" );
-
-            stopBtn.setEnabled( false );
-            startBtn.setEnabled( false );
+            destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-mongoDestroy" );
 
             addStyleNameToButtons( checkBtn, startBtn, stopBtn, destroyBtn );
 
@@ -534,10 +570,15 @@ public class Manager
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
+            if ( table.getCaption().equals( "Config Servers" ) ){
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
+            }
+            else{
+                addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
+            }
 
             table.addItem( new Object[] {
-                    node.getContainerHost().getHostname(), node.getContainerHost().getIpByInterfaceName( "eth0" ),
+                    node.getHostname(), node.getIpByInterfaceName( "eth0" ),
                     nodeType.name(), resultHolder, availableOperations
             }, null );
 
@@ -549,28 +590,29 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new CheckTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
-                                    new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STATUS, nodeType,
+                            new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
                                     {
-                                        public void onComplete( NodeState state )
+                                        if ( nodeState == NodeState.RUNNING )
                                         {
-                                            synchronized ( PROGRESS_ICON )
-                                            {
-                                                if ( state == NodeState.RUNNING )
-                                                {
-                                                    stopBtn.setEnabled( true );
-                                                }
-                                                else if ( state == NodeState.STOPPED )
-                                                {
-                                                    startBtn.setEnabled( true );
-                                                }
-                                                resultHolder.setValue( state.name() );
-                                                enableButtons( destroyBtn, checkBtn );
-                                                PROGRESS_ICON.setVisible( false );
-                                            }
+                                            stopBtn.setEnabled( true );
                                         }
-                                    } ) );
+                                        else if ( nodeState == NodeState.STOPPED )
+                                        {
+                                            startBtn.setEnabled( true );
+                                        }
+                                        resultHolder.setValue( nodeState.name() );
+                                        enableButtons( destroyBtn, checkBtn );
+                                        PROGRESS_ICON.setVisible(false);
+                                    }
+                                }
+                            }, null ) );
                 }
             } );
 
@@ -581,19 +623,20 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new StartTask( mongo, tracker, nodeType, mongoClusterConfig.getClusterName(),
-                                    node.getHostname(), new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
+                            new CompleteEvent()
                             {
-                                public void onComplete( NodeState state )
+                                @Override
+                                public void onComplete( NodeState nodeState )
                                 {
                                     synchronized ( PROGRESS_ICON )
                                     {
-                                        enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
+                                        enableButtons( destroyBtn, checkBtn );
                                         checkBtn.click();
                                     }
                                 }
-                            } ) );
+                            }, null ) );
                 }
             } );
 
@@ -604,19 +647,20 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute(
-                            new StopTask( mongo, tracker, mongoClusterConfig.getClusterName(), node.getHostname(),
-                                    new CompleteEvent()
+                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
+                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STOP, nodeType,
+                            new CompleteEvent()
+                            {
+                                @Override
+                                public void onComplete( NodeState nodeState )
+                                {
+                                    synchronized ( PROGRESS_ICON )
                                     {
-                                        public void onComplete( NodeState state )
-                                        {
-                                            synchronized ( PROGRESS_ICON )
-                                            {
-                                                enableButtons( checkBtn, startBtn, stopBtn, destroyBtn );
-                                                checkBtn.click();
-                                            }
-                                        }
-                                    } ) );
+                                        enableButtons( destroyBtn, checkBtn );
+                                        checkBtn.click();
+                                    }
+                                }
+                            }, null ) );
                 }
             } );
 
@@ -790,26 +834,6 @@ public class Manager
         checkNodesStatus( configServersTable );
         checkNodesStatus( routersTable );
         checkNodesStatus( dataNodesTable );
-    }
-
-
-    public void startAllNodes( Table table )
-    {
-        for ( Object o : table.getItemIds() )
-        {
-            int rowId = ( Integer ) o;
-            Item row = table.getItem( rowId );
-            HorizontalLayout availableOperationsLayout =
-                    ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
-            if ( availableOperationsLayout != null )
-            {
-                Button startBtn = getButton( availableOperationsLayout, START_BUTTON_CAPTION );
-                if ( startBtn != null )
-                {
-                    startBtn.click();
-                }
-            }
-        }
     }
 
 

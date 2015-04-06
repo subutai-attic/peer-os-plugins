@@ -7,22 +7,17 @@ package org.safehaus.subutai.plugin.mongodb.impl;
 
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
-import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
-import org.safehaus.subutai.core.lxc.quota.api.QuotaManager;
 import org.safehaus.subutai.core.metric.api.Monitor;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.core.metric.api.MonitoringSettings;
@@ -33,27 +28,20 @@ import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
+
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.safehaus.subutai.plugin.mongodb.api.MongoDataNode;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
 import org.safehaus.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import org.safehaus.subutai.plugin.mongodb.impl.common.Commands;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.AddNodeOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.CheckNodeOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.ConfigureEnvironmentOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.DestroyNodeOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.StartAllOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.StartNodeOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.StopNodeOperationHandler;
-import org.safehaus.subutai.plugin.mongodb.impl.handler.UninstallOperationHandler;
+import org.safehaus.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
+import org.safehaus.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -75,10 +63,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-    private QuotaManager quotaManager;
     private MongoAlertListener mongoAlertListener;
-
-    private MongoDataNode primaryNode;
 
 
     public MongoImpl( Monitor monitor )
@@ -153,41 +138,14 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         try
         {
-
-            GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.setExclusionStrategies( new ExclusionStrategy()
-            {
-                @Override
-                public boolean shouldSkipField( final FieldAttributes f )
-                {
-                    switch ( f.getName() )
-                    {
-                        case "configServers":
-                        case "routerServers":
-                        case "dataNodes":
-                            return true;
-                    }
-                    return false;
-                }
-
-
-                @Override
-                public boolean shouldSkipClass( final Class<?> clazz )
-                {
-                    return false;
-                }
-            } );
-
-            GSON = gsonBuilder.serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
             this.pluginDAO = new PluginDAO( null );
         }
         catch ( SQLException e )
         {
             LOG.error( e.getMessage(), e );
         }
-        this.commands = new Commands();
 
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 
@@ -197,29 +155,20 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public Gson getGSON()
-    {
-        return GSON;
-    }
-
-
     public UUID installCluster( MongoClusterConfig config )
     {
-
-        Preconditions.checkNotNull( config, "Configuration is null" );
-
-        AbstractOperationHandler operationHandler = new ConfigureEnvironmentOperationHandler( this, config );
-
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL, null );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
 
     public UUID uninstallCluster( final String clusterName )
     {
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new UninstallOperationHandler( this, clusterName );
+        MongoClusterConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -227,33 +176,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
     public List<MongoClusterConfig> getClusters()
     {
-        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
-
-        List<MongoClusterConfigImpl> r = new ArrayList<>();
-        for ( final String clusterData : clusterDataList )
-        {
-            MongoClusterConfigImpl config = null;
-            try
-            {
-                config = GSON.fromJson( clusterData, MongoClusterConfigImpl.class )
-                             .initTransientFields( environmentManager );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Environment with not found", e );
-                return null;
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Container host not found", e );
-                return null;
-            }
-            r.add( config );
-        }
-
-        List<MongoClusterConfig> result = new ArrayList<>();
-        result.addAll( r );
-        return result;
+        return pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY, MongoClusterConfig.class );
     }
 
 
@@ -261,27 +184,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public MongoClusterConfig getCluster( String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-
-        String jsonString = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY, clusterName );
-        MongoClusterConfigImpl clusterConfig = GSON.fromJson( jsonString, MongoClusterConfigImpl.class );
-        if ( clusterConfig != null )
-        {
-            try
-            {
-                return clusterConfig.initTransientFields( environmentManager );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Error environment not found.", e );
-                return null;
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error container host not found.", e );
-                return null;
-            }
-        }
-        return null;
+        return pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY, clusterName, MongoClusterConfig.class );
     }
 
 
@@ -295,13 +198,9 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID addNode( final String clusterName, final NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        Preconditions.checkNotNull( nodeType, "Node type is null" );
-
-
-        AbstractOperationHandler operationHandler = new AddNodeOperationHandler( this, clusterName, nodeType );
-
+        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
+                getCluster( clusterName ), ClusterOperationType.ADD, nodeType );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
@@ -310,41 +209,31 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-
-
-        AbstractOperationHandler operationHandler =
-                new DestroyNodeOperationHandler( this, clusterName, lxcHostname, nodeType );
-
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.DESTROY );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
 
-    public UUID startNode( final String clusterName, final String lxcHostname )
+    public UUID startNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-
-
-        AbstractOperationHandler operationHandler = new StartNodeOperationHandler( this, clusterName, lxcHostname );
-
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.START );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
 
-    public UUID stopNode( final String clusterName, final String lxcHostname )
+    public UUID stopNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-
-
-        AbstractOperationHandler operationHandler = new StopNodeOperationHandler( this, clusterName, lxcHostname );
-
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.STOP );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
@@ -353,8 +242,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID startAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler =
-                new StartAllOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL );
+        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
+                getCluster( clusterName ), ClusterOperationType.START_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -364,23 +253,20 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID stopAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler =
-                new StartAllOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL );
+        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
+                getCluster( clusterName ), ClusterOperationType.STOP_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
 
 
-    public UUID checkNode( final String clusterName, final String lxcHostname )
+    public UUID checkNode( final String clusterName, final String lxcHostname, NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-
-
-        AbstractOperationHandler operationHandler = new CheckNodeOperationHandler( this, clusterName, lxcHostname );
-
+        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
+                nodeType, NodeOperationType.STATUS );
         executor.execute( operationHandler );
-
         return operationHandler.getTrackerId();
     }
 
@@ -418,7 +304,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     @Override
     public MongoClusterConfig newMongoClusterConfigInstance()
     {
-        return new MongoClusterConfigImpl();
+        return new MongoClusterConfig();
     }
 
 
@@ -427,10 +313,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkNotNull( config );
 
-        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping()
-                                     .excludeFieldsWithoutExposeAnnotation().create();
-        String jsonConfig = gson.toJson( config.prepare() );
-        if ( !getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), jsonConfig ) )
+        if ( !getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not save cluster info" );
         }
@@ -444,7 +327,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
         if ( !getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
         {
-            throw new ClusterException( "Could not save cluster info" );
+            throw new ClusterException( "Could not delete cluster info" );
         }
     }
 
@@ -467,12 +350,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
     @Override
     public void onEnvironmentCreated( final Environment environment )
     {
@@ -490,20 +367,20 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     @Override
     public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
     {
-        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
-        for ( final String clusterData : clusterDataList )
-        {
-            MongoClusterConfigImpl clusterConfig = GSON.fromJson( clusterData, MongoClusterConfigImpl.class );
-            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
-            {
-                clusterConfig.removeNode( containerHostId );
-                Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
-                String json = GSON.toJson( clusterConfig );
-                getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), json );
-                LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
-                        clusterConfig.getClusterName() ) );
-            }
-        }
+//        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
+//        for ( final String clusterData : clusterDataList )
+//        {
+//            MongoClusterConfig clusterConfig = GSON.fromJson( clusterData, MongoClusterConfig.class );
+//            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
+//            {
+//                clusterConfig.removeNode( containerHostId );
+//                Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
+//                String json = GSON.toJson( clusterConfig );
+//                getPluginDAO().saveInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), json );
+//                LOG.info( String.format( "Container host: %s destroyed in cluster: %s", containerHostId,
+//                        clusterConfig.getClusterName() ) );
+//            }
+//        }
 
         //        List<MongoClusterConfig> clusterConfigs = getClusters();
         //        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
@@ -532,24 +409,19 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
         for ( final String clusterData : clusterDataList )
         {
-            MongoClusterConfigImpl clusterConfig = GSON.fromJson( clusterData, MongoClusterConfigImpl.class );
+            MongoClusterConfig clusterConfig = GSON.fromJson( clusterData, MongoClusterConfig.class );
             if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
             {
-                getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
-                LOG.info( String.format( "Mongo cluster: %s destroyed", clusterConfig.getClusterName() ) );
+                try
+                {
+                    deleteConfig( clusterConfig );
+                    LOG.info( String.format( "Mongo cluster: %s destroyed", clusterConfig.getClusterName() ) );
+                }
+                catch ( ClusterException e )
+                {
+                    e.printStackTrace();
+                }
             }
         }
-
-        //        List<MongoClusterConfig> clusterConfigs = getClusters();
-        //        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
-        //        {
-        //            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
-        //            {
-        //                getPluginDAO().deleteInfo( MongoClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
-        //                LOG.info( String.format( "Cluster %s destroyed in environment %s", clusterConfig
-        // .getClusterName(),
-        //                        environmentId.toString() ) );
-        //            }
-        //        }
     }
 }

@@ -2,7 +2,6 @@ package org.safehaus.subutai.plugin.mongodb.cli;
 
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -84,7 +83,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
             {
                 configs.add( UUID.fromString( node ) );
             }
-            mongoConfig.getConfigHostIds().addAll( configs );
+            mongoConfig.getConfigHosts().addAll( configs );
 
 
             Set<UUID> datas = new HashSet<>();
@@ -92,7 +91,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
             {
                 datas.add( UUID.fromString( node ) );
             }
-            mongoConfig.getDataHostIds().addAll( datas );
+//            mongoConfig.getDataHostIds().addAll( datas );
 
 
             Set<UUID> routers = new HashSet<>();
@@ -100,7 +99,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
             {
                 routers.add( UUID.fromString( node ) );
             }
-            mongoConfig.getRouterHostIds().addAll( routers );
+            mongoConfig.getRouterHosts().addAll( routers );
 
         UUID uuid = mongoManager.installCluster( mongoConfig );
         System.out.println(

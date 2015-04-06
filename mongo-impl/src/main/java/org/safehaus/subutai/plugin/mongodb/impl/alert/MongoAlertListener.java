@@ -94,7 +94,7 @@ public class MongoAlertListener implements AlertListener
         }
 
         //check if source host belongs to found mongo cluster
-        if ( !targetCluster.getAllNodeIds().contains( sourceHost.getId() ) )
+        if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
             LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster",
                     containerHostMetric.getHost() ) );
@@ -203,7 +203,7 @@ public class MongoAlertListener implements AlertListener
                         null );
             }
 
-            boolean isDataNode = mongoClusterConfig.getDataHostIds().contains( sourceHost.getId() );
+            boolean isDataNode = mongoClusterConfig.getDataHosts().contains( sourceHost.getId() );
 
 
             //no available nodes -> notify user
