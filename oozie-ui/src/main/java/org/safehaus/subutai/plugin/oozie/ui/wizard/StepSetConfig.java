@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.common.util.CollectionUtil;
@@ -16,9 +17,11 @@ import org.safehaus.subutai.core.env.api.EnvironmentManager;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.Oozie;
+import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -36,14 +39,19 @@ import com.vaadin.ui.VerticalLayout;
 
 public class StepSetConfig extends Panel
 {
-    public EnvironmentManager environmentManager;
-    private Set<ContainerHost> hosts = null;
     private final static Logger LOGGER = LoggerFactory.getLogger( StepSetConfig.class );
 
-    public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard , final EnvironmentManager environmentManager)
-            throws EnvironmentNotFoundException
+    public EnvironmentManager environmentManager;
+    private Set<ContainerHost> hosts = null;
+    private Wizard wizard;
+    private Environment hadoopEnvironment;
+
+
+    public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard,
+                          final EnvironmentManager environmentManager ) throws EnvironmentNotFoundException
     {
         this.environmentManager = environmentManager;
+        this.wizard = wizard;
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
@@ -60,7 +68,6 @@ public class StepSetConfig extends Panel
         menu.setContentMode( ContentMode.HTML );
         panel.setContent( menu );
         grid.addComponent( menu, 0, 0, 2, 1 );
-        //		grid.setComponentAlignment(panel, Alignment.TOP_CENTER);
 
         VerticalLayout vl = new VerticalLayout();
         vl.setSizeFull();
@@ -83,35 +90,28 @@ public class StepSetConfig extends Panel
         final HadoopClusterConfig hcc =
                 wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
 
-        List<UUID> allHadoopNodes = hcc.getAllNodes();
-        Set<UUID> allHadoopNodeSet = new HashSet<>();
-        allHadoopNodeSet.addAll( allHadoopNodes );
-
-        Set<UUID> nodes = new HashSet<>(hcc.getAllNodes());
-//        final Set<ContainerHost> hosts;
-        try
+        hadoopEnvironment = environmentManager.findEnvironment( hcc.getEnvironmentId() );
+        Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+        for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
         {
-            hosts = environmentManager.findEnvironment(hcc.getEnvironmentId()).getContainerHostsByIds(nodes);
-            for (ContainerHost host : hosts)
+            for ( UUID nodeId : filterNodes( hcc.getAllNodes() ) )
+            {
+                try
+                {
+                    hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    show( String.format( "Error accessing environment: %s", e ) );
+                    return;
+                }
+            }
+            if ( filterNodes( hcc.getAllNodes() ).contains( host.getId() ) )
             {
                 cbServers.addItem( host );
                 cbServers.setItemCaption( host, host.getHostname() );
             }
         }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOGGER.error( "Container host not found", e );
-        }
-
-
-//        for ( UUID agent : hcc.getAllNodes() )
-//        {
-//            cbServers.addItem( agent );
-//            cbServers.setItemCaption( agent, agent.toString() );
-//        }
-
-
-
         vl.addComponent( cbServers );
 
         if ( wizard.getConfig().getServer() != null )
@@ -129,7 +129,7 @@ public class StepSetConfig extends Panel
         selectClients.setLeftColumnCaption( "Available nodes" );
         selectClients.setRightColumnCaption( "Client nodes" );
         selectClients.setWidth( 100, Unit.PERCENTAGE );
-        selectClients.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hosts ) );
+        selectClients.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
 
         if ( !CollectionUtil.isCollectionEmpty( wizard.getConfig().getClients() ) )
         {
@@ -148,31 +148,35 @@ public class StepSetConfig extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                ContainerHost containerID = (ContainerHost) cbServers.getValue();
-                wizard.getConfig().setServer(containerID.getId());
-//                Set<UUID> clientNodes = new HashSet<>();
-                if ( selectClients.getValue() != null )
-                {
+                Set<ContainerHost> containerHosts =
+                        new HashSet<>( ( Collection<ContainerHost> ) selectClients.getValue() );
 
-                    Set<ContainerHost> containerHosts =
-                            new HashSet<>( ( Collection<ContainerHost> ) selectClients.getValue() );
+                if ( cbServers.getValue() == null || containerHosts.isEmpty() )
+                {
+                    show( "Please specify nodes for installation" );
+                }
+
+                if ( cbServers.getValue() != null )
+                {
+                    ContainerHost containerID = ( ContainerHost ) cbServers.getValue();
+                    wizard.getConfig().setServer( containerID.getId() );
+                }
+
+                if ( !containerHosts.isEmpty() )
+                {
                     Set<UUID> containerIDs = new HashSet<>();
                     for ( ContainerHost containerHost : containerHosts )
                     {
-                        containerIDs.add( containerHost.getId() );
+                        if ( filterNodes( hcc.getAllNodes() ).contains( containerHost.getId() ) )
+                        {
+                            containerIDs.add( containerHost.getId() );
+                        }
                     }
-                    wizard.getConfig().setClients(containerIDs);
-
-//                    for ( UUID node : ( Set<UUID> ) selectClients.getValue() )
-//                    {
-//                        clientNodes.add( node );
-//                    }
-//                    wizard.getConfig().setClients( clientNodes );
+                    wizard.getConfig().setClients( containerIDs );
                 }
 
                 if ( wizard.getConfig().getServer() == null )
                 {
-                    show( "Please select node for Oozie server" );
                 }
                 else if ( wizard.getConfig().getClients() != null && wizard.getConfig().getClients()
                                                                            .contains( wizard.getConfig().getServer() ) )
@@ -203,12 +207,12 @@ public class StepSetConfig extends Panel
             public void valueChange( Property.ValueChangeEvent event )
             {
                 ContainerHost selectedServerNode = ( ContainerHost ) event.getProperty().getValue();
-                Set<ContainerHost> hadoopNodes = hosts;
+                Set<ContainerHost> hadoopNodes = hadoopEnvironment.getContainerHosts();
                 List<ContainerHost> availableOozieClientNodes = new ArrayList<>();
                 availableOozieClientNodes.addAll( hadoopNodes );
                 availableOozieClientNodes.remove( selectedServerNode );
-                selectClients
-                        .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, availableOozieClientNodes ) );
+                selectClients.setContainerDataSource(
+                        new BeanItemContainer<>( ContainerHost.class, availableOozieClientNodes ) );
                 selectClients.markAsDirty();
             }
         } );
@@ -222,6 +226,26 @@ public class StepSetConfig extends Panel
         verticalLayout.addComponent( horizontalLayout );
 
         setContent( verticalLayout );
+    }
+
+
+    //exclude hadoop nodes that are already in another oozie cluster
+    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    {
+        List<UUID> oozieNodes = new ArrayList<>();
+        List<UUID> filteredNodes = new ArrayList<>();
+        for ( OozieClusterConfig oozieConfig : wizard.getOozieManager().getClusters() )
+        {
+            oozieNodes.addAll( oozieConfig.getAllNodes() );
+        }
+        for ( UUID node : hadoopNodes )
+        {
+            if ( !oozieNodes.contains( node ) )
+            {
+                filteredNodes.add( node );
+            }
+        }
+        return filteredNodes;
     }
 
 
