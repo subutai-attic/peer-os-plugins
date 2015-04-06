@@ -39,7 +39,7 @@ public class HadoopAlertListener implements AlertListener
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 80;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
-    private static int PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY =  2048 * 1024 * 1024;
+    private static int PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY_IN_MB =  2048;
     private static final String PID_STRING = "pid";
 
 
@@ -122,7 +122,7 @@ public class HadoopAlertListener implements AlertListener
 
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() - ( PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY );
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() - ( PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY_IN_MB );
 
         List<NodeType> nodeRoles = HadoopClusterConfig.getNodeRoles( targetCluster, sourceHost );
 
@@ -192,7 +192,7 @@ public class HadoopAlertListener implements AlertListener
                 case TASKTRACKER:
                     result = commandUtil
                             .execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ), sourceHost );
-                    output = parseService( result.getStdOut(),  nodeType.name().toLowerCase() );
+                    output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
                     if ( ! output.toLowerCase().contains( PID_STRING ) ){
                         break;
                     }
