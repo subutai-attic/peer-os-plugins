@@ -31,7 +31,7 @@ public interface RestService
 
     //destroy cluster
     @DELETE
-    @Path("clusters/remove{clusterName}")
+    @Path("clusters/remove/{clusterName}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyCluster( @PathParam("clusterName") String clusterName );
 
