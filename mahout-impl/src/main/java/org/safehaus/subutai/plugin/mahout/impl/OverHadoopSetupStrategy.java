@@ -126,10 +126,6 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        trackerOperation.addLog( "Updating db..." );
-        config.setEnvironmentId( environment.getId() );
-        manager.getPluginDAO().saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Mahout..." );
         Set<ContainerHost> nodes;
         try
         {
@@ -151,6 +147,10 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                 throw new ClusterSetupException( String.format( "Failed to install Mahout on server node: %s", e ) );
             }
         }
+        trackerOperation.addLog( "Updating db..." );
+        config.setEnvironmentId( environment.getId() );
+        manager.getPluginDAO().saveInfo( MahoutClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Mahout..." );
     }
 
 

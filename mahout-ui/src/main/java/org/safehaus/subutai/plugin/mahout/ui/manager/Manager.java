@@ -7,6 +7,7 @@ package org.safehaus.subutai.plugin.mahout.ui.manager;
 
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -301,26 +302,44 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost containerHost;
+                    Set<ContainerHost> containerHosts;
                     try
                     {
-                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
-                                                          .getContainerHostById( UUID.fromString( containerId ) );
+                        containerHosts =
+                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
                     }
-                    catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+                    catch ( EnvironmentNotFoundException e )
                     {
-                        show( String.format( "Error accessing environment: %s", e ) );
+                        show( "Environment not found" );
                         return;
                     }
 
-                    TerminalWindow terminal = new TerminalWindow( containerHost );
-                    contentRoot.getUI().addWindow( terminal.getWindow() );
+                    Iterator iterator = containerHosts.iterator();
+                    ContainerHost containerHost = null;
+                    while ( iterator.hasNext() )
+                    {
+                        containerHost = ( ContainerHost ) iterator.next();
+                        if ( containerHost.getHostname().equals( containerHostname ) )
+                        {
+                            break;
+                        }
+                    }
+                    if ( containerHost != null )
+                    {
+                        TerminalWindow terminal = new TerminalWindow( containerHost );
+                        contentRoot.getUI().addWindow( terminal.getWindow() );
+                    }
+                    else
+                    {
+                        show( "Host not found" );
+                    }
                 }
             }
         } );
     }
+
 
 
     private void show( String notification )
