@@ -6,8 +6,10 @@
 package org.safehaus.subutai.plugin.cassandra.ui.manager;
 
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -369,14 +371,7 @@ public class Manager
                         }
                         else
                         {
-                            try
-                            {
-                                startAllNodes();
-                            }
-                            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
-                            {
-                                show( e.getMessage() );
-                            }
+                            startAllNodes();
                         }
                     }
                 } );
@@ -394,14 +389,7 @@ public class Manager
                         }
                         else
                         {
-                            try
-                            {
-                                stopAllNodes();
-                            }
-                            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
-                            {
-                                show( e.getMessage() );
-                            }
+                            stopAllNodes();
                         }
                     }
                 } );
@@ -750,61 +738,48 @@ public class Manager
     }
 
 
-    private void enableButtons( Button... buttons )
+    private void stopAllNodes()
     {
-        for ( Button b : buttons )
+        if ( nodesTable != null )
         {
-            b.setEnabled( true );
+            for ( Object o : nodesTable.getItemIds() )
+            {
+                int rowId = ( Integer ) o;
+                Item row = nodesTable.getItem( rowId );
+                HorizontalLayout availableOperationsLayout =
+                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
+                if ( availableOperationsLayout != null )
+                {
+                    Button stopBtn = getButton( availableOperationsLayout, STOP_BUTTON_CAPTION );
+                    if ( stopBtn != null )
+                    {
+                        stopBtn.click();
+                    }
+                }
+            }
         }
     }
 
 
-    private void stopAllNodes() throws EnvironmentNotFoundException, ContainerHostNotFoundException
+    private void startAllNodes()
     {
-        for ( UUID containerId : config.getNodes() )
+        if ( nodesTable != null )
         {
-            ContainerHost containerHost =
-                    environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( containerId );
-            PROGRESS_ICON.setVisible( true );
-            disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                    NodeOperationType.STOP, new CompleteEvent()
+            for ( Object o : nodesTable.getItemIds() )
             {
-                @Override
-                public void onComplete( NodeState nodeState )
+                int rowId = ( Integer ) o;
+                Item row = nodesTable.getItem( rowId );
+                HorizontalLayout availableOperationsLayout =
+                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
+                if ( availableOperationsLayout != null )
                 {
-                    synchronized ( PROGRESS_ICON )
+                    Button startBtn = getButton( availableOperationsLayout, START_BUTTON_CAPTION );
+                    if ( startBtn != null )
                     {
-                        disableOREnableAllButtonsOnTable( nodesTable, true );
-                        checkAllNodes();
+                        startBtn.click();
                     }
                 }
-            }, null ) );
-        }
-    }
-
-
-    private void startAllNodes() throws EnvironmentNotFoundException, ContainerHostNotFoundException
-    {
-        for ( UUID containerId : config.getNodes() )
-        {
-            ContainerHost containerHost =
-                    environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( containerId );
-            PROGRESS_ICON.setVisible( true );
-            disableOREnableAllButtonsOnTable( nodesTable, false );
-            executorService.execute( new NodeOperationTask( cassandra, tracker, config.getClusterName(), containerHost,
-                    NodeOperationType.START, new CompleteEvent()
-            {
-                @Override
-                public void onComplete( NodeState nodeState )
-                {
-                    synchronized ( PROGRESS_ICON )
-                    {
-                        disableOREnableAllButtonsOnTable( nodesTable, true );
-                        checkAllNodes();
-                    }
-                }
-            }, null ) );
+            }
         }
     }
 
