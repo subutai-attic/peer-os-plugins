@@ -473,6 +473,7 @@ public class Manager
                 PROGRESS_ICON.setVisible( false );
             }
         }
+        PROGRESS_ICON.setVisible( false );
     }
 
 
