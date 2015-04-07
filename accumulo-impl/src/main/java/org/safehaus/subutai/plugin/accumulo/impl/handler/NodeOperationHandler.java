@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.Sets;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
@@ -405,7 +406,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 String output[] = result.getStdOut().split( "\n" );
                 for ( String part : output )
                 {
-                    if ( part.toLowerCase().contains( NodeType.HMASTER.name().toLowerCase() ) )
+                    if ( part.toLowerCase().contains( "master" ) )
                     {
                         if ( part.contains( "pid" ) )
                         {
@@ -428,7 +429,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             executeCommand( host, Commands.getClearMastersFileCommand( "masters" ) );
             executeCommand( host, Commands.getClearSlavesFileCommand( "slaves" ) );
             executeCommand( host, Commands.getClearMastersFileCommand( "tracers" ) );
-            executeCommand( host, Commands.getClearMastersFileCommand( "gc" ) );
+            executeCommand( host, Commands.getClearMastersFileCommand("gc") );
             executeCommand( host, Commands.getClearMastersFileCommand( "monitor" ) );
         }
         catch ( ClusterException e )
@@ -458,8 +459,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     private void configureNewNode( ContainerHost host, AccumuloClusterConfig config )
     {
         try {
+            executeCommand( host, Commands.getAddMasterCommand(
+                    serializeHostName(Sets.newHashSet(config.getMasterNode() ) ) ) ) ;
+            executeCommand( host, Commands.getAddMonitorCommand(
+                    serializeHostName(Sets.newHashSet(config.getMonitor() ) ) ) ) ;
+            executeCommand( host, Commands.getAddGCCommand(
+                    serializeHostName(Sets.newHashSet(config.getGcNode() ) ) ) ) ;
             executeCommand( host, Commands.getAddTracersCommand( serializeHostName( config.getTracers() ) ) ) ;
-            executeCommand( host, Commands.getAddSlavesCommand( serializeHostName( config.getSlaves() ) ) ) ;
+            executeCommand(host, Commands.getAddSlavesCommand(serializeHostName( config.getSlaves() ) ) ) ;
         } catch (ClusterException e) {
             e.printStackTrace();
         }
@@ -468,9 +475,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
     private String serializeHostName( Set<UUID> uuids ){
         StringBuilder slavesSpaceSeparated = new StringBuilder();
-        for ( UUID tracer : uuids )
+        for ( UUID uuid : uuids )
         {
-            slavesSpaceSeparated.append( getHost( environment, tracer ).getHostname() ).append( " " );
+            slavesSpaceSeparated.append( getHost( environment, uuid ).getHostname() ).append( " " );
         }
         return slavesSpaceSeparated.toString();
     }
