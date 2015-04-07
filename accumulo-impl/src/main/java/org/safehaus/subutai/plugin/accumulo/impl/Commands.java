@@ -18,7 +18,7 @@ public class Commands
     public static final RequestBuilder startCommand = new RequestBuilder( "/etc/init.d/accumulo start" ).daemon();
 
     public static final RequestBuilder stopCommand =
-            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 120 );
+            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 90 );
 
     public static final RequestBuilder statusCommand =
             new RequestBuilder( "/etc/init.d/accumulo status" ).withTimeout( 30 );

@@ -68,7 +68,8 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
      * Below setup method sends install commands in parallel to containers, but
      * this parallel execution does not work properly.
      */
-    public AccumuloClusterConfig setup1() throws ClusterSetupException
+    @Override
+    public AccumuloClusterConfig setup() throws ClusterSetupException
     {
         if ( accumuloClusterConfig.getMasterNode() == null || accumuloClusterConfig.getGcNode() == null
                 || accumuloClusterConfig.getMonitor() == null ||
@@ -176,8 +177,14 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    @Override
-    public AccumuloClusterConfig setup() throws ClusterSetupException
+    /**
+     * sometimes parallel executed commands fail, if above setup command cause problems,
+     * enable below setup command.
+     *
+     * @return
+     * @throws ClusterSetupException
+     */
+    public AccumuloClusterConfig setup1() throws ClusterSetupException
     {
         if ( accumuloClusterConfig.getMasterNode() == null || accumuloClusterConfig.getGcNode() == null
                 || accumuloClusterConfig.getMonitor() == null ||
