@@ -425,6 +425,7 @@ public class Manager
 
         if ( clusters == null || clusters.isEmpty() )
         {
+            PROGRESS_ICON.setVisible( false );
             return;
         }
 
