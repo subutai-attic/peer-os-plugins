@@ -11,8 +11,10 @@ import javax.ws.rs.core.Response;
 
 import org.safehaus.subutai.common.tracker.OperationState;
 import org.safehaus.subutai.common.tracker.TrackerOperationView;
+import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.common.util.JsonUtil;
 import org.safehaus.subutai.core.tracker.api.Tracker;
+import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
 import org.safehaus.subutai.plugin.sqoop.api.Sqoop;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
@@ -129,50 +131,35 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Response importData( String dataSourceType, String importAllTables, String datasourceDatabase,
-                                String datasourceTableName, String datasourceColumnFamily )
-    {
-        ImportSetting settings = new ImportSetting();
-
-        DataSourceType type = DataSourceType.valueOf( dataSourceType );
-        settings.setType( type );
-
-        if ( !Strings.isNullOrEmpty( importAllTables ) )
-        {
-            settings.addParameter( ImportParameter.IMPORT_ALL_TABLES, importAllTables );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceDatabase ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_DATABASE, datasourceDatabase );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceTableName ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_TABLE_NAME, datasourceTableName );
-        }
-
-        if ( !Strings.isNullOrEmpty( datasourceColumnFamily ) )
-        {
-            settings.addParameter( ImportParameter.DATASOURCE_COLUMN_FAMILY, datasourceColumnFamily );
-        }
-
-        UUID uuid = sqoopManager.importData( settings );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.CREATED ).entity( operationId ).build();
+    public Response importData( String config ){
+        TrimmedImportSettings trimmedImportSettings = JsonUtil.fromJson( config, TrimmedImportSettings.class );
+        ImportSetting importSettings = new ImportSetting();
+        importSettings.setClusterName( trimmedImportSettings.getClusterName() );
+        importSettings.setPassword( trimmedImportSettings.getPassword() );
+        importSettings.setUsername( trimmedImportSettings.getUsername() );
+        importSettings.setConnectionString( trimmedImportSettings.getConnectionString() );
+        importSettings.setType( DataSourceType.valueOf( trimmedImportSettings.getDataSourceType() ) );
+        importSettings.setTableName( trimmedImportSettings.getTableName() );
+        importSettings.setHostname( trimmedImportSettings.getHostname() );
+        UUID uuid = sqoopManager.importData( importSettings );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
-    public Response exportData( String hdfsPath )
-    {
-        ExportSetting setting = new ExportSetting();
-        setting.setHdfsPath( hdfsPath );
-
-        UUID uuid = sqoopManager.exportData( setting );
-
-        String operationId = JsonUtil.toJson( OPERATION_ID, uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+    public Response exportData( String config ){
+        TrimmedExportSettings trimmedExportSettings = JsonUtil.fromJson( config, TrimmedExportSettings.class );
+        ExportSetting exportSetting = new ExportSetting();
+        exportSetting.setClusterName( trimmedExportSettings.getClusterName() );
+        exportSetting.setPassword( trimmedExportSettings.getPassword() );
+        exportSetting.setUsername( trimmedExportSettings.getUsername() );
+        exportSetting.setConnectionString( trimmedExportSettings.getConnectionString() );
+        exportSetting.setTableName( trimmedExportSettings.getTableName() );
+        exportSetting.setHostname( trimmedExportSettings.getHostname() );
+        exportSetting.setHdfsPath( trimmedExportSettings.getHdfsFilePath() );
+        UUID uuid = sqoopManager.exportData( exportSetting );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 

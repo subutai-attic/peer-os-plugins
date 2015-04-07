@@ -223,6 +223,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         {
             throw new ClusterException( ex );
         }
+        trackerOperation.addLogDone( "Export operation is finished." );
     }
 
 
@@ -255,6 +256,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         {
             throw new ClusterException( ex );
         }
+        trackerOperation.addLogDone( "Import operation is finished." );
     }
 
 }
