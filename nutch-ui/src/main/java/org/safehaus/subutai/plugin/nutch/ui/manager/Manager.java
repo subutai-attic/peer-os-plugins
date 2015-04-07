@@ -478,6 +478,8 @@ public class Manager
                 refreshClustersBtn.setEnabled( true );
             }
         }
+        progressIndicator.setVisible( false );
+        refreshClustersBtn.setEnabled( true );
     }
 
 
