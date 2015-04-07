@@ -176,8 +176,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         }
 
         // stop cluster before destroying cluster
-        UUID uuid = manager.stopCluster( clusterName );
-        Util.waitUntilOperationFinish( manager, uuid );
+
+        // todo enable below code chunk
+//        UUID uuid = manager.stopCluster( clusterName );
+//        Util.waitUntilOperationFinish( manager, uuid );
         Set<Host> hostSet = Util.getHosts( config, environment );
         try
         {

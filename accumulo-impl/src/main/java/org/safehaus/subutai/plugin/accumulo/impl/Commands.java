@@ -18,7 +18,7 @@ public class Commands
     public static final RequestBuilder startCommand = new RequestBuilder( "/etc/init.d/accumulo start" ).daemon();
 
     public static final RequestBuilder stopCommand =
-            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 180 );
+            new RequestBuilder( "/etc/init.d/accumulo stop" ).withTimeout( 120 );
 
     public static final RequestBuilder statusCommand =
             new RequestBuilder( "/etc/init.d/accumulo status" ).withTimeout( 30 );
@@ -30,23 +30,31 @@ public class Commands
     {
         return new RequestBuilder(
                 "apt-get --force-yes --assume-yes install " + Common.PACKAGE_PREFIX + AccumuloClusterConfig.PRODUCT_KEY
-                        .toLowerCase() ).withTimeout( 1800 );
+                        .toLowerCase() ).withTimeout( 360 );
     }
 
+
+    public static RequestBuilder getClearMastersFileCommand( String fileName )
+    {
+        return new RequestBuilder(". /etc/profile && accumuloMastersConf.sh " + fileName + " clear");
+    }
+
+    public static RequestBuilder getClearSlavesFileCommand( String fileName )
+    {
+        return new RequestBuilder(". /etc/profile && accumuloSlavesConf.sh " + fileName + " clear");
+    }
 
     public static RequestBuilder getAddMasterCommand( String hostname )
     {
         return new RequestBuilder(
-                ". /etc/profile && accumuloMastersConf.sh masters clear && accumuloMastersConf.sh masters add "
-                        + hostname ).withTimeout( 30 );
+                ". /etc/profile && accumuloMastersConf.sh masters add " + hostname ).withTimeout( 30 );
     }
 
 
     public static RequestBuilder getAddTracersCommand( String serializedHostNames )
     {
         return new RequestBuilder(
-                ". /etc/profile && accumuloMastersConf.sh tracers clear && accumuloMastersConf.sh tracers add "
-                        + serializedHostNames ).withTimeout( 30 );
+                ". /etc/profile && accumuloMastersConf.sh tracers add " + serializedHostNames ).withTimeout( 30 );
     }
 
 
@@ -73,24 +81,21 @@ public class Commands
     public static RequestBuilder getAddGCCommand( String hostname )
     {
         return new RequestBuilder(
-                ". /etc/profile && accumuloMastersConf.sh gc clear && accumuloMastersConf.sh gc add " + hostname )
-                .withTimeout( 30 );
+                ". /etc/profile && accumuloMastersConf.sh gc add " + hostname ).withTimeout( 30 );
     }
 
 
     public static RequestBuilder getAddMonitorCommand( String hostname )
     {
         return new RequestBuilder(
-                ". /etc/profile && accumuloMastersConf.sh monitor clear && accumuloMastersConf.sh monitor add "
-                        + hostname ).withTimeout( 30 );
+                ". /etc/profile && accumuloMastersConf.sh monitor add " + hostname ).withTimeout( 30 );
     }
 
 
     public static RequestBuilder getAddSlavesCommand( String serializedHostNames )
     {
         return new RequestBuilder(
-                ". /etc/profile && accumuloSlavesConf.sh slaves clear && accumuloSlavesConf.sh slaves add "
-                        + serializedHostNames ).withTimeout( 30 );
+                ". /etc/profile && accumuloSlavesConf.sh slaves add " + serializedHostNames ).withTimeout( 30 );
     }
 
 
