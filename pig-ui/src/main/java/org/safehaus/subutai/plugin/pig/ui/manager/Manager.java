@@ -86,7 +86,7 @@ public class Manager
         contentRoot.setSpacing( true );
         contentRoot.setMargin( true );
         contentRoot.setSizeFull();
-        contentRoot.setRows( 10 );
+        contentRoot.setRows( 9 );
         contentRoot.setColumns( 1 );
 
         //tables go here
@@ -98,6 +98,7 @@ public class Manager
 
         Label clusterNameLabel = new Label( "Select the cluster" );
         controlsContent.addComponent( clusterNameLabel );
+        controlsContent.setComponentAlignment( clusterNameLabel, Alignment.MIDDLE_CENTER );
 
         clusterCombo = new ComboBox();
         clusterCombo.setId( "PigMngClusterCombo" );
@@ -115,6 +116,8 @@ public class Manager
         } );
 
         controlsContent.addComponent( clusterCombo );
+        controlsContent.setComponentAlignment( clusterCombo, Alignment.MIDDLE_CENTER );
+
 
         /** Refresh Cluster button */
         refreshClustersBtn = new Button( REFRESH_CLUSTERS_CAPTION );
@@ -136,6 +139,7 @@ public class Manager
             }
         } );
         controlsContent.addComponent( refreshClustersBtn );
+        controlsContent.setComponentAlignment( refreshClustersBtn, Alignment.MIDDLE_CENTER );
 
 
         /** Destroy Cluster button */
@@ -159,7 +163,7 @@ public class Manager
         controlsContent.addComponent( PROGRESS_ICON );
 
         contentRoot.addComponent( controlsContent, 0, 0 );
-        contentRoot.addComponent( nodesTable, 0, 1, 0, 9 );
+        contentRoot.addComponent( nodesTable, 0, 1, 0, 8 );
     }
 
 
@@ -310,9 +314,9 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<ContainerHost> containerHosts;
                     try
                     {
                         containerHosts =
@@ -328,7 +332,7 @@ public class Manager
                     while ( iterator.hasNext() )
                     {
                         containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        if ( containerHost.getHostname().equals(  containerHostname ) )
                         {
                             break;
                         }

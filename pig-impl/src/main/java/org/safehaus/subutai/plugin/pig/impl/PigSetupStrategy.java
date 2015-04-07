@@ -68,7 +68,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
                     String.format( "Cluster with name '%s' already exists\nInstallation aborted",
                             config.getClusterName() ) );
         }
-        //check hadoopcluster
+        //check hadoop cluster
         HadoopClusterConfig hc = manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
         if ( hc == null )
         {
@@ -113,7 +113,6 @@ class PigSetupStrategy implements ClusterSetupStrategy
                 throw new ClusterSetupException( String.format( "Container %s is not connected", host.getHostname() ) );
             }
         }
-
 
         trackerOperation.addLog( "Checking prerequisites..." );
 
@@ -163,19 +162,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        trackerOperation.addLog( "Updating db..." );
-        //save to db
-        config.setEnvironmentId( environment.getId() );
-        try
-        {
-            manager.saveConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            throw new ClusterSetupException( e );
-        }
-        trackerOperation.addLog( "Cluster info saved to DB\nInstalling Pig..." );
-        //install pig,
+        //install pig
         try
         {
             for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
@@ -199,7 +186,18 @@ class PigSetupStrategy implements ClusterSetupStrategy
             trackerOperation.addLogFailed( "Container hosts not found" );
         }
 
-        trackerOperation.addLog( "Configuring cluster..." );
+        trackerOperation.addLog( "Updating db..." );
+        //save to db
+        config.setEnvironmentId( environment.getId() );
+        try
+        {
+            manager.saveConfig( config );
+            trackerOperation.addLog( "Cluster info saved to DB\nInstalling Pig..." );
+        }
+        catch ( ClusterException e )
+        {
+            throw new ClusterSetupException( e );
+        }
     }
 
     public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
