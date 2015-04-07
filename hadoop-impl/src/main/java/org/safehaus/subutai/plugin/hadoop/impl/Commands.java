@@ -169,7 +169,7 @@ public class Commands
 
     public static String getIncludeDataNodeCommand( String ip )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude " + ip;
+        return ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude " + ip;
     }
 
 

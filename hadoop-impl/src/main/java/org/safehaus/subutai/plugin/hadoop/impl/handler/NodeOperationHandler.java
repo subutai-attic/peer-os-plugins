@@ -173,20 +173,21 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
         try
         {
-            // TaskTracker
-            host.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );
-            host.execute( new RequestBuilder(
-                    Commands.getIncludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
-
-            // DataNode
-            host.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
-            host.execute(
-                    new RequestBuilder( Commands.getIncludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
-
             Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+
             // refresh NameNode and JobTracker
             ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
             ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
+
+            // TaskTracker
+            jobtracker.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );
+            jobtracker.execute( new RequestBuilder(
+                    Commands.getIncludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+
+            // DataNode
+            namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
+            namenode.execute(
+                    new RequestBuilder( Commands.getIncludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
 
             namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
             jobtracker.execute( new RequestBuilder( Commands.getRefreshJobTrackerCommand() ) );
