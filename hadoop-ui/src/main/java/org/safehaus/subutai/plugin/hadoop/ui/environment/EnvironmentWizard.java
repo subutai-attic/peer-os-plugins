@@ -130,4 +130,9 @@ public class EnvironmentWizard
     {
         return hadoopClusterConfig;
     }
+
+    public Hadoop getHadoopManager()
+    {
+        return hadoop;
+    }
 }
