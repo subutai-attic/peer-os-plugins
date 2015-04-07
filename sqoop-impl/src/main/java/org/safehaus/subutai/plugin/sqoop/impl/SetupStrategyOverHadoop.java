@@ -118,14 +118,7 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
             try
             {
                 CommandResult res = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
-                if ( res.hasSucceeded() )
-                {
-                    to.addLog( "Sqoop installed on " + node.getHostname() );
-                }
-                else
-                {
-                    throw new ClusterSetupException( "Failed to install Sqoop on " + node.getHostname() );
-                }
+                checkInstalled( node, res );
             }
             catch ( CommandException ex )
             {
@@ -148,6 +141,26 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         }
 
         return config;
+    }
+
+    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( new RequestBuilder( CommandFactory.build( NodeOperationType.STATUS, null ) ));
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+        }
+
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( CommandFactory.PACKAGE_NAME ) ) )
+        {
+            to.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }
 
