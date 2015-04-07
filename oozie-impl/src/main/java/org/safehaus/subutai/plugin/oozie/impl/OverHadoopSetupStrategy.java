@@ -19,6 +19,7 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
+import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.gwt.user.client.Command;
 
 
 public class OverHadoopSetupStrategy implements ClusterSetupStrategy
@@ -210,9 +212,13 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         po.addLog( String.format( "Installing Oozie Server and Oozie Client..." ) );
 
+        List<ContainerHost> servers = new ArrayList<>(oozieServerNodes);
+        List<ContainerHost> clientNodes = new ArrayList<>( clients );
         //install
         commandResultList2 = runCommandOnContainers( Commands.make( CommandType.INSTALL_SERVER ), oozieServerNodes );
+        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
         commandResultList = runCommandOnContainers( Commands.make( CommandType.INSTALL_CLIENT ), clients );
+        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
 
         if ( ( getFailedCommandResults( commandResultList2 ).size() == 0 ) && (
                 getFailedCommandResults( commandResultList ).size() == 0 ) )
@@ -281,5 +287,29 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             }
         }
         return failedCommands;
+    }
+
+    public void checkInstalled( List<ContainerHost> hosts, List<CommandResult> resultList, String packageName) throws ClusterSetupException
+    {
+        for( int i = 0; i < resultList.size(); i++ )
+        {
+            CommandResult statusResult;
+            try
+            {
+                statusResult = hosts.get( i ).execute( new RequestBuilder( Commands.make( CommandType.STATUS ) ) );
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( String.format( "Error on container %s:", hosts.get( i ).getHostname()) );
+            }
+
+            if ( !( resultList.get(i).hasSucceeded() && statusResult.getStdOut().contains( packageName ) ) )
+            {
+                po.addLogFailed( String.format( "Error on container %s:", hosts.get( i ).getHostname()) );
+                throw new ClusterSetupException( String.format( "Error on container %s: %s", hosts.get( i ).getHostname(),
+                        resultList.get(i).hasCompleted() ? resultList.get(i).getStdErr() : "Command timed out" ) );
+            }
+        }
+
     }
 }
