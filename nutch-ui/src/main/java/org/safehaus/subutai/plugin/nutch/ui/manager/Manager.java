@@ -288,7 +288,7 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
                     Set<ContainerHost> containerHosts;
                     try
@@ -307,7 +307,7 @@ public class Manager
                     while ( iterator.hasNext() )
                     {
                         containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        if ( containerHost.getHostname().equals( containerHostname ) )
                         {
                             break;
                         }
