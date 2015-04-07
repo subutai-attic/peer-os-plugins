@@ -129,4 +129,10 @@ public class EnvironmentWizard
         config = new CassandraClusterConfig();
         putForm();
     }
+
+
+    public Cassandra getCassandraManager()
+    {
+        return cassandra;
+    }
 }
