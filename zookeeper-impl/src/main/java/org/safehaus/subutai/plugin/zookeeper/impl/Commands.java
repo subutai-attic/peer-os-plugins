@@ -39,13 +39,13 @@ public class Commands
 
     public static String getStartCommand()
     {
-        return "service zookeeper start &";
+        return "service zookeeper start";
     }
 
 
     public static String getRestartCommand()
     {
-        return "service zookeeper restart &";
+        return "service zookeeper restart";
     }
 
 

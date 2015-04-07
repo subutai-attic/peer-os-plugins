@@ -30,7 +30,7 @@ public class CommandsTest
         String command = Commands.getStartCommand();
 
         assertNotNull( command );
-        assertEquals( "service zookeeper start &", command );
+        assertEquals( "service zookeeper start", command );
     }
 
 
@@ -40,7 +40,7 @@ public class CommandsTest
         String command = Commands.getRestartCommand();
 
         assertNotNull( command );
-        assertEquals( "service zookeeper restart &", command );
+        assertEquals( "service zookeeper restart", command );
     }
 
 
