@@ -112,7 +112,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( final String clusterName, final String hadoopClusterName, final String nodes )
+    public Response installCluster( final String clusterName, final String hadoopClusterName, final String environmentId, final String nodes )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
@@ -120,6 +120,7 @@ public class RestServiceImpl implements RestService
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
+        config.setEnvironmentId( UUID.fromString( environmentId ) );
         Set<UUID> allNodes = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "//s+", "" ).split( "," );
         for ( String node : configNodes )
