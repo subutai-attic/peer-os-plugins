@@ -216,7 +216,7 @@ public class CommandsTest
     public void testGetIncludeDataNodeCommand()
     {
         String ip = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude " + ip,
+        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude " + ip,
                 Commands.getIncludeDataNodeCommand( ip ) );
         assertNotNull( Commands.getIncludeDataNodeCommand( ip ) );
     }
