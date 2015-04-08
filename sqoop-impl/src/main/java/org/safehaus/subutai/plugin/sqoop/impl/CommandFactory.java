@@ -1,6 +1,7 @@
 package org.safehaus.subutai.plugin.sqoop.impl;
 
 
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
@@ -58,7 +59,8 @@ public class CommandFactory
     }
 
 
-    public static String fetchDatabasesQuery( ImportSetting importSetting ) {
+    public static String fetchDatabasesQuery( ImportSetting importSetting )
+    {
         StringBuilder sb = new StringBuilder();
         sb.append( EXEC_PROFILE ).append( " && " );
         sb.append( "sqoop list-databases " );
@@ -69,7 +71,8 @@ public class CommandFactory
     }
 
 
-    public static String fetchTablesQuery( ImportSetting importSetting ) {
+    public static String fetchTablesQuery( ImportSetting importSetting )
+    {
         StringBuilder sb = new StringBuilder();
         sb.append( EXEC_PROFILE ).append( " && " );
         sb.append( "sqoop list-tables " );
@@ -77,6 +80,19 @@ public class CommandFactory
         appendOption( sb, "password", importSetting.getPassword() );
         appendOption( sb, "connect", importSetting.getConnectionString() );
         return sb.toString();
+    }
+
+
+    public static RequestBuilder getCheckInstalledCommand( String packageName )
+    {
+        String command = "dpkg -s " + packageName;
+        return new RequestBuilder( command );
+    }
+
+
+    public static RequestBuilder getConfigureCommand()
+    {
+        return new RequestBuilder( "dpkg --configure -a && rm /var/cache/apt/archives/lock && rm /var/lib/dpkg/lock" );
     }
 
 
