@@ -216,7 +216,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
         AbstractOperationHandler operationHandler =
                 new NodeOperationHandler( this, hadoopManager, zkManager, clusterName, lxcHostname,
-                        NodeOperationType.INSTALL, nodeType );
+                        NodeOperationType.ADD, nodeType );
 
         executor.execute( operationHandler );
 
@@ -247,7 +247,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
         AbstractOperationHandler operationHandler =
                 new NodeOperationHandler( this, hadoopManager, zkManager, clusterName, lxcHostName,
-                        NodeOperationType.UNINSTALL, nodeType );
+                        NodeOperationType.DESTROY, nodeType );
 
         executor.execute( operationHandler );
 

@@ -1,9 +1,7 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,26 +13,23 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
 import org.safehaus.subutai.plugin.accumulo.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.accumulo.impl.Commands;
-import org.safehaus.subutai.plugin.accumulo.impl.Util;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
-import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 
 /**
@@ -161,31 +156,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 case STATUS:
                     result = host.execute( Commands.statusCommand );
                     break;
-                case UNINSTALL:
-                    result = uninstallProductOnNode( host, nodeType );
-                    break;
-                case INSTALL:
-                    result = installProductOnNode( host, nodeType );
-                    break;
                 case DESTROY:
-                    if ( hostname == null || "".equals( hostname ) )
+                    try
                     {
-                        result = destroyNode( clusterName, hostname );
+                        removeNode( host );
                     }
-                    else
+                    catch ( ClusterException e )
                     {
-                        trackerOperation.addLogFailed( "Failed to destroy null container. Provide hostname." );
+                        e.printStackTrace();
                     }
                     break;
                 case ADD:
-                    if ( hostname == null || "".equals( hostname ) )
-                    {
-                        result = addNode( clusterName, nodeType );
-                    }
-                    else
-                    {
-                        result = addNode( clusterName, hostname, nodeType );
-                    }
+                    addNode();
                     break;
             }
             if ( result != null )
@@ -201,392 +183,343 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private CommandResult destroyNode( final String clusterName, final String containerHostname )
+    private void removeNode( ContainerHost node ) throws ClusterException
     {
-        Set<ContainerHost> environmentHosts;
-        try
+        /**
+         * 1) sanity checks
+         * 2) find role node and determine if it is just regionserver or not
+         *    case 1.1: if just has one node role, then remove Accumulo debian package from that node.
+         *    case 1.2: else more than one node role, just remove node role from configuration files.
+         * 3) Update configuration entry in database
+         */
+
+        //check if node is in the cluster
+        if ( !config.getAllNodes().contains( node.getId() ) )
         {
-            environmentHosts = environment.getContainerHostsByIds( config.getAllNodes() );
+            throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
         }
-        catch ( ContainerHostNotFoundException e )
+
+        List<NodeType> roles = config.getNodeRoles( node.getId() );
+        if ( roles.size() == 1 )
         {
-            String msg = String.format( "Some containers are not accessible from environment." );
-            trackerOperation.addLogFailed( msg );
-            LOGGER.error( msg, e );
-            return null;
-        }
-        ContainerHost targetHost = null;
-        for ( final ContainerHost environmentHost : environmentHosts )
-        {
-            if ( environmentHost.getHostname().equalsIgnoreCase( containerHostname ) )
+            // case 1.1
+            // uninstall accumulo from that node
+            trackerOperation.addLog( "Removing Accumulo from node..." );
+            CommandResult result = executeCommand( node, new RequestBuilder( Commands.uninstallCommand ) );
+            if ( result.hasSucceeded() )
             {
-                targetHost = environmentHost;
+                trackerOperation.addLog( "Accumulo is removed successfully" );
+            }
+
+            trackerOperation.addLog( "Notifying other nodes in cluster..." );
+            // configure other nodes in cluster
+            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                        new RequestBuilder( Commands.getClearTracerCommand( node.getHostname() ) ), environment );
+                config.getTracers().remove( node.getId() );
+            }
+            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(), new RequestBuilder( Commands
+                        .getClearSlaveCommand( node.getHostname() ) ), environment );
+                config.getSlaves().remove( node.getId() );
+            }
+            stopAccumuloNodeRole( node, nodeType );
+            trackerOperation.addLog( "Updating cluster information.." );
+            // update configuration
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated successfully" );
+        }
+        else
+        {
+            // case 1.2
+            // configure other nodes in cluster
+            trackerOperation.addLog( "Notifying other nodes in cluster..." );
+            // configure other nodes in cluster
+            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                        new RequestBuilder( Commands.getClearTracerCommand( node.getHostname() ) ), environment );
+                config.getTracers().remove( node.getId() );
+            }
+            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(), new RequestBuilder( Commands
+                        .getClearSlaveCommand( node.getHostname() ) ), environment );
+                config.getSlaves().remove( node.getId() );
+            }
+            stopAccumuloNodeRole( node, nodeType );
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated successfully" );
+        }
+    }
+
+
+    private void stopAccumuloNodeRole( ContainerHost host, NodeType nodeType ){
+        switch ( nodeType ){
+            case ACCUMULO_TABLET_SERVER:
+                String command = "pkill -f tserver";
+                try
+                {
+                    host.execute( new RequestBuilder( command ) );
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
                 break;
-            }
+            case ACCUMULO_TRACER:
+                command = "pkill -f tracer";
+                try
+                {
+                    host.execute( new RequestBuilder( command ) );
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+                break;
         }
-        if ( targetHost == null )
-        {
-            trackerOperation.addLogFailed( String.format( "%s is not found in environment", containerHostname ) );
-            return null;
-        }
-        else
-        {
-            if ( config.getSlaves().contains( targetHost.getId() ) )
-            {
-                return uninstallProductOnNode( targetHost, NodeType.ACCUMULO_TABLET_SERVER );
-            }
-            else if ( config.getTracers().contains( targetHost.getId() ) )
-            {
-                return uninstallProductOnNode( targetHost, NodeType.ACCUMULO_TRACER );
-            }
-        }
-        trackerOperation.addLogDone( "" );
-        return null;
     }
 
-
-    /**
-     * Adds specified container to existing cluster. Checks if container already configured in cluster, if not, adds
-     * environment container first to hadoop cluster and zookeeper cluster, finally installs accumulo and triggers
-     * cluster configuration with new environment container.
-     *
-     * @param clusterName - user specified clusterName
-     * @param containerName - user specified environment container name
-     * @param nodeType - new node role
-     *
-     * @return - trackerOperationViewId
-     */
-    private CommandResult addNode( final String clusterName, final String containerName, final NodeType nodeType )
-    {
-        CommandResult result;
-
-        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-        ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
-
-        ContainerHost environmentContainerHost;
-        try
-        {
-            environmentContainerHost = environment.getContainerHostByHostname( containerName );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            String msg = String.format( "Container with name: %s doesn't exists in environment: %s", containerName,
-                    environment.getName() );
-            trackerOperation.addLogFailed( msg );
-            LOGGER.error( msg, e );
-            return null;
-        }
-
-        //check if passed container is valid container
-        if ( environmentContainerHost == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "There is no environment contain with containerName: %s", containerName ) );
-            return null;
-        }
-
-        //check if container already in accumulo cluster
-        if ( config.getAllNodes().contains( environmentContainerHost.getId() ) )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Environment container: %s already configured in accumulo cluster.",
-                            containerName ) );
-        }
-
-        //check if container already running hadoop if not install it
-        if ( !hadoopClusterConfig.getAllNodes().contains( environmentContainerHost.getId() ) )
-        {
-            trackerOperation
-                    .addLog( String.format( "Container: %s isn't configured in hadoop cluster.", containerName ) );
-            trackerOperation.addLog( String.format( "Adding container: %s to hadoop cluster: %s", containerName,
-                    hadoopClusterConfig.getClusterName() ) );
-            hadoop.addNode( hadoopClusterConfig.getClusterName(), containerName );
-        }
-
-        //check if container already running zookeeper if not install it
-        if ( !zookeeperClusterConfig.getNodes().contains( environmentContainerHost.getId() ) )
-        {
-            trackerOperation
-                    .addLog( String.format( "Container: %s isn't configured in zookeeper cluster.", containerName ) );
-            trackerOperation.addLog( String.format( "Adding container %s to zookeeper cluster: %s", containerName,
-                    zookeeperClusterConfig.getClusterName() ) );
-            zookeeper.addNode( zookeeperClusterConfig.getClusterName(), containerName );
-        }
-
-
-        //installing accumulo package
-        //initializing accumulo cluster configuration with new node
-        result = installProductOnNode( environmentContainerHost, nodeType );
-        trackerOperation.addLogDone( "" );
-        return result;
-    }
-
-
-    /**
-     * Add node to specified cluster, checks if there is environment containers with no accumulo installed, if there is,
-     * installs hadoop, zookeeper, accumulo on existing environment container otherwise creates environment container
-     * with hadoopManager, on top of it installs zookeeper, accumulo finally initializes accumulo cluster configuration
-     * procedure
-     *
-     * @param clusterName - user specified accumulo cluster
-     * @param nodeType - new node role
-     */
-    private CommandResult addNode( final String clusterName, final NodeType nodeType )
-    {
-        CommandResult result;
-
-        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-        ZookeeperClusterConfig zookeeperClusterConfig = zookeeper.getCluster( config.getZookeeperClusterName() );
-
-        //get environment containers
-        List<ContainerHost> environmentContainers = new ArrayList<>( environment.getContainerHosts() );
-
-        //remove containers which in current accumulo cluster
-        Set<UUID> accumuloNodes = config.getAllNodes();
-        for ( int i = 0; i < environmentContainers.size(); i++ )
-        {
-            ContainerHost containerHost = environmentContainers.get( i );
-            if ( accumuloNodes.contains( containerHost.getId() ) )
-            {
-                environmentContainers.remove( i-- );
-            }
-        }
-
-        //remove hosts which are not configured in zookeeper cluster
-        Set<UUID> zookeeperClusterHostIds = zookeeperClusterConfig.getNodes();
-        for ( int i = 0; i < environmentContainers.size(); i++ )
-        {
-            ContainerHost containerHost = environmentContainers.get( i );
-            if ( !zookeeperClusterHostIds.contains( containerHost.getId() ) )
-            {
-                environmentContainers.remove( i-- );
-            }
-        }
-
-        //remove hosts hosts which are not configured in hadoop cluster
-        List<UUID> hadoopClusterHostIds = hadoopClusterConfig.getAllNodes();
-        for ( int i = 0; i < environmentContainers.size(); i++ )
-        {
-            ContainerHost containerHost = environmentContainers.get( i );
-            if ( !hadoopClusterHostIds.contains( containerHost.getId() ) )
-            {
-                environmentContainers.remove( i-- );
-            }
-        }
-
-        //add new node if all environment containers are already in accumulo cluster
-        //otherwise proceed with existing environment container
-        ContainerHost additionalNode;
-        if ( environmentContainers.isEmpty() )
-        {
-            //add new node and get its uuid
-            zookeeper.addNode( zookeeperClusterConfig.getClusterName() );
-
-            hadoop.addNode( hadoopClusterConfig.getClusterName() );
-            HadoopClusterConfig freshHadoopClusterConfig = hadoop.getCluster( hadoopClusterConfig.getClusterName() );
-            List<UUID> freshContainerHostIds = freshHadoopClusterConfig.getAllNodes();
-            freshContainerHostIds.removeAll( hadoopClusterConfig.getAllNodes() );
-            try
-            {
-                additionalNode = environment.getContainerHostById( freshContainerHostIds.iterator().next() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                String msg = String.format( "Container host with id: %s is not found in environment: %s",
-                        freshContainerHostIds.iterator().next().toString(), environment.getName() );
-                trackerOperation.addLogFailed( msg );
-                LOGGER.error( msg, e );
-                return null;
-            }
-            try
-            {
-                manager.subscribeToAlerts( additionalNode );
-            }
-            catch ( MonitorException e )
-            {
-                LOGGER.error( "Error subscribing container to alerts", e );
-            }
-        }
-        else
-        {
-            additionalNode = environmentContainers.iterator().next();
-        }
-
-        if ( additionalNode == null )
-        {
-            String msg = "Couldn't create container host.";
-            trackerOperation.addLogFailed( msg );
-            LOGGER.error( msg );
-            return null;
-        }
-
-        if ( !zookeeperClusterConfig.getNodes().contains( additionalNode.getId() ) )
-        {
-            trackerOperation.addLog( String.format( "Container: %s isn't configured in zookeeper cluster.",
-                    additionalNode.getHostname() ) );
-            trackerOperation.addLog(
-                    String.format( "Adding container %s to zookeeper cluster: %s", additionalNode.getHostname(),
-                            zookeeperClusterConfig.getClusterName() ) );
-            zookeeper.addNode( zookeeperClusterConfig.getClusterName(), additionalNode.getHostname() );
-        }
-
-
-        result = installProductOnNode( additionalNode, nodeType );
-        trackerOperation.addLogDone( "" );
-        return result;
-    }
-
-
-    private CommandResult installProductOnNode( ContainerHost host, NodeType nodeType )
+    public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
+            throws ClusterException
     {
         CommandResult result = null;
         try
         {
-
-            result = host.execute( Commands.getInstallCommand().withTimeout( 3600 ) );
-            if ( result.hasSucceeded() )
-            {
-                switch ( nodeType )
-                {
-                    case ACCUMULO_TRACER:
-                        config.getTracers().add( host.getId() );
-                        break;
-                    case ACCUMULO_TABLET_SERVER:
-                        config.getSlaves().add( host.getId() );
-                        break;
-                }
-
-                // Configure all nodes again
-                try
-                {
-                    manager.subscribeToAlerts( host );
-                    Environment environment;
-                    try
-                    {
-                        environment = manager.getEnvironmentManager().findEnvironment(
-                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
-                    }
-                    catch ( EnvironmentNotFoundException e )
-                    {
-                        String msg = String.format( "Environment with id: %s doesn't exists.",
-                                hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId().toString() );
-                        trackerOperation.addLogFailed( msg );
-                        LOGGER.error( msg, e );
-                        return null;
-                    }
-                    new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, environment );
-                }
-                catch ( ClusterConfigurationException | MonitorException e )
-                {
-                    LOGGER.error( "Error configuring cluster after install product operation on node.", e );
-                }
-
-                manager.getPluginDAO().saveInfo( AccumuloClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLog(
-                        AccumuloClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
-                                + " successfully." );
-            }
-            else
-            {
-                trackerOperation.addLogFailed(
-                        "Could not install " + AccumuloClusterConfig.PRODUCT_KEY + " to node " + hostname );
-            }
+            result = host.execute( command );
         }
         catch ( CommandException e )
         {
-            LOGGER.error( "Error installing product on node.", e );
-            e.printStackTrace();
+            if ( skipError )
+            {
+                trackerOperation
+                        .addLog( String.format( "Error on container %s: %s", host.getHostname(), e.getMessage() ) );
+            }
+            else
+            {
+                throw new ClusterException( e );
+            }
+        }
+        if ( skipError )
+        {
+            if ( result != null && !result.hasSucceeded() )
+            {
+                trackerOperation.addLog( String.format( "Error on container %s: %s", host.getHostname(),
+                        result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+            }
+        }
+        else
+        {
+            if ( !result.hasSucceeded() )
+            {
+                throw new ClusterException( String.format( "Error on container %s: %s", host.getHostname(),
+                        result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+            }
         }
         return result;
     }
 
 
-    /**
-     * Completely uninstalls accumulo package from container host if it is not one of master nodes otherwise triggers
-     * reconfigure operation on top of cluster for new cluster structure
-     *
-     * @param host - target container host
-     * @param nodeType - node type being removed
-     *
-     * @return - result of uninstall command
-     */
-    private CommandResult uninstallProductOnNode( ContainerHost host, NodeType nodeType )
+    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
     {
-        CommandResult result = null;
-        switch ( nodeType )
+        return executeCommand( host, command, false );
+    }
+
+
+    private void addNode()
+    {
+        HadoopClusterConfig hadoopClusterConfig =
+                manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+
+        List<UUID> hadoopNodes = hadoopClusterConfig.getAllNodes();
+        hadoopNodes.removeAll( config.getAllNodes() );
+
+        if ( hadoopNodes.isEmpty() )
         {
-            case ACCUMULO_TRACER:
-                if ( config.getTracers().size() <= 1 )
-                {
-                    trackerOperation.addLogFailed( "Could not uninstall last tracer of cluster." );
-                    return null;
-                }
-                break;
-            case ACCUMULO_TABLET_SERVER:
-                if ( config.getSlaves().size() <= 1 )
-                {
-                    trackerOperation.addLogFailed( "Could not uninstall last tablet server of cluster." );
-                    return null;
-                }
-                break;
-        }
-        try
-        {
-            UUID targetHostId = host.getId();
-            if ( !targetHostId.equals( config.getGcNode() ) &&
-                    !targetHostId.equals( config.getMonitor() ) &&
-                    !targetHostId.equals( config.getMasterNode() ) )
-            {
-                result = host.execute( new RequestBuilder( Commands.uninstallCommand ) );
-                if ( !result.hasSucceeded() )
-                {
-                    trackerOperation.addLogFailed(
-                            "Could not uninstall " + AccumuloClusterConfig.PRODUCT_KEY + " from node " + hostname );
-                    return result;
-                }
-            }
-
-            Set<Host> hostSet = Util.getHosts( config, environment );
-            Map<Host, CommandResult> resultMap = null;
-            switch ( nodeType )
-            {
-                case ACCUMULO_TRACER:
-                    config.getTracers().remove( host.getId() );
-                    resultMap = commandUtil.executeParallel(
-                            new RequestBuilder( Commands.getClearTracerCommand( host.getHostname() ) ), hostSet );
-
-                    break;
-                case ACCUMULO_TABLET_SERVER:
-                    config.getSlaves().remove( host.getId() );
-                    resultMap = commandUtil
-                            .executeParallel( new RequestBuilder( Commands.getClearSlaveCommand( host.getHostname() ) ),
-                                    hostSet );
-                    break;
-            }
-            if ( resultMap != null )
-            {
-                if ( Util.isAllSuccessful( resultMap, hostSet ) )
-                {
-                    trackerOperation.addLog( host.getHostname() + " is removed from configuration files" );
-                }
-            }
-
             try
             {
-                manager.saveConfig( config );
-                trackerOperation.addLog(
-                        AccumuloClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
-                                + " successfully." );
+                throw new ClusterException( String.format( "All nodes in %s cluster are used in Accumulo cluster.",
+                        config.getHadoopClusterName() ) );
             }
             catch ( ClusterException e )
             {
                 e.printStackTrace();
             }
         }
-        catch ( CommandException e )
+
+        ContainerHost node = null;
+        try
         {
-            LOGGER.error( "Error uninstalling product on node.", e );
+            node = environment.getContainerHostByHostname( hostname );
         }
-        return result;
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Could not find container host with given hostname : " + hostname );
+            e.printStackTrace();
+        }
+
+        assert node != null;
+        if ( node.getId() != null )
+        {
+            try
+            {
+                /**
+                 * if there is already Accumulo debian package installed on container, then
+                 * just add the new role to that container, otherwise both install and configure node.
+                 */
+                CommandResult result = executeCommand( node, new RequestBuilder( Commands.checkIfInstalled  ) );
+                if ( ! result.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) ){
+                    // install accumulo to this node
+                    executeCommand( node, Commands.getInstallCommand() );
+                    CommandResult commandResult = executeCommand( node, new RequestBuilder( Commands.checkIfInstalled  ) );
+                    if ( ! commandResult.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) ){
+                        LOGGER.error( "Accumulo package cannot be installed on container." );
+                        trackerOperation
+                                .addLogFailed( String.format( "Failed to install Accumulo to %s", node.getHostname() ) );
+                        throw new ClusterException( "Accumulo package cannot be installed on container." );
+                    }
+                }
+
+                clearConfigurationFiles( node );
+                if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
+                    configureOldNodes(node, NodeType.ACCUMULO_TRACER, config);
+                    config.getTracers().add(node.getId());
+                    configureNewNode(node, config);
+                }
+                else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
+                    clearConfigurationFiles( node );
+                    configureOldNodes(node, NodeType.ACCUMULO_TABLET_SERVER, config);
+                    config.getSlaves().add(node.getId());
+                    configureNewNode(node, config);
+                }
+
+                trackerOperation.addLog( "Saving cluster information..." );
+                manager.saveConfig( config );
+                trackerOperation.addLog( "Notifying other nodes..." );
+
+                // check if Master is running, then start new region server.
+                startNewNode();
+                trackerOperation.addLogDone( "New node is added successfully" );
+            }
+            catch ( ClusterException e )
+            {
+                e.printStackTrace();
+            }
+
+            try
+            {
+                manager.subscribeToAlerts( node );
+            }
+            catch ( MonitorException e )
+            {
+                LOGGER.error( "Error while subscribing to alert !", e );
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    private void startNewNode() throws ClusterException
+    {
+        try
+        {
+            ContainerHost master = environment.getContainerHostById( config.getMasterNode() );
+            CommandResult result = executeCommand( master, Commands.statusCommand );
+            if ( result.hasSucceeded() )
+            {
+                String output[] = result.getStdOut().split( "\n" );
+                for ( String part : output )
+                {
+                    if ( part.toLowerCase().contains( "master" ) )
+                    {
+                        if ( part.contains( "pid" ) )
+                        {
+                            executeCommand( master, Commands.stopCommand );
+                            executeCommand( master, Commands.startCommand );
+                        }
+                    }
+                }
+            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private void clearConfigurationFiles( ContainerHost host ){
+        try
+        {
+            executeCommand( host, Commands.getClearMastersFileCommand( "masters" ) );
+            executeCommand( host, Commands.getClearSlavesFileCommand( "slaves" ) );
+            executeCommand( host, Commands.getClearMastersFileCommand( "tracers" ) );
+            executeCommand( host, Commands.getClearMastersFileCommand("gc") );
+            executeCommand( host, Commands.getClearMastersFileCommand( "monitor" ) );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void configureOldNodes( ContainerHost host, NodeType nodeType, AccumuloClusterConfig config ){
+
+
+        if ( nodeType.equals( NodeType.ACCUMULO_TRACER  ) ){
+            Set<UUID> allNodes = config.getAllNodes();
+            allNodes.remove(host.getId());
+            ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getAddTracersCommand(
+                    host.getHostname() ), environment );
+        }
+        else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
+            Set<UUID> allNodes = config.getAllNodes();
+            allNodes.remove(host.getId());
+            ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getAddSlavesCommand(
+                    host.getHostname() ), environment );
+        }
+    }
+
+    private void configureNewNode( ContainerHost host, AccumuloClusterConfig config )
+    {
+        try {
+            executeCommand( host, Commands.getAddMasterCommand(
+                    serializeHostName(Sets.newHashSet(config.getMasterNode() ) ) ) ) ;
+            executeCommand( host, Commands.getAddMonitorCommand(
+                    serializeHostName(Sets.newHashSet(config.getMonitor() ) ) ) ) ;
+            executeCommand( host, Commands.getAddGCCommand(
+                    serializeHostName(Sets.newHashSet(config.getGcNode() ) ) ) ) ;
+            executeCommand( host, Commands.getAddTracersCommand( serializeHostName( config.getTracers() ) ) ) ;
+            executeCommand(host, Commands.getAddSlavesCommand(serializeHostName( config.getSlaves() ) ) ) ;
+        } catch (ClusterException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private String serializeHostName( Set<UUID> uuids ){
+        StringBuilder slavesSpaceSeparated = new StringBuilder();
+        for ( UUID uuid : uuids )
+        {
+            slavesSpaceSeparated.append( getHost( environment, uuid ).getHostname() ).append( " " );
+        }
+        return slavesSpaceSeparated.toString();
+    }
+
+
+    private ContainerHost getHost( Environment environment, UUID nodeId )
+    {
+        try
+        {
+            return environment.getContainerHostById( nodeId );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg =
+                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
+                            environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOGGER.error( msg, e );
+            return null;
+        }
     }
 }

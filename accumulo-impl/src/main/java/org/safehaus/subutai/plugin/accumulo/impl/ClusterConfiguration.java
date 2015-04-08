@@ -1,11 +1,13 @@
 package org.safehaus.subutai.plugin.accumulo.impl;
 
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandUtil;
+import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
@@ -58,6 +60,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         ContainerHost gc = getHost( environment, accumuloClusterConfig.getGcNode() );
         ContainerHost monitor = getHost( environment, accumuloClusterConfig.getMonitor() );
 
+
+        // clear configuration files
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
+                Commands.getClearMastersFileCommand( "masters" ), environment);
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
+                Commands.getClearSlavesFileCommand( "slaves" ), environment);
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
+                Commands.getClearMastersFileCommand( "tracers" ), environment);
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
+                Commands.getClearMastersFileCommand( "gc" ), environment);
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
+                Commands.getClearMastersFileCommand( "monitor" ), environment);
 
         /** configure cluster */
         Set<Host> hostSet = Util.getHosts( accumuloClusterConfig, environment );
@@ -120,7 +134,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private String serializeZKNodeNames( ZookeeperClusterConfig zookeeperClusterConfig )
+    public String serializeZKNodeNames( ZookeeperClusterConfig zookeeperClusterConfig )
     {
         Environment environment = null;
         try
@@ -158,6 +172,35 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             trackerOperation.addLogFailed( msg );
             LOGGER.error( msg, e );
             return null;
+        }
+    }
+
+
+    public static void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command,
+                                                     Environment environment )
+    {
+        CommandUtil commandUtil = new CommandUtil();
+        try
+        {
+            Set<Host> hosts = new HashSet<>();
+            for ( UUID uuid : allUUIDs )
+            {
+                hosts.add( environment.getContainerHostById( uuid ) );
+            }
+            try
+            {
+                commandUtil.executeParallel( command, hosts );
+            }
+            catch ( CommandException e )
+            {
+                LOGGER.error( "Error while executing commands in parallel", e );
+                e.printStackTrace();
+            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOGGER.error( "Could not get all containers", e );
+            e.printStackTrace();
         }
     }
 }

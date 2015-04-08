@@ -295,27 +295,15 @@ public class Manager
                 }
                 Set<UUID> set = new HashSet<>(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getAllNodes() );
-                set.removeAll( accumuloClusterConfig.getAllNodes() );
+                set.removeAll( accumuloClusterConfig.getSlaves() );
                 if ( set.isEmpty() )
                 {
-                    Notification.show( "All nodes in Hadoop cluster have Accumulo installed" );
+                    Notification.show( "There is no node left to add as slave." );
                     return;
                 }
 
-
-                ZookeeperClusterConfig zookeeperClusterConfig =
-                        zookeeper.getCluster( accumuloClusterConfig.getZookeeperClusterName() );
-                Set<UUID> nodesWithHadoopNZoo = new HashSet<>();
-                for ( final UUID uuid : set )
-                {
-                    if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
-                    {
-                        nodesWithHadoopNZoo.add( uuid );
-                    }
-                }
-
                 Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : nodesWithHadoopNZoo )
+                for ( UUID uuid : set )
                 {
                     try
                     {
@@ -373,32 +361,15 @@ public class Manager
                 }
                 Set<UUID> set = new HashSet<>(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getAllNodes() );
-                set.removeAll( accumuloClusterConfig.getAllNodes() );
+                set.removeAll( accumuloClusterConfig.getTracers() );
                 if ( set.isEmpty() )
                 {
-                    Notification.show( "All nodes in Hadoop cluster have Accumulo installed" );
-                    return;
-                }
-
-                ZookeeperClusterConfig zookeeperClusterConfig =
-                        zookeeper.getCluster( accumuloClusterConfig.getZookeeperClusterName() );
-                Set<UUID> nodesWithHadoopNZoo = new HashSet<>();
-                for ( final UUID uuid : set )
-                {
-                    if ( zookeeperClusterConfig.getNodes().contains( uuid ) )
-                    {
-                        nodesWithHadoopNZoo.add( uuid );
-                    }
-                }
-
-                if ( nodesWithHadoopNZoo.isEmpty() )
-                {
-                    Notification.show( "None in Hadoop cluster have Zookeeper installed" );
+                    Notification.show( "There is no node left to add as tracer." );
                     return;
                 }
 
                 Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : nodesWithHadoopNZoo )
+                for ( UUID uuid : set )
                 {
                     try
                     {

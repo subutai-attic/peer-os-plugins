@@ -176,8 +176,35 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         }
 
         // stop cluster before destroying cluster
-        UUID uuid = manager.stopCluster( clusterName );
-        Util.waitUntilOperationFinish( manager, uuid );
+        try {
+            ContainerHost host = environment.getContainerHostById( config.getMasterNode() );
+            try {
+                CommandResult result = host.execute(Commands.statusCommand );
+                if ( result.hasSucceeded() )
+                {
+                    String output[] = result.getStdOut().split( "\n" );
+                    for ( String part : output )
+                    {
+                        if ( part.toLowerCase().contains( "master" ) )
+                        {
+                            if ( part.contains( "pid" ) )
+                            {
+                                UUID uuid = manager.stopCluster( clusterName );
+                                LOG.info( "Stopping cluster before destroying it.");
+                                Util.waitUntilOperationFinish( manager, uuid );
+                            }
+                        }
+                    }
+                }
+            } catch (CommandException e) {
+                LOG.error( "Could not execute check status command successfully.");
+                e.printStackTrace();
+            }
+        } catch (ContainerHostNotFoundException e) {
+            LOG.error( "Could not find container" );
+            e.printStackTrace();
+        }
+
         Set<Host> hostSet = Util.getHosts( config, environment );
         try
         {
