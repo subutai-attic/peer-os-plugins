@@ -91,7 +91,7 @@ public class StepSetConfig extends Panel
                 wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
 
         hadoopEnvironment = environmentManager.findEnvironment( hcc.getEnvironmentId() );
-        Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+        final Set<ContainerHost> hadoopNodes = Sets.newHashSet();
         for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
         {
             for ( UUID nodeId : filterNodes( hcc.getAllNodes() ) )
@@ -162,16 +162,15 @@ public class StepSetConfig extends Panel
                     wizard.getConfig().setServer( containerID.getId() );
                 }
 
+                Set<UUID> containerIDs = new HashSet<>();
                 if ( !containerHosts.isEmpty() )
                 {
-                    Set<UUID> containerIDs = new HashSet<>();
-                    for ( ContainerHost containerHost : containerHosts )
-                    {
-                        if ( filterNodes( hcc.getAllNodes() ).contains( containerHost.getId() ) )
+
+                        for( ContainerHost host : containerHosts )
                         {
-                            containerIDs.add( containerHost.getId() );
+                            containerIDs.add( host.getId() );
                         }
-                    }
+
                     wizard.getConfig().setClients( containerIDs );
                 }
 
@@ -207,7 +206,7 @@ public class StepSetConfig extends Panel
             public void valueChange( Property.ValueChangeEvent event )
             {
                 ContainerHost selectedServerNode = ( ContainerHost ) event.getProperty().getValue();
-                Set<ContainerHost> hadoopNodes = hadoopEnvironment.getContainerHosts();
+                //Set<ContainerHost> hadoopNodes = hadoopEnvironment.getContainerHosts();
                 List<ContainerHost> availableOozieClientNodes = new ArrayList<>();
                 availableOozieClientNodes.addAll( hadoopNodes );
                 availableOozieClientNodes.remove( selectedServerNode );
