@@ -56,6 +56,19 @@ public class Commands
     }
 
 
+    public static RequestBuilder getCheckInstalledCommand( String packageName )
+    {
+        String command = "dpkg -s " + packageName;
+        return new RequestBuilder( command );
+    }
+
+
+    public static RequestBuilder getConfigureCommand()
+    {
+        return new RequestBuilder( "dpkg --configure -a && rm /var/cache/apt/archives/lock && rm /var/lib/dpkg/lock" );
+    }
+
+
     public static RequestBuilder getStartServerCommand()
     {
         return new RequestBuilder( "service oozie-server start &" );
