@@ -19,7 +19,6 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
-import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.gwt.user.client.Command;
 
 
 public class OverHadoopSetupStrategy implements ClusterSetupStrategy
@@ -42,8 +40,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     private Set<ContainerHost> clients;
 
 
-    public OverHadoopSetupStrategy( final OozieClusterConfig oozieClusterConfig,
-                                    final TrackerOperation po, final OozieImpl oozieManager )
+    public OverHadoopSetupStrategy( final OozieClusterConfig oozieClusterConfig, final TrackerOperation po,
+                                    final OozieImpl oozieManager )
     {
         Preconditions.checkNotNull( oozieClusterConfig, "Cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation tracker is null" );
@@ -182,8 +180,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         //======================================================================================================================
         // CHECKING for oozie - server
         //======================================================================================================================
-               po.addLog( "Configuring cluster..." );
-     Set<ContainerHost> oozieServerNodes = new HashSet<>();
+        po.addLog( "Configuring cluster..." );
+        Set<ContainerHost> oozieServerNodes = new HashSet<>();
         oozieServerNodes.add( server );
 
         //check installed subutai packages
@@ -212,7 +210,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         po.addLog( String.format( "Installing Oozie Server and Oozie Client..." ) );
 
-        List<ContainerHost> servers = new ArrayList<>(oozieServerNodes);
+        List<ContainerHost> servers = new ArrayList<>( oozieServerNodes );
         List<ContainerHost> clientNodes = new ArrayList<>( clients );
         //install
         commandResultList2 = runCommandOnContainers( Commands.make( CommandType.INSTALL_SERVER ), oozieServerNodes );
@@ -289,27 +287,68 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         return failedCommands;
     }
 
-    public void checkInstalled( List<ContainerHost> hosts, List<CommandResult> resultList, String packageName) throws ClusterSetupException
+
+    public void checkInstalled( List<ContainerHost> hosts, List<CommandResult> resultList, String packageName )
+            throws ClusterSetupException
     {
-        for( int i = 0; i < resultList.size(); i++ )
+        String okString = "install ok installed";
+        boolean status = true;
+        CommandResult currentResult = null;
+        ContainerHost currentContainer = null;
+        //nodes which already oozie installed on.
+        List<ContainerHost> nodes = new ArrayList<>();
+        for ( int i = 0; i < resultList.size(); i++ )
         {
+            currentResult = resultList.get( i );
+            currentContainer = hosts.get( i );
             CommandResult statusResult;
             try
             {
-                statusResult = hosts.get( i ).execute( new RequestBuilder( Commands.make( CommandType.STATUS ) ) );
+                statusResult = hosts.get( i ).execute( Commands.getCheckInstalledCommand( packageName ) );
             }
             catch ( CommandException e )
             {
-                throw new ClusterSetupException( String.format( "Error on container %s:", hosts.get( i ).getHostname()) );
+                status = false;
+                break;
             }
 
-            if ( !( resultList.get(i).hasSucceeded() && statusResult.getStdOut().contains( packageName ) ) )
+            if ( !( resultList.get( i ).hasSucceeded() && statusResult.getStdOut().contains( okString ) ) )
             {
-                po.addLogFailed( String.format( "Error on container %s:", hosts.get( i ).getHostname()) );
-                throw new ClusterSetupException( String.format( "Error on container %s: %s", hosts.get( i ).getHostname(),
-                        resultList.get(i).hasCompleted() ? resultList.get(i).getStdErr() : "Command timed out" ) );
+                List<ContainerHost> node = new ArrayList<>();
+                node.add( currentContainer );
+                uninstallProductOnNode( node, packageName );
+                status = false;
+                break;
+            }
+            nodes.add( hosts.get( i ) );
+        }
+        if ( !status )
+        {
+            uninstallProductOnNode( nodes, packageName );
+            po.addLogFailed(
+                    String.format( "Couldn't install product on container %s:", currentContainer.getHostname() ) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", currentContainer.getHostname(),
+                    currentResult.hasCompleted() ? currentResult.getStdErr() : "Command timed out" ) );
+        }
+    }
+
+
+    private void uninstallProductOnNode( List<ContainerHost> hosts, String packageName )
+    {
+        RequestBuilder uninstallCommand = packageName.contains( "server" ) ? Commands.getUninstallServerCommand() :
+                                          Commands.getUninstallClientsCommand();
+
+        for ( ContainerHost host : hosts )
+        {
+            try
+            {
+                host.execute( Commands.getConfigureCommand() );
+                host.execute( uninstallCommand );
+            }
+            catch ( CommandException e )
+            {
+                po.addLog( String.format( "Unable to execute uninstall command on node %s", host.getHostname() ) );
             }
         }
-
     }
 }
