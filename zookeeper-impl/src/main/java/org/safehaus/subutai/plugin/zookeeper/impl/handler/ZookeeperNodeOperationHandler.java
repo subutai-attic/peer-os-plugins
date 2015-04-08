@@ -110,13 +110,16 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             switch ( operationType )
             {
                 case START:
+                    assert containerHost != null;
                     commandResultList
                             .add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
                     break;
                 case STOP:
+                    assert containerHost != null;
                     commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
                     break;
                 case STATUS:
+                    assert containerHost != null;
                     commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStatusCommand() ) ) );
                     break;
                 case ADD:
