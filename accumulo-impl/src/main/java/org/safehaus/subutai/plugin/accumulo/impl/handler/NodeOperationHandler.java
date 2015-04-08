@@ -1,13 +1,10 @@
 package org.safehaus.subutai.plugin.accumulo.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.common.collect.Sets;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
@@ -16,26 +13,23 @@ import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
-import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.safehaus.subutai.plugin.accumulo.impl.AccumuloImpl;
 import org.safehaus.subutai.plugin.accumulo.impl.ClusterConfiguration;
 import org.safehaus.subutai.plugin.accumulo.impl.Commands;
-import org.safehaus.subutai.plugin.accumulo.impl.Util;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
 import org.safehaus.subutai.plugin.hadoop.api.Hadoop;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.zookeeper.api.Zookeeper;
-import org.safehaus.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 
 /**
@@ -229,6 +223,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                         .getClearSlaveCommand( node.getHostname() ) ), environment );
                 config.getSlaves().remove( node.getId() );
             }
+            stopAccumuloNodeRole( node, nodeType );
             trackerOperation.addLog( "Updating cluster information.." );
             // update configuration
             manager.saveConfig( config );
@@ -250,11 +245,39 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                         .getClearSlaveCommand( node.getHostname() ) ), environment );
                 config.getSlaves().remove( node.getId() );
             }
+            stopAccumuloNodeRole( node, nodeType );
             manager.saveConfig( config );
             trackerOperation.addLogDone( "Cluster information is updated successfully" );
         }
     }
 
+
+    private void stopAccumuloNodeRole( ContainerHost host, NodeType nodeType ){
+        switch ( nodeType ){
+            case ACCUMULO_TABLET_SERVER:
+                String command = "pkill -f tserver";
+                try
+                {
+                    host.execute( new RequestBuilder( command ) );
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+                break;
+            case ACCUMULO_TRACER:
+                command = "pkill -f tracer";
+                try
+                {
+                    host.execute( new RequestBuilder( command ) );
+                }
+                catch ( CommandException e )
+                {
+                    e.printStackTrace();
+                }
+                break;
+        }
+    }
 
     public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
