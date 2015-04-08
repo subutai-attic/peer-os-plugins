@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
+import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.env.api.EnvironmentManager;
@@ -15,6 +16,7 @@ import org.safehaus.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -68,14 +70,23 @@ public class VerificationStep extends Panel
         if ( wizard.getConfig().getClients() != null )
         {
             Set<UUID> nodes = new HashSet<>(wizard.getConfig().getClients());
-            Set<ContainerHost> hosts = null;
+            Set<ContainerHost> hosts = Sets.newHashSet();
             try
             {
-                hosts = environmentManager.findEnvironment( hcc.getEnvironmentId() ).getContainerHostsByIds(nodes);
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOGGER.error( "Container host not found", e );
+                Environment environment = environmentManager.findEnvironment( hcc.getEnvironmentId() );
+
+                for( UUID uuid : nodes )
+                {
+                    try
+                    {
+                        hosts.add( environment.getContainerHostById( uuid ) );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        LOGGER.error( "Container host not found" );
+                        continue;
+                    }
+                }
             }
             catch ( EnvironmentNotFoundException e )
             {

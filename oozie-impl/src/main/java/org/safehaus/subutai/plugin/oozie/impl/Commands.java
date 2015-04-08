@@ -71,7 +71,7 @@ public class Commands
 
     public static RequestBuilder getStartServerCommand()
     {
-        return new RequestBuilder( "service oozie-server start &" );
+        return new RequestBuilder( "service oozie-server start" ).daemon();
     }
 
 
