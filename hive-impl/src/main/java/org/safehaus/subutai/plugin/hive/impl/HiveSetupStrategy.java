@@ -198,7 +198,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
                 if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
                 {
                     CommandResult result = client.execute( new RequestBuilder(
-                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
                     checkInstalled( client, result );
                     trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
                 }
