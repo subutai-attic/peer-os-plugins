@@ -1,31 +1,41 @@
 package org.safehaus.subutai.plugin.sqoop.impl;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
+import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.peer.ContainerHost;
+import org.safehaus.subutai.common.peer.Host;
 import org.safehaus.subutai.common.settings.Common;
 import org.safehaus.subutai.common.tracker.TrackerOperation;
+import org.safehaus.subutai.core.hostregistry.api.HostRegistry;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupException;
 import org.safehaus.subutai.plugin.common.api.ConfigBase;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.safehaus.subutai.plugin.sqoop.api.SqoopConfig;
 
+import com.google.common.collect.Sets;
+
 
 class SetupStrategyOverHadoop extends SqoopSetupStrategy
 {
 
+    CommandUtil commandUtil;
     public SetupStrategyOverHadoop( SqoopImpl manager, SqoopConfig config, Environment env, TrackerOperation po )
     {
         super( manager, config, env, po );
+        commandUtil = new CommandUtil();
     }
 
 
@@ -112,19 +122,30 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         // installation
         s = CommandFactory.build( NodeOperationType.INSTALL, null );
         it = nodes.iterator();
-        while ( it.hasNext() )
+        Set<Host> hosts = getHosts( nodes );
+        try
         {
-            ContainerHost node = it.next();
-            try
-            {
-                CommandResult res = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
-                checkInstalled( node, res );
-            }
-            catch ( CommandException ex )
-            {
-                throw new ClusterSetupException( ex );
-            }
+
+            Map<Host, CommandResult> hostCommandResultMap =  commandUtil.executeParallel( new RequestBuilder( s ).withTimeout( 600 ), hosts );
+            checkInstalled( hostCommandResultMap, hosts );
         }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( e );
+        }
+//        while ( it.hasNext() )
+//        {
+//            ContainerHost node = it.next();
+//            try
+//            {
+//                CommandResult res = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
+//                checkInstalled( node, res );
+//            }
+//            catch ( CommandException ex )
+//            {
+//                throw new ClusterSetupException( ex );
+//            }
+//        }
 
         to.addLog( "Saving to db..." );
         config.setEnvironmentId( environment.getId() );
@@ -143,23 +164,73 @@ class SetupStrategyOverHadoop extends SqoopSetupStrategy
         return config;
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+    public void checkInstalled( Map<Host, CommandResult> hostCommandResultMap, Set<Host> hosts ) throws ClusterSetupException
     {
-        CommandResult statusResult;
-        try
+        String okString = "install ok installed";
+        boolean status = true;
+        CommandResult currentResult = null;
+        Host currentContainer = null;
+        //nodes which already sqoop installed on.
+        Set<Host> nodes = Sets.newHashSet();
+        for ( Host host : hosts )
         {
-            statusResult = host.execute( new RequestBuilder( CommandFactory.build( NodeOperationType.STATUS, null ) ));
-        }
-        catch ( CommandException e )
-        {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
-        }
+            currentResult = hostCommandResultMap.get( host );
+            currentContainer = host;
+            CommandResult statusResult;
+            try
+            {
+                statusResult = host.execute( CommandFactory.getCheckInstalledCommand( CommandFactory.PACKAGE_NAME ) );
+            }
+            catch ( CommandException e )
+            {
+                status = false;
+                break;
+            }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( CommandFactory.PACKAGE_NAME ) ) )
+            if ( !( currentResult.hasSucceeded() && statusResult.getStdOut().contains( okString ) ) )
+            {
+                Set<Host> node = Sets.newHashSet();
+                node.add( host );
+                uninstallProductOnNode( node );
+                status = false;
+                break;
+            }
+            nodes.add( host );
+        }
+        if ( !status )
         {
-            to.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
-            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
-                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+            uninstallProductOnNode( nodes );
+            to.addLogFailed(
+                    String.format( "Couldn't install product on container %s:", currentContainer.getHostname() ) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", currentContainer.getHostname(),
+                    currentResult.hasCompleted() ? currentResult.getStdErr() : "Command timed out" ) );
+        }
+    }
+
+    private Set<Host> getHosts( Set<ContainerHost> containerHosts )
+    {
+        Set<Host> hosts = Sets.newHashSet();
+        for( ContainerHost ch : containerHosts)
+        {
+            hosts.add( ch );
+        }
+        return hosts;
+    }
+
+    private void uninstallProductOnNode( Set<Host> hosts )
+    {
+
+        for ( Host host : hosts )
+        {
+            try
+            {
+                host.execute( CommandFactory.getConfigureCommand() );
+                host.execute( new RequestBuilder( CommandFactory.build( NodeOperationType.DESTROY , null) ) );
+            }
+            catch ( CommandException e )
+            {
+                to.addLog( String.format( "Unable to execute uninstall command on node %s", host.getHostname() ) );
+            }
         }
     }
 }
