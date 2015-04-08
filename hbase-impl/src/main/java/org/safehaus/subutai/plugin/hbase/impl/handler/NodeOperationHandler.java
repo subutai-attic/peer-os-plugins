@@ -3,6 +3,7 @@ package org.safehaus.subutai.plugin.hbase.impl.handler;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.safehaus.subutai.common.command.CommandException;
@@ -14,7 +15,6 @@ import org.safehaus.subutai.common.environment.EnvironmentNotFoundException;
 import org.safehaus.subutai.common.peer.ContainerHost;
 import org.safehaus.subutai.core.metric.api.MonitorException;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
-import org.safehaus.subutai.plugin.common.api.ClusterConfigurationException;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.common.api.NodeType;
@@ -142,43 +142,51 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             }
         }
 
+        ContainerHost node = null;
+        try
+        {
+            node = environment.getContainerHostByHostname( hostname );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Could not find container host with given hostname : " + hostname );
+            e.printStackTrace();
+        }
+
         assert node != null;
         if ( node.getId() != null )
         {
             try
             {
-                // install hbase to this node
-                CommandResult result = executeCommand( node, Commands.getInstallCommand() );
-                if ( result.hasSucceeded() )
-                {
-                    // configure new node
-                    config.getRegionServers().add( node.getId() );
-                    trackerOperation.addLog( "Saving cluster information..." );
-                    manager.saveConfig( config );
-
-                    configureExistingNodes( node );
-                    try
-                    {
-                        new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() )
-                                .configureNewRegionServerNode( config, environment, node );
+                /**
+                 * if there is already HBase debian package installed on container, then
+                 * just add the new role to that container, otherwise both install and configure node.
+                 */
+                CommandResult result = executeCommand( node, Commands.getCheckInstalledCommand() );
+                if ( ! result.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) ){
+                    // install hbase to this node
+                    executeCommand( node, Commands.getInstallCommand() );
+                    CommandResult commandResult = executeCommand( node, Commands.getCheckInstalledCommand() );
+                    if ( ! commandResult.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) ){
+                        LOG.error( "HBase package cannot be installed on container." );
+                        trackerOperation
+                                .addLogFailed( String.format( "Failed to install HBase to %s", node.getHostname() ) );
+                        throw new ClusterException( "HBase package cannot be installed on container." );
                     }
-                    catch ( ClusterConfigurationException e )
-                    {
-                        LOG.error( "Error while configuration !", e );
-                        e.printStackTrace();
-                    }
-
-
-                    // check if HMaster is running, then start new region server.
-                    startNewNode( node );
-                    trackerOperation.addLogDone( "Region server is added succesfully" );
                 }
-                else
-                {
-                    // could not install hbase to this node
-                    trackerOperation
-                            .addLogFailed( String.format( "Failed to install HBase to %s", node.getHostname() ) );
-                }
+
+                clearConfigurationFiles( node );
+                configureOldNodes( node, config );
+                config.getRegionServers().add( node.getId() );
+                configureNewNode( node, config );
+
+                trackerOperation.addLog( "Saving cluster information..." );
+                manager.saveConfig( config );
+                trackerOperation.addLog( "Notifying other nodes..." );
+
+                // check if Master is running, then start new region server.
+                restartCluster();
+                trackerOperation.addLogDone( "New node is added successfully" );
             }
             catch ( ClusterException e )
             {
@@ -198,7 +206,86 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private void startNewNode( ContainerHost host ) throws ClusterException
+    private void clearConfigurationFiles( ContainerHost host ){
+        try
+        {
+            executeCommand( host, Commands.getClearRegionServerConfFile() );
+            executeCommand( host, Commands.getClearBackupMastersConfFile() );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void configureOldNodes( ContainerHost host, HBaseConfig config ){
+        Set<UUID> allNodes = config.getAllNodes();
+        allNodes.remove( host.getId() );
+        ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getConfigRegionCommand(
+                host.getHostname() ), environment );
+    }
+
+
+    private void configureNewNode( ContainerHost host, HBaseConfig config )
+    {
+        try {
+            HadoopClusterConfig hadoopClusterConfig =  manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+
+            try
+            {
+                String nameNodeHostname = environment.getContainerHostById( hadoopClusterConfig.getNameNode() )
+                                                          .getHostname();
+                String hmasterHostname = environment.getContainerHostById( config.getHbaseMaster() ).getHostname();
+
+                executeCommand( host,
+                        Commands.getConfigMasterCommand( nameNodeHostname, hmasterHostname ) );
+                executeCommand( host, Commands.getConfigQuorumCommand( serializeHostName( config.getQuorumPeers() ) ) );
+                executeCommand( host, Commands.getConfigRegionCommand( serializeHostName( config.getRegionServers() ) ) ) ;
+                executeCommand( host, Commands.getConfigBackupMastersCommand( serializeHostName( config.getBackupMasters() ) ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Could not find container with given uuid : " + hadoopClusterConfig.getNameNode() );
+                e.printStackTrace();
+            }
+
+
+        } catch (ClusterException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private String serializeHostName( Set<UUID> uuids ){
+        StringBuilder slavesSpaceSeparated = new StringBuilder();
+        for ( UUID uuid : uuids )
+        {
+            slavesSpaceSeparated.append( getHost( environment, uuid ).getHostname() ).append( " " );
+        }
+        return slavesSpaceSeparated.toString();
+    }
+
+
+    private ContainerHost getHost( Environment environment, UUID nodeId )
+    {
+        try
+        {
+            return environment.getContainerHostById( nodeId );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            String msg =
+                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
+                            environment.getName() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg, e );
+            return null;
+        }
+    }
+
+
+    private void restartCluster() throws ClusterException
     {
         try
         {
@@ -213,7 +300,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                     {
                         if ( part.contains( "pid" ) )
                         {
-                            executeCommand( host, Commands.getStartRegionServer() );
+                            executeCommand( hmaster, Commands.getStopCommand() );
+                            executeCommand( hmaster, Commands.getStartCommand() );
                         }
                     }
                 }
@@ -223,13 +311,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         {
             e.printStackTrace();
         }
-    }
-
-
-    private void configureExistingNodes( ContainerHost host )
-    {
-        ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigRegionCommand( host.getHostname() ), environment );
     }
 
 
@@ -318,6 +399,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             // update configuration
             config.getRegionServers().remove( node.getId() );
             manager.saveConfig( config );
+            restartCluster();
             trackerOperation.addLogDone( "Cluster information is updated successfully" );
         }
         else
@@ -334,6 +416,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             // update configuration
             config.getRegionServers().remove( node.getId() );
             manager.saveConfig( config );
+            restartCluster();
             trackerOperation.addLogDone( "Cluster information is updated successfully" );
         }
     }
