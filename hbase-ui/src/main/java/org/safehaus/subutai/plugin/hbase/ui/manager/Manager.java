@@ -412,7 +412,7 @@ public class Manager
 
                 try
                 {
-                    set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getAllNodes() ) ) );
+                    set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( config.getRegionServers() ) ) );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -420,7 +420,7 @@ public class Manager
                 }
                 if ( set.isEmpty() )
                 {
-                    show( "All nodes in Hadoop cluster have HBase installed" );
+                    show( "There is no node left to add as HRegionServer." );
                     return;
                 }
 

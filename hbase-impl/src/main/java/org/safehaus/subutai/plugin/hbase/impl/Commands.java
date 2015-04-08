@@ -70,13 +70,13 @@ public class Commands
     }
 
 
-    public static RequestBuilder getRemoveRegionServerCommand()
+    public static RequestBuilder getClearRegionServerConfFile()
     {
         return new RequestBuilder( String.format( ". /etc/profile && region.sh remove" ) );
     }
 
 
-    public static RequestBuilder getRemoveBackupMastersCommand()
+    public static RequestBuilder getClearBackupMastersConfFile()
     {
         return new RequestBuilder( String.format( ". /etc/profile && backUpMasters.sh remove" ) );
     }
@@ -103,7 +103,7 @@ public class Commands
 
     public static RequestBuilder getStopRegionServer()
     {
-        return new RequestBuilder( ". /etc/profile &&  service hbase-region start " );
+        return new RequestBuilder( ". /etc/profile &&  hbase-daemon.sh stop regionserver " ).daemon();
     }
 
 

@@ -175,8 +175,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             try
             {
                 ContainerHost containerHost = environment.getContainerHostById( uuid );
-                containerHost.execute( Commands.getRemoveRegionServerCommand() );
-                containerHost.execute( Commands.getRemoveBackupMastersCommand() );
+                containerHost.execute( Commands.getClearRegionServerConfFile() );
+                containerHost.execute( Commands.getClearBackupMastersConfFile() );
             }
             catch ( CommandException e )
             {
