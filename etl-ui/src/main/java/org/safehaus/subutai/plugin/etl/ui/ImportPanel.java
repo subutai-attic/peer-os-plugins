@@ -291,6 +291,7 @@ public class ImportPanel extends ImportExportBase
                     Notification.show( "Please enter your password!" );
                     return;
                 }
+
                 progressIconDB.setVisible( true );
                 executorService.execute( new Runnable()
                 {
@@ -301,7 +302,8 @@ public class ImportPanel extends ImportExportBase
                         ImportSetting importSettings = makeSettings();
                         String databaseList = sqoop.fetchDatabases( importSettings );
                         ArrayList<String> dbItems = clearResult( databaseList );
-                        if ( dbItems.isEmpty() ){
+                        if ( dbItems.isEmpty() )
+                        {
 
                             Notification.show( "Cannot fetch any database. Check your connection details !!!" );
                             progressIconDB.setVisible( false );
@@ -309,16 +311,9 @@ public class ImportPanel extends ImportExportBase
                         }
                         Notification.show( "Fetched " + dbItems.size() + " databases." );
 
-                        for ( String dbItem : dbItems ){
+                        for ( String dbItem : dbItems )
+                        {
                             databases.addItem( dbItem );
-                        }
-                        try
-                        {
-                            Thread.sleep( 2000 );
-                        }
-                        catch ( InterruptedException e )
-                        {
-                            e.printStackTrace();
                         }
                         progressIconDB.setVisible( false );
                     }
@@ -353,6 +348,10 @@ public class ImportPanel extends ImportExportBase
                     Notification.show( "Please enter your password!" );
                     return;
                 }
+                if ( databases.getValue() == null ){
+                    Notification.show( "Please select database first!" );
+                    return;
+                }
                 progressIconTable.setVisible( true );
                 executorService.execute( new Runnable()
                 {
@@ -372,14 +371,6 @@ public class ImportPanel extends ImportExportBase
 
                         for ( String tableItem : tableItems ){
                             tables.addItem( tableItem );
-                        }
-                        try
-                        {
-                            Thread.sleep( 2000 );
-                        }
-                        catch ( InterruptedException e )
-                        {
-                            e.printStackTrace();
                         }
                         progressIconTable.setVisible( false );
                     }
@@ -504,6 +495,6 @@ public class ImportPanel extends ImportExportBase
     private boolean isChecked( CheckBox chb )
     {
         Object v = chb.getValue();
-        return v != null ? Boolean.parseBoolean( v.toString() ) : false;
+        return v != null && Boolean.parseBoolean( v.toString() );
     }
 }

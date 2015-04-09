@@ -53,7 +53,9 @@ public class ETLPortalModule implements PortalModule
 
     public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+//        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newFixedThreadPool(30);
+
     }
 
 
