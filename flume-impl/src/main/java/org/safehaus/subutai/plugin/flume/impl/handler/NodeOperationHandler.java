@@ -178,7 +178,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         StringBuilder log = new StringBuilder();
         String status;
         String output = result.getStdOut();
-        if( operationType.equals( NodeOperationType.START ) && output.contains( "running as" ) )
+        if( operationType.equals( NodeOperationType.START ) && output.contains( "starting" ) )
         {
             status = "Flume is running";
         }
