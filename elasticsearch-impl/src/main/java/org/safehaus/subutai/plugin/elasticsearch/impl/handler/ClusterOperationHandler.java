@@ -87,6 +87,7 @@ public class ClusterOperationHandler
     private void startNStop( final ClusterOperationType operationType )
     {
         boolean isSuccessful = true;
+        String message = "started";
         try
         {
             Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
@@ -98,7 +99,7 @@ public class ClusterOperationHandler
                             ContainerHost host = env.getContainerHostById( uuid );
                             try
                             {
-                                trackerOperation.addLog( "Staring elasticsearch on node " + host.getHostname() );
+                                trackerOperation.addLog( "Starting elasticsearch on node " + host.getHostname() );
                                 CommandResult result = host.execute( Commands.getStartCommand() );
                                 if ( ! result.hasSucceeded() ){
                                     isSuccessful = false;
@@ -123,7 +124,7 @@ public class ClusterOperationHandler
                             try
                             {
                                 trackerOperation.addLog( "Stopping elasticsearch on node " + host.getHostname() );
-                                CommandResult result = host.execute( Commands.getStartCommand() );
+                                CommandResult result = host.execute( Commands.getStopCommand() );
                                 if ( ! result.hasSucceeded() ){
                                     isSuccessful = false;
                                 }
@@ -138,8 +139,9 @@ public class ClusterOperationHandler
                             e.printStackTrace();
                         }
                     }
+                    message = "stopped";
                     break;
-                case STATUS_ALL:_ALL:
+                case STATUS_ALL:
                     for ( UUID uuid : config.getNodes() ){
                         try
                         {
@@ -169,7 +171,7 @@ public class ClusterOperationHandler
             e.printStackTrace();
         }
         if ( isSuccessful ){
-            trackerOperation.addLogDone( "All Elasticsearch nodes is started succesfully" );
+            trackerOperation.addLogDone( "All Elasticsearch nodes is "+message+" successfully" );
         }
         else{
             trackerOperation.addLogFailed( "Failed to start all Elasticsearch nodes" );
