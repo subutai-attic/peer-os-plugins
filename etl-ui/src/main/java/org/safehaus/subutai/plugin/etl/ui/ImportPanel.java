@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import com.vaadin.ui.*;
 import org.safehaus.subutai.core.tracker.api.Tracker;
 import org.safehaus.subutai.plugin.etl.api.ETL;
 import org.safehaus.subutai.plugin.sqoop.api.DataSourceType;
@@ -14,18 +15,6 @@ import org.safehaus.subutai.plugin.sqoop.api.setting.ImportParameter;
 import org.safehaus.subutai.plugin.sqoop.api.setting.ImportSetting;
 
 import com.vaadin.data.Property;
-import com.vaadin.ui.AbstractTextField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.ProgressBar;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-
 
 
 public class ImportPanel extends ImportExportBase
@@ -267,7 +256,7 @@ public class ImportPanel extends ImportExportBase
         HorizontalLayout dbLayout = new HorizontalLayout();
         dbLayout.setSpacing( true );
         dbLayout.addComponent( databases );
-        Button fetchDB = new Button( "Fetch" );
+        final Button fetchDB = new Button( "Fetch" );
         fetchDB.addStyleName( "default" );
         dbLayout.addComponent( fetchDB );
         dbLayout.setComponentAlignment( fetchDB, Alignment.BOTTOM_CENTER );
@@ -292,32 +281,81 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
 
-                progressIconDB.setVisible( true );
-                executorService.execute( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        databases.removeAllItems();
-                        ImportSetting importSettings = makeSettings();
-                        String databaseList = sqoop.fetchDatabases( importSettings );
-                        ArrayList<String> dbItems = clearResult( databaseList );
-                        if ( dbItems.isEmpty() )
-                        {
+//                // A thread to do some work
+//                class WorkThread extends Thread {
+//
+//                    @Override
+//                    public void run() {
+//                        databases.removeAllItems();
+//                        ImportSetting importSettings = makeSettings();
+//                        String databaseList = sqoop.fetchDatabases( importSettings );
+//                        ArrayList<String> dbItems = clearResult( databaseList );
+//                        if ( dbItems.isEmpty() )
+//                        {
+//
+//                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
+//                            progressIconDB.setVisible( false );
+//                            return;
+//                        }
+//                        Notification.show( "Fetched " + dbItems.size() + " databases." );
+//
+//                        for ( String dbItem : dbItems )
+//                        {
+//                            databases.addItem( dbItem );
+//                        }
+//
+//                        UI.getCurrent().access(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                progressIconDB.setEnabled(false);
+//
+//                                // Stop polling
+//                                UI.getCurrent().setPollInterval(-1);
+//                                fetchDB.setEnabled(true);
+//                            }
+//                        });
+//                    }
+//                }
+//
+//                // Disable the button until the work is done
+//                progressIconDB.setEnabled(true);
+//                fetchDB.setEnabled(false);
+//
+//                final WorkThread thread = new WorkThread();
+//                thread.start();
+//
+//                // Enable polling and set frequency to 0.5 seconds
+//                UI.getCurrent().setPollInterval(500);
+//
 
-                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
-                            progressIconDB.setVisible( false );
-                            return;
-                        }
-                        Notification.show( "Fetched " + dbItems.size() + " databases." );
 
-                        for ( String dbItem : dbItems )
-                        {
-                            databases.addItem( dbItem );
-                        }
-                        progressIconDB.setVisible( false );
-                    }
-                } );
+
+//                progressIconDB.setVisible( true );
+//                executorService.execute( new Runnable()
+//                {
+//                    @Override
+//                    public void run()
+//                    {
+//                        databases.removeAllItems();
+//                        ImportSetting importSettings = makeSettings();
+//                        String databaseList = sqoop.fetchDatabases( importSettings );
+//                        ArrayList<String> dbItems = clearResult( databaseList );
+//                        if ( dbItems.isEmpty() )
+//                        {
+//
+//                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
+//                            progressIconDB.setVisible( false );
+//                            return;
+//                        }
+//                        Notification.show( "Fetched " + dbItems.size() + " databases." );
+//
+//                        for ( String dbItem : dbItems )
+//                        {
+//                            databases.addItem( dbItem );
+//                        }
+//                        progressIconDB.setVisible( false );
+//                    }
+//                } );
             }
         } );
 
