@@ -281,8 +281,9 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
 
-                class WorkThread extends Thread {
-
+                progressIconDB.setVisible(true);
+                fetchDB.setEnabled(false);
+                executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         databases.removeAllItems();
@@ -294,32 +295,25 @@ public class ImportPanel extends ImportExportBase
 
                             Notification.show( "Cannot fetch any database. Check your connection details !!!" );
                             progressIconDB.setVisible( false );
+                            fetchDB.setEnabled(true);
                             return;
                         }
-                        Notification.show( "Fetched " + dbItems.size() + " databases." );
+
+                        Notification.show("Fetched " + dbItems.size() + " databases.");
 
                         for ( String dbItem : dbItems )
                         {
                             databases.addItem( dbItem );
                         }
-
                         UI.getCurrent().access( new Runnable() {
                             @Override
                             public void run() {
-                                progressIconDB.setVisible(false);
-
-                                // Stop polling
-                                UI.getCurrent().setPollInterval(-1);
                                 fetchDB.setEnabled(true);
+                                progressIconDB.setVisible( false );
                             }
                         });
                     }
-                }
-                progressIconDB.setVisible(true);
-                fetchDB.setEnabled(false);
-                final WorkThread thread = new WorkThread();
-                thread.start();
-                UI.getCurrent().setPollInterval(500);
+                });
             }
         } );
 
@@ -357,8 +351,7 @@ public class ImportPanel extends ImportExportBase
                 progressIconTable.setVisible( true );
                 fetchTables.setEnabled(false);
 
-                class WorkThread extends Thread {
-
+                executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         tables.removeAllItems();
@@ -380,19 +373,11 @@ public class ImportPanel extends ImportExportBase
                             @Override
                             public void run() {
                                 progressIconTable.setVisible(false);
-
-                                // Stop polling
-                                UI.getCurrent().setPollInterval(-1);
                                 fetchTables.setEnabled(true);
                             }
                         });
                     }
-                }
-                progressIconTable.setVisible(true);
-                fetchTables.setEnabled(false);
-                final WorkThread thread = new WorkThread();
-                thread.start();
-                UI.getCurrent().setPollInterval(500);
+                });
             }
         } );
 
