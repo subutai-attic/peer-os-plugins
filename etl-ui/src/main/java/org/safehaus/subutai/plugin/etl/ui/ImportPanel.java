@@ -281,81 +281,45 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
 
-//                // A thread to do some work
-//                class WorkThread extends Thread {
-//
-//                    @Override
-//                    public void run() {
-//                        databases.removeAllItems();
-//                        ImportSetting importSettings = makeSettings();
-//                        String databaseList = sqoop.fetchDatabases( importSettings );
-//                        ArrayList<String> dbItems = clearResult( databaseList );
-//                        if ( dbItems.isEmpty() )
-//                        {
-//
-//                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
-//                            progressIconDB.setVisible( false );
-//                            return;
-//                        }
-//                        Notification.show( "Fetched " + dbItems.size() + " databases." );
-//
-//                        for ( String dbItem : dbItems )
-//                        {
-//                            databases.addItem( dbItem );
-//                        }
-//
-//                        UI.getCurrent().access(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                progressIconDB.setEnabled(false);
-//
-//                                // Stop polling
-//                                UI.getCurrent().setPollInterval(-1);
-//                                fetchDB.setEnabled(true);
-//                            }
-//                        });
-//                    }
-//                }
-//
-//                // Disable the button until the work is done
-//                progressIconDB.setEnabled(true);
-//                fetchDB.setEnabled(false);
-//
-//                final WorkThread thread = new WorkThread();
-//                thread.start();
-//
-//                // Enable polling and set frequency to 0.5 seconds
-//                UI.getCurrent().setPollInterval(500);
-//
+                class WorkThread extends Thread {
 
+                    @Override
+                    public void run() {
+                        databases.removeAllItems();
+                        ImportSetting importSettings = makeSettings();
+                        String databaseList = sqoop.fetchDatabases( importSettings );
+                        ArrayList<String> dbItems = clearResult( databaseList );
+                        if ( dbItems.isEmpty() )
+                        {
 
+                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
+                            progressIconDB.setVisible( false );
+                            return;
+                        }
+                        Notification.show( "Fetched " + dbItems.size() + " databases." );
 
-//                progressIconDB.setVisible( true );
-//                executorService.execute( new Runnable()
-//                {
-//                    @Override
-//                    public void run()
-//                    {
-//                        databases.removeAllItems();
-//                        ImportSetting importSettings = makeSettings();
-//                        String databaseList = sqoop.fetchDatabases( importSettings );
-//                        ArrayList<String> dbItems = clearResult( databaseList );
-//                        if ( dbItems.isEmpty() )
-//                        {
-//
-//                            Notification.show( "Cannot fetch any database. Check your connection details !!!" );
-//                            progressIconDB.setVisible( false );
-//                            return;
-//                        }
-//                        Notification.show( "Fetched " + dbItems.size() + " databases." );
-//
-//                        for ( String dbItem : dbItems )
-//                        {
-//                            databases.addItem( dbItem );
-//                        }
-//                        progressIconDB.setVisible( false );
-//                    }
-//                } );
+                        for ( String dbItem : dbItems )
+                        {
+                            databases.addItem( dbItem );
+                        }
+
+                        UI.getCurrent().access( new Runnable() {
+                            @Override
+                            public void run() {
+                                progressIconDB.setVisible(false);
+
+                                // Stop polling
+                                UI.getCurrent().setPollInterval(-1);
+                                fetchDB.setEnabled(true);
+                            }
+                        });
+                    }
+                }
+                progressIconDB.setVisible(true);
+                fetchDB.setEnabled(false);
+                final WorkThread thread = new WorkThread();
+                thread.start();
+                UI.getCurrent().setPollInterval(500);
             }
         } );
 
@@ -363,7 +327,7 @@ public class ImportPanel extends ImportExportBase
         HorizontalLayout tableLayout = new HorizontalLayout();
         tableLayout.setSpacing( true );
         tableLayout.addComponent( tables );
-        Button fetchTables = new Button( "Fetch" );
+        final Button fetchTables = new Button( "Fetch" );
         fetchTables.addStyleName( "default" );
         tableLayout.addComponent( fetchTables );
         tableLayout.setComponentAlignment( fetchTables, Alignment.BOTTOM_CENTER );
@@ -391,14 +355,15 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
                 progressIconTable.setVisible( true );
-                executorService.execute( new Runnable()
-                {
+                fetchTables.setEnabled(false);
+
+                class WorkThread extends Thread {
+
                     @Override
-                    public void run()
-                    {
+                    public void run() {
                         tables.removeAllItems();
                         ImportSetting importSettings = makeSettings();
-                        String tableList = sqoop.fetchTables( importSettings );
+                        String tableList = sqoop.fetchTables(importSettings);
                         ArrayList<String> tableItems = clearResult( tableList );
                         if ( tableItems.isEmpty() ){
                             Notification.show( "Cannot fetch any table. Check your connection details !!!" );
@@ -410,10 +375,24 @@ public class ImportPanel extends ImportExportBase
                         for ( String tableItem : tableItems ){
                             tables.addItem( tableItem );
                         }
-                        progressIconTable.setVisible( false );
-                    }
-                } );
 
+                        UI.getCurrent().access( new Runnable() {
+                            @Override
+                            public void run() {
+                                progressIconTable.setVisible(false);
+
+                                // Stop polling
+                                UI.getCurrent().setPollInterval(-1);
+                                fetchTables.setEnabled(true);
+                            }
+                        });
+                    }
+                }
+                progressIconTable.setVisible(true);
+                fetchTables.setEnabled(false);
+                final WorkThread thread = new WorkThread();
+                thread.start();
+                UI.getCurrent().setPollInterval(500);
             }
         } );
 
