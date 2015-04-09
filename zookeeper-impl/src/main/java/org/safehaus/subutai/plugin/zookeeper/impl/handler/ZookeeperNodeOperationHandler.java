@@ -243,8 +243,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             CommandResult commandResult;
             try
             {
-                commandResult = newNode.execute( new RequestBuilder( Commands.getStatusCommand() ).withTimeout( 30 ) );
-                if ( commandResult.getStdErr().contains( "unrecognized service" ) )
+                commandResult = newNode.execute( new RequestBuilder( Commands.getCheckInstalledCommand() ).withTimeout( 30 ) );
+                if ( ! commandResult.getStdOut().contains( ZookeeperClusterConfig.PRODUCT_NAME ) )
                 {
                     newNode.execute( new RequestBuilder( Commands.getInstallCommand() ).withTimeout( 120 ) );
                 }
