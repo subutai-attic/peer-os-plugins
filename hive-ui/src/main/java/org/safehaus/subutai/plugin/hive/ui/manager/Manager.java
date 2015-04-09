@@ -346,32 +346,36 @@ public class Manager
             @Override
             public void itemClick( ItemClickEvent event )
             {
-                String containerId =
-                        ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = null;
-                try
+                if( event.isDoubleClick() )
                 {
-                    containerHost = environmentManager
-                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                            .getContainerHostByHostname( containerId );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    LOGGER.error( "Container host not found", e );
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    LOGGER.error( "Environment not found", e );
-                }
+                    String containerId =
+                            ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
+                    ContainerHost containerHost = null;
+                    try
+                    {
+                        containerHost = environmentManager
+                                .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                                .getContainerHostByHostname( containerId );
+                    }
+                    catch ( ContainerHostNotFoundException e )
+                    {
+                        LOGGER.error( "Container host not found", e );
+                    }
+                    catch ( EnvironmentNotFoundException e )
+                    {
+                        LOGGER.error( "Environment not found", e );
+                    }
 
-                if ( containerHost != null )
-                {
-                    TerminalWindow terminal = new TerminalWindow( containerHost );
-                    contentRoot.getUI().addWindow( terminal.getWindow() );
-                }
-                else
-                {
-                    show( "Host not found" );
+                    if ( containerHost != null )
+                    {
+                        TerminalWindow terminal = new TerminalWindow( containerHost );
+                        contentRoot.getUI().addWindow( terminal.getWindow() );
+                    }
+                    else
+                    {
+                        show( "Host not found" );
+                    }
+
                 }
             }
         } );
