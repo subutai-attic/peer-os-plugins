@@ -43,11 +43,11 @@ public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extend
         CommandResult result = null;
         try
         {
-            result = containerHost.execute( new RequestBuilder( command ).withTimeout( 180 ).daemon() );
+            result = containerHost.execute( new RequestBuilder( command ).daemon() );
         }
         catch ( CommandException e )
         {
-            LOG.error( "Could not execute command succesfully! ", command );
+            LOG.error( "Could not execute command successfully! ", command );
             LOG.error( "Error: ", e );
         }
         return result;
