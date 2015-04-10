@@ -53,14 +53,14 @@ public interface RestService
 
     // start node
     @PUT
-    @Path( "clusters/{clusterName}/start/nodes/{hostname}" )
+    @Path( "clusters/{clusterName}/start/node/{hostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName,
                                @PathParam( "hostname" ) String hostname );
 
     // stop node
     @PUT
-    @Path( "clusters/{clusterName}/stop/nodes/{hostname}" )
+    @Path( "clusters/{clusterName}/stop/node/{hostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
                               @PathParam( "hostname" ) String hostname );
