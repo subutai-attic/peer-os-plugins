@@ -469,7 +469,7 @@ public class Manager
             {
                 if ( event.isDoubleClick() )
                 {
-                    String containerId =
+                    String containerHostName =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
                     Set<ContainerHost> containerHosts = null;
@@ -487,7 +487,7 @@ public class Manager
                     while ( iterator.hasNext() )
                     {
                         containerHost = ( ContainerHost ) iterator.next();
-                        if ( containerHost.getId().equals( UUID.fromString( containerId ) ) )
+                        if ( containerHost.getHostname().equals( containerHostName ) )
                         {
                             break;
                         }
