@@ -148,17 +148,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
     public static void logResults( TrackerOperation po, CommandResult result )
     {
         Preconditions.checkNotNull( result );
-        StringBuilder log = new StringBuilder();
-        log.append( "UNKNOWN" );
+        String message = "UNKNOWN";
         if ( result.getExitCode() == 0 )
         {
-            log.append( result.getStdOut() );
+            message = result.getStdOut();
         }
 
-        if ( result.getExitCode() == 768 )
+        else if ( result.getExitCode() == 768 )
         {
-            log.append( "cassandra is not running" );
+            message = "cassandra is not running";
         }
-        po.addLogDone( log.toString() );
+        po.addLogDone( message );
     }
 }
