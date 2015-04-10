@@ -282,7 +282,7 @@ public class ImportPanel extends ImportExportBase
                 }
 
                 progressIconDB.setVisible(true);
-                fetchDB.setEnabled(false);
+                // fetchDB.setEnabled(false);
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -308,7 +308,7 @@ public class ImportPanel extends ImportExportBase
                         UI.getCurrent().access( new Runnable() {
                             @Override
                             public void run() {
-                                fetchDB.setEnabled(true);
+                                // fetchDB.setEnabled(true);
                                 progressIconDB.setVisible( false );
                             }
                         });
@@ -349,7 +349,7 @@ public class ImportPanel extends ImportExportBase
                     return;
                 }
                 progressIconTable.setVisible( true );
-                fetchTables.setEnabled(false);
+                // fetchTables.setEnabled(false);
 
                 executorService.execute(new Runnable() {
                     @Override
@@ -373,7 +373,7 @@ public class ImportPanel extends ImportExportBase
                             @Override
                             public void run() {
                                 progressIconTable.setVisible(false);
-                                fetchTables.setEnabled(true);
+                                // fetchTables.setEnabled(true);
                             }
                         });
                     }
