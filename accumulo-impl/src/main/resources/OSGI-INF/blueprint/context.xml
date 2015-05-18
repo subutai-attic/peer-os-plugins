@@ -42,4 +42,7 @@
   <service ref="accumulo-impl"
            interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
 
+  <service ref="alertListener" interface="org.safehaus.subutai.core.metric.api.AlertListener" />
+
+
 </blueprint>
