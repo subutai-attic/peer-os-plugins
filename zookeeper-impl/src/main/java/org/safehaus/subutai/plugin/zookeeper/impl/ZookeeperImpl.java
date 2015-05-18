@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -60,15 +59,12 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     private PeerManager peerManager;
 
     private PluginDAO pluginDAO;
-    private ZookeeperAlertListener zookeeperAlertListener;
     private QuotaManager quotaManager;
 
 
     public ZookeeperImpl( Monitor monitor )
     {
         this.monitor = monitor;
-        this.zookeeperAlertListener = new ZookeeperAlertListener( this );
-        monitor.addAlertListener( zookeeperAlertListener );
     }
 
 
@@ -116,7 +112,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( zookeeperAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( ZookeeperAlertListener.ZOOKEEPER_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -128,7 +124,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( zookeeperAlertListener, environment );
+        getMonitor().stopMonitoring( ZookeeperAlertListener.ZOOKEEPER_ALERT_LISTENER, environment );
     }
 
 
@@ -313,7 +309,8 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
 
         AbstractOperationHandler operationHandler =
-                new ZookeeperClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STATUS_ALL );
+                new ZookeeperClusterOperationHandler( this, getCluster( clusterName ),
+                        ClusterOperationType.STATUS_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }

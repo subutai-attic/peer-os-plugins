@@ -24,6 +24,11 @@
     <argument ref="monitor" />
   </bean>
 
+  <bean id="alertListener" scope="singleton"
+        class="org.safehaus.subutai.plugin.zookeeper.impl.alert.ZookeeperAlertListener">
+    <argument ref="impl" />
+  </bean>
+
   <service ref="impl" interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
 
   <service ref="impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
