@@ -60,19 +60,17 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-    private HadoopAlertListener hadoopAlertListener;
 
 
     public HadoopImpl( Monitor monitor )
     {
         this.monitor = monitor;
-        hadoopAlertListener = new HadoopAlertListener( this );
-        monitor.addAlertListener( hadoopAlertListener );
     }
+
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( hadoopAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -84,7 +82,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( hadoopAlertListener, environment );
+        getMonitor().stopMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment );
     }
 
 

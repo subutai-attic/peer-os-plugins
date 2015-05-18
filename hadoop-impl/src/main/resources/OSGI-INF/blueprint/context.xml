@@ -21,6 +21,10 @@
     <argument ref="monitor" />
   </bean>
 
+  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.hadoop.impl.alert.HadoopAlertListener">
+    <argument ref="hadoop-impl" />
+  </bean>
+
   <service ref="hadoop-impl" interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
 
   <service ref="hadoop-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
