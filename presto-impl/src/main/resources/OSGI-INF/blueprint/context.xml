@@ -18,6 +18,10 @@
     <argument ref="monitor" />
   </bean>
 
+  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.presto.impl.alert.PrestoAlertListener">
+    <argument ref="presto-impl" />
+  </bean>
+
   <service ref="presto-impl" interface="org.safehaus.subutai.plugin.presto.api.Presto" />
 
   <service ref="presto-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -48,21 +47,17 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     private Hadoop hadoopManager;
     private ExecutorService executor;
     private Monitor monitor;
-    private PrestoAlertListener prestoAlertListener;
     Commands commands;
 
 
-    public PrestoImpl( final Tracker tracker, final EnvironmentManager environmentManager,
-                       final Hadoop hadoopManager, final Monitor monitor )
+    public PrestoImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                       final Monitor monitor )
     {
 
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
-
-        prestoAlertListener = new PrestoAlertListener( this );
-        monitor.addAlertListener( prestoAlertListener );
     }
 
 
@@ -74,7 +69,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        monitor.startMonitoring( prestoAlertListener, environment, alertSettings );
+        monitor.startMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -92,7 +87,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        monitor.stopMonitoring( prestoAlertListener, environment );
+        monitor.stopMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment );
     }
 
 
@@ -346,8 +341,8 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
             {
-                LOG.info(
-                        String.format( "Presto environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Presto environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 if ( clusterConfig.getAllNodes().contains( uuid ) )
                 {
@@ -356,7 +351,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
                     {
                         clusterConfig.getWorkers().remove( uuid );
                     }
-                    
+
                     try
                     {
                         saveConfig( clusterConfig );
@@ -370,7 +365,6 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
                 }
             }
         }
-
     }
 
 
@@ -384,14 +378,14 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
         {
             if ( clusterConfig.getEnvironmentId().equals( uuid ) )
             {
-                LOG.info(
-                        String.format( "Presto environment event: Target cluster: %s", clusterConfig.getClusterName() ) );
+                LOG.info( String.format( "Presto environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
 
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info(
-                            String.format( "Presto environment event: Cluster removed", clusterConfig.getClusterName() ) );
+                    LOG.info( String.format( "Presto environment event: Cluster removed",
+                            clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
                 {
@@ -400,6 +394,5 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
                 break;
             }
         }
-
     }
 }
