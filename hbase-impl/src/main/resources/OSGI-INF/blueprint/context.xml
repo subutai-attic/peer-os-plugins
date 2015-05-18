@@ -18,6 +18,10 @@
     <argument ref="monitor" />
   </bean>
 
+  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.hbase.impl.alert.HBaseAlertListener">
+    <argument ref="hbase-impl" />
+  </bean>
+
   <service ref="hbase-impl" interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
 
   <service ref="hbase-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />

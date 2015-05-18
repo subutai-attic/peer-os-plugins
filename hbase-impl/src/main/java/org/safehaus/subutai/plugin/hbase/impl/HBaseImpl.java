@@ -46,7 +46,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Commands commands;
-    private HBaseAlertListener hBaseAlertListener;
     private Monitor monitor;
     private QuotaManager quotaManager;
 
@@ -58,16 +57,12 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         this.tracker = tracker;
         this.monitor = monitor;
         this.environmentManager = environmentManager;
-
-        //subscribe to alerts
-        hBaseAlertListener = new HBaseAlertListener( this );
-        monitor.addAlertListener( hBaseAlertListener );
     }
 
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( hBaseAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( HBaseAlertListener.HBASE_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -306,18 +301,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public MonitoringSettings getAlertSettings()
     {
         return alertSettings;
-    }
-
-
-    public HBaseAlertListener gethBaseAlertListener()
-    {
-        return hBaseAlertListener;
-    }
-
-
-    public void sethBaseAlertListener( final HBaseAlertListener hBaseAlertListener )
-    {
-        this.hBaseAlertListener = hBaseAlertListener;
     }
 
 
