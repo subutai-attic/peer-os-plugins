@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -45,7 +44,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Monitor monitor;
-    private EsAlertListener alertListener;
     private PeerManager peerManager;
 
     Commands commands = new Commands();
@@ -54,9 +52,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public ElasticsearchImpl( final Monitor monitor )
     {
         this.monitor = monitor;
-
-        alertListener = new EsAlertListener( this );
-        monitor.addAlertListener( alertListener );
     }
 
 
@@ -92,7 +87,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( alertListener, environment, alertSettings );
+        getMonitor().startMonitoring( EsAlertListener.ES_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -104,7 +99,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( alertListener, environment );
+        getMonitor().stopMonitoring( EsAlertListener.ES_ALERT_LISTENER, environment );
     }
 
 
@@ -223,9 +218,9 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     }
 
 
-
     @Override
-    public UUID startCluster ( final String clusterName ){
+    public UUID startCluster( final String clusterName )
+    {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
@@ -235,7 +230,8 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
 
 
     @Override
-    public UUID stopCluster ( final String clusterName ){
+    public UUID stopCluster( final String clusterName )
+    {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
@@ -290,7 +286,8 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         Preconditions.checkNotNull( config );
 
-        if ( !getPluginDAO().saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
+        if ( !getPluginDAO()
+                .saveInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName(), config ) )
         {
             throw new ClusterException( "Could not delete cluster info" );
         }
@@ -386,6 +383,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
             }
         }
     }
+
 
     public PeerManager getPeerManager()
     {
