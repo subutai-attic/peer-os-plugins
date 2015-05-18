@@ -58,15 +58,12 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     private DataSource dataSource;
     private Monitor monitor;
     private QuotaManager quotaManager;
-    private AccumuloAlertListener accumuloAlertListener;
 
 
     public AccumuloImpl( DataSource dataSource, Monitor monitor )
     {
         this.dataSource = dataSource;
         this.monitor = monitor;
-        this.accumuloAlertListener = new AccumuloAlertListener( this );
-        this.monitor.addAlertListener( this.accumuloAlertListener );
     }
 
 
@@ -318,7 +315,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( accumuloAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -342,7 +339,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( accumuloAlertListener, environment );
+        getMonitor().stopMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment );
     }
 
 

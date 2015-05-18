@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class AccumuloAlertListener implements AlertListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( AccumuloAlertListener.class.getName() );
-    private static final String ACCUMOLO_ALERT_LISTENER = "ACCUMOLO_ALERT_LISTENER";
+    public static final String ACCUMOLO_ALERT_LISTENER = "ACCUMOLO_ALERT_LISTENER";
     private static final Logger LOGGER = LoggerFactory.getLogger( AccumuloAlertListener.class );
     private static final String PID_STRING = "pid";
     private static double MAX_RAM_QUOTA_MB;
