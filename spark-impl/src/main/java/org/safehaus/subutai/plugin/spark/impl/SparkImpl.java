@@ -35,17 +35,12 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 {
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-    private SparkAlertListener sparkAlertListener;
 
 
     public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
                       final Monitor monitor )
     {
         super( tracker, environmentManager, hadoopManager, monitor );
-
-        //subscribe to alerts
-        sparkAlertListener = new SparkAlertListener( this );
-        monitor.addAlertListener( sparkAlertListener );
     }
 
 
@@ -57,7 +52,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( sparkAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( SparkAlertListener.SPARK_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -69,7 +64,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( sparkAlertListener, environment );
+        getMonitor().stopMonitoring( SparkAlertListener.SPARK_ALERT_LISTENER, environment );
     }
 
 
