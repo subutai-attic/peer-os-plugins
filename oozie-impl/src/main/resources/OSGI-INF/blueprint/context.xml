@@ -22,6 +22,10 @@
 
   </bean>
 
+  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.oozie.impl.alert.OozieAlertListener">
+    <argument ref="oozie-impl" />
+  </bean>
+
   <service ref="oozie-impl" interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
 
   <service ref="oozie-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />

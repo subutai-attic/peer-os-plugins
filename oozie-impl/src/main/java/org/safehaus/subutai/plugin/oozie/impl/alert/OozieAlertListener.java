@@ -23,12 +23,10 @@ import org.safehaus.subutai.plugin.oozie.impl.OozieImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by ermek on 1/28/15.
- */
+
 public class OozieAlertListener implements AlertListener
 {
-    private static final Logger LOG = LoggerFactory.getLogger(OozieAlertListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger( OozieAlertListener.class );
     private OozieImpl oozie;
     public static final String OOZIE_ALERT_LISTENER = "OOZIE_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
@@ -38,10 +36,11 @@ public class OozieAlertListener implements AlertListener
     private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
 
 
-    public OozieAlertListener( final OozieImpl oozie)
+    public OozieAlertListener( final OozieImpl oozie )
     {
         this.oozie = oozie;
     }
+
 
     private void throwAlertException( String context, Exception e ) throws AlertException
     {
@@ -51,7 +50,7 @@ public class OozieAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert(ContainerHostMetric metric) throws Exception
+    public void onAlert( ContainerHostMetric metric ) throws Exception
     {
         //find oozie cluster by environment id
         List<OozieClusterConfig> clusters = oozie.getClusters();
@@ -73,8 +72,7 @@ public class OozieAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment =
-                oozie.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        Environment environment = oozie.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
@@ -110,7 +108,7 @@ public class OozieAlertListener implements AlertListener
         int ooziePid = 0;
         try
         {
-            CommandResult result = commandUtil.execute(Commands.getStatusServerCommand(), sourceHost );
+            CommandResult result = commandUtil.execute( Commands.getStatusServerCommand(), sourceHost );
             ooziePid = parsePid( result.getStdOut() );
         }
         catch ( NumberFormatException | CommandException e )
@@ -119,8 +117,7 @@ public class OozieAlertListener implements AlertListener
         }
 
         //get oozie process resource usage by oozie pid
-        ProcessResourceUsage processResourceUsage =
-                oozie.getMonitor().getProcessResourceUsage( sourceHost, ooziePid );
+        ProcessResourceUsage processResourceUsage = oozie.getMonitor().getProcessResourceUsage( sourceHost, ooziePid );
 
         //confirm that oozie is causing the stress, otherwise no-op
         MonitoringSettings thresholds = oozie.getAlertSettings();

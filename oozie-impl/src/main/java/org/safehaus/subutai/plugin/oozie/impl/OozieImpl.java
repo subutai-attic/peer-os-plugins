@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -46,7 +45,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
     private Monitor monitor;
-    private OozieAlertListener oozieAlertListener;
     private QuotaManager quotaManager;
 
     private Tracker tracker;
@@ -63,8 +61,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
-        this.oozieAlertListener = new OozieAlertListener( this );
-        this.monitor.addAlertListener( oozieAlertListener );
     }
 
 
@@ -237,8 +233,7 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     }
 
 
-    public ClusterSetupStrategy getClusterSetupStrategy( final OozieClusterConfig config,
-                                                         final TrackerOperation po )
+    public ClusterSetupStrategy getClusterSetupStrategy( final OozieClusterConfig config, final TrackerOperation po )
     {
         Preconditions.checkNotNull( config, "Oozie cluster config is null" );
         Preconditions.checkNotNull( po, "Product operation is null" );
@@ -266,7 +261,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
         {
             throw new ClusterException( "Could not save cluster info" );
         }
-
     }
 
 
@@ -279,7 +273,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
         {
             throw new ClusterException( "Could not delete cluster info" );
         }
-
     }
 
 
@@ -297,7 +290,7 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( oozieAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -309,7 +302,7 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( oozieAlertListener, environment );
+        getMonitor().stopMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment );
     }
 
 
@@ -360,7 +353,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
                 }
             }
         }
-
     }
 
 
