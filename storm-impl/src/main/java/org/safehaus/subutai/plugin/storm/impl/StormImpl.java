@@ -12,13 +12,13 @@ import org.safehaus.subutai.common.tracker.TrackerOperation;
 import org.safehaus.subutai.common.util.CollectionUtil;
 import org.safehaus.subutai.core.env.api.EnvironmentEventListener;
 import org.safehaus.subutai.core.metric.api.Monitor;
+import org.safehaus.subutai.core.metric.api.MonitoringSettings;
 import org.safehaus.subutai.plugin.common.api.AbstractOperationHandler;
 import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
 import org.safehaus.subutai.plugin.storm.api.StormClusterConfiguration;
-import org.safehaus.subutai.plugin.storm.impl.alert.StormAlertListener;
 import org.safehaus.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
 import org.safehaus.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
@@ -31,13 +31,12 @@ import com.google.common.base.Preconditions;
 public class StormImpl extends StormBase implements EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
+    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
     public StormImpl( Monitor monitor1 )
     {
         this.monitor = monitor1;
-        this.stormAlertListener = new StormAlertListener( this );
-        monitor.addAlertListener( stormAlertListener );
     }
 
 

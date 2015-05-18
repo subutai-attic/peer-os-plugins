@@ -3,7 +3,6 @@ package org.safehaus.subutai.plugin.storm.impl;
 
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -69,13 +68,13 @@ public abstract class StormBase implements Storm
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( stormAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( StormAlertListener.STORM_ALERT_LISTENER, environment, alertSettings );
     }
 
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( stormAlertListener, environment );
+        getMonitor().stopMonitoring( StormAlertListener.STORM_ALERT_LISTENER, environment );
     }
 
 
