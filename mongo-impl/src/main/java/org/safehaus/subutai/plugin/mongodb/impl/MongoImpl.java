@@ -30,7 +30,6 @@ import org.safehaus.subutai.plugin.common.api.ClusterException;
 import org.safehaus.subutai.plugin.common.api.ClusterOperationType;
 import org.safehaus.subutai.plugin.common.api.ClusterSetupStrategy;
 import org.safehaus.subutai.plugin.common.api.NodeOperationType;
-
 import org.safehaus.subutai.plugin.mongodb.api.Mongo;
 import org.safehaus.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.safehaus.subutai.plugin.mongodb.api.NodeType;
@@ -64,14 +63,11 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-    private MongoAlertListener mongoAlertListener;
 
 
     public MongoImpl( Monitor monitor )
     {
         this.monitor = monitor;
-        this.mongoAlertListener = new MongoAlertListener( this );
-        this.monitor.addAlertListener( mongoAlertListener );
     }
 
 
@@ -199,8 +195,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID addNode( final String clusterName, final NodeType nodeType )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
-                getCluster( clusterName ), ClusterOperationType.ADD, nodeType );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.ADD, nodeType );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -210,8 +206,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
-                nodeType, NodeOperationType.DESTROY );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, lxcHostname, nodeType, NodeOperationType.DESTROY );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -221,8 +217,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
-                nodeType, NodeOperationType.START );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, lxcHostname, nodeType, NodeOperationType.START );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -232,8 +228,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
-                nodeType, NodeOperationType.STOP );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, lxcHostname, nodeType, NodeOperationType.STOP );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -243,8 +239,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID startAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
-                getCluster( clusterName ), ClusterOperationType.START_ALL, null );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -254,8 +250,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID stopAllNodes( final String clusterName )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
-        AbstractOperationHandler operationHandler = new ClusterOperationHandler( this,
-                getCluster( clusterName ), ClusterOperationType.STOP_ALL, null );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -265,8 +261,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( lxcHostname ), "Lxc hostname is null or empty" );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, clusterName, lxcHostname,
-                nodeType, NodeOperationType.STATUS );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, lxcHostname, nodeType, NodeOperationType.STATUS );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -286,7 +282,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( mongoAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( MongoAlertListener.MONGO_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -298,7 +294,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( mongoAlertListener, environment );
+        getMonitor().stopMonitoring( MongoAlertListener.MONGO_ALERT_LISTENER, environment );
     }
 
 
@@ -383,10 +379,12 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getConfigHosts() ) )
                     {
-                        if ( clusterConfig.getConfigHosts().size() == 1 ){
+                        if ( clusterConfig.getConfigHosts().size() == 1 )
+                        {
                             try
                             {
-                                LOG.info( "Removing cluster config object, since single config server container is destroyed." );
+                                LOG.info( "Removing cluster config object, since single config server container is "
+                                                + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -394,16 +392,19 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                                 e.printStackTrace();
                             }
                         }
-                        else {
+                        else
+                        {
                             clusterConfig.getConfigHosts().remove( uuid );
                         }
                     }
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getRouterHosts() ) )
                     {
-                        if ( clusterConfig.getRouterHosts().size() == 1 ){
+                        if ( clusterConfig.getRouterHosts().size() == 1 )
+                        {
                             try
                             {
-                                LOG.info( "Removing cluster config object, since single router node container is destroyed." );
+                                LOG.info( "Removing cluster config object, since single router node container is "
+                                                + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -411,16 +412,19 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                                 e.printStackTrace();
                             }
                         }
-                        else {
+                        else
+                        {
                             clusterConfig.getRouterHosts().remove( uuid );
                         }
                     }
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getDataHosts() ) )
                     {
-                        if ( clusterConfig.getDataHosts().size() == 1 ){
+                        if ( clusterConfig.getDataHosts().size() == 1 )
+                        {
                             try
                             {
-                                LOG.info( "Removing cluster config object, since single data node container is destroyed." );
+                                LOG.info( "Removing cluster config object, since single data node container is "
+                                                + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -428,7 +432,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                                 e.printStackTrace();
                             }
                         }
-                        else {
+                        else
+                        {
                             clusterConfig.getDataHosts().remove( uuid );
                         }
                     }

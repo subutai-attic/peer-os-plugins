@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class MongoAlertListener implements AlertListener
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( MongoAlertListener.class );
-    private static final String MONGO_ALERT_LISTENER = "MONGO_ALERT_LISTENER";
+    public static final String MONGO_ALERT_LISTENER = "MONGO_ALERT_LISTENER";
 
     private static double MAX_RAM_QUOTA_MB;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
