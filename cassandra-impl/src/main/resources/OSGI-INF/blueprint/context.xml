@@ -16,7 +16,11 @@
     <property name="peerManager" ref="peerManager" />
   </bean>
 
-  <service ref="cassandra-impl" interface="org.safehaus.subutai.plugin.cassandra.api.Cassandra" />
+  <bean id="alertListener" scope="singleton"
+        class="org.safehaus.subutai.plugin.cassandra.impl.alert.CassandraAlertListener">
+    <argument ref="cassandra-impl" />
+  </bean>
 
+  <service ref="cassandra-impl" interface="org.safehaus.subutai.plugin.cassandra.api.Cassandra" />
 
 </blueprint>

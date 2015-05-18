@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.mdc.SubutaiExecutors;
@@ -49,15 +48,11 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private PeerManager peerManager;
     private Monitor monitor;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
-    private CassandraAlertListener cassandraAlertListener;
 
 
     public CassandraImpl( Monitor monitor )
     {
         this.monitor = monitor;
-
-        cassandraAlertListener = new CassandraAlertListener( this );
-        monitor.addAlertListener( cassandraAlertListener );
     }
 
 
@@ -69,7 +64,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( cassandraAlertListener, environment, alertSettings );
+        getMonitor().startMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -81,7 +76,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
 
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
-        getMonitor().stopMonitoring( cassandraAlertListener, environment );
+        getMonitor().stopMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment );
     }
 
 
