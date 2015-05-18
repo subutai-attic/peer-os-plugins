@@ -24,6 +24,6 @@
 
   <service ref="mongo-impl" interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
 
-  <!--<service ref="mongo-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />-->
+  <service ref="alertListener" interface="org.safehaus.subutai.core.metric.api.AlertListener" />
 
 </blueprint>
