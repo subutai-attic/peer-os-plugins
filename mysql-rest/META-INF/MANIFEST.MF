@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1433159571796
+Build-Jdk: 1.7.0_79
+Built-By: tkila
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml,OSGI-INF/blueprint/rest
+ .xml
+Bundle-Description: Subutai MySQL Rest
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai MySQL Rest
+Bundle-SymbolicName: org.safehaus.subutai.plugin.mysql.rest
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.safehaus.subutai.plugin.mysql.rest;version="2.0.4";u
+ ses:="javax.ws.rs,javax.ws.rs.core,org.safehaus.subutai.core.env.api,or
+ g.safehaus.subutai.core.tracker.api,org.safehaus.subutai.plugin.mysqlc.
+ api"
+Import-Package: javax.ws.rs;version="[2.0,3)",javax.ws.rs.core;version="
+ [2.0,3)",org.osgi.service.blueprint;version="[1.0.0,2.0.0)",org.safehau
+ s.subutai.common.tracker;version="[2.0,3)",org.safehaus.subutai.common.
+ util;version="[2.0,3)",org.safehaus.subutai.core.env.api;version="[2.0,
+ 3)",org.safehaus.subutai.core.tracker.api;version="[2.0,3)",org.safehau
+ s.subutai.plugin.common.api;version="[2.0,3)",org.safehaus.subutai.plug
+ in.mysqlc.api;version="[2.0,3)"
+Import-Service: org.safehaus.subutai.core.env.api.EnvironmentManager;mul
+ tiple:=false,org.safehaus.subutai.core.tracker.api.Tracker;multiple:=fa
+ lse,org.safehaus.subutai.plugin.mysqlc.api.MySQLC;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213

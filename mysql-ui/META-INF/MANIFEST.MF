@@ -1,0 +1,40 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1433159569882
+Build-Jdk: 1.7.0_79
+Built-By: tkila
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
+Bundle-Description: Subutai MySQL Cluster Plugin UI
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai MySQL Cluster Plugin UI
+Bundle-SymbolicName: org.safehaus.subutai.plugin.mysql.ui
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.safehaus.subutai.plugin.mysql.ui.environment;uses:="
+ com.vaadin.ui,org.safehaus.subutai.core.env.api,org.safehaus.subutai.co
+ re.tracker.api,org.safehaus.subutai.plugin.mysqlc.api";version="2.0.4",
+ org.safehaus.subutai.plugin.mysql.ui.manager;uses:="com.vaadin.ui,org.s
+ afehaus.subutai.core.env.api,org.safehaus.subutai.core.tracker.api,org.
+ safehaus.subutai.plugin.mysqlc.api";version="2.0.4",org.safehaus.subuta
+ i.plugin.mysql.ui;version="2.0.4";uses:="com.vaadin.ui,javax.naming,org
+ .safehaus.subutai.core.env.api,org.safehaus.subutai.core.tracker.api,or
+ g.safehaus.subutai.plugin.mysqlc.api,org.safehaus.subutai.server.ui.api
+ "
+Export-Service: org.safehaus.subutai.server.ui.api.PortalModule
+Import-Package: com.google.common.base;version="[16.0,17)",com.vaadin.da
+ ta;version="[7.3,8)",com.vaadin.data.util;version="[7.3,8)",com.vaadin.
+ event;version="[7.3,8)",com.vaadin.server;version="[7.3,8)",com.vaadin.
+ shared.ui.label;version="[7.3,8)",com.vaadin.ui;version="[7.3,8)",javax
+ .naming,org.osgi.service.blueprint;version="[1.0.0,2.0.0)",org.safehaus
+ .subutai.common.environment;version="[2.0,3)",org.safehaus.subutai.comm
+ on.mdc;version="[2.0,3)",org.safehaus.subutai.common.peer;version="[2.0
+ ,3)",org.safehaus.subutai.common.util;version="[2.0,3)",org.safehaus.su
+ butai.core.env.api;version="[2.0,3)",org.safehaus.subutai.core.tracker.
+ api;version="[2.0,3)",org.safehaus.subutai.plugin.common.api;version="[
+ 2.0,3)",org.safehaus.subutai.plugin.common.ui;version="[2.0,3)",org.saf
+ ehaus.subutai.plugin.mysqlc.api;version="[2.0,3)",org.safehaus.subutai.
+ server.ui.api;version="[2.0,3)",org.safehaus.subutai.server.ui.componen
+ t;version="[2.0,3)",org.slf4j;version="[1.7,2)"
+Import-Service: org.safehaus.subutai.core.env.api.EnvironmentManager;mul
+ tiple:=false,org.safehaus.subutai.core.tracker.api.Tracker;multiple:=fa
+ lse,org.safehaus.subutai.plugin.mysqlc.api.MySQLC;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213

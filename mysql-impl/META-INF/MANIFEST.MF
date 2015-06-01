@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1433159568979
+Build-Jdk: 1.7.0_79
+Built-By: tkila
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
+Bundle-Description: Subutai MySQL Cluster Impl
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai MySQL Cluster Impl
+Bundle-SymbolicName: org.safehaus.subutai.plugin.mysql.impl
+Bundle-Version: 2.0.4
+Created-By: Apache Maven Bundle Plugin
+Export-Service: org.safehaus.subutai.core.env.api.EnvironmentEventListen
+ er,org.safehaus.subutai.plugin.mysqlc.api.MySQLC
+Import-Package: com.google.common.base;version="[16.0,17)",com.google.gs
+ on;version="[2.3,3)",javax.sql,org.osgi.service.blueprint;version="[1.0
+ .0,2.0.0)",org.safehaus.subutai.common.command;version="[2.0,3)",org.sa
+ fehaus.subutai.common.environment;version="[2.0,3)",org.safehaus.subuta
+ i.common.mdc;version="[2.0,3)",org.safehaus.subutai.common.metric;versi
+ on="[2.0,3)",org.safehaus.subutai.common.peer;version="[2.0,3)",org.saf
+ ehaus.subutai.common.protocol;version="[2.0,3)",org.safehaus.subutai.co
+ mmon.tracker;version="[2.0,3)",org.safehaus.subutai.core.env.api;versio
+ n="[2.0,3)",org.safehaus.subutai.core.lxc.quota.api;version="[2.0,3)",o
+ rg.safehaus.subutai.core.metric.api;version="[2.0,3)",org.safehaus.subu
+ tai.core.network.api;version="[2.0,3)",org.safehaus.subutai.core.peer.a
+ pi;version="[2.0,3)",org.safehaus.subutai.core.tracker.api;version="[2.
+ 0,3)",org.safehaus.subutai.plugin.common;version="[2.0,3)",org.safehaus
+ .subutai.plugin.common.api;version="[2.0,3)",org.safehaus.subutai.plugi
+ n.mysqlc.api;version="[2.0,3)"
+Import-Service: org.safehaus.subutai.core.env.api.EnvironmentManager;mul
+ tiple:=false,org.safehaus.subutai.core.metric.api.Monitor;multiple:=fal
+ se,org.safehaus.subutai.core.peer.api.PeerManager;multiple:=false,org.s
+ afehaus.subutai.core.tracker.api.Tracker;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213
