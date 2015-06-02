@@ -206,7 +206,7 @@ public class MySQLAlertListener implements AlertListener
                         null );
             }
 
-            boolean isDataNode = MySQLClusterConfig.getDataHosts().contains( sourceHost.getId() );
+            boolean isDataNode = MySQLClusterConfig.getDataNodes().contains( sourceHost.getId() );
 
 
             //no available nodes -> notify user

@@ -5,10 +5,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import org.safehaus.subutai.common.command.CommandCallback;
 import org.safehaus.subutai.common.command.CommandException;
 import org.safehaus.subutai.common.command.CommandResult;
 import org.safehaus.subutai.common.command.CommandUtil;
 import org.safehaus.subutai.common.command.RequestBuilder;
+import org.safehaus.subutai.common.command.Response;
 import org.safehaus.subutai.common.environment.ContainerHostNotFoundException;
 import org.safehaus.subutai.common.environment.Environment;
 import org.safehaus.subutai.common.environment.EnvironmentModificationException;
@@ -217,7 +219,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
             try
             {
                 ContainerHost host = env.getContainerHostById( uuid );
-                commandResult = host.execute( new RequestBuilder( Commands.stopAllCommand ) );
+                commandResult = host.execute( new RequestBuilder( Commands.stopAllCommand ).daemon() );
                 trackerOperation.addLog( Commands.stopAllCommand + "\n" + commandResult.getStdOut() );
             }
             catch ( ContainerHostNotFoundException | CommandException e )
@@ -225,21 +227,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
                 e.printStackTrace();
             }
         }
-        //ndb_mgm -e shutdown
-        Set<UUID> dataNodes = config.getDataNodes();
-
-        for ( UUID dataNode : dataNodes )
+        //shutdown mysql servers if they are installed on data nodes
+        for ( UUID uuid : config.getDataNodes() )
         {
-            try
+            if ( config.getIsSqlInstalled().get( uuid ) )
             {
-                ContainerHost containerHost = null;
-                containerHost = env.getContainerHostById( dataNode );
-                commandResult = executeCommand( containerHost, Commands.stopMySQLServer );
-                trackerOperation.addLog( commandResult.getStdOut() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
+                try
+                {
+                    ContainerHost host = env.getContainerHostById( uuid );
+                    host.executeAsync( new RequestBuilder( Commands.stopMySQLServer ).daemon() );
+                }
+                catch ( CommandException | ContainerHostNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -275,42 +276,72 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
             String commandToExecute = config.getRequiresReloadConf().get( containerHost.getHostname() ) == true ?
                                       Commands.startInitManageNode : Commands.startManagementNode;
 
-            config.getRequiresReloadConf().put( containerHost.getHostname(),false );
-            result = executeCommand( containerHost, commandToExecute );
-        }
-
-        trackerOperation.addLog( result.getStdOut() );
-        for ( UUID dataNode : dataNodes )
-        {
+            config.getRequiresReloadConf().put( containerHost.getHostname(), false );
             try
             {
-                containerHost = env.getContainerHostById( dataNode );
+                result = containerHost.execute( new RequestBuilder( commandToExecute ).daemon() );
             }
-            catch ( ContainerHostNotFoundException e )
+            catch ( CommandException e )
             {
                 e.printStackTrace();
             }
 
-            result = executeCommand( containerHost, Commands.startCommand );
+            trackerOperation.addLog( result.getStdOut() );
         }
-        trackerOperation.addLog( result.getStdOut() );
+
 
         for ( UUID dataNode : dataNodes )
         {
             try
             {
                 containerHost = env.getContainerHostById( dataNode );
+
+                if ( config.getIsInitialStart().get( containerHost.getHostname() ) )
+                {
+                    containerHost.execute(
+                            new RequestBuilder( String.format( "cp %s /etc/my.cnf", config.getConfNodeDataFile() ) ) );
+
+                    containerHost.executeAsync(
+                            new RequestBuilder( Commands.ndbdInit ).withCwd( config.getDataNodeDataDir() ),
+                            new CommandCallback()
+                            {
+                                @Override
+                                public void onResponse( final Response response, final CommandResult commandResult )
+                                {
+                                    trackerOperation.addLogDone( commandResult.getStdOut() );
+                                }
+                            } );
+
+                    config.getIsInitialStart().put( containerHost.getHostname(), false );
+                    LOG.info( "Initial start of data node " + containerHost.getHostname() );
+                }
+                else
+                {
+                    containerHost.executeAsync(
+                            new RequestBuilder( String.format( Commands.startCommand, config.getConfNodeDataFile() ) ),
+                            new CommandCallback()
+                            {
+                                @Override
+                                public void onResponse( final Response response, final CommandResult commandResult )
+                                {
+                                    trackerOperation.addLog( commandResult.getStdOut() );
+                                }
+                            } );
+                }
+
+
+                //start mysql servers if they are installed
+                if ( config.getIsSqlInstalled().get( dataNode ) )
+                {
+
+                }
             }
-            catch ( ContainerHostNotFoundException e )
+            catch ( ContainerHostNotFoundException | CommandException e )
             {
                 e.printStackTrace();
             }
-
-            if ( config.getIsSqlInstalled().get( containerHost.getHostname() ) )
-            {
-                result = executeCommand( containerHost, Commands.startMySQLServer );
-            }
         }
+
         trackerOperation.addLog( result.getStdOut() );
     }
 
@@ -402,21 +433,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         //
         //            trackerOperation.addLogFailed( "Environment not found" );
         //        }
-    }
-
-
-    private CommandResult executeCommand( ContainerHost host, String command )
-    {
-        CommandResult result = null;
-        try
-        {
-            result = host.execute( new RequestBuilder( command ) );
-        }
-        catch ( CommandException ex )
-        {
-            LOG.severe( String.format( "Could not execute command correctly:%s", command ) );
-        }
-        return result;
     }
 
 

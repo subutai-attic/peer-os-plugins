@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1433159571796
+Bnd-LastModified: 1433161171772
 Build-Jdk: 1.7.0_79
 Built-By: tkila
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml,OSGI-INF/blueprint/rest
