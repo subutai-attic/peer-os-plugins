@@ -13,9 +13,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 
-/**
- * Created by tkila on 5/14/15.
- */
 public class StepStart extends VerticalLayout
 {
     public StepStart( final EnvironmentWizard environmentWizard )

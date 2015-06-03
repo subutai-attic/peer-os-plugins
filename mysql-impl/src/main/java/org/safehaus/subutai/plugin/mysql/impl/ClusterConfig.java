@@ -115,6 +115,8 @@ public class ClusterConfig
                 commandResult =
                         containerHost.execute( new RequestBuilder( Commands.chmod644 + config.getConfNodeDataFile() ) );
                 po.addLog( commandResult.getStdOut() );
+                containerHost.execute(
+                        new RequestBuilder( String.format( "cp %s /etc/my.cnf", config.getConfNodeDataFile() ) ) );
 
                 config.getRequiresReloadConf().put( containerHost.getHostname(), true );
                 if ( !config.getIsInitialStart().containsKey( containerHost.getHostname() ) )

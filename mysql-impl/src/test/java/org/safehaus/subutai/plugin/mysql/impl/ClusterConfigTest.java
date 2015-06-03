@@ -34,7 +34,6 @@ public class ClusterConfigTest
     TrackerOperation po;
     MySQLCImpl manager;
     ClusterConfig clusterConfig;
-    MySQLClusterConfig sqlClusterConfig;
     Environment environment;
 
 
@@ -43,12 +42,12 @@ public class ClusterConfigTest
     {
         po = mock( TrackerOperation.class );
         manager = mock( MySQLCImpl.class );
-        sqlClusterConfig = mock( MySQLClusterConfig.class );
         environment = mock( Environment.class );
         clusterConfig = new ClusterConfig( po, manager );
     }
 
 
+    @Test
     public void testConfigureCluster() throws ContainerHostNotFoundException, ClusterConfigurationException
     {
         ContainerHost host = mock( ContainerHost.class );
@@ -58,43 +57,55 @@ public class ClusterConfigTest
         mySet.add( host2 );
         UUID uuid = UUID.randomUUID();
         UUID uuid2 = UUID.randomUUID();
-        List<UUID> myList = mock(ArrayList.class);
+        List<UUID> myList = mock( ArrayList.class );
         myList.add( uuid );
-        myList.add(uuid);
-        Set<UUID> uuidSet = mock(Set.class);
+        myList.add( uuid );
+        Set<UUID> uuidSet = mock( Set.class );
+        uuidSet.add( uuid );
+        uuidSet.add( uuid2 );
 
-        PluginDAO pluginDAO = mock(PluginDAO.class);
+        PluginDAO pluginDAO = mock( PluginDAO.class );
 
-        MySQLClusterConfig config = mock(MySQLClusterConfig.class);
-        when(environment.getContainerHostById(  config.getDataNodes().iterator().next())).thenReturn( host );
-        when(environment.getContainerHostById(  config.getManagerNodes().iterator().next())).thenReturn( host );
-        when(environment.getContainerHosts()).thenReturn( mySet );
+        MySQLClusterConfig config = mock( MySQLClusterConfig.class );
 
-        Iterator<ContainerHost> iterator = mock(Iterator.class);
-        when(mySet.iterator()).thenReturn( iterator );
-        when(iterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(true).thenReturn(false);
-        when(iterator.next()).thenReturn(host).thenReturn(host2).thenReturn(host);
+        Iterator<UUID> iterator = mock( Iterator.class );
+        when( iterator.next() ).thenReturn( uuid ).thenReturn( uuid2 );
+        when(config.getDataNodes()).thenReturn(uuidSet);
+        when(config.getManagerNodes()).thenReturn( uuidSet );
+        when( uuidSet.iterator() ).thenReturn( iterator );
 
-        when(sqlClusterConfig.getDataNodes()).thenReturn( uuidSet );
-        Iterator<UUID> iterator1 = mock(Iterator.class);
-        when(uuidSet.iterator()).thenReturn(iterator1);
-        when(iterator1.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(iterator1.next()).thenReturn(uuid).thenReturn(uuid2);
-        when(manager.getPluginDAO()).thenReturn(pluginDAO);
-        when(pluginDAO.saveInfo(MySQLClusterConfig.PRODUCT_KEY, config.getClusterName(), config)).thenReturn
-                (true);
+        when( environment.getContainerHosts() ).thenReturn( mySet );
+        when( environment.getContainerHostById( config.getDataNodes().iterator().next() ) ).thenReturn( host );
+        when( environment.getContainerHostById( config.getManagerNodes().iterator().next() ) ).thenReturn( host );
 
-        UUID uuid1 = new UUID(50, 50);
-        when(environment.getId()).thenReturn(uuid1);
-        clusterConfig.configureCluster(config, environment);
+        Iterator<ContainerHost> iterator2 = mock( Iterator.class );
 
-        assertEquals(host, environment.getContainerHostById( sqlClusterConfig.getDataNodes().iterator().next() ));
-        assertEquals(host, environment.getContainerHostById( sqlClusterConfig.getManagerNodes().iterator().next() ));
+        when( mySet.iterator() ).thenReturn( iterator2 );
+        when( iterator2.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false ).thenReturn( true )
+                                   .thenReturn( false );
+        when( iterator2.next() ).thenReturn( host ).thenReturn( host2 ).thenReturn( host );
 
+        Iterator<UUID> iterator1 = mock( Iterator.class );
+        when( uuidSet.iterator() ).thenReturn( iterator1 );
+        when( iterator1.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
+        when( iterator1.next() ).thenReturn( uuid ).thenReturn( uuid2 );
+        when( manager.getPluginDAO() ).thenReturn( pluginDAO );
+        when( pluginDAO.saveInfo( MySQLClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
+                .thenReturn( true );
+
+        UUID uuid1 = new UUID( 50, 50 );
+        when( environment.getId() ).thenReturn( uuid1 );
+
+        clusterConfig.configureCluster( config, environment );
+
+        assertEquals( host, environment.getContainerHostById( config.getDataNodes().iterator().next() ) );
+        assertEquals( host, environment.getContainerHostById( config.getManagerNodes().iterator().next() ) );
     }
+
+
     @Test
     public void testConstructorConfigureCluster()
     {
-        clusterConfig = new ClusterConfig(po, manager);
+        clusterConfig = new ClusterConfig( po, manager );
     }
 }

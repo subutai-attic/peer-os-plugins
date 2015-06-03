@@ -55,15 +55,11 @@ public class Manager extends VerticalLayout
     protected static final String STOP_ALL_BUTTON_CAPTION              = "Stop Cluster";
     protected static final String DESTROY_ALL_BUTTON_CAPTION           = "Destroy Cluster";
     protected static final String BUTTON_STYLE_NAME                    = "default";
-    private   static final String MESSAGE                              = "No Cluster Installed";
-//    private   static final String START_BUTTON_CAPTION                 = "Start";
-//    private   static final String STOP_BUTTON_CAPTION                  = "Stop";
     private   static final String DESTROY_NODE_BUTTON_CAPTION          = "Destroy";
     private   static final String CHECK_ALL_BUTTON_CAPTION             = "Check All" ;
     private   static final String ADD_DATA_NODE_BUTTON_CAPTION         = "Add data node" ;
     private   static final String ADD_MAST_NODE_BUTTON_CAPTION         = "Add master node" ;
     private   static final String ADD_SQL_NODE_BUTTON_CAPTION          = "Install MySQL API" ;
-    private   static final String ADD_LOAD_B_NODE_BUTTON_CAPTION       = "Add load balancer node" ;
     protected static final String HOST_COLUMN_CAPTION                  = "Host";
     protected static final String IP_COLUMN_CAPTION                    = "IP List";
     protected static final String NODE_ROLE_COLUMN_CAPTION             = "Node Role";
@@ -87,14 +83,10 @@ public class Manager extends VerticalLayout
     private final MySQLC             mySQLC;
     private final Table              nodesTable;
     private final Table              managersTable;
-//    private final Table              sqlTable;
     private final GridLayout         contentRoot;
     private       MySQLClusterConfig config;
     private       ComboBox           clusterCombo;
-
-    private       UUID               trackID;
-    private       NodeType           nodeType;
-    //@formatter:on
+   //@formatter:on
 
 
     public Manager( final ExecutorService executorService, final MySQLC mySQLC, final Tracker tracker,
@@ -118,9 +110,6 @@ public class Manager extends VerticalLayout
         managersTable = createTableTemplate( "Manager nodes" );
         managersTable.setId( "SQLManTable" );
 
-        //        sqlTable = createTableTemplate( "MySQL Server nodes" );
-        //        sqlTable.setId( "SQLServerTable" );
-
         HorizontalLayout controlsContent = new HorizontalLayout();
         controlsContent.setSpacing( true );
         controlsContent.setHeight( 100, Sizeable.Unit.PERCENTAGE );
@@ -143,7 +132,7 @@ public class Manager extends VerticalLayout
                 try
                 {
                     refreshUI();
-                    //checkAllNodes();
+                    checkAllNodes();
                 }
                 catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                 {
@@ -189,12 +178,13 @@ public class Manager extends VerticalLayout
                     @Override
                     public void windowClose( final Window.CloseEvent closeEvent )
                     {
-                        refreshClusterInfo();
+                        checkAllNodes();
                     }
                 } );
                 contentRoot.getUI().addWindow( window.getWindow() );
+                disableButtons( startAll );
+                enableButtons( stopAll );
 
-                checkAll.click();
                 PROGRESS_ICON.setVisible( false );
             }
         } );
@@ -219,13 +209,15 @@ public class Manager extends VerticalLayout
                     @Override
                     public void windowClose( final Window.CloseEvent closeEvent )
                     {
-                        refreshClusterInfo();
+
+                        checkAllNodes();
                     }
                 } );
                 contentRoot.getUI().addWindow( window.getWindow() );
-                checkAll.click();
-                PROGRESS_ICON.setVisible( false );
+                disableButtons( stopAll );
+                enableButtons( startAll );
 
+                PROGRESS_ICON.setVisible( false );
             }
         } );
 
@@ -403,29 +395,24 @@ public class Manager extends VerticalLayout
         {
             nodesTable.removeAllItems();
             managersTable.removeAllItems();
-
         }
     }
 
 
     private void populateTable( final Table table, final Set<ContainerHost> containerHosts, final NodeType nodeType )
     {
-        //table.removeAllItems();
+
         for ( final ContainerHost containerHost : containerHosts )
         {
             final Label resultHolder = new Label();
             resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlResult" );
-            //            final Button startButton = new Button( START_BUTTON_CAPTION );
-            //            startButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlStart" );
-            //            final Button stopButton = new Button( STOP_BUTTON_CAPTION );
-            //            stopButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlStop" );
             final Button destroyButton = new Button( DESTROY_NODE_BUTTON_CAPTION );
             destroyButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlDestroy" );
             final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
             checkButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlCheck" );
             final Button installSqlButton = new Button( ADD_SQL_NODE_BUTTON_CAPTION );
             installSqlButton.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-sqlServer" );
-            //startButton, stopButton,
+
             addStyleNameToButtons( checkButton, destroyButton, installSqlButton );
 
             PROGRESS_ICON.setVisible( false );
@@ -434,15 +421,13 @@ public class Manager extends VerticalLayout
             availableOptions.setStyleName( "default" );
             availableOptions.setSpacing( true );
             availableOptions.addComponent( checkButton );
-            //            availableOptions.addComponent( startButton );
-            //            availableOptions.addComponent( stopButton );
-            //if it is sql server don't add destroy button
+
             if ( !nodeType.name().equalsIgnoreCase( "server" ) )
             {
                 availableOptions.addComponent( destroyButton );
             }
             else
-            {   //it is sql server disable buttons until sql server installed
+            {
                 if ( !config.getIsSqlInstalled().get( containerHost.getHostname() ) )
                 {
                     disableButtons( checkButton );
@@ -564,75 +549,6 @@ public class Manager extends VerticalLayout
                     contentRoot.getUI().addWindow( alert.getAlert() );
                 }
             } );
-
-            //            startButton.addClickListener( new Button.ClickListener()
-            //            {
-            //
-            //                @Override
-            //                public void buttonClick( final Button.ClickEvent clickEvent )
-            //                {
-            //                    PROGRESS_ICON.setVisible( true );
-            //                    disableButtons( startButton, startAll, stopButton, stopAll );
-            //                    executorService.execute(
-            //                            new NodeOperationTask( mySQLC, tracker, config.getClusterName(),
-            // containerHost,
-            //                                    NodeOperationType.START, new CompleteEvent()
-            //                            {
-            //                                @Override
-            //                                public void onComplete( final NodeState state )
-            //                                {
-            //                                    synchronized ( PROGRESS_ICON )
-            //                                    {
-            //                                        if ( state == NodeState.RUNNING )
-            //                                        {
-            //                                            stopButton.setEnabled( true );
-            //                                        }
-            //                                        else if ( state == NodeState.STOPPED )
-            //                                        {
-            //                                            startButton.setEnabled( true );
-            //                                        }
-            //                                    }
-            //                                    resultHolder.setValue( state.name() );
-            //                                    enableButtons( destroyButton );
-            //                                    checkButton.click();
-            //                                }
-            //                            }, null, nodeType ) );
-            //                }
-            //            } );
-
-            //            stopButton.addClickListener( new Button.ClickListener()
-            //            {
-            //                @Override
-            //                public void buttonClick( final Button.ClickEvent clickEvent )
-            //                {
-            //                    PROGRESS_ICON.setVisible( true );
-            //                    disableButtons( startButton, stopButton );
-            //                    executorService.execute(
-            //                            new NodeOperationTask( mySQLC, tracker, config.getClusterName(),
-            // containerHost,
-            //                                    NodeOperationType.STOP, new CompleteEvent()
-            //                            {
-            //                                @Override
-            //                                public void onComplete( final NodeState state )
-            //                                {
-            //                                    synchronized ( PROGRESS_ICON )
-            //                                    {
-            //                                        if ( state == state.RUNNING )
-            //                                        {
-            //                                            stopButton.setEnabled( true );
-            //                                        }
-            //                                        else if ( state == NodeState.STOPPED )
-            //                                        {
-            //                                            startButton.setEnabled( true );
-            //                                        }
-            //                                        resultHolder.setValue( state.name() );
-            //                                        enableButtons( destroyButton );
-            //                                        checkButton.click();
-            //                                    }
-            //                                }
-            //                            }, null, nodeType ) );
-            //                }
-            //            } );
         }
     }
 
@@ -666,8 +582,9 @@ public class Manager extends VerticalLayout
 
     public void checkAllNodes()
     {
-        checkNodeStatus( managersTable );
+
         checkNodeStatus( nodesTable );
+        checkNodeStatus( managersTable );
     }
 
 
