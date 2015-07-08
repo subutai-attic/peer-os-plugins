@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint default-activation="eager" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
-  <reference id="mysql" availability="mandatory" interface="org.safehaus.subutai.plugin.mysqlc.api.MySQLC" />
-  <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="mysql" availability="mandatory" interface="io.subutai.plugin.mysql.api.MySQLC" />
+  <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.mysql.ui.MySQLPortalModule"
+  <bean id="module" scope="singleton" class="io.subutai.plugin.mysql.ui.MySQLPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="mysql" />
     <argument ref="tracker" />
@@ -14,6 +14,6 @@
   </bean>
 
 
-  <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
 
 </blueprint>

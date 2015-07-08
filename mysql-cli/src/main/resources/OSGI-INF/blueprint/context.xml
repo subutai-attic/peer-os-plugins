@@ -1,46 +1,46 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="mySqlManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.mysqlc.api.MySQLC" />
+             interface="io.subutai.plugin.mysql.api.MySQLC" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="mysql/start-cluster">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.mysql.cli.StartClusterCommand">
         <property name="mySqlManager" ref="mySqlManager"/>
       </action>
     </command>
 
     <command name="mysql/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.mysql.cli.DescribeClusterCommand">
         <property name="mySqlManager" ref="mySqlManager"/>
       </action>
     </command>
 
     <command name="mysql/install-cluster">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.mysql.cli.InstallClusterCommand">
         <property name="manager" ref="mySqlManager"/>
       </action>
     </command>
 
     <command name="mysql/list-clusters">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.mysql.cli.ListClustersCommand">
         <property name="manager" ref="mySqlManager"/>
       </action>
     </command>
 
     <command name="mysql/start-cluster">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.mysql.cli.StartClusterCommand">
         <property name="manager" ref="mySqlManager"/>
       </action>
     </command>
 
     <command name="mysql/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.mysql.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.mysql.cli.StopClusterCommand">
         <property name="manager" ref="mySqlManager"/>
       </action>
     </command>

@@ -1,9 +1,9 @@
 <features name="mysql-plugin" version="2.0.4">
   <feature name="mysql-plugin" version="2.0.4">
-    <bundle>mvn:org.safehaus.subutai/mysql-plugin-api/2.0.4</bundle>
-    <bundle>mvn:org.safehaus.subutai/mysql-plugin-impl/2.0.4</bundle>
-    <bundle>mvn:org.safehaus.subutai/mysql-plugin-ui/2.0.4</bundle>
-    <bundle>mvn:org.safehaus.subutai/mysql-plugin-cli/2.0.4</bundle>
-    <bundle>mvn:org.safehaus.subutai/mysql-plugin-rest/2.0.4</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-api/2.0.4</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-impl/2.0.4</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-ui/2.0.4</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-cli/2.0.4</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-rest/2.0.4</bundle>
   </feature>
 </features>

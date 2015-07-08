@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>mysql-plugin-parent</artifactId>
-    <groupId>org.safehaus.subutai</groupId>
+    <groupId>io.subutai</groupId>
     <version>2.0.4</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -35,9 +35,9 @@
       <artifactId>plugin-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.safehaus.subutai</groupId>
-      <artifactId>mysqlc-plugin-api</artifactId>
-      <version>2.0.4</version>
+      <groupId>io.subutai</groupId>
+      <artifactId>mysql-plugin-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

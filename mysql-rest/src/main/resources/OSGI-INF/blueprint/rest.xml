@@ -11,13 +11,13 @@
   </cxf:bus>
 
   <reference id="mysql" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.mysqlc.api.MySQLC" />
+             interface="io.subutai.plugin.mysql.api.MySQLC" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="mysqlRestServiceImpl" class="org.safehaus.subutai.plugin.mysql.rest.RestServiceImpl">
+  <bean id="mysqlRestServiceImpl" class="io.subutai.plugin.mysql.rest.RestServiceImpl">
     <argument ref="mysql" />
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
