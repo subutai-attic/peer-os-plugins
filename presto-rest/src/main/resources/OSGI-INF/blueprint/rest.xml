@@ -11,15 +11,15 @@
   </cxf:bus>
 
   <reference id="prestoManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.presto.api.Presto" />
+             interface="io.subutai.plugin.presto.api.Presto" />
 
-  <bean id="prestoRestServiceImpl" class="org.safehaus.subutai.plugin.presto.rest.RestServiceImpl">
+  <bean id="prestoRestServiceImpl" class="io.subutai.plugin.presto.rest.RestServiceImpl">
     <argument ref="prestoManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/presto" id="prestoRestService">
     <jaxrs:serviceBeans>

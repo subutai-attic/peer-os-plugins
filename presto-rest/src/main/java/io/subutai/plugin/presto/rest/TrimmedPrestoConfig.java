@@ -1,0 +1,37 @@
+package io.subutai.plugin.presto.rest;
+
+
+import java.util.Set;
+
+
+public class TrimmedPrestoConfig
+{
+    private String clusterName;
+    private String hadoopClusterName;
+
+    private String coordinatorHost;
+    private Set<String> workersHost;
+
+
+    public String getClusterName()
+    {
+        return clusterName;
+    }
+
+
+    public String getCoordinatorHost()
+    {
+        return coordinatorHost;
+    }
+
+
+    public Set<String> getWorkersHost()
+    {
+        return workersHost;
+    }
+
+    public String getHadoopClusterName()
+    {
+        return hadoopClusterName;
+    }
+}
