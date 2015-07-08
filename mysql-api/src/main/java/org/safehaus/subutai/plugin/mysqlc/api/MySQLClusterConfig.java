@@ -30,8 +30,8 @@ public class MySQLClusterConfig implements ConfigBase
     private             String domainName                         =  Common.DEFAULT_DOMAIN_NAME;
     private             String clusterName                        = "";
 
-    private             String dataNodeDataDir                    ="/usr/local/mysql/mysql-cluster/data";
-    private             String confNodeDataFile                   ="/etc/my.cnf";
+    private             String dataNodeDataDir                    ="/usr/local/mysql/data";
+    private             String confNodeDataFile                   ="/usr/local/mysql/my.cnf";
     private             String dataManNodeDir                     ="/usr/local/mysql/mysql-cluster";
     private             String confManNodeFile                    ="/usr/local/mysql/mysql-cluster/config.ini";
     private             boolean isAutoScaling                     =true;
@@ -44,7 +44,7 @@ public class MySQLClusterConfig implements ConfigBase
     private Map<String,Boolean> isSqlInstalled = new HashMap<>();
     private Map<String,Boolean> requiresReloadConf = new HashMap<>();
     private Map<String,Boolean> isInitialStart = new HashMap<>();
-    private Set<UUID> dataHosts;
+
     //@formatter:on
 
 
@@ -59,11 +59,6 @@ public class MySQLClusterConfig implements ConfigBase
         this.isAutoScaling = isAutoScaling;
     }
 
-
-    public void setDataHosts( final Set<UUID> dataHosts )
-    {
-        this.dataHosts = dataHosts;
-    }
 
 
     public String getDataNodeDataDir()
@@ -276,9 +271,4 @@ public class MySQLClusterConfig implements ConfigBase
         return allNodes;
     }
 
-
-    public Set<UUID> getDataHosts()
-    {
-        return dataHosts;
-    }
 }

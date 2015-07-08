@@ -236,7 +236,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
         }
     }
 
-
+    @Deprecated
     private void stopNode( ContainerHost host, NodeType nodeType )
     {
         CommandResult result = null;

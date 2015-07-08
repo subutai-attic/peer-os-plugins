@@ -161,7 +161,7 @@ public class ConfigurationStep extends VerticalLayout
         envCombo.setContainerDataSource( eBean );
         envCombo.setNullSelectionAllowed( false );
         envCombo.setItemCaptionPropertyId( "name" );
-
+        envCombo.setTextInputAllowed( false );
         envCombo.addValueChangeListener( new Property.ValueChangeListener()
         {
 

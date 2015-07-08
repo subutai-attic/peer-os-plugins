@@ -63,7 +63,7 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    //need mysql alert listener
+
     public MySQLCImpl( Monitor monitor )
     {
         this.monitor = monitor;
