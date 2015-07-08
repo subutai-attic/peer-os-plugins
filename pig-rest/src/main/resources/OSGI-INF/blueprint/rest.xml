@@ -11,15 +11,15 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="pigManager" availability="mandatory" interface="org.safehaus.subutai.plugin.pig.api.Pig" />
+  <reference id="pigManager" availability="mandatory" interface="io.subutai.plugin.pig.api.Pig" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.pig.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.pig.rest.RestServiceImpl">
     <argument ref="pigManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/pig" id="pigRestService">
     <jaxrs:serviceBeans>

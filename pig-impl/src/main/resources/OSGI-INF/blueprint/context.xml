@@ -2,21 +2,21 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
-  <bean id="pig-impl" scope="singleton" class="org.safehaus.subutai.plugin.pig.impl.PigImpl"
+  <bean id="pig-impl" scope="singleton" class="io.subutai.plugin.pig.impl.PigImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
   </bean>
 
-  <service ref="pig-impl" interface="org.safehaus.subutai.plugin.pig.api.Pig" />
+  <service ref="pig-impl" interface="io.subutai.plugin.pig.api.Pig" />
 
-  <service ref="pig-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="pig-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>
