@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
-  <reference id="shark" availability="mandatory" interface="org.safehaus.subutai.plugin.shark.api.Shark" />
-  <reference id="spark" availability="mandatory" interface="org.safehaus.subutai.plugin.spark.api.Spark" />
-  <reference id="tracker" availability="mandatory" interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+  <reference id="shark" availability="mandatory" interface="io.subutai.plugin.shark.api.Shark" />
+  <reference id="spark" availability="mandatory" interface="io.subutai.plugin.spark.api.Spark" />
+  <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.shark.ui.SharkPortalModule"
+  <bean id="module" scope="singleton" class="io.subutai.plugin.shark.ui.SharkPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="shark" />
     <argument ref="spark" />
@@ -15,6 +15,6 @@
     <argument ref="environmentManager" />
   </bean>
 
-  <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
 
 </blueprint>
