@@ -2,20 +2,20 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
-  <bean id="hipi-impl" scope="singleton" class="org.safehaus.subutai.plugin.hipi.impl.HipiImpl"
+  <bean id="hipi-impl" scope="singleton" class="io.subutai.plugin.hipi.impl.HipiImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
   </bean>
 
-  <service ref="hipi-impl" interface="org.safehaus.subutai.plugin.hipi.api.Hipi" />
-  <service ref="hipi-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="hipi-impl" interface="io.subutai.plugin.hipi.api.Hipi" />
+  <service ref="hipi-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>

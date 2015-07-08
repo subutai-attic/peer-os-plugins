@@ -11,15 +11,15 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="hipiManager" availability="mandatory" interface="org.safehaus.subutai.plugin.hipi.api.Hipi" />
+  <reference id="hipiManager" availability="mandatory" interface="io.subutai.plugin.hipi.api.Hipi" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.hipi.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.hipi.rest.RestServiceImpl">
     <argument ref="hipiManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/hipi" id="hipiRestService">
     <jaxrs:serviceBeans>
