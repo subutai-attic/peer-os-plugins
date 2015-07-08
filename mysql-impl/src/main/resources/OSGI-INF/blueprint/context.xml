@@ -16,8 +16,17 @@
     <property name="peerManager" ref="peerManager" />
   </bean>
 
+  <bean id="alertListener" scope="singleton"
+        class="io.subutai.plugin.mysql.impl.alert.MySQLAlertListener">
+    <argument ref="mysqlImpl" />
+  </bean>
+
+
   <service ref="mysqlImpl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
 
   <service ref="mysqlImpl" interface="io.subutai.plugin.mysql.api.MySQLC" />
+
+  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+
 
 </blueprint>

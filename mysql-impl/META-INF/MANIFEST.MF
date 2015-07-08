@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1436349903722
+Bnd-LastModified: 1436350661851
 Build-Jdk: 1.8.0_45
 Built-By: dilshat
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
@@ -10,7 +10,7 @@ Bundle-SymbolicName: io.subutai.plugin.mysql.impl
 Bundle-Version: 2.0.4
 Created-By: Apache Maven Bundle Plugin
 Export-Service: io.subutai.core.env.api.EnvironmentEventListener,io.subu
- tai.plugin.mysql.api.MySQLC
+ tai.core.metric.api.AlertListener,io.subutai.plugin.mysql.api.MySQLC
 Import-Package: com.google.common.base;version="[16.0,17)",com.google.gs
  on;version="[2.3,3)",io.subutai.common.command;version="[2.0,3)",io.sub
  utai.common.environment;version="[2.0,3)",io.subutai.common.mdc;version
