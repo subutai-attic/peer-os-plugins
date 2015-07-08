@@ -14,14 +14,14 @@
       <ref component-id="oozieRestServiceImpl" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
-  <bean id="oozieRestServiceImpl" class="org.safehaus.subutai.plugin.oozie.rest.RestServiceImpl">
+  <bean id="oozieRestServiceImpl" class="io.subutai.plugin.oozie.rest.RestServiceImpl">
     <argument ref="oozieManager" />
     <property name="tracker" ref="tracker" />
 
   </bean>
   <reference id="oozieManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
+             interface="io.subutai.plugin.oozie.api.Oozie" />
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
 </blueprint>

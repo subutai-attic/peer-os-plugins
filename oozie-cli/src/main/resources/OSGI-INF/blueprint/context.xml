@@ -2,31 +2,31 @@
     >
 
   <reference id="oozieManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
+             interface="io.subutai.plugin.oozie.api.Oozie" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="oozie/list-clusters">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.oozie.cli.ListClustersCommand">
         <property name="oozieManager" ref="oozieManager" />
       </action>
     </command>
 
     <command name="oozie/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.UninstallClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="oozie/install-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.InstallClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="hadoopManager" ref="hadoopManager" />
         <property name="tracker" ref="tracker" />
@@ -34,21 +34,21 @@
     </command>
 
     <command name="oozie/start-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.StartClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="oozie/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.StopClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="oozie/check-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.CheckClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.CheckClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
         <property name="environmentManager" ref="environmentManager" />
@@ -56,21 +56,21 @@
     </command>
 
     <command name="oozie/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.oozie.cli.DescribeClusterCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
     <command name="oozie/add-node">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.AddNodeCommand">
+      <action class="io.subutai.plugin.oozie.cli.AddNodeCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="oozie/uninstall-node">
-      <action class="org.safehaus.subutai.plugin.oozie.cli.UninstallNodeCommand">
+      <action class="io.subutai.plugin.oozie.cli.UninstallNodeCommand">
         <property name="oozieManager" ref="oozieManager" />
         <property name="tracker" ref="tracker" />
       </action>

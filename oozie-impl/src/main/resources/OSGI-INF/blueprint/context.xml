@@ -2,17 +2,17 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="monitor" availability="mandatory"
-             interface="org.safehaus.subutai.core.metric.api.Monitor" />
+             interface="io.subutai.core.metric.api.Monitor" />
   <reference id="quotaManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.lxc.quota.api.QuotaManager" />
+             interface="io.subutai.core.lxc.quota.api.QuotaManager" />
 
-  <bean id="oozie-impl" scope="singleton" class="org.safehaus.subutai.plugin.oozie.impl.OozieImpl"
+  <bean id="oozie-impl" scope="singleton" class="io.subutai.plugin.oozie.impl.OozieImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="hadoopManager" />
@@ -22,15 +22,15 @@
 
   </bean>
 
-  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.oozie.impl.alert.OozieAlertListener">
+  <bean id="alertListener" scope="singleton" class="io.subutai.plugin.oozie.impl.alert.OozieAlertListener">
     <argument ref="oozie-impl" />
   </bean>
 
-  <service ref="oozie-impl" interface="org.safehaus.subutai.plugin.oozie.api.Oozie" />
+  <service ref="oozie-impl" interface="io.subutai.plugin.oozie.api.Oozie" />
 
-  <service ref="oozie-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="oozie-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
 
-  <service ref="alertListener" interface="org.safehaus.subutai.core.metric.api.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
 
 
 </blueprint>
