@@ -12,13 +12,13 @@
   </cxf:bus>
 
   <reference id="accumuloManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
+             interface="io.subutai.plugin.accumulo.api.Accumulo" />
   <reference id="hadoop" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
-  <bean id="accumuloRestServiceImpl" class="org.safehaus.subutai.plugin.accumulo.rest.RestServiceImpl">
+  <bean id="accumuloRestServiceImpl" class="io.subutai.plugin.accumulo.rest.RestServiceImpl">
     <argument ref="accumuloManager" />
     <property name="hadoop" ref="hadoop" />
     <property name="tracker" ref="tracker" />

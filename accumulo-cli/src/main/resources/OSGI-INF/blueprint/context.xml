@@ -2,58 +2,58 @@
     >
 
   <reference id="accumuloManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.accumulo.api.Accumulo" />
+             interface="io.subutai.plugin.accumulo.api.Accumulo" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hostRegistry"
-             interface="org.safehaus.subutai.core.hostregistry.api.HostRegistry" />
+             interface="io.subutai.core.hostregistry.api.HostRegistry" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="accumulo/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.DescribeClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
       </action>
     </command>
 
     <command name="accumulo/list-clusters">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.accumulo.cli.ListClustersCommand">
         <property name="accumuloManager" ref="accumuloManager" />
       </action>
     </command>
 
     <command name="accumulo/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.UninstallClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="accumulo/install-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.InstallClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="accumulo/start-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.StartClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="accumulo/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.StopClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="accumulo/check-cluster">
-      <action class="org.safehaus.subutai.plugin.accumulo.cli.CheckClusterCommand">
+      <action class="io.subutai.plugin.accumulo.cli.CheckClusterCommand">
         <property name="accumuloManager" ref="accumuloManager" />
         <property name="tracker" ref="tracker" />
         <property name="environmentManager" ref="environmentManager" />
