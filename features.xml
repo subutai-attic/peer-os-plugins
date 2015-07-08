@@ -1,7 +1,7 @@
 <features name="etl-plugin" version="2.0.4">
   <feature name="etl-plugin" version="2.0.4">
-    <bundle> mvn:org.safehaus.subutai/etl-plugin-api/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/etl-plugin-impl/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/etl-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:io.subutai/etl-plugin-api/2.0.4</bundle>
+    <bundle> mvn:io.subutai/etl-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:io.subutai/etl-plugin-ui/2.0.4</bundle>
   </feature>
 </features>
