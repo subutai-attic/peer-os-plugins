@@ -11,13 +11,13 @@
   </cxf:bus>
 
   <reference id="zookeeperManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.zookeeper.api.Zookeeper" />
+             interface="io.subutai.plugin.zookeeper.api.Zookeeper" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="zookeeperRestServiceImpl" class="org.safehaus.subutai.plugin.zookeeper.rest.RestServiceImpl">
+  <bean id="zookeeperRestServiceImpl" class="io.subutai.plugin.zookeeper.rest.RestServiceImpl">
     <argument ref="zookeeperManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="tracker" ref="tracker" />
