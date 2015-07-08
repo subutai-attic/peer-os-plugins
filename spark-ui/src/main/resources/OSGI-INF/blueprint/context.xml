@@ -2,15 +2,15 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="spark" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.spark.api.Spark" />
+             interface="io.subutai.plugin.spark.api.Spark" />
   <reference id="hadoop" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.spark.ui.SparkPortalModule"
+  <bean id="module" scope="singleton" class="io.subutai.plugin.spark.ui.SparkPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="spark" />
     <argument ref="hadoop" />
@@ -18,5 +18,5 @@
     <argument ref="environmentManager" />
   </bean>
 
-  <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
 </blueprint>

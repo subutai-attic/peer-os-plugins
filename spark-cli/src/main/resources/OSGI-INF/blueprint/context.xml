@@ -1,30 +1,30 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="sparkManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.spark.api.Spark" />
+             interface="io.subutai.plugin.spark.api.Spark" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="spark/list-clusters">
-      <action class="org.safehaus.subutai.plugin.spark.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.spark.cli.ListClustersCommand">
         <argument ref="sparkManager" />
       </action>
     </command>
 
     <command name="spark/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.spark.cli.UninstallClusterCommand">
         <argument ref="sparkManager" />
         <argument ref="tracker" />
       </action>
     </command>
 
     <command name="spark/install-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.spark.cli.InstallClusterCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="hadoopManager" ref="hadoopManager" />
         <property name="environmentManager" ref="environmentManager" />
@@ -33,7 +33,7 @@
     </command>
 
     <command name="spark/start-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.StartAllNodesCommand">
+      <action class="io.subutai.plugin.spark.cli.StartAllNodesCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
@@ -41,7 +41,7 @@
     </command>
 
     <command name="spark/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.StopAllNodesCommand">
+      <action class="io.subutai.plugin.spark.cli.StopAllNodesCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
@@ -49,7 +49,7 @@
     </command>
 
     <command name="spark/start-node">
-      <action class="org.safehaus.subutai.plugin.spark.cli.StartServiceCommand">
+      <action class="io.subutai.plugin.spark.cli.StartServiceCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
@@ -57,7 +57,7 @@
     </command>
 
     <command name="spark/stop-node">
-      <action class="org.safehaus.subutai.plugin.spark.cli.StopServiceCommand">
+      <action class="io.subutai.plugin.spark.cli.StopServiceCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
@@ -65,7 +65,7 @@
     </command>
 
     <command name="spark/check-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.CheckAllNodesCommand">
+      <action class="io.subutai.plugin.spark.cli.CheckAllNodesCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="tracker" ref="tracker" />
         <property name="environmentManager" ref="environmentManager" />
@@ -73,7 +73,7 @@
     </command>
 
     <command name="spark/check-node">
-      <action class="org.safehaus.subutai.plugin.spark.cli.StatusServiceCommand">
+      <action class="io.subutai.plugin.spark.cli.StatusServiceCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="tracker" ref="tracker" />
@@ -81,7 +81,7 @@
     </command>
 
     <command name="spark/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.spark.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.spark.cli.DescribeClusterCommand">
         <property name="sparkManager" ref="sparkManager" />
         <property name="environmentManager" ref="environmentManager" />
       </action>
