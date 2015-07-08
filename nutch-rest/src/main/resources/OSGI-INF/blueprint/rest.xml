@@ -11,15 +11,15 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="nutchManager" availability="mandatory" interface="org.safehaus.subutai.plugin.nutch.api.Nutch" />
+  <reference id="nutchManager" availability="mandatory" interface="io.subutai.plugin.nutch.api.Nutch" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.nutch.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.nutch.rest.RestServiceImpl">
     <argument ref="nutchManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/nutch" id="nutchRestService">
     <jaxrs:serviceBeans>

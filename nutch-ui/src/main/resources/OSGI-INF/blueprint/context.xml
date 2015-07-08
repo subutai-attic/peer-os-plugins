@@ -4,15 +4,15 @@
     xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="nutch" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.nutch.api.Nutch" />
+             interface="io.subutai.plugin.nutch.api.Nutch" />
   <reference id="hadoop" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="module" scope="singleton" class="org.safehaus.subutai.plugin.nutch.ui.NutchPortalModule"
+  <bean id="module" scope="singleton" class="io.subutai.plugin.nutch.ui.NutchPortalModule"
         init-method="init" destroy-method="destroy">
     <argument ref="nutch" />
     <argument ref="hadoop" />
@@ -20,6 +20,6 @@
     <argument ref="environmentManager" />
   </bean>
 
-  <service ref="module" interface="org.safehaus.subutai.server.ui.api.PortalModule" />
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
 
 </blueprint>

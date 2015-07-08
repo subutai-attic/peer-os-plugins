@@ -1,9 +1,9 @@
 <features name="nutch-plugin" version="2.0.4">
   <feature name="nutch-plugin" version="2.0.4">
-    <bundle> mvn:org.safehaus.subutai/nutch-plugin-api/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/nutch-plugin-impl/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/nutch-plugin-ui/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/nutch-plugin-cli/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/nutch-plugin-rest/2.0.4</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-api/2.0.4</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-cli/2.0.4</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-rest/2.0.4</bundle>
   </feature>
 </features>
