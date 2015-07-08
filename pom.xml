@@ -3,9 +3,9 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>mgmt-server-core-parent</artifactId>
-    <groupId>org.safehaus.subutai</groupId>
-    <version>2.0.0</version>
+  <artifactId>mgmt-server-core-parent</artifactId>
+  <groupId>io.subutai</groupId>
+  <version>2.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -80,8 +80,8 @@
             <Bundle-SymbolicName>${project.groupId}.plugin.common</Bundle-SymbolicName>
             <Meta-Persistence>META-INF/persistence.xml</Meta-Persistence>
             <Export-Package>
-              {local-packages},org.safehaus.subutai.plugin.common.model.ClusterDataEntity,
-              org.safehaus.subutai.plugin.common.*;version=${project.version};-noimport:=true
+              {local-packages},${project.groupId}.plugin.common.model.ClusterDataEntity,
+              ${project.groupId}.plugin.common.*;version=${project.version};-noimport:=true
             </Export-Package>
             <Import-Package>*</Import-Package>
           </instructions>
