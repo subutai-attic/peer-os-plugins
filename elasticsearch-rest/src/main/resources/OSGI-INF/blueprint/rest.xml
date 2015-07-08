@@ -12,18 +12,18 @@
   </cxf:bus>
 
   <reference id="elasticsearch" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.elasticsearch.api.Elasticsearch" />
+             interface="io.subutai.plugin.elasticsearch.api.Elasticsearch" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.elasticsearch.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.elasticsearch.rest.RestServiceImpl">
     <argument ref="elasticsearch" />
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <jaxrs:server address="/elasticsearch" id="elasticsearchRestService">
     <jaxrs:serviceBeans>

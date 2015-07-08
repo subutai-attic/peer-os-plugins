@@ -1,9 +1,9 @@
 <features name="elasticsearch-plugin" version="2.0.4">
   <feature name="elasticsearch-plugin" version="2.0.4">
-    <bundle> mvn:org.safehaus.subutai/elasticsearch-plugin-api/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/elasticsearch-plugin-impl/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/elasticsearch-plugin-cli/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/elasticsearch-plugin-ui/2.0.4</bundle>
-    <bundle> mvn:org.safehaus.subutai/elasticsearch-plugin-rest/2.0.4</bundle>
+    <bundle> mvn:io.subutai/elasticsearch-plugin-api/2.0.4</bundle>
+    <bundle> mvn:io.subutai/elasticsearch-plugin-impl/2.0.4</bundle>
+    <bundle> mvn:io.subutai/elasticsearch-plugin-cli/2.0.4</bundle>
+    <bundle> mvn:io.subutai/elasticsearch-plugin-ui/2.0.4</bundle>
+    <bundle> mvn:io.subutai/elasticsearch-plugin-rest/2.0.4</bundle>
   </feature>
 </features>
