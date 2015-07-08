@@ -1,56 +1,56 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="hbaseManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hbase.api.HBase" />
+             interface="io.subutai.plugin.hbase.api.HBase" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="hbase/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.DescribeClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
       </action>
     </command>
 
     <command name="hbase/list-clusters">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.ListHBaseClustersCommand">
+      <action class="io.subutai.plugin.hbase.cli.ListHBaseClustersCommand">
         <property name="hbaseManager" ref="hbaseManager" />
       </action>
     </command>
 
     <command name="hbase/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.UninstallHBaseClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.UninstallHBaseClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hbase/install-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.InstallHBaseClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.InstallHBaseClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hbase/start-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.StartClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hbase/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.StopClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hbase/check-cluster">
-      <action class="org.safehaus.subutai.plugin.hbase.cli.CheckClusterCommand">
+      <action class="io.subutai.plugin.hbase.cli.CheckClusterCommand">
         <property name="hbaseManager" ref="hbaseManager" />
         <property name="tracker" ref="tracker" />
         <property name="environmentManager" ref="environmentManager" />
