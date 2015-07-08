@@ -151,8 +151,11 @@ public class Manager extends VerticalLayout
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-
-                checkAllNodes();
+                PROGRESS_ICON.setVisible( true );
+                synchronized ( PROGRESS_ICON )
+                {
+                    checkAllNodes();
+                }
             }
         } );
         controlsContent.addComponent( checkAll );
@@ -169,23 +172,23 @@ public class Manager extends VerticalLayout
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-
                 PROGRESS_ICON.setVisible( true );
-                UUID uuid = mySQLC.startCluster( config.getClusterName() );
-                ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
-                window.getWindow().addCloseListener( new Window.CloseListener()
+                synchronized ( PROGRESS_ICON )
                 {
-                    @Override
-                    public void windowClose( final Window.CloseEvent closeEvent )
+                    UUID uuid = mySQLC.startCluster( config.getClusterName() );
+                    ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
+                    window.getWindow().addCloseListener( new Window.CloseListener()
                     {
-                        checkAllNodes();
-                    }
-                } );
-                contentRoot.getUI().addWindow( window.getWindow() );
-                disableButtons( startAll );
-                enableButtons( stopAll );
-
-                PROGRESS_ICON.setVisible( false );
+                        @Override
+                        public void windowClose( final Window.CloseEvent closeEvent )
+                        {
+                            checkAllNodes();
+                        }
+                    } );
+                    contentRoot.getUI().addWindow( window.getWindow() );
+                    disableButtons( startAll );
+                    enableButtons( stopAll );
+                }
             }
         } );
 
@@ -202,22 +205,23 @@ public class Manager extends VerticalLayout
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
                 PROGRESS_ICON.setVisible( true );
-                UUID uuid = mySQLC.stopCluster( config.getClusterName() );
-                ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
-                window.getWindow().addCloseListener( new Window.CloseListener()
+                synchronized ( PROGRESS_ICON )
                 {
-                    @Override
-                    public void windowClose( final Window.CloseEvent closeEvent )
+                    UUID uuid = mySQLC.stopCluster( config.getClusterName() );
+                    ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
+                    window.getWindow().addCloseListener( new Window.CloseListener()
                     {
+                        @Override
+                        public void windowClose( final Window.CloseEvent closeEvent )
+                        {
 
-                        checkAllNodes();
-                    }
-                } );
-                contentRoot.getUI().addWindow( window.getWindow() );
-                disableButtons( stopAll );
-                enableButtons( startAll );
-
-                PROGRESS_ICON.setVisible( false );
+                            checkAllNodes();
+                        }
+                    } );
+                    contentRoot.getUI().addWindow( window.getWindow() );
+                    disableButtons( stopAll );
+                    enableButtons( startAll );
+                }
             }
         } );
 
