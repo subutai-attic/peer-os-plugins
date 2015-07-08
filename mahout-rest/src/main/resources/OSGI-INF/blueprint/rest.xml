@@ -11,11 +11,11 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="mahoutManager" availability="mandatory" interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
+  <reference id="mahoutManager" availability="mandatory" interface="io.subutai.plugin.mahout.api.Mahout" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.mahout.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.mahout.rest.RestServiceImpl">
     <argument ref="mahoutManager" />
     <property name="tracker" ref="tracker" />
   </bean>

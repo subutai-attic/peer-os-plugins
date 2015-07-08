@@ -2,31 +2,31 @@
     >
 
   <reference id="mahoutManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.mahout.api.Mahout" />
+             interface="io.subutai.plugin.mahout.api.Mahout" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="mahout/list-clusters">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.mahout.cli.ListClustersCommand">
         <property name="mahoutManager" ref="mahoutManager" />
       </action>
     </command>
 
     <command name="mahout/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.mahout.cli.UninstallClusterCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mahout/install-cluster">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.mahout.cli.InstallClusterCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="hadoopManager" ref="hadoopManager" />
         <property name="tracker" ref="tracker" />
@@ -34,21 +34,21 @@
     </command>
 
     <command name="mahout/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.mahout.cli.DescribeClusterCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
     <command name="mahout/add-node">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.AddNodeCommand">
+      <action class="io.subutai.plugin.mahout.cli.AddNodeCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mahout/uninstall-node">
-      <action class="org.safehaus.subutai.plugin.mahout.cli.UninstallNodeCommand">
+      <action class="io.subutai.plugin.mahout.cli.UninstallNodeCommand">
         <property name="mahoutManager" ref="mahoutManager" />
         <property name="tracker" ref="tracker" />
       </action>
