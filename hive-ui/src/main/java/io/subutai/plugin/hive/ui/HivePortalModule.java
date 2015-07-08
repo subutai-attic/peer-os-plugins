@@ -1,0 +1,103 @@
+package io.subutai.plugin.hive.ui;
+
+
+import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
+
+import javax.naming.NamingException;
+
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.util.FileUtil;
+import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
+import io.subutai.server.ui.api.PortalModule;
+import io.subutai.server.ui.api.PortalModuleService;
+
+import com.vaadin.ui.Component;
+
+
+public class HivePortalModule implements PortalModule
+{
+
+    public static final String MODULE_IMAGE = "hive.png";
+    protected static final Logger LOG = Logger.getLogger( HivePortalModule.class.getName() );
+    private ExecutorService executor;
+    private final Hive hive;
+    private final EnvironmentManager environmentManager;
+    private final Tracker tracker;
+    private Hadoop hadoop;
+    private PortalModuleService portalModuleService;
+
+
+    public HivePortalModule( Hive hive, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager,
+                             PortalModuleService portalModuleService)
+    {
+        this.hive = hive;
+        this.hadoop = hadoop;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
+        this.portalModuleService = portalModuleService;
+
+    }
+
+
+    public void init()
+    {
+        executor = SubutaiExecutors.newCachedThreadPool();
+    }
+
+
+    public void destroy()
+    {
+
+        executor.shutdown();
+    }
+
+
+    @Override
+    public String getId()
+    {
+        return HiveConfig.PRODUCT_KEY;
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return HiveConfig.PRODUCT_KEY;
+    }
+
+
+    @Override
+    public File getImage()
+    {
+        return FileUtil.getFile( HivePortalModule.MODULE_IMAGE, this );
+    }
+
+
+    @Override
+    public Component createComponent()
+    {
+        try
+        {
+            return new HiveComponent( executor, hive, hadoop, tracker, environmentManager, portalModuleService );
+        }
+        catch ( NamingException e )
+        {
+            LOG.severe( e.getMessage() );
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public Boolean isCorePlugin()
+    {
+        return false;
+    }
+}

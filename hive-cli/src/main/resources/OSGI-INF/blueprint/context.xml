@@ -2,31 +2,31 @@
     >
 
   <reference id="hiveManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hive.api.Hive" />
+             interface="io.subutai.plugin.hive.api.Hive" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="hive/list-clusters">
-      <action class="org.safehaus.subutai.plugin.hive.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.hive.cli.ListClustersCommand">
         <property name="hiveManager" ref="hiveManager" />
       </action>
     </command>
 
     <command name="hive/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.UninstallClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hive/install-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.InstallClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="hadoopManager" ref="hadoopManager" />
         <property name="tracker" ref="tracker" />
@@ -34,21 +34,21 @@
     </command>
 
     <command name="hive/start-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.StartClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hive/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.StopClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hive/check-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.CheckClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.CheckClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
         <property name="environmentManager" ref="environmentManager" />
@@ -56,21 +56,21 @@
     </command>
 
     <command name="hive/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.hive.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.hive.cli.DescribeClusterCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
     <command name="hive/add-node">
-      <action class="org.safehaus.subutai.plugin.hive.cli.AddNodeCommand">
+      <action class="io.subutai.plugin.hive.cli.AddNodeCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="hive/uninstall-node">
-      <action class="org.safehaus.subutai.plugin.hive.cli.UninstallNodeCommand">
+      <action class="io.subutai.plugin.hive.cli.UninstallNodeCommand">
         <property name="hiveManager" ref="hiveManager" />
         <property name="tracker" ref="tracker" />
       </action>
