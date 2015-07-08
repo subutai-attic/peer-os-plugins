@@ -1,31 +1,31 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="luceneManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.lucene.api.Lucene" />
+             interface="io.subutai.plugin.lucene.api.Lucene" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
 
     <command name="lucene/list-clusters">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.lucene.cli.ListClustersCommand">
         <property name="luceneManager" ref="luceneManager" />
       </action>
     </command>
 
     <command name="lucene/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.lucene.cli.UninstallClusterCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="lucene/install-cluster">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.lucene.cli.InstallClusterCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
         <property name="hadoopManager" ref="hadoopManager" />
@@ -33,21 +33,21 @@
     </command>
 
     <command name="lucene/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.lucene.cli.DescribeClusterCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="environmentManager" ref="environmentManager" />
       </action>
     </command>
 
     <command name="lucene/add-node">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.AddNodeCommand">
+      <action class="io.subutai.plugin.lucene.cli.AddNodeCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="lucene/uninstall-node">
-      <action class="org.safehaus.subutai.plugin.lucene.cli.UninstallNodeCommand">
+      <action class="io.subutai.plugin.lucene.cli.UninstallNodeCommand">
         <property name="luceneManager" ref="luceneManager" />
         <property name="tracker" ref="tracker" />
       </action>

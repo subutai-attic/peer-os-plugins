@@ -11,15 +11,15 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="luceneManager" availability="mandatory" interface="org.safehaus.subutai.plugin.lucene.api.Lucene" />
+  <reference id="luceneManager" availability="mandatory" interface="io.subutai.plugin.lucene.api.Lucene" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.lucene.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.lucene.rest.RestServiceImpl">
     <argument ref="luceneManager"/>
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/lucene" id="luceneRestService">
     <jaxrs:serviceBeans>
