@@ -2,68 +2,68 @@
     >
 
   <reference id="mongoManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
+             interface="io.subutai.plugin.mongodb.api.Mongo" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
   <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
     <command name="mongodb/list-clusters">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.ListClustersCommand">
+      <action class="io.subutai.plugin.mongodb.cli.ListClustersCommand">
         <property name="mongoManager" ref="mongoManager" />
       </action>
     </command>
 
     <command name="mongo/uninstall-cluster">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.UninstallClusterCommand">
+      <action class="io.subutai.plugin.mongodb.cli.UninstallClusterCommand">
         <property name="mongoManager" ref="mongoManager" />
       </action>
     </command>
 
     <command name="mongo/install-cluster">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.InstallClusterCommand">
+      <action class="io.subutai.plugin.mongodb.cli.InstallClusterCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mongo/describe-cluster">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.DescribeClusterCommand">
+      <action class="io.subutai.plugin.mongodb.cli.DescribeClusterCommand">
         <property name="mongoManager" ref="mongoManager" />
       </action>
     </command>
 
     <command name="mongo/start-cluster">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.StartClusterCommand">
+      <action class="io.subutai.plugin.mongodb.cli.StartClusterCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mongo/stop-cluster">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.StopClusterCommand">
+      <action class="io.subutai.plugin.mongodb.cli.StopClusterCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mongo/start-node">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.StartNodeCommand">
+      <action class="io.subutai.plugin.mongodb.cli.StartNodeCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mongo/stop-node">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.StopNodeCommand">
+      <action class="io.subutai.plugin.mongodb.cli.StopNodeCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>
     </command>
 
     <command name="mongo/check-node">
-      <action class="org.safehaus.subutai.plugin.mongodb.cli.CheckNodeCommand">
+      <action class="io.subutai.plugin.mongodb.cli.CheckNodeCommand">
         <property name="mongoManager" ref="mongoManager" />
         <property name="tracker" ref="tracker" />
       </action>

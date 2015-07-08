@@ -2,15 +2,15 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="peerManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.peer.api.PeerManager" />
+             interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="monitor" availability="mandatory"
-             interface="org.safehaus.subutai.core.metric.api.Monitor" />
+             interface="io.subutai.core.metric.api.Monitor" />
 
-  <bean id="mongo-impl" scope="singleton" class="org.safehaus.subutai.plugin.mongodb.impl.MongoImpl"
+  <bean id="mongo-impl" scope="singleton" class="io.subutai.plugin.mongodb.impl.MongoImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
     <property name="peerManager" ref="peerManager" />
@@ -18,12 +18,12 @@
     <argument ref="monitor" />
   </bean>
 
-  <bean id="alertListener" scope="singleton" class="org.safehaus.subutai.plugin.mongodb.impl.alert.MongoAlertListener">
+  <bean id="alertListener" scope="singleton" class="io.subutai.plugin.mongodb.impl.alert.MongoAlertListener">
     <argument ref="mongo-impl" />
   </bean>
 
-  <service ref="mongo-impl" interface="org.safehaus.subutai.plugin.mongodb.api.Mongo" />
+  <service ref="mongo-impl" interface="io.subutai.plugin.mongodb.api.Mongo" />
 
-  <service ref="alertListener" interface="org.safehaus.subutai.core.metric.api.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
 
 </blueprint>
