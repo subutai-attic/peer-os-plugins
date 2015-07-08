@@ -11,11 +11,11 @@
   </cxf:bus>
 
   <reference id="solrManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.solr.api.Solr" />
+             interface="io.subutai.plugin.solr.api.Solr" />
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
-  <bean id="solrRestServiceImpl" class="org.safehaus.subutai.plugin.solr.rest.RestServiceImpl">
+  <bean id="solrRestServiceImpl" class="io.subutai.plugin.solr.rest.RestServiceImpl">
     <property name="solrManager" ref="solrManager" />
     <property name="tracker" ref="tracker" />
   </bean>
