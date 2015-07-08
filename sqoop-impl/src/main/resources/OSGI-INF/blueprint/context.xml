@@ -7,19 +7,19 @@
             0">
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
-  <bean id="sqoop-impl" scope="singleton" class="org.safehaus.subutai.plugin.sqoop.impl.SqoopImpl"
+  <bean id="sqoop-impl" scope="singleton" class="io.subutai.plugin.sqoop.impl.SqoopImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="hadoopManager" ref="hadoopManager" />
   </bean>
 
-  <service ref="sqoop-impl" interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
+  <service ref="sqoop-impl" interface="io.subutai.plugin.sqoop.api.Sqoop" />
 
 </blueprint>

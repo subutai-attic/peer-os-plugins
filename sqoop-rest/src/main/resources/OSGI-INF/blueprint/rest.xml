@@ -11,11 +11,11 @@
     </cxf:features>
   </cxf:bus>
 
-  <reference id="sqoopManager" availability="mandatory" interface="org.safehaus.subutai.plugin.sqoop.api.Sqoop" />
+  <reference id="sqoopManager" availability="mandatory" interface="io.subutai.plugin.sqoop.api.Sqoop" />
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
-  <bean id="RestServiceImpl" class="org.safehaus.subutai.plugin.sqoop.rest.RestServiceImpl">
+  <bean id="RestServiceImpl" class="io.subutai.plugin.sqoop.rest.RestServiceImpl">
     <property name="sqoopManager" ref="sqoopManager" />
     <property name="tracker" ref="tracker" />
 
