@@ -17,17 +17,17 @@
     </jaxrs:serviceBeans>
   </jaxrs:server>
 
-  <bean id="cassandraRestServiceImpl" class="org.safehaus.subutai.plugin.cassandra.rest.RestServiceImpl">
+  <bean id="cassandraRestServiceImpl" class="io.subutai.plugin.cassandra.rest.RestServiceImpl">
     <property name="cassandraManager" ref="cassandraManager" />
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
   </bean>
 
   <reference id="cassandraManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.cassandra.api.Cassandra" />
+             interface="io.subutai.plugin.cassandra.api.Cassandra" />
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
 
 </blueprint>
