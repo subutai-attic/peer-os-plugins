@@ -4,21 +4,21 @@
 
 
   <reference id="tracker" availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="org.safehaus.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.hadoop.api.Hadoop" />
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
-  <bean id="flume-impl" scope="singleton" class="org.safehaus.subutai.plugin.flume.impl.FlumeImpl"
+  <bean id="flume-impl" scope="singleton" class="io.subutai.plugin.flume.impl.FlumeImpl"
         init-method="init" destroy-method="destroy">
       <argument ref="tracker" />
       <argument ref="environmentManager" />
       <argument ref="hadoopManager" />
   </bean>
 
-  <service ref="flume-impl" interface="org.safehaus.subutai.plugin.flume.api.Flume" />
+  <service ref="flume-impl" interface="io.subutai.plugin.flume.api.Flume" />
 
-  <service ref="flume-impl" interface="org.safehaus.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="flume-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
 
 </blueprint>

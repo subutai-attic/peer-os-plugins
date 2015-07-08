@@ -12,15 +12,15 @@
   </cxf:bus>
 
   <reference id="flumeManager" availability="mandatory"
-             interface="org.safehaus.subutai.plugin.flume.api.Flume" />
+             interface="io.subutai.plugin.flume.api.Flume" />
 
-  <bean id="restService" class="org.safehaus.subutai.plugin.flume.rest.RestServiceImpl">
+  <bean id="restService" class="io.subutai.plugin.flume.rest.RestServiceImpl">
     <argument ref="flumeManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
   <reference id="tracker"  availability="mandatory"
-             interface="org.safehaus.subutai.core.tracker.api.Tracker" />
+             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/flume" id="flumeRestService">
     <jaxrs:serviceBeans>
