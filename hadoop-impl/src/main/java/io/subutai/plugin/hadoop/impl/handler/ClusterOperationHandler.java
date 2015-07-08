@@ -1,0 +1,437 @@
+package io.subutai.plugin.hadoop.impl.handler;
+
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.CommandUtil;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.Host;
+import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.core.metric.api.MonitorException;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterConfigurationException;
+import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hadoop.impl.ClusterConfiguration;
+import io.subutai.plugin.hadoop.impl.Commands;
+import io.subutai.plugin.hadoop.impl.HadoopImpl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
+
+/**
+ * This class handles operations that are related to whole cluster.
+ */
+public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl, HadoopClusterConfig>
+        implements ClusterOperationHandlerInterface
+{
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
+    private ClusterOperationType operationType;
+    private HadoopClusterConfig config;
+    private NodeType nodeType;
+
+
+    public ClusterOperationHandler( final HadoopImpl manager, final HadoopClusterConfig config,
+                                    final ClusterOperationType operationType, NodeType nodeType )
+    {
+        super( manager, config );
+        this.operationType = operationType;
+        this.config = config;
+        this.nodeType = nodeType;
+        trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
+                String.format( "Starting %s operation on %s(%s) cluster...",
+                        operationType, clusterName, config.getProductKey() ) );
+    }
+
+
+    public ClusterOperationHandler( final HadoopImpl manager, final HadoopClusterConfig config,
+                                    final ClusterOperationType operationType )
+    {
+        super( manager, config );
+        Preconditions.checkState( operationType.equals( ClusterOperationType.INSTALL ) );
+        this.operationType = operationType;
+        this.config = config;
+        trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
+                String.format( "Starting %s operation on %s(%s) cluster...",
+                        operationType, clusterName, config.getProductKey() ) );
+    }
+
+
+    public void run()
+    {
+        Preconditions.checkNotNull( config, "Configuration is null !!!" );
+        switch ( operationType )
+        {
+            case INSTALL:
+                setupCluster();
+                break;
+            case UNINSTALL:
+                destroyCluster();
+                break;
+            case REMOVE:
+                removeCluster();
+                break;
+            case START_ALL:
+            case STOP_ALL:
+            case STATUS_ALL:
+            case DECOMISSION_STATUS:
+                runOperationOnContainers( operationType );
+                break;
+        }
+    }
+
+
+    public void removeCluster()
+    {
+        HadoopClusterConfig config = manager.getCluster( clusterName );
+        // before removing cluster, stop it first.
+        manager.stopNameNode( config );
+        manager.stopJobTracker( config );
+
+        // clear "/var/lib/hadoop-root" directories
+        try
+        {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            CommandUtil commandUtil = new CommandUtil();
+            Set<Host> hostSet = new HashSet<>();
+            for ( ContainerHost host : environment.getContainerHosts() ){
+                hostSet.add( host );
+            }
+            try
+            {
+                commandUtil.executeParallel( new RequestBuilder( Commands.getClearDataDirectory() ), hostSet );
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+        manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() );
+        trackerOperation.addLogDone( "Cluster removed from database" );
+    }
+
+
+    @Override
+    public void runOperationOnContainers( ClusterOperationType clusterOperationType )
+    {
+        try
+        {
+            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            ContainerHost namenode;
+            try
+            {
+                namenode = environment.getContainerHostById( config.getNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Container host with id: %s not found", config.getNameNode().toString() ), e );
+                return;
+            }
+            ContainerHost jobtracker;
+            try
+            {
+                jobtracker = environment.getContainerHostById( config.getJobTracker() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage(
+                        String.format( "Container host with id: %s not found", config.getJobTracker().toString() ), e );
+                return;
+            }
+            ContainerHost secondaryNameNode;
+            try
+            {
+                secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                logExceptionWithMessage( String.format( "Container host with id: %s not found",
+                        config.getSecondaryNameNode().toString() ), e );
+                return;
+            }
+
+            CommandResult result = null;
+            switch ( clusterOperationType )
+            {
+                case START_ALL:
+                    switch ( nodeType )
+                    {
+                        case NAMENODE:
+                            result = namenode.execute(
+                                    new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
+                            break;
+                        case JOBTRACKER:
+                            result = jobtracker.execute( new
+                                    RequestBuilder( Commands.getStartJobTrackerCommand() ).daemon() );
+                            break;
+                    }
+                    assert result != null;
+                    if ( result.hasSucceeded() ){
+                        trackerOperation.addLogDone( result.getStdOut() );
+                    } else{
+                        trackerOperation.addLogFailed( result.getStdErr() );
+                    }
+                    break;
+                case STOP_ALL:
+                    switch ( nodeType )
+                    {
+                        case NAMENODE:
+                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
+                            break;
+                        case JOBTRACKER:
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ) );
+                            break;
+                    }
+                    assert result != null;
+                    if ( result.hasSucceeded() ){
+                        trackerOperation.addLogDone( result.getStdOut() );
+                    } else{
+                        trackerOperation.addLogFailed( result.getStdErr() );
+                    }
+                    break;
+                case STATUS_ALL:
+                    switch ( nodeType )
+                    {
+                        case NAMENODE:
+                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+                            break;
+                        case JOBTRACKER:
+                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ) );
+                            break;
+                        case SECONDARY_NAMENODE:
+                            result = secondaryNameNode
+                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+                            break;
+                    }
+                    logResults( trackerOperation, result, nodeType );
+                    break;
+                case DECOMISSION_STATUS:
+                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ) );
+                    logResults( trackerOperation, result, NodeType.SLAVE_NODE );
+                    break;
+            }
+        }
+        catch ( CommandException e )
+        {
+            logExceptionWithMessage( "Command failed", e );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            logExceptionWithMessage(
+                    String.format( "Environment with id: %s not found", config.getEnvironmentId().toString() ), e );
+        }
+    }
+
+
+    public static void logResults( TrackerOperation trackerOperation, CommandResult result, NodeType nodeType )
+    {
+        NodeState nodeState = NodeState.UNKNOWN;
+        if ( result.getStdOut() != null )
+        {
+            String[] array = result.getStdOut().split( "\n" );
+
+            for ( String status : array )
+            {
+                switch ( nodeType )
+                {
+                    case NAMENODE:
+                        if ( status.contains( "NameNode" ) )
+                        {
+                            String temp = status.replaceAll(
+                                    Pattern.quote( "!(SecondaryNameNode is not running on this " + "machine)" ), "" ).
+                                                        replaceAll( "NameNode is ", "" );
+
+                            if ( ! temp.toLowerCase().contains( "secondary" ) ){
+                                if ( temp.toLowerCase().contains( "not" ) )
+                                {
+                                    nodeState = NodeState.STOPPED;
+                                }
+                                else
+                                {
+                                    nodeState = NodeState.RUNNING;
+                                }
+                                break;
+                            }
+                            break;
+                        }
+                        break;
+                    case JOBTRACKER:
+                        if ( status.contains( "JobTracker" ) )
+                        {
+                            String temp = status.replaceAll( "JobTracker is ", "" );
+                            if ( temp.toLowerCase().contains( "not" ) )
+                            {
+                                nodeState = NodeState.STOPPED;
+                            }
+                            else
+                            {
+                                nodeState = NodeState.RUNNING;
+                            }
+                            break;
+                        }
+                        break;
+                    case SECONDARY_NAMENODE:
+                        if ( status.contains( "SecondaryNameNode" ) )
+                        {
+                            String temp = status.replaceAll( "SecondaryNameNode is ", "" );
+                            if ( temp.toLowerCase().contains( "not" ) )
+                            {
+                                nodeState = NodeState.STOPPED;
+                            }
+                            else
+                            {
+                                nodeState = NodeState.RUNNING;
+                            }
+                        }
+                        break;
+                    case DATANODE:
+                        if ( status.contains( "DataNode" ) )
+                        {
+                            String temp = status.replaceAll( "DataNode is ", "" );
+                            if ( temp.toLowerCase().contains( "not" ) )
+                            {
+                                nodeState = NodeState.STOPPED;
+                            }
+                            else
+                            {
+                                nodeState = NodeState.RUNNING;
+                            }
+                        }
+                        break;
+                    case TASKTRACKER:
+                        if ( status.contains( "TaskTracker" ) )
+                        {
+                            String temp = status.replaceAll( "TaskTracker is ", "" );
+                            if ( temp.toLowerCase().contains( "not" ) )
+                            {
+                                nodeState = NodeState.STOPPED;
+                            }
+                            else
+                            {
+                                nodeState = NodeState.RUNNING;
+                            }
+                        }
+                        break;
+                    case SLAVE_NODE:
+                        //                        nodeState = this.getDecommissionStatus( result.getStdOut() );
+                        trackerOperation.addLogDone( result.getStdOut() );
+                        break;
+                }
+            }
+        }
+
+        if ( NodeState.UNKNOWN.equals( nodeState ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Unknown node state !!!" ) );
+        }
+        else
+        {
+            trackerOperation.addLogDone( String.format( "Node state is %s", nodeState ) );
+        }
+    }
+
+
+    @Override
+    public void setupCluster()
+    {
+        try
+        {
+            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            trackerOperation.addLog( String.format( "Configuring %s environment for %s(%s) cluster",env.getName(),
+                    config.getClusterName(), config.getProductKey() ) );
+            try
+            {
+                new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
+            }
+            catch ( ClusterConfigurationException e )
+            {
+                throw new ClusterSetupException( e.getMessage() );
+            }
+        }
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() ) );
+        }
+    }
+
+
+    @Override
+    public void destroyCluster()
+    {
+        HadoopClusterConfig config = manager.getCluster( clusterName );
+        // before removing cluster, stop it first.
+        manager.stopNameNode( config );
+        manager.stopJobTracker( config );
+
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+
+        Environment environment;
+        try
+        {
+            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Environment not found" );
+            return;
+        }
+
+        try
+        {
+            manager.unsubscribeFromAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+        }
+
+        if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        {
+            trackerOperation.addLogDone( "Cluster information deleted from database" );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+        }
+    }
+
+
+    private void logExceptionWithMessage( String message, Exception e )
+    {
+        LOG.error( message, e );
+        trackerOperation.addLogFailed( message );
+    }
+}
