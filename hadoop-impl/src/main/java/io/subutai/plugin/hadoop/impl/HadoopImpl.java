@@ -24,7 +24,7 @@ import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -63,9 +63,10 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public HadoopImpl( Monitor monitor )
+    public HadoopImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -95,14 +96,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 

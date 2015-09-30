@@ -3,7 +3,6 @@ package io.subutai.plugin.hadoop.impl;
 import org.junit.Before;
 import org.junit.Test;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.impl.Commands;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

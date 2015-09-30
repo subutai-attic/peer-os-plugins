@@ -18,14 +18,13 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.env.api.exception.EnvironmentCreationException;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
-import io.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
