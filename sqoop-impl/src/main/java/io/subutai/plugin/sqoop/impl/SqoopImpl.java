@@ -16,6 +16,7 @@ import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 import io.subutai.plugin.sqoop.api.setting.ExportSetting;
@@ -27,8 +28,9 @@ import io.subutai.plugin.sqoop.impl.handler.NodeOperationHandler;
 public class SqoopImpl extends SqoopBase
 {
 
-    public SqoopImpl()
+    public SqoopImpl(PluginDAO pluginDAO)
     {
+        super(pluginDAO);
     }
 
 
