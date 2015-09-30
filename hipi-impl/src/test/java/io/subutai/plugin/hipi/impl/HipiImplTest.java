@@ -19,7 +19,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hipi.api.HipiConfig;
@@ -58,7 +58,7 @@ public class HipiImplTest
         when( pluginDAO.getInfo( HipiConfig.PRODUCT_KEY, "test", HipiConfig.class ) ).thenReturn( hipiConfig );
 
 
-        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop );
+        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop, pluginDAO);
 
         hipiImpl.setPluginDao( pluginDAO );
         hipiImpl.setExecutor( executorService );

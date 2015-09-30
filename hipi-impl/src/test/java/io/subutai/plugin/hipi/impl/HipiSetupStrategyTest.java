@@ -23,8 +23,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hipi.api.HipiConfig;
-import io.subutai.plugin.hipi.impl.HipiImpl;
-import io.subutai.plugin.hipi.impl.HipiSetupStrategy;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
