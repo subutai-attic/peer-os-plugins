@@ -20,7 +20,7 @@ import io.subutai.common.util.UUIDUtil;
 import io.subutai.core.env.api.EnvironmentEventListener;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -48,9 +48,9 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     private PluginDAO pluginDAO;
 
 
-    public SolrImpl()
+    public SolrImpl(PluginDAO pluginDAO)
     {
-
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -68,15 +68,6 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
