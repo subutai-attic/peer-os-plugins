@@ -27,7 +27,7 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 
@@ -92,7 +92,7 @@ public class CassandraImplTest
         //when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
         uuid = UUID.randomUUID();
-        cassandraImpl = new CassandraImpl( monitor );
+        cassandraImpl = new CassandraImpl( monitor,pluginDAO );
         //cassandraImpl.init();
         cassandraImpl.setTracker( tracker );
         cassandraImpl.getTracker();

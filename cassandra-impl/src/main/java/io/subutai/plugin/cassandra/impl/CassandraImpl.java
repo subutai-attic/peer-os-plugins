@@ -24,7 +24,7 @@ import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.alert.CassandraAlertListener;
 import io.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -50,9 +50,10 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public CassandraImpl( Monitor monitor )
+    public CassandraImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -124,16 +125,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
-        executor = SubutaiExecutors.newSingleThreadExecutor();
+       executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 
