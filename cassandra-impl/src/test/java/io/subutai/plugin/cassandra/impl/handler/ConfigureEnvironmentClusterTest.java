@@ -20,7 +20,7 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.handler.ConfigureEnvironmentClusterHandler;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 
 import static org.junit.Assert.assertEquals;

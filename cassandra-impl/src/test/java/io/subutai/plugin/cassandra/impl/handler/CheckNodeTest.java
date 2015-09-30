@@ -19,7 +19,6 @@ import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.common.api.NodeOperationType;
 
 import static org.junit.Assert.assertEquals;
