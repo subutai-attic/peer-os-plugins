@@ -1,13 +1,12 @@
 package io.subutai.plugin.sqoop.impl;
 
 
-import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.sqoop.api.Sqoop;
 import org.slf4j.Logger;
@@ -29,17 +28,14 @@ public abstract class SqoopBase implements Sqoop
     protected ExecutorService executor;
 
 
+    public SqoopBase(final PluginDAO pluginDAO)
+    {
+        this.pluginDAO = pluginDAO;
+    }
+
+
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( "Failed to init DAO", e );
-        }
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
