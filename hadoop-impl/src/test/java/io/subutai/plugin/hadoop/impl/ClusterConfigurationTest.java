@@ -13,11 +13,9 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.impl.ClusterConfiguration;
-import io.subutai.plugin.hadoop.impl.HadoopImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;

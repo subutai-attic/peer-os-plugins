@@ -18,11 +18,9 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.impl.Commands;
-import io.subutai.plugin.hadoop.impl.HadoopImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -71,7 +69,7 @@ public class HadoopImplTest
         //when(preparedStatement.executeUpdate()).thenReturn(5);
 
 
-        hadoopImpl = new HadoopImpl( monitor );
+        hadoopImpl = new HadoopImpl( monitor, pluginDAO );
         //        hadoopImpl.init();
         hadoopImpl.setExecutor( executorService );
         hadoopImpl.setTracker( tracker );

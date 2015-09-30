@@ -7,9 +7,12 @@ import java.util.concurrent.ExecutorService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mock;
+
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
 import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 
@@ -28,6 +31,9 @@ public class AddOperationHandlerTest
     Tracker tracker;
     Monitor monitor;
 
+    @Mock
+    PluginDAO pluginDAO;
+
     @Before
     public void setUp()
     {
@@ -38,7 +44,7 @@ public class AddOperationHandlerTest
         tracker = mock(Tracker.class);
 
         String clusterName = "test";
-        HadoopImpl hadoop = new HadoopImpl( monitor );
+        HadoopImpl hadoop = new HadoopImpl( monitor, pluginDAO );
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);
@@ -54,7 +60,7 @@ public class AddOperationHandlerTest
     @Test
     public void testRun()
     {
-        HadoopImpl hadoop = new HadoopImpl( monitor );
+        HadoopImpl hadoop = new HadoopImpl( monitor, pluginDAO );
         when(trackerOperation.getId()).thenReturn(uuid);
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         hadoop.setTracker(tracker);
