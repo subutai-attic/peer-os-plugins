@@ -13,6 +13,8 @@
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="quotaManager" availability="mandatory"
              interface="io.subutai.core.lxc.quota.api.QuotaManager" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
 
   <bean id="impl" scope="singleton" class="io.subutai.plugin.zookeeper.impl.ZookeeperImpl"
         init-method="init" destroy-method="destroy">
@@ -22,6 +24,7 @@
     <property name="peerManager" ref="peerManager" />
     <property name="quotaManager" ref="quotaManager" />
     <argument ref="monitor" />
+    <argument ref="pluginDAO" />
   </bean>
 
   <bean id="alertListener" scope="singleton"
@@ -29,11 +32,10 @@
     <argument ref="impl" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="impl" interface="io.subutai.plugin.zookeeper.api.Zookeeper" />
-
   <service ref="impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
-
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
-
+  <!-- *********************************************************************************** -->
 
 </blueprint>
