@@ -22,7 +22,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.Commands;
 import io.subutai.plugin.flume.impl.FlumeImpl;
@@ -79,7 +79,7 @@ public class FlumeImplTest
     {
         uuid = new UUID( 50, 50 );
 
-        flumeImpl = new FlumeImpl( tracker, environmentManager, hadoop );
+        flumeImpl = new FlumeImpl( tracker, environmentManager, hadoop, pluginDAO );
         flumeImpl.setExecutor( executor );
         flumeImpl.setPluginDao( pluginDAO );
 
