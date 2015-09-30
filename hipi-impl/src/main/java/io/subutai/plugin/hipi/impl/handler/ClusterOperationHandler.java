@@ -3,6 +3,9 @@ package io.subutai.plugin.hipi.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
@@ -21,14 +24,11 @@ import io.subutai.plugin.hipi.api.HipiConfig;
 import io.subutai.plugin.hipi.impl.CommandFactory;
 import io.subutai.plugin.hipi.impl.HipiImpl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 
 public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, HipiConfig>
         implements ClusterOperationHandlerInterface
 {
-    private static final Log LOG = LogFactory.getLog( ClusterOperationHandler.class );
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
     CommandUtil commandUtil = new CommandUtil();
     private ClusterOperationType operationType;
 

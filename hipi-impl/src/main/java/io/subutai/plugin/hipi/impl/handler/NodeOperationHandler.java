@@ -1,6 +1,9 @@
 package io.subutai.plugin.hipi.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -17,13 +20,10 @@ import io.subutai.plugin.hipi.api.HipiConfig;
 import io.subutai.plugin.hipi.impl.CommandFactory;
 import io.subutai.plugin.hipi.impl.HipiImpl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 
 public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, HipiConfig>
 {
-    private static Log LOG = LogFactory.getLog( NodeOperationHandler.class );
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
     private String hostName = null;
     private NodeOperationType operationType;
 
