@@ -18,7 +18,7 @@ import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -49,9 +49,10 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( final Monitor monitor )
+    public ElasticsearchImpl( final Monitor monitor,PluginDAO pluginDAO )
     {
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -129,14 +130,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
