@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import io.subutai.plugin.common.impl.EmfUtil;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.impl.PluginDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,35 +24,51 @@ import com.google.gson.JsonSyntaxException;
 /**
  * PluginDAO is used to manage cluster configuration information in database
  */
-public class PluginDAO
+public class PluginDAOImpl implements PluginDAO
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger( PluginDAO.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( PluginDAOImpl.class.getName() );
     private Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
-    private EmfUtil emfUtil = new EmfUtil();
+    //private EmfUtil emfUtil = new EmfUtil();
     private PluginDataService dataService;
+    private EntityManagerFactory entityManagerFactory = null;
 
     private static final ReentrantLock lock = new ReentrantLock( true );
 
 
-    public PluginDAO( DataSource dataSource ) throws SQLException
-    {
-        this.dataService = new PluginDataService( emfUtil.getEmf() );
-    }
-
-
-    public PluginDAO() throws SQLException
+    /* *******************************************************************
+     *
+     */
+    public PluginDAOImpl( DataSource dataSource ) throws SQLException
     {
     }
 
 
-    public PluginDAO( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
+    public PluginDAOImpl() throws SQLException
+    {
+    }
+
+
+    public PluginDAOImpl( final DataSource dataSource, final GsonBuilder gsonBuilder ) throws SQLException
     {
         Preconditions.checkNotNull( dataSource, "GsonBuilder is null" );
-        this.dataService = new PluginDataService( emfUtil.getEmf(), gsonBuilder );
     }
 
 
+    /* *******************************************************************
+     *
+     */
+    public void init() throws SQLException
+    {
+        this.dataService = new PluginDataService( entityManagerFactory );
+    }
+
+
+
+    /* *******************************************************************
+     *
+     */
+    @Override
     public boolean saveInfo( String source, String key, Object info )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -78,6 +95,7 @@ public class PluginDAO
     }
 
 
+    @Override
     public boolean saveInfo( String source, String key, String info )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -113,6 +131,7 @@ public class PluginDAO
      *
      * @return - list of POJOs
      */
+    @Override
     public <T> List<T> getInfo( String source, Class<T> clazz )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -145,6 +164,7 @@ public class PluginDAO
      *
      * @return - POJO
      */
+    @Override
     public <T> T getInfo( String source, String key, Class<T> clazz )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -176,6 +196,7 @@ public class PluginDAO
      *
      * @return - list of Json String
      */
+    @Override
     public List<String> getInfo( String source )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -206,6 +227,7 @@ public class PluginDAO
      *
      * @return - POJO
      */
+    @Override
     public String getInfo( String source, String key )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -234,6 +256,7 @@ public class PluginDAO
      * @param source - source key
      * @param key - POJO key
      */
+    @Override
     public boolean deleteInfo( String source, String key )
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( source ), "Source is null or empty" );
@@ -254,5 +277,22 @@ public class PluginDAO
             lock.unlock();
         }
         return false;
+    }
+
+
+    public EntityManagerFactory getEntityManagerFactory()
+    {
+        return entityManagerFactory;
+    }
+
+
+    public void setEntityManagerFactory( final EntityManagerFactory entityManagerFactory )
+    {
+        this.entityManagerFactory = entityManagerFactory;
+
+        if ( entityManagerFactory != null )
+        {
+            entityManagerFactory.createEntityManager();
+        }
     }
 }
