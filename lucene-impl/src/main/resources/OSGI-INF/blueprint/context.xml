@@ -7,17 +7,21 @@
              interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
 
   <bean id="lucene-impl" scope="singleton" class="io.subutai.plugin.lucene.impl.LuceneImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
+    <argument ref="pluginDAO" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="lucene-impl" interface="io.subutai.plugin.lucene.api.Lucene" />
-
   <service ref="lucene-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <!-- *********************************************************************************** -->
 
 
 </blueprint>
