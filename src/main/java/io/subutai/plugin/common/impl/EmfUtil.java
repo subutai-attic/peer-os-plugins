@@ -27,7 +27,7 @@ public class EmfUtil
         ServiceReference[] refs = null;
         try
         {
-            refs = context.getServiceReferences( EntityManagerFactory.class.getName(), "(osgi.unit.name=pluginsUnit)" );
+            refs = context.getServiceReferences( EntityManagerFactory.class.getName(), "(osgi.unit.name=pluginsPUnit)" );
         }
         catch ( Exception isEx )
         {
@@ -44,7 +44,7 @@ public class EmfUtil
             ServiceReference serviceReference = context.getServiceReference( PersistenceProvider.class.getName() );
             PersistenceProvider persistenceProvider = ( PersistenceProvider ) context.getService( serviceReference );
 
-            emf = persistenceProvider.createEntityManagerFactory( "pluginsUnit", null );
+            emf = persistenceProvider.createEntityManagerFactory( "pluginsPUnit", null );
         }
         return emf;
     }
