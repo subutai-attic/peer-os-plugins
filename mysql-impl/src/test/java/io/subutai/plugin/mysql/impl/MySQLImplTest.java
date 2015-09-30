@@ -19,7 +19,7 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
@@ -63,7 +63,7 @@ public class MySQLImplTest
     @Before
     public void setUp()
     {
-        impl = new MySQLCImpl( monitor );
+        impl = new MySQLCImpl( monitor, pluginDAO );
         uuid = UUID.randomUUID();
         impl.setEnvironmentManager( environmentManager );
         impl.setExecutor( executor );

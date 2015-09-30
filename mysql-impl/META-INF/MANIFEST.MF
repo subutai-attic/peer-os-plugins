@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1436350661851
-Build-Jdk: 1.8.0_45
-Built-By: dilshat
+Bnd-LastModified: 1443593887026
+Build-Jdk: 1.8.0_51
+Built-By: nisakov
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-Description: Subutai MySQL Cluster Impl
 Bundle-ManifestVersion: 2
@@ -20,12 +20,11 @@ Import-Package: com.google.common.base;version="[16.0,17)",com.google.gs
  on="[2.0,3)",io.subutai.core.lxc.quota.api;version="[2.0,3)",io.subutai
  .core.metric.api;version="[2.0,3)",io.subutai.core.network.api;version=
  "[2.0,3)",io.subutai.core.peer.api;version="[2.0,3)",io.subutai.core.tr
- acker.api;version="[2.0,3)",io.subutai.plugin.common;version="[2.0,3)",
- io.subutai.plugin.common.api;version="[2.0,3)",io.subutai.plugin.mysql.
- api;version="[2.0,3)",javax.sql,org.osgi.service.blueprint;version="[1.
- 0.0,2.0.0)"
+ acker.api;version="[2.0,3)",io.subutai.plugin.common.api;version="[2.0,
+ 3)",io.subutai.plugin.mysql.api;version="[2.0,3)",org.osgi.service.blue
+ print;version="[1.0.0,2.0.0)"
 Import-Service: io.subutai.core.env.api.EnvironmentManager;multiple:=fal
  se,io.subutai.core.metric.api.Monitor;multiple:=false,io.subutai.core.p
  eer.api.PeerManager;multiple:=false,io.subutai.core.tracker.api.Tracker
- ;multiple:=false
+ ;multiple:=false,io.subutai.plugin.common.api.PluginDAO;multiple:=false
 Tool: Bnd-2.1.0.20130426-122213

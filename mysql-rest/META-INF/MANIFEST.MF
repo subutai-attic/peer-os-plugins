@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1436350664259
-Build-Jdk: 1.8.0_45
-Built-By: dilshat
+Bnd-LastModified: 1443593889443
+Build-Jdk: 1.8.0_51
+Built-By: nisakov
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml,OSGI-INF/blueprint/rest
  .xml
 Bundle-Description: Subutai MySQL Rest
