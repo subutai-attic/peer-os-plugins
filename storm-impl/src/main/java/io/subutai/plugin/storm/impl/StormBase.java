@@ -13,7 +13,7 @@ import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.impl.alert.StormAlertListener;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
@@ -92,15 +92,6 @@ public abstract class StormBase implements Storm
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 

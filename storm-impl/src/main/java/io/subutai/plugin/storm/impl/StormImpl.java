@@ -18,6 +18,7 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import io.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
@@ -34,9 +35,10 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public StormImpl( Monitor monitor1 )
+    public StormImpl( Monitor monitor1, PluginDAO pluginDAO )
     {
         this.monitor = monitor1;
+        this.pluginDAO = pluginDAO;
     }
 
 
