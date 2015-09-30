@@ -30,7 +30,7 @@ import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -64,11 +64,12 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public MySQLCImpl( Monitor monitor )
+    public MySQLCImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.mySQLAlertListener = new MySQLAlertListener( this );
         //        this.monitor.addAlertListener( mySQLAlertListener );
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -115,16 +116,7 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.throwing( MySQLCImpl.class.getName(), "init()", e );
-        }
-
-        executor = SubutaiExecutors.newSingleThreadExecutor();
+         executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 
