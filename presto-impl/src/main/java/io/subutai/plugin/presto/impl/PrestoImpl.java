@@ -1,7 +1,6 @@
 package io.subutai.plugin.presto.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +17,7 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -52,13 +51,14 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
 
     public PrestoImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                       final Monitor monitor )
+                       final Monitor monitor, PluginDAO pluginDAO )
     {
 
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -94,16 +94,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         this.commands = new Commands();
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
