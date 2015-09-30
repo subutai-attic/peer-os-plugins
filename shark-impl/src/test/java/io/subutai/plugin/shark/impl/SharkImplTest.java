@@ -18,7 +18,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupException;
@@ -71,7 +71,7 @@ public class SharkImplTest
 
 
         uuid = new UUID( 50, 50 );
-        sharkImpl = new SharkImpl( tracker, environmentManager, spark, monitor );
+        sharkImpl = new SharkImpl( tracker, environmentManager, spark, monitor, pluginDAO );
         //        sharkImpl.init();
         sharkImpl.setPluginDAO( pluginDAO );
 
