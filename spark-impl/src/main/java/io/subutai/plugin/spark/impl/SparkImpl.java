@@ -21,6 +21,7 @@ import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.common.api.OperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
@@ -38,9 +39,9 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                      final Monitor monitor )
+                      final Monitor monitor, final PluginDAO pluginDAO)
     {
-        super( tracker, environmentManager, hadoopManager, monitor );
+        super( tracker, environmentManager, hadoopManager, monitor, pluginDAO);
     }
 
 

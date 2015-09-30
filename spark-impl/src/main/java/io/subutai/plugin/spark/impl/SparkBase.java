@@ -8,7 +8,7 @@ import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +31,7 @@ public abstract class SparkBase
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         this.commands = new Commands();
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
@@ -88,11 +79,12 @@ public abstract class SparkBase
 
 
     protected SparkBase( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                         final Monitor monitor )
+                         final Monitor monitor,final PluginDAO pluginDAO)
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 }
