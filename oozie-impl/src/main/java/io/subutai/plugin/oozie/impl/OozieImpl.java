@@ -1,7 +1,6 @@
 package io.subutai.plugin.oozie.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +18,7 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -55,12 +54,13 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
 
     public OozieImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                      final Monitor monitor )
+                      final Monitor monitor, PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.monitor = monitor;
+        this.pluginDao = pluginDAO;
     }
 
 
@@ -138,15 +138,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDao = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
