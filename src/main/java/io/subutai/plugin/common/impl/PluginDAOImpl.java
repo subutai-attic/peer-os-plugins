@@ -1,4 +1,4 @@
-package io.subutai.plugin.common;
+package io.subutai.plugin.common.impl;
 
 
 import java.sql.SQLException;
@@ -10,7 +10,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.impl.PluginDataService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -7,7 +7,7 @@
                                http://aries.apache.org/xmlns/jpa/v1.0.0 http://aries.apache.org/xmlns/jpa/v1.0.0">
 
   <!-- ************************************************************************************************* -->
-  <bean id="pluginDAO" init-method="init" class="io.subutai.plugin.common.PluginDAOImpl" activation="eager">
+  <bean id="pluginDAO" init-method="init" class="io.subutai.plugin.common.impl.PluginDAOImpl" activation="eager">
     <jpa:unit unitname="pluginsPUnit" property="entityManagerFactory" />
   </bean>
   <!-- ************************************************************************************************* -->
