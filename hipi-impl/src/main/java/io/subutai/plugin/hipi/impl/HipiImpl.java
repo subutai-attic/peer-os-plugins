@@ -1,7 +1,6 @@
 package io.subutai.plugin.hipi.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -15,7 +14,7 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.env.api.EnvironmentEventListener;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -43,11 +42,13 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
     private Hadoop hadoopManager;
 
 
-    public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
+    public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                   PluginDAO pluginDAO)
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
+        this.pluginDao = pluginDAO;
     }
 
 
@@ -77,14 +78,6 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDao = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
