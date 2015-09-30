@@ -7,15 +7,20 @@
              interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
 
   <bean id="mahout-impl" scope="singleton" class="io.subutai.plugin.mahout.impl.MahoutImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
+    <argument ref="pluginDAO" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="mahout-impl" interface="io.subutai.plugin.mahout.api.Mahout" />
   <service ref="mahout-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <!-- *********************************************************************************** -->
 
 </blueprint>

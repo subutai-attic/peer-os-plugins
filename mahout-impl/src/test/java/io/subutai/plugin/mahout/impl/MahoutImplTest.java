@@ -24,7 +24,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -101,7 +101,7 @@ public class MahoutImplTest
         when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        mahoutImpl = new MahoutImpl( tracker, environmentManager, hadoop );
+        mahoutImpl = new MahoutImpl( tracker, environmentManager, hadoop, pluginDAO );
         mahoutImpl.setTracker( tracker );
         mahoutImpl.setExecutor( executorService );
         mahoutImpl.setPluginDAO( pluginDAO );

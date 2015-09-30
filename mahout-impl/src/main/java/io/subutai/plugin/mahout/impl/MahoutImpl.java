@@ -20,7 +20,7 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.env.api.EnvironmentEventListener;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -51,12 +51,12 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
     private Hadoop hadoopManager;
 
 
-    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager )
+    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO )
     {
-
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -128,14 +128,6 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         this.commands = new Commands();
         executor = SubutaiExecutors.newCachedThreadPool();
     }
