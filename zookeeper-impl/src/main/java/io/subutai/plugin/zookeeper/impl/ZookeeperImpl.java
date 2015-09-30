@@ -20,7 +20,7 @@ import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -62,9 +62,10 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     private QuotaManager quotaManager;
 
 
-    public ZookeeperImpl( Monitor monitor )
+    public ZookeeperImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
@@ -172,14 +173,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( null );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
         executor = SubutaiExecutors.newCachedThreadPool();
     }
 
