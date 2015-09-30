@@ -1,14 +1,11 @@
 package io.subutai.plugin.accumulo.impl;
 
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import javax.sql.DataSource;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
@@ -27,7 +24,7 @@ import io.subutai.plugin.accumulo.impl.handler.AddPropertyOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.RemovePropertyOperationHandler;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -55,30 +52,20 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private PluginDAO pluginDAO;
-    private DataSource dataSource;
     private Monitor monitor;
     private QuotaManager quotaManager;
 
 
-    public AccumuloImpl( DataSource dataSource, Monitor monitor )
+    public AccumuloImpl( Monitor monitor, PluginDAO pluginDAO )
     {
-        this.dataSource = dataSource;
         this.monitor = monitor;
+        this.pluginDAO = pluginDAO;
     }
 
 
     public void init()
     {
-        try
-        {
-            this.pluginDAO = new PluginDAO( dataSource );
-        }
-        catch ( SQLException e )
-        {
-            LOG.error( e.getMessage(), e );
-        }
-
-        executor = SubutaiExecutors.newCachedThreadPool();
+       executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
