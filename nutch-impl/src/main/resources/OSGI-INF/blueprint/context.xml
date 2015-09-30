@@ -7,17 +7,21 @@
              interface="io.subutai.core.env.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
 
   <bean id="nutch-impl" scope="singleton" class="io.subutai.plugin.nutch.impl.NutchImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
+    <argument ref="pluginDAO" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="nutch-impl" interface="io.subutai.plugin.nutch.api.Nutch" />
-
   <service ref="nutch-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <!-- *********************************************************************************** -->
 
 
 </blueprint>
