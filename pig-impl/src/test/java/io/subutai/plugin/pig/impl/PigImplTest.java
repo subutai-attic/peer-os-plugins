@@ -22,7 +22,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.pig.api.PigConfig;
@@ -86,7 +86,7 @@ public class PigImplTest
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
         uuid = new UUID( 50, 50 );
-        pigImpl = new PigImpl( tracker, environmentManager, hadoop );
+        pigImpl = new PigImpl( tracker, environmentManager, hadoop, pluginDAO );
         //        pigImpl.setEnvironmentManager(environmentManager);
         //        pigImpl.setHadoopManager(hadoop);
         //        pigImpl.setTracker(tracker);
