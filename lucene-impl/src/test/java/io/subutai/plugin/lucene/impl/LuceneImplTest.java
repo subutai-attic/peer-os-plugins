@@ -19,7 +19,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.Hadoop;
@@ -73,7 +73,7 @@ public class LuceneImplTest
         when( trackerOperation.getId() ).thenReturn( uuid );
         when( pluginDAO.getInfo( LuceneConfig.PRODUCT_KEY, "test", LuceneConfig.class ) ).thenReturn( luceneConfig );
 
-        luceneImpl = new LuceneImpl( tracker, environmentManager, hadoop );
+        luceneImpl = new LuceneImpl( tracker, environmentManager, hadoop, pluginDAO );
         luceneImpl.setTracker( tracker );
         luceneImpl.setHadoopManager( hadoop );
         luceneImpl.setEnvironmentManager( environmentManager );
