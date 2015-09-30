@@ -27,7 +27,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.Hadoop;
@@ -109,7 +109,7 @@ public class OozieImplTest
         when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        oozieImpl = new OozieImpl( tracker, environmentManager, hadoop, monitor );
+        oozieImpl = new OozieImpl( tracker, environmentManager, hadoop, monitor, pluginDAO );
         oozieImpl.setTracker( tracker );
         oozieImpl.setExecutor( executorService );
         oozieImpl.setPluginDao( pluginDAO );

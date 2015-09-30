@@ -11,6 +11,8 @@
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="quotaManager" availability="mandatory"
              interface="io.subutai.core.lxc.quota.api.QuotaManager" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
 
   <bean id="oozie-impl" scope="singleton" class="io.subutai.plugin.oozie.impl.OozieImpl"
         init-method="init" destroy-method="destroy">
@@ -18,19 +20,19 @@
     <argument ref="hadoopManager" />
     <argument ref="environmentManager" />
     <argument ref="monitor" />
+    <argument ref="pluginDAO" />
     <property name="quotaManager" ref="quotaManager" />
-
   </bean>
 
   <bean id="alertListener" scope="singleton" class="io.subutai.plugin.oozie.impl.alert.OozieAlertListener">
     <argument ref="oozie-impl" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="oozie-impl" interface="io.subutai.plugin.oozie.api.Oozie" />
-
   <service ref="oozie-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
-
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+  <!-- *********************************************************************************** -->
 
 
 </blueprint>
