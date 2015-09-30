@@ -3,19 +3,23 @@
 
   <reference id="hadoopManager" interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" interface="io.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+  <reference id="environmentManager" interface="io.subutai.core.env.api.EnvironmentManager" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
+
 
   <bean id="hive-impl" scope="singleton" class="io.subutai.plugin.hive.impl.HiveImpl"
         init-method="init" destroy-method="destroy">
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
+    <argument ref="pluginDAO" />
   </bean>
 
+  <!-- *********************************************************************************** -->
   <service ref="hive-impl" interface="io.subutai.plugin.hive.api.Hive" />
-
   <service ref="hive-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <!-- *********************************************************************************** -->
 
 
 </blueprint>
