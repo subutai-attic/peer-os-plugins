@@ -14,7 +14,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.SolrImpl;

@@ -27,7 +27,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.PluginDAO;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.Commands;
@@ -93,7 +93,7 @@ public class SolrImplTest
         when( pluginDAO.getInfo( SolrClusterConfig.PRODUCT_KEY, "test", SolrClusterConfig.class ) )
                 .thenReturn( solrClusterConfig );
 
-        solrImpl = new SolrImpl();
+        solrImpl = new SolrImpl(pluginDAO);
 
         solrImpl.setTracker( tracker );
         solrImpl.setExecutor( executorService );
