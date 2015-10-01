@@ -5,14 +5,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>storm-plugin-parent</artifactId>
-  <version>2.0.4</version>
+  <version>4.0.0-RC1</version>
 
   <name>Subutai Storm Parent</name>
   <description>Subutai Storm Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>2.0.0</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC1</subutai.mgmt.parent.version>
+    <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
+    <zookeeper.version>${subutai.mgmt.parent.version}</zookeeper.version>
     <karaf.version>3.0.2</karaf.version>
     <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
@@ -22,8 +24,6 @@
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
     <jaxrs.version>2.7.12</jaxrs.version>
-    <hadoop.version>2.0.4</hadoop.version>
-    <zookeeper.version>2.0.4</zookeeper.version>
   </properties>
 
   <modules>
