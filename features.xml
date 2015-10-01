@@ -1,9 +1,9 @@
-<features name="accumulo-plugin" version="2.0.4">
-  <feature name="accumulo-plugin" version="2.0.4">
-    <bundle>mvn:io.subutai/accumulo-plugin-api/2.0.4</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-impl/2.0.4</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-ui/2.0.4</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-cli/2.0.4</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-rest/2.0.4</bundle>
+<features name="accumulo-plugin" version="4.0.0-RC1">
+  <feature name="accumulo-plugin" version="4.0.0-RC1">
+    <bundle>mvn:io.subutai/accumulo-plugin-api/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-impl/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-ui/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-cli/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-rest/4.0.0-RC1</bundle>
   </feature>
 </features>
