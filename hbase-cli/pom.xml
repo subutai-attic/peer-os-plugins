@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>hbase-plugin-parent</artifactId>
-    <version>2.0.4</version>
+    <version>4.0.0-RC1</version>
   </parent>
 
   <artifactId>hbase-plugin-cli</artifactId>
@@ -27,7 +27,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>hadoop-plugin-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
