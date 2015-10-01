@@ -1,34 +1,34 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1443593888042
-Build-Jdk: 1.8.0_51
-Built-By: nisakov
+Bnd-LastModified: 1443689918912
+Build-Jdk: 1.8.0_60
+Built-By: dilshat
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-Description: Subutai MySQL Cluster Plugin UI
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Cluster Plugin UI
 Bundle-SymbolicName: io.subutai.plugin.mysql.ui
-Bundle-Version: 2.0.4
+Bundle-Version: 4.0.0.RC1
 Created-By: Apache Maven Bundle Plugin
 Export-Package: io.subutai.plugin.mysql.ui;uses:="com.vaadin.ui,io.subut
  ai.core.env.api,io.subutai.core.tracker.api,io.subutai.plugin.mysql.api
- ,io.subutai.server.ui.api,javax.naming";version="2.0.4",io.subutai.plug
- in.mysql.ui.manager;uses:="com.vaadin.ui,io.subutai.core.env.api,io.sub
- utai.core.tracker.api,io.subutai.plugin.mysql.api";version="2.0.4",io.s
- ubutai.plugin.mysql.ui.environment;version="2.0.4";uses:="com.vaadin.ui
- ,io.subutai.core.env.api,io.subutai.core.tracker.api,io.subutai.plugin.
- mysql.api"
+ ,io.subutai.server.ui.api,javax.naming";version="4.0.0.RC1",io.subutai.
+ plugin.mysql.ui.environment;uses:="com.vaadin.ui,io.subutai.core.env.ap
+ i,io.subutai.core.tracker.api,io.subutai.plugin.mysql.api";version="4.0
+ .0.RC1",io.subutai.plugin.mysql.ui.manager;version="4.0.0.RC1";uses:="c
+ om.vaadin.ui,io.subutai.core.env.api,io.subutai.core.tracker.api,io.sub
+ utai.plugin.mysql.api"
 Export-Service: io.subutai.server.ui.api.PortalModule
 Import-Package: com.google.common.base;version="[16.0,17)",com.vaadin.da
  ta;version="[7.3,8)",com.vaadin.data.util;version="[7.3,8)",com.vaadin.
  event;version="[7.3,8)",com.vaadin.server;version="[7.3,8)",com.vaadin.
  shared.ui.label;version="[7.3,8)",com.vaadin.ui;version="[7.3,8)",io.su
- butai.common.environment;version="[2.0,3)",io.subutai.common.mdc;versio
- n="[2.0,3)",io.subutai.common.peer;version="[2.0,3)",io.subutai.common.
- util;version="[2.0,3)",io.subutai.core.env.api;version="[2.0,3)",io.sub
- utai.core.tracker.api;version="[2.0,3)",io.subutai.plugin.common.api;ve
- rsion="[2.0,3)",io.subutai.plugin.common.ui;version="[2.0,3)",io.subuta
- i.plugin.mysql.api;version="[2.0,3)",io.subutai.server.ui.api;version="
- [2.0,3)",io.subutai.server.ui.component;version="[2.0,3)",javax.naming,
+ butai.common.environment;version="[4.0,5)",io.subutai.common.mdc;versio
+ n="[4.0,5)",io.subutai.common.peer;version="[4.0,5)",io.subutai.common.
+ util;version="[4.0,5)",io.subutai.core.env.api;version="[4.0,5)",io.sub
+ utai.core.tracker.api;version="[4.0,5)",io.subutai.plugin.common.api;ve
+ rsion="[4.0,5)",io.subutai.plugin.common.ui;version="[4.0,5)",io.subuta
+ i.plugin.mysql.api;version="[4.0,5)",io.subutai.server.ui.api;version="
+ [4.0,5)",io.subutai.server.ui.component;version="[4.0,5)",javax.naming,
  org.osgi.service.blueprint;version="[1.0.0,2.0.0)",org.slf4j;version="[
  1.7,2)"
 Import-Service: io.subutai.core.env.api.EnvironmentManager;multiple:=fal

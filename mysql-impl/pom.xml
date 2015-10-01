@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mysql-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>2.0.4</version>
+    <version>4.0.0-RC1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -50,12 +50,12 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>metric-api</artifactId>
-      <version>2.0.0</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>network-manager-api</artifactId>
-      <version>2.0.0</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -72,4 +72,4 @@
 
     </plugins>
   </build>
-  </project>
+</project>

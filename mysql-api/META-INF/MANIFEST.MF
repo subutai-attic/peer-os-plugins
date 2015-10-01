@@ -1,21 +1,21 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1443593884309
-Build-Jdk: 1.8.0_51
-Built-By: nisakov
+Bnd-LastModified: 1443689915116
+Build-Jdk: 1.8.0_60
+Built-By: dilshat
 Bundle-Description: Subutai MySQL Cluster Api
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Cluster Plugin Api
 Bundle-SymbolicName: io.subutai.plugin.mysql.api
-Bundle-Version: 2.0.4
+Bundle-Version: 4.0.0.RC1
 Created-By: Apache Maven Bundle Plugin
 Export-Package: io.subutai.plugin.mysql.api;uses:="io.subutai.common.env
  ironment,io.subutai.common.peer,io.subutai.common.tracker,io.subutai.co
  re.tracker.api,io.subutai.plugin.common.api,io.subutai.plugin.common.im
- pl";version="2.0.4"
+ pl";version="4.0.0.RC1"
 Import-Package: com.google.common.collect;version="[16.0,17)",io.subutai
- .common.environment;version="[2.0,3)",io.subutai.common.peer;version="[
- 2.0,3)",io.subutai.common.settings;version="[2.0,3)",io.subutai.common.
- tracker;version="[2.0,3)",io.subutai.common.util;version="[2.0,3)",io.s
- ubutai.core.tracker.api;version="[2.0,3)",io.subutai.plugin.common.api;
- version="[2.0,3)",io.subutai.plugin.common.impl;version="[2.0,3)"
+ .common.environment;version="[4.0,5)",io.subutai.common.peer;version="[
+ 4.0,5)",io.subutai.common.settings;version="[4.0,5)",io.subutai.common.
+ tracker;version="[4.0,5)",io.subutai.common.util;version="[4.0,5)",io.s
+ ubutai.core.tracker.api;version="[4.0,5)",io.subutai.plugin.common.api;
+ version="[4.0,5)",io.subutai.plugin.common.impl;version="[4.0,5)"
 Tool: Bnd-2.1.0.20130426-122213
