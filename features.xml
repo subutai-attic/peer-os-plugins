@@ -1,9 +1,9 @@
-<features name="shark-plugin" version="2.0.4">
-  <feature name="shark-plugin" version="2.0.4">
-    <bundle> mvn:io.subutai/shark-plugin-api/2.0.4</bundle>
-    <bundle> mvn:io.subutai/shark-plugin-impl/2.0.4</bundle>
-    <bundle> mvn:io.subutai/shark-plugin-ui/2.0.4</bundle>
-    <bundle> mvn:io.subutai/shark-plugin-cli/2.0.4</bundle>
-    <bundle> mvn:io.subutai/shark-plugin-rest/2.0.4</bundle>
+<features name="shark-plugin" version="4.0.0-RC1">
+  <feature name="shark-plugin" version="4.0.0-RC1">
+    <bundle> mvn:io.subutai/shark-plugin-api/4.0.0-RC1</bundle>
+    <bundle> mvn:io.subutai/shark-plugin-impl/4.0.0-RC1</bundle>
+    <bundle> mvn:io.subutai/shark-plugin-ui/4.0.0-RC1</bundle>
+    <bundle> mvn:io.subutai/shark-plugin-cli/4.0.0-RC1</bundle>
+    <bundle> mvn:io.subutai/shark-plugin-rest/4.0.0-RC1</bundle>
   </feature>
 </features>
