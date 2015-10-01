@@ -1,9 +1,9 @@
-<features name="solr-plugin" version="2.0.4">
-  <feature name="solr-plugin" version="2.0.4">
-    <bundle>mvn:io.subutai/solr-plugin-api/2.0.4</bundle>
-    <bundle>mvn:io.subutai/solr-plugin-impl/2.0.4</bundle>
-    <bundle>mvn:io.subutai/solr-plugin-ui/2.0.4</bundle>
-    <bundle>mvn:io.subutai/solr-plugin-cli/2.0.4</bundle>
-    <bundle>mvn:io.subutai/solr-plugin-rest/2.0.4</bundle>
+<features name="solr-plugin" version="4.0.0-RC1">
+  <feature name="solr-plugin" version="4.0.0-RC1">
+    <bundle>mvn:io.subutai/solr-plugin-api/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/solr-plugin-impl/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/solr-plugin-ui/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/solr-plugin-cli/4.0.0-RC1</bundle>
+    <bundle>mvn:io.subutai/solr-plugin-rest/4.0.0-RC1</bundle>
   </feature>
 </features>
