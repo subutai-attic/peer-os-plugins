@@ -13,6 +13,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.server.ui.component.ProgressWindow;
