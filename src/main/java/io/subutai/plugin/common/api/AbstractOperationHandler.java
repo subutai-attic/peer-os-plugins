@@ -3,13 +3,13 @@ package io.subutai.plugin.common.api;
 
 import java.util.UUID;
 
-import io.subutai.common.tracker.TrackerOperation;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+import io.subutai.common.tracker.TrackerOperation;
 
-public abstract class AbstractOperationHandler<T extends ApiBase, V extends ConfigBase> implements Runnable
+
+public abstract class AbstractOperationHandler<T extends ApiBase<V>, V extends ConfigBase> implements Runnable
 {
     protected final T manager;
     protected final String clusterName;
@@ -17,14 +17,13 @@ public abstract class AbstractOperationHandler<T extends ApiBase, V extends Conf
     protected final V config;
 
 
-    @Deprecated
     public AbstractOperationHandler( T manager, String clusterName )
     {
         Preconditions.checkNotNull( manager, "Manager is null" );
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         this.manager = manager;
         this.clusterName = clusterName;
-        this.config = null;
+        this.config = manager.getCluster( clusterName );
     }
 
 
