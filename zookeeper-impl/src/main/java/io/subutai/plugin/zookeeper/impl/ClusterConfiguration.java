@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -13,12 +14,11 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.FileUtil;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
-import com.google.common.base.Strings;
 
 
 /**
@@ -46,8 +46,8 @@ public class ClusterConfiguration
 
 
         String configureClusterCommand;
-        Set<UUID> nodeUUIDs = config.getNodes();
-        Set<ContainerHost> containerHosts = null;
+        Set<String> nodeUUIDs = config.getNodes();
+        Set<EnvironmentContainerHost> containerHosts;
         try
         {
             containerHosts = environment.getContainerHostsByIds( nodeUUIDs );
@@ -57,7 +57,7 @@ public class ClusterConfiguration
             po.addLogFailed( "Error getting container hosts by ids" );
             return;
         }
-        Iterator<ContainerHost> iterator = containerHosts.iterator();
+        Iterator<EnvironmentContainerHost> iterator = containerHosts.iterator();
 
         int nodeNumber = 0;
         List<CommandResult> commandsResultList = new ArrayList<>();
@@ -68,7 +68,7 @@ public class ClusterConfiguration
             try
             {
                 ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
-                CommandResult commandResult = null;
+                CommandResult commandResult;
                 commandResult =
                         zookeeperNode.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
                 commandsResultList.add( commandResult );
@@ -128,7 +128,7 @@ public class ClusterConfiguration
 
 
     //temporary workaround until we get full configuration injection working
-    private String prepareConfiguration( Set<ContainerHost> nodes ) throws ClusterConfigurationException
+    private String prepareConfiguration( Set<EnvironmentContainerHost> nodes ) throws ClusterConfigurationException
     {
         String zooCfgFile = FileUtil.getContent( "conf/zoo.cfg", ZookeeperStandaloneSetupStrategy.class );
 

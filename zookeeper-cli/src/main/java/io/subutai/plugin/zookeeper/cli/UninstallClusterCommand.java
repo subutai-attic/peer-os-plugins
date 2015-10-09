@@ -3,26 +3,26 @@ package io.subutai.plugin.zookeeper.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "zookeeper", name = "uninstall-cluster", description = "Command to uninstall Zookeeper cluster")
+@Command( scope = "zookeeper", name = "uninstall-cluster", description = "Command to uninstall Zookeeper cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Zookeeper zookeeperManager;
     private Tracker tracker;
@@ -37,12 +37,6 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
     }
 
 

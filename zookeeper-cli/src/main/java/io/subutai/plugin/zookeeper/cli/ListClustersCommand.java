@@ -3,27 +3,21 @@ package io.subutai.plugin.zookeeper.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "zookeeper", name = "list-clusters", description = "mydescription")
+@Command( scope = "zookeeper", name = "list-clusters", description = "mydescription" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
     private Zookeeper zookeeperManager;
-
-
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
-    }
 
 
     public void setZookeeperManager( Zookeeper zookeeperManager )

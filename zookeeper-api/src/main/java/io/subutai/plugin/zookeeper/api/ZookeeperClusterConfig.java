@@ -8,7 +8,6 @@ package io.subutai.plugin.zookeeper.api;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.plugin.common.api.ConfigBase;
 
@@ -22,20 +21,20 @@ public class ZookeeperClusterConfig implements ConfigBase
     private String templateName = PRODUCT_NAME;
     private String clusterName = "";
     private int numberOfNodes = 3;
-    private Set<UUID> nodes;
+    private Set<String> nodes;
     private SetupType setupType;
     private String hadoopClusterName;
-    private UUID environmentId;
+    private String environmentId;
     private boolean autoScaling;
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -121,13 +120,13 @@ public class ZookeeperClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public void setNodes( Set<UUID> nodes )
+    public void setNodes( Set<String> nodes )
     {
         this.nodes = nodes;
     }

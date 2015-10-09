@@ -1,31 +1,37 @@
 package io.subutai.plugin.zookeeper.impl;
 
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.SetupType;
@@ -36,11 +42,6 @@ import io.subutai.plugin.zookeeper.impl.handler.AddPropertyOperationHandler;
 import io.subutai.plugin.zookeeper.impl.handler.RemovePropertyOperationHandler;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperNodeOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 //TODO: Add parameter validation
@@ -479,14 +480,14 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         LOG.info( "Environment grown" );
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID nodeId )
+    public void onContainerDestroyed( final Environment environment, final String nodeId )
     {
         List<ZookeeperClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final ZookeeperClusterConfig clusterConfig : clusterConfigs )
@@ -506,7 +507,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID environmentId )
+    public void onEnvironmentDestroyed( final String environmentId )
     {
         List<ZookeeperClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final ZookeeperClusterConfig clusterConfig : clusterConfigs )

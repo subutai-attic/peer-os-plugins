@@ -2,13 +2,13 @@ package io.subutai.plugin.zookeeper.impl;
 
 
 import org.junit.Test;
+
 import io.subutai.common.tracker.OperationState;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.mock.TrackerMock;
 import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperNodeOperationHandler;
 
 import static junit.framework.Assert.assertTrue;

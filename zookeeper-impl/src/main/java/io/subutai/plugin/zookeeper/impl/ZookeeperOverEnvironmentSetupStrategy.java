@@ -6,6 +6,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,6 +18,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -20,15 +26,8 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
-/**
- * Created by talas on 1/14/15.
- */
 public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrategy
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperOverEnvironmentSetupStrategy.class );
@@ -69,16 +68,14 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             try
             {
                 environment =
-                        manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                        manager.getEnvironmentManager().loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error(
-                        "Error getting environment for id: " + zookeeperClusterConfig.getEnvironmentId().toString(),
-                        e );
+                LOGGER.error( "Error getting environment for id: " + zookeeperClusterConfig.getEnvironmentId(), e );
             }
         }
-        Set<ContainerHost> zookeeperNodes;
+        Set<EnvironmentContainerHost> zookeeperNodes;
         try
         {
             zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
@@ -116,7 +113,7 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
         }
 
-        Iterator<ContainerHost> iterator = zookeeperNodes.iterator();
+        Iterator<EnvironmentContainerHost> iterator = zookeeperNodes.iterator();
         int nodeIndex = 0;
         while ( iterator.hasNext() )
         {
@@ -183,7 +180,8 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
     }
 
 
-    private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> zookeeperNodes )
+    private List<CommandResult> runCommandOnContainers( String command,
+                                                        final Set<EnvironmentContainerHost> zookeeperNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
         for ( ContainerHost containerHost : zookeeperNodes )

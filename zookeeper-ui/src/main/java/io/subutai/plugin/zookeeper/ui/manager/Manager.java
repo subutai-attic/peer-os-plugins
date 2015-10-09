@@ -9,25 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.zookeeper.api.NodeOperationTask;
-import io.subutai.plugin.zookeeper.api.SetupType;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +29,26 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.zookeeper.api.NodeOperationTask;
+import io.subutai.plugin.zookeeper.api.SetupType;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -390,16 +391,17 @@ public class Manager
                         Environment environment;
                         try
                         {
-                            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                         }
                         catch ( EnvironmentNotFoundException e )
                         {
-                            LOGGER.error( String.format( "Couldn't get environment with id: %s",
-                                    config.getEnvironmentId().toString() ), e );
+                            LOGGER.error(
+                                    String.format( "Couldn't get environment with id: %s", config.getEnvironmentId() ),
+                                    e );
                             return;
                         }
-                        Set<ContainerHost> environmentHosts = new HashSet<>( environment.getContainerHosts() );
-                        Set<ContainerHost> zookeeperHosts = new HashSet<>();
+                        Set<EnvironmentContainerHost> environmentHosts = environment.getContainerHosts();
+                        Set<EnvironmentContainerHost> zookeeperHosts = new HashSet<>();
                         try
                         {
                             zookeeperHosts.addAll( environment.getContainerHostsByIds( config.getNodes() ) );
@@ -434,19 +436,19 @@ public class Manager
                             try
                             {
                                 hadoopEnvironment =
-                                        environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                                        environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
                                 LOGGER.error( String.format( "Couldn't get environment with id: %s",
-                                        hadoopClusterConfig.getEnvironmentId().toString() ), e );
+                                        hadoopClusterConfig.getEnvironmentId() ), e );
                                 return;
                             }
-                            Set<UUID> hadoopNodeIDs = new HashSet<>( hadoopClusterConfig.getAllNodes() );
-                            Set<ContainerHost> hadoopNodes = new HashSet<>();
-                            Set<ContainerHost> zookeeperHosts = new HashSet<>();
+                            Set<String> hadoopNodeIDs = new HashSet<>( hadoopClusterConfig.getAllNodes() );
+                            Set<EnvironmentContainerHost> hadoopNodes = new HashSet<>();
+                            Set<EnvironmentContainerHost> zookeeperHosts = new HashSet<>();
 
-                            for ( final UUID nodeId : config.getNodes() )
+                            for ( final String nodeId : config.getNodes() )
                             {
                                 try
                                 {
@@ -454,12 +456,13 @@ public class Manager
                                 }
                                 catch ( ContainerHostNotFoundException e )
                                 {
-                                    LOGGER.warn( String.format( "Couldn't get some container host with ids: %s",
-                                            nodeId.toString() ), e );
+                                    LOGGER.warn(
+                                            String.format( "Couldn't get some container host with ids: %s", nodeId ),
+                                            e );
                                 }
                             }
 
-                            for ( final UUID nodeId : hadoopNodeIDs )
+                            for ( final String nodeId : hadoopNodeIDs )
                             {
                                 try
                                 {
@@ -467,12 +470,13 @@ public class Manager
                                 }
                                 catch ( ContainerHostNotFoundException e )
                                 {
-                                    LOGGER.warn( String.format( "Couldn't get some container host with ids: %s",
-                                            nodeId.toString() ), e );
+                                    LOGGER.warn(
+                                            String.format( "Couldn't get some container host with ids: %s", nodeId ),
+                                            e );
                                 }
                             }
 
-                            Set<ContainerHost> nodes = new HashSet<>();
+                            Set<EnvironmentContainerHost> nodes = new HashSet<>();
                             nodes.addAll( hadoopNodes );
                             nodes.removeAll( zookeeperHosts );
                             if ( !nodes.isEmpty() )
@@ -541,8 +545,8 @@ public class Manager
                     try
                     {
 
-                        Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                        ContainerHost containerHost = environment.getContainerHostByHostname( lxcHostname );
+                        Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                        EnvironmentContainerHost containerHost = environment.getContainerHostByHostname( lxcHostname );
                         if ( containerHost != null )
                         {
                             TerminalWindow terminal = new TerminalWindow( containerHost );
@@ -555,8 +559,9 @@ public class Manager
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( String.format( "Couldn't find environment with id: %s",
-                                config.getEnvironmentId().toString() ), e );
+                        LOGGER.error(
+                                String.format( "Couldn't find environment with id: %s", config.getEnvironmentId() ),
+                                e );
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -581,12 +586,11 @@ public class Manager
             Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( String.format( "Environment with id: %s is null", config.getEnvironmentId().toString() ),
-                        e );
+                LOGGER.error( String.format( "Environment with id: %s is null", config.getEnvironmentId() ), e );
                 return;
             }
 
@@ -600,10 +604,10 @@ public class Manager
     }
 
 
-    private Set<ContainerHost> getZookeeperNodes( final Set<ContainerHost> containerHosts )
+    private Set<EnvironmentContainerHost> getZookeeperNodes( final Set<EnvironmentContainerHost> containerHosts )
     {
-        Set<ContainerHost> list = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> list = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( config.getNodes().contains( containerHost.getId() ) )
             {
@@ -614,10 +618,10 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Label resultHolder = new Label();
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
@@ -708,7 +712,7 @@ public class Manager
     }
 
 
-    public void addDestroyButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    public void addDestroyButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( DESTROY_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -781,7 +785,8 @@ public class Manager
     }
 
 
-    public void addStartNStopButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    public void addStartNStopButtonClickListener( final EnvironmentContainerHost containerHost,
+                                                  final Button... buttons )
     {
         final Button startNstopButton = getButton( START_STOP_BUTTON_CAPTION, buttons );
         startNstopButton.addClickListener( new Button.ClickListener()
@@ -791,7 +796,8 @@ public class Manager
             {
                 PROGRESS_ICON.setVisible( true );
                 disableButtons( buttons );
-                if ( startNstopButton.getCaption().equals( START_BUTTON_CAPTION ) ){
+                if ( startNstopButton.getCaption().equals( START_BUTTON_CAPTION ) )
+                {
                     executorService.execute(
                             new NodeOperationTask( zookeeper, tracker, config.getClusterName(), containerHost,
                                     NodeOperationType.START, new CompleteEvent()
@@ -807,7 +813,8 @@ public class Manager
                                 }
                             }, null ) );
                 }
-                else if ( startNstopButton.getCaption().equals( STOP_BUTTON_CAPTION ) ){
+                else if ( startNstopButton.getCaption().equals( STOP_BUTTON_CAPTION ) )
+                {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( buttons );
                     executorService.execute(

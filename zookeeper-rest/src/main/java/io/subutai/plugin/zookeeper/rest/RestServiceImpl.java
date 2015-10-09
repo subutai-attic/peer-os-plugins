@@ -2,6 +2,7 @@ package io.subutai.plugin.zookeeper.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,19 +10,19 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -78,7 +79,7 @@ public class RestServiceImpl implements RestService
         Environment environment = null;
         try
         {
-            environment = environmentManager.findEnvironment( UUID.fromString( environmentId ) );
+            environment = environmentManager.loadEnvironment( environmentId );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -95,14 +96,11 @@ public class RestServiceImpl implements RestService
                     entity( "There is already a cluster with same name!" ).build();
         }
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setEnvironmentId( environmentId );
         config.setClusterName( clusterName );
-        Set<UUID> allNodes = new HashSet<>();
+        Set<String> allNodes = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : configNodes )
-        {
-            allNodes.add( UUID.fromString( node ) );
-        }
+        Collections.addAll( allNodes, configNodes );
         config.getNodes().addAll( allNodes );
         config.setSetupType( SetupType.OVER_ENVIRONMENT );
         UUID uuid = zookeeperManager.installCluster( config );
@@ -112,7 +110,8 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( final String clusterName, final String hadoopClusterName, final String environmentId, final String nodes )
+    public Response installCluster( final String clusterName, final String hadoopClusterName,
+                                    final String environmentId, final String nodes )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
@@ -120,13 +119,10 @@ public class RestServiceImpl implements RestService
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
-        Set<UUID> allNodes = new HashSet<>();
+        config.setEnvironmentId( environmentId );
+        Set<String> allNodes = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "//s+", "" ).split( "," );
-        for ( String node : configNodes )
-        {
-            allNodes.add( UUID.fromString( node ) );
-        }
+        Collections.addAll( allNodes, configNodes );
         config.getNodes().addAll( allNodes );
         config.setSetupType( SetupType.OVER_HADOOP );
         UUID uuid = zookeeperManager.installCluster( config );
@@ -293,7 +289,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
-        String message ="enabled";
+        String message = "enabled";
         ZookeeperClusterConfig config = zookeeperManager.getCluster( clusterName );
         config.setAutoScaling( scale );
         try
@@ -304,12 +300,12 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        if( scale == false )
+        if ( !scale )
         {
             message = "disabled";
         }
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 
@@ -363,21 +359,9 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

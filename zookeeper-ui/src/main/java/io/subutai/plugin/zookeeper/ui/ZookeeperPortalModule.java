@@ -6,18 +6,19 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.server.ui.api.PortalModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.vaadin.ui.Component;
 
 
 public class ZookeeperPortalModule implements PortalModule

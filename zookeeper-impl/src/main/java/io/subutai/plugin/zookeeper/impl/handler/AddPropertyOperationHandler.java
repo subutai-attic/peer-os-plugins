@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,14 +18,11 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
 import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
 /**
@@ -77,8 +79,9 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Zookee
         {
 
             Environment zookeeperEnvironment =
-                    manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
-            Set<ContainerHost> zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( config.getNodes() );
+                    manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            Set<EnvironmentContainerHost> zookeeperNodes =
+                    zookeeperEnvironment.getContainerHostsByIds( config.getNodes() );
 
 
             String addPropertyCommand = Commands.getAddPropertyCommand( fileName, propertyName, propertyValue );
@@ -92,7 +95,7 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Zookee
 
                 String restartCommand = Commands.getRestartCommand();
 
-                commandResultList = runCommandOnContainers( restartCommand, zookeeperNodes );
+                runCommandOnContainers( restartCommand, zookeeperNodes );
                 trackerOperation.addLogDone( "Restarting cluster finished..." );
             }
             else
@@ -108,11 +111,9 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Zookee
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOGGER.error(
-                    String.format( "Couldn't retrieve environment with id: %s", config.getEnvironmentId().toString() ),
-                    e );
-            trackerOperation.addLogFailed( String.format( "Couldn't retrieve environment with id: %s",
-                    config.getEnvironmentId().toString() ) );
+            LOGGER.error( String.format( "Couldn't retrieve environment with id: %s", config.getEnvironmentId() ), e );
+            trackerOperation.addLogFailed(
+                    String.format( "Couldn't retrieve environment with id: %s", config.getEnvironmentId() ) );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -125,7 +126,8 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Zookee
     }
 
 
-    private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> zookeeperNodes )
+    private List<CommandResult> runCommandOnContainers( String command,
+                                                        final Set<EnvironmentContainerHost> zookeeperNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
         for ( ContainerHost containerHost : zookeeperNodes )

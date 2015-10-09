@@ -6,21 +6,23 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
 import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ZookeeperAlertListener implements AlertListener
@@ -66,7 +68,7 @@ public class ZookeeperAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                zookeeper.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
+                zookeeper.getEnvironmentManager().loadEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(
@@ -74,7 +76,7 @@ public class ZookeeperAlertListener implements AlertListener
         }
 
         //get environment containers and find alert source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
         ContainerHost sourceHost = null;
         for ( ContainerHost containerHost : containers )
@@ -106,7 +108,7 @@ public class ZookeeperAlertListener implements AlertListener
         MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Zookeeper process pid
-        int zookeeperPid = 0;
+        int zookeeperPid;
         try
         {
             CommandResult result = commandUtil.execute( new RequestBuilder( Commands.getStatusCommand() ), sourceHost );

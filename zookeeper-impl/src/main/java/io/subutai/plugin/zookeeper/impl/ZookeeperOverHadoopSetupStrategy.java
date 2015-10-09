@@ -7,7 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -17,6 +19,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
@@ -26,9 +29,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -77,19 +77,18 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
 
         if ( zookeeperClusterConfig.getSetupType() == SetupType.OVER_HADOOP )
         {
-            UUID envId = manager.getHadoopManager().getCluster( zookeeperClusterConfig.getHadoopClusterName() )
-                                .getEnvironmentId();
+            String envId = manager.getHadoopManager().getCluster( zookeeperClusterConfig.getHadoopClusterName() )
+                                  .getEnvironmentId();
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( envId );
+                environment = manager.getEnvironmentManager().loadEnvironment( envId );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                throw new ClusterSetupException(
-                        String.format( "Couldn't get environment with id: %s", envId.toString() ) );
+                throw new ClusterSetupException( String.format( "Couldn't get environment with id: %s", envId ) );
             }
         }
-        Set<ContainerHost> zookeeperNodes;
+        Set<EnvironmentContainerHost> zookeeperNodes;
         try
         {
             zookeeperNodes = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
@@ -141,7 +140,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
         }
 
-        Iterator<ContainerHost> iterator = zookeeperNodes.iterator();
+        Iterator<EnvironmentContainerHost> iterator = zookeeperNodes.iterator();
         int nodeIndex = 0;
         while ( iterator.hasNext() )
         {
@@ -172,9 +171,9 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         {
             RequestBuilder installRequest = new RequestBuilder( Commands.getInstallCommand() );
             installRequest.withTimeout( 360 );
-            Map<Host, CommandResult> resultMap =
-                    commandUtil.executeParallel( installRequest, hostSet );
-            if ( isAllSuccessful( resultMap, hostSet ) ){
+            Map<Host, CommandResult> resultMap = commandUtil.executeParallel( installRequest, hostSet );
+            if ( isAllSuccessful( resultMap, hostSet ) )
+            {
                 po.addLog( "Zookeeper is installed on all nodes successfully" );
                 try
                 {
@@ -196,10 +195,10 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
                     e.printStackTrace();
                 }
             }
-            else {
-                po.addLogFailed( "Zookeeper is NOT installed on all nodes successfully !!!");
+            else
+            {
+                po.addLogFailed( "Zookeeper is NOT installed on all nodes successfully !!!" );
             }
-
         }
         catch ( CommandException e )
         {
@@ -209,12 +208,14 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    public static Set<Host> getHosts( Set<UUID> uuids, Environment environment ){
+    public static Set<Host> getHosts( Set<String> ids, Environment environment )
+    {
         Set<Host> hostSet = new HashSet<>();
-        for ( UUID uuid : uuids ){
+        for ( String id : ids )
+        {
             try
             {
-                hostSet.add( environment.getContainerHostById( uuid ) );
+                hostSet.add( environment.getContainerHostById( id ) );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -230,7 +231,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         boolean allSuccess = true;
         for ( Host host : hosts )
         {
-            if ( ! resultMap.get( host ).hasSucceeded() )
+            if ( !resultMap.get( host ).hasSucceeded() )
             {
                 allSuccess = false;
             }
@@ -239,7 +240,8 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> zookeeperNodes )
+    private List<CommandResult> runCommandOnContainers( String command,
+                                                        final Set<EnvironmentContainerHost> zookeeperNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
         for ( ContainerHost containerHost : zookeeperNodes )

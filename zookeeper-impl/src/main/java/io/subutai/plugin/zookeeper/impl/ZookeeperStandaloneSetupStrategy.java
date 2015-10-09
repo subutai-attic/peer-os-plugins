@@ -3,11 +3,14 @@ package io.subutai.plugin.zookeeper.impl;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.settings.Common;
@@ -17,9 +20,6 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -78,8 +78,8 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
                     zookeeperClusterConfig.getNumberOfNodes(), environment.getContainerHosts().size() ) );
         }
 
-        Set<ContainerHost> zookeeperNodes = new HashSet<>();
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
+        Set<EnvironmentContainerHost> zookeeperNodes = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
         {
             try
             {
@@ -102,8 +102,8 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
                     zookeeperClusterConfig.getNumberOfNodes(), zookeeperNodes.size() ) );
         }
 
-        Set<UUID> zookeeperIDs = new HashSet<>();
-        for ( ContainerHost containerHost : zookeeperNodes )
+        Set<String> zookeeperIDs = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : zookeeperNodes )
         {
             zookeeperIDs.add( containerHost.getId() );
         }

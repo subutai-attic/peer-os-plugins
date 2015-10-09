@@ -3,9 +3,10 @@ package io.subutai.plugin.zookeeper.impl;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import io.subutai.common.tracker.OperationState;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.env.api.exception.EnvironmentCreationException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.environment.api.exception.EnvironmentCreationException;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -15,7 +16,6 @@ import io.subutai.plugin.common.mock.TrackerMock;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperNodeOperationHandler;
 

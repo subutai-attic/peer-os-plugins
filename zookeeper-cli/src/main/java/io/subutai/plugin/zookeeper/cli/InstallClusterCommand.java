@@ -6,22 +6,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.zookeeper.api.SetupType;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.zookeeper.api.SetupType;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 /**
@@ -36,7 +37,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String clusterName = null;
 
-    @Argument( index = 1, name = "environmentId", description = "The environment id to be used to setup Zookeeper cluster.", required = true,
+    @Argument( index = 1, name = "environmentId", description = "The environment id to be used to setup Zookeeper "
+            + "cluster.", required = true,
             multiValued = false )
     String environmentId = null;
 
@@ -54,19 +56,20 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         try
         {
-            Environment environment = environmentManager.findEnvironment( UUID.fromString( environmentId ) );
+            Environment environment = environmentManager.loadEnvironment( environmentId );
             ZookeeperClusterConfig config = new ZookeeperClusterConfig();
             config.setClusterName( clusterName );
-            config.setEnvironmentId( UUID.fromString( environmentId ) );
+            config.setEnvironmentId( environmentId );
 
-            Set<UUID> configNodes = new HashSet<>();
+            Set<String> configNodes = new HashSet<>();
             for ( String node : nodes )
             {
-                if( checkGivenUUID( environment, UUID.fromString( node ) ))
+                if ( checkGivenId( environment, node ) )
                 {
-                    configNodes.add( UUID.fromString( node ) );
+                    configNodes.add( node );
                 }
-                else {
+                else
+                {
                     System.out.println( "Could not find container host with given uuid : " + node );
                     return null;
                 }
@@ -86,9 +89,13 @@ public class InstallClusterCommand extends OsgiCommandSupport
         return null;
     }
 
-    private boolean checkGivenUUID( Environment environment, UUID uuid ){
-        for ( ContainerHost host : environment.getContainerHosts() ){
-            if ( host.getId().equals( uuid ) ){
+
+    private boolean checkGivenId( Environment environment, String id )
+    {
+        for ( EnvironmentContainerHost host : environment.getContainerHosts() )
+        {
+            if ( host.getId().equals( id ) )
+            {
                 return true;
             }
         }
@@ -137,12 +144,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

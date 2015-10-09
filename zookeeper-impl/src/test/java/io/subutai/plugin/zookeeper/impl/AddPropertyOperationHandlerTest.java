@@ -2,12 +2,12 @@ package io.subutai.plugin.zookeeper.impl;
 
 
 import org.junit.Test;
+
 import io.subutai.common.tracker.OperationState;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.mock.TrackerMock;
 import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
 import io.subutai.plugin.zookeeper.impl.handler.AddPropertyOperationHandler;
 
 import static junit.framework.Assert.assertTrue;
@@ -36,41 +36,4 @@ public class AddPropertyOperationHandlerTest
         assertTrue( operationHandler.getTrackerOperation().getLog().contains( "not exist" ) );
         assertEquals( operationHandler.getTrackerOperation().getState(), OperationState.FAILED );
     }
-
-    //    @Ignore
-    //    @Test
-    //    public void testStandaloneSetupType() throws LxcCreateException {
-    //        ZookeeperClusterConfig config = mock( ZookeeperClusterConfig.class );
-    //        when( config.getClusterName() ).thenReturn( "test-cluster" );
-    //        when( config.getHadoopClusterName() ).thenReturn( "test-hadoop" );
-    //        when( config.getSetupType() ).thenReturn( SetupType.STANDALONE );
-    //        when( config.getTemplateName() ).thenReturn( "hadoop" );
-    //        Set<Agent> agents = new HashSet<>( Arrays.asList( CommonMockBuilder.createAgent() ));
-    //        when( config.getNodes() ).thenReturn( agents );
-    //        ZookeeperImpl zookeeperMock = mock( ZookeeperImpl.class );
-    //        when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
-    //        when( zookeeperMock.getAgentManager() ).thenReturn( mock( AgentManager.class ) );
-    //
-    //        final CommandRunner commandRunnerMock = mock( CommandRunner.class );
-    //        doAnswer(new Answer() {
-    //            public Object answer(InvocationOnMock invocation) {
-    //                Object[] args = invocation.getArguments();
-    //                return null;
-    //            }}).when( commandRunnerMock ).runCommand( any( Command.class ) );
-    //
-    //        when( zookeeperMock.getCommandRunner() ).thenReturn( commandRunnerMock );
-    //        when( zookeeperMock.getTracker() ).thenReturn( new TrackerMock() );
-    //        when( zookeeperMock.getContainerManager() ).thenReturn( mock( ContainerManager.class ) );
-    //        when( zookeeperMock.getHadoopManager() ).thenReturn( mock( Hadoop.class ) );
-    //        when( zookeeperMock.getCluster( anyString() ) ).thenReturn( config );
-    //        Set<Agent> agentSet = new HashSet<>(Arrays.asList( CommonMockBuilder.createAgent()));
-    //        when( zookeeperMock.getContainerManager().clone( config.getTemplateName(), 1, null,
-    // PlacementStrategy.ROUND_ROBIN ) ).thenReturn( agentSet );
-    //        AbstractOperationHandler operationHandler = new AddPropertyOperationHandler( zookeeperMock,
-    // "test-cluster" , "test-file", "test-property", "test-value" );
-    //        operationHandler.run();
-    //
-    //        assertTrue( operationHandler.getTrackerOperation().getLog().contains( "not exist" ) );
-    //        assertEquals( operationHandler.getTrackerOperation().getState(), ProductOperationState.FAILED );
-    //    }
 }

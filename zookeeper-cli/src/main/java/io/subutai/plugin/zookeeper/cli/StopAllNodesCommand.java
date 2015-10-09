@@ -4,12 +4,12 @@ package io.subutai.plugin.zookeeper.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
 
 
 /**
@@ -33,12 +33,6 @@ public class StopAllNodesCommand extends OsgiCommandSupport
         System.out.println(
                 "Start cluster operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
-    }
-
-
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
     }
 
 

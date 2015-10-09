@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,12 +15,11 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
 import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
-
-import com.google.common.base.Strings;
 
 
 /**
@@ -69,18 +70,17 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Zoo
 
         String removePropertyCommand = Commands.getRemovePropertyCommand( fileName, propertyName );
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation
-                    .addLogFailed( "Couldn't retrieve cluster with id: " + config.getEnvironmentId().toString() );
+            trackerOperation.addLogFailed( "Couldn't retrieve cluster with id: " + config.getEnvironmentId() );
             return;
         }
-        Set<ContainerHost> zookeeperNodes = null;
+        Set<EnvironmentContainerHost> zookeeperNodes;
         try
         {
             zookeeperNodes = environment.getContainerHostsByIds( config.getNodes() );

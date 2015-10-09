@@ -4,13 +4,13 @@ package io.subutai.plugin.zookeeper.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 /**
@@ -35,12 +35,6 @@ public class StatusServiceCommand extends OsgiCommandSupport
         UUID uuid = zookeeperManager.checkNode( clusterName, hostname );
         tracker.printOperationLog( ZookeeperClusterConfig.PRODUCT_KEY, uuid, 30000 );
         return null;
-    }
-
-
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
     }
 
 

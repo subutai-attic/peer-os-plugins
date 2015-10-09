@@ -3,7 +3,7 @@ package io.subutai.plugin.zookeeper.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.CompleteEvent;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -13,13 +13,14 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Zookeeper zookeeper;
     private NodeOperationType operationType;
 
 
-    public NodeOperationTask( Zookeeper zookeeper, Tracker tracker, String clusterName, ContainerHost containerHost,
-                              NodeOperationType operationType, CompleteEvent completeEvent, UUID trackID )
+    public NodeOperationTask( Zookeeper zookeeper, Tracker tracker, String clusterName,
+                              EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                              CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, zookeeper.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.zookeeper = zookeeper;

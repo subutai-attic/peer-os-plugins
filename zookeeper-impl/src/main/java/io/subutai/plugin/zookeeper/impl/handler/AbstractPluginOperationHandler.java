@@ -4,6 +4,11 @@ package io.subutai.plugin.zookeeper.impl.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,13 +18,9 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ApiBase;
 import io.subutai.plugin.common.api.ConfigBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
-public abstract class AbstractPluginOperationHandler<T extends ApiBase, V extends ConfigBase>
+public abstract class AbstractPluginOperationHandler<T extends ApiBase<V>, V extends ConfigBase>
         extends AbstractOperationHandler<T, V>
 {
 
