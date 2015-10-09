@@ -5,13 +5,13 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
+
 import io.subutai.core.hostregistry.api.HostRegistry;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-
-import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class Wizard
@@ -25,7 +25,8 @@ public class Wizard
     private HostRegistry hostRegistry;
 
 
-    public Wizard( ExecutorService executorService, Hadoop hadoop, HostRegistry hostRegistry, Tracker tracker ) throws NamingException
+    public Wizard( ExecutorService executorService, Hadoop hadoop, HostRegistry hostRegistry, Tracker tracker )
+            throws NamingException
     {
 
         this.tracker = tracker;
@@ -74,12 +75,6 @@ public class Wizard
         {
             grid.addComponent( component );
         }
-    }
-
-
-    public Component getContent()
-    {
-        return grid;
     }
 
 

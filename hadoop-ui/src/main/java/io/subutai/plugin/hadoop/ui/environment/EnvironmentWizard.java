@@ -59,7 +59,7 @@ public class EnvironmentWizard
             }
             case 2:
             {
-                component = new ConfigurationStep( this, hostRegistry, environmentManager );
+                component = new ConfigurationStep( this );
 
                 break;
             }

@@ -17,7 +17,6 @@ import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.util.UUIDUtil;
@@ -75,7 +74,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -577,7 +576,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         String hostNames = "";
-        for ( final ContainerHost containerHost : set )
+        for ( final EnvironmentContainerHost containerHost : set )
         {
             hostNames += containerHost.getHostname() + "; ";
         }

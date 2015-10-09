@@ -8,7 +8,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -46,7 +46,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( id );
+                        EnvironmentContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -59,7 +59,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( id );
+                        EnvironmentContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -72,7 +72,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( id );
+                        EnvironmentContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -85,7 +85,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( id );
+                        EnvironmentContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -99,9 +99,9 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                     String nn = hadoopClusterConfig.getNameNode();
                     String snn = hadoopClusterConfig.getSecondaryNameNode();
 
-                    ContainerHost namenode = environment.getContainerHostById( nn );
-                    ContainerHost secnamenode = environment.getContainerHostById( snn );
-                    ContainerHost jobTracker = environment.getContainerHostById( jt );
+                    EnvironmentContainerHost namenode = environment.getContainerHostById( nn );
+                    EnvironmentContainerHost secnamenode = environment.getContainerHostById( snn );
+                    EnvironmentContainerHost jobTracker = environment.getContainerHostById( jt );
 
                     sb.append( "NameNode" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( namenode.getHostname() ).append( "\n" );
@@ -132,12 +132,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

@@ -9,7 +9,7 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.common.api.NodeType;
@@ -56,7 +56,8 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public static List<NodeType> getNodeRoles( HadoopClusterConfig clusterConfig, final ContainerHost containerHost )
+    public static List<NodeType> getNodeRoles( HadoopClusterConfig clusterConfig,
+                                               final EnvironmentContainerHost containerHost )
     {
         List<NodeType> nodeRoles = new ArrayList<>();
 
@@ -387,7 +388,7 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public void setBlockedAgents( HashSet<String> blockedAgents )
+    public void setBlockedAgents( Set<String> blockedAgents )
     {
         this.blockedAgents = blockedAgents;
     }
@@ -405,7 +406,7 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public boolean isMasterNode( ContainerHost containerHost )
+    public boolean isMasterNode( EnvironmentContainerHost containerHost )
     {
         return containerHost.getId().equals( getNameNode() ) ||
                 containerHost.getId().equals( getJobTracker() ) ||
@@ -413,7 +414,7 @@ public class HadoopClusterConfig implements ConfigBase
     }
 
 
-    public boolean isSlaveNode( ContainerHost containerHost )
+    public boolean isSlaveNode( EnvironmentContainerHost containerHost )
     {
         return dataNodes.contains( containerHost.getId() ) || taskTrackers.contains( containerHost.getId() );
     }

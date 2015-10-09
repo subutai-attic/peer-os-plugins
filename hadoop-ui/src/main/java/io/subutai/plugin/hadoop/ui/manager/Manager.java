@@ -9,17 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +27,17 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+
 
 public class Manager
 {
@@ -45,7 +45,6 @@ public class Manager
     public final static String CHECK_ALL_BUTTON_CAPTION = "Check All";
     public final static String START_ALL_BUTTON_CAPTION = "Start All";
     public final static String STOP_ALL_BUTTON_CAPTION = "Stop All";
-    public final static String DESTROY_CLUSTER_BUTTON_CAPTION = "Destroy Cluster";
     public final static String ADD_NODE_BUTTON_CAPTION = "Add Node";
     public final static String CHECK_BUTTON_CAPTION = "Check";
     public final static String START_BUTTON_CAPTION = "Start";
@@ -93,6 +92,7 @@ public class Manager
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Manager.class );
+
 
     public Manager( ExecutorService executorService, Tracker tracker, final Hadoop hadoop,
                     EnvironmentManager environmentManager ) throws NamingException
@@ -307,30 +307,29 @@ public class Manager
     }
 
 
-    protected void populateMastersTable( final Table table, Set<ContainerHost> containerHosts )
+    protected void populateMastersTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
         // Add UI components into relevant fields according to its role in cluster
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             addMasterTableRowComponents( table, containerHost );
         }
     }
 
 
-    protected void populateSlavesTable( final Table table, Set<ContainerHost> containerHosts )
+    protected void populateSlavesTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
         addSlavesTableRowComponents( table, containerHosts );
     }
 
 
-    public void addSlavesTableRowComponents( Table table, final Set<ContainerHost> containerHosts )
+    public void addSlavesTableRowComponents( Table table, final Set<EnvironmentContainerHost> containerHosts )
     {
 
-        final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
 
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
 
             // Buttons to be added to availableOperations
@@ -389,7 +388,7 @@ public class Manager
     }
 
 
-    public void addMasterTableRowComponents( Table table, final ContainerHost containerHost )
+    public void addMasterTableRowComponents( Table table, final EnvironmentContainerHost containerHost )
     {
 
         final HadoopClusterConfig cluster = hadoop.getCluster( hadoopCluster.getClusterName() );
@@ -489,7 +488,7 @@ public class Manager
     }
 
 
-    public Item getAgentRow( final Table table, final ContainerHost host, String role )
+    public Item getAgentRow( final Table table, final EnvironmentContainerHost host, String role )
     {
 
         int rowId = getAgentRowId( table, host, role );
@@ -507,7 +506,7 @@ public class Manager
     }
 
 
-    protected int getAgentRowId( final Table table, final ContainerHost host, String role )
+    protected int getAgentRowId( final Table table, final EnvironmentContainerHost host, String role )
     {
         if ( table != null && host != null )
         {
@@ -527,32 +526,8 @@ public class Manager
     }
 
 
-    private NodeType getNodeRole( HadoopClusterConfig clusterConfig, final ContainerHost containerHost )
-    {
-        if ( clusterConfig.isNameNode( containerHost.getId() ) )
-        {
-            return NodeType.NAMENODE;
-        }
-        else if ( clusterConfig.isSecondaryNameNode( containerHost.getId() ) )
-        {
-            return NodeType.SECONDARY_NAMENODE;
-        }
-        else if ( clusterConfig.isJobTracker( containerHost.getId() ) )
-        {
-            return NodeType.JOBTRACKER;
-        }
-        else if ( clusterConfig.isDataNode( containerHost.getId() ) )
-        {
-            return NodeType.DATANODE;
-        }
-        else
-        {
-            return NodeType.TASKTRACKER;
-        }
-    }
-
-
-    private List<NodeType> getNodeRoles( HadoopClusterConfig clusterConfig, final ContainerHost containerHost )
+    private List<NodeType> getNodeRoles( HadoopClusterConfig clusterConfig,
+                                         final EnvironmentContainerHost containerHost )
     {
         List<NodeType> nodeRoles = new ArrayList<>();
 
@@ -581,7 +556,7 @@ public class Manager
     }
 
 
-    private Button.ClickListener jobTrackerURLButtonListener( final ContainerHost host )
+    private Button.ClickListener jobTrackerURLButtonListener( final EnvironmentContainerHost host )
     {
         return new Button.ClickListener()
         {
@@ -595,10 +570,11 @@ public class Manager
     }
 
 
-    public Set<ContainerHost> getMasters( Set<EnvironmentContainerHost> containerHosts, HadoopClusterConfig config )
+    public Set<EnvironmentContainerHost> getMasters( Set<EnvironmentContainerHost> containerHosts,
+                                                     HadoopClusterConfig config )
     {
-        Set<ContainerHost> list = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> list = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( config.getAllMasterNodesAgents().contains( containerHost.getId() ) )
             {
@@ -609,10 +585,11 @@ public class Manager
     }
 
 
-    private Set<ContainerHost> getSlaves( Set<EnvironmentContainerHost> containerHosts, HadoopClusterConfig config )
+    private Set<EnvironmentContainerHost> getSlaves( Set<EnvironmentContainerHost> containerHosts,
+                                                     HadoopClusterConfig config )
     {
-        Set<ContainerHost> list = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> list = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( config.getAllSlaveNodesAgents().contains( containerHost.getId() ) )
             {
@@ -843,7 +820,7 @@ public class Manager
     }
 
 
-    protected ContainerHost getHostByRow( final Item row )
+    protected EnvironmentContainerHost getHostByRow( final Item row )
     {
         try
         {
@@ -854,7 +831,7 @@ public class Manager
             Environment environment = environmentManager.loadEnvironment( hadoopCluster.getEnvironmentId() );
             String lxcHostname = row.getItemProperty( HOST_COLUMN_CAPTION ).getValue().toString();
 
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getHostname().equals( lxcHostname ) )
                 {
@@ -901,7 +878,7 @@ public class Manager
     }
 
 
-    protected NodeState getDecommissionStatus( final String operationLog, final ContainerHost host )
+    protected NodeState getDecommissionStatus( final String operationLog, final EnvironmentContainerHost host )
     {
         NodeState decommissionState = NodeState.UNKNOWN;
         String ipOfNode = host.getIpByInterfaceName( "eth0" );
@@ -944,7 +921,7 @@ public class Manager
             decommissionState = NodeState.UNKNOWN;
         }
 
-        if ( decommissionState == NodeState.NORMAL && hadoopCluster.getBlockedAgents().contains( host ) )
+        if ( decommissionState == NodeState.NORMAL && hadoopCluster.getBlockedAgents().contains( host.getHostname() ) )
         {
             decommissionState = NodeState.DECOMMISSIONED;
         }
@@ -1025,24 +1002,6 @@ public class Manager
     public Table getSlaveNodesTable()
     {
         return slaveNodesTable;
-    }
-
-
-    public Label getReplicationFactor()
-    {
-        return replicationFactor;
-    }
-
-
-    public Label getDomainName()
-    {
-        return domainName;
-    }
-
-
-    public Label getSlaveNodeCount()
-    {
-        return slaveNodeCount;
     }
 
 

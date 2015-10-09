@@ -2,6 +2,7 @@ package io.subutai.plugin.hadoop.cli;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,10 +77,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setJobTracker( jobTrackerUUID );
         config.setSecondaryNameNode( secondaryNamenodeUUID );
         List<String> slaves = new ArrayList<>();
-        for ( String slave : slaveNodes )
-        {
-            slaves.add( slave );
-        }
+        Collections.addAll( slaves, slaveNodes );
         config.setDataNodes( slaves );
         config.setTaskTrackers( slaves );
         System.out.println( "Configuring " + clusterName + " hadoop cluster..." );
@@ -90,21 +88,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
     public void setHadoopManager( Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

@@ -18,7 +18,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
@@ -83,7 +82,7 @@ public class HadoopAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment;
-        ContainerHost sourceHost;
+        EnvironmentContainerHost sourceHost;
         try
         {
             environment = hadoop.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
@@ -92,7 +91,7 @@ public class HadoopAlertListener implements AlertListener
             Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
             sourceHost = null;
-            for ( ContainerHost containerHost : containers )
+            for ( EnvironmentContainerHost containerHost : containers )
             {
                 if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
                 {

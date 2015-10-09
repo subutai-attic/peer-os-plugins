@@ -3,7 +3,7 @@ package io.subutai.plugin.hadoop.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeState;
@@ -14,15 +14,16 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class HadoopNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Hadoop hadoop;
     private NodeOperationType operationType;
     private final NodeType nodeType;
 
 
-    public HadoopNodeOperationTask( Hadoop hadoop, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                    NodeOperationType operationType, NodeType nodeType,
-                                    io.subutai.plugin.common.api.CompleteEvent completeEvent, UUID trackID )
+    public HadoopNodeOperationTask( Hadoop hadoop, Tracker tracker, String clusterName,
+                                    EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                                    NodeType nodeType, io.subutai.plugin.common.api.CompleteEvent completeEvent,
+                                    UUID trackID )
     {
         super( tracker, hadoop.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.hadoop = hadoop;

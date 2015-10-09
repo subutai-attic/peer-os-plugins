@@ -17,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
@@ -109,7 +109,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             CommandUtil commandUtil = new CommandUtil();
             Set<Host> hostSet = new HashSet<>();
-            for ( ContainerHost host : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost host : environment.getContainerHosts() )
             {
                 hostSet.add( host );
             }
@@ -138,10 +138,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
         try
         {
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-            ContainerHost namenode;
+            EnvironmentContainerHost namenode;
             try
             {
-                namenode = environment.getContainerHostById( config.getNameNode() );
+                namenode = ( EnvironmentContainerHost ) environment.getContainerHostById( config.getNameNode() );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -149,10 +149,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         e );
                 return;
             }
-            ContainerHost jobtracker;
+            EnvironmentContainerHost jobtracker;
             try
             {
-                jobtracker = environment.getContainerHostById( config.getJobTracker() );
+                jobtracker = ( EnvironmentContainerHost ) environment.getContainerHostById( config.getJobTracker() );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -160,10 +160,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         String.format( "Container host with id: %s not found", config.getJobTracker() ), e );
                 return;
             }
-            ContainerHost secondaryNameNode;
+            EnvironmentContainerHost secondaryNameNode;
             try
             {
-                secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
+                secondaryNameNode =
+                        ( EnvironmentContainerHost ) environment.getContainerHostById( config.getSecondaryNameNode() );
             }
             catch ( ContainerHostNotFoundException e )
             {

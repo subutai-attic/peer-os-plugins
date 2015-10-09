@@ -12,7 +12,6 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -63,11 +62,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
         try
         {
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-            Iterator iterator = environment.getContainerHosts().iterator();
-            ContainerHost host = null;
+            Iterator<EnvironmentContainerHost> iterator = environment.getContainerHosts().iterator();
+            EnvironmentContainerHost host = null;
             while ( iterator.hasNext() )
             {
-                host = ( ContainerHost ) iterator.next();
+                host = iterator.next();
                 if ( host.getHostname().equals( hostname ) )
                 {
                     break;
@@ -88,7 +87,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     }
 
 
-    protected void runCommand( ContainerHost host, NodeOperationType operationType, NodeType nodeType )
+    protected void runCommand( EnvironmentContainerHost host, NodeOperationType operationType, NodeType nodeType )
     {
         try
         {
@@ -170,15 +169,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     protected void excludeNode()
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
-        ContainerHost host = findNodeInCluster( hostname );
+        EnvironmentContainerHost host = findNodeInCluster( hostname );
 
         try
         {
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
 
             // refresh NameNode and JobTracker
-            ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
+            EnvironmentContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
+            EnvironmentContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
 
             // TaskTracker
             jobtracker.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );
@@ -269,11 +268,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     {
 
         HadoopClusterConfig config = manager.getCluster( clusterName );
-        ContainerHost host = findNodeInCluster( hostname );
+        EnvironmentContainerHost host = findNodeInCluster( hostname );
 
         try
         {
-            ContainerHost namenode;
+            EnvironmentContainerHost namenode;
             try
             {
                 namenode = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
@@ -292,7 +291,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
                 return;
             }
 
-            ContainerHost jobtracker;
+            EnvironmentContainerHost jobtracker;
             try
             {
                 jobtracker = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
@@ -369,7 +368,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     }
 
 
-    private boolean isClusterRunning( ContainerHost namenode )
+    private boolean isClusterRunning( EnvironmentContainerHost namenode )
     {
         try
         {

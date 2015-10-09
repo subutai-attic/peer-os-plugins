@@ -8,7 +8,7 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -39,7 +39,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
         Commands commands = new Commands( config );
 
-        ContainerHost namenode;
+        EnvironmentContainerHost namenode;
         try
         {
             namenode = environment.getContainerHostById( config.getNameNode() );
@@ -50,7 +50,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Error getting container host for name node." );
             throw new ClusterConfigurationException( e );
         }
-        ContainerHost jobtracker;
+        EnvironmentContainerHost jobtracker;
         try
         {
             jobtracker = environment.getContainerHostById( config.getJobTracker() );
@@ -61,7 +61,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Error getting container host for name node." );
             throw new ClusterConfigurationException( e );
         }
-        ContainerHost secondaryNameNode;
+        EnvironmentContainerHost secondaryNameNode;
         try
         {
             secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
@@ -80,7 +80,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             try
             {
-                ContainerHost containerHost = environment.getContainerHostById( id );
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
                 if ( containerHost.getId().equals( namenode.getId() ) || containerHost.getId()
                                                                                       .equals( jobtracker.getId() ) )
                 {
@@ -149,7 +149,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void executeCommandOnContainer( ContainerHost containerHost, String command )
+    private void executeCommandOnContainer( EnvironmentContainerHost containerHost, String command )
     {
         try
         {

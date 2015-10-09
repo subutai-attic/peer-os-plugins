@@ -4,29 +4,30 @@ package io.subutai.plugin.hadoop.cli;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
- * sample command :
- *      hadoop:start-cluster test \ {cluster name}
+ * sample command : hadoop:start-cluster test \ {cluster name}
  */
-@Command(scope = "hadoop", name = "start-cluster", description = "Command to start Hadoop cluster")
+@Command( scope = "hadoop", name = "start-cluster", description = "Command to start Hadoop cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Hadoop hadoopManager;
     private Tracker tracker;
+
 
     @Override
     protected Object doExecute() throws IOException
@@ -45,7 +46,8 @@ public class StartClusterCommand extends OsgiCommandSupport
     }
 
 
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -75,11 +77,6 @@ public class StartClusterCommand extends OsgiCommandSupport
         return state;
     }
 
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
 
     public void setHadoopManager( Hadoop hadoopManager )
     {
@@ -87,15 +84,8 @@ public class StartClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
-
 }

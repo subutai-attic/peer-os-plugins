@@ -10,7 +10,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -50,7 +50,7 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
         {
             EnvironmentManager environmentManager = manager.getEnvironmentManager();
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-            ContainerHost host = environment.getContainerHostByHostname( lxcHostName );
+            EnvironmentContainerHost host = environment.getContainerHostByHostname( lxcHostName );
 
             trackerOperation.addLog( "Excluding " + lxcHostName + " from cluster" );
             config.getDataNodes().remove( host.getId() );
@@ -70,14 +70,14 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
     }
 
 
-    protected void removeNodeFromConfigurationFiles( ContainerHost host )
+    protected void removeNodeFromConfigurationFiles( EnvironmentContainerHost host )
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
         try
         {
-            ContainerHost namenode = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+            EnvironmentContainerHost namenode = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
                                             .getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+            EnvironmentContainerHost jobtracker = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
                                               .getContainerHostById( config.getJobTracker() );
 
             namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );

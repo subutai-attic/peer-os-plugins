@@ -16,7 +16,6 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -67,7 +66,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             int numberOfContainersNotBeingUsed = 0;
             boolean allContainersNotBeingUsed = false;
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( !config.getAllNodes().contains( containerHost.getId() ) )
                 {
@@ -104,7 +103,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 }
                 newlyCreatedContainers =
                         environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
-                for ( ContainerHost host : newlyCreatedContainers )
+                for ( EnvironmentContainerHost host : newlyCreatedContainers )
                 {
                     config.getDataNodes().add( host.getId() );
                     config.getTaskTrackers().add( host.getId() );
@@ -150,7 +149,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             }
 
             // include newly created containers to existing hadoop cluster
-            for ( ContainerHost containerHost : newlyCreatedContainers )
+            for ( EnvironmentContainerHost containerHost : newlyCreatedContainers )
             {
                 trackerOperation.addLog( "Configuring " + containerHost.getHostname() );
                 configureSlaveNode( config, containerHost, environment );
@@ -177,7 +176,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
      * @param containerHost node to be configured
      * @param environment environment in which given container reside
      */
-    private void configureSlaveNode( HadoopClusterConfig config, ContainerHost containerHost, Environment environment )
+    private void configureSlaveNode( HadoopClusterConfig config, EnvironmentContainerHost containerHost,
+                                     Environment environment )
     {
         try
         {
@@ -185,8 +185,10 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
             executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
             // Configure NameNode
-            ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
-            ContainerHost jobtracker = environment.getContainerHostById( config.getJobTracker() );
+            EnvironmentContainerHost namenode =
+                    ( EnvironmentContainerHost ) environment.getContainerHostById( config.getNameNode() );
+            EnvironmentContainerHost jobtracker =
+                    ( EnvironmentContainerHost ) environment.getContainerHostById( config.getJobTracker() );
             executeCommandOnContainer( containerHost,
                     Commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname(),
                             config.getReplicationFactor() ) );
@@ -198,7 +200,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
     }
 
 
-    private void executeCommandOnContainer( ContainerHost containerHost, String command )
+    private void executeCommandOnContainer( EnvironmentContainerHost containerHost, String command )
     {
         try
         {

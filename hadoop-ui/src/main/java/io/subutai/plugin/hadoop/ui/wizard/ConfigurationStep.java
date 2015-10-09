@@ -59,7 +59,7 @@ public class ConfigurationStep extends VerticalLayout
         } );
 
         //configuration servers number
-        List<String> slaveNodeCountList = new ArrayList<String>();
+        List<String> slaveNodeCountList = new ArrayList<>();
         //TODO please do not count only local resource hosts since environments can span multiple peers
         //remove host registry usage once this fix is applied
         int connected_fai_count = hostRegistry.getResourceHostsInfo().size() - 1;

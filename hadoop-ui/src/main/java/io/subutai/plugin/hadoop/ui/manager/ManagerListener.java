@@ -38,7 +38,7 @@ import com.vaadin.ui.Window;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.CompleteEvent;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeState;
@@ -79,7 +79,7 @@ public class ManagerListener
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION )
                                             .getValue();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     try
                     {
                         containerHost = hadoopManager.getEnvironmentManager().loadEnvironment(
@@ -261,7 +261,7 @@ public class ManagerListener
 
     protected Button.ClickListener slaveNodeDestroyButtonListener( final Item row )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
+        final EnvironmentContainerHost host = hadoopManager.getHostByRow( row );
         final HorizontalLayout statusGroup = hadoopManager.getStatusLayout( row );
         final Label statusDecommission = hadoopManager.getStatusDecommissionLabel( statusGroup );
 
@@ -318,7 +318,7 @@ public class ManagerListener
 
     protected Button.ClickListener slaveNodeExcludeIncludeButtonListener( final Item row )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
+        final EnvironmentContainerHost host = hadoopManager.getHostByRow( row );
         final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
         final Button checkButton = hadoopManager.getCheckButton( availableOperationsLayout );
         final Button excludeIncludeNodeButton = hadoopManager.getExcludeIncludeButton( availableOperationsLayout );
@@ -395,7 +395,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener secondaryNameNodeCheckButtonListener( final ContainerHost containerHost,
+    protected Button.ClickListener secondaryNameNodeCheckButtonListener( final EnvironmentContainerHost containerHost,
                                                                          HorizontalLayout availableOperationsLayout,
                                                                          HorizontalLayout statusGroupLayout )
     {
@@ -450,7 +450,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener secondaryNameNodeURLButtonListener( final ContainerHost host )
+    protected Button.ClickListener secondaryNameNodeURLButtonListener( final EnvironmentContainerHost host )
     {
         return new Button.ClickListener()
         {
@@ -465,7 +465,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener jobTrackerStartStopButtonListener( final ContainerHost containerHost,
+    protected Button.ClickListener jobTrackerStartStopButtonListener( final EnvironmentContainerHost containerHost,
                                                                       HorizontalLayout availableOperationsLayout )
     {
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
@@ -525,7 +525,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener jobTrackerCheckButtonListener( final ContainerHost containerHost,
+    protected Button.ClickListener jobTrackerCheckButtonListener( final EnvironmentContainerHost containerHost,
                                                                   HorizontalLayout availableOperationsLayout,
                                                                   HorizontalLayout statusGroupLayout )
     {
@@ -578,7 +578,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener nameNodeCheckButtonListener( final ContainerHost containerHost,
+    protected Button.ClickListener nameNodeCheckButtonListener( final EnvironmentContainerHost containerHost,
                                                                 HorizontalLayout availableOperationsLayout,
                                                                 HorizontalLayout statusGroupLayout )
     {
@@ -628,7 +628,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener nameNodeStartStopButtonListener( final ContainerHost containerHost,
+    protected Button.ClickListener nameNodeStartStopButtonListener( final EnvironmentContainerHost containerHost,
                                                                     HorizontalLayout availableOperationsLayout )
     {
         final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
@@ -689,7 +689,7 @@ public class ManagerListener
     }
 
 
-    protected Button.ClickListener nameNodeURLButtonListener( final ContainerHost host )
+    protected Button.ClickListener nameNodeURLButtonListener( final EnvironmentContainerHost host )
     {
         return new Button.ClickListener()
         {
@@ -705,10 +705,10 @@ public class ManagerListener
 
     protected Button.ClickListener slaveNodeCheckButtonListener( final Item row )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
+        final EnvironmentContainerHost host = hadoopManager.getHostByRow( row );
         try
         {
-            final ContainerHost containerHost = hadoopManager.getEnvironmentManager().loadEnvironment(
+            final EnvironmentContainerHost containerHost = hadoopManager.getEnvironmentManager().loadEnvironment(
                     hadoopManager.getHadoopCluster().getEnvironmentId() ).getContainerHostById( host.getId() );
             final String clusterName = hadoopManager.getHadoopCluster().getClusterName();
             final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
@@ -824,7 +824,7 @@ public class ManagerListener
 
     private void executeSlaveNodeCheckButtonFinishCommands( Item row, Button checkButton )
     {
-        final ContainerHost host = hadoopManager.getHostByRow( row );
+        final EnvironmentContainerHost host = hadoopManager.getHostByRow( row );
         final HorizontalLayout availableOperationsLayout = hadoopManager.getAvailableOperationsLayout( row );
         final HorizontalLayout statusGroupLayout = hadoopManager.getStatusLayout( row );
         final Button destroyButton = hadoopManager.getDestroyButton( availableOperationsLayout );

@@ -160,33 +160,15 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
 
 
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
     public void setHadoopManager( Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

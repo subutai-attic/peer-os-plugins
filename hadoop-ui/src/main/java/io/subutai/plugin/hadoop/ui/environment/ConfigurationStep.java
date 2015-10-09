@@ -27,10 +27,7 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.hostregistry.api.HostRegistry;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
@@ -39,8 +36,7 @@ public class ConfigurationStep extends VerticalLayout
     private EnvironmentWizard wizard;
 
 
-    public ConfigurationStep( final EnvironmentWizard wizard, HostRegistry hostRegistry,
-                              final EnvironmentManager environmentManager )
+    public ConfigurationStep( final EnvironmentWizard wizard )
     {
         this.wizard = wizard;
 
@@ -89,7 +85,7 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                EnvironmentContainerHost host = ( EnvironmentContainerHost ) event.getProperty().getValue();
                 wizard.getHadoopClusterConfig().setNameNode( host.getId() );
             }
         } );
@@ -103,7 +99,7 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                EnvironmentContainerHost host = ( EnvironmentContainerHost ) event.getProperty().getValue();
                 wizard.getHadoopClusterConfig().setJobTracker( host.getId() );
             }
         } );
@@ -117,7 +113,7 @@ public class ConfigurationStep extends VerticalLayout
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                ContainerHost host = ( ContainerHost ) event.getProperty().getValue();
+                EnvironmentContainerHost host = ( EnvironmentContainerHost ) event.getProperty().getValue();
                 wizard.getHadoopClusterConfig().setSecondaryNameNode( host.getId() );
             }
         } );
@@ -135,7 +131,7 @@ public class ConfigurationStep extends VerticalLayout
                     Set<String> nodes = new HashSet<>();
                     Set<EnvironmentContainerHost> nodeList =
                             ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -164,7 +160,7 @@ public class ConfigurationStep extends VerticalLayout
                 setComboDS( nameNodeCombo, filterEnvironmentContainers( e.getContainerHosts() ) );
                 setComboDS( jobTracker, filterEnvironmentContainers( e.getContainerHosts() ) );
                 setComboDS( secNameNode, filterEnvironmentContainers( e.getContainerHosts() ) );
-                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) )
+                for ( EnvironmentContainerHost host : filterEnvironmentContainers( e.getContainerHosts() ) )
                 {
                     slaveNodes.addItem( host );
                     slaveNodes.setItemCaption( host,
@@ -303,7 +299,7 @@ public class ConfigurationStep extends VerticalLayout
     {
         target.removeAllItems();
         target.setValue( null );
-        for ( ContainerHost host : hosts )
+        for ( EnvironmentContainerHost host : hosts )
         {
             target.addItem( host );
             target.setItemCaption( host, host.getHostname() );
@@ -313,7 +309,7 @@ public class ConfigurationStep extends VerticalLayout
 
     private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts, String templateName )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             if ( host.getTemplateName().equals( templateName ) )
             {

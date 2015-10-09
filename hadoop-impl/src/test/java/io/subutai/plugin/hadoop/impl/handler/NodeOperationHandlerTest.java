@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,7 +135,7 @@ public class NodeOperationHandlerTest
 
         // assertions
         verify( hadoopImpl ).getEnvironmentManager();
-        verify( hadoopImpl ).getCluster( "test" );
+        verify( hadoopImpl, atLeastOnce() ).getCluster( "test" );
         assertEquals( "test", containerHost.getHostname() );
         assertEquals( id, environment.getId() );
     }
