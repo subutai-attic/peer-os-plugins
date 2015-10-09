@@ -4,7 +4,9 @@ package io.subutai.plugin.hadoop.impl.handler;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
@@ -15,20 +17,15 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.network.api.NetworkManagerException;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hadoop.impl.Commands;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
 public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, HadoopClusterConfig>
@@ -55,30 +52,29 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
 
     /**
-     * Steps:
-     *   1) Creates a new container from hadoop template
-     *   2) Include node
+     * Steps: 1) Creates a new container from hadoop template 2) Include node
      */
     public void addNode()
     {
         try
         {
-            LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
             EnvironmentManager environmentManager = manager.getEnvironmentManager();
-            Set<ContainerHost> newlyCreatedContainers = new HashSet<>();
+            Set<EnvironmentContainerHost> newlyCreatedContainers = new HashSet<>();
             /**
              * first check if there are containers in environment that is not being used in hadoop cluster,
              * if yes, then do not create new containers.
              */
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             int numberOfContainersNotBeingUsed = 0;
             boolean allContainersNotBeingUsed = false;
             for ( ContainerHost containerHost : environment.getContainerHosts() )
             {
-                if ( ! config.getAllNodes().contains( containerHost.getId() ) )
+                if ( !config.getAllNodes().contains( containerHost.getId() ) )
                 {
-                    if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) ){
-                        if ( ! isThisNodeUsedInOtherClusters( containerHost.getId() ) ){
+                    if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) )
+                    {
+                        if ( !isThisNodeUsedInOtherClusters( containerHost.getId() ) )
+                        {
                             allContainersNotBeingUsed = true;
                             numberOfContainersNotBeingUsed++;
                         }
@@ -86,20 +82,15 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 }
             }
 
-            if ( ( ! allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
+            if ( ( !allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
             {
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
-                NodeGroup nodeGroup =
-                        new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME,
-                                nodeCount - numberOfContainersNotBeingUsed, 1, 1,
-                                new PlacementStrategy( "ROUND_ROBIN" ) );
+                NodeGroup nodeGroup = new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME,
+                        nodeCount - numberOfContainersNotBeingUsed, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
                 Topology topology = new Topology();
                 topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
 
-                GsonBuilder builder = new GsonBuilder();
-                Gson gson = builder.create();
-                String ngJSON = gson.toJson( nodeGroup );
 
                 if ( numberOfContainersNotBeingUsed > 0 )
                 {
@@ -111,8 +102,10 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                newlyCreatedContainers = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
-                for ( ContainerHost host : newlyCreatedContainers ){
+                newlyCreatedContainers =
+                        environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                for ( ContainerHost host : newlyCreatedContainers )
+                {
                     config.getDataNodes().add( host.getId() );
                     config.getTaskTrackers().add( host.getId() );
                     trackerOperation.addLog( host.getHostname() + " is added as slave node." );
@@ -123,8 +116,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 trackerOperation.addLog( "Using existing containers that are not taking role in cluster" );
                 // update cluster configuration on DB
                 int count = 0;
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                for ( ContainerHost containerHost : environment.getContainerHosts() )
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                 {
                     if ( !config.getAllNodes().contains( containerHost.getId() ) )
                     {
@@ -143,7 +136,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             manager.saveConfig( config );
 
             // configure ssh keys
-            Set<ContainerHost> allNodes = new HashSet<>();
+            Set<EnvironmentContainerHost> allNodes = new HashSet<>();
             allNodes.addAll( newlyCreatedContainers );
             allNodes.addAll( environment.getContainerHosts() );
             try
@@ -225,10 +218,13 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
     }
 
 
-    private boolean isThisNodeUsedInOtherClusters( UUID uuid ){
+    private boolean isThisNodeUsedInOtherClusters( String id )
+    {
         List<HadoopClusterConfig> configs = manager.getClusters();
-        for ( HadoopClusterConfig config1 : configs ){
-            if ( config1.getAllNodes().contains( uuid ) ){
+        for ( HadoopClusterConfig config1 : configs )
+        {
+            if ( config1.getAllNodes().contains( id ) )
+            {
                 return true;
             }
         }

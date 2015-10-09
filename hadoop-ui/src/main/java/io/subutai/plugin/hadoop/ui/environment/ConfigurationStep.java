@@ -11,13 +11,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.hostregistry.api.HostRegistry;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -32,6 +25,13 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.hostregistry.api.HostRegistry;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public class ConfigurationStep extends VerticalLayout
@@ -132,8 +132,9 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
                     for ( ContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
@@ -278,15 +279,15 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    private Set<EnvironmentContainerHost> filterEnvironmentContainers( Set<EnvironmentContainerHost> containerHosts )
     {
-        Set<ContainerHost> filteredSet = new HashSet<>();
-        List<UUID> hadoopNodes = new ArrayList<>();
+        Set<EnvironmentContainerHost> filteredSet = new HashSet<>();
+        List<String> hadoopNodes = new ArrayList<>();
         for ( HadoopClusterConfig hadoopConfig : wizard.getHadoopManager().getClusters() )
         {
             hadoopNodes.addAll( hadoopConfig.getAllNodes() );
         }
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) && !( hadoopNodes
                     .contains( containerHost.getId() ) ) )
@@ -298,7 +299,7 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private void setComboDS( ComboBox target, Set<ContainerHost> hosts )
+    private void setComboDS( ComboBox target, Set<EnvironmentContainerHost> hosts )
     {
         target.removeAllItems();
         target.setValue( null );
@@ -310,7 +311,7 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts, String templateName )
     {
         for ( ContainerHost host : containerHosts )
         {

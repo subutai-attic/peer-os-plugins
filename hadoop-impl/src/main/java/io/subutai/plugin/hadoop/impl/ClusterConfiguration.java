@@ -1,7 +1,8 @@
 package io.subutai.plugin.hadoop.impl;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
@@ -14,8 +15,6 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
@@ -77,11 +76,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
         // Configure NameNode & JobTracker and replication factor on all cluser nodes
-        for ( UUID uuid : config.getAllNodes() ){
+        for ( String id : config.getAllNodes() )
+        {
             try
             {
-                ContainerHost containerHost = environment.getContainerHostById( uuid );
-                if ( containerHost.getId().equals( namenode.getId() ) || containerHost.getId().equals( jobtracker.getId() ) ){
+                ContainerHost containerHost = environment.getContainerHostById( id );
+                if ( containerHost.getId().equals( namenode.getId() ) || containerHost.getId()
+                                                                                      .equals( jobtracker.getId() ) )
+                {
                     executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
                     executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
                 }
@@ -100,16 +102,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
         // Configure DataNodes & TaskTrackers
-        for ( UUID uuid : config.getDataNodes() )
+        for ( String id : config.getDataNodes() )
         {
             try
             {
-                executeCommandOnContainer( namenode, Commands.getConfigureSlaveNodes(
-                        environment.getContainerHostById( uuid ).getHostname() ) );
+                executeCommandOnContainer( namenode,
+                        Commands.getConfigureSlaveNodes( environment.getContainerHostById( id ).getHostname() ) );
 
-                if ( ! namenode.getId().equals( jobtracker.getId() ) ){
-                    executeCommandOnContainer( jobtracker, Commands.getConfigureSlaveNodes(
-                            environment.getContainerHostById( uuid ).getHostname() ) );
+                if ( !namenode.getId().equals( jobtracker.getId() ) )
+                {
+                    executeCommandOnContainer( jobtracker,
+                            Commands.getConfigureSlaveNodes( environment.getContainerHostById( id ).getHostname() ) );
                 }
             }
             catch ( ContainerHostNotFoundException e )

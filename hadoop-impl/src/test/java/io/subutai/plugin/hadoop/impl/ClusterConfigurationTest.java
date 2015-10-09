@@ -12,6 +12,7 @@ import org.junit.Test;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -43,17 +44,17 @@ public class ClusterConfigurationTest
     @Test
     public void testConfigureCluster() throws ClusterConfigurationException, ContainerHostNotFoundException
     {
-        ContainerHost containerHost = mock(ContainerHost.class);
-        ContainerHost containerHost2 = mock(ContainerHost.class);
-        Set<ContainerHost> mySet = mock(Set.class);
+        EnvironmentContainerHost containerHost = mock(EnvironmentContainerHost.class);
+        EnvironmentContainerHost containerHost2 = mock(EnvironmentContainerHost.class);
+        Set<EnvironmentContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
         mySet.add(containerHost2);
 
-        UUID uuid = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
-        List<UUID> mylist = mock(ArrayList.class);
-        mylist.add(uuid);
-        mylist.add(uuid2);
+        String id = UUID.randomUUID().toString();
+        String id2 = UUID.randomUUID().toString();
+        List<String> mylist = mock(ArrayList.class);
+        mylist.add(id);
+        mylist.add(id2);
 
         PluginDAO pluginDAO = mock(PluginDAO.class);
         HadoopClusterConfig hadoopClusterConfig = mock(HadoopClusterConfig.class);
@@ -62,23 +63,22 @@ public class ClusterConfigurationTest
         when(environment.getContainerHostById( hadoopClusterConfig.getSecondaryNameNode() )).thenReturn(containerHost);
 
         when(environment.getContainerHosts()).thenReturn(mySet);
-        Iterator<ContainerHost> iterator = mock(Iterator.class);
+        Iterator<EnvironmentContainerHost> iterator = mock(Iterator.class);
         when(mySet.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(true).thenReturn(false);
         when(iterator.next()).thenReturn(containerHost).thenReturn(containerHost2).thenReturn(containerHost);
 
         when(hadoopClusterConfig.getDataNodes()).thenReturn(mylist);
-        Iterator<UUID> iterator1 = mock(Iterator.class);
+        Iterator<String> iterator1 = mock(Iterator.class);
         when(mylist.iterator()).thenReturn(iterator1);
         when(iterator1.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(iterator1.next()).thenReturn(uuid).thenReturn(uuid2);
+        when(iterator1.next()).thenReturn(id).thenReturn(id2);
 
         when(hadoopImpl.getPluginDAO()).thenReturn(pluginDAO);
         when(pluginDAO.saveInfo(HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase)).thenReturn
                 (true);
 
-        UUID uuid1 = new UUID(50, 50);
-        when(environment.getId()).thenReturn(uuid1);
+        when(environment.getId()).thenReturn(UUID.randomUUID().toString());
         clusterConfiguration.configureCluster(configBase, environment);
 
         assertEquals(containerHost, environment.getContainerHostById( hadoopClusterConfig.getNameNode() ));

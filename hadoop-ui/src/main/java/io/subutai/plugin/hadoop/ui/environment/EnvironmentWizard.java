@@ -5,14 +5,14 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.hostregistry.api.HostRegistry;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-
-import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class EnvironmentWizard
@@ -109,7 +109,8 @@ public class EnvironmentWizard
     }
 
 
-    public void clearConfig(){
+    public void clearConfig()
+    {
         hadoopClusterConfig = new HadoopClusterConfig();
     }
 
@@ -130,6 +131,7 @@ public class EnvironmentWizard
     {
         return hadoopClusterConfig;
     }
+
 
     public Hadoop getHadoopManager()
     {

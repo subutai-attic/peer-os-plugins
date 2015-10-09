@@ -1,24 +1,21 @@
 package io.subutai.plugin.hadoop.cli;
 
 
-import java.util.UUID;
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 /**
- * sample command :
- *      hadoop:describe-cluster test \ {cluster name}
+ * sample command : hadoop:describe-cluster test \ {cluster name}
  */
 @Command( scope = "hadoop", name = "describe-clusters", description = "Shows the details of Hadoop cluster" )
 public class DescribeClusterCommand extends OsgiCommandSupport
@@ -31,6 +28,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     private Hadoop hadoopManager;
     private EnvironmentManager environmentManager;
 
+
     @Override
     protected Object doExecute()
     {
@@ -39,16 +37,16 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         {
             try
             {
-                Environment environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                Environment environment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
                 StringBuilder sb = new StringBuilder();
                 sb.append( "Cluster name: " ).append( hadoopClusterConfig.getClusterName() ).append( "\n" );
                 sb.append( "Domain name: " ).append( hadoopClusterConfig.getDomainName() ).append( "\n" );
                 sb.append( "All nodes:" ).append( "\n" );
-                for ( UUID uuid : hadoopClusterConfig.getAllNodes() )
+                for ( String id : hadoopClusterConfig.getAllNodes() )
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( uuid );
+                        ContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -57,11 +55,11 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                     }
                 }
                 sb.append( "Slave nodes:" ).append( "\n" );
-                for ( UUID uuid : hadoopClusterConfig.getAllSlaveNodes() )
+                for ( String id : hadoopClusterConfig.getAllSlaveNodes() )
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( uuid );
+                        ContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -70,25 +68,24 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                     }
                 }
                 sb.append( "Data nodes:" ).append( "\n" );
-                for ( UUID uuid : hadoopClusterConfig.getDataNodes() )
+                for ( String id : hadoopClusterConfig.getDataNodes() )
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( uuid );
+                        ContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
                         e.printStackTrace();
                     }
-
                 }
                 sb.append( "Task trackers:" ).append( "\n" );
-                for ( UUID uuid : hadoopClusterConfig.getTaskTrackers() )
+                for ( String id : hadoopClusterConfig.getTaskTrackers() )
                 {
                     try
                     {
-                        ContainerHost host = environment.getContainerHostById( uuid );
+                        ContainerHost host = environment.getContainerHostById( id );
                         sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -98,9 +95,9 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 }
                 try
                 {
-                    UUID jt = hadoopClusterConfig.getJobTracker();
-                    UUID nn = hadoopClusterConfig.getNameNode();
-                    UUID snn = hadoopClusterConfig.getSecondaryNameNode();
+                    String jt = hadoopClusterConfig.getJobTracker();
+                    String nn = hadoopClusterConfig.getNameNode();
+                    String snn = hadoopClusterConfig.getSecondaryNameNode();
 
                     ContainerHost namenode = environment.getContainerHostById( nn );
                     ContainerHost secnamenode = environment.getContainerHostById( snn );
@@ -136,6 +133,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 
         return null;
     }
+
 
     public EnvironmentManager getEnvironmentManager()
     {

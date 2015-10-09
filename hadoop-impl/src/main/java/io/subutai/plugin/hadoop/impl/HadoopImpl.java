@@ -1,43 +1,10 @@
 package io.subutai.plugin.hadoop.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import io.subutai.common.environment.Blueprint;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.protocol.PlacementStrategy;
-import io.subutai.common.settings.Common;
-import io.subutai.common.util.UUIDUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
-import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.metric.api.MonitoringSettings;
-import io.subutai.core.network.api.NetworkManager;
-import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
-import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
-import io.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandler;
-import io.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +12,38 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+
+import io.subutai.common.environment.Blueprint;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.protocol.PlacementStrategy;
+import io.subutai.common.util.UUIDUtil;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.lxc.quota.api.QuotaManager;
+import io.subutai.core.metric.api.Monitor;
+import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.core.network.api.NetworkManager;
+import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
+import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
+import io.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
+import io.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandler;
 
 
 public class HadoopImpl implements Hadoop, EnvironmentEventListener
@@ -546,10 +545,9 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException
     {
 
-        NodeGroup nodeGroup =
-                new NodeGroup( "Hadoop node group", HadoopClusterConfig.TEMPLATE_NAME, Common.DEFAULT_DOMAIN_NAME,
-                        HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(), 1, 1,
-                        new PlacementStrategy( "ROUND_ROBIN" ) );
+        NodeGroup nodeGroup = new NodeGroup( "Hadoop node group", HadoopClusterConfig.TEMPLATE_NAME,
+                HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(), 1, 1,
+                new PlacementStrategy( "ROUND_ROBIN" ) );
         return new Blueprint(
                 String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
                 Sets.newHashSet( nodeGroup ) );
@@ -576,7 +574,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         String hostNames = "";
         for ( final ContainerHost containerHost : set )
@@ -588,21 +586,20 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String id )
     {
         List<HadoopClusterConfig> clusterConfigs = getClusters();
         for ( final HadoopClusterConfig clusterConfig : clusterConfigs )
         {
             if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
             {
-                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                if ( clusterConfig.getAllNodes().contains( id ) )
                 {
-                    clusterConfig.removeNode( uuid );
+                    clusterConfig.removeNode( id );
                     getPluginDAO()
                             .saveInfo( HadoopClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), clusterConfig );
-                    LOG.info( String.format( "Container host: %s removed from cluster: %s with environment id: %s",
-                            uuid.toString(), clusterConfig.getClusterName(),
-                            clusterConfig.getEnvironmentId().toString() ) );
+                    LOG.info( String.format( "Container host: %s removed from cluster: %s with environment id: %s", id,
+                            clusterConfig.getClusterName(), clusterConfig.getEnvironmentId() ) );
                 }
             }
         }
@@ -610,16 +607,16 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
         List<HadoopClusterConfig> clusterConfigs = getClusters();
         for ( final HadoopClusterConfig clusterConfig : clusterConfigs )
         {
-            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            if ( clusterConfig.getEnvironmentId().equals( envId ) )
             {
                 LOG.info(
                         String.format( "Hadoop cluster: %s destroyed in environment %s", clusterConfig.getClusterName(),
-                                uuid.toString() ) );
+                                envId ) );
                 getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
             }
         }

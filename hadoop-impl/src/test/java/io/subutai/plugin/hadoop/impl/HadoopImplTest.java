@@ -13,9 +13,9 @@ import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class HadoopImplTest
 {
     private HadoopImpl hadoopImpl;
-    private UUID uuid;
+    private String id;
 
     @Mock
     ExecutorService executorService;
@@ -55,7 +55,7 @@ public class HadoopImplTest
     Monitor monitor;
 
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
 
 
     @Before
@@ -75,19 +75,19 @@ public class HadoopImplTest
         hadoopImpl.setTracker( tracker );
         hadoopImpl.setPluginDAO( pluginDAO );
         hadoopImpl.setEnvironmentManager( environmentManager );
-        uuid = new UUID( 50, 50 );
+        id = new UUID( 50, 50 ).toString();
 
         // mock ClusterOperationHandler
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when(trackerOperation.getId()).thenReturn( UUID.randomUUID() );
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         when(hadoopClusterConfig.getClusterName()).thenReturn("test");
 
-        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( id );
 
-        when( hadoopClusterConfig.getAllNodes() ).thenReturn( Arrays.asList( uuid ) );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( Arrays.asList( id ) );
 
         when( environment.toString() ).thenReturn( "Environment" );
-        when( environment.getId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
         when( pluginDAO.getInfo( HadoopClusterConfig.PRODUCT_KEY, HadoopClusterConfig.class ) )
                 .thenReturn( Arrays.asList( hadoopClusterConfig ) );
 
@@ -192,7 +192,6 @@ public class HadoopImplTest
         hadoopImpl.installCluster( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.installCluster( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.installCluster( hadoopClusterConfig ) );
     }
 
 
@@ -202,7 +201,6 @@ public class HadoopImplTest
         hadoopImpl.uninstallCluster( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.uninstallCluster( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.uninstallCluster( hadoopClusterConfig ) );
     }
 
 
@@ -212,7 +210,6 @@ public class HadoopImplTest
         hadoopImpl.startNameNode( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.startNameNode( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.startNameNode( hadoopClusterConfig ) );
     }
 
 
@@ -222,7 +219,6 @@ public class HadoopImplTest
         hadoopImpl.stopNameNode( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.stopNameNode( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.stopNameNode( hadoopClusterConfig ) );
     }
 
 
@@ -232,7 +228,6 @@ public class HadoopImplTest
         hadoopImpl.statusNameNode( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.statusNameNode( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.statusNameNode( hadoopClusterConfig ) );
     }
 
 
@@ -242,7 +237,6 @@ public class HadoopImplTest
         hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig ) );
     }
 
 
@@ -253,7 +247,6 @@ public class HadoopImplTest
         hadoopImpl.startDataNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.startDataNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.startDataNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -264,7 +257,6 @@ public class HadoopImplTest
         hadoopImpl.stopDataNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.stopDataNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.stopDataNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -275,7 +267,6 @@ public class HadoopImplTest
         hadoopImpl.statusDataNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.statusDataNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.statusDataNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -285,7 +276,6 @@ public class HadoopImplTest
         hadoopImpl.startJobTracker( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.startJobTracker( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.startJobTracker( hadoopClusterConfig ) );
     }
 
 
@@ -295,7 +285,6 @@ public class HadoopImplTest
         hadoopImpl.stopJobTracker( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.stopJobTracker( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.stopJobTracker( hadoopClusterConfig ) );
     }
 
 
@@ -305,7 +294,6 @@ public class HadoopImplTest
         hadoopImpl.statusJobTracker( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.statusJobTracker( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.statusJobTracker( hadoopClusterConfig ) );
     }
 
 
@@ -316,7 +304,6 @@ public class HadoopImplTest
         hadoopImpl.startTaskTracker( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.startTaskTracker( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.startTaskTracker( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -327,7 +314,6 @@ public class HadoopImplTest
         hadoopImpl.stopTaskTracker( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.stopTaskTracker( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.stopTaskTracker( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -338,7 +324,6 @@ public class HadoopImplTest
         hadoopImpl.statusTaskTracker( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.statusTaskTracker( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.statusTaskTracker( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -350,7 +335,6 @@ public class HadoopImplTest
         hadoopImpl.addNode( clusterName, 5 );
 
         assertNotNull( hadoopImpl.addNode( clusterName, 5 ) );
-        assertEquals( uuid, hadoopImpl.addNode( clusterName, 5 ) );
     }
 
 
@@ -362,7 +346,6 @@ public class HadoopImplTest
         hadoopImpl.destroyNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.destroyNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.destroyNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -372,7 +355,6 @@ public class HadoopImplTest
         hadoopImpl.checkDecomissionStatus( hadoopClusterConfig );
 
         assertNotNull( hadoopImpl.checkDecomissionStatus( hadoopClusterConfig ) );
-        assertEquals( uuid, hadoopImpl.checkDecomissionStatus( hadoopClusterConfig ) );
     }
 
 
@@ -383,7 +365,6 @@ public class HadoopImplTest
         hadoopImpl.excludeNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.excludeNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.excludeNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -394,7 +375,6 @@ public class HadoopImplTest
         hadoopImpl.includeNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.includeNode( hadoopClusterConfig, hostname ) );
-        assertEquals( uuid, hadoopImpl.includeNode( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -457,7 +437,7 @@ public class HadoopImplTest
     @Test
     public void testOnContainerDestroyed() throws Exception
     {
-        hadoopImpl.onContainerDestroyed( environment, uuid );
+        hadoopImpl.onContainerDestroyed( environment, id );
         verify( pluginDAO ).saveInfo( HadoopClusterConfig.PRODUCT_KEY, "test", hadoopClusterConfig );
     }
 
@@ -465,7 +445,7 @@ public class HadoopImplTest
     @Test
     public void testOnEnvironmentDestroyed() throws Exception
     {
-        hadoopImpl.onEnvironmentDestroyed( uuid );
+        hadoopImpl.onEnvironmentDestroyed( id );
         verify( pluginDAO ).deleteInfo( HadoopClusterConfig.PRODUCT_KEY, "test" );
     }
 }

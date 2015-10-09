@@ -12,7 +12,8 @@ import javax.naming.NamingException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeState;
@@ -282,7 +283,7 @@ public class Manager
         {
             try
             {
-                Environment environment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+                Environment environment = environmentManager.loadEnvironment( hadoopCluster.getEnvironmentId() );
                 populateMastersTable( masterNodesTable, getMasters( environment.getContainerHosts(), hadoopCluster ) );
                 populateSlavesTable( slaveNodesTable, getSlaves( environment.getContainerHosts(), hadoopCluster ) );
                 replicationFactor.setValue( hadoopCluster.getReplicationFactor().toString() );
@@ -594,7 +595,7 @@ public class Manager
     }
 
 
-    public Set<ContainerHost> getMasters( Set<ContainerHost> containerHosts, HadoopClusterConfig config )
+    public Set<ContainerHost> getMasters( Set<EnvironmentContainerHost> containerHosts, HadoopClusterConfig config )
     {
         Set<ContainerHost> list = new HashSet<>();
         for ( ContainerHost containerHost : containerHosts )
@@ -608,7 +609,7 @@ public class Manager
     }
 
 
-    private Set<ContainerHost> getSlaves( Set<ContainerHost> containerHosts, HadoopClusterConfig config )
+    private Set<ContainerHost> getSlaves( Set<EnvironmentContainerHost> containerHosts, HadoopClusterConfig config )
     {
         Set<ContainerHost> list = new HashSet<>();
         for ( ContainerHost containerHost : containerHosts )
@@ -850,7 +851,7 @@ public class Manager
             {
                 return null;
             }
-            Environment environment = environmentManager.findEnvironment( hadoopCluster.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( hadoopCluster.getEnvironmentId() );
             String lxcHostname = row.getItemProperty( HOST_COLUMN_CAPTION ).getValue().toString();
 
             for ( ContainerHost containerHost : environment.getContainerHosts() )

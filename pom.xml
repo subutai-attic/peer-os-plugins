@@ -45,7 +45,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>env-manager-api</artifactId>
+        <artifactId>environment-manager-api</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 

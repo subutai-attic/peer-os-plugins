@@ -5,31 +5,31 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
- * sample command :
- *      hadoop:check-cluster test \ {cluster name}
+ * sample command : hadoop:check-cluster test \ {cluster name}
  */
-@Command(scope = "hadoop", name = "check-cluster", description = "Command to check Hadoop cluster")
+@Command( scope = "hadoop", name = "check-cluster", description = "Command to check Hadoop cluster" )
 public class CheckClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Hadoop hadoopManager;
     private Tracker tracker;
@@ -43,17 +43,18 @@ public class CheckClusterCommand extends OsgiCommandSupport
         HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
             UUID nameNodeUUID = hadoopManager.statusNameNode( config );
             UUID jtUUID = hadoopManager.statusJobTracker( config );
             UUID snnUUID = hadoopManager.statusSecondaryNameNode( config );
-            HashMap<UUID, UUID> dn = new HashMap<>();
-            for ( UUID uuid : config.getDataNodes() ){
+            HashMap<String, UUID> dn = new HashMap<>();
+            for ( String id : config.getDataNodes() )
+            {
                 try
                 {
-                    dn.put( uuid, hadoopManager
-                            .statusDataNode( config, environment.getContainerHostById( uuid ).getHostname() ) );
+                    dn.put( id, hadoopManager
+                            .statusDataNode( config, environment.getContainerHostById( id ).getHostname() ) );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -61,12 +62,13 @@ public class CheckClusterCommand extends OsgiCommandSupport
                 }
             }
 
-            HashMap<UUID, UUID> tt = new HashMap<>();
-            for ( UUID uuid : config.getTaskTrackers() ){
+            HashMap<String, UUID> tt = new HashMap<>();
+            for ( String id : config.getTaskTrackers() )
+            {
                 try
                 {
-                    tt.put( uuid, hadoopManager
-                            .statusTaskTracker( config, environment.getContainerHostById( uuid ).getHostname() ) );
+                    tt.put( id, hadoopManager
+                            .statusTaskTracker( config, environment.getContainerHostById( id ).getHostname() ) );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -79,10 +81,12 @@ public class CheckClusterCommand extends OsgiCommandSupport
             System.out.println( "SecondaryNameNode : " + waitUntilOperationFinish( tracker, snnUUID ).name() );
             StringBuilder sb = new StringBuilder();
             sb.append( "DataNodes : " );
-            for ( UUID uuid : config.getDataNodes() ){
+            for ( String id : config.getDataNodes() )
+            {
                 try
                 {
-                    sb.append( environment.getContainerHostById(  uuid ).getHostname() + " " + waitUntilOperationFinish( tracker, dn.get( uuid ) ) + " ");
+                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
+                      .append( waitUntilOperationFinish( tracker, dn.get( id ) ) ).append( " " );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -94,10 +98,12 @@ public class CheckClusterCommand extends OsgiCommandSupport
 
             sb = new StringBuilder();
             sb.append( "TaskTrackers : " );
-            for ( UUID uuid : config.getTaskTrackers() ){
+            for ( String id : config.getTaskTrackers() )
+            {
                 try
                 {
-                    sb.append( environment.getContainerHostById(  uuid ).getHostname() + " " + waitUntilOperationFinish( tracker, tt.get( uuid ) ) + " ");
+                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
+                      .append( waitUntilOperationFinish( tracker, tt.get( id ) ) ).append( " " );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -105,7 +111,7 @@ public class CheckClusterCommand extends OsgiCommandSupport
                 }
             }
 
-            System.out.println( sb.toString()  );
+            System.out.println( sb.toString() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -115,7 +121,8 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         NodeState state = NodeState.UNKNOWN;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -187,5 +194,4 @@ public class CheckClusterCommand extends OsgiCommandSupport
     {
         this.tracker = tracker;
     }
-
 }

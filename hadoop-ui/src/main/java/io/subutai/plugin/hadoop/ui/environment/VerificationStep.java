@@ -56,7 +56,7 @@ public class VerificationStep extends VerticalLayout
                     wizard.getHadoopClusterConfig().getAllSlaveNodes().size() + "" );
             cfgView.addStringCfg( "Replication factor", wizard.getHadoopClusterConfig().getReplicationFactor() + "" );
 
-            final Environment environment = wizard.getEnvironmentManager().findEnvironment(
+            final Environment environment = wizard.getEnvironmentManager().loadEnvironment(
                     wizard.getHadoopClusterConfig().getEnvironmentId() );
             cfgView.addStringCfg( "NameNode",
                     environment.getContainerHostById( wizard.getHadoopClusterConfig().getNameNode() ).getHostname()
@@ -68,9 +68,9 @@ public class VerificationStep extends VerticalLayout
                     environment.getContainerHostById( wizard.getHadoopClusterConfig().getSecondaryNameNode() )
                                .getHostname() + "" );
             String selectedNodes = "";
-            for ( UUID uuid : wizard.getHadoopClusterConfig().getAllSlaveNodes() )
+            for ( String id : wizard.getHadoopClusterConfig().getAllSlaveNodes() )
             {
-                selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
+                selectedNodes += environment.getContainerHostById( id ).getHostname() + ",";
             }
             cfgView.addStringCfg( "Slave Nodes (DataNode & TaskTracker)",
                     selectedNodes.substring( 0, ( selectedNodes.length() - 1 ) ) );

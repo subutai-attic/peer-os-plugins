@@ -13,7 +13,7 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.hadoop.api.Hadoop;
@@ -23,7 +23,6 @@ import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 public class RestServiceImpl implements RestService
 {
 
-    private static final String OPERATION_ID = "OPERATION_ID";
     private Hadoop hadoopManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
@@ -61,17 +60,17 @@ public class RestServiceImpl implements RestService
         HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
         hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
         hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
-        hadoopConfig.setEnvironmentId( UUID.fromString( trimmedHadoopConfig.getEnvironmentId() ) );
-        hadoopConfig.setJobTracker( UUID.fromString( trimmedHadoopConfig.getJobTracker() ) );
-        hadoopConfig.setNameNode( UUID.fromString( trimmedHadoopConfig.getNameNode() ) );
-        hadoopConfig.setSecondaryNameNode( UUID.fromString( trimmedHadoopConfig.getSecNameNode() ) );
+        hadoopConfig.setEnvironmentId( trimmedHadoopConfig.getEnvironmentId() );
+        hadoopConfig.setJobTracker( trimmedHadoopConfig.getJobTracker() );
+        hadoopConfig.setNameNode( trimmedHadoopConfig.getNameNode() );
+        hadoopConfig.setSecondaryNameNode( trimmedHadoopConfig.getSecNameNode() );
 
-        if( !CollectionUtil.isCollectionEmpty( trimmedHadoopConfig.getSlaves() ))
+        if ( !CollectionUtil.isCollectionEmpty( trimmedHadoopConfig.getSlaves() ) )
         {
-            Set<UUID> slaveNodes = new HashSet<>();
-            for( String node : trimmedHadoopConfig.getSlaves() )
+            Set<String> slaveNodes = new HashSet<>();
+            for ( String node : trimmedHadoopConfig.getSlaves() )
             {
-                slaveNodes.add( UUID.fromString( node ) );
+                slaveNodes.add( node );
             }
             hadoopConfig.getDataNodes().addAll( slaveNodes );
             hadoopConfig.getTaskTrackers().addAll( slaveNodes );
@@ -90,7 +89,8 @@ public class RestServiceImpl implements RestService
 
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );    }
+        return createResponse( uuid, state );
+    }
 
 
     @Override
@@ -111,7 +111,8 @@ public class RestServiceImpl implements RestService
         UUID uuid = hadoopManager.stopNameNode( hadoopClusterConfig );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );    }
+        return createResponse( uuid, state );
+    }
 
 
     @Override
@@ -203,7 +204,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
-        String message ="enabled";
+        String message = "enabled";
         HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
         config.setAutoScaling( scale );
         try
@@ -215,12 +216,12 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "Auto scale cannot set successfully" ).build();
         }
-        if( scale == false )
+        if ( !scale )
         {
             message = "disabled";
         }
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 
@@ -236,7 +237,8 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Tracker getTracker(){
+    public Tracker getTracker()
+    {
         return tracker;
     }
 
@@ -259,21 +261,26 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private Response createResponse( UUID uuid, OperationState state ){
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_NAME, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )

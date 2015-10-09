@@ -14,9 +14,10 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.env.api.exception.EnvironmentCreationException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.environment.api.exception.EnvironmentCreationException;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -39,22 +40,22 @@ public class ClusterOperationHandlerTest
     ClusterOperationHandler clusterOperationHandler1;
     ClusterOperationHandler clusterOperationHandler2;
     TrackerOperation trackerOperation;
-    UUID uuid;
+    String id;
     ExecutorService executorService;
     HadoopClusterConfig hadoopClusterConfig;
     HadoopImpl hadoop;
     Environment environment;
     EnvironmentManager environmentManager;
-    ContainerHost containerHost;
-    ContainerHost containerHost2;
+    EnvironmentContainerHost containerHost;
+    EnvironmentContainerHost containerHost2;
     CommandResult commandResult;
 
     @Before
     public void setUp() throws ClusterSetupException, EnvironmentNotFoundException, EnvironmentCreationException,
             ContainerHostNotFoundException
     {
-        containerHost = mock(ContainerHost.class);
-        containerHost2 = mock(ContainerHost.class);
+        containerHost = mock(EnvironmentContainerHost.class);
+        containerHost2 = mock(EnvironmentContainerHost.class);
         PluginDAO pluginDAO = mock(PluginDAO.class);
         Set<ContainerHost> mySet = mock(Set.class);
         mySet.add(containerHost);
@@ -66,22 +67,22 @@ public class ClusterOperationHandlerTest
         executorService = mock(ExecutorService.class);
         trackerOperation = mock(TrackerOperation.class);
         commandResult = mock(CommandResult.class);
-        uuid = new UUID(50, 50);
+        id = new UUID(50, 50).toString();
         Tracker tracker = mock(Tracker.class);
 
-        when(trackerOperation.getId()).thenReturn(uuid);
+        when(trackerOperation.getId()).thenReturn( UUID.randomUUID() );
         when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
         when(hadoop.getTracker()).thenReturn(tracker);
         when(hadoop.getPluginDAO()).thenReturn(pluginDAO);
         when(hadoop.getEnvironmentManager()).thenReturn(environmentManager);
-        when( environmentManager.findEnvironment( uuid ) ).thenReturn( environment );
-        when(environment.getContainerHostById( uuid )).thenReturn(containerHost);
+        when( environmentManager.loadEnvironment( id ) ).thenReturn( environment );
+        when(environment.getContainerHostById( id )).thenReturn(containerHost);
 
-        when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
-        when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn(uuid);
+        when(hadoopClusterConfig.getNameNode()).thenReturn( id );
+        when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn( id );
 
         when(hadoopClusterConfig.getClusterName()).thenReturn("test");
-        when(hadoopClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when(hadoopClusterConfig.getEnvironmentId() ).thenReturn( id );
 
         clusterOperationHandler = new ClusterOperationHandler(hadoop, hadoopClusterConfig, ClusterOperationType
                 .INSTALL);
@@ -115,12 +116,12 @@ public class ClusterOperationHandlerTest
     @Test
     public void testRunOperationOnContainers() throws CommandException, EnvironmentNotFoundException
     {
-        when(hadoopClusterConfig.getEnvironmentId()).thenReturn(uuid);
-        when(hadoopClusterConfig.getNameNode()).thenReturn(uuid);
-        when(hadoopClusterConfig.getJobTracker()).thenReturn(uuid);
-        when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn(uuid);
+        when(hadoopClusterConfig.getEnvironmentId()).thenReturn( id );
+        when(hadoopClusterConfig.getNameNode()).thenReturn( id );
+        when(hadoopClusterConfig.getJobTracker()).thenReturn( id );
+        when(hadoopClusterConfig.getSecondaryNameNode()).thenReturn( id );
         when(hadoop.getEnvironmentManager()).thenReturn(environmentManager);
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
 
         // NodeType.NAMENODE
@@ -136,10 +137,10 @@ public class ClusterOperationHandlerTest
 
 
         // asserts for RunOperationOnContainers method
-        assertEquals(uuid, hadoopClusterConfig.getEnvironmentId());
-        assertEquals(uuid, hadoopClusterConfig.getNameNode());
-        assertEquals(uuid, hadoopClusterConfig.getJobTracker());
-        assertEquals(uuid, hadoopClusterConfig.getSecondaryNameNode());
+        assertEquals( id, hadoopClusterConfig.getEnvironmentId());
+        assertEquals( id, hadoopClusterConfig.getNameNode());
+        assertEquals( id, hadoopClusterConfig.getJobTracker());
+        assertEquals( id, hadoopClusterConfig.getSecondaryNameNode());
 
         // tests for NodeType.NAMENODE
         verify(containerHost).execute(new RequestBuilder("service hadoop-dfs start"));
@@ -215,13 +216,13 @@ public class ClusterOperationHandlerTest
     public void testDestroyCluster()
     {
         PluginDAO pluginDAO = mock(PluginDAO.class);
-        when(hadoopClusterConfig.getEnvironmentId()).thenReturn(uuid);
+        when(hadoopClusterConfig.getEnvironmentId()).thenReturn( id );
         when(hadoop.getPluginDAO()).thenReturn(pluginDAO);
         when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
         clusterOperationHandler.destroyCluster();
 
         assertEquals(hadoopClusterConfig, hadoop.getCluster("test"));
-        assertEquals(uuid, hadoopClusterConfig.getEnvironmentId());
+        assertEquals( id, hadoopClusterConfig.getEnvironmentId());
         verify(hadoop).getEnvironmentManager();
     }
 
