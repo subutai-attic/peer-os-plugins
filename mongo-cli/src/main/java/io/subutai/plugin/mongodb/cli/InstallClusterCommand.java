@@ -1,18 +1,20 @@
 package io.subutai.plugin.mongodb.cli;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 @Command( scope = "mongo", name = "install-cluster", description = "Command to install Mongo cluster" )
@@ -23,8 +25,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
             + "name" )
     String clusterName;
 
-    @Argument( index = 1, name = "environmentId", description = "The environment id to setup Mongo cluster", required =
-            true,
+    @Argument( index = 1, name = "environmentId", description = "The environment id to setup Mongo cluster", required
+            = true,
             multiValued = false )
     String environmentId;
 
@@ -32,20 +34,23 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String domainName;
 
-    @Argument( index = 3, name = "replicaSetName", description = "The replica set name for Mongo cluster", required
-            = true,
+    @Argument( index = 3, name = "replicaSetName", description = "The replica set name for Mongo cluster", required =
+            true,
             multiValued = false )
     String replicaSetName = null;
 
-    @Argument( index = 4, name = "dataNodePort", description = "The port of the datanode for Mongo cluster", required = true,
+    @Argument( index = 4, name = "dataNodePort", description = "The port of the datanode for Mongo cluster", required
+            = true,
             multiValued = false )
     int dataNodePort;
 
-    @Argument( index = 5, name = "routerNodePort", description = "The port of the router node for Mongo cluster", required = true,
+    @Argument( index = 5, name = "routerNodePort", description = "The port of the router node for Mongo cluster",
+            required = true,
             multiValued = false )
     int routerNodePort;
 
-    @Argument( index = 6, name = "configServerPort", description = "The port of the config server node for Mongo cluster", required = true,
+    @Argument( index = 6, name = "configServerPort", description = "The port of the config server node for Mongo "
+            + "cluster", required = true,
             multiValued = false )
     int configServerPort;
 
@@ -74,38 +79,29 @@ public class InstallClusterCommand extends OsgiCommandSupport
         mongoConfig.setRouterPort( routerNodePort );
         mongoConfig.setDataNodePort( dataNodePort );
         mongoConfig.setCfgSrvPort( configServerPort );
-        mongoConfig.setEnvironmentId( UUID.fromString( environmentId ) );
+        mongoConfig.setEnvironmentId( environmentId );
         mongoConfig.setClusterName( clusterName );
 
 
-            Set<UUID> configs = new HashSet<>();
-            for ( String node : configNodes )
-            {
-                configs.add( UUID.fromString( node ) );
-            }
-            mongoConfig.getConfigHosts().addAll( configs );
+        Set<String> configs = new HashSet<>();
+        Collections.addAll( configs, configNodes );
+        mongoConfig.getConfigHosts().addAll( configs );
 
 
-            Set<UUID> datas = new HashSet<>();
-            for ( String node : dataNodes )
-            {
-                datas.add( UUID.fromString( node ) );
-            }
-//            mongoConfig.getDataHostIds().addAll( datas );
+        Set<String> datas = new HashSet<>();
+        Collections.addAll( datas, dataNodes );
+        mongoConfig.getDataHosts().addAll( datas );
 
 
-            Set<UUID> routers = new HashSet<>();
-            for ( String node : routerNodes )
-            {
-                routers.add( UUID.fromString( node ) );
-            }
-            mongoConfig.getRouterHosts().addAll( routers );
+        Set<String> routers = new HashSet<>();
+        Collections.addAll( routers, routerNodes );
+        mongoConfig.getRouterHosts().addAll( routers );
 
         UUID uuid = mongoManager.installCluster( mongoConfig );
-        System.out.println(
-                "Install operation is " + waitUntilOperationFinish( tracker, uuid ) + "." );
+        System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) + "." );
         return null;
     }
+
 
     protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
     {
@@ -138,6 +134,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         return state;
     }
 
+
     public Tracker getTracker()
     {
         return tracker;
@@ -160,6 +157,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         this.mongoManager = mongoManager;
     }
-
 }
 

@@ -11,31 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.metric.api.MonitoringSettings;
-import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.mongodb.api.Mongo;
-import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-import io.subutai.plugin.mongodb.api.NodeType;
-import io.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
-import io.subutai.plugin.mongodb.impl.common.Commands;
-import io.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +18,33 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.metric.api.Monitor;
+import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.mongodb.api.Mongo;
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
+import io.subutai.plugin.mongodb.api.NodeType;
+import io.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
+import io.subutai.plugin.mongodb.impl.common.Commands;
+import io.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
 
 
 /**
@@ -64,7 +66,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public MongoImpl( Monitor monitor,  PluginDAO pluginDAO)
+    public MongoImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
@@ -346,16 +348,16 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         LOG.info( "Environment grown" );
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String id )
     {
-        LOG.info( String.format( "Mongo environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Mongo environment event: Container destroyed: %s", id ) );
         List<MongoClusterConfig> clusters = getClusters();
         for ( MongoClusterConfig clusterConfig : clusters )
         {
@@ -364,7 +366,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                 LOG.info( String.format( "Mongo environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                if ( clusterConfig.getAllNodes().contains( id ) )
                 {
                     LOG.info( String.format( "Mongo environment event: Before: %s", clusterConfig ) );
 
@@ -375,7 +377,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                             try
                             {
                                 LOG.info( "Removing cluster config object, since single config server container is "
-                                                + "destroyed." );
+                                        + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -385,7 +387,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                         }
                         else
                         {
-                            clusterConfig.getConfigHosts().remove( uuid );
+                            clusterConfig.getConfigHosts().remove( id );
                         }
                     }
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getRouterHosts() ) )
@@ -395,7 +397,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                             try
                             {
                                 LOG.info( "Removing cluster config object, since single router node container is "
-                                                + "destroyed." );
+                                        + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -405,7 +407,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                         }
                         else
                         {
-                            clusterConfig.getRouterHosts().remove( uuid );
+                            clusterConfig.getRouterHosts().remove( id );
                         }
                     }
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getDataHosts() ) )
@@ -415,7 +417,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                             try
                             {
                                 LOG.info( "Removing cluster config object, since single data node container is "
-                                                + "destroyed." );
+                                        + "destroyed." );
                                 deleteConfig( clusterConfig );
                             }
                             catch ( ClusterException e )
@@ -425,7 +427,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                         }
                         else
                         {
-                            clusterConfig.getDataHosts().remove( uuid );
+                            clusterConfig.getDataHosts().remove( id );
                         }
                     }
                     try
@@ -445,7 +447,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID environmentId )
+    public void onEnvironmentDestroyed( final String environmentId )
     {
         List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
         for ( final String clusterData : clusterDataList )

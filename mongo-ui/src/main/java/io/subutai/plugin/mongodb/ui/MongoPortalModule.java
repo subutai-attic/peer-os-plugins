@@ -12,15 +12,15 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.server.ui.api.PortalModule;
-
-import com.vaadin.ui.Component;
 
 
 public class MongoPortalModule implements PortalModule

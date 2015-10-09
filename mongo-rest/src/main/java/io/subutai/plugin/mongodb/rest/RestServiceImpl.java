@@ -2,24 +2,22 @@ package io.subutai.plugin.mongodb.rest;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -78,37 +76,22 @@ public class RestServiceImpl implements RestService
         mongoConfig.setRouterPort( trimmedConfig.getRouterPort() );
         mongoConfig.setDataNodePort( trimmedConfig.getDataNodePort() );
         mongoConfig.setCfgSrvPort( trimmedConfig.getCfgSrvPort() );
-        mongoConfig.setEnvironmentId( UUID.fromString( trimmedConfig.getEnvironmentId() ) );
+        mongoConfig.setEnvironmentId( trimmedConfig.getEnvironmentId() );
         mongoConfig.setClusterName( trimmedConfig.getClusterName() );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getConfigNodes() ) )
         {
-            Set<UUID> nodes = new HashSet<>();
-            for ( String hostname : trimmedConfig.getConfigNodes() )
-            {
-                nodes.add( UUID.fromString( hostname ) );
-            }
-            mongoConfig.setConfigHosts( nodes );
+            mongoConfig.setConfigHosts( trimmedConfig.getConfigNodes() );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getDataNodes() ) )
         {
-            Set<UUID> nodes = new HashSet<>();
-            for ( String hostname : trimmedConfig.getDataNodes() )
-            {
-                nodes.add( UUID.fromString( hostname ) );
-            }
-            mongoConfig.setDataHosts( nodes );
+            mongoConfig.setDataHosts( trimmedConfig.getDataNodes() );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getRouterNodes() ) )
         {
-            Set<UUID> nodes = new HashSet<>();
-            for ( String hostname : trimmedConfig.getRouterNodes() )
-            {
-                nodes.add( UUID.fromString( hostname ) );
-            }
-            mongoConfig.setRouterHosts( nodes );
+            mongoConfig.setRouterHosts( trimmedConfig.getRouterNodes() );
         }
         UUID uuid = mongo.installCluster( mongoConfig );
         OperationState state = waitUntilOperationFinish( uuid );

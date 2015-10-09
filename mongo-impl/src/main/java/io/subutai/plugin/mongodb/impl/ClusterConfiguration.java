@@ -1,7 +1,8 @@
 package io.subutai.plugin.mongodb.impl;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -13,11 +14,8 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.MongoException;
-import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.plugin.mongodb.impl.common.CommandDef;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
 public class ClusterConfiguration
@@ -40,17 +38,17 @@ public class ClusterConfiguration
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
         try
         {
-            for ( UUID uuid : config.getDataHosts() )
+            for ( String id : config.getDataHosts() )
             {
-                ContainerHost dataNode = findContainerHost( uuid, environment );
+                ContainerHost dataNode = findContainerHost( id, environment );
                 po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
                 setReplicaSetName( dataNode, config.getReplicaSetName() );
             }
 
             ContainerHost datanode;
-            for ( UUID uui : config.getDataHosts() )
+            for ( String id : config.getDataHosts() )
             {
-                datanode = findContainerHost( uui, environment );
+                datanode = findContainerHost( id, environment );
                 if ( config.getPrimaryNode() == null )
                 {
                     config.setPrimaryNode( datanode.getId() );
@@ -82,14 +80,14 @@ public class ClusterConfiguration
         po.addLogDone( "MongoDB cluster data saved into database" );
 
         //subscribe to alerts
-//        try
-//        {
-//            mongoManager.subscribeToAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            throw new ClusterConfigurationException( e );
-//        }
+        //        try
+        //        {
+        //            mongoManager.subscribeToAlerts( environment );
+        //        }
+        //        catch ( MonitorException e )
+        //        {
+        //            throw new ClusterConfigurationException( e );
+        //        }
     }
 
 
@@ -126,10 +124,11 @@ public class ClusterConfiguration
         }
     }
 
-    public void registerSecondaryNode( final ContainerHost dataNode, MongoClusterConfig config  ) throws MongoException
+
+    public void registerSecondaryNode( final ContainerHost dataNode, MongoClusterConfig config ) throws MongoException
     {
-        CommandDef commandDef =
-                Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(), config.getDataNodePort(), config.getDomainName() );
+        CommandDef commandDef = Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(),
+                config.getDataNodePort(), config.getDomainName() );
         try
         {
             CommandResult commandResult = dataNode.execute( commandDef.build().withTimeout( 90 ) );
@@ -147,10 +146,11 @@ public class ClusterConfiguration
     }
 
 
-    public ContainerHost findContainerHost( UUID uuid, Environment environment ){
+    public ContainerHost findContainerHost( String id, Environment environment )
+    {
         try
         {
-            return environment.getContainerHostById( uuid );
+            return environment.getContainerHostById( id );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -158,5 +158,4 @@ public class ClusterConfiguration
         }
         return null;
     }
-
 }

@@ -9,13 +9,12 @@ package io.subutai.plugin.mongodb.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;
-
-import com.google.common.collect.Sets;
 
 
 /**
@@ -38,19 +37,18 @@ public class MongoClusterConfig implements ConfigBase
     private int cfgSrvPort = 27019;
     private int routerPort = 27018;
     private int dataNodePort = 27017;
-    private UUID primaryNode;
+    private String primaryNode;
 
-    private Set<UUID> configHosts;
-    private Set<UUID> routerHosts;
-    private Set<UUID> dataHosts;
-    private UUID environmentId;
+    private Set<String> configHosts;
+    private Set<String> routerHosts;
+    private Set<String> dataHosts;
+    private String environmentId;
     private boolean autoScaling;
 
 
-
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = Sets.newHashSet();
+        Set<String> allNodes = Sets.newHashSet();
         if ( !CollectionUtil.isCollectionEmpty( configHosts ) )
         {
             allNodes.addAll( configHosts );
@@ -158,61 +156,61 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public UUID getPrimaryNode()
+    public String getPrimaryNode()
     {
         return primaryNode;
     }
 
 
-    public void setPrimaryNode( final UUID primaryNode )
+    public void setPrimaryNode( final String primaryNode )
     {
         this.primaryNode = primaryNode;
     }
 
 
-    public Set<UUID> getConfigHosts()
+    public Set<String> getConfigHosts()
     {
         return configHosts;
     }
 
 
-    public void setConfigHosts( final Set<UUID> configHosts )
+    public void setConfigHosts( final Set<String> configHosts )
     {
         this.configHosts = configHosts;
     }
 
 
-    public Set<UUID> getRouterHosts()
+    public Set<String> getRouterHosts()
     {
         return routerHosts;
     }
 
 
-    public void setRouterHosts( final Set<UUID> routerHosts )
+    public void setRouterHosts( final Set<String> routerHosts )
     {
         this.routerHosts = routerHosts;
     }
 
 
-    public Set<UUID> getDataHosts()
+    public Set<String> getDataHosts()
     {
         return dataHosts;
     }
 
 
-    public void setDataHosts( final Set<UUID> dataHosts )
+    public void setDataHosts( final Set<String> dataHosts )
     {
         this.dataHosts = dataHosts;
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -269,22 +267,28 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public List<NodeType> getNodeRoles( UUID uuid ){
+    public List<NodeType> getNodeRoles( String hostId )
+    {
         List<NodeType> roles = new ArrayList<>();
-        if ( routerHosts.contains( uuid ) ){
+        if ( routerHosts.contains( hostId ) )
+        {
             roles.add( NodeType.ROUTER_NODE );
         }
-        if ( dataHosts.contains( uuid ) ){
+        if ( dataHosts.contains( hostId ) )
+        {
             roles.add( NodeType.DATA_NODE );
         }
-        if ( configHosts.contains( uuid ) ){
+        if ( configHosts.contains( hostId ) )
+        {
             roles.add( NodeType.CONFIG_NODE );
         }
         return roles;
     }
 
+
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "MongoClusterConfig{" +
                 "clusterName='" + clusterName + '\'' +
                 ", replicaSetName='" + replicaSetName + '\'' +

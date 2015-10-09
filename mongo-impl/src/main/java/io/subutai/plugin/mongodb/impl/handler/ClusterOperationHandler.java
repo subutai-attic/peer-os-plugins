@@ -3,7 +3,11 @@ package io.subutai.plugin.mongodb.impl.handler;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -16,8 +20,9 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -31,14 +36,8 @@ import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.MongoException;
 import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.impl.ClusterConfiguration;
-import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.plugin.mongodb.impl.MongoImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
+import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
 /**
@@ -107,21 +106,25 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         }
     }
 
+
     private void startAll() throws MongoException
     {
         /** start config nodes  */
-        for ( UUID uuid : config.getConfigHosts() ){
-            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
+        for ( String id : config.getConfigHosts() )
+        {
+            manager.startNode( clusterName, findHost( id ).getHostname(), NodeType.CONFIG_NODE );
         }
 
         /** start router nodes  */
-        for ( UUID uuid : config.getRouterHosts() ){
-            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.ROUTER_NODE );
+        for ( String id : config.getRouterHosts() )
+        {
+            manager.startNode( clusterName, findHost( id ).getHostname(), NodeType.ROUTER_NODE );
         }
 
         /** start data nodes  */
-        for ( UUID uuid : config.getDataHosts() ){
-            manager.startNode( clusterName, findHost( uuid ).getHostname(), NodeType.DATA_NODE );
+        for ( String id : config.getDataHosts() )
+        {
+            manager.startNode( clusterName, findHost( id ).getHostname(), NodeType.DATA_NODE );
         }
         trackerOperation.addLogDone( operationType + " operation is finished." );
     }
@@ -130,30 +133,34 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     private void stopAll() throws MongoException
     {
         /** stop config nodes  */
-        for ( UUID uuid : config.getConfigHosts() ){
-            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.CONFIG_NODE );
+        for ( String id : config.getConfigHosts() )
+        {
+            manager.stopNode( clusterName, findHost( id ).getHostname(), NodeType.CONFIG_NODE );
         }
 
         /** stop router nodes  */
-        for ( UUID uuid : config.getRouterHosts() ){
-            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.ROUTER_NODE );
+        for ( String id : config.getRouterHosts() )
+        {
+            manager.stopNode( clusterName, findHost( id ).getHostname(), NodeType.ROUTER_NODE );
         }
 
         /** stop data nodes  */
-        for ( UUID uuid : config.getDataHosts() ){
-            manager.stopNode( clusterName, findHost( uuid ).getHostname(), NodeType.DATA_NODE );
+        for ( String id : config.getDataHosts() )
+        {
+            manager.stopNode( clusterName, findHost( id ).getHostname(), NodeType.DATA_NODE );
         }
         trackerOperation.addLogDone( operationType + " operation is finished." );
     }
 
 
-    private ContainerHost findHost( UUID uuid ){
+    private EnvironmentContainerHost findHost( String id )
+    {
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             try
             {
-                return environment.getContainerHostById( uuid );
+                return ( EnvironmentContainerHost ) environment.getContainerHostById( id );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -172,8 +179,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME,  MongoClusterConfig.TEMPLATE_NAME,
-                1, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, 1, 1, 1,
+                new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
@@ -183,12 +190,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         try
         {
             ContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
-            if( unusedNodeInEnvironment != null )
+            if ( unusedNodeInEnvironment != null )
             {
                 newNode = unusedNodeInEnvironment;
             }
-            else {
-                Set<ContainerHost> newNodeSet;
+            else
+            {
+                Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
@@ -201,10 +209,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 newNode = newNodeSet.iterator().next();
             }
 
-            if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
+            if ( nodeType.equals( NodeType.ROUTER_NODE ) )
+            {
                 config.getRouterHosts().add( newNode.getId() );
             }
-            else if ( nodeType.equals( NodeType.DATA_NODE ) ){
+            else if ( nodeType.equals( NodeType.DATA_NODE ) )
+            {
                 config.getDataHosts().add( newNode.getId() );
             }
             manager.saveConfig( config );
@@ -213,33 +223,40 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                configurator.configureCluster( config, environment );
 
                 // check if one of config server nodes in mongo cluster is already running,
                 // then newly added node should be started automatically.
                 try
                 {
-                    ContainerHost coordinator = environment.getContainerHostById(
-                            config.getConfigHosts().iterator().next() );
+                    ContainerHost coordinator =
+                            environment.getContainerHostById( config.getConfigHosts().iterator().next() );
                     RequestBuilder checkMasterIsRunning = Commands.getCheckConfigServer().build( true );
                     CommandResult result;
                     try
                     {
                         result = commandUtil.execute( checkMasterIsRunning, coordinator );
-                        if ( result.hasSucceeded() ){
-                            if ( ! result.getStdOut().isEmpty() ){
-                                if ( nodeType.equals( NodeType.ROUTER_NODE ) ){
+                        if ( result.hasSucceeded() )
+                        {
+                            if ( !result.getStdOut().isEmpty() )
+                            {
+                                if ( nodeType.equals( NodeType.ROUTER_NODE ) )
+                                {
                                     Set<ContainerHost> configServers = new HashSet<>();
-                                    for ( UUID uuid : config.getConfigHosts() ){
-                                        configServers.add( findHost( uuid ) );
+                                    for ( String id : config.getConfigHosts() )
+                                    {
+                                        configServers.add( findHost( id ) );
                                     }
-                                    commandUtil.execute( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
-                                            config.getDomainName(), configServers ).build( true ), newNode );
+                                    commandUtil.execute( Commands.getStartRouterCommandLine( config.getRouterPort(),
+                                            config.getCfgSrvPort(), config.getDomainName(), configServers )
+                                                                 .build( true ), newNode );
                                 }
-                                else if ( nodeType.equals( NodeType.DATA_NODE ) ){
-                                    commandUtil.execute( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), newNode );
+                                else if ( nodeType.equals( NodeType.DATA_NODE ) )
+                                {
+                                    commandUtil.execute(
+                                            Commands.getStartDataNodeCommandLine( config.getDataNodePort() )
+                                                    .build( true ), newNode );
                                 }
                             }
                         }
@@ -249,13 +266,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                         LOG.error( "Could not check if Mongo is running on one of the seeds nodes" );
                         e.printStackTrace();
                     }
-
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
                     e.printStackTrace();
                 }
-
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
@@ -287,11 +302,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
-            for( ContainerHost host : containerHostSet )
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Set<EnvironmentContainerHost> containerHostSet = environment.getContainerHosts();
+            for ( ContainerHost host : containerHostSet )
             {
-                if( (!config.getAllNodes().contains( host.getId())) && host.getTemplateName().equals( MongoClusterConfig.TEMPLATE_NAME ) )
+                if ( ( !config.getAllNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
+                        MongoClusterConfig.TEMPLATE_NAME ) )
                 {
                     unusedNode = host;
                     break;
@@ -308,18 +324,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
     private ContainerHost checkUnusedNode( ContainerHost node )
     {
-        if( node != null)
+        if ( node != null )
         {
-            for( MongoClusterConfig config : manager.getClusters() )
+            for ( MongoClusterConfig config : manager.getClusters() )
             {
-                if( !config.getAllNodes().contains( node.getId() ))
+                if ( !config.getAllNodes().contains( node.getId() ) )
                 {
                     return node;
                 }
             }
         }
         return null;
-
     }
 
 
@@ -337,7 +352,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, config, trackerOperation );
             clusterSetupStrategy.setup();
@@ -367,7 +382,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {

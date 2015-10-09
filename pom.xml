@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-   <groupId>io.subutai</groupId>
+  <groupId>io.subutai</groupId>
   <artifactId>mongo-plugin-parent</artifactId>
   <version>4.0.0-RC1</version>
 
@@ -45,7 +45,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>env-manager-api</artifactId>
+        <artifactId>environment-manager-api</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 

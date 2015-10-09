@@ -11,14 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.peer.PeerException;
-import io.subutai.common.settings.Common;
-import io.subutai.common.util.StringUtil;
-import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +30,13 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.settings.Common;
+import io.subutai.common.util.StringUtil;
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 
 
 public class EnvironmentConfigurationStep extends VerticalLayout
@@ -190,13 +190,14 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             configServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    BeanContainer<String, ContainerHost> container =
-                            ( BeanContainer<String, ContainerHost> ) configServerNodes.getContainerDataSource();
-                    Set<UUID> mongoConfigNodes = new HashSet<>();
+                    BeanContainer<String, EnvironmentContainerHost> container =
+                            ( BeanContainer<String, EnvironmentContainerHost> ) configServerNodes
+                                    .getContainerDataSource();
+                    Set<String> mongoConfigNodes = new HashSet<>();
                     for ( final String node : nodes )
                     {
-                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
-                        ContainerHost configNode = mongoBean.getBean();
+                        BeanItem<EnvironmentContainerHost> mongoBean = container.getItem( node.trim() );
+                        EnvironmentContainerHost configNode = mongoBean.getBean();
                         mongoConfigNodes.add( configNode.getId() );
                     }
                     wizard.getMongoClusterConfig().setConfigHosts( mongoConfigNodes );
@@ -213,13 +214,14 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                 {
                     String[] nodes =
                             routeServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
-                    BeanContainer<String, ContainerHost> container =
-                            ( BeanContainer<String, ContainerHost> ) routeServerNodes.getContainerDataSource();
-                    Set<UUID> mongoRouterNodes = new HashSet<>();
+                    BeanContainer<String, EnvironmentContainerHost> container =
+                            ( BeanContainer<String, EnvironmentContainerHost> ) routeServerNodes
+                                    .getContainerDataSource();
+                    Set<String> mongoRouterNodes = new HashSet<>();
                     for ( final String node : nodes )
                     {
-                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
-                        ContainerHost dataNode = mongoBean.getBean();
+                        BeanItem<EnvironmentContainerHost> mongoBean = container.getItem( node.trim() );
+                        EnvironmentContainerHost dataNode = mongoBean.getBean();
                         mongoRouterNodes.add( dataNode.getId() );
                     }
                     wizard.getMongoClusterConfig().setRouterHosts( mongoRouterNodes );
@@ -237,13 +239,14 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                     String[] nodes =
                             dataServerNodes.getValue().toString().replace( "[", "" ).replace( "]", "" ).split( "," );
 
-                    BeanContainer<String, ContainerHost> container =
-                            ( BeanContainer<String, ContainerHost> ) dataServerNodes.getContainerDataSource();
-                    Set<UUID> mongoDataNodes = new HashSet<>();
+                    BeanContainer<String, EnvironmentContainerHost> container =
+                            ( BeanContainer<String, EnvironmentContainerHost> ) dataServerNodes
+                                    .getContainerDataSource();
+                    Set<String> mongoDataNodes = new HashSet<>();
                     for ( final String node : nodes )
                     {
-                        BeanItem<ContainerHost> mongoBean = container.getItem( node.trim() );
-                        ContainerHost dataNode = mongoBean.getBean();
+                        BeanItem<EnvironmentContainerHost> mongoBean = container.getItem( node.trim() );
+                        EnvironmentContainerHost dataNode = mongoBean.getBean();
                         mongoDataNodes.add( dataNode.getId() );
                     }
                     wizard.getMongoClusterConfig().setDataHosts( mongoDataNodes );
@@ -261,7 +264,8 @@ public class EnvironmentConfigurationStep extends VerticalLayout
                     return;
                 }
 
-                if ( ( wizard.getMongoClusterConfig().getConfigHosts().size() % 2 ) == 0  ){
+                if ( ( wizard.getMongoClusterConfig().getConfigHosts().size() % 2 ) == 0 )
+                {
                     show( "Number of config servers should be an odd number!" );
                     return;
                 }
@@ -319,16 +323,8 @@ public class EnvironmentConfigurationStep extends VerticalLayout
 
     private ComboBox getEnvironmentList( final Wizard wizard )
     {
-        List<MongoClusterConfig> clusterConfigs = wizard.getMongo().getClusters();
 
-        final Set<UUID> mongoContainerHosts = new HashSet<>();
-        for ( final MongoClusterConfig clusterConfig : clusterConfigs )
-        {
-//            for ( final MongoNode mongoNode : clusterConfig.getAllNodes() )
-//            {
-//                mongoContainerHosts.add( mongoNode.getContainerHost().getId() );
-//            }
-        }
+        final Set<String> mongoContainerHosts = new HashSet<>();
 
         List<Environment> environments = new ArrayList<>( wizard.getEnvironmentManager().getEnvironments() );
         List<Environment> environmentList = new ArrayList<>();
@@ -382,9 +378,9 @@ public class EnvironmentConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts )
+    private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             try
             {
@@ -402,14 +398,15 @@ public class EnvironmentConfigurationStep extends VerticalLayout
     }
 
 
-    private void fillConfigServers( TwinColSelect twinColSelect, Set<ContainerHost> containerHosts,
-                                    final Set<UUID> mongoContainerHosts )
+    private void fillConfigServers( TwinColSelect twinColSelect, Set<EnvironmentContainerHost> containerHosts,
+                                    final Set<String> mongoContainerHosts )
     {
-        BeanContainer<String, ContainerHost> beanContainer = new BeanContainer<>( ContainerHost.class );
+        BeanContainer<String, EnvironmentContainerHost> beanContainer =
+                new BeanContainer<>( EnvironmentContainerHost.class );
         beanContainer.setBeanIdProperty( "hostname" );
 
-        List<ContainerHost> environmentHosts = new ArrayList<>();
-        for ( final ContainerHost containerHost : containerHosts )
+        List<EnvironmentContainerHost> environmentHosts = new ArrayList<>();
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( !mongoContainerHosts.contains( containerHost.getId() ) && containerHost.getTemplateName()
                                                                                         .equalsIgnoreCase(

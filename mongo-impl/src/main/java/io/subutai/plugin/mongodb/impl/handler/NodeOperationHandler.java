@@ -3,7 +3,8 @@ package io.subutai.plugin.mongodb.impl.handler;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -13,7 +14,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -22,10 +23,8 @@ import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.impl.ClusterConfiguration;
 import io.subutai.plugin.mongodb.impl.MongoImpl;
-import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.plugin.mongodb.impl.common.CommandDef;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
 /**
@@ -41,7 +40,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
 
 
     public NodeOperationHandler( final MongoImpl manager, final String clusterName, final String hostname,
-                                 NodeType nodeType ,NodeOperationType operationType )
+                                 NodeType nodeType, NodeOperationType operationType )
     {
         super( manager, manager.getCluster( clusterName ) );
         this.hostname = hostname;
@@ -66,7 +65,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -90,8 +89,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
             return;
         }
 
-        if ( ! config.getAllNodes().contains( host.getId() ) ){
-            trackerOperation.addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
+        if ( !config.getAllNodes().contains( host.getId() ) )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
             return;
         }
 
@@ -116,7 +117,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     private boolean checkNode( ContainerHost host )
     {
         CommandDef commandDef = null;
-        switch ( nodeType ){
+        switch ( nodeType )
+        {
             case CONFIG_NODE:
                 commandDef = Commands.getCheckConfigServer();
                 break;
@@ -130,7 +132,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         try
         {
             CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 20 ) );
-            if ( ! commandResult.getStdOut().isEmpty() )
+            if ( !commandResult.getStdOut().isEmpty() )
             {
                 trackerOperation.addLogDone( nodeType.name() + " service is running on node " + host.getHostname() );
                 return true;
@@ -145,15 +147,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void startNode( ContainerHost host ){
-        switch ( nodeType ){
+    private void startNode( ContainerHost host )
+    {
+        switch ( nodeType )
+        {
             case CONFIG_NODE:
                 executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build( true ), host );
                 break;
             case ROUTER_NODE:
                 Set<ContainerHost> configServers = new HashSet<>();
-                for ( UUID uuid : config.getConfigHosts() ){
-                    configServers.add( findHost( uuid ) );
+                for ( String id : config.getConfigHosts() )
+                {
+                    configServers.add( findHost( id ) );
                 }
                 executeCommand( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
                         config.getDomainName(), configServers ).build( true ), host );
@@ -166,7 +171,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void stopNode( ContainerHost host ){
+    private void stopNode( ContainerHost host )
+    {
         executeCommand( Commands.getStopNodeCommand().build(), host );
         trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is stopped." );
     }
@@ -193,7 +199,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
             try
             {
                 configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
@@ -209,7 +215,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void executeCommand( RequestBuilder command, ContainerHost host ){
+    private void executeCommand( RequestBuilder command, ContainerHost host )
+    {
         try
         {
             host.execute( command );
@@ -221,13 +228,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private ContainerHost findHost( UUID uuid ){
+    private ContainerHost findHost( String hostId )
+    {
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             try
             {
-                return environment.getContainerHostById( uuid );
+                return environment.getContainerHostById( hostId );
             }
             catch ( ContainerHostNotFoundException e )
             {

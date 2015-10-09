@@ -6,30 +6,15 @@
 package io.subutai.plugin.mongodb.ui.manager;
 
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.mongodb.api.Mongo;
-import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-import io.subutai.plugin.mongodb.api.MongoClusterOperationTask;
-import io.subutai.plugin.mongodb.api.MongoNodeOperationTask;
-import io.subutai.plugin.mongodb.api.NodeType;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +35,27 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.mongodb.api.Mongo;
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
+import io.subutai.plugin.mongodb.api.MongoClusterOperationTask;
+import io.subutai.plugin.mongodb.api.MongoNodeOperationTask;
+import io.subutai.plugin.mongodb.api.NodeType;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -183,15 +189,16 @@ public class Manager
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
                 PROGRESS_ICON.setVisible( true );
-                executorService.execute( new MongoClusterOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(),
-                        ClusterOperationType.START_ALL, new CompleteEvent()
-                {
-                    @Override
-                    public void onComplete( final NodeState state )
-                    {
-                        checkAllBtn.click();
-                    }
-                }, environmentManager, null ) );
+                executorService.execute(
+                        new MongoClusterOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(),
+                                ClusterOperationType.START_ALL, new CompleteEvent()
+                        {
+                            @Override
+                            public void onComplete( final NodeState state )
+                            {
+                                checkAllBtn.click();
+                            }
+                        }, environmentManager ) );
             }
         } );
         controlsContent.addComponent( startAllBtn );
@@ -439,10 +446,10 @@ public class Manager
                     String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts;
+                    Set<EnvironmentContainerHost> containerHosts;
                     try
                     {
-                        containerHosts = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() )
+                        containerHosts = environmentManager.loadEnvironment( mongoClusterConfig.getEnvironmentId() )
                                                            .getContainerHosts();
                     }
                     catch ( EnvironmentNotFoundException e )
@@ -489,37 +496,49 @@ public class Manager
         if ( mongoClusterConfig != null )
         {
             Environment environment = null;
-            try {
-                environment = environmentManager.findEnvironment( mongoClusterConfig.getEnvironmentId() );
-            } catch (EnvironmentNotFoundException e) {
+            try
+            {
+                environment = environmentManager.loadEnvironment( mongoClusterConfig.getEnvironmentId() );
+            }
+            catch ( EnvironmentNotFoundException e )
+            {
                 e.printStackTrace();
             }
             assert environment != null;
             Set<ContainerHost> configHosts = new HashSet<>();
-            for ( UUID uuid : mongoClusterConfig.getConfigHosts() )
+            for ( String id : mongoClusterConfig.getConfigHosts() )
             {
-                try {
-                    configHosts.add( environment.getContainerHostById( uuid ) );
-                } catch (ContainerHostNotFoundException e) {
+                try
+                {
+                    configHosts.add( environment.getContainerHostById( id ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
                     e.printStackTrace();
                 }
             }
             Set<ContainerHost> routerHosts = new HashSet<>();
-            for ( UUID uuid : mongoClusterConfig.getRouterHosts() )
+            for ( String id : mongoClusterConfig.getRouterHosts() )
             {
-                try {
-                    routerHosts.add( environment.getContainerHostById( uuid ) );
-                } catch (ContainerHostNotFoundException e) {
+                try
+                {
+                    routerHosts.add( environment.getContainerHostById( id ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
                     e.printStackTrace();
                 }
             }
 
             Set<ContainerHost> dataHosts = new HashSet<>();
-            for ( UUID uuid : mongoClusterConfig.getDataHosts() )
+            for ( String id : mongoClusterConfig.getDataHosts() )
             {
-                try {
-                    dataHosts.add( environment.getContainerHostById( uuid ) );
-                } catch (ContainerHostNotFoundException e) {
+                try
+                {
+                    dataHosts.add( environment.getContainerHostById( id ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
                     e.printStackTrace();
                 }
             }
@@ -570,16 +589,18 @@ public class Manager
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            if ( table.getCaption().equals( "Config Servers" ) ){
+            if ( table.getCaption().equals( "Config Servers" ) )
+            {
                 addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn );
             }
-            else{
+            else
+            {
                 addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
             }
 
             table.addItem( new Object[] {
-                    node.getHostname(), node.getIpByInterfaceName( "eth0" ),
-                    nodeType.name(), resultHolder, availableOperations
+                    node.getHostname(), node.getIpByInterfaceName( "eth0" ), nodeType.name(), resultHolder,
+                    availableOperations
             }, null );
 
 
@@ -590,9 +611,9 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STATUS, nodeType,
-                            new CompleteEvent()
+                    executorService.execute(
+                            new MongoNodeOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(), node,
+                                    NodeOperationType.STATUS, nodeType, new CompleteEvent()
                             {
                                 @Override
                                 public void onComplete( NodeState nodeState )
@@ -609,7 +630,7 @@ public class Manager
                                         }
                                         resultHolder.setValue( nodeState.name() );
                                         enableButtons( destroyBtn, checkBtn );
-                                        PROGRESS_ICON.setVisible(false);
+                                        PROGRESS_ICON.setVisible( false );
                                     }
                                 }
                             }, null ) );
@@ -623,9 +644,9 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-                            mongoClusterConfig.getClusterName(), node, NodeOperationType.START, nodeType,
-                            new CompleteEvent()
+                    executorService.execute(
+                            new MongoNodeOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(), node,
+                                    NodeOperationType.START, nodeType, new CompleteEvent()
                             {
                                 @Override
                                 public void onComplete( NodeState nodeState )
@@ -647,9 +668,9 @@ public class Manager
                 {
                     PROGRESS_ICON.setVisible( true );
                     disableButtons( startBtn, stopBtn, destroyBtn, checkBtn );
-                    executorService.execute( new MongoNodeOperationTask( mongo, tracker,
-                            mongoClusterConfig.getClusterName(), node, NodeOperationType.STOP, nodeType,
-                            new CompleteEvent()
+                    executorService.execute(
+                            new MongoNodeOperationTask( mongo, tracker, mongoClusterConfig.getClusterName(), node,
+                                    NodeOperationType.STOP, nodeType, new CompleteEvent()
                             {
                                 @Override
                                 public void onComplete( NodeState nodeState )
