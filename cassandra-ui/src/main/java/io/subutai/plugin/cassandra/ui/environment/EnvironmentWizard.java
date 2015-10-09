@@ -5,15 +5,15 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.cassandra.api.Cassandra;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.cassandra.api.Cassandra;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 
 public class EnvironmentWizard
@@ -29,7 +29,8 @@ public class EnvironmentWizard
     private CassandraClusterConfig config = new CassandraClusterConfig();
 
 
-    public EnvironmentWizard( ExecutorService executorService, Cassandra cassandra, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public EnvironmentWizard( ExecutorService executorService, Cassandra cassandra, Tracker tracker,
+                              EnvironmentManager environmentManager ) throws NamingException
     {
 
         this.executorService = executorService;
@@ -118,7 +119,8 @@ public class EnvironmentWizard
     }
 
 
-    public void clearConfig(){
+    public void clearConfig()
+    {
         config = new CassandraClusterConfig();
     }
 

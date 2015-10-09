@@ -4,7 +4,11 @@ package io.subutai.plugin.cassandra.impl.handler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -16,11 +20,11 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -32,10 +36,6 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import io.subutai.plugin.common.api.ClusterOperationType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -91,12 +91,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
     private void startNStopCluster( CassandraClusterConfig config, ClusterOperationType type )
     {
-        for ( UUID uuid : config.getNodes() )
+        for ( String id : config.getNodes() )
         {
             try
             {
-                ContainerHost host = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                                            .getContainerHostById( uuid );
+                EnvironmentContainerHost host =
+                        manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                               .getContainerHostById( id );
                 switch ( type )
                 {
                     case START_ALL:
@@ -110,7 +111,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException e )
             {
                 trackerOperation.addLogFailed( "Failed to %s " +
-                        ( type == ClusterOperationType.START_ALL ? "start" : "stop" )  + config.getClusterName() + " cluster" );
+                        ( type == ClusterOperationType.START_ALL ? "start" : "stop" ) + config.getClusterName()
+                        + " cluster" );
                 e.printStackTrace();
             }
         }
@@ -123,15 +125,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
-                1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
+        NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(), 1, 0, 0,
+                new PlacementStrategy( "ROUND_ROBIN" ) );
 
         Topology topology = new Topology();
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
         try
         {
-            Set<ContainerHost> newNodeSet;
+            Set<EnvironmentContainerHost> newNodeSet;
             try
             {
                 newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
@@ -142,7 +144,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                 throw new ClusterException( e );
             }
 
-            ContainerHost newNode = newNodeSet.iterator().next();
+            EnvironmentContainerHost newNode = newNodeSet.iterator().next();
 
             config.getNodes().add( newNode.getId() );
 
@@ -152,22 +154,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-                configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                configurator.configureCluster( config, environment );
 
                 // check if one of seeds in cassandra cluster is already running,
                 // then newly added node should be started automatically.
                 try
                 {
-                    ContainerHost coordinator = environment.getContainerHostById( config.getSeedNodes().iterator().next() );
+                    EnvironmentContainerHost coordinator =
+                            environment.getContainerHostById( config.getSeedNodes().iterator().next() );
                     RequestBuilder checkMasterIsRunning = new RequestBuilder( Commands.statusCommand );
-                    CommandResult result = null;
+                    CommandResult result;
                     try
                     {
                         result = commandUtil.execute( checkMasterIsRunning, coordinator );
-                        if ( result.hasSucceeded() ){
-                            if ( result.getStdOut().toLowerCase().contains( "pid" ) ){
+                        if ( result.hasSucceeded() )
+                        {
+                            if ( result.getStdOut().toLowerCase().contains( "pid" ) )
+                            {
                                 commandUtil.execute( new RequestBuilder( Commands.startCommand ), newNode );
                             }
                         }
@@ -177,13 +181,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                         LOG.error( "Could not check if Cassandra is running on one of the seeds nodes" );
                         e.printStackTrace();
                     }
-
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
                     e.printStackTrace();
                 }
-
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
@@ -216,7 +218,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
 
             new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
         }
@@ -233,29 +235,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     {
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             CommandResult result = null;
             List<CommandResult> commandResultList = new ArrayList<>();
             switch ( clusterOperationType )
             {
                 case START_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.startCommand );
-
                     }
                     NodeOperationHandler.logResults( trackerOperation, result );
                     break;
                 case STOP_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.stopCommand );
-
                     }
                     NodeOperationHandler.logResults( trackerOperation, result );
                     break;
                 case STATUS_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         //executeCommand( containerHost, Commands.statusCommand );
                         commandResultList.add( executeCommand( containerHost, Commands.statusCommand ) );
@@ -264,13 +264,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                     break;
             }
 
-//            NodeOperationHandler.logResults( trackerOperation, result );
+            //            NodeOperationHandler.logResults( trackerOperation, result );
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
         }
     }
+
 
     public void logResults( TrackerOperation po, List<CommandResult> commandResultList )
     {
@@ -290,7 +291,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    private CommandResult executeCommand( EnvironmentContainerHost containerHost, String command )
     {
         CommandResult result = null;
         try
@@ -317,10 +318,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {

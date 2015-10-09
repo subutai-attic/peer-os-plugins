@@ -10,18 +10,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.cassandra.impl.handler.ConfigureEnvironmentClusterHandler;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -92,16 +92,16 @@ public class ConfigureEnvironmentClusterTest
     {
         // mock run method
         when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( cassandraImpl.getClusterSetupStrategy( environment, cassandraClusterConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
-        when( environment.getId() ).thenReturn( UUID.randomUUID() );
+        when( environment.getId() ).thenReturn( UUID.randomUUID().toString() );
         when( cassandraImpl.getPluginDAO() ).thenReturn( mock( PluginDAO.class ) );
         configureEnvironmentClusterHandler.run();
 
         // asserts
         verify( trackerOperation ).addLog( "Configuring environment..." );
-        assertEquals( environment, environmentManager.findEnvironment( any( UUID.class ) ) );
+        assertEquals( environment, environmentManager.loadEnvironment( any( String.class ) ) );
         assertEquals( clusterSetupStrategy,
                 cassandraImpl.getClusterSetupStrategy( environment, cassandraClusterConfig, trackerOperation ) );
     }

@@ -45,7 +45,7 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
 
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
 
             try
             {

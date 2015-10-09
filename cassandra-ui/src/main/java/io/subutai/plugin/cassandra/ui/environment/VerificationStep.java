@@ -4,15 +4,6 @@ package io.subutai.plugin.cassandra.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.cassandra.api.Cassandra;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.server.ui.component.ProgressWindow;
-
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -21,6 +12,15 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.cassandra.api.Cassandra;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends VerticalLayout
@@ -53,12 +53,12 @@ public class VerificationStep extends VerticalLayout
         try
         {
             environment = environmentWizard.getEnvironmentManager()
-                                           .findEnvironment( environmentWizard.getConfig().getEnvironmentId() );
-            for ( UUID uuid : environmentWizard.getConfig().getNodes() )
+                                           .loadEnvironment( environmentWizard.getConfig().getEnvironmentId() );
+            for ( String uuid : environmentWizard.getConfig().getNodes() )
             {
                 selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
             }
-            for ( UUID uuid : environmentWizard.getConfig().getSeedNodes() )
+            for ( String uuid : environmentWizard.getConfig().getSeedNodes() )
             {
                 seeds += environment.getContainerHostById( uuid ).getHostname() + ",";
             }

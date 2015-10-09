@@ -1,15 +1,17 @@
 package io.subutai.plugin.cassandra.impl.handler;
 
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
@@ -18,8 +20,6 @@ import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -55,10 +55,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -66,7 +66,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             return;
         }
 
-        ContainerHost host = null;
+        EnvironmentContainerHost host = null;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -82,14 +82,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             return;
         }
 
-        if ( ! config.getAllNodes().contains( host.getId() ) ){
-            trackerOperation.addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
+        if ( !config.getAllNodes().contains( host.getId() ) )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
             return;
         }
 
         try
         {
-            CommandResult result = null;
+            CommandResult result;
             switch ( operationType )
             {
                 case START:
@@ -116,8 +118,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
     }
 
 
-    public void destroyNode( ContainerHost host )
+    public void destroyNode( EnvironmentContainerHost host )
     {
+
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
@@ -129,7 +132,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             try
             {
                 configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {

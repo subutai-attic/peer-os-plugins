@@ -5,11 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -24,6 +19,10 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 
 public class ConfigurationStep extends VerticalLayout
@@ -151,7 +150,7 @@ public class ConfigurationStep extends VerticalLayout
             {
                 Environment e = ( Environment ) event.getProperty().getValue();
                 environmentWizard.getConfig().setEnvironmentId( e.getId() );
-                allNodesSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class,
+                allNodesSelect.setContainerDataSource( new BeanItemContainer<>( EnvironmentContainerHost.class,
                         filterEnvironmentContainers( e.getContainerHosts() ) ) );
             }
         } );
@@ -165,10 +164,12 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    seedsSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, nodeList ) );
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    seedsSelect.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, nodeList ) );
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -184,9 +185,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -261,15 +263,15 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    private Set<EnvironmentContainerHost> filterEnvironmentContainers( Set<EnvironmentContainerHost> containerHosts )
     {
-        Set<ContainerHost> filteredSet = new HashSet<>();
-        List<UUID> cassandraNodes = new ArrayList<>();
+        Set<EnvironmentContainerHost> filteredSet = new HashSet<>();
+        List<String> cassandraNodes = new ArrayList<>();
         for ( CassandraClusterConfig cassandraConfig : wizard.getCassandraManager().getClusters() )
         {
             cassandraNodes.addAll( cassandraConfig.getAllNodes() );
         }
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( containerHost.getTemplateName().equals( CassandraClusterConfig.TEMPLATE_NAME ) && !( cassandraNodes
                     .contains( containerHost.getId() ) ) )
@@ -281,9 +283,9 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts, String templateName )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             if ( host.getTemplateName().equals( templateName ) )
             {

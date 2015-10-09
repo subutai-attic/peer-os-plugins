@@ -1,14 +1,12 @@
 package io.subutai.plugin.cassandra.cli;
 
 
-import java.util.UUID;
-
-import io.subutai.plugin.cassandra.api.Cassandra;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.cassandra.api.Cassandra;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 
 /**
@@ -44,12 +42,12 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( UUID containerId : config.getNodes() )
+            for ( String containerId : config.getNodes() )
             {
                 sb.append( "Container ID: " ).append( containerId ).append( "\n" );
             }
             sb.append( "Seeds:" ).append( "\n" );
-            for ( UUID containerId : config.getSeedNodes() )
+            for ( String containerId : config.getSeedNodes() )
             {
                 sb.append( "Container ID: " ).append( containerId ).append( "\n" );
             }

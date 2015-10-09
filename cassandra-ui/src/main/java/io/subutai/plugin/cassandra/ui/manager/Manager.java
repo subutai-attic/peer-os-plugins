@@ -14,22 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.cassandra.api.Cassandra;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.api.NodeOperationTask;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +34,23 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.cassandra.api.Cassandra;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
+import io.subutai.plugin.cassandra.api.NodeOperationTask;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -223,8 +224,7 @@ public class Manager
             }
         } );
 
-        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, addNodeBtn,
-                removeCluster );
+        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, addNodeBtn, removeCluster );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
@@ -463,12 +463,13 @@ public class Manager
                 if ( event.isDoubleClick() )
                 {
                     String containerId =
-                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION ).getValue();
-                    ContainerHost containerHost = null;
+                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION )
+                                            .getValue();
+                    EnvironmentContainerHost containerHost = null;
                     try
                     {
-                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
-                                                     .getContainerHostByHostname( containerId );
+                        containerHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
+                                                          .getContainerHostByHostname( containerId );
                     }
                     catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
                     {
@@ -489,6 +490,7 @@ public class Manager
         };
     }
 
+
     /**
      * Shows notification with the given argument
      *
@@ -505,10 +507,10 @@ public class Manager
      *
      * @param table table to be filled
      */
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
 
             final Label resultHolder = new Label();
@@ -570,7 +572,8 @@ public class Manager
     }
 
 
-    private void addClickListenerToDestroyButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToDestroyButton( final EnvironmentContainerHost containerHost,
+                                                  final Button... buttons )
     {
         getButton( DESTROY_NODE_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -613,7 +616,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToStopButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToStopButton( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -642,7 +645,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToStartButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToStartButton( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -671,7 +674,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToCheckButton( final ContainerHost containerHost, final Label resultHolder,
+    private void addClickListenerToCheckButton( final EnvironmentContainerHost containerHost, final Label resultHolder,
                                                 final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -830,11 +833,11 @@ public class Manager
         if ( config != null )
         {
             autoScaleBtn.setValue( config.isAutoScaling() );
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-            Set<ContainerHost> containerHosts = new HashSet<>();
-            for ( UUID uuid : config.getNodes() )
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Set<EnvironmentContainerHost> containerHosts = new HashSet<>();
+            for ( String id : config.getNodes() )
             {
-                containerHosts.add( environment.getContainerHostById( uuid ) );
+                containerHosts.add( environment.getContainerHostById( id ) );
             }
             if ( environment != null )
             {
@@ -853,13 +856,13 @@ public class Manager
 
 
     /**
-     * @param agentUUID agent uuid
+     * @param hostId agent uuid
      *
-     * @return Yes if give agent is among seeds, otherwise returns No
+     * @return Yes if given host is among seeds, otherwise returns No
      */
-    public String checkIfSeed( UUID agentUUID )
+    public String checkIfSeed( String hostId )
     {
-        if ( config.getSeedNodes().contains( UUID.fromString( agentUUID.toString() ) ) )
+        if ( config.getSeedNodes().contains( hostId ) )
         {
             return "Seed + Data";
         }

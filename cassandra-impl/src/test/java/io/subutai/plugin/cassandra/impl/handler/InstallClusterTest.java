@@ -10,11 +10,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class InstallClusterTest
 {
     private ClusterOperationHandler installClusterHandler;
-    private UUID uuid;
+    private UUID id;
     @Mock
     CassandraImpl cassandraImpl;
     @Mock
@@ -45,11 +46,11 @@ public class InstallClusterTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
-    Iterator<ContainerHost> iterator;
+    Iterator<EnvironmentContainerHost> iterator;
     @Mock
-    Set<ContainerHost> mySet;
+    Set<EnvironmentContainerHost> mySet;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -59,7 +60,7 @@ public class InstallClusterTest
     @Before
     public void setUp()
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID();
         when( cassandraImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
@@ -72,30 +73,12 @@ public class InstallClusterTest
     @Test
     public void testGetTrackerId()
     {
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( id );
 
         installClusterHandler.getTrackerId();
 
         // asserts
         assertNotNull( installClusterHandler.getTrackerId() );
-        assertEquals( uuid, installClusterHandler.getTrackerId() );
+        assertEquals( id, installClusterHandler.getTrackerId() );
     }
-
-
-//    @Test
-    //    public void testRun() throws Exception
-    //    {
-    //        // mock run method
-    //        when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-    //        when( environmentManager.createEnvironment( anyString(), any( Topology.class ), anyBoolean() ) )
-    //                .thenReturn( environment );
-    //        when( cassandraImpl.getClusterSetupStrategy( environment, cassandraClusterConfig, trackerOperation ) )
-    //                .thenReturn( clusterSetupStrategy );
-    //
-    //        installClusterHandler.run();
-    //
-    //        // asserts
-    //        assertEquals( clusterSetupStrategy,
-    //                cassandraImpl.getClusterSetupStrategy( environment, cassandraClusterConfig, trackerOperation ) );
-    //    }
 }

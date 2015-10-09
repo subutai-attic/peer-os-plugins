@@ -2,6 +2,7 @@ package io.subutai.plugin.cassandra.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,20 +10,18 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.common.api.ClusterException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class RestServiceImpl implements RestService
@@ -30,7 +29,6 @@ public class RestServiceImpl implements RestService
     private Cassandra cassandraManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
 
 
     @Override
@@ -51,19 +49,21 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
-        if ( config == null ){
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + " cluster not found." ).build();
+        if ( config == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( clusterName + " cluster not found." ).build();
         }
         String cluster = JsonUtil.toJson( config );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
 
-
     @Override
     public Response destroyCluster( final String clusterName )
     {
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -74,9 +74,11 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response removeCluster( final String clusterName ){
+    public Response removeCluster( final String clusterName )
+    {
         Preconditions.checkNotNull( clusterName );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -85,6 +87,7 @@ public class RestServiceImpl implements RestService
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
+
 
     @Override
     public Response configureCluster( final String environmentId, final String clusterName, final String nodes,
@@ -97,38 +100,34 @@ public class RestServiceImpl implements RestService
         Environment environment = null;
         try
         {
-            environment = environmentManager.findEnvironment( UUID.fromString( environmentId  ) );
+            environment = environmentManager.loadEnvironment( environmentId );
         }
         catch ( EnvironmentNotFoundException e )
         {
             e.printStackTrace();
         }
 
-        if ( environment == null ){
+        if ( environment == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "Could not find environment with id : " + environmentId ).build();
         }
 
-        if ( cassandraManager.getCluster( clusterName ) != null ){
+        if ( cassandraManager.getCluster( clusterName ) != null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "There is already a cluster with same name !" ).build();
         }
 
         CassandraClusterConfig config = new CassandraClusterConfig();
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setEnvironmentId( environmentId );
         config.setClusterName( clusterName );
-        Set<UUID> allNodes = new HashSet<>();
-        Set<UUID> allSeeds = new HashSet<>();
+        Set<String> allNodes = new HashSet<>();
+        Set<String> allSeeds = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
         String[] configSeeds = seeds.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : configNodes )
-        {
-            allNodes.add( UUID.fromString( node ) );
-        }
-        for ( String node : configSeeds )
-        {
-            allSeeds.add( UUID.fromString( node ) );
-        }
+        Collections.addAll( allNodes, configNodes );
+        Collections.addAll( allSeeds, configSeeds );
         config.setNodes( allNodes );
         config.setSeedNodes( allSeeds );
 
@@ -144,7 +143,8 @@ public class RestServiceImpl implements RestService
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -159,7 +159,8 @@ public class RestServiceImpl implements RestService
     public Response stopCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -174,7 +175,8 @@ public class RestServiceImpl implements RestService
     public Response checkCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -208,7 +210,8 @@ public class RestServiceImpl implements RestService
     public Response addNode( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -223,7 +226,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -238,7 +242,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if ( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
@@ -253,7 +258,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found" ).build();
         }
@@ -268,7 +274,8 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHostname );
-        if( cassandraManager.getCluster( clusterName ) == null ){
+        if ( cassandraManager.getCluster( clusterName ) == null )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found" ).build();
         }
@@ -278,24 +285,25 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private Response createResponse( UUID uuid, OperationState state ){
+    private Response createResponse( UUID uuid, OperationState state )
+    {
 
-            TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
-
-
-            if ( state == OperationState.FAILED ){
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
-            }
-            else if ( state == OperationState.SUCCEEDED ){
-                return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
-            }
-            else {
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
-            }
+        TrackerOperationView po = tracker.getTrackerOperation( CassandraClusterConfig.PRODUCT_NAME, uuid );
 
 
+        if ( state == OperationState.FAILED )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED )
+        {
+            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+        }
     }
-
 
 
     private String wrapUUID( UUID uuid )
@@ -304,7 +312,8 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -335,20 +344,9 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Tracker getTracker(){
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 
@@ -362,6 +360,7 @@ public class RestServiceImpl implements RestService
     {
         return cassandraManager;
     }
+
 
     public void setCassandraManager( final Cassandra cassandraManager )
     {

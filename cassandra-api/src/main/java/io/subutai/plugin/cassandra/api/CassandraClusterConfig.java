@@ -2,13 +2,12 @@ package io.subutai.plugin.cassandra.api;
 
 
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;
-
-import com.google.common.collect.Sets;
 
 
 public class CassandraClusterConfig implements ConfigBase
@@ -23,12 +22,12 @@ public class CassandraClusterConfig implements ConfigBase
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private int numberOfSeeds;
     private int numberOfNodes;
-    private Set<UUID> seedNodes;
-    private Set<UUID> nodes;
+    private Set<String> seedNodes;
+    private Set<String> nodes;
     private String dataDirectory = "/var/lib/cassandra/data";
     private String commitLogDirectory = "/var/lib/cassandra/commitlog";
     private String savedCachesDirectory = "/var/lib/cassandra/saved_caches";
-    private UUID environmentId;
+    private String environmentId;
     private boolean autoScaling;
 
 
@@ -44,13 +43,13 @@ public class CassandraClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -136,27 +135,27 @@ public class CassandraClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getSeedNodes()
+    public Set<String> getSeedNodes()
     {
         return seedNodes;
     }
 
 
-    public void setSeedNodes( Set<UUID> seedNodes )
+    public void setSeedNodes( Set<String> seedNodes )
     {
         this.seedNodes = seedNodes;
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = Sets.newHashSet();
+        Set<String> allNodes = Sets.newHashSet();
         if ( !CollectionUtil.isCollectionEmpty( nodes ) )
         {
             allNodes.addAll( nodes );
@@ -170,7 +169,7 @@ public class CassandraClusterConfig implements ConfigBase
     }
 
 
-    public void setNodes( Set<UUID> nodes )
+    public void setNodes( Set<String> nodes )
     {
         this.nodes = nodes;
     }

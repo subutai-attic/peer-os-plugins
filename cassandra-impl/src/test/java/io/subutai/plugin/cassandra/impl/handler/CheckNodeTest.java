@@ -10,18 +10,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.common.api.NodeOperationType;
 
-import static org.junit.Assert.assertEquals;
+import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class CheckNodeTest
 {
     private NodeOperationHandler checkNodeHandler;
-    private UUID uuid;
+    private String id;
     @Mock
     CassandraImpl cassandraImpl;
     @Mock
@@ -47,11 +48,11 @@ public class CheckNodeTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
-    Iterator<ContainerHost> iterator;
+    Iterator<EnvironmentContainerHost> iterator;
     @Mock
-    Set<ContainerHost> mySet;
+    Set<EnvironmentContainerHost> mySet;
     @Mock
     CommandResult commandResult;
 
@@ -59,7 +60,7 @@ public class CheckNodeTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( cassandraImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
 
@@ -73,12 +74,12 @@ public class CheckNodeTest
         // mock run method
         when( cassandraImpl.getCluster( "test" ) ).thenReturn( cassandraClusterConfig );
         when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.getHostname() ).thenReturn( "test" );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -87,7 +88,7 @@ public class CheckNodeTest
         checkNodeHandler.run();
 
         assertNotNull( cassandraImpl.getCluster( "test" ) );
-        assertEquals( environment, environmentManager.findEnvironment( any( UUID.class ) ) );
+        assertEquals( environment, environmentManager.loadEnvironment( any( String.class ) ) );
         assertTrue( commandResult.hasSucceeded() );
     }
 
@@ -98,12 +99,12 @@ public class CheckNodeTest
         // mock run method
         when( cassandraImpl.getCluster( "test" ) ).thenReturn( cassandraClusterConfig );
         when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.getHostname() ).thenReturn( "test" );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );

@@ -1,14 +1,12 @@
 package io.subutai.plugin.cassandra.impl;
 
 
-import java.util.UUID;
-
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -45,12 +43,12 @@ public class ClusterConfiguration
 
 
         StringBuilder sb = new StringBuilder();
-        for ( UUID uuid : config.getSeedNodes() )
+        for ( String id : config.getSeedNodes() )
         {
-            ContainerHost containerHost;
+            EnvironmentContainerHost containerHost;
             try
             {
-                containerHost = environment.getContainerHostById( uuid );
+                containerHost = environment.getContainerHostById( id );
                 sb.append( containerHost.getIpByInterfaceName( "eth0" ) ).append( "," );
             }
             catch ( ContainerHostNotFoundException e )
@@ -65,11 +63,11 @@ public class ClusterConfiguration
         String seedsParam = "seeds " + sb.toString();
 
 
-        for ( UUID uuid : config.getNodes() )
+        for ( String id : config.getNodes() )
         {
             try
             {
-                ContainerHost containerHost = environment.getContainerHostById( uuid );
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
                 po.addLog( "Configuring node: " + containerHost.getHostname() );
 
                 // Setting permission

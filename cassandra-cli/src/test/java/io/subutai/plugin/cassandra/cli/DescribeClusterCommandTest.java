@@ -10,9 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.cli.DescribeClusterCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,7 +21,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class DescribeClusterCommandTest
 {
     private DescribeClusterCommand describeClusterCommand;
@@ -30,68 +31,72 @@ public class DescribeClusterCommandTest
     @Mock
     CassandraClusterConfig cassandraClusterConfig;
 
+
     @Before
-    public void setUp() 
+    public void setUp()
     {
         describeClusterCommand = new DescribeClusterCommand();
     }
 
+
     @Test
-    public void testGetCassandraManager() 
+    public void testGetCassandraManager()
     {
-        describeClusterCommand.setCassandraManager(cassandra);
+        describeClusterCommand.setCassandraManager( cassandra );
         describeClusterCommand.getCassandraManager();
 
         // assertions
-        assertNotNull(describeClusterCommand.getCassandraManager());
-        assertEquals(cassandra, describeClusterCommand.getCassandraManager());
-
+        assertNotNull( describeClusterCommand.getCassandraManager() );
+        assertEquals( cassandra, describeClusterCommand.getCassandraManager() );
     }
 
+
     @Test
-    public void testSetCassandraManager() 
+    public void testSetCassandraManager()
     {
-        describeClusterCommand.setCassandraManager(cassandra);
+        describeClusterCommand.setCassandraManager( cassandra );
         describeClusterCommand.getCassandraManager();
 
         // assertions
-        assertNotNull(describeClusterCommand.getCassandraManager());
-        assertEquals(cassandra, describeClusterCommand.getCassandraManager());
+        assertNotNull( describeClusterCommand.getCassandraManager() );
+        assertEquals( cassandra, describeClusterCommand.getCassandraManager() );
     }
 
+
     @Test
-    public void testDoExecute() 
+    public void testDoExecute()
     {
-        UUID uuid = new UUID(50, 50);
-        Set<UUID> mySet = new HashSet<>();
-        mySet.add(uuid);
+        String id = UUID.randomUUID().toString();
+        Set<String> mySet = new HashSet<>();
+        mySet.add( id );
 
-        when(cassandra.getCluster(anyString())).thenReturn(cassandraClusterConfig);
-        when(cassandraClusterConfig.getNodes()).thenReturn(mySet);
-        when(cassandraClusterConfig.getSeedNodes()).thenReturn(mySet);
+        when( cassandra.getCluster( anyString() ) ).thenReturn( cassandraClusterConfig );
+        when( cassandraClusterConfig.getNodes() ).thenReturn( mySet );
+        when( cassandraClusterConfig.getSeedNodes() ).thenReturn( mySet );
 
-        describeClusterCommand.setCassandraManager(cassandra);
+        describeClusterCommand.setCassandraManager( cassandra );
         describeClusterCommand.doExecute();
 
         // assertions
-        assertNotNull(cassandra.getCluster(anyString()));
-        verify(cassandraClusterConfig).getClusterName();
-        verify(cassandraClusterConfig).getNodes();
-        verify(cassandraClusterConfig).getSeedNodes();
-        verify(cassandraClusterConfig).getDataDirectory();
-        verify(cassandraClusterConfig).getCommitLogDirectory();
-        verify(cassandraClusterConfig).getSavedCachesDirectory();
-        verify(cassandraClusterConfig).getDomainName();
+        assertNotNull( cassandra.getCluster( anyString() ) );
+        verify( cassandraClusterConfig ).getClusterName();
+        verify( cassandraClusterConfig ).getNodes();
+        verify( cassandraClusterConfig ).getSeedNodes();
+        verify( cassandraClusterConfig ).getDataDirectory();
+        verify( cassandraClusterConfig ).getCommitLogDirectory();
+        verify( cassandraClusterConfig ).getSavedCachesDirectory();
+        verify( cassandraClusterConfig ).getDomainName();
     }
+
 
     @Test
     public void testDoExecuteWhenCassandraClusterConfigIsNull()
     {
-        when(cassandra.getCluster(anyString())).thenReturn(null);
+        when( cassandra.getCluster( anyString() ) ).thenReturn( null );
 
-        describeClusterCommand.setCassandraManager(cassandra);
+        describeClusterCommand.setCassandraManager( cassandra );
         describeClusterCommand.doExecute();
 
-        assertNull(cassandra.getCluster(anyString()));
+        assertNull( cassandra.getCluster( anyString() ) );
     }
 }

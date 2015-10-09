@@ -4,18 +4,17 @@ package io.subutai.plugin.cassandra.impl;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class CassandraSetupStrategy implements ClusterSetupStrategy
@@ -63,18 +62,18 @@ public class CassandraSetupStrategy implements ClusterSetupStrategy
                     String.format( "Cluster with name '%s' already exists", config.getClusterName() ) );
         }
 
-        Set<UUID> cassNodes = new HashSet<>();
-        for ( ContainerHost environmentContainer : environment.getContainerHosts() )
+        Set<String> cassNodes = new HashSet<>();
+        for ( EnvironmentContainerHost environmentContainer : environment.getContainerHosts() )
         {
             cassNodes.add( environmentContainer.getId() );
         }
         config.setNodes( cassNodes );
 
-        Iterator iterator = cassNodes.iterator();
-        Set<UUID> seedNodes = new HashSet<>();
+        Iterator<String> iterator = cassNodes.iterator();
+        Set<String> seedNodes = new HashSet<>();
         while ( iterator.hasNext() )
         {
-            seedNodes.add( ( UUID ) iterator.next() );
+            seedNodes.add( iterator.next() );
             if ( seedNodes.size() == config.getNumberOfSeeds() )
             {
                 break;

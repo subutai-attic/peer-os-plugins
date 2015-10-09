@@ -10,19 +10,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.cassandra.impl.CassandraSetupStrategy;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.plugin.common.api.PluginDAO;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -37,7 +36,7 @@ import static org.mockito.Mockito.when;
 public class CassandraSetupStrategyTest
 {
     private CassandraSetupStrategy cassandraSetupStrategy;
-    private UUID uuid;
+    private String id;
     @Mock
     CassandraImpl cassandraImpl;
     @Mock
@@ -51,7 +50,7 @@ public class CassandraSetupStrategyTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -61,7 +60,7 @@ public class CassandraSetupStrategyTest
     @Before
     public void setUp()
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
 
         cassandraSetupStrategy =
                 new CassandraSetupStrategy( environment, cassandraClusterConfig, trackerOperation, cassandraImpl );
@@ -71,7 +70,7 @@ public class CassandraSetupStrategyTest
     @Test
     public void testSetup() throws CommandException, ClusterSetupException
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
 
         // mock setup method
@@ -85,7 +84,7 @@ public class CassandraSetupStrategyTest
 
         when( cassandraImpl.getCluster( anyString() ) ).thenReturn( null );
         when( environment.getContainerHosts() ).thenReturn( mySet );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
 
         when( cassandraClusterConfig.getNumberOfSeeds() ).thenReturn( 1 );
 
@@ -93,14 +92,14 @@ public class CassandraSetupStrategyTest
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( cassandraImpl.getPluginDAO() ).thenReturn( pluginDAO );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
-        when( environment.getId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
 
         cassandraSetupStrategy.setup();
 
         // asserts
         assertNull( cassandraImpl.getCluster( anyString() ) );
         assertNotNull( environment.getContainerHosts() );
-        verify( cassandraClusterConfig ).setEnvironmentId( uuid );
+        verify( cassandraClusterConfig ).setEnvironmentId( id );
         assertTrue( pluginDAO.saveInfo( anyString(), anyString(), any() ) );
     }
 

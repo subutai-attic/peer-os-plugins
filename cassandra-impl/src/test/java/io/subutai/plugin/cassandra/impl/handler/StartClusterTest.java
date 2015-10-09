@@ -3,19 +3,19 @@ package io.subutai.plugin.cassandra.impl.handler;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -28,7 +28,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class StartClusterTest
 {
     private ClusterOperationHandler startClusterHandler;
@@ -45,21 +46,23 @@ public class StartClusterTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
-    Iterator<ContainerHost> iterator;
+    Iterator<EnvironmentContainerHost> iterator;
     @Mock
-    Set<ContainerHost> mySet;
+    Set<EnvironmentContainerHost> mySet;
     @Mock
     CommandResult commandResult;
+
 
     @Before
     public void setup()
     {
-        when(cassandraImpl.getTracker()).thenReturn(tracker);
-        when(tracker.createTrackerOperation(anyString(),anyString())).thenReturn(trackerOperation);
-        when(cassandraClusterConfig.getClusterName()).thenReturn( "test" );
-        startClusterHandler = new ClusterOperationHandler(cassandraImpl, cassandraClusterConfig, ClusterOperationType.START_ALL );
+        when( cassandraImpl.getTracker() ).thenReturn( tracker );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
+        startClusterHandler =
+                new ClusterOperationHandler( cassandraImpl, cassandraClusterConfig, ClusterOperationType.START_ALL );
     }
 
 
@@ -67,50 +70,49 @@ public class StartClusterTest
     public void testRun() throws Exception
     {
         // mock run method
-        when(cassandraImpl.getCluster("test")).thenReturn(cassandraClusterConfig);
-        when(cassandraImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
-        when(environment.getContainerHosts()).thenReturn(mySet);
-        when(mySet.iterator()).thenReturn(iterator);
-        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
-        when(iterator.next()).thenReturn(containerHost);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(true);
+        when( cassandraImpl.getCluster( "test" ) ).thenReturn( cassandraClusterConfig );
+        when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHosts() ).thenReturn( mySet );
+        when( mySet.iterator() ).thenReturn( iterator );
+        when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
+        when( iterator.next() ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( true );
 
         startClusterHandler.run();
 
         // asserts
-        assertNotNull(cassandraImpl.getCluster("test"));
-        assertEquals(environment, environmentManager.findEnvironment( any( UUID.class ) ));
-        assertTrue(commandResult.hasSucceeded());
-
+        assertNotNull( cassandraImpl.getCluster( "test" ) );
+        assertEquals( environment, environmentManager.loadEnvironment( any( String.class ) ) );
+        assertTrue( commandResult.hasSucceeded() );
     }
+
 
     @Test
     public void testRunWhenClusterDoesNotExist()
     {
-        when(cassandraImpl.getCluster("test")).thenReturn(null);
+        when( cassandraImpl.getCluster( "test" ) ).thenReturn( null );
 
         startClusterHandler.run();
     }
+
 
     @Test
     public void testRunWhenCommandResultNotSucceeded() throws Exception
     {
         // mock run method
-        when(cassandraImpl.getCluster("test")).thenReturn(cassandraClusterConfig);
-        when(cassandraImpl.getEnvironmentManager()).thenReturn(environmentManager);
-        when(environmentManager.findEnvironment( any( UUID.class ) )).thenReturn(environment);
-        when(environment.getContainerHosts()).thenReturn(mySet);
-        when(mySet.iterator()).thenReturn(iterator);
-        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
-        when(iterator.next()).thenReturn(containerHost);
-        when(containerHost.execute(any(RequestBuilder.class))).thenReturn(commandResult);
-        when(commandResult.hasSucceeded()).thenReturn(false);
-        when(cassandraClusterConfig.getClusterName()).thenReturn( "test" );
+        when( cassandraImpl.getCluster( "test" ) ).thenReturn( cassandraClusterConfig );
+        when( cassandraImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHosts() ).thenReturn( mySet );
+        when( mySet.iterator() ).thenReturn( iterator );
+        when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
+        when( iterator.next() ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( commandResult.hasSucceeded() ).thenReturn( false );
+        when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
         startClusterHandler.run();
     }
-
-
 }
