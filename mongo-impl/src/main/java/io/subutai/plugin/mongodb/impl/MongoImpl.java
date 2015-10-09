@@ -21,7 +21,6 @@ import com.google.gson.GsonBuilder;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -279,7 +278,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }

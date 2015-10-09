@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.server.ui.component.ProgressWindow;

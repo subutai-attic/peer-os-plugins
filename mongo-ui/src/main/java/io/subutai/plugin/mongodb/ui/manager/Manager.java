@@ -39,7 +39,6 @@ import com.vaadin.ui.Window;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
@@ -460,10 +459,10 @@ public class Manager
                     }
 
                     Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     while ( iterator.hasNext() )
                     {
-                        containerHost = ( ContainerHost ) iterator.next();
+                        containerHost = ( EnvironmentContainerHost ) iterator.next();
                         if ( containerHost.getHostname().equals( containerHostname ) )
                         {
                             break;
@@ -505,7 +504,7 @@ public class Manager
                 e.printStackTrace();
             }
             assert environment != null;
-            Set<ContainerHost> configHosts = new HashSet<>();
+            Set<EnvironmentContainerHost> configHosts = new HashSet<>();
             for ( String id : mongoClusterConfig.getConfigHosts() )
             {
                 try
@@ -517,7 +516,7 @@ public class Manager
                     e.printStackTrace();
                 }
             }
-            Set<ContainerHost> routerHosts = new HashSet<>();
+            Set<EnvironmentContainerHost> routerHosts = new HashSet<>();
             for ( String id : mongoClusterConfig.getRouterHosts() )
             {
                 try
@@ -530,7 +529,7 @@ public class Manager
                 }
             }
 
-            Set<ContainerHost> dataHosts = new HashSet<>();
+            Set<EnvironmentContainerHost> dataHosts = new HashSet<>();
             for ( String id : mongoClusterConfig.getDataHosts() )
             {
                 try
@@ -567,11 +566,11 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> nodes, final NodeType nodeType )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> nodes, final NodeType nodeType )
     {
         table.removeAllItems();
 
-        for ( final ContainerHost node : nodes )
+        for ( final EnvironmentContainerHost node : nodes )
         {
             final Label resultHolder = new Label();
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );

@@ -135,21 +135,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Mongo getMongoManager()
-    {
-        return mongoManager;
     }
 
 

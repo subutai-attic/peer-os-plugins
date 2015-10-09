@@ -1,13 +1,12 @@
 package io.subutai.plugin.mongodb.cli;
 
 
-import io.subutai.plugin.mongodb.api.Mongo;
-import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.plugin.mongodb.api.Mongo;
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 
 
 @Command( scope = "mongo", name = "describe-cluster", description = "Shows the details of the Mongo cluster." )
@@ -15,7 +14,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Mongo mongoManager;
 
 
@@ -34,12 +34,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
-    }
-
-
-    public Mongo getMongoManager()
-    {
-        return mongoManager;
     }
 
 

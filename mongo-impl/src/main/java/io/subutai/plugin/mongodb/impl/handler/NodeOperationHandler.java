@@ -12,7 +12,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -73,7 +73,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
             return;
         }
 
-        ContainerHost host = null;
+        EnvironmentContainerHost host = null;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -114,7 +114,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private boolean checkNode( ContainerHost host )
+    private boolean checkNode( EnvironmentContainerHost host )
     {
         CommandDef commandDef = null;
         switch ( nodeType )
@@ -147,7 +147,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void startNode( ContainerHost host )
+    private void startNode( EnvironmentContainerHost host )
     {
         switch ( nodeType )
         {
@@ -155,7 +155,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                 executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build( true ), host );
                 break;
             case ROUTER_NODE:
-                Set<ContainerHost> configServers = new HashSet<>();
+                Set<EnvironmentContainerHost> configServers = new HashSet<>();
                 for ( String id : config.getConfigHosts() )
                 {
                     configServers.add( findHost( id ) );
@@ -171,14 +171,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void stopNode( ContainerHost host )
+    private void stopNode( EnvironmentContainerHost host )
     {
         executeCommand( Commands.getStopNodeCommand().build(), host );
         trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is stopped." );
     }
 
 
-    private void destroyNode( ContainerHost host )
+    private void destroyNode( EnvironmentContainerHost host )
     {
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
@@ -215,7 +215,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private void executeCommand( RequestBuilder command, ContainerHost host )
+    private void executeCommand( RequestBuilder command, EnvironmentContainerHost host )
     {
         try
         {
@@ -228,7 +228,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-    private ContainerHost findHost( String hostId )
+    private EnvironmentContainerHost findHost( String hostId )
     {
         try
         {

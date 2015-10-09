@@ -3,46 +3,34 @@ package io.subutai.plugin.mongodb.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "mongo", name = "uninstall-cluster", description = "Command to uninstall MongoDB cluster")
+@Command( scope = "mongo", name = "uninstall-cluster", description = "Command to uninstall MongoDB cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Mongo mongoManager;
     private Tracker tracker;
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Mongo getMongoManager()
-    {
-        return mongoManager;
     }
 
 

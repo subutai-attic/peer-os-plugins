@@ -9,15 +9,15 @@ package io.subutai.plugin.mongodb.impl.common;
 import java.util.Set;
 
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.Timeouts;
 
 
 /**
-* Holds all mongo related commands
-*/
+ * Holds all mongo related commands
+ */
 public class Commands
 {
 
@@ -105,11 +105,11 @@ public class Commands
 
 
     public static CommandDef getStartRouterCommandLine( int routerPort, int cfgSrvPort, String domainName,
-                                                        Set<ContainerHost> configServers )
+                                                        Set<EnvironmentContainerHost> configServers )
     {
 
         StringBuilder configServersArg = new StringBuilder();
-        for ( ContainerHost c : configServers )
+        for ( EnvironmentContainerHost c : configServers )
         {
             configServersArg.append( c.getHostname() ).append( "." ).append( domainName ).
                     append( ":" ).append( cfgSrvPort ).append( "," );
@@ -150,17 +150,26 @@ public class Commands
     }
 
 
-    public static CommandDef getCheckConfigServer(){
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --configsvr\"", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+    public static CommandDef getCheckConfigServer()
+    {
+        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --configsvr\"",
+                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
     }
 
-    public static CommandDef getCheckRouterNode(){
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongos --configdb\"", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+
+    public static CommandDef getCheckRouterNode()
+    {
+        return new CommandDef( "Check node", "ps axu | grep \"[m]ongos --configdb\"",
+                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
     }
 
-    public static CommandDef getCheckDataNode(){
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --config \"", Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+
+    public static CommandDef getCheckDataNode()
+    {
+        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --config \"",
+                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
     }
+
 
     public static RequestBuilder getPidCommand()
     {

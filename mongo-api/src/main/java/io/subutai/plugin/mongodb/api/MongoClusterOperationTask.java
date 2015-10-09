@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -133,7 +133,7 @@ public class MongoClusterOperationTask implements Runnable
     }
 
 
-    public ContainerHost findHost( Environment environment, String hostId )
+    public EnvironmentContainerHost findHost( Environment environment, String hostId )
     {
         try
         {

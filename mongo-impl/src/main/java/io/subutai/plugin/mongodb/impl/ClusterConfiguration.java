@@ -8,7 +8,7 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -40,12 +40,12 @@ public class ClusterConfiguration
         {
             for ( String id : config.getDataHosts() )
             {
-                ContainerHost dataNode = findContainerHost( id, environment );
+                EnvironmentContainerHost dataNode = findContainerHost( id, environment );
                 po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
                 setReplicaSetName( dataNode, config.getReplicaSetName() );
             }
 
-            ContainerHost datanode;
+            EnvironmentContainerHost datanode;
             for ( String id : config.getDataHosts() )
             {
                 datanode = findContainerHost( id, environment );
@@ -79,19 +79,11 @@ public class ClusterConfiguration
         }
         po.addLogDone( "MongoDB cluster data saved into database" );
 
-        //subscribe to alerts
-        //        try
-        //        {
-        //            mongoManager.subscribeToAlerts( environment );
-        //        }
-        //        catch ( MonitorException e )
-        //        {
-        //            throw new ClusterConfigurationException( e );
-        //        }
+
     }
 
 
-    public void setReplicaSetName( ContainerHost host, final String replicaSetName ) throws MongoException
+    public void setReplicaSetName( EnvironmentContainerHost host, final String replicaSetName ) throws MongoException
     {
         try
         {
@@ -105,7 +97,7 @@ public class ClusterConfiguration
     }
 
 
-    public void initiateReplicaSet( ContainerHost host, MongoClusterConfig config ) throws MongoException
+    public void initiateReplicaSet( EnvironmentContainerHost host, MongoClusterConfig config ) throws MongoException
     {
         CommandDef commandDef = Commands.getInitiateReplicaSetCommandLine( config.getCfgSrvPort() );
         try
@@ -125,7 +117,7 @@ public class ClusterConfiguration
     }
 
 
-    public void registerSecondaryNode( final ContainerHost dataNode, MongoClusterConfig config ) throws MongoException
+    public void registerSecondaryNode( final EnvironmentContainerHost dataNode, MongoClusterConfig config ) throws MongoException
     {
         CommandDef commandDef = Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(),
                 config.getDataNodePort(), config.getDomainName() );
@@ -146,7 +138,7 @@ public class ClusterConfiguration
     }
 
 
-    public ContainerHost findContainerHost( String id, Environment environment )
+    public EnvironmentContainerHost findContainerHost( String id, Environment environment )
     {
         try
         {

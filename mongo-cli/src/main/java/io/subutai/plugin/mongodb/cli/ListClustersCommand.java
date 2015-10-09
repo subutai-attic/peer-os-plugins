@@ -3,27 +3,21 @@ package io.subutai.plugin.mongodb.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.mongodb.api.Mongo;
-import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.mongodb.api.Mongo;
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "mongo", name = "list-clusters", description = "mydescription")
+@Command( scope = "mongo", name = "list-clusters", description = "mydescription" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 
     private Mongo mongoManager;
-
-
-    public Mongo getMongoManager()
-    {
-        return mongoManager;
-    }
 
 
     public void setMongoManager( Mongo mongoManager )

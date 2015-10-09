@@ -19,7 +19,6 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -160,7 +159,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             try
             {
-                return ( EnvironmentContainerHost ) environment.getContainerHostById( id );
+                return environment.getContainerHostById( id );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -186,10 +185,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
 
-        ContainerHost newNode;
+        EnvironmentContainerHost newNode;
         try
         {
-            ContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
+            EnvironmentContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
             if ( unusedNodeInEnvironment != null )
             {
                 newNode = unusedNodeInEnvironment;
@@ -230,7 +229,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 // then newly added node should be started automatically.
                 try
                 {
-                    ContainerHost coordinator =
+                    EnvironmentContainerHost coordinator =
                             environment.getContainerHostById( config.getConfigHosts().iterator().next() );
                     RequestBuilder checkMasterIsRunning = Commands.getCheckConfigServer().build( true );
                     CommandResult result;
@@ -243,7 +242,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                             {
                                 if ( nodeType.equals( NodeType.ROUTER_NODE ) )
                                 {
-                                    Set<ContainerHost> configServers = new HashSet<>();
+                                    Set<EnvironmentContainerHost> configServers = new HashSet<>();
                                     for ( String id : config.getConfigHosts() )
                                     {
                                         configServers.add( findHost( id ) );
@@ -296,15 +295,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     }
 
 
-    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
+    private EnvironmentContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
     {
-        ContainerHost unusedNode = null;
+        EnvironmentContainerHost unusedNode = null;
 
         try
         {
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             Set<EnvironmentContainerHost> containerHostSet = environment.getContainerHosts();
-            for ( ContainerHost host : containerHostSet )
+            for ( EnvironmentContainerHost host : containerHostSet )
             {
                 if ( ( !config.getAllNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
                         MongoClusterConfig.TEMPLATE_NAME ) )
@@ -322,7 +321,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     }
 
 
-    private ContainerHost checkUnusedNode( ContainerHost node )
+    private EnvironmentContainerHost checkUnusedNode( EnvironmentContainerHost node )
     {
         if ( node != null )
         {

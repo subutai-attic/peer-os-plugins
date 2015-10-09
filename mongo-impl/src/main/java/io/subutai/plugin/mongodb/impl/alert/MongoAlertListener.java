@@ -13,7 +13,6 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
@@ -78,8 +77,8 @@ public class MongoAlertListener implements AlertListener
         //get environment containers and find alert source host
         Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getId().equals( containerHostMetric.getHostId() ) )
             {

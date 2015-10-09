@@ -30,7 +30,7 @@ public class Wizard
     private final ExecutorService executorService;
     private int step = 1;
     private boolean installOverEnvironment;
-    private MongoClusterConfig mongoClusterConfig;// = new MongoClusterConfigImpl();
+    private MongoClusterConfig mongoClusterConfig;
     private EnvironmentManager environmentManager;
     private Set<String> configServerNames = new HashSet<>();
     private Set<String> routerServerNames = new HashSet<>();
@@ -140,18 +140,6 @@ public class Wizard
     public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
-    public Mongo getMongo()
-    {
-        return mongo;
     }
 
 

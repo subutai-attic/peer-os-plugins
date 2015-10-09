@@ -3,24 +3,25 @@ package io.subutai.plugin.mongodb.impl.handler;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ApiBase;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.mongodb.impl.common.CommandDef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
-public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends ConfigBase>
+public abstract class AbstractMongoOperationHandler<T extends ApiBase<V>, V extends ConfigBase>
         extends AbstractOperationHandler<T, V>
 {
 
@@ -61,7 +62,7 @@ public abstract class AbstractMongoOperationHandler<T extends ApiBase, V extends
     }
 
 
-    public CommandResult executeCommand( CommandDef commandBuilder, ContainerHost containerHost )
+    public CommandResult executeCommand( CommandDef commandBuilder, EnvironmentContainerHost containerHost )
     {
         CommandResult commandResult = null;
         try

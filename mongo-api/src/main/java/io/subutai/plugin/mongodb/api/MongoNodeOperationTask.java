@@ -3,7 +3,7 @@ package io.subutai.plugin.mongodb.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
@@ -16,7 +16,7 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class MongoNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Mongo mongo;
     private NodeOperationType operationType;
     private NodeType nodeType;
@@ -24,8 +24,9 @@ public class MongoNodeOperationTask extends AbstractNodeOperationTask implements
     private CompleteEvent completeEvent;
 
 
-    public MongoNodeOperationTask( Mongo mongo, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                   NodeOperationType operationType, NodeType nodeType, CompleteEvent completeEvent, UUID trackID )
+    public MongoNodeOperationTask( Mongo mongo, Tracker tracker, String clusterName,
+                                   EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                                   NodeType nodeType, CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, mongo.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.mongo = mongo;
