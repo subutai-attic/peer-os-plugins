@@ -10,17 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.accumulo.api.Accumulo;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.accumulo.api.SetupType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +20,18 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.accumulo.api.SetupType;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends Panel
@@ -64,23 +65,26 @@ public class VerificationStep extends Panel
         {
             try
             {
-                Environment hadoopEnvironment = environmentManager.findEnvironment(
+                Environment hadoopEnvironment = environmentManager.loadEnvironment(
                         hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() );
-                ContainerHost master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMasterNode() );
-                ContainerHost gc = hadoopEnvironment.getContainerHostById( wizard.getConfig().getGcNode() );
-                ContainerHost monitor = hadoopEnvironment.getContainerHostById( wizard.getConfig().getMonitor() );
-                Set<ContainerHost> tracers =
+                EnvironmentContainerHost master =
+                        hadoopEnvironment.getContainerHostById( wizard.getConfig().getMasterNode() );
+                EnvironmentContainerHost gc = hadoopEnvironment.getContainerHostById( wizard.getConfig().getGcNode() );
+                EnvironmentContainerHost monitor =
+                        hadoopEnvironment.getContainerHostById( wizard.getConfig().getMonitor() );
+                Set<EnvironmentContainerHost> tracers =
                         hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getTracers() );
-                Set<ContainerHost> slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getSlaves() );
+                Set<EnvironmentContainerHost> slaves =
+                        hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getSlaves() );
 
                 cfgView.addStringCfg( "Master node", master.getHostname() );
                 cfgView.addStringCfg( "GC node", gc.getHostname() );
                 cfgView.addStringCfg( "Monitor node", monitor.getHostname() );
-                for ( ContainerHost containerHost : tracers )
+                for ( EnvironmentContainerHost containerHost : tracers )
                 {
                     cfgView.addStringCfg( "Tracers", containerHost.getHostname() );
                 }
-                for ( ContainerHost containerHost : slaves )
+                for ( EnvironmentContainerHost containerHost : slaves )
                 {
                     cfgView.addStringCfg( "Slaves", containerHost.getHostname() );
                 }

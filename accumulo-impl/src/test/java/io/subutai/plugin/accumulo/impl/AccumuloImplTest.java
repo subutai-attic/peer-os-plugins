@@ -19,18 +19,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
@@ -47,33 +48,53 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 @Ignore
 @RunWith( MockitoJUnitRunner.class )
 public class AccumuloImplTest
 {
-    @Mock AccumuloClusterConfig accumuloClusterConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ContainerHost containerHost;
-    @Mock CommandResult commandResult;
-    @Mock PluginDAO pluginDAO;
-    @Mock ExecutorService executor;
+    @Mock
+    AccumuloClusterConfig accumuloClusterConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    ExecutorService executor;
     @Mock
     Commands commands;
-    @Mock Hadoop hadoop;
-    @Mock Zookeeper zookeeper;
-    @Mock Connection connection;
-    @Mock PreparedStatement preparedStatement;
-    @Mock ResultSet resultSet;
-    @Mock ResultSetMetaData resultSetMetaData;
-    @Mock HadoopClusterConfig hadoopClusterConfig;
-    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock Monitor monitor;
-    @Mock QuotaManager quotaManager;
+    @Mock
+    Hadoop hadoop;
+    @Mock
+    Zookeeper zookeeper;
+    @Mock
+    Connection connection;
+    @Mock
+    PreparedStatement preparedStatement;
+    @Mock
+    ResultSet resultSet;
+    @Mock
+    ResultSetMetaData resultSetMetaData;
+    @Mock
+    HadoopClusterConfig hadoopClusterConfig;
+    @Mock
+    ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    Monitor monitor;
+    @Mock
+    QuotaManager quotaManager;
     private AccumuloImpl accumuloImpl;
-    private UUID uuid;
+    private String id;
 
 
     @Before
@@ -85,7 +106,7 @@ public class AccumuloImplTest
         when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         accumuloImpl = new AccumuloImpl( monitor, pluginDAO );
         //        accumuloImpl.init();
         accumuloImpl.setExecutor( executor );
@@ -99,7 +120,7 @@ public class AccumuloImplTest
 
         // mock InstallClusterHandler
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
@@ -107,10 +128,10 @@ public class AccumuloImplTest
                 .thenReturn( accumuloClusterConfig );
         when( pluginDAO.getInfo( AccumuloClusterConfig.PRODUCT_KEY, AccumuloClusterConfig.class ) )
                 .thenReturn( Arrays.asList( accumuloClusterConfig ) );
-        when( accumuloClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        when( accumuloClusterConfig.getAllNodes() ).thenReturn( Sets.newSet( uuid ) );
+        when( accumuloClusterConfig.getEnvironmentId() ).thenReturn( id );
+        when( accumuloClusterConfig.getAllNodes() ).thenReturn( Sets.newSet( id ) );
         when( accumuloClusterConfig.getClusterName() ).thenReturn( "clusterName" );
-        when( environment.getId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
 
         // asserts
         //assertEquals( preparedStatement, connection.prepareStatement( any( String.class ) ) );
@@ -198,22 +219,20 @@ public class AccumuloImplTest
     @Test
     public void testInstallCluster() throws Exception
     {
-        UUID id = accumuloImpl.installCluster( accumuloClusterConfig );
+        accumuloImpl.installCluster( accumuloClusterConfig );
 
         // assertions
         assertNotNull( accumuloImpl.installCluster( accumuloClusterConfig ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        UUID id = accumuloImpl.uninstallCluster( "test" );
+        accumuloImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( accumuloImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -248,94 +267,87 @@ public class AccumuloImplTest
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = accumuloImpl.addNode( "test", "test" );
+        accumuloImpl.addNode( "test", "test" );
     }
 
 
     @Test
     public void testStartCluster() throws Exception
     {
-        UUID id = accumuloImpl.startCluster( "test" );
+        accumuloImpl.startCluster( "test" );
 
         // assertions
         assertNotNull( accumuloImpl.startCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStopCluster() throws Exception
     {
-        UUID id = accumuloImpl.stopCluster( "test" );
+        accumuloImpl.stopCluster( "test" );
 
         // assertions
         assertNotNull( accumuloImpl.stopCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = accumuloImpl.checkNode( "test", "test" );
+        accumuloImpl.checkNode( "test", "test" );
 
         // assertions
-        assertEquals( uuid, id );
+        verify( executor ).execute( isA( AbstractOperationHandler.class ) );
     }
 
 
     @Test
     public void testAddNode1() throws Exception
     {
-        UUID id = accumuloImpl.addNode( "test", "test", NodeType.MASTER_NODE );
+        accumuloImpl.addNode( "test", "test", NodeType.MASTER_NODE );
 
         // assertions
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testAddNode2() throws Exception
     {
-        UUID id = accumuloImpl.addNode( "test", NodeType.MASTER_NODE );
+        accumuloImpl.addNode( "test", NodeType.MASTER_NODE );
 
         // assertions
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = accumuloImpl.destroyNode( "test", "test", NodeType.MASTER_NODE );
+        accumuloImpl.destroyNode( "test", "test", NodeType.MASTER_NODE );
 
         // assertions
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testAddProperty() throws Exception
     {
-        UUID id = accumuloImpl.addProperty( "test", "test", "test" );
+        accumuloImpl.addProperty( "test", "test", "test" );
 
         // assertions
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testRemoveProperty() throws Exception
     {
-        UUID id = accumuloImpl.removeProperty( "test", "test" );
+        accumuloImpl.removeProperty( "test", "test" );
 
         // assertions
         verify( executor ).execute( isA( AbstractOperationHandler.class ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -351,9 +363,9 @@ public class AccumuloImplTest
     @Test
     public void testOnEnvironmentGrown() throws Exception
     {
-        ContainerHost node = mock( ContainerHost.class );
+        EnvironmentContainerHost node = mock( EnvironmentContainerHost.class );
         when( node.getHostname() ).thenReturn( "hostname" );
-        when( environment.getId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
         accumuloImpl.onEnvironmentGrown( environment, Sets.newSet( node ) );
         verify( node ).getHostname();
         verify( environment ).getId();
@@ -363,14 +375,14 @@ public class AccumuloImplTest
     @Test
     public void testOnContainerDestroyed() throws Exception
     {
-        when( environment.getId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
 
-        when( accumuloClusterConfig.removeNode( any( UUID.class ) ) ).thenReturn( false );
-        accumuloImpl.onContainerDestroyed( environment, uuid );
+        when( accumuloClusterConfig.removeNode( any( String.class ) ) ).thenReturn( false );
+        accumuloImpl.onContainerDestroyed( environment, id );
         verify( pluginDAO ).deleteInfo( anyString(), anyString() );
 
-        when( accumuloClusterConfig.removeNode( any( UUID.class ) ) ).thenReturn( true );
-        accumuloImpl.onContainerDestroyed( environment, uuid );
+        when( accumuloClusterConfig.removeNode( any( String.class ) ) ).thenReturn( true );
+        accumuloImpl.onContainerDestroyed( environment, id );
         verify( pluginDAO ).saveInfo( anyString(), anyString(), anyObject() );
     }
 
@@ -378,8 +390,8 @@ public class AccumuloImplTest
     @Test
     public void testOnEnvironmentDestroyed() throws Exception
     {
-        when( environment.getId() ).thenReturn( uuid );
-        accumuloImpl.onEnvironmentDestroyed( uuid );
+        when( environment.getId() ).thenReturn( id );
+        accumuloImpl.onEnvironmentDestroyed( id );
         verify( pluginDAO ).deleteInfo( AccumuloClusterConfig.PRODUCT_KEY, "clusterName" );
     }
 

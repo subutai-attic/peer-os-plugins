@@ -5,22 +5,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -67,12 +68,11 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Accumu
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            String msg =
-                    String.format( "Environment with id: %s doesn't exists.", config.getEnvironmentId().toString() );
+            String msg = String.format( "Environment with id: %s doesn't exists.", config.getEnvironmentId() );
             trackerOperation.addLogFailed( msg );
             LOGGER.error( msg, e );
             return;
@@ -80,7 +80,7 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Accumu
         CommandResult result;
         boolean allSuccess = true;
 
-        Set<ContainerHost> containerHosts;
+        Set<EnvironmentContainerHost> containerHosts;
         try
         {
             containerHosts = new HashSet<>( environment.getContainerHostsByIds( accumuloClusterConfig.getAllNodes() ) );
@@ -94,7 +94,7 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Accumu
             return;
         }
 
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             try
             {
@@ -121,7 +121,7 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Accumu
         if ( allSuccess )
         {
             trackerOperation.addLog( "Restarting cluster... " );
-            ContainerHost master;
+            EnvironmentContainerHost master;
             try
             {
                 master = environment.getContainerHostById( accumuloClusterConfig.getMasterNode() );
@@ -129,7 +129,7 @@ public class AddPropertyOperationHandler extends AbstractOperationHandler<Accumu
             catch ( ContainerHostNotFoundException e )
             {
                 String msg = String.format( "Container host with id: %s doesn't exists in environment: %s",
-                        accumuloClusterConfig.getMasterNode().toString(), environment.getName() );
+                        accumuloClusterConfig.getMasterNode(), environment.getName() );
                 trackerOperation.addLogFailed( msg );
                 LOGGER.error( msg, e );
                 return;

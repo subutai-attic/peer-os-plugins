@@ -12,13 +12,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.accumulo.rest.RestServiceImpl;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -31,12 +31,18 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
-    @Mock Accumulo accumulo;
-    @Mock Hadoop hadoop;
-    @Mock HadoopClusterConfig hadoopClusterConfig;
-    @Mock ContainerHost containerHost;
-    @Mock Tracker tracker;
-    @Mock TrackerOperationView trackerOperationView;
+    @Mock
+    Accumulo accumulo;
+    @Mock
+    Hadoop hadoop;
+    @Mock
+    HadoopClusterConfig hadoopClusterConfig;
+    @Mock
+    ContainerHost containerHost;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperationView trackerOperationView;
     private RestServiceImpl restService;
     private AccumuloClusterConfig accumuloClusterConfig;
     private String config2 = "{\"clusterName\": \"test\",\"instanceName\": \"instance-name\",\"password\": " +
@@ -90,7 +96,7 @@ public class RestServiceImplTest
     public void testInstallCluster() throws Exception
     {
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( UUID.randomUUID() );
+        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( UUID.randomUUID().toString() );
 
         Response response = restService.installCluster( config2 );
 

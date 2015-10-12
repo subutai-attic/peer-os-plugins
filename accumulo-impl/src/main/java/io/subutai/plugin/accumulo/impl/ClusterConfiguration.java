@@ -3,7 +3,11 @@ package io.subutai.plugin.accumulo.impl;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandUtil;
@@ -11,7 +15,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
@@ -19,10 +23,6 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -56,22 +56,22 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 accumuloManager.getZkManager().getCluster( accumuloClusterConfig.getZookeeperClusterName() );
 
         trackerOperation.addLog( "Configuring cluster..." );
-        ContainerHost master = getHost( environment, accumuloClusterConfig.getMasterNode() );
-        ContainerHost gc = getHost( environment, accumuloClusterConfig.getGcNode() );
-        ContainerHost monitor = getHost( environment, accumuloClusterConfig.getMonitor() );
+        EnvironmentContainerHost master = getHost( environment, accumuloClusterConfig.getMasterNode() );
+        EnvironmentContainerHost gc = getHost( environment, accumuloClusterConfig.getGcNode() );
+        EnvironmentContainerHost monitor = getHost( environment, accumuloClusterConfig.getMonitor() );
 
 
         // clear configuration files
         executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
-                Commands.getClearMastersFileCommand( "masters" ), environment);
+                Commands.getClearMastersFileCommand( "masters" ), environment );
         executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
-                Commands.getClearSlavesFileCommand( "slaves" ), environment);
+                Commands.getClearSlavesFileCommand( "slaves" ), environment );
         executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
-                Commands.getClearMastersFileCommand( "tracers" ), environment);
+                Commands.getClearMastersFileCommand( "tracers" ), environment );
+        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(), Commands.getClearMastersFileCommand( "gc" ),
+                environment );
         executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
-                Commands.getClearMastersFileCommand( "gc" ), environment);
-        executeCommandOnAllContainer( accumuloClusterConfig.getAllNodes(),
-                Commands.getClearMastersFileCommand( "monitor" ), environment);
+                Commands.getClearMastersFileCommand( "monitor" ), environment );
 
         /** configure cluster */
         Set<Host> hostSet = Util.getHosts( accumuloClusterConfig, environment );
@@ -123,10 +123,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private String serializeSlaveNodeNames( Environment environment, Set<UUID> slaveNodes )
+    private String serializeSlaveNodeNames( Environment environment, Set<String> slaveNodes )
     {
         StringBuilder slavesSpaceSeparated = new StringBuilder();
-        for ( UUID tracer : slaveNodes )
+        for ( String tracer : slaveNodes )
         {
             slavesSpaceSeparated.append( getHost( environment, tracer ).getHostname() ).append( " " );
         }
@@ -140,16 +140,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             environment = accumuloManager.getEnvironmentManager()
-                                         .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                                         .loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             String msg = String.format( "Environment with id: %s doesn't exists.",
-                    zookeeperClusterConfig.getEnvironmentId().toString() );
+                    zookeeperClusterConfig.getEnvironmentId() );
         }
-        Set<UUID> zkNodes = zookeeperClusterConfig.getNodes();
+        Set<String> zkNodes = zookeeperClusterConfig.getNodes();
         StringBuilder zkNodesCommaSeparated = new StringBuilder();
-        for ( UUID zkNode : zkNodes )
+        for ( String zkNode : zkNodes )
         {
             zkNodesCommaSeparated.append( getHost( environment, zkNode ).getHostname() ).append( ":2181," );
         }
@@ -158,7 +158,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private ContainerHost getHost( Environment environment, UUID nodeId )
+    private EnvironmentContainerHost getHost( Environment environment, String nodeId )
     {
         try
         {
@@ -166,9 +166,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         catch ( ContainerHostNotFoundException e )
         {
-            String msg =
-                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
-                            environment.getName() );
+            String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId,
+                    environment.getName() );
             trackerOperation.addLogFailed( msg );
             LOGGER.error( msg, e );
             return null;
@@ -176,16 +175,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    public static void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command,
+    public static void executeCommandOnAllContainer( Set<String> allUUIDs, RequestBuilder command,
                                                      Environment environment )
     {
         CommandUtil commandUtil = new CommandUtil();
         try
         {
             Set<Host> hosts = new HashSet<>();
-            for ( UUID uuid : allUUIDs )
+            for ( String id : allUUIDs )
             {
-                hosts.add( environment.getContainerHostById( uuid ) );
+                hosts.add( environment.getContainerHostById( id ) );
             }
             try
             {

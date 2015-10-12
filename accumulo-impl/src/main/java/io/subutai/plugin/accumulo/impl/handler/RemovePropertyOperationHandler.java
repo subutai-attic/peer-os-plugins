@@ -17,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
@@ -61,22 +61,21 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            String msg =
-                    String.format( "Couldn't find find environment with id: %s", config.getEnvironmentId().toString() );
+            String msg = String.format( "Couldn't find find environment with id: %s", config.getEnvironmentId() );
             trackerOperation.addLogFailed( msg );
             LOGGER.error( msg, e );
             return;
         }
-        CommandResult result = null;
+        CommandResult result;
         boolean allSuccess = true;
-        Set<ContainerHost> containerHosts = new HashSet<>();
+        Set<EnvironmentContainerHost> containerHosts = new HashSet<>();
         try
         {
             containerHosts.addAll( environment.getContainerHostsByIds( accumuloClusterConfig.getAllNodes() ) );
@@ -89,7 +88,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
             trackerOperation.addLogFailed( msg );
         }
 
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             try
             {
@@ -106,7 +105,6 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
             }
             catch ( CommandException e )
             {
-                allSuccess = false;
                 String msg = String.format( "Error removing property %s", propertyName );
                 trackerOperation.addLogFailed( msg );
                 LOGGER.error( msg, e );
@@ -116,7 +114,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
         if ( allSuccess )
         {
             trackerOperation.addLog( "Restarting cluster... " );
-            ContainerHost master = null;
+            EnvironmentContainerHost master;
             try
             {
                 master = environment.getContainerHostById( accumuloClusterConfig.getMasterNode() );
@@ -124,7 +122,7 @@ public class RemovePropertyOperationHandler extends AbstractOperationHandler<Acc
             catch ( ContainerHostNotFoundException e )
             {
                 String msg = String.format( "Container host with id: %s is not available from environment %s",
-                        accumuloClusterConfig.getMasterNode().toString(), environment.getName() );
+                        accumuloClusterConfig.getMasterNode(), environment.getName() );
                 trackerOperation.addLogFailed( msg );
                 LOGGER.error( msg, e );
                 return;

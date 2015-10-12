@@ -3,7 +3,12 @@ package io.subutai.plugin.accumulo.impl.handler;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -12,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
@@ -25,11 +30,6 @@ import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 /**
@@ -66,7 +66,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         try
         {
             this.environment = manager.getEnvironmentManager()
-                                      .findEnvironment( manager.getCluster( clusterName ).getEnvironmentId() );
+                                      .loadEnvironment( manager.getCluster( clusterName ).getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -100,7 +100,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         try
         {
             this.environment = manager.getEnvironmentManager()
-                                      .findEnvironment( manager.getCluster( clusterName ).getEnvironmentId() );
+                                      .loadEnvironment( manager.getCluster( clusterName ).getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -128,7 +128,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             return;
         }
 
-        ContainerHost host;
+        EnvironmentContainerHost host;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -183,7 +183,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private void removeNode( ContainerHost node ) throws ClusterException
+    private void removeNode( EnvironmentContainerHost node ) throws ClusterException
     {
         /**
          * 1) sanity checks
@@ -213,14 +213,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
 
             trackerOperation.addLog( "Notifying other nodes in cluster..." );
             // configure other nodes in cluster
-            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
+            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) )
+            {
                 ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
                         new RequestBuilder( Commands.getClearTracerCommand( node.getHostname() ) ), environment );
                 config.getTracers().remove( node.getId() );
             }
-            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
-                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(), new RequestBuilder( Commands
-                        .getClearSlaveCommand( node.getHostname() ) ), environment );
+            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) )
+            {
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                        new RequestBuilder( Commands.getClearSlaveCommand( node.getHostname() ) ), environment );
                 config.getSlaves().remove( node.getId() );
             }
             stopAccumuloNodeRole( node, nodeType );
@@ -235,14 +237,16 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             // configure other nodes in cluster
             trackerOperation.addLog( "Notifying other nodes in cluster..." );
             // configure other nodes in cluster
-            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
+            if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) )
+            {
                 ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
                         new RequestBuilder( Commands.getClearTracerCommand( node.getHostname() ) ), environment );
                 config.getTracers().remove( node.getId() );
             }
-            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
-                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(), new RequestBuilder( Commands
-                        .getClearSlaveCommand( node.getHostname() ) ), environment );
+            else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) )
+            {
+                ClusterConfiguration.executeCommandOnAllContainer( config.getAllNodes(),
+                        new RequestBuilder( Commands.getClearSlaveCommand( node.getHostname() ) ), environment );
                 config.getSlaves().remove( node.getId() );
             }
             stopAccumuloNodeRole( node, nodeType );
@@ -252,8 +256,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private void stopAccumuloNodeRole( ContainerHost host, NodeType nodeType ){
-        switch ( nodeType ){
+    private void stopAccumuloNodeRole( EnvironmentContainerHost host, NodeType nodeType )
+    {
+        switch ( nodeType )
+        {
             case ACCUMULO_TABLET_SERVER:
                 String command = "pkill -f tserver";
                 try
@@ -279,7 +285,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         }
     }
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
+
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
     {
         CommandResult result = null;
@@ -319,7 +326,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
         return executeCommand( host, command, false );
     }
@@ -330,7 +337,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         HadoopClusterConfig hadoopClusterConfig =
                 manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
 
-        List<UUID> hadoopNodes = hadoopClusterConfig.getAllNodes();
+        List<String> hadoopNodes = hadoopClusterConfig.getAllNodes();
         hadoopNodes.removeAll( config.getAllNodes() );
 
         if ( hadoopNodes.isEmpty() )
@@ -346,7 +353,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
             }
         }
 
-        ContainerHost node = null;
+        EnvironmentContainerHost node = null;
         try
         {
             node = environment.getContainerHostByHostname( hostname );
@@ -366,30 +373,35 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                  * if there is already Accumulo debian package installed on container, then
                  * just add the new role to that container, otherwise both install and configure node.
                  */
-                CommandResult result = executeCommand( node, new RequestBuilder( Commands.checkIfInstalled  ) );
-                if ( ! result.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) ){
+                CommandResult result = executeCommand( node, new RequestBuilder( Commands.checkIfInstalled ) );
+                if ( !result.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) )
+                {
                     // install accumulo to this node
                     executeCommand( node, Commands.getInstallCommand() );
-                    CommandResult commandResult = executeCommand( node, new RequestBuilder( Commands.checkIfInstalled  ) );
-                    if ( ! commandResult.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) ){
+                    CommandResult commandResult =
+                            executeCommand( node, new RequestBuilder( Commands.checkIfInstalled ) );
+                    if ( !commandResult.getStdOut().contains( AccumuloClusterConfig.PRODUCT_PACKAGE ) )
+                    {
                         LOGGER.error( "Accumulo package cannot be installed on container." );
-                        trackerOperation
-                                .addLogFailed( String.format( "Failed to install Accumulo to %s", node.getHostname() ) );
+                        trackerOperation.addLogFailed(
+                                String.format( "Failed to install Accumulo to %s", node.getHostname() ) );
                         throw new ClusterException( "Accumulo package cannot be installed on container." );
                     }
                 }
 
                 clearConfigurationFiles( node );
-                if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) ){
-                    configureOldNodes(node, NodeType.ACCUMULO_TRACER, config);
-                    config.getTracers().add(node.getId());
-                    configureNewNode(node, config);
+                if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) )
+                {
+                    configureOldNodes( node, NodeType.ACCUMULO_TRACER, config );
+                    config.getTracers().add( node.getId() );
+                    configureNewNode( node, config );
                 }
-                else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
+                else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) )
+                {
                     clearConfigurationFiles( node );
-                    configureOldNodes(node, NodeType.ACCUMULO_TABLET_SERVER, config);
-                    config.getSlaves().add(node.getId());
-                    configureNewNode(node, config);
+                    configureOldNodes( node, NodeType.ACCUMULO_TABLET_SERVER, config );
+                    config.getSlaves().add( node.getId() );
+                    configureNewNode( node, config );
                 }
 
                 trackerOperation.addLog( "Saving cluster information..." );
@@ -422,7 +434,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     {
         try
         {
-            ContainerHost master = environment.getContainerHostById( config.getMasterNode() );
+            EnvironmentContainerHost master = environment.getContainerHostById( config.getMasterNode() );
             CommandResult result = executeCommand( master, Commands.statusCommand );
             if ( result.hasSucceeded() )
             {
@@ -446,13 +458,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         }
     }
 
-    private void clearConfigurationFiles( ContainerHost host ){
+
+    private void clearConfigurationFiles( EnvironmentContainerHost host )
+    {
         try
         {
             executeCommand( host, Commands.getClearMastersFileCommand( "masters" ) );
             executeCommand( host, Commands.getClearSlavesFileCommand( "slaves" ) );
             executeCommand( host, Commands.getClearMastersFileCommand( "tracers" ) );
-            executeCommand( host, Commands.getClearMastersFileCommand("gc") );
+            executeCommand( host, Commands.getClearMastersFileCommand( "gc" ) );
             executeCommand( host, Commands.getClearMastersFileCommand( "monitor" ) );
         }
         catch ( ClusterException e )
@@ -462,51 +476,61 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private void configureOldNodes( ContainerHost host, NodeType nodeType, AccumuloClusterConfig config ){
+    private void configureOldNodes( EnvironmentContainerHost host, NodeType nodeType, AccumuloClusterConfig config )
+    {
 
 
-        if ( nodeType.equals( NodeType.ACCUMULO_TRACER  ) ){
-            Set<UUID> allNodes = config.getAllNodes();
-            allNodes.remove(host.getId());
-            ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getAddTracersCommand(
-                    host.getHostname() ), environment );
+        if ( nodeType.equals( NodeType.ACCUMULO_TRACER ) )
+        {
+            Set<String> allNodes = config.getAllNodes();
+            allNodes.remove( host.getId() );
+            ClusterConfiguration
+                    .executeCommandOnAllContainer( allNodes, Commands.getAddTracersCommand( host.getHostname() ),
+                            environment );
         }
-        else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) ){
-            Set<UUID> allNodes = config.getAllNodes();
-            allNodes.remove(host.getId());
-            ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getAddSlavesCommand(
-                    host.getHostname() ), environment );
+        else if ( nodeType.equals( NodeType.ACCUMULO_TABLET_SERVER ) )
+        {
+            Set<String> allNodes = config.getAllNodes();
+            allNodes.remove( host.getId() );
+            ClusterConfiguration
+                    .executeCommandOnAllContainer( allNodes, Commands.getAddSlavesCommand( host.getHostname() ),
+                            environment );
         }
     }
 
-    private void configureNewNode( ContainerHost host, AccumuloClusterConfig config )
+
+    private void configureNewNode( EnvironmentContainerHost host, AccumuloClusterConfig config )
     {
-        try {
-            executeCommand( host, Commands.getAddMasterCommand(
-                    serializeHostName(Sets.newHashSet(config.getMasterNode() ) ) ) ) ;
-            executeCommand( host, Commands.getAddMonitorCommand(
-                    serializeHostName(Sets.newHashSet(config.getMonitor() ) ) ) ) ;
-            executeCommand( host, Commands.getAddGCCommand(
-                    serializeHostName(Sets.newHashSet(config.getGcNode() ) ) ) ) ;
-            executeCommand( host, Commands.getAddTracersCommand( serializeHostName( config.getTracers() ) ) ) ;
-            executeCommand(host, Commands.getAddSlavesCommand(serializeHostName( config.getSlaves() ) ) ) ;
-        } catch (ClusterException e) {
+        try
+        {
+            executeCommand( host,
+                    Commands.getAddMasterCommand( serializeHostName( Sets.newHashSet( config.getMasterNode() ) ) ) );
+            executeCommand( host,
+                    Commands.getAddMonitorCommand( serializeHostName( Sets.newHashSet( config.getMonitor() ) ) ) );
+            executeCommand( host,
+                    Commands.getAddGCCommand( serializeHostName( Sets.newHashSet( config.getGcNode() ) ) ) );
+            executeCommand( host, Commands.getAddTracersCommand( serializeHostName( config.getTracers() ) ) );
+            executeCommand( host, Commands.getAddSlavesCommand( serializeHostName( config.getSlaves() ) ) );
+        }
+        catch ( ClusterException e )
+        {
             e.printStackTrace();
         }
     }
 
 
-    private String serializeHostName( Set<UUID> uuids ){
+    private String serializeHostName( Set<String> ids )
+    {
         StringBuilder slavesSpaceSeparated = new StringBuilder();
-        for ( UUID uuid : uuids )
+        for ( String id : ids )
         {
-            slavesSpaceSeparated.append( getHost( environment, uuid ).getHostname() ).append( " " );
+            slavesSpaceSeparated.append( getHost( environment, id ).getHostname() ).append( " " );
         }
         return slavesSpaceSeparated.toString();
     }
 
 
-    private ContainerHost getHost( Environment environment, UUID nodeId )
+    private EnvironmentContainerHost getHost( Environment environment, String nodeId )
     {
         try
         {
@@ -514,9 +538,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
         }
         catch ( ContainerHostNotFoundException e )
         {
-            String msg =
-                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
-                            environment.getName() );
+            String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId,
+                    environment.getName() );
             trackerOperation.addLogFailed( msg );
             LOGGER.error( msg, e );
             return null;

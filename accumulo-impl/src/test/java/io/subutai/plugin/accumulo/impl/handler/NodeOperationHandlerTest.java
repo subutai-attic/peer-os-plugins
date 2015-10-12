@@ -11,24 +11,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
-import io.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
@@ -47,20 +47,34 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class NodeOperationHandlerTest
 {
-    @Mock AccumuloImpl accumuloImpl;
-    @Mock AccumuloClusterConfig accumuloClusterConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ContainerHost containerHost;
-    @Mock CommandResult commandResult;
-    @Mock ClusterSetupStrategy clusterSetupStrategy;
-    @Mock PluginDAO pluginDAO;
-    @Mock Hadoop hadoop;
-    @Mock Zookeeper zookeeper;
-    @Mock HadoopClusterConfig hadoopClusterConfig;
-    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    AccumuloImpl accumuloImpl;
+    @Mock
+    AccumuloClusterConfig accumuloClusterConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    Hadoop hadoop;
+    @Mock
+    Zookeeper zookeeper;
+    @Mock
+    HadoopClusterConfig hadoopClusterConfig;
+    @Mock
+    ZookeeperClusterConfig zookeeperClusterConfig;
     private NodeOperationHandler nodeOperationHandler;
     private NodeOperationHandler nodeOperationHandler2;
     private NodeOperationHandler nodeOperationHandler3;
@@ -68,18 +82,18 @@ public class NodeOperationHandlerTest
     private NodeOperationHandler nodeOperationHandler5;
     private NodeOperationHandler nodeOperationHandler6;
     private NodeOperationHandler nodeOperationHandler7;
-    private UUID uuid;
+    private String id;
 
 
     @Before
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         when( accumuloImpl.getCluster( "testClusterName" ) ).thenReturn( accumuloClusterConfig );
         when( accumuloImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         nodeOperationHandler =
                 new NodeOperationHandler( accumuloImpl, hadoop, zookeeper, "testClusterName", "testHostName",
@@ -104,11 +118,11 @@ public class NodeOperationHandlerTest
                         NodeOperationType.UNINSTALL, NodeType.ACCUMULO_TABLET_SERVER );
 
         // mock run method
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
-        when( containerHost.getId() ).thenReturn( UUID.randomUUID() );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( containerHost.getId() ).thenReturn( UUID.randomUUID().toString() );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
 
         // mock installProductOnNode
@@ -118,17 +132,17 @@ public class NodeOperationHandlerTest
         when( accumuloImpl.getPluginDAO() ).thenReturn( pluginDAO );
 
         // mock clusterConfiguration and configureCluster method
-        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
 
         when( accumuloClusterConfig.getAllNodes() ).thenReturn( myUUID );
-        when( accumuloClusterConfig.getMasterNode() ).thenReturn( uuid );
-        when( accumuloClusterConfig.getGcNode() ).thenReturn( uuid );
-        when( accumuloClusterConfig.getMonitor() ).thenReturn( uuid );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( accumuloClusterConfig.getMasterNode() ).thenReturn( id );
+        when( accumuloClusterConfig.getGcNode() ).thenReturn( id );
+        when( accumuloClusterConfig.getMonitor() ).thenReturn( id );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
@@ -138,7 +152,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunWithNodeOperationTypeInstallAndNodeTypeAccumuloTracer() throws Exception
     {
-        Set<UUID> myUUID = new HashSet<>();
+        Set<String> myUUID = new HashSet<>();
         when( containerHost.execute( Commands.getInstallCommand().withTimeout( 3600 ) ) ).thenReturn( commandResult );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
@@ -159,7 +173,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunWithNodeOperationTypeInstallAndNodeTypeAccumuloTabletServers() throws Exception
     {
-        Set<UUID> myUUID = new HashSet<>();
+        Set<String> myUUID = new HashSet<>();
         when( containerHost.execute( Commands.getInstallCommand().withTimeout( 3600 ) ) ).thenReturn( commandResult );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
@@ -222,9 +236,9 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunWithNodeOperationTypeUninstallAndNodeTypeAccumuloTracer() throws Exception
     {
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( UUID.randomUUID() );
-        myUUID.add( UUID.randomUUID() );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID().toString() );
+        myUUID.add( UUID.randomUUID().toString() );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getTracers() ).thenReturn( myUUID );
         when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );
@@ -245,9 +259,9 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunWithNodeOperationTypeUninstallAndNodeTypeAccumuloTabletServers() throws Exception
     {
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( UUID.randomUUID() );
-        myUUID.add( UUID.randomUUID() );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID().toString() );
+        myUUID.add( UUID.randomUUID().toString() );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( accumuloClusterConfig.getSlaves() ).thenReturn( myUUID );
         when( accumuloImpl.getZkManager() ).thenReturn( zookeeper );

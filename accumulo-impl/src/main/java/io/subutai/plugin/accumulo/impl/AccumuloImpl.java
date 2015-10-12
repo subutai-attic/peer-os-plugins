@@ -7,11 +7,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
@@ -24,21 +30,16 @@ import io.subutai.plugin.accumulo.impl.handler.AddPropertyOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.accumulo.impl.handler.RemovePropertyOperationHandler;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class AccumuloImpl implements Accumulo, EnvironmentEventListener
@@ -65,7 +66,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
     public void init()
     {
-       executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
@@ -318,7 +319,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -356,11 +357,11 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         List<String> hostNames = new ArrayList<>();
-        for ( final ContainerHost containerHost : set )
+        for ( final EnvironmentContainerHost containerHost : set )
         {
             hostNames.add( containerHost.getHostname() );
         }
@@ -376,7 +377,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID nodeId )
+    public void onContainerDestroyed( final Environment environment, final String nodeId )
     {
         List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final AccumuloClusterConfig clusterConfig : clusterConfigs )
@@ -401,7 +402,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID environmentId )
+    public void onEnvironmentDestroyed( final String environmentId )
     {
         List<AccumuloClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final AccumuloClusterConfig clusterConfig : clusterConfigs )

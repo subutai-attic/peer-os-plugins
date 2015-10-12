@@ -7,6 +7,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
@@ -31,10 +36,6 @@ import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -64,7 +65,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
 
         try
         {
-            this.environment = manager.getEnvironmentManager().findEnvironment( hadoopConfig.getEnvironmentId() );
+            this.environment = manager.getEnvironmentManager().loadEnvironment( hadoopConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -130,22 +131,23 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
                     trackerOperation.addLog( "Node: " + host.getHostname() );
                     CommandResult result = Util.executeCommand( host, Commands.statusCommand );
                     commandResultList.add( result );
-                    logResults(  trackerOperation, result );
+                    logResults( trackerOperation, result );
                 }
                 trackerOperation.addLogDone( "" );
                 break;
         }
-
     }
+
 
     public void logResults( TrackerOperation po, CommandResult result )
     {
         po.addLog( result.getStdOut() );
-        if( po.getState() == OperationState.FAILED )
+        if ( po.getState() == OperationState.FAILED )
         {
             po.addLogFailed( "" );
         }
     }
+
 
     @Override
     public void setupCluster()
@@ -176,10 +178,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         }
 
         // stop cluster before destroying cluster
-        try {
+        try
+        {
             ContainerHost host = environment.getContainerHostById( config.getMasterNode() );
-            try {
-                CommandResult result = host.execute(Commands.statusCommand );
+            try
+            {
+                CommandResult result = host.execute( Commands.statusCommand );
                 if ( result.hasSucceeded() )
                 {
                     String output[] = result.getStdOut().split( "\n" );
@@ -190,17 +194,21 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
                             if ( part.contains( "pid" ) )
                             {
                                 UUID uuid = manager.stopCluster( clusterName );
-                                LOG.info( "Stopping cluster before destroying it.");
+                                LOG.info( "Stopping cluster before destroying it." );
                                 Util.waitUntilOperationFinish( manager, uuid );
                             }
                         }
                     }
                 }
-            } catch (CommandException e) {
-                LOG.error( "Could not execute check status command successfully.");
+            }
+            catch ( CommandException e )
+            {
+                LOG.error( "Could not execute check status command successfully." );
                 e.printStackTrace();
             }
-        } catch (ContainerHostNotFoundException e) {
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
             LOG.error( "Could not find container" );
             e.printStackTrace();
         }
@@ -229,7 +237,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         catch ( ContainerHostNotFoundException e )
         {
             String msg = String.format( "Container host with id: %s doesn't exist in environment: %s",
-                    hadoopConfig.getNameNode().toString(), environment.getName() );
+                    hadoopConfig.getNameNode(), environment.getName() );
             trackerOperation.addLogFailed( msg );
             LOG.error( msg, e );
             return;

@@ -10,20 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.accumulo.api.Accumulo;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.accumulo.api.SetupType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +29,19 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.accumulo.api.SetupType;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 public class ConfigurationStep extends Panel
@@ -132,9 +132,9 @@ public class ConfigurationStep extends Panel
 
                 wizard.getConfig().setHadoopClusterName( hadoopInfo.getClusterName() );
 
-                setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
+                setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
+                setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
 
                 setTwinSelectDS( tracersSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
                 setTwinSelectDS( slavesSelect, getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
@@ -150,9 +150,9 @@ public class ConfigurationStep extends Panel
                     {
                         HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                         //reset relevant controls
-                        setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
-                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<UUID>() );
+                        setComboDS( masterNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
+                        setComboDS( gcNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
+                        setComboDS( monitorNodeCombo, hadoopInfo.getAllNodes(), new HashSet<String>() );
 
                         setTwinSelectDS( tracersSelect,
                                 getSlaveContainerHosts( Sets.newHashSet( hadoopInfo.getAllNodes() ) ) );
@@ -193,7 +193,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        UUID masterNode = ( UUID ) event.getProperty().getValue();
+                        String masterNode = ( String ) event.getProperty().getValue();
                         wizard.getConfig().setMasterNode( masterNode );
                     }
                 }
@@ -206,7 +206,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        UUID gcNode = ( UUID ) event.getProperty().getValue();
+                        String gcNode = ( String ) event.getProperty().getValue();
                         wizard.getConfig().setGcNode( gcNode );
                     }
                 }
@@ -219,7 +219,7 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        UUID monitor = ( UUID ) event.getProperty().getValue();
+                        String monitor = ( String ) event.getProperty().getValue();
                         wizard.getConfig().setMonitor( monitor );
                     }
                 }
@@ -276,9 +276,10 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        Set<UUID> nodes = new HashSet<>();
-                        Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                        for ( ContainerHost host : nodeList )
+                        Set<String> nodes = new HashSet<>();
+                        Set<EnvironmentContainerHost> nodeList =
+                                ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                        for ( EnvironmentContainerHost host : nodeList )
                         {
                             nodes.add( host.getId() );
                         }
@@ -293,9 +294,10 @@ public class ConfigurationStep extends Panel
                 {
                     if ( event.getProperty().getValue() != null )
                     {
-                        Set<UUID> nodes = new HashSet<>();
-                        Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                        for ( ContainerHost host : nodeList )
+                        Set<String> nodes = new HashSet<>();
+                        Set<EnvironmentContainerHost> nodeList =
+                                ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                        for ( EnvironmentContainerHost host : nodeList )
                         {
                             nodes.add( host.getId() );
                         }
@@ -420,7 +422,7 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void fillZookeeperComboBox( ComboBox zkClustersCombo, Zookeeper zookeeper, UUID environmentId )
+    private void fillZookeeperComboBox( ComboBox zkClustersCombo, Zookeeper zookeeper, String environmentId )
     {
         zkClustersCombo.removeAllItems();
         zkClustersCombo.setValue( null );
@@ -478,22 +480,22 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private Set<ContainerHost> getSlaveContainerHosts( Set<UUID> slaves )
+    private Set<EnvironmentContainerHost> getSlaveContainerHosts( Set<String> slaves )
     {
-        Set<ContainerHost> set = new HashSet<>();
+        Set<EnvironmentContainerHost> set = new HashSet<>();
         if ( wizard.getConfig().getHadoopClusterName() == null || wizard.getConfig().getZookeeperClusterName() == null )
         {
             return set;
         }
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( wizard.getConfig().getHadoopClusterName() );
         List<AccumuloClusterConfig> accumuloClusterConfigs = accumulo.getClusters();
-        List<UUID> allowedNodes = new ArrayList<>( slaves );
+        List<String> allowedNodes = new ArrayList<>( slaves );
 
         for ( final AccumuloClusterConfig accumuloClusterConfig : accumuloClusterConfigs )
         {
             for ( int i = 0; i < allowedNodes.size(); i++ )
             {
-                UUID nodeId = allowedNodes.get( i );
+                String nodeId = allowedNodes.get( i );
                 if ( accumuloClusterConfig.getAllNodes().contains( nodeId ) )
                 {
                     allowedNodes.remove( i-- );
@@ -501,11 +503,11 @@ public class ConfigurationStep extends Panel
             }
         }
 
-        for ( UUID uuid : allowedNodes )
+        for ( String uuid : allowedNodes )
         {
             try
             {
-                set.add( environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+                set.add( environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() )
                                            .getContainerHostById( uuid ) );
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -554,7 +556,7 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void setComboDS( ComboBox target, List<UUID> agents, Set<UUID> excludeNodes )
+    private void setComboDS( ComboBox target, List<String> agents, Set<String> excludeNodes )
     {
         target.removeAllItems();
         target.setValue( null );
@@ -575,13 +577,13 @@ public class ConfigurationStep extends Panel
             return;
         }
 
-        List<UUID> allowedNodes = new ArrayList<>( agents );
+        List<String> allowedNodes = new ArrayList<>( agents );
         List<AccumuloClusterConfig> accumuloClusterConfigs = accumulo.getClusters();
         for ( final AccumuloClusterConfig accumuloClusterConfig : accumuloClusterConfigs )
         {
             for ( int i = 0; i < allowedNodes.size(); i++ )
             {
-                UUID nodeId = allowedNodes.get( i );
+                String nodeId = allowedNodes.get( i );
                 if ( accumuloClusterConfig.getAllNodes().contains( nodeId ) )
                 {
                     allowedNodes.remove( i-- );
@@ -589,9 +591,9 @@ public class ConfigurationStep extends Panel
             }
         }
 
-        for ( UUID agent : allowedNodes )
+        for ( String agent : allowedNodes )
         {
-            ContainerHost host = getHost( agent );
+            EnvironmentContainerHost host = getHost( agent );
             if ( host != null && !excludeNodes.contains( agent ) )
             {
                 target.addItem( host.getId() );
@@ -601,11 +603,11 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private ContainerHost getHost( UUID uuid )
+    private EnvironmentContainerHost getHost( String uuid )
     {
         try
         {
-            return environmentManager.findEnvironment(
+            return environmentManager.loadEnvironment(
                     hadoop.getCluster( wizard.getConfig().getHadoopClusterName() ).getEnvironmentId() )
                                      .getContainerHostById( uuid );
         }
@@ -617,10 +619,10 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private void setTwinSelectDS( TwinColSelect target, Set<ContainerHost> containerHosts )
+    private void setTwinSelectDS( TwinColSelect target, Set<EnvironmentContainerHost> containerHosts )
     {
         target.setValue( null );
-        target.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, containerHosts ) );
+        target.setContainerDataSource( new BeanItemContainer<>( EnvironmentContainerHost.class, containerHosts ) );
     }
 
 

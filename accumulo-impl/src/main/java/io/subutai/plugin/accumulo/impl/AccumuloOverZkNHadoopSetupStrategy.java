@@ -3,7 +3,12 @@ package io.subutai.plugin.accumulo.impl;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -23,11 +28,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -178,11 +178,7 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
 
     /**
-     * sometimes parallel executed commands fail, if above setup command cause problems,
-     * enable below setup command.
-     *
-     * @return
-     * @throws ClusterSetupException
+     * sometimes parallel executed commands fail, if above setup command cause problems, enable below setup command.
      */
     public AccumuloClusterConfig setup1() throws ClusterSetupException
     {
@@ -234,19 +230,18 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
         accumuloManager.getZkManager().startAllNodes( zookeeperClusterConfig.getClusterName() );
 
         trackerOperation.addLog( "Installing Accumulo..." );
-        for ( UUID uuid : accumuloClusterConfig.getAllNodes() )
+        for ( String id : accumuloClusterConfig.getAllNodes() )
         {
             CommandResult result;
             ContainerHost host;
             try
             {
-                host = environment.getContainerHostById( uuid );
+                host = environment.getContainerHostById( id );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                String msg =
-                        String.format( "Container host with id: %s doesn't exists in environment: %s", uuid.toString(),
-                                environment.getName() );
+                String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", id,
+                        environment.getName() );
                 trackerOperation.addLogFailed( msg );
                 LOGGER.error( msg, e );
                 return null;

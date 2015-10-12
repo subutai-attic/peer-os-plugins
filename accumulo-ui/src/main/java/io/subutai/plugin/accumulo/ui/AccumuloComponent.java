@@ -10,17 +10,17 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
 import io.subutai.plugin.accumulo.ui.manager.Manager;
 import io.subutai.plugin.accumulo.ui.wizard.Wizard;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
-
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class AccumuloComponent extends CustomComponent

@@ -5,14 +5,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.accumulo.api.Accumulo;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.hadoop.api.Hadoop;
 
 
 @Command( scope = "accumulo", name = "install-cluster", description = "Command to install Accumulo cluster" )
@@ -32,8 +32,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String masterNode;
 
-    @Argument( index = 3, name = "gcNode", description = "The hostname of GC node", required
-            = true,
+    @Argument( index = 3, name = "gcNode", description = "The hostname of GC node", required = true,
             multiValued = false )
     String gcNode = null;
 
@@ -64,19 +63,21 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
         // TODO : configure cluster
 
-        config.setMasterNode( UUID.fromString( masterNode ) );
-        config.setGcNode( UUID.fromString( gcNode ) );
-        config.setMonitor( UUID.fromString( monitorNode ) );
+        config.setMasterNode( masterNode );
+        config.setGcNode( gcNode );
+        config.setMonitor( monitorNode );
 
-        Set<UUID> tracersSet = new HashSet<>();
-        for ( String uuid : tracers ){
-            tracersSet.add( UUID.fromString( uuid ) );
+        Set<String> tracersSet = new HashSet<>();
+        for ( String uuid : tracers )
+        {
+            tracersSet.add( uuid );
         }
         config.setTracers( tracersSet );
 
-        Set<UUID> slavesSet = new HashSet<>();
-        for ( String uuid : slaves ){
-            slavesSet.add( UUID.fromString( uuid ) );
+        Set<String> slavesSet = new HashSet<>();
+        for ( String uuid : slaves )
+        {
+            slavesSet.add( uuid );
         }
         config.setSlaves( slavesSet );
 
@@ -87,33 +88,15 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
-    public Accumulo getAccumuloManager()
-    {
-        return accumuloManager;
-    }
-
-
     public void setAccumuloManager( final Accumulo accumuloManager )
     {
         this.accumuloManager = accumuloManager;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
     }
 
 

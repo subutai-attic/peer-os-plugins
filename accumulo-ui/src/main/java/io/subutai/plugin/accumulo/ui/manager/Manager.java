@@ -14,21 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.accumulo.api.Accumulo;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +35,22 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -292,7 +293,7 @@ public class Manager
                     Notification.show( "Select cluster" );
                     return;
                 }
-                Set<UUID> set = new HashSet<>(
+                Set<String> set = new HashSet<>(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getAllNodes() );
                 set.removeAll( accumuloClusterConfig.getSlaves() );
                 if ( set.isEmpty() )
@@ -301,12 +302,12 @@ public class Manager
                     return;
                 }
 
-                Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : set )
+                Set<EnvironmentContainerHost> myHostSet = new HashSet<>();
+                for ( String uuid : set )
                 {
                     try
                     {
-                        myHostSet.add( environmentManager.findEnvironment(
+                        myHostSet.add( environmentManager.loadEnvironment(
                                 hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
                                                          .getContainerHostById( uuid ) );
                     }
@@ -358,7 +359,7 @@ public class Manager
                     Notification.show( "Select cluster" );
                     return;
                 }
-                Set<UUID> set = new HashSet<>(
+                Set<String> set = new HashSet<>(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getAllNodes() );
                 set.removeAll( accumuloClusterConfig.getTracers() );
                 if ( set.isEmpty() )
@@ -367,12 +368,12 @@ public class Manager
                     return;
                 }
 
-                Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : set )
+                Set<EnvironmentContainerHost> myHostSet = new HashSet<>();
+                for ( String uuid : set )
                 {
                     try
                     {
-                        myHostSet.add( environmentManager.findEnvironment(
+                        myHostSet.add( environmentManager.loadEnvironment(
                                 hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
                                                          .getContainerHostById( uuid ) );
                     }
@@ -591,10 +592,10 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = null;
+                EnvironmentContainerHost containerHost = null;
                 try
                 {
-                    containerHost = environmentManager.findEnvironment(
+                    containerHost = environmentManager.loadEnvironment(
                             hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() )
                                                       .getContainerHostByHostname( containerId );
                 }
@@ -621,10 +622,10 @@ public class Manager
     {
         if ( accumuloClusterConfig != null )
         {
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment(
+                environment = environmentManager.loadEnvironment(
                         hadoop.getCluster( accumuloClusterConfig.getHadoopClusterName() ).getEnvironmentId() );
 
 
@@ -635,7 +636,7 @@ public class Manager
                         environment.getContainerHostsByIds( accumuloClusterConfig.getTracers() ), false );
 
 
-                Set<ContainerHost> masters = new HashSet<>();
+                Set<EnvironmentContainerHost> masters = new HashSet<>();
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getMasterNode() ) );
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getGcNode() ) );
                 masters.add( environment.getContainerHostById( accumuloClusterConfig.getMonitor() ) );
@@ -656,10 +657,11 @@ public class Manager
     }
 
 
-    private void populateMastersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
+    private void populateMastersTable( final Table table, Set<EnvironmentContainerHost> containerHosts,
+                                       final boolean masters )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             List<NodeType> rolesOfNode = accumuloClusterConfig.getMasterNodeRoles( containerHost.getId() );
             for ( final NodeType role : rolesOfNode )
@@ -712,10 +714,11 @@ public class Manager
     }
 
 
-    private void populateTracersTable( final Table table, Set<ContainerHost> containerHosts, final boolean masters )
+    private void populateTracersTable( final Table table, Set<EnvironmentContainerHost> containerHosts,
+                                       final boolean masters )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );
@@ -801,11 +804,11 @@ public class Manager
     }
 
 
-    private void populateTabletServersTable( final Table table, Set<ContainerHost> containerHosts,
+    private void populateTabletServersTable( final Table table, Set<EnvironmentContainerHost> containerHosts,
                                              final boolean masters )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-accumuloCheck" );

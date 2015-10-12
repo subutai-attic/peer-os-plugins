@@ -3,14 +3,6 @@ package io.subutai.plugin.accumulo.cli;
 
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.accumulo.api.Accumulo;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +10,23 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+
 
 @Command( scope = "accumulo", name = "check-cluster", description = "Checks cluster nodes' statutes" )
 public class CheckClusterCommand extends OsgiCommandSupport
 {
     private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Tracker tracker;
     private Accumulo accumuloManager;
     private EnvironmentManager environmentManager;
@@ -38,9 +40,9 @@ public class CheckClusterCommand extends OsgiCommandSupport
         Environment environment;
         try
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-            for ( UUID uuid : config.getAllNodes() )
+            for ( String uuid : config.getAllNodes() )
             {
 
                 String hostname = environment.getContainerHostById( uuid ).getHostname();
@@ -89,33 +91,15 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
-    }
-
-
-    public Accumulo getAccumuloManager()
-    {
-        return accumuloManager;
     }
 
 

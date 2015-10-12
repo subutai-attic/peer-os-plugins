@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -16,8 +19,6 @@ import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class Util
@@ -35,11 +36,11 @@ public class Util
     public static Set<Host> getHosts( AccumuloClusterConfig config, Environment environment )
     {
         Set<Host> hosts = new HashSet<>();
-        for ( UUID uuid : config.getAllNodes() )
+        for ( String id : config.getAllNodes() )
         {
             try
             {
-                hosts.add( environment.getContainerHostById( uuid ) );
+                hosts.add( environment.getContainerHostById( id ) );
             }
             catch ( ContainerHostNotFoundException e )
             {

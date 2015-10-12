@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -18,8 +20,6 @@ import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.hadoop.api.Hadoop;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -78,19 +78,19 @@ public class RestServiceImpl implements RestService
         expandedConfig.setPassword( trimmedAccumuloConfig.getPassword() );
         expandedConfig.setHadoopClusterName( trimmedAccumuloConfig.getHadoopClusterName() );
         expandedConfig.setZookeeperClusterName( trimmedAccumuloConfig.getZkClusterName() );
-        expandedConfig.setMasterNode( UUID.fromString( trimmedAccumuloConfig.getMasterNode() ) );
-        expandedConfig.setGcNode( UUID.fromString( trimmedAccumuloConfig.getGcNode() ) );
-        expandedConfig.setMonitor( UUID.fromString( trimmedAccumuloConfig.getMonitor() ) );
+        expandedConfig.setMasterNode( trimmedAccumuloConfig.getMasterNode() );
+        expandedConfig.setGcNode( trimmedAccumuloConfig.getGcNode() );
+        expandedConfig.setMonitor( trimmedAccumuloConfig.getMonitor() );
 
-        Set<UUID> tracers = new HashSet<>();
-        Set<UUID> slaves = new HashSet<>();
+        Set<String> tracers = new HashSet<>();
+        Set<String> slaves = new HashSet<>();
         for ( String tracer : trimmedAccumuloConfig.getTracers() )
         {
-            tracers.add( UUID.fromString( tracer ) );
+            tracers.add( tracer );
         }
         for ( String slave : trimmedAccumuloConfig.getSlaves() )
         {
-            slaves.add( UUID.fromString( slave ) );
+            slaves.add( slave );
         }
 
         expandedConfig.setTracers( tracers );
@@ -173,7 +173,7 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        NodeType accumuloNodeType = null;
+        NodeType accumuloNodeType;
         nodeType = nodeType.toLowerCase();
         if ( nodeType.contains( "tracer" ) )
         {
@@ -188,7 +188,7 @@ public class RestServiceImpl implements RestService
             accumuloNodeType = NodeType.valueOf( nodeType.toUpperCase() );
         }
         //UUID uuid = accumuloManager.addNode( clusterName, accumuloNodeType );
-        UUID uuid =accumuloManager.addNode( clusterName, lxcHostname, accumuloNodeType );
+        UUID uuid = accumuloManager.addNode( clusterName, lxcHostname, accumuloNodeType );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -204,7 +204,7 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        NodeType accumuloNodeType = null;
+        NodeType accumuloNodeType;
         nodeType = nodeType.toLowerCase();
         if ( nodeType.contains( "tracer" ) )
         {
@@ -243,7 +243,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
-        String message ="enabled";
+        String message = "enabled";
         AccumuloClusterConfig config = accumuloManager.getCluster( clusterName );
         config.setAutoScaling( scale );
         try
@@ -254,12 +254,12 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        if( scale == false )
+        if ( !scale )
         {
             message = "disabled";
         }
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 
@@ -313,12 +313,6 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private String wrapUUID( UUID uuid )
-    {
-        return JsonUtil.toJson( "OPERATION_ID", uuid );
-    }
-
-
     public Accumulo getAccumuloManager()
     {
         return accumuloManager;
@@ -340,12 +334,6 @@ public class RestServiceImpl implements RestService
     public void setHadoop( final Hadoop hadoop )
     {
         this.hadoop = hadoop;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

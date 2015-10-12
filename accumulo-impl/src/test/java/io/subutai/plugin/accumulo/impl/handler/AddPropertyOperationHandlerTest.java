@@ -10,18 +10,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
-import io.subutai.plugin.accumulo.impl.handler.AddPropertyOperationHandler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,14 +36,22 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class AddPropertyOperationHandlerTest
 {
-    @Mock AccumuloImpl accumuloImpl;
-    @Mock AccumuloClusterConfig accumuloClusterConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ContainerHost containerHost;
-    @Mock CommandResult commandResult;
+    @Mock
+    AccumuloImpl accumuloImpl;
+    @Mock
+    AccumuloClusterConfig accumuloClusterConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    CommandResult commandResult;
     private AddPropertyOperationHandler addPropertyOperationHandler;
     private UUID uuid;
 
@@ -61,11 +69,11 @@ public class AddPropertyOperationHandlerTest
                 new AddPropertyOperationHandler( accumuloImpl, "testCluster", "testProperty", "testPropertyValue" );
 
         // mock run method
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( accumuloImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
         when( containerHost.execute(
                 new RequestBuilder( Commands.getAddPropertyCommand( "testProperty", "testPropertyValue" ) ) ) )
                 .thenReturn( commandResult );
@@ -94,7 +102,7 @@ public class AddPropertyOperationHandlerTest
     public void testRun() throws Exception
     {
         when( commandResult.hasSucceeded() ).thenReturn( true );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( Commands.stopCommand ) ).thenReturn( commandResult );
         when( containerHost.execute( Commands.startCommand ) ).thenReturn( commandResult );
 
@@ -118,7 +126,7 @@ public class AddPropertyOperationHandlerTest
     public void testRunShouldThrowsCommandException() throws Exception
     {
         when( commandResult.hasSucceeded() ).thenReturn( true );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( Commands.stopCommand ) ).thenThrow( CommandException.class );
         when( containerHost.execute( Commands.startCommand ) ).thenThrow( CommandException.class );
 

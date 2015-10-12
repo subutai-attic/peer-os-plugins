@@ -5,24 +5,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
 import io.subutai.plugin.common.api.NodeType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class AccumuloAlertListener implements AlertListener
@@ -70,7 +70,7 @@ public class AccumuloAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                accumulo.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
+                accumulo.getEnvironmentManager().loadEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(
@@ -78,10 +78,10 @@ public class AccumuloAlertListener implements AlertListener
         }
 
         //get environment containers and find alert source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getId().equals( containerHostMetric.getHostId() ) )
             {
@@ -275,14 +275,14 @@ public class AccumuloAlertListener implements AlertListener
             }
 
             //Get nodes which are already configured in hadoop and zookeeper clusters
-            Set<UUID> hadoopNodes = new TreeSet<>(
+            Set<String> hadoopNodes = new TreeSet<>(
                     accumulo.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() ).getAllNodes() );
-            Set<UUID> zookeeperNodes =
+            Set<String> zookeeperNodes =
                     accumulo.getZkManager().getCluster( targetCluster.getZookeeperClusterName() ).getNodes();
 
-            Set<ContainerHost> environmentHosts = environment.getContainerHosts();
-            Set<UUID> availableNodes = new TreeSet<>();
-            for ( final ContainerHost environmentHost : environmentHosts )
+            Set<EnvironmentContainerHost> environmentHosts = environment.getContainerHosts();
+            Set<String> availableNodes = new TreeSet<>();
+            for ( final EnvironmentContainerHost environmentHost : environmentHosts )
             {
                 if ( hadoopNodes.contains( environmentHost.getId() ) && zookeeperNodes
                         .contains( environmentHost.getId() ) )
@@ -300,9 +300,9 @@ public class AccumuloAlertListener implements AlertListener
             //add first available node
             else
             {
-                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeId = availableNodes.iterator().next();
                 String newNodeHostName = null;
-                for ( ContainerHost containerHost : containers )
+                for ( EnvironmentContainerHost containerHost : containers )
                 {
                     if ( containerHost.getId().equals( newNodeId ) )
                     {

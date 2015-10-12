@@ -10,14 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.accumulo.api.Accumulo;
-import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.common.api.NodeType;
-
 import com.google.common.base.Strings;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -30,6 +22,14 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.common.api.NodeType;
+
 
 public class AddNodeWindow extends Window
 {
@@ -40,7 +40,7 @@ public class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Accumulo accumulo, final ExecutorService executorService, final Tracker tracker,
-                          final AccumuloClusterConfig accumuloClusterConfig, Set<ContainerHost> nodes,
+                          final AccumuloClusterConfig accumuloClusterConfig, Set<EnvironmentContainerHost> nodes,
                           final NodeType nodeType )
     {
         super( "Add New Node" );
@@ -67,7 +67,7 @@ public class AddNodeWindow extends Window
         hadoopNodes.setNullSelectionAllowed( false );
         hadoopNodes.setRequired( true );
         hadoopNodes.setWidth( 200, Unit.PIXELS );
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             hadoopNodes.addItem( node );
             hadoopNodes.setItemCaption( node, node.getHostname() );
@@ -95,7 +95,7 @@ public class AddNodeWindow extends Window
                 addNodeBtn.setEnabled( false );
                 ok.setEnabled( false );
                 showProgress();
-                ContainerHost containerHost = ( ContainerHost ) hadoopNodes.getValue();
+                EnvironmentContainerHost containerHost = ( EnvironmentContainerHost ) hadoopNodes.getValue();
                 final UUID trackID =
                         accumulo.addNode( accumuloClusterConfig.getClusterName(), containerHost.getHostname(),
                                 nodeType );

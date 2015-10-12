@@ -9,8 +9,8 @@ package io.subutai.plugin.accumulo.api;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -26,42 +26,29 @@ public class AccumuloClusterConfig implements ConfigBase
     private String clusterName = "";
     private String instanceName = "";
     private String password = "";
-    private UUID masterNode;
-    private UUID gcNode;
-    private UUID monitor;
-    private Set<UUID> tracers;
-    private Set<UUID> slaves;
+    private String masterNode;
+    private String gcNode;
+    private String monitor;
+    private Set<String> tracers;
+    private Set<String> slaves;
     private int numberOfTracers = 1;
     private int numberOfSlaves = 3;
     private SetupType setupType;
     private String hadoopClusterName;
     private String zookeeperClusterName;
-    private String templateName;
-    private UUID environmentId;
+    private String environmentId;
     private boolean autoScaling;
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
-    }
-
-
-    public String getTemplateName()
-    {
-        return templateName;
-    }
-
-
-    public void setTemplateName( final String templateName )
-    {
-        this.templateName = templateName;
     }
 
 
@@ -107,27 +94,15 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
-    public void setNumberOfTracers( final int numberOfTracers )
-    {
-        this.numberOfTracers = numberOfTracers;
-    }
-
-
     public int getNumberOfSlaves()
     {
         return numberOfSlaves;
     }
 
 
-    public void setNumberOfSlaves( final int numberOfSlaves )
+    public Set<String> getAllNodes()
     {
-        this.numberOfSlaves = numberOfSlaves;
-    }
-
-
-    public Set<UUID> getAllNodes()
-    {
-        Set<UUID> allNodes = new HashSet<>();
+        Set<String> allNodes = new HashSet<>();
 
         if ( masterNode != null )
         {
@@ -154,17 +129,17 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
-    public boolean removeNode( UUID nodeId )
+    public boolean removeNode( String nodeId )
     {
-        if ( masterNode != null && masterNode == nodeId )
+        if ( masterNode != null && Objects.equals( masterNode, nodeId ) )
         {
             return false;
         }
-        if ( gcNode != null && gcNode == nodeId )
+        if ( gcNode != null && Objects.equals( gcNode, nodeId ) )
         {
             return false;
         }
-        if ( monitor != null && monitor == nodeId )
+        if ( monitor != null && Objects.equals( monitor, nodeId ) )
         {
             return false;
         }
@@ -182,18 +157,18 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
-    public List<NodeType> getMasterNodeRoles( UUID uuid )
+    public List<NodeType> getMasterNodeRoles( String id )
     {
         List<NodeType> roles = new ArrayList<>();
-        if ( masterNode.equals( uuid ) )
+        if ( masterNode.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_MASTER );
         }
-        if ( monitor.equals( uuid ) )
+        if ( monitor.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_MONITOR );
         }
-        if ( gcNode.equals( uuid ) )
+        if ( gcNode.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_GC );
         }
@@ -201,42 +176,27 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
-    public List<NodeType> getSlaveNodeRoles( UUID uuid )
-    {
-        List<NodeType> roles = new ArrayList<>();
-        if ( tracers.contains( uuid ) )
-        {
-            roles.add( NodeType.ACCUMULO_TRACER );
-        }
-        if ( slaves.contains( uuid ) )
-        {
-            roles.add( NodeType.ACCUMULO_TABLET_SERVER );
-        }
-        return roles;
-    }
-
-
-    public List<NodeType> getNodeRoles( final UUID uuid )
+    public List<NodeType> getNodeRoles( final String id )
     {
         List<NodeType> roles = new ArrayList<>();
 
-        if ( masterNode.equals( uuid ) )
+        if ( masterNode.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_MASTER );
         }
-        if ( monitor.equals( uuid ) )
+        if ( monitor.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_MONITOR );
         }
-        if ( gcNode.equals( uuid ) )
+        if ( gcNode.equals( id ) )
         {
             roles.add( NodeType.ACCUMULO_GC );
         }
-        if ( tracers.contains( uuid ) )
+        if ( tracers.contains( id ) )
         {
             roles.add( NodeType.ACCUMULO_TRACER );
         }
-        if ( slaves.contains( uuid ) )
+        if ( slaves.contains( id ) )
         {
             roles.add( NodeType.ACCUMULO_TABLET_SERVER );
         }
@@ -244,61 +204,61 @@ public class AccumuloClusterConfig implements ConfigBase
     }
 
 
-    public UUID getMasterNode()
+    public String getMasterNode()
     {
         return masterNode;
     }
 
 
-    public void setMasterNode( UUID masterNode )
+    public void setMasterNode( String masterNode )
     {
         this.masterNode = masterNode;
     }
 
 
-    public UUID getGcNode()
+    public String getGcNode()
     {
         return gcNode;
     }
 
 
-    public void setGcNode( UUID gcNode )
+    public void setGcNode( String gcNode )
     {
         this.gcNode = gcNode;
     }
 
 
-    public UUID getMonitor()
+    public String getMonitor()
     {
         return monitor;
     }
 
 
-    public void setMonitor( UUID monitor )
+    public void setMonitor( String monitor )
     {
         this.monitor = monitor;
     }
 
 
-    public Set<UUID> getTracers()
+    public Set<String> getTracers()
     {
         return tracers;
     }
 
 
-    public void setTracers( Set<UUID> tracers )
+    public void setTracers( Set<String> tracers )
     {
         this.tracers = tracers;
     }
 
 
-    public Set<UUID> getSlaves()
+    public Set<String> getSlaves()
     {
         return slaves;
     }
 
 
-    public void setSlaves( Set<UUID> slaves )
+    public void setSlaves( Set<String> slaves )
     {
         this.slaves = slaves;
     }
@@ -371,7 +331,6 @@ public class AccumuloClusterConfig implements ConfigBase
                 ", setupType=" + setupType +
                 ", hadoopClusterName='" + hadoopClusterName + '\'' +
                 ", zookeeperClusterName='" + zookeeperClusterName + '\'' +
-                ", templateName='" + templateName + '\'' +
                 '}';
     }
 

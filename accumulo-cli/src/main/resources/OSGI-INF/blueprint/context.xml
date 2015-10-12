@@ -6,7 +6,7 @@
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="hostRegistry"
              interface="io.subutai.core.hostregistry.api.HostRegistry" />
 
