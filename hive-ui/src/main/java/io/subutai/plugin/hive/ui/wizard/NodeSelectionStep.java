@@ -5,18 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hive.api.Hive;
-import io.subutai.plugin.hive.api.HiveConfig;
-import io.subutai.server.ui.api.PortalModuleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +22,17 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
+import io.subutai.server.ui.api.PortalModuleService;
+
 
 public class NodeSelectionStep extends Panel
 {
@@ -43,7 +43,7 @@ public class NodeSelectionStep extends Panel
     private EnvironmentManager environmentManager;
     private PortalModuleService portalModuleService;
     private HadoopClusterConfig hc;
-    private ContainerHost selected;
+    private EnvironmentContainerHost selected;
     private static final Logger LOGGER = LoggerFactory.getLogger( NodeSelectionStep.class );
 
 
@@ -145,12 +145,12 @@ public class NodeSelectionStep extends Panel
                     hc = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hc.getClusterName() );
 
-                    // ContainerHost selected;
+                    // EnvironmentContainerHost selected;
                     if ( config.getServer() != null )
                     {
                         try
                         {
-                            selected = environmentManager.findEnvironment( config.getEnvironmentId() )
+                            selected = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                          .getContainerHostById( config.getServer() );
                         }
                         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -162,7 +162,7 @@ public class NodeSelectionStep extends Panel
                     {
                         try
                         {
-                            selected = environmentManager.findEnvironment( hc.getEnvironmentId() )
+                            selected = environmentManager.loadEnvironment( hc.getEnvironmentId() )
                                                          .getContainerHostById( hc.getNameNode() );
                         }
                         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -225,7 +225,7 @@ public class NodeSelectionStep extends Panel
             {
                 if ( hc != null )
                 {
-                    UUID hiveMaster = ( UUID ) event.getProperty().getValue();
+                    String hiveMaster = ( String ) event.getProperty().getValue();
                     config.setServer( hiveMaster );
                     config.getClients().clear();
                     config.getClients().addAll( hc.getAllNodes() );
@@ -237,11 +237,12 @@ public class NodeSelectionStep extends Panel
     }
 
 
-    private void fillServerNodeComboBox( ComboBox serverNode, HadoopClusterConfig hadoopInfo, ContainerHost selected )
+    private void fillServerNodeComboBox( ComboBox serverNode, HadoopClusterConfig hadoopInfo,
+                                         EnvironmentContainerHost selected )
     {
         serverNode.removeAllItems();
-        List<UUID> slaves = hadoopInfo.getAllSlaveNodes();
-        for ( UUID uuid : hadoopInfo.getAllNodes() )
+        List<String> slaves = hadoopInfo.getAllSlaveNodes();
+        for ( String uuid : hadoopInfo.getAllNodes() )
         {
             serverNode.addItem( getHost( hadoopInfo, uuid ).getId() );
             // TODO
@@ -271,11 +272,11 @@ public class NodeSelectionStep extends Panel
     }
 
 
-    private ContainerHost getHost( HadoopClusterConfig config, UUID uuid )
+    private EnvironmentContainerHost getHost( HadoopClusterConfig config, String uuid )
     {
         try
         {
-            return environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHostById( uuid );
+            return environmentManager.loadEnvironment( config.getEnvironmentId() ).getContainerHostById( uuid );
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
         {
@@ -287,20 +288,26 @@ public class NodeSelectionStep extends Panel
 
     private void filterNodes( final ComboBox serverNode, final HadoopClusterConfig hadoopClusterConfig )
     {
-        Collection<UUID> items = ( Collection<UUID> ) serverNode.getItemIds();
-        final Set<UUID> set = new HashSet<>( items );
-        for ( final UUID uuid : set )
+        Collection<String> items = ( Collection<String> ) serverNode.getItemIds();
+        final Set<String> set = new HashSet<>( items );
+        for ( final String uuid : set )
         {
             new Thread( new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    ContainerHost host = null;
+                    EnvironmentContainerHost host;
                     try
                     {
-                        host = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+                        host = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() )
                                                  .getContainerHostById( uuid );
+                        boolean isInstalled =
+                                hive.isInstalled( hadoopClusterConfig.getClusterName(), host.getHostname() );
+                        if ( isInstalled )
+                        {
+                            serverNode.removeItem( uuid );
+                        }
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -309,11 +316,6 @@ public class NodeSelectionStep extends Panel
                     catch ( EnvironmentNotFoundException e )
                     {
                         LOGGER.error( "Environment not found", e );
-                    }
-                    boolean isInstalled = hive.isInstalled( hadoopClusterConfig.getClusterName(), host.getHostname() );
-                    if ( isInstalled )
-                    {
-                        serverNode.removeItem( uuid );
                     }
                 }
             } ).start();

@@ -4,7 +4,7 @@ package io.subutai.plugin.hive.impl.handler;
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.hive.impl.Commands;
 
@@ -12,10 +12,10 @@ import io.subutai.plugin.hive.impl.Commands;
 public class CheckInstallHandler
 {
 
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
 
 
-    public CheckInstallHandler( ContainerHost containerHost )
+    public CheckInstallHandler( EnvironmentContainerHost containerHost )
     {
         this.containerHost = containerHost;
     }

@@ -3,19 +3,20 @@ package io.subutai.plugin.hive.cli;
 
 import java.util.UUID;
 
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.hive.api.Hive;
-import io.subutai.plugin.hive.api.HiveConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
 
 
 /**

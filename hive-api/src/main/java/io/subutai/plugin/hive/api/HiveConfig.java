@@ -1,11 +1,8 @@
 package io.subutai.plugin.hive.api;
 
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-
 import io.subutai.common.environment.Topology;
 import io.subutai.plugin.common.api.ConfigBase;
 
@@ -14,12 +11,11 @@ public class HiveConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Hive";
-
     private String clusterName = "";
     private String hadoopClusterName = "";
-    private UUID server;
-    private Set<UUID> clients = new HashSet<>();
-    private UUID environmentId;
+    private String server;
+    private Set<String> clients = new HashSet<>();
+    private String environmentId;
     private Topology topology;
 
 
@@ -35,13 +31,13 @@ public class HiveConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -86,33 +82,33 @@ public class HiveConfig implements ConfigBase
     }
 
 
-    public UUID getServer()
+    public String getServer()
     {
         return server;
     }
 
 
-    public void setServer( UUID server )
+    public void setServer( String server )
     {
         this.server = server;
     }
 
 
-    public Set<UUID> getClients()
+    public Set<String> getClients()
     {
         return clients;
     }
 
 
-    public void setClients( Set<UUID> clients )
+    public void setClients( Set<String> clients )
     {
         this.clients = clients;
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = new HashSet<>();
+        Set<String> allNodes = new HashSet<>();
         if ( clients != null )
         {
             allNodes.addAll( clients );

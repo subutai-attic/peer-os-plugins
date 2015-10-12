@@ -5,18 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hive.api.Hive;
-import io.subutai.plugin.hive.api.HiveConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +16,24 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
+import io.subutai.server.ui.component.ProgressWindow;
+
 
 public class VerificationStep extends Panel
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Hive hive, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
@@ -53,37 +55,38 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation name", config.getClusterName() );
 
-        Environment hadoopEnvironment = null;
+        Environment hadoopEnvironment ;
         try
         {
-            hadoopEnvironment = environmentManager.findEnvironment( hc.getEnvironmentId() );
+            hadoopEnvironment = environmentManager.loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             LOGGER.error( "Environment not found.", e );
+            throw new RuntimeException( e );
         }
-        ContainerHost master = null;
+        EnvironmentContainerHost master ;
         try
         {
             master = hadoopEnvironment.getContainerHostById( wizard.getConfig().getServer() );
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
-        Set<ContainerHost> slaves = null;
+        Set<EnvironmentContainerHost> slaves ;
         try
         {
             slaves = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getClients() );
         }
         catch ( ContainerHostNotFoundException e )
         {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
 
         cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
         cfgView.addStringCfg( "Server node", master.getHostname() );
-        for ( ContainerHost slave : slaves )
+        for ( EnvironmentContainerHost slave : slaves )
         {
             cfgView.addStringCfg( "Node(s) to install", slave.getHostname() );
         }

@@ -9,7 +9,7 @@ import javax.naming.NamingException;
 
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;

@@ -34,7 +34,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             throws ClusterConfigurationException
     {
         HiveConfig hiveConfig = ( HiveConfig ) config;
-        ContainerHost server = null;
+        ContainerHost server;
         try
         {
             server = environment.getContainerHostById( ( ( HiveConfig ) config ).getServer() );

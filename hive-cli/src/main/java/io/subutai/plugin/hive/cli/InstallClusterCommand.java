@@ -2,20 +2,22 @@ package io.subutai.plugin.hive.cli;
 
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hive.api.Hive;
-import io.subutai.plugin.hive.api.HiveConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
 
 
 /**
@@ -54,13 +56,10 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
-        config.setServer( UUID.fromString( server ) );
+        config.setServer( server );
 
-        Set<UUID> nodeSet = new HashSet<>();
-        for ( String uuid : clients )
-        {
-            nodeSet.add( UUID.fromString( uuid ) );
-        }
+        Set<String> nodeSet = new HashSet<>();
+        Collections.addAll( nodeSet, clients );
         config.setClients( nodeSet );
 
         System.out.println( "Installing hive cluster..." );

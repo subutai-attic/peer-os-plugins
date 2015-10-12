@@ -3,13 +3,18 @@ package io.subutai.plugin.hive.impl;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -19,10 +24,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hive.api.HiveConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
 public class HiveSetupStrategy implements ClusterSetupStrategy
@@ -32,8 +33,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
     public final HiveConfig config;
     public final TrackerOperation trackerOperation;
     private Environment environment;
-    private ContainerHost server;
-    private Set<ContainerHost> clients;
+    private EnvironmentContainerHost server;
+    private Set<EnvironmentContainerHost> clients;
 
 
     public HiveSetupStrategy( HiveImpl manager, HiveConfig config, TrackerOperation trackerOperation )
@@ -89,11 +90,11 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = hiveManager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            environment = hiveManager.getEnvironmentManager().loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId(), e );
             return;
         }
 
@@ -114,7 +115,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        Set<ContainerHost> hiveNodes = null;
+        Set<EnvironmentContainerHost> hiveNodes = null;
         try
         {
             hiveNodes = environment.getContainerHostsByIds( config.getAllNodes() );
@@ -133,9 +134,13 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
                                 config.getAllNodes().size() ) );
             }
         }
+        else
+        {
+            throw new ClusterSetupException( String.format( "No nodes found in environment" ) );
+        }
 
 
-        for ( ContainerHost hiveNode : hiveNodes )
+        for ( EnvironmentContainerHost hiveNode : hiveNodes )
         {
             if ( !hiveNode.isConnected() )
             {
@@ -149,7 +154,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            LOGGER.error( "Container host not found" + config.getServer().toString(), e );
+            LOGGER.error( "Container host not found" + config.getServer(), e );
             trackerOperation.addLogFailed( "Container host not found" );
         }
 
@@ -174,11 +179,13 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
             if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
             {
                 server.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
+                        .withTimeout( 600 ) );
             }
             if ( !checkIfProductIsInstalled( server, "derby" ) )
             {
-                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" ).withTimeout( 600 ) );
+                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" )
+                        .withTimeout( 600 ) );
             }
         }
         catch ( CommandException e )
@@ -191,14 +198,15 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
 
         // installation of clients
         trackerOperation.addLog( "Installing clients..." );
-        for ( ContainerHost client : clients )
+        for ( EnvironmentContainerHost client : clients )
         {
             try
             {
                 if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
                 {
                     CommandResult result = client.execute( new RequestBuilder(
-                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
+                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
+                            .withTimeout( 600 ) );
                     checkInstalled( client, result );
                     trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
                 }
@@ -221,7 +229,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    private boolean checkIfProductIsInstalled( ContainerHost containerHost, String productName )
+    private boolean checkIfProductIsInstalled( EnvironmentContainerHost containerHost, String productName )
     {
         boolean isHiveInstalled = false;
         try
@@ -240,7 +248,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
@@ -249,10 +257,11 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && (statusResult.getStdOut().contains( HiveConfig.PRODUCT_KEY.toLowerCase()) ) )  )
+        if ( !( result.hasSucceeded() && ( statusResult.getStdOut()
+                                                       .contains( HiveConfig.PRODUCT_KEY.toLowerCase() ) ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

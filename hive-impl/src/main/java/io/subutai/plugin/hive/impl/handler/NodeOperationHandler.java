@@ -48,14 +48,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     public void run()
     {
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
 
@@ -120,7 +120,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
     {
         Preconditions.checkNotNull(result);
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
+        String status;
         String cmdResult = result.getStdErr() + result.getStdOut();
         if (cmdResult.contains("Hive Thrift Server is running"))
         {

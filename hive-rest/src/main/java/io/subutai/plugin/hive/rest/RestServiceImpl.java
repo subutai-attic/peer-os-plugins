@@ -2,12 +2,16 @@ package io.subutai.plugin.hive.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -16,13 +20,7 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
-
-/**
- * Created by ermek on 2/19/15.
- */
 public class RestServiceImpl implements RestService
 {
     private Hive hiveManager;
@@ -32,7 +30,7 @@ public class RestServiceImpl implements RestService
     public RestServiceImpl( final Hive hiveManager )
     {
         Preconditions.checkNotNull( hiveManager );
-        
+
         this.hiveManager = hiveManager;
     }
 
@@ -84,17 +82,14 @@ public class RestServiceImpl implements RestService
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String server,
                                     final String clients )
     {
-        Set<UUID> uuidSet = new HashSet<>(  );
+        Set<String> uuidSet = new HashSet<>();
         HiveConfig config = new HiveConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-        config.setServer( UUID.fromString( server ) );
+        config.setServer( server );
 
         String[] arr = clients.replaceAll( "\\s+", "" ).split( "," );
-        for ( String client : arr )
-        {
-            uuidSet.add( UUID.fromString( client ) );
-        }
+        Collections.addAll( uuidSet, arr );
 
         config.setClients( uuidSet );
 

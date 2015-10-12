@@ -3,13 +3,16 @@ package io.subutai.plugin.hive.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -19,8 +22,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.hive.impl.Commands;
 import io.subutai.plugin.hive.impl.HiveImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -69,25 +70,25 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
     {
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
 
             CommandResult result = null;
             switch ( clusterOperationType )
             {
                 case START_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.startCommand );
                     }
                     break;
                 case STOP_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.stopCommand );
                     }
                     break;
                 case STATUS_ALL:
-                    for ( ContainerHost containerHost : environment.getContainerHosts() )
+                    for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
                     {
                         result = executeCommand( containerHost, Commands.statusCommand );
                     }
@@ -98,13 +99,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
 
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
-            return;
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
         }
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    private CommandResult executeCommand( EnvironmentContainerHost containerHost, String command )
     {
         CommandResult result = null;
         try
@@ -142,18 +142,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
     public void destroyCluster()
     {
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
 
-        Set<ContainerHost> hiveNodes = null;
+        Set<EnvironmentContainerHost> hiveNodes = null;
 
         try
         {
@@ -169,7 +169,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
         }
         if ( hiveNodes != null )
         {
-            for ( ContainerHost host : hiveNodes )
+            for ( EnvironmentContainerHost host : hiveNodes )
             {
                 try
                 {
@@ -179,7 +179,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
                         result = host.execute( new RequestBuilder(
                                 Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY
                                         .toLowerCase() ) );
-                        host.execute( new RequestBuilder( Commands.uninstallCommand + Common.PACKAGE_PREFIX + "derby" ) );
+                        host.execute(
+                                new RequestBuilder( Commands.uninstallCommand + Common.PACKAGE_PREFIX + "derby" ) );
                     }
                     else
                     {
@@ -190,8 +191,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
                     if ( result.hasSucceeded() )
                     {
                         config.getClients().remove( host.getId() );
-                        trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
-                                + " successfully." );
+                        trackerOperation.addLog(
+                                HiveConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+                                        + " successfully." );
                     }
                     else
                     {
@@ -201,8 +203,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HiveImpl, 
                 }
                 catch ( CommandException e )
                 {
-                    trackerOperation.addLog( String.format( "Error uninstalling Hive from node %s",
-                            host.getHostname() ) );
+                    trackerOperation
+                            .addLog( String.format( "Error uninstalling Hive from node %s", host.getHostname() ) );
                 }
             }
         }

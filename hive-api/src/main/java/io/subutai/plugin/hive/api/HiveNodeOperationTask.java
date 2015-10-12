@@ -3,7 +3,7 @@ package io.subutai.plugin.hive.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.CompleteEvent;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -13,13 +13,14 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class HiveNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Hive hive;
     private NodeOperationType operationType;
 
 
-    public HiveNodeOperationTask( Hive hive, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                  NodeOperationType operationType, CompleteEvent completeEvent, UUID trackID )
+    public HiveNodeOperationTask( Hive hive, Tracker tracker, String clusterName,
+                                  EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                                  CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, hive.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.hive = hive;

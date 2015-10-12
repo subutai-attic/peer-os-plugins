@@ -5,13 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hive.api.Hive;
-import io.subutai.plugin.hive.api.HiveConfig;
-
 import com.google.common.base.Strings;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -24,6 +17,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hive.api.Hive;
+import io.subutai.plugin.hive.api.HiveConfig;
+
 
 class AddNodeWindow extends Window
 {
@@ -35,7 +35,7 @@ class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Hive hive, final ExecutorService executorService, final Tracker tracker,
-                          final HiveConfig config, Set<ContainerHost> nodes )
+                          final HiveConfig config, Set<EnvironmentContainerHost> nodes )
     {
         super( "Add New Node" );
         setModal( true );
@@ -61,7 +61,7 @@ class AddNodeWindow extends Window
         hadoopNodes.setNullSelectionAllowed( false );
         hadoopNodes.setRequired( true );
         hadoopNodes.setWidth( 60, Unit.PERCENTAGE );
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             hadoopNodes.addItem( node );
             hadoopNodes.setItemCaption( node, node.getHostname() );
@@ -98,7 +98,7 @@ class AddNodeWindow extends Window
             {
                 addNodeBtn.setEnabled( false );
                 showProgress();
-                ContainerHost containerHost = ( ContainerHost ) hadoopNodes.getValue();
+                EnvironmentContainerHost containerHost = ( EnvironmentContainerHost ) hadoopNodes.getValue();
                 final UUID trackID = hive.addNode( config.getClusterName(), containerHost.getHostname() );
                 executorService.execute( new Runnable()
                 {

@@ -5,17 +5,17 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.ui.manager.Manager;
 import io.subutai.plugin.hive.ui.wizard.Wizard;
 import io.subutai.server.ui.api.PortalModuleService;
-
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class HiveComponent extends CustomComponent

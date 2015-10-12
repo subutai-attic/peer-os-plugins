@@ -1,38 +1,38 @@
 package io.subutai.plugin.hive.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;
-import io.subutai.plugin.hive.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hive.impl.handler.CheckInstallHandler;
+import io.subutai.plugin.hive.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hive.impl.handler.NodeOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class HiveImpl implements Hive, EnvironmentEventListener
@@ -45,7 +45,8 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     private Hadoop hadoopManager;
 
 
-    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO )
+    public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                     PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -181,11 +182,11 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     @Override
     public boolean isInstalled( String clusterName, String hostname )
     {
-        ContainerHost containerHost = null;
+        EnvironmentContainerHost containerHost = null;
         try
         {
             containerHost =
-                    environmentManager.findEnvironment( hadoopManager.getCluster( clusterName ).getEnvironmentId() )
+                    environmentManager.loadEnvironment( hadoopManager.getCluster( clusterName ).getEnvironmentId() )
                                       .getContainerHostByHostname( hostname );
         }
         catch ( ContainerHostNotFoundException e )
@@ -241,14 +242,14 @@ public class HiveImpl implements Hive, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         // not need
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String uuid )
     {
         LOGGER.info( String.format( "Hive environment event: Container destroyed: %s", uuid ) );
         List<HiveConfig> clusterConfigs = getClusters();
@@ -283,7 +284,7 @@ public class HiveImpl implements Hive, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String uuid )
     {
         LOGGER.info( String.format( "Hive environment event: Environment destroyed: %s", uuid ) );
 
@@ -298,7 +299,7 @@ public class HiveImpl implements Hive, EnvironmentEventListener
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOGGER.info( String.format( "Hive environment event: Cluster removed",
+                    LOGGER.info( String.format( "Hive environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
