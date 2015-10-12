@@ -6,7 +6,7 @@
   <reference id="hadoopManager" availability="mandatory"
              interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="monitor" availability="mandatory"
@@ -34,7 +34,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="impl" interface="io.subutai.plugin.zookeeper.api.Zookeeper" />
-  <service ref="impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
   <!-- *********************************************************************************** -->
 

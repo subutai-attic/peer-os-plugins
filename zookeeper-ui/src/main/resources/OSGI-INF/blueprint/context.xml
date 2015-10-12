@@ -10,7 +10,7 @@
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.zookeeper.ui.ZookeeperPortalModule"
         init-method="init" destroy-method="destroy">
