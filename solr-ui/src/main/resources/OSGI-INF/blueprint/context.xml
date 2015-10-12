@@ -6,7 +6,7 @@
   <reference id="solr" availability="mandatory" interface="io.subutai.plugin.solr.api.Solr" />
   <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.solr.ui.SolrPortalModule"
         init-method="init" destroy-method="destroy">

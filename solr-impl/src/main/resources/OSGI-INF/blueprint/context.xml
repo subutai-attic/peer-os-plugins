@@ -3,7 +3,7 @@
 
   <!-- *********************************************************************************** -->
   <reference id="tracker" interface="io.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" interface="io.subutai.core.env.api.EnvironmentManager" />
+  <reference id="environmentManager" interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
   <!-- *********************************************************************************** -->
 
@@ -17,7 +17,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="solr-impl" interface="io.subutai.plugin.solr.api.Solr" />
-  <service ref="solr-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="solr-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
 </blueprint>

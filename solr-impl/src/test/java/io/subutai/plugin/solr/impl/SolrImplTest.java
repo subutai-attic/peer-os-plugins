@@ -19,19 +19,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
-import io.subutai.plugin.solr.impl.Commands;
-import io.subutai.plugin.solr.impl.SolrImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -41,11 +40,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class SolrImplTest
 {
     private SolrImpl solrImpl;
-    private UUID uuid;
+    private String id;
     @Mock
     SolrClusterConfig solrClusterConfig;
     @Mock
@@ -59,7 +58,7 @@ public class SolrImplTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -87,13 +86,13 @@ public class SolrImplTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( SolrClusterConfig.PRODUCT_KEY, "test", SolrClusterConfig.class ) )
                 .thenReturn( solrClusterConfig );
 
-        solrImpl = new SolrImpl(pluginDAO);
+        solrImpl = new SolrImpl( pluginDAO );
 
         solrImpl.setTracker( tracker );
         solrImpl.setExecutor( executorService );
@@ -153,11 +152,10 @@ public class SolrImplTest
     public void testInstallCluster() throws Exception
     {
         when( solrClusterConfig.getClusterName() ).thenReturn( "test" );
-        UUID id = solrImpl.installCluster( solrClusterConfig );
+        solrImpl.installCluster( solrClusterConfig );
 
         // assertions
         assertNotNull( solrImpl.installCluster( solrClusterConfig ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -177,7 +175,7 @@ public class SolrImplTest
         //
         //        // assertions
         //        assertNotNull( solrImpl.uninstallCluster( solrClusterConfig ) );
-        //        assertEquals( uuid, id );
+        //        assertEquals( id, id );
     }
 
 
@@ -218,40 +216,37 @@ public class SolrImplTest
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = solrImpl.destroyNode( "test", "test" );
+        solrImpl.destroyNode( "test", "test" );
     }
 
 
     @Test
     public void testStartNode() throws Exception
     {
-        UUID id = solrImpl.startNode( "test", "test" );
+        solrImpl.startNode( "test", "test" );
 
         // assertions
         assertNotNull( solrImpl.startNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStopNode() throws Exception
     {
-        UUID id = solrImpl.stopNode( "test", "test" );
+        solrImpl.stopNode( "test", "test" );
 
         // assertions
         assertNotNull( solrImpl.stopNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = solrImpl.checkNode( "test", "test" );
+        solrImpl.checkNode( "test", "test" );
 
         // assertions
         assertNotNull( solrImpl.checkNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -268,11 +263,10 @@ public class SolrImplTest
     @Test
     public void testConfigureEnvironmentCluster() throws Exception
     {
-        UUID id = solrImpl.configureEnvironmentCluster( solrClusterConfig );
+        solrImpl.configureEnvironmentCluster( solrClusterConfig );
 
         // assertions
         assertNotNull( solrImpl.configureEnvironmentCluster( solrClusterConfig ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -286,7 +280,7 @@ public class SolrImplTest
     @Test
     public void testOnEnvironmentGrown() throws Exception
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
 
         solrImpl.onEnvironmentGrown( environment, mySet );
@@ -300,14 +294,14 @@ public class SolrImplTest
         myList.add( solrClusterConfig );
         when( pluginDAO.getInfo( SolrClusterConfig.PRODUCT_KEY, SolrClusterConfig.class ) ).thenReturn( myList );
         solrImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( solrClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( solrClusterConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( solrClusterConfig.getNodes() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
 
-        solrImpl.onContainerDestroyed( environment, uuid );
+        solrImpl.onContainerDestroyed( environment, id );
 
         // assertions
         verify( pluginDAO ).deleteInfo( anyString(), anyString() );
@@ -321,15 +315,15 @@ public class SolrImplTest
         myList.add( solrClusterConfig );
         when( pluginDAO.getInfo( SolrClusterConfig.PRODUCT_KEY, SolrClusterConfig.class ) ).thenReturn( myList );
         solrImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( solrClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
-        myUUID.add( UUID.randomUUID() );
+        when( environment.getId() ).thenReturn( id );
+        when( solrClusterConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
+        myUUID.add( UUID.randomUUID().toString() );
         when( solrClusterConfig.getNodes() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( false );
 
-        solrImpl.onContainerDestroyed( environment, uuid );
+        solrImpl.onContainerDestroyed( environment, id );
 
         // assertions
         verify( pluginDAO ).saveInfo( anyString(), anyString(), any() );
@@ -343,11 +337,11 @@ public class SolrImplTest
         myList.add( solrClusterConfig );
         when( pluginDAO.getInfo( SolrClusterConfig.PRODUCT_KEY, SolrClusterConfig.class ) ).thenReturn( myList );
         solrImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( solrClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( solrClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
-        solrImpl.onEnvironmentDestroyed( uuid );
+        solrImpl.onEnvironmentDestroyed( id );
 
         // assertions
         verify( pluginDAO ).deleteInfo( anyString(), anyString() );

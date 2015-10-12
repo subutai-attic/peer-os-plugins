@@ -4,21 +4,22 @@ package io.subutai.plugin.solr.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.solr.api.Solr;
-import io.subutai.plugin.solr.api.SolrClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.solr.api.Solr;
+import io.subutai.plugin.solr.api.SolrClusterConfig;
 
 
 /**
@@ -52,13 +53,13 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
         try
         {
-            Environment environment = environmentManager.findEnvironment( UUID.fromString( environmentId ) );
+            Environment environment = environmentManager.loadEnvironment( environmentId );
             SolrClusterConfig config = new SolrClusterConfig();
             config.setClusterName( clusterName );
-            config.setEnvironmentId( UUID.fromString( environmentId ) );
-            if ( checkGivenUUID( environment, UUID.fromString( node ) ) )
+            config.setEnvironmentId( environmentId );
+            if ( checkGivenUUID( environment, node ) )
             {
-                config.getNodes().add( UUID.fromString( node ) );
+                config.getNodes().add( node );
             }
             else
             {
@@ -81,7 +82,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    private boolean checkGivenUUID( Environment environment, UUID uuid )
+    private boolean checkGivenUUID( Environment environment, String uuid )
     {
         for ( ContainerHost host : environment.getContainerHosts() )
         {

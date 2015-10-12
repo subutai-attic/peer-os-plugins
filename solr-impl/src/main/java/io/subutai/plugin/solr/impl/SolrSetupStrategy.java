@@ -3,7 +3,12 @@ package io.subutai.plugin.solr.impl;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
@@ -15,11 +20,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 /**
@@ -49,10 +49,10 @@ public class SolrSetupStrategy implements ClusterSetupStrategy
     @Override
     public ConfigBase setup() throws ClusterSetupException
     {
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -83,7 +83,7 @@ public class SolrSetupStrategy implements ClusterSetupStrategy
         }
 
         Set<ContainerHost> clusterHosts = new HashSet<>();
-        Set<UUID> solrNodes = new HashSet<>( config.getNodes() );
+        Set<String> solrNodes = new HashSet<>( config.getNodes() );
         for ( ContainerHost host : environment.getContainerHosts() )
         {
             if ( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ) && solrNodes

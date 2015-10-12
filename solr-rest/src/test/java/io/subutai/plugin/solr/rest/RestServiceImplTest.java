@@ -12,13 +12,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
-import io.subutai.plugin.solr.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -26,7 +26,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
     private RestServiceImpl restService;

@@ -8,12 +8,11 @@ package io.subutai.plugin.solr.api;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Objects;
 
 import io.subutai.common.environment.Topology;
 import io.subutai.plugin.common.api.ConfigBase;
-
-import com.google.common.base.Objects;
 
 
 public class SolrClusterConfig implements ConfigBase
@@ -24,8 +23,8 @@ public class SolrClusterConfig implements ConfigBase
     public static String TEMPLATE_NAME = PRODUCT_NAME;
     private String clusterName = "";
     private int numberOfNodes = 1;
-    private Set<UUID> nodes = new HashSet<>();
-    private UUID environmentId;
+    private Set<String> nodes = new HashSet<>();
+    private String environmentId;
     private Topology environmentTopology;
 
 
@@ -74,13 +73,13 @@ public class SolrClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public void setNodes( final Set<UUID> nodes )
+    public void setNodes( final Set<String> nodes )
     {
         this.nodes = nodes;
     }
@@ -107,13 +106,13 @@ public class SolrClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }

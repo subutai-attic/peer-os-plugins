@@ -14,21 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.solr.api.NodeOperationTask;
-import io.subutai.plugin.solr.api.Solr;
-import io.subutai.plugin.solr.api.SolrClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +33,22 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.solr.api.NodeOperationTask;
+import io.subutai.plugin.solr.api.Solr;
+import io.subutai.plugin.solr.api.SolrClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -206,7 +207,7 @@ public class Manager
             Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( solrClusterConfig.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( solrClusterConfig.getEnvironmentId() );
                 populateTable( nodesTable, environment.getContainerHostsByIds( solrClusterConfig.getNodes() ) );
             }
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -221,12 +222,12 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
 
         table.removeAllItems();
 
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Label resultHolder = new Label();
             resultHolder.setId( containerHost.getIpByInterfaceName( "eth0" ) + "-solrResult" );
@@ -301,7 +302,7 @@ public class Manager
     }
 
 
-    private void addCheckButtonClickListener( final ContainerHost containerHost, final Label resultHolder,
+    private void addCheckButtonClickListener( final EnvironmentContainerHost containerHost, final Label resultHolder,
                                               final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -358,7 +359,7 @@ public class Manager
     }
 
 
-    private void addStopButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    private void addStopButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -386,7 +387,7 @@ public class Manager
     }
 
 
-    private void addStartButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    private void addStartButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -472,10 +473,10 @@ public class Manager
                     String containerHostName =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<EnvironmentContainerHost> containerHosts = null;
                     try
                     {
-                        containerHosts = environmentManager.findEnvironment( solrClusterConfig.getEnvironmentId() )
+                        containerHosts = environmentManager.loadEnvironment( solrClusterConfig.getEnvironmentId() )
                                                            .getContainerHosts();
                     }
                     catch ( EnvironmentNotFoundException e )
@@ -483,10 +484,10 @@ public class Manager
                         LOGGER.error( "Error getting environment by id.", e );
                     }
                     Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     while ( iterator.hasNext() )
                     {
-                        containerHost = ( ContainerHost ) iterator.next();
+                        containerHost = ( EnvironmentContainerHost ) iterator.next();
                         if ( containerHost.getHostname().equals( containerHostName ) )
                         {
                             break;

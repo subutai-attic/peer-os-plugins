@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
 import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.server.ui.component.ProgressWindow;

@@ -8,18 +8,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.SolrImpl;
-import io.subutai.plugin.solr.impl.handler.ClusterOperationHandler;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith( MockitoJUnitRunner.class )
 public class ClusterOperationHandlerTest
 {
     private ClusterOperationHandler clusterOperationHandler;
@@ -70,32 +70,16 @@ public class ClusterOperationHandlerTest
 
         // mock setupCluster
         when( solrImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( solrImpl.getClusterSetupStrategy( environment, solrClusterConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
     }
 
 
-    @Test
-    public void testRunOperationOnContainers() throws Exception
-    {
-        //        clusterOperationHandler.runOperationOnContainers( ClusterOperationType.INSTALL_OVER_ENV );
-    }
+
 
 
     @Test
-    public void testRunOperationTypeInstall() throws Exception
-    {
-        //        clusterOperationHandler.run();
-
-        // assertions
-        //        verify( trackerOperation ).addLog( "Building environment..." );
-        //        verify( clusterSetupStrategy ).setup();
-        //        verify( trackerOperation ).addLogDone( String.format( "Cluster %s set up successfully", null ) );
-    }
-
-
-    @Test//( expected = RuntimeException.class )
     public void testRunOperationTypeInstallSetupFailed() throws Exception
     {
         when( clusterSetupStrategy.setup() ).thenThrow( ClusterSetupException.class );

@@ -3,6 +3,8 @@ package io.subutai.plugin.solr.impl.handler;
 
 import java.util.Iterator;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -15,8 +17,6 @@ import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.Commands;
 import io.subutai.plugin.solr.impl.SolrImpl;
-
-import com.google.common.base.Preconditions;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, SolrClusterConfig>
@@ -51,7 +51,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
 
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             Iterator iterator = environment.getContainerHosts().iterator();
             ContainerHost host = null;
             while ( iterator.hasNext() )
@@ -95,7 +95,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        String status = "UNKNOWN";
+        String status;
         if ( result.getExitCode() == 0 )
         {
             status = result.getStdOut();

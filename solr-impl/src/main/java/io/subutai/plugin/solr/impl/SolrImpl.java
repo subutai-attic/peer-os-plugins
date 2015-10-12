@@ -1,34 +1,11 @@
 package io.subutai.plugin.solr.impl;
 
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import io.subutai.common.environment.Blueprint;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.protocol.PlacementStrategy;
-import io.subutai.common.settings.Common;
-import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.UUIDUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.solr.api.Solr;
-import io.subutai.plugin.solr.api.SolrClusterConfig;
-import io.subutai.plugin.solr.impl.handler.NodeOperationHandler;
-import io.subutai.plugin.solr.impl.handler.ClusterOperationHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +13,27 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+
+import io.subutai.common.environment.Blueprint;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.protocol.PlacementStrategy;
+import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.common.util.UUIDUtil;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.solr.api.Solr;
+import io.subutai.plugin.solr.api.SolrClusterConfig;
+import io.subutai.plugin.solr.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.solr.impl.handler.NodeOperationHandler;
 
 
 public class SolrImpl implements Solr, EnvironmentEventListener
@@ -48,7 +46,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     private PluginDAO pluginDAO;
 
 
-    public SolrImpl(PluginDAO pluginDAO)
+    public SolrImpl( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
@@ -234,8 +232,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
         //1 node group
         NodeGroup nodeGroup = new NodeGroup(
                 String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
-                config.getTemplateName(), Common.DEFAULT_DOMAIN_NAME, config.getNumberOfNodes(), 1, 1,
-                new PlacementStrategy( "ROUND_ROBIN" ) );
+                config.getTemplateName(), config.getNumberOfNodes(), 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
 
 
         return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
@@ -264,10 +261,10 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         List<String> containerNames = new ArrayList<>();
-        for ( final ContainerHost containerHost : set )
+        for ( final EnvironmentContainerHost containerHost : set )
         {
             containerNames.add( containerHost.getHostname() );
         }
@@ -277,7 +274,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    public void onContainerDestroyed( final Environment environment, final String containerHostId )
     {
         List<SolrClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final SolrClusterConfig clusterConfig : clusterConfigs )
@@ -305,7 +302,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID environmentId )
+    public void onEnvironmentDestroyed( final String environmentId )
     {
         List<SolrClusterConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final SolrClusterConfig clusterConfig : clusterConfigs )

@@ -7,14 +7,14 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -86,12 +86,12 @@ public class RestServiceImpl implements RestService
 
         SolrClusterConfig config = new SolrClusterConfig();
         config.setClusterName( clusterName );
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setEnvironmentId( environmentId );
 
         String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
         for ( String node : arr )
         {
-            config.getNodes().add( UUID.fromString( node ) );
+            config.getNodes().add( node );
         }
 
         UUID uuid = solrManager.installCluster( config );

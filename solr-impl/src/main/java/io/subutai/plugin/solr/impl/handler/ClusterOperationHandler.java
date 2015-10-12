@@ -3,14 +3,16 @@ package io.subutai.plugin.solr.impl.handler;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -18,13 +20,8 @@ import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
-import io.subutai.plugin.solr.impl.SolrImpl;
 import io.subutai.plugin.solr.impl.Commands;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.solr.impl.SolrImpl;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, SolrClusterConfig>
@@ -33,7 +30,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private SolrClusterConfig config;
-    private ExecutorService executor = SubutaiExecutors.newCachedThreadPool();
 
 
     public ClusterOperationHandler( final SolrImpl manager, final SolrClusterConfig config,
@@ -70,7 +66,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
 
         try
         {
-            Environment environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( environment, config, trackerOperation );
             clusterSetupStrategy.setup();
@@ -98,7 +94,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -108,7 +104,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         }
 
         Set<ContainerHost> clusterHosts = new HashSet<>();
-        Set<UUID> solrNodes = new HashSet<>( config.getNodes() );
+        Set<String> solrNodes = new HashSet<>( config.getNodes() );
         for ( ContainerHost host : environment.getContainerHosts() )
         {
             if ( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ) && solrNodes

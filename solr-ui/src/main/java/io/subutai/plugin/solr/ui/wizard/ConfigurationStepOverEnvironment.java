@@ -12,11 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.plugin.solr.api.SolrClusterConfig;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -33,6 +28,10 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.plugin.solr.api.SolrClusterConfig;
 
 
 public class ConfigurationStepOverEnvironment extends VerticalLayout
@@ -66,10 +65,10 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<ContainerHost> containerHosts =
-                            new HashSet<>( ( Collection<ContainerHost> ) event.getProperty().getValue() );
-                    Set<UUID> containerIDs = new HashSet<>();
-                    for ( ContainerHost containerHost : containerHosts )
+                    Set<EnvironmentContainerHost> containerHosts =
+                            new HashSet<>( ( Collection<EnvironmentContainerHost> ) event.getProperty().getValue() );
+                    Set<String> containerIDs = new HashSet<>();
+                    for ( EnvironmentContainerHost containerHost : containerHosts )
                     {
                         containerIDs.add( containerHost.getId() );
                     }
@@ -85,17 +84,17 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
             @Override
             public void valueChange( final Property.ValueChangeEvent valueChangeEvent )
             {
-                UUID envId = ( UUID ) valueChangeEvent.getProperty().getValue();
+                String envId = ( String ) valueChangeEvent.getProperty().getValue();
                 wizard.getSolrClusterConfig().setEnvironmentId( envId );
                 BeanItem environmentItem = ( BeanItem ) envList.getItem( envId );
                 Environment environment = ( Environment ) environmentItem.getBean();
 
-                Set<ContainerHost> allowedContainerHosts = new HashSet<>( environment.getContainerHosts() );
+                Set<EnvironmentContainerHost> allowedContainerHosts = new HashSet<>( environment.getContainerHosts() );
 
                 //Exclude container hosts which are cloned not from solr template
-                for ( Iterator<ContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
+                for ( Iterator<EnvironmentContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
                 {
-                    ContainerHost containerHost = it.next();
+                    EnvironmentContainerHost containerHost = it.next();
                     if ( !containerHost.getTemplateName().equalsIgnoreCase( SolrClusterConfig.TEMPLATE_NAME ) )
                     {
                         it.remove();
@@ -110,9 +109,9 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
                     {
                         continue;
                     }
-                    for ( Iterator<ContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
+                    for ( Iterator<EnvironmentContainerHost> it = allowedContainerHosts.iterator(); it.hasNext(); )
                     {
-                        ContainerHost containerHost = it.next();
+                        EnvironmentContainerHost containerHost = it.next();
                         if ( solrConfig.getNodes().contains( containerHost.getId() ) )
                         {
                             it.remove();
@@ -121,7 +120,7 @@ public class ConfigurationStepOverEnvironment extends VerticalLayout
                 }
 
                 solrNodes.setContainerDataSource(
-                        new BeanItemContainer<>( ContainerHost.class, allowedContainerHosts ) );
+                        new BeanItemContainer<>( EnvironmentContainerHost.class, allowedContainerHosts ) );
             }
         } );
 
