@@ -4,7 +4,7 @@ package io.subutai.plugin.sqoop.impl;
 import java.util.concurrent.ExecutorService;
 
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;

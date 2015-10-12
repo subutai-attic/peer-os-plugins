@@ -9,20 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
-import io.subutai.plugin.sqoop.ui.SqoopComponent;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
-
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
@@ -39,6 +25,20 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
+import io.subutai.plugin.sqoop.ui.SqoopComponent;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -233,7 +233,7 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost host = null;
+                    EnvironmentContainerHost host = null;
                     try
                     {
                         host = environment.getContainerHostByHostname( hostname );
@@ -269,9 +269,9 @@ public class Manager
         {
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-                Set<ContainerHost> nodes = null;
+                Set<EnvironmentContainerHost> nodes = null;
                 try
                 {
                     nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -312,12 +312,12 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Collection<ContainerHost> nodes )
+    private void populateTable( final Table table, Collection<EnvironmentContainerHost> nodes )
     {
 
         table.removeAllItems();
 
-        for ( final ContainerHost node : nodes )
+        for ( final EnvironmentContainerHost node : nodes )
         {
             String ip = getIPofHost( node );
 
@@ -369,13 +369,13 @@ public class Manager
     }
 
 
-    private String getIPofHost( ContainerHost host )
+    private String getIPofHost( EnvironmentContainerHost host )
     {
         return host.getIpByInterfaceName( "eth0" );
     }
 
 
-    private void addClickListenerToDestroyButton( final ContainerHost node, Button destroyBtn )
+    private void addClickListenerToDestroyButton( final EnvironmentContainerHost node, Button destroyBtn )
     {
         destroyBtn.addClickListener( new Button.ClickListener()
         {

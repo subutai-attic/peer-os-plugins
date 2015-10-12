@@ -1,14 +1,6 @@
 package io.subutai.plugin.sqoop.cli;
 
 
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +8,16 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
+
 
 /**
- * sample command :
- *      sqoop:describe-cluster test \ {cluster name}
+ * sample command : sqoop:describe-cluster test \ {cluster name}
  */
 @Command( scope = "sqoop", name = "describe-cluster", description = "Shows the details of the Sqoop cluster." )
 public class DescribeClusterCommand extends OsgiCommandSupport
@@ -32,29 +30,28 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( DescribeClusterCommand.class.getName() );
 
+
     protected Object doExecute()
     {
         SqoopConfig config = getSqoopManager().getCluster( clusterName );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( UUID containerId : config.getNodes() )
+            for ( String containerId : config.getNodes() )
             {
                 try
                 {
                     sb.append( "   Container Hostname: " ).
                             append( environment.getContainerHostById( containerId ).getHostname() ).append( "\n" );
-
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
                     LOG.error( "Could not find container host !!!" );
                     e.printStackTrace();
                 }
-
             }
             System.out.println( sb.toString() );
         }

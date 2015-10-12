@@ -5,18 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
-import io.subutai.server.ui.component.ProgressWindow;
-
+import com.google.common.collect.Sets;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -25,12 +14,24 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
+import io.subutai.server.ui.component.ProgressWindow;
+
 
 public class VerificationStep extends Panel
 {
 
-    public VerificationStep( final Sqoop sqoop, final Hadoop hadoop, final ExecutorService executorService, final Tracker tracker,
-                             EnvironmentManager environmentManager, final Wizard wizard )
+    public VerificationStep( final Sqoop sqoop, final Hadoop hadoop, final ExecutorService executorService,
+                             final Tracker tracker, EnvironmentManager environmentManager, final Wizard wizard )
     {
 
         setSizeFull();
@@ -52,14 +53,14 @@ public class VerificationStep extends Panel
         Environment hadoopEnv = null;
         try
         {
-            hadoopEnv = environmentManager.findEnvironment( hc.getEnvironmentId() );
+            hadoopEnv = environmentManager.loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             e.printStackTrace();
         }
 
-        Set<ContainerHost> hosts = null;
+        Set<EnvironmentContainerHost> hosts = Sets.newHashSet();
         if ( hadoopEnv != null )
         {
             try
@@ -71,7 +72,7 @@ public class VerificationStep extends Panel
                 e.printStackTrace();
             }
         }
-        for ( ContainerHost host : hosts )
+        for ( EnvironmentContainerHost host : hosts )
         {
             cfgView.addStringCfg( "Node(s) to install", host.getHostname() );
         }
@@ -85,10 +86,10 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                UUID trackId = null;
+                UUID trackId;
                 trackId = sqoop.installCluster( wizard.getConfig() );
-                ProgressWindow window
-                        = new ProgressWindow( executorService, tracker, trackId, SqoopConfig.PRODUCT_KEY );
+                ProgressWindow window =
+                        new ProgressWindow( executorService, tracker, trackId, SqoopConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {
                     @Override

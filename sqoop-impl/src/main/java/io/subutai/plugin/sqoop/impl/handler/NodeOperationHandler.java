@@ -1,6 +1,9 @@
 package io.subutai.plugin.sqoop.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -17,9 +20,6 @@ import io.subutai.plugin.sqoop.api.setting.ImportSetting;
 import io.subutai.plugin.sqoop.impl.CommandFactory;
 import io.subutai.plugin.sqoop.impl.SqoopImpl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, SqoopConfig>
 {
@@ -35,7 +35,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
     private ExportSetting exportSettings;
 
 
-    public NodeOperationHandler( SqoopImpl manager, SqoopConfig config, String hostname, NodeOperationType operationType )
+    public NodeOperationHandler( SqoopImpl manager, SqoopConfig config, String hostname,
+                                 NodeOperationType operationType )
     {
         super( manager, config );
         this.hostname = hostname;
@@ -70,7 +71,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
 
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -132,7 +133,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         if ( !config.getNodes().contains( node.getId() ) )
         {
             throw new ClusterException( String.format( "Node %s is not a member of Sqoop insallation %s", hostname,
-                                                       config.getClusterName() ) );
+                    config.getClusterName() ) );
         }
         if ( config.getNodes().size() == 1 )
         {
@@ -259,6 +260,5 @@ public class NodeOperationHandler extends AbstractOperationHandler<SqoopImpl, Sq
         }
         trackerOperation.addLogDone( "Import operation is finished." );
     }
-
 }
 

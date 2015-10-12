@@ -28,9 +28,9 @@ import io.subutai.plugin.sqoop.impl.handler.NodeOperationHandler;
 public class SqoopImpl extends SqoopBase
 {
 
-    public SqoopImpl(PluginDAO pluginDAO)
+    public SqoopImpl( PluginDAO pluginDAO )
     {
-        super(pluginDAO);
+        super( pluginDAO );
     }
 
 
@@ -109,8 +109,8 @@ public class SqoopImpl extends SqoopBase
     public UUID exportData( ExportSetting settings )
     {
         SqoopConfig config = getCluster( settings.getClusterName() );
-        NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
-                                                           NodeOperationType.EXPORT );
+        NodeOperationHandler h =
+                new NodeOperationHandler( this, config, settings.getHostname(), NodeOperationType.EXPORT );
         h.setExportSettings( settings );
 
         executor.execute( h );
@@ -122,8 +122,8 @@ public class SqoopImpl extends SqoopBase
     public UUID importData( ImportSetting settings )
     {
         SqoopConfig config = getCluster( settings.getClusterName() );
-        NodeOperationHandler h = new NodeOperationHandler( this, config, settings.getHostname(),
-                                                           NodeOperationType.IMPORT );
+        NodeOperationHandler h =
+                new NodeOperationHandler( this, config, settings.getHostname(), NodeOperationType.IMPORT );
         h.setImportSettings( settings );
 
         executor.execute( h );
@@ -132,23 +132,24 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public String fetchDatabases( ImportSetting importSetting ){
+    public String fetchDatabases( ImportSetting importSetting )
+    {
         String databases = null;
         SqoopConfig config = getCluster( importSetting.getClusterName() );
         String query = CommandFactory.fetchDatabasesQuery( importSetting );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             try
             {
                 ContainerHost containerHost = environment.getContainerHostByHostname( importSetting.getHostname() );
                 try
                 {
                     CommandResult result = containerHost.execute( new RequestBuilder( query ) );
-                    if ( result.hasSucceeded() ){
+                    if ( result.hasSucceeded() )
+                    {
                         databases = result.getStdOut();
                     }
-
                 }
                 catch ( CommandException e )
                 {
@@ -168,25 +169,25 @@ public class SqoopImpl extends SqoopBase
     }
 
 
-
     @Override
-    public String fetchTables( ImportSetting importSetting ){
+    public String fetchTables( ImportSetting importSetting )
+    {
         String tables = null;
         SqoopConfig config = getCluster( importSetting.getClusterName() );
         String query = CommandFactory.fetchTablesQuery( importSetting );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             try
             {
                 ContainerHost containerHost = environment.getContainerHostByHostname( importSetting.getHostname() );
                 try
                 {
                     CommandResult result = containerHost.execute( new RequestBuilder( query ) );
-                    if ( result.hasSucceeded() ){
+                    if ( result.hasSucceeded() )
+                    {
                         tables = result.getStdOut();
                     }
-
                 }
                 catch ( CommandException e )
                 {
@@ -207,14 +208,18 @@ public class SqoopImpl extends SqoopBase
 
 
     @Override
-    public String reviewExportQuery( ExportSetting settings ){
+    public String reviewExportQuery( ExportSetting settings )
+    {
         return CommandFactory.build( NodeOperationType.EXPORT, settings );
     }
 
+
     @Override
-    public String reviewImportQuery( ImportSetting settings ){
+    public String reviewImportQuery( ImportSetting settings )
+    {
         return CommandFactory.build( NodeOperationType.IMPORT, settings );
     }
+
 
     @Override
     public ClusterSetupStrategy getClusterSetupStrategy( Environment env, SqoopConfig config, TrackerOperation to )

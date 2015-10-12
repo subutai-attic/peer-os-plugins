@@ -6,16 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,26 +13,36 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
+
+
 /**
- * sample command :
- *      sqoop:install-cluster test \ {cluster name}
- *                             test \ { hadoop cluster name }
- *                             [ sqoop1, sqoop2 ] \ { list of nodes }
+ * sample command : sqoop:install-cluster test \ {cluster name} test \ { hadoop cluster name } [ sqoop1, sqoop2 ] \ {
+ * list of nodes }
  */
-@Command(scope = "sqoop", name = "install-cluster", description = "Command to install Sqoop cluster")
+@Command( scope = "sqoop", name = "install-cluster", description = "Command to install Sqoop cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
 
-    @Argument(index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
-            multiValued = false)
-    String hadoopClusterName  = null;
+    @Argument( index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
+            multiValued = false )
+    String hadoopClusterName = null;
 
-    @Argument(index = 2, name = "nodes", description = "The list of nodes", required = true,
-            multiValued = false)
+    @Argument( index = 2, name = "nodes", description = "The list of nodes", required = true,
+            multiValued = false )
     String nodes[] = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
@@ -56,31 +56,31 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         try
         {
-            Environment environment = environmentManager.findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+            Environment environment = environmentManager
+                    .loadEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-                SqoopConfig config = new SqoopConfig();
-                config.setClusterName( clusterName );
-                config.setHadoopClusterName( hadoopClusterName );
-                Set<UUID> workerUUIS = new HashSet<>();
-                for ( String node : nodes ){
-                    if( checkGivenUUID( environment, UUID.fromString( node ) ))
-                    {
-                        workerUUIS.add( UUID.fromString( node ) );
-                    }
-                    else {
-                        System.out.println( "Could not find container host with given uuid : " + node );
-                        return null;
-                    }
-
+            SqoopConfig config = new SqoopConfig();
+            config.setClusterName( clusterName );
+            config.setHadoopClusterName( hadoopClusterName );
+            Set<String> workerUUIS = new HashSet<>();
+            for ( String node : nodes )
+            {
+                if ( checkGivenUUID( environment, node ) )
+                {
+                    workerUUIS.add( node );
                 }
-                config.setNodes( workerUUIS );
-                config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+                else
+                {
+                    System.out.println( "Could not find container host with given uuid : " + node );
+                    return null;
+                }
+            }
+            config.setNodes( workerUUIS );
+            config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-                System.out.println( "Installing sqoop cluster..." );
-                UUID uuid = getSqoopManager().installCluster( config );
-                System.out.println(
-                        "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
-
+            System.out.println( "Installing sqoop cluster..." );
+            UUID uuid = getSqoopManager().installCluster( config );
+            System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -91,16 +91,22 @@ public class InstallClusterCommand extends OsgiCommandSupport
         return null;
     }
 
-    private boolean checkGivenUUID( Environment environment, UUID uuid ){
-        for ( ContainerHost host : environment.getContainerHosts() ){
-            if ( host.getId().equals( uuid ) ){
+
+    private boolean checkGivenUUID( Environment environment, String uuid )
+    {
+        for ( EnvironmentContainerHost host : environment.getContainerHosts() )
+        {
+            if ( host.getId().equals( uuid ) )
+            {
                 return true;
             }
         }
         return false;
     }
 
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -122,14 +128,13 @@ public class InstallClusterCommand extends OsgiCommandSupport
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 90  * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
             {
                 break;
             }
         }
         return state;
     }
-
 
 
     public Tracker getTracker()

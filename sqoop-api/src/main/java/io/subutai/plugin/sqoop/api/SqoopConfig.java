@@ -4,7 +4,6 @@ package io.subutai.plugin.sqoop.api;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.plugin.common.api.ConfigBase;
 
@@ -16,11 +15,11 @@ public class SqoopConfig implements ConfigBase
     public static final String TEMPLATE_NAME = "hadoopsqoop";
 
     private String clusterName = "";
-    private UUID environmentId;
+    private String environmentId;
     private int nodesCount;
-    private Set<UUID> nodes = new HashSet();
+    private Set<String> nodes = new HashSet<>();
     private String hadoopClusterName = "";
-    private Set<UUID> hadoopNodes = new HashSet<>();
+    private Set<String> hadoopNodes = new HashSet<>();
 
 
     @Override
@@ -50,13 +49,13 @@ public class SqoopConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( UUID environmenId )
+    public void setEnvironmentId( String environmenId )
     {
         this.environmentId = environmenId;
     }
@@ -74,13 +73,13 @@ public class SqoopConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public void setNodes( Set<UUID> nodeIds )
+    public void setNodes( Set<String> nodeIds )
     {
         this.nodes = nodeIds;
     }
@@ -98,13 +97,13 @@ public class SqoopConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getHadoopNodes()
+    public Set<String> getHadoopNodes()
     {
         return hadoopNodes;
     }
 
 
-    public void setHadoopNodes( Set<UUID> hadoopNodes )
+    public void setHadoopNodes( Set<String> hadoopNodes )
     {
         this.hadoopNodes = hadoopNodes;
     }

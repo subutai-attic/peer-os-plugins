@@ -3,13 +3,17 @@ package io.subutai.plugin.sqoop.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -21,9 +25,6 @@ import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 import io.subutai.plugin.sqoop.impl.CommandFactory;
 import io.subutai.plugin.sqoop.impl.SqoopImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl, SqoopConfig>
@@ -92,7 +93,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
 
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( hc.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -142,7 +143,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             Environment env = null;
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -154,7 +155,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
                 throw new ClusterException( "Environment not found: " + config.getEnvironmentId() );
             }
 
-            Set<ContainerHost> nodes = null;
+            Set<EnvironmentContainerHost> nodes = null;
             try
             {
                 nodes = env.getContainerHostsByIds( config.getNodes() );
@@ -163,7 +164,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             {
                 e.printStackTrace();
             }
-            for ( ContainerHost node : nodes )
+
+            if ( CollectionUtil.isCollectionEmpty( nodes ) || nodes.size() < config.getNodes().size() )
+            {
+                throw new ClusterException( "Fewer nodes found in the environment than expected" );
+            }
+
+
+            for ( EnvironmentContainerHost node : nodes )
             {
                 if ( !node.isConnected() )
                 {
@@ -174,7 +182,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SqoopImpl,
             trackerOperation.addLog( "Uninstalling Sqoop..." );
 
             RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL, null ) );
-            for ( ContainerHost node : nodes )
+            for ( EnvironmentContainerHost node : nodes )
             {
                 try
                 {

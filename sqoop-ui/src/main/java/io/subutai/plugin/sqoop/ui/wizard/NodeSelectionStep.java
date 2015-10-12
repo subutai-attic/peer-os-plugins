@@ -5,16 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
@@ -29,6 +19,15 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
 
 
 public class NodeSelectionStep extends VerticalLayout
@@ -118,7 +117,7 @@ public class NodeSelectionStep extends VerticalLayout
 
     private void addOverHadoopControls( ComponentContainer parent, final SqoopConfig config )
     {
-        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
+        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<EnvironmentContainerHost>() );
         select.setId( "sqoopSlaveNodes" );
 
         ComboBox hadoopClusters = new ComboBox( "Hadoop cluster" );
@@ -141,16 +140,16 @@ public class NodeSelectionStep extends VerticalLayout
                     config.getNodes().clear();
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
                         e.printStackTrace();
                     }
-                    Set<ContainerHost> allNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> allNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             allNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -159,7 +158,8 @@ public class NodeSelectionStep extends VerticalLayout
                     {
                         e.printStackTrace();
                     }
-                    select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, allNodes ) );
+                    select.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, allNodes ) );
                 }
             }
         } );
@@ -203,16 +203,16 @@ public class NodeSelectionStep extends VerticalLayout
             {
                 try
                 {
-                    hadoopEnvironment = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() );
+                    hadoopEnvironment = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
                     e.printStackTrace();
                 }
-                Set<ContainerHost> hosts = Sets.newHashSet();
+                Set<EnvironmentContainerHost> hosts = Sets.newHashSet();
                 try
                 {
-                    for ( UUID nodeId : filterNodes( hadoopConfig.getAllNodes() ) )
+                    for ( String nodeId : filterNodes( hadoopConfig.getAllNodes() ) )
                     {
                         hosts.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                     }
@@ -235,9 +235,9 @@ public class NodeSelectionStep extends VerticalLayout
                     Collection selected = ( Collection ) event.getProperty().getValue();
                     for ( Object obj : selected )
                     {
-                        if ( obj instanceof ContainerHost )
+                        if ( obj instanceof EnvironmentContainerHost )
                         {
-                            config.getNodes().add( ( ( ContainerHost ) obj ).getId() );
+                            config.getNodes().add( ( ( EnvironmentContainerHost ) obj ).getId() );
                         }
                     }
                 }
@@ -250,15 +250,15 @@ public class NodeSelectionStep extends VerticalLayout
 
 
     //exclude hadoop nodes that are already in another sqoop cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> sqoopNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> sqoopNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( SqoopConfig sqoopConfig : wizard.getSqoopManager().getClusters() )
         {
             sqoopNodes.addAll( sqoopConfig.getNodes() );
         }
-        for ( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
             if ( !sqoopNodes.contains( node ) )
             {

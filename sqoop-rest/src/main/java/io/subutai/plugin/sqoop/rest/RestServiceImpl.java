@@ -2,12 +2,16 @@ package io.subutai.plugin.sqoop.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -18,9 +22,6 @@ import io.subutai.plugin.sqoop.api.Sqoop;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 import io.subutai.plugin.sqoop.api.setting.ExportSetting;
 import io.subutai.plugin.sqoop.api.setting.ImportSetting;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 
 public class RestServiceImpl implements RestService
@@ -79,16 +80,13 @@ public class RestServiceImpl implements RestService
 
     public Response installCluster( String clusterName, String hadoopClusterName, String nodes )
     {
-        Set<UUID> uuidSet = new HashSet<>(  );
+        Set<String> uuidSet = new HashSet<>();
         SqoopConfig config = new SqoopConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
         String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
-        {
-            uuidSet.add( UUID.fromString( node ) );
-        }
+        Collections.addAll( uuidSet, arr );
         config.setNodes( uuidSet );
 
         UUID uuid = sqoopManager.installCluster( config );
@@ -127,7 +125,8 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Response importData( String config ){
+    public Response importData( String config )
+    {
         TrimmedImportSettings trimmedImportSettings = JsonUtil.fromJson( config, TrimmedImportSettings.class );
         ImportSetting importSettings = new ImportSetting();
         importSettings.setClusterName( trimmedImportSettings.getClusterName() );
@@ -143,7 +142,8 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Response exportData( String config ){
+    public Response exportData( String config )
+    {
         TrimmedExportSettings trimmedExportSettings = JsonUtil.fromJson( config, TrimmedExportSettings.class );
         ExportSetting exportSetting = new ExportSetting();
         exportSetting.setClusterName( trimmedExportSettings.getClusterName() );
@@ -207,5 +207,4 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
-
 }
