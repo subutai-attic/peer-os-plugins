@@ -4,6 +4,8 @@ package io.subutai.plugin.hipi.impl;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
@@ -11,7 +13,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -23,8 +25,6 @@ import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hipi.api.HipiConfig;
 
-import com.google.common.base.Strings;
-
 
 public class HipiSetupStrategy implements ClusterSetupStrategy
 {
@@ -33,7 +33,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
     final TrackerOperation trackerOperation;
     CommandUtil commandUtil = new CommandUtil();
     private Environment environment;
-    private Set<ContainerHost> nodes;
+    private Set<EnvironmentContainerHost> nodes;
 
 
     public HipiSetupStrategy( HipiImpl manager, HipiConfig config, TrackerOperation trackerOperation )
@@ -88,7 +88,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -122,7 +122,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
 
         for ( HipiConfig cluster : hipiClusters )
         {
-            for ( ContainerHost node : nodes )
+            for ( EnvironmentContainerHost node : nodes )
             {
                 if ( cluster.getNodes().contains( node.getId() ) )
                 {
@@ -133,7 +133,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
             }
         }
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             if ( !node.isConnected() )
             {
@@ -183,7 +183,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Hipi..." );
 
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -212,7 +212,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try

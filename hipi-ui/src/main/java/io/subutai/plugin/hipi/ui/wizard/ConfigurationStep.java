@@ -7,15 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hipi.api.HipiConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +25,16 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hipi.api.HipiConfig;
 
 
 public class ConfigurationStep extends Panel
@@ -146,19 +147,18 @@ public class ConfigurationStep extends Panel
                     config.getNodes().clear();
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
-                                e );
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId(), e );
                         return;
                     }
 
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -168,7 +168,8 @@ public class ConfigurationStep extends Panel
                         show( String.format( "Error accessing environment: %s", e ) );
                         return;
                     }
-                    select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+                    select.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
                 }
             }
         } );
@@ -218,9 +219,10 @@ public class ConfigurationStep extends Panel
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -237,15 +239,15 @@ public class ConfigurationStep extends Panel
 
 
     //exclude hadoop nodes that are already in another hipi cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> hipiNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> hipiNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( HipiConfig hipiConfig : wizard.getHipiManager().getClusters() )
         {
             hipiNodes.addAll( hipiConfig.getNodes() );
         }
-        for ( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
             if ( !hipiNodes.contains( node ) )
             {

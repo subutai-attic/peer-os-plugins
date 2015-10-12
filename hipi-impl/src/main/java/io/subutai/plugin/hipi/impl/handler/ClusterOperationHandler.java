@@ -12,7 +12,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -104,7 +104,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             Environment env;
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -112,7 +112,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             }
 
 
-            Set<ContainerHost> nodes;
+            Set<EnvironmentContainerHost> nodes;
             try
             {
                 nodes = env.getContainerHostsByIds( config.getNodes() );
@@ -121,7 +121,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
             {
                 throw new ClusterException( String.format( "Environment containers not found: %s", e ) );
             }
-            for ( ContainerHost node : nodes )
+            for ( EnvironmentContainerHost node : nodes )
             {
                 if ( !node.isConnected() )
                 {
@@ -133,7 +133,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HipiImpl, 
 
 
             RequestBuilder rb = new RequestBuilder( CommandFactory.build( NodeOperationType.UNINSTALL ) );
-            for ( ContainerHost node : nodes )
+            for ( EnvironmentContainerHost node : nodes )
             {
                 try
                 {

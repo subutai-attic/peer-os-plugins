@@ -13,17 +13,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hipi.api.HipiConfig;
-import io.subutai.plugin.hipi.impl.HipiImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -35,30 +35,40 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class HipiImplTest
 {
-    @Mock CommandResult commandResult;
-    @Mock ContainerHost containerHost;
-    @Mock HipiConfig hipiConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock Hadoop hadoop;
-    @Mock PluginDAO pluginDAO;
-    @Mock ExecutorService executorService;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    HipiConfig hipiConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    Hadoop hadoop;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    ExecutorService executorService;
     private HipiImpl hipiImpl;
-    private UUID uuid;
+    private String id;
 
 
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( HipiConfig.PRODUCT_KEY, "test", HipiConfig.class ) ).thenReturn( hipiConfig );
 
 
-        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop, pluginDAO);
+        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop, pluginDAO );
 
         hipiImpl.setPluginDao( pluginDAO );
         hipiImpl.setExecutor( executorService );
@@ -119,11 +129,10 @@ public class HipiImplTest
     public void testInstallCluster() throws Exception
     {
         when( hipiConfig.getClusterName() ).thenReturn( "test" );
-        UUID id = hipiImpl.installCluster( hipiConfig );
+        hipiImpl.installCluster( hipiConfig );
 
         // assertions
         assertNotNull( hipiImpl.installCluster( hipiConfig ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -132,11 +141,10 @@ public class HipiImplTest
     {
         hipiImpl.getCluster( "test" );
 
-        UUID id = hipiImpl.uninstallCluster( "test" );
+        hipiImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( hipiImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -170,22 +178,20 @@ public class HipiImplTest
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = hipiImpl.addNode( "test", "test" );
+        hipiImpl.addNode( "test", "test" );
 
         // assertions
         assertNotNull( hipiImpl.addNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = hipiImpl.destroyNode( "test", "test" );
+        hipiImpl.destroyNode( "test", "test" );
 
         // assertions
         assertNotNull( hipiImpl.destroyNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -241,7 +247,7 @@ public class HipiImplTest
     @Test
     public void testOnEnvironmentGrown() throws Exception
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         hipiImpl.onEnvironmentGrown( environment, mySet );
     }
@@ -253,13 +259,13 @@ public class HipiImplTest
         List<HipiConfig> myList = new ArrayList<>();
         myList.add( hipiConfig );
         hipiImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( hipiConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( hipiConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( hipiConfig.getNodes() ).thenReturn( myUUID );
 
-        hipiImpl.onContainerDestroyed( environment, uuid );
+        hipiImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -269,14 +275,14 @@ public class HipiImplTest
         List<HipiConfig> myList = new ArrayList<>();
         myList.add( hipiConfig );
         hipiImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( hipiConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
-        myUUID.add( UUID.randomUUID() );
+        when( environment.getId() ).thenReturn( id );
+        when( hipiConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
+        myUUID.add( UUID.randomUUID().toString() );
         when( hipiConfig.getNodes() ).thenReturn( myUUID );
 
-        hipiImpl.onContainerDestroyed( environment, uuid );
+        hipiImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -286,10 +292,10 @@ public class HipiImplTest
         List<HipiConfig> myList = new ArrayList<>();
         myList.add( hipiConfig );
         hipiImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( hipiConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( hipiConfig.getEnvironmentId() ).thenReturn( id );
         when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
-        hipiImpl.onEnvironmentDestroyed( uuid );
+        hipiImpl.onEnvironmentDestroyed( id );
     }
 }

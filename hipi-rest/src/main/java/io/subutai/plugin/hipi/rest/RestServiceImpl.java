@@ -7,15 +7,15 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hipi.api.Hipi;
 import io.subutai.plugin.hipi.api.HipiConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class RestServiceImpl implements RestService
@@ -71,7 +71,7 @@ public class RestServiceImpl implements RestService
         for ( String node : arr )
         {
 
-            config.getNodes().add( UUID.fromString( node ) );
+            config.getNodes().add( node );
         }
 
         UUID uuid = hipiManager.installCluster( config );

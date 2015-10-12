@@ -14,19 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hipi.api.Hipi;
-import io.subutai.plugin.hipi.api.HipiConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
-
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Sizeable;
@@ -41,6 +28,19 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hipi.api.Hipi;
+import io.subutai.plugin.hipi.api.HipiConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -168,12 +168,12 @@ public class Manager
                     HadoopClusterConfig hadoopConfig = hadoop.getCluster( config.getHadoopClusterName() );
                     if ( hadoopConfig != null )
                     {
-                        List<UUID> hadoopNodes = hadoopConfig.getAllNodes();
+                        List<String> hadoopNodes = hadoopConfig.getAllNodes();
                         hadoopNodes.removeAll( config.getNodes() );
-                        Set<ContainerHost> nodes;
+                        Set<EnvironmentContainerHost> nodes;
                         try
                         {
-                            nodes = environmentManager.findEnvironment( config.getEnvironmentId() )
+                            nodes = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                       .getContainerHostsByIds( new HashSet<>( hadoopNodes ) );
                         }
                         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -284,10 +284,10 @@ public class Manager
                 {
                     String lxcHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost host;
+                    EnvironmentContainerHost host;
                     try
                     {
-                        host = environmentManager.findEnvironment( config.getEnvironmentId() )
+                        host = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                  .getContainerHostByHostname( lxcHostname );
                     }
                     catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -321,10 +321,10 @@ public class Manager
     {
         if ( config != null )
         {
-            Set<ContainerHost> nodes;
+            Set<EnvironmentContainerHost> nodes;
             try
             {
-                nodes = environmentManager.findEnvironment( config.getEnvironmentId() )
+                nodes = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                           .getContainerHostsByIds( config.getNodes() );
             }
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -341,12 +341,12 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> agents )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> agents )
     {
 
         table.removeAllItems();
 
-        for ( final ContainerHost host : agents )
+        for ( final EnvironmentContainerHost host : agents )
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( host.getIpByInterfaceName( "eth0" ) + "-hipiDestroy" );
@@ -375,7 +375,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToDestroyButton( final ContainerHost host, Button buttons )
+    public void addClickListenerToDestroyButton( final EnvironmentContainerHost host, Button buttons )
     {
         getButton( DESTROY_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {

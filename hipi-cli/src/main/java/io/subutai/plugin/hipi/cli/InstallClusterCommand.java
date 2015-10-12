@@ -1,9 +1,14 @@
 package io.subutai.plugin.hipi.cli;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -12,24 +17,23 @@ import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hipi.api.Hipi;
 import io.subutai.plugin.hipi.api.HipiConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 @Command( scope = "hipi", name = "install-cluster", description = "Command to install Hipi cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", required = true, multiValued = false, description = "flume cluster "
-            + "name" ) String clusterName;
+            + "name" )
+    String clusterName;
 
     @Argument( index = 1, name = "hadoopClusterName", description = "The hadoop cluster name", required = true,
-            multiValued = false ) String hadoopClusterName;
+            multiValued = false )
+    String hadoopClusterName;
 
     @Argument( index = 2, name = "nodes", description = "The list of nodes that Hipi will be installed", required =
             true,
-            multiValued = false ) String nodes[];
+            multiValued = false )
+    String nodes[];
 
 
     private Tracker tracker;
@@ -44,11 +48,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-        Set<UUID> nodesSet = new HashSet<>();
-        for ( String uuid : nodes )
-        {
-            nodesSet.add( UUID.fromString( uuid ) );
-        }
+        Set<String> nodesSet = new HashSet<>();
+        Collections.addAll( nodesSet, nodes );
         config.setNodes( nodesSet );
         UUID uuid = hipiManager.installCluster( config );
         System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) + "." );

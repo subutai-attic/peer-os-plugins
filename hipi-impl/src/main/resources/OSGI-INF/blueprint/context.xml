@@ -2,7 +2,7 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
   <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
-  <reference id="environmentManager" availability="mandatory" interface="io.subutai.core.env.api.EnvironmentManager" />
+  <reference id="environmentManager" availability="mandatory" interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory" interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
   <!-- *********************************************************************************** -->
@@ -17,7 +17,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="hipi-impl" interface="io.subutai.plugin.hipi.api.Hipi" />
-  <service ref="hipi-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="hipi-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
 </blueprint>

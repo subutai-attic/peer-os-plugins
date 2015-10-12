@@ -10,23 +10,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hipi.api.HipiConfig;
 import io.subutai.plugin.hipi.impl.HipiImpl;
-import io.subutai.plugin.hipi.impl.handler.NodeOperationHandler;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -37,28 +37,36 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class NodeOperationHandlerTest
 {
-    @Mock CommandResult commandResult;
-    @Mock ContainerHost containerHost;
-    @Mock HipiImpl hipiImpl;
-    @Mock HipiConfig hipiConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    HipiImpl hipiImpl;
+    @Mock
+    HipiConfig hipiConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
     private NodeOperationHandler nodeOperationHandler;
     private NodeOperationHandler nodeOperationHandler2;
-    private UUID uuid;
+    private String id;
 
 
     @Before
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( hipiImpl.getCluster( "testClusterName" ) ).thenReturn( hipiConfig );
         when( hipiImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         nodeOperationHandler =
                 new NodeOperationHandler( hipiImpl, "testClusterName", "testHostName", NodeOperationType.INCLUDE );
@@ -80,7 +88,7 @@ public class NodeOperationHandlerTest
     public void testRunContainerNotFound() throws Exception
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenThrow( ContainerHostNotFoundException.class );
 
         nodeOperationHandler.run();
@@ -91,7 +99,7 @@ public class NodeOperationHandlerTest
     public void testRunContainerHostNotConnected() throws Exception
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( false );
 
@@ -103,7 +111,7 @@ public class NodeOperationHandlerTest
     public void testRunAlreadyHasHipi() throws Exception
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
@@ -119,7 +127,7 @@ public class NodeOperationHandlerTest
     public void testRunCommandResultNotCompleted() throws Exception
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
@@ -133,7 +141,7 @@ public class NodeOperationHandlerTest
     public void testRunNodeTypeInclude() throws Exception
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
@@ -149,11 +157,11 @@ public class NodeOperationHandlerTest
     public void testRunExcludeLastSlave() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>();
-        mySet.add( uuid );
+        Set<String> mySet = new HashSet<>();
+        mySet.add( id );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
 
         nodeOperationHandler2.run();
@@ -164,12 +172,12 @@ public class NodeOperationHandlerTest
     public void testRunExcludeNotBelongToCluster() throws EnvironmentNotFoundException, ContainerHostNotFoundException
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>();
-        mySet.add( uuid );
-        mySet.add( new UUID( 5, 5 ) );
+        Set<String> mySet = new HashSet<>();
+        mySet.add( id );
+        mySet.add( UUID.randomUUID().toString() );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
 
         nodeOperationHandler2.run();
@@ -181,14 +189,14 @@ public class NodeOperationHandlerTest
             throws EnvironmentNotFoundException, ContainerHostNotFoundException, CommandException
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>();
-        mySet.add( uuid );
-        mySet.add( new UUID( 5, 5 ) );
+        Set<String> mySet = new HashSet<>();
+        mySet.add( id );
+        mySet.add( UUID.randomUUID().toString() );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
         nodeOperationHandler2.run();
@@ -200,14 +208,14 @@ public class NodeOperationHandlerTest
             throws EnvironmentNotFoundException, ContainerHostNotFoundException, CommandException, ClusterException
     {
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
-        Set<UUID> mySet = new HashSet<>();
-        mySet.add( uuid );
-        mySet.add( new UUID( 5, 5 ) );
+        Set<String> mySet = new HashSet<>();
+        mySet.add( id );
+        mySet.add( UUID.randomUUID().toString() );
         when( hipiConfig.getNodes() ).thenReturn( mySet );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
         when( containerHost.getHostname() ).thenReturn( "HostName" );

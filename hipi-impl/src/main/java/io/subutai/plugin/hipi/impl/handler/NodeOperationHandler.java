@@ -48,7 +48,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HipiImpl, Hip
             Environment environment;
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {

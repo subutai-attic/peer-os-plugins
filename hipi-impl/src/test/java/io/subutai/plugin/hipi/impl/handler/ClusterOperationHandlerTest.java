@@ -10,23 +10,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hipi.api.HipiConfig;
 import io.subutai.plugin.hipi.impl.HipiImpl;
-import io.subutai.plugin.hipi.impl.handler.ClusterOperationHandler;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -39,34 +39,46 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class ClusterOperationHandlerTest
 {
-    @Mock CommandResult commandResult;
-    @Mock ContainerHost containerHost;
-    @Mock HipiImpl hipiImpl;
-    @Mock HipiConfig hipiConfig;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ClusterSetupStrategy clusterSetupStrategy;
-    @Mock PluginDAO pluginDAO;
-    @Mock Topology topology;
-    @Mock CommandUtil commandUtil;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    HipiImpl hipiImpl;
+    @Mock
+    HipiConfig hipiConfig;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    Topology topology;
+    @Mock
+    CommandUtil commandUtil;
     private ClusterOperationHandler clusterOperationHandler;
     private ClusterOperationHandler clusterOperationHandler2;
     private ClusterOperationHandler clusterOperationHandler3;
     private ClusterOperationHandler clusterOperationHandler4;
     private ClusterOperationHandler clusterOperationHandler5;
-    private UUID uuid;
+    private String id;
 
 
     @Before
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         when( hipiImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         clusterOperationHandler = new ClusterOperationHandler( hipiImpl, hipiConfig, ClusterOperationType.INSTALL );
         clusterOperationHandler2 = new ClusterOperationHandler( hipiImpl, hipiConfig, ClusterOperationType.UNINSTALL );
@@ -125,10 +137,10 @@ public class ClusterOperationHandlerTest
     {
         when( hipiImpl.getCluster( anyString() ) ).thenReturn( hipiConfig );
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        Set<ContainerHost> mySet = new HashSet<>();
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
 
         clusterOperationHandler2.run();
     }
@@ -139,10 +151,10 @@ public class ClusterOperationHandlerTest
     {
         when( hipiImpl.getCluster( anyString() ) ).thenReturn( hipiConfig );
         when( hipiImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        Set<ContainerHost> mySet = new HashSet<>();
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) )
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) )
                 .thenThrow( ContainerHostNotFoundException.class );
 
         clusterOperationHandler2.run();
