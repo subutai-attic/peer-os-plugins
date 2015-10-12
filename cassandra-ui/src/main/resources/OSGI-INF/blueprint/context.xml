@@ -6,7 +6,7 @@
   <reference id="cassandra" availability="mandatory" interface="io.subutai.plugin.cassandra.api.Cassandra" />
   <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.cassandra.ui.CassandraPortalModule"
         init-method="init" destroy-method="destroy">
