@@ -3,13 +3,18 @@ package io.subutai.plugin.lucene.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -18,13 +23,8 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
-import io.subutai.plugin.lucene.impl.LuceneImpl;
 import io.subutai.plugin.lucene.impl.Commands;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.lucene.impl.LuceneImpl;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl, LuceneConfig>
@@ -70,7 +70,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
             Environment env;
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -102,10 +102,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Lucene..." );
 
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
-            nodes = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
+            nodes = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
                            .getContainerHostsByIds( config.getNodes() );
         }
         catch ( ContainerHostNotFoundException e )
@@ -118,7 +118,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<LuceneImpl
             trackerOperation.addLogFailed( String.format( "Environment not found: %s", e ) );
             return;
         }
-        for ( ContainerHost containerHost : nodes )
+        for ( EnvironmentContainerHost containerHost : nodes )
         {
             CommandResult result;
             try

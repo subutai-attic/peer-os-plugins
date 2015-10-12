@@ -1,7 +1,6 @@
 package io.subutai.plugin.lucene.rest;
 
 
-
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +18,6 @@ import io.subutai.plugin.lucene.api.Lucene;
 import io.subutai.plugin.lucene.api.LuceneConfig;
 
 
-
 public class RestServiceImpl implements RestService
 {
 
@@ -29,8 +27,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
-
-    public RestServiceImpl ( final Lucene luceneManager )
+    public RestServiceImpl( final Lucene luceneManager )
     {
         this.luceneManager = luceneManager;
     }
@@ -52,6 +49,7 @@ public class RestServiceImpl implements RestService
         return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
+
     @Override
     public Response getCluster( final String clusterName )
     {
@@ -65,7 +63,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String nodeIds )
     {
-        Preconditions.checkNotNull(clusterName);
+        Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
         Preconditions.checkNotNull( nodeIds );
 
@@ -77,7 +75,7 @@ public class RestServiceImpl implements RestService
         for ( String node : arr )
         {
 
-            config.getNodes().add( UUID.fromString( node ) );
+            config.getNodes().add( node );
         }
 
         UUID uuid = luceneManager.installCluster( config );
@@ -91,7 +89,7 @@ public class RestServiceImpl implements RestService
     public Response uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( luceneManager.getCluster( clusterName ) == null )
+        if ( luceneManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -107,7 +105,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( luceneManager.getCluster( clusterName ) == null )
+        if ( luceneManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -123,30 +121,37 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( luceneManager.getCluster( clusterName ) == null )
+        if ( luceneManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = luceneManager.uninstallNode(clusterName, hostname);
+        UUID uuid = luceneManager.uninstallNode( clusterName, hostname );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
-    private Response createResponse( UUID uuid, OperationState state ){
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( LuceneConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -176,7 +181,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
+
+    public Tracker getTracker()
+    {
         return tracker;
     }
 
@@ -185,5 +192,4 @@ public class RestServiceImpl implements RestService
     {
         this.tracker = tracker;
     }
-
 }

@@ -8,7 +8,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -50,7 +50,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -58,10 +58,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
             return;
         }
         Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
+        EnvironmentContainerHost host = null;
         while ( iterator.hasNext() )
         {
-            host = ( ContainerHost ) iterator.next();
+            host = ( EnvironmentContainerHost ) iterator.next();
             if ( host.getHostname().equals( hostname ) )
             {
                 break;
@@ -87,7 +87,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
     }
 
 
-    private CommandResult installProductOnNode( ContainerHost host )
+    private CommandResult installProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try
@@ -116,7 +116,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
     }
 
 
-    private CommandResult uninstallProductOnNode( ContainerHost host )
+    private CommandResult uninstallProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try

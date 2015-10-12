@@ -7,7 +7,7 @@
   <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="hadoop" availability="mandatory" interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.lucene.ui.LucenePortalModule"
         init-method="init" destroy-method="destroy">

@@ -10,23 +10,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
 import io.subutai.plugin.lucene.impl.LuceneImpl;
-import io.subutai.plugin.lucene.impl.handler.NodeOperationHandler;
 
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
@@ -40,10 +40,10 @@ public class NodeOperationHandlerTest
 {
     private NodeOperationHandler nodeOperationHandler;
     private NodeOperationHandler nodeOperationHandler2;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     LuceneImpl luceneImpl;
     @Mock
@@ -72,10 +72,10 @@ public class NodeOperationHandlerTest
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         when( luceneImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
 
         nodeOperationHandler =
@@ -103,7 +103,8 @@ public class NodeOperationHandlerTest
     public void testRunOperationTypeInstallNoEnvironment() throws Exception
     {
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
+                .thenThrow( EnvironmentNotFoundException.class );
 
         nodeOperationHandler.run();
 
@@ -116,7 +117,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeInstallCommandResultHasNotSucceeded() throws Exception
     {
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
 
@@ -132,7 +133,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testRunOperationTypeInstall() throws Exception
     {
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -141,29 +142,30 @@ public class NodeOperationHandlerTest
 
         // assertions
         verify( luceneImpl ).saveConfig( luceneConfig );
-        verify( trackerOperation ).addLogDone( LuceneConfig.PRODUCT_KEY + " is installed on node " + containerHost.getHostname() + " successfully." );
+        verify( trackerOperation ).addLogDone(
+                LuceneConfig.PRODUCT_KEY + " is installed on node " + containerHost.getHostname() + " successfully." );
     }
 
 
     @Test
     public void testRunOperationTypeUninstallCommandResultHasNotSucceeded() throws EnvironmentNotFoundException
     {
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
 
         nodeOperationHandler2.run();
 
         // assertions
-        verify( trackerOperation ).addLogFailed(
-                "Could not uninstall " + LuceneConfig.PRODUCT_KEY + " from node " + "testHostName" );
+        verify( trackerOperation )
+                .addLogFailed( "Could not uninstall " + LuceneConfig.PRODUCT_KEY + " from node " + "testHostName" );
     }
 
 
     @Test
     public void testRunOperationTypeUninstall() throws EnvironmentNotFoundException, ClusterException
     {
-        when( environmentManager.findEnvironment( any(UUID.class) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -171,9 +173,9 @@ public class NodeOperationHandlerTest
         nodeOperationHandler2.run();
 
         // assertions
-        verify( luceneImpl).saveConfig( luceneConfig );
-        verify( trackerOperation ).addLogDone( LuceneConfig.PRODUCT_KEY + " is uninstalled from node " + containerHost.getHostname()
-                + " successfully." );
+        verify( luceneImpl ).saveConfig( luceneConfig );
+        verify( trackerOperation ).addLogDone(
+                LuceneConfig.PRODUCT_KEY + " is uninstalled from node " + containerHost.getHostname()
+                        + " successfully." );
     }
-
 }

@@ -13,19 +13,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
-import io.subutai.plugin.lucene.impl.LuceneImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -38,9 +38,9 @@ import static org.mockito.Mockito.when;
 public class LuceneImplTest
 {
     private LuceneImpl luceneImpl;
-    private UUID uuid;
+    private String id;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     LuceneConfig luceneConfig;
     @Mock
@@ -68,9 +68,9 @@ public class LuceneImplTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( LuceneConfig.PRODUCT_KEY, "test", LuceneConfig.class ) ).thenReturn( luceneConfig );
 
         luceneImpl = new LuceneImpl( tracker, environmentManager, hadoop, pluginDAO );
@@ -144,22 +144,20 @@ public class LuceneImplTest
     public void testInstallCluster() throws Exception
     {
         when( luceneConfig.getClusterName() ).thenReturn( "test" );
-        UUID id = luceneImpl.installCluster( luceneConfig );
+        luceneImpl.installCluster( luceneConfig );
 
         // assertions
         assertNotNull( luceneImpl.installCluster( luceneConfig ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        UUID id = luceneImpl.uninstallCluster( "test" );
+        luceneImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( luceneImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -193,22 +191,20 @@ public class LuceneImplTest
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = luceneImpl.addNode( "test", "test" );
+        luceneImpl.addNode( "test", "test" );
 
         // assertions
         assertNotNull( luceneImpl.addNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallNode() throws Exception
     {
-        UUID id = luceneImpl.uninstallNode( "test", "test" );
+        luceneImpl.uninstallNode( "test", "test" );
 
         // assertions
         assertNotNull( luceneImpl.uninstallNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -232,7 +228,7 @@ public class LuceneImplTest
     @Test
     public void testOnEnvironmentGrown() throws Exception
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         luceneImpl.onEnvironmentGrown( environment, mySet );
     }
@@ -245,14 +241,14 @@ public class LuceneImplTest
         myList.add( luceneConfig );
         when( pluginDAO.getInfo( LuceneConfig.PRODUCT_KEY, LuceneConfig.class ) ).thenReturn( myList );
         luceneImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( luceneConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( luceneConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
 
-        luceneImpl.onContainerDestroyed( environment, uuid );
+        luceneImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -263,11 +259,11 @@ public class LuceneImplTest
         myList.add( luceneConfig );
         when( pluginDAO.getInfo( LuceneConfig.PRODUCT_KEY, LuceneConfig.class ) ).thenReturn( myList );
         luceneImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( luceneConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( luceneConfig.getEnvironmentId() ).thenReturn( id );
         when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
-        luceneImpl.onEnvironmentDestroyed( uuid );
+        luceneImpl.onEnvironmentDestroyed( id );
     }
 
 

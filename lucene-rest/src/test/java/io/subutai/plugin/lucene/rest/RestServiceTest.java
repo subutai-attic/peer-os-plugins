@@ -12,12 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.lucene.api.Lucene;
 import io.subutai.plugin.lucene.api.LuceneConfig;
-import io.subutai.plugin.lucene.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -37,16 +37,16 @@ public class RestServiceTest
     @Mock
     TrackerOperationView trackerOperationView;
 
+
     @Before
     public void setUp() throws Exception
     {
         luceneConfig = new LuceneConfig();
         restService = new RestServiceImpl( lucene );
         restService.setTracker( tracker );
-        when( lucene.getCluster( anyString() )).thenReturn( luceneConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( lucene.getCluster( anyString() ) ).thenReturn( luceneConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
-
     }
 
 

@@ -12,22 +12,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
-import io.subutai.plugin.lucene.impl.Commands;
-import io.subutai.plugin.lucene.impl.LuceneImpl;
-import io.subutai.plugin.lucene.impl.OverHadoopSetupStrategy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -42,12 +40,12 @@ import static org.mockito.Mockito.when;
 public class OverHadoopSetupStrategyTest
 {
     private OverHadoopSetupStrategy overHadoopSetupStrategy;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
-    private Set<UUID> myUUID;
-    private List<UUID> myList;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
+    private Set<String> myUUID;
+    private List<String> myList;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     LuceneImpl luceneImpl;
     @Mock
@@ -75,22 +73,22 @@ public class OverHadoopSetupStrategyTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        myUUID.add( id );
 
         mySet = new HashSet<>();
         mySet.add( containerHost );
 
         myList = new ArrayList<>();
-        myList.add( uuid );
+        myList.add( id );
 
         overHadoopSetupStrategy =
                 new OverHadoopSetupStrategy( luceneImpl, luceneConfig, trackerOperation, environment );
 
         when( luceneImpl.getHadoopManager() ).thenReturn( hadoop );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( environment.getContainerHostById( any(UUID.class) )).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
     }
 
 
@@ -118,7 +116,7 @@ public class OverHadoopSetupStrategyTest
     {
         when( luceneConfig.getHadoopClusterName() ).thenReturn( "testHadoopCluster" );
         when( luceneConfig.getNodes() ).thenReturn( myUUID );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
 
         overHadoopSetupStrategy.setup();
 
@@ -215,7 +213,7 @@ public class OverHadoopSetupStrategyTest
     }
 
 
-    @Test(expected = ClusterSetupException.class)
+    @Test( expected = ClusterSetupException.class )
     public void testProcessResultHasNotSucceeded() throws Exception
     {
         when( commandResult.hasSucceeded() ).thenReturn( false );

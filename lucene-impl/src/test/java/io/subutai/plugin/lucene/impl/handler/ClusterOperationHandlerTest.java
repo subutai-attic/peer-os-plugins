@@ -10,23 +10,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
 import io.subutai.plugin.lucene.impl.LuceneImpl;
-import io.subutai.plugin.lucene.impl.handler.ClusterOperationHandler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -43,10 +43,10 @@ public class ClusterOperationHandlerTest
 {
     private ClusterOperationHandler clusterOperationHandler;
     private ClusterOperationHandler clusterOperationHandler2;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     LuceneImpl luceneImpl;
     @Mock
@@ -75,10 +75,10 @@ public class ClusterOperationHandlerTest
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         when( luceneImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         clusterOperationHandler = new ClusterOperationHandler( luceneImpl, luceneConfig, ClusterOperationType.INSTALL );
         clusterOperationHandler2 =
@@ -112,7 +112,8 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeInstallNoEnvironment() throws Exception
     {
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
+                .thenThrow( EnvironmentNotFoundException.class );
 
         clusterOperationHandler.run();
     }
@@ -122,7 +123,7 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeInstall() throws Exception
     {
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( luceneImpl.getClusterSetupStrategy( environment, luceneConfig, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
 
@@ -143,7 +144,8 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeDestroyNoEnvironment() throws Exception
     {
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
+                .thenThrow( EnvironmentNotFoundException.class );
 
         clusterOperationHandler2.run();
 
@@ -157,7 +159,7 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeDestroyFailedObtainingContainers() throws Exception
     {
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) )
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
                 .thenThrow( ContainerHostNotFoundException.class );
 
         clusterOperationHandler2.run();
@@ -172,8 +174,8 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeDestroyCommandResultHasNotSucceeded() throws Exception
     {
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
 
         clusterOperationHandler2.run();
 
@@ -187,8 +189,8 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeDestroy() throws Exception
     {
         when( luceneImpl.getCluster( anyString() ) ).thenReturn( luceneConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
         when( commandResult.hasSucceeded() ).thenReturn( true );
         when( luceneImpl.getPluginDao() ).thenReturn( pluginDAO );
 

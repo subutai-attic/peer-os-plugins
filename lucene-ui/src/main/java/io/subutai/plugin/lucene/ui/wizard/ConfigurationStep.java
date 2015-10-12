@@ -5,17 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.lucene.api.LuceneConfig;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -32,6 +21,16 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.lucene.api.LuceneConfig;
 
 
 public class ConfigurationStep extends Panel
@@ -117,7 +116,7 @@ public class ConfigurationStep extends Panel
         } );
         nameTxt.setValue( wizard.getConfig().getClusterName() );
 
-        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
+        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<EnvironmentContainerHost>() );
 
         ComboBox hadoopClusters = new ComboBox( "Hadoop cluster" );
         hadoopClusters.setId( "LuceneHadoopClusters" );
@@ -134,13 +133,13 @@ public class ConfigurationStep extends Panel
                 {
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        Environment environment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
-                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ))
+                        Environment environment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
-                            hadoopNodes.add( environment.getContainerHostById( nodeId ));
+                            hadoopNodes.add( environment.getContainerHostById( nodeId ) );
                         }
                     }
                     catch ( ContainerHostNotFoundException e )
@@ -154,7 +153,8 @@ public class ConfigurationStep extends Panel
                         return;
                     }
                     select.setValue( null );
-                    select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+                    select.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
                 }
             }
         } );
@@ -204,9 +204,10 @@ public class ConfigurationStep extends Panel
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -222,17 +223,17 @@ public class ConfigurationStep extends Panel
 
 
     //exclude hadoop nodes that are already in another lucene cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes)
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> luceneNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
-        for( LuceneConfig flumeConfig : wizard.getLucene().getClusters() )
+        List<String> luceneNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
+        for ( LuceneConfig flumeConfig : wizard.getLucene().getClusters() )
         {
             luceneNodes.addAll( flumeConfig.getNodes() );
         }
-        for( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
-            if( !luceneNodes.contains( node ))
+            if ( !luceneNodes.contains( node ) )
             {
                 filteredNodes.add( node );
             }

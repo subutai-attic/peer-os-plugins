@@ -2,14 +2,16 @@ package io.subutai.plugin.lucene.impl;
 
 
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -18,9 +20,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.lucene.api.LuceneConfig;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 
 class OverHadoopSetupStrategy extends LuceneSetupStrategy
@@ -61,10 +60,10 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
                             config.getClusterName() ) );
         }
         //check nodes are connected
-        Set<ContainerHost> nodes = Sets.newHashSet();
+        Set<EnvironmentContainerHost> nodes = Sets.newHashSet();
         try
         {
-            for( UUID nodeId : config.getNodes() )
+            for ( String nodeId : config.getNodes() )
             {
                 nodes.add( environment.getContainerHostById( nodeId ) );
             }
@@ -73,7 +72,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         {
             throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
         }
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             if ( !host.isConnected() )
             {
@@ -96,7 +95,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
 
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -131,10 +130,10 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        Set<ContainerHost> nodes = Sets.newHashSet();
+        Set<EnvironmentContainerHost> nodes = Sets.newHashSet();
         try
         {
-            for( UUID nodeId : config.getNodes() )
+            for ( String nodeId : config.getNodes() )
             {
                 nodes.add( environment.getContainerHostById( nodeId ) );
             }
@@ -143,11 +142,12 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         {
             throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
         }
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
-                CommandResult result = node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
+                CommandResult result =
+                        node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
                 checkInstalled( node, result );
             }
             catch ( CommandException e )
@@ -169,7 +169,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
     }
 
 
-    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
 
         if ( !result.hasSucceeded() )
@@ -179,21 +179,22 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         }
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
         {
-            statusResult = host.execute( new RequestBuilder( Commands.checkCommand) );
+            statusResult = host.execute( new RequestBuilder( Commands.checkCommand ) );
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( LuceneConfig.PRODUCT_PACKAGE ) ) )
         {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

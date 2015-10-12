@@ -5,18 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.lucene.api.Lucene;
-import io.subutai.plugin.lucene.api.LuceneConfig;
-import io.subutai.server.ui.component.ProgressWindow;
-
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -25,6 +13,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.lucene.api.Lucene;
+import io.subutai.plugin.lucene.api.LuceneConfig;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends Panel
@@ -58,10 +58,10 @@ public class VerificationStep extends Panel
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
-            nodes = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() )
+            nodes = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() )
                                       .getContainerHostsByIds( wizard.getConfig().getNodes() );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -70,7 +70,7 @@ public class VerificationStep extends Panel
             return;
         }
 
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
         }

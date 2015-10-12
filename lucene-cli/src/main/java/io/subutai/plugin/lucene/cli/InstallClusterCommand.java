@@ -5,18 +5,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.lucene.api.Lucene;
-import io.subutai.plugin.lucene.api.LuceneConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.lucene.api.Lucene;
+import io.subutai.plugin.lucene.api.LuceneConfig;
 
 
 /**
@@ -52,10 +53,10 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-        Set<UUID> nodesSet = new HashSet<>();
+        Set<String> nodesSet = new HashSet<>();
         for ( String uuid : nodes )
         {
-            nodesSet.add( UUID.fromString( uuid ) );
+            nodesSet.add( uuid );
         }
         config.setNodes( nodesSet );
 
