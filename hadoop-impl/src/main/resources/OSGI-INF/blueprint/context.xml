@@ -6,7 +6,7 @@
   <reference id="networkManager"
              interface="io.subutai.core.network.api.NetworkManager" />
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="monitor" availability="mandatory"
@@ -30,7 +30,7 @@
 
   <service ref="hadoop-impl" interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
-  <service ref="hadoop-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="hadoop-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
 
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
 
