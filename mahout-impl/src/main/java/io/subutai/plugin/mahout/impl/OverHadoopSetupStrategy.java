@@ -3,13 +3,15 @@ package io.subutai.plugin.mahout.impl;
 
 import java.util.Set;
 
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -17,8 +19,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-
-import com.google.common.base.Strings;
 
 
 class OverHadoopSetupStrategy extends MahoutSetupStrategy
@@ -62,7 +62,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -71,7 +71,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
 
         //check nodes are connected
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -80,7 +80,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
         {
             throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
         }
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             if ( !host.isConnected() )
             {
@@ -91,7 +91,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -126,7 +126,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -135,7 +135,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
         {
             throw new ClusterSetupException( String.format( "Failed to obtain environment containers: %s", e ) );
         }
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -154,7 +154,7 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
     }
 
 
-    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
@@ -164,12 +164,12 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) ) )
         {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

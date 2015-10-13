@@ -3,12 +3,12 @@ package io.subutai.plugin.mahout.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.mahout.api.Mahout;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.mahout.api.Mahout;
 
 
 /**
@@ -32,27 +32,15 @@ public class AddNodeCommand extends OsgiCommandSupport
     {
         System.out.println( "Adding " + node + " node..." );
         UUID uuid = mahoutManager.addNode( clusterName, node );
-        System.out.println(
-                "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        System.out
+                .println( "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Mahout getMahoutManager()
-    {
-        return mahoutManager;
     }
 
 

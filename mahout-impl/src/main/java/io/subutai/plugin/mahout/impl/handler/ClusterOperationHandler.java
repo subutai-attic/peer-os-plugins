@@ -3,12 +3,18 @@ package io.subutai.plugin.mahout.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -17,11 +23,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 import io.subutai.plugin.mahout.impl.MahoutImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl, MahoutClusterConfig>
@@ -98,7 +99,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -106,7 +107,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
             return;
         }
 
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -117,7 +118,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MahoutImpl
             return;
         }
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             CommandResult result;
             try

@@ -12,12 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mahout.api.Mahout;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-import io.subutai.plugin.mahout.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,11 +31,7 @@ public class RestServiceImplTest
 {
     private RestServiceImpl restService;
     private MahoutClusterConfig mahoutClusterConfig;
-    private String config2 =
-            "{\"clusterName\": \"my-accumulo-cluster\",\"instanceName\": \"instance-name\",\"password\": " +
-                    "\"password\",\"masterNode\": \"master-node-hostname\",\"gcNode\": \"gc-node-hostname\"," +
-                    "\"monitor\": \"monitor-node-hostname\",\"tracers\": [\"lxc-2\",\"lxc-1\"],\"slaves\": " +
-                    "[\"lxc-3\",\"lxc-4\"]}";
+
 
     @Mock
     Mahout mahout;
@@ -43,18 +39,18 @@ public class RestServiceImplTest
     Tracker tracker;
     @Mock
     TrackerOperationView trackerOperationView;
-    
+
+
     @Before
     public void setUp() throws Exception
     {
-        restService = new RestServiceImpl(mahout);
+        restService = new RestServiceImpl( mahout );
         mahoutClusterConfig = new MahoutClusterConfig();
         restService.setMahoutManager( mahout );
         restService.setTracker( tracker );
         when( mahout.getCluster( anyString() ) ).thenReturn( mahoutClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
-
     }
 
 
@@ -66,9 +62,8 @@ public class RestServiceImplTest
         // assertions
         assertNotNull( restService.getMahoutManager() );
         assertEquals( mahout, restService.getMahoutManager() );
-
     }
-    
+
 
     @Test
     public void testListClusters() throws Exception
@@ -81,7 +76,6 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 
@@ -94,7 +88,6 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 
@@ -111,9 +104,7 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
-
 
 
     @Test
@@ -123,7 +114,6 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 
@@ -134,7 +124,6 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 
 
@@ -145,6 +134,5 @@ public class RestServiceImplTest
 
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
-
     }
 }

@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
@@ -34,7 +34,7 @@ public class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Mahout mahout, final ExecutorService executorService, final Tracker tracker,
-                          final MahoutClusterConfig config, Set<ContainerHost> nodes )
+                          final MahoutClusterConfig config, Set<EnvironmentContainerHost> nodes )
     {
         super( "Add New Node" );
         setModal( true );
@@ -61,7 +61,7 @@ public class AddNodeWindow extends Window
         hadoopNodes.setNullSelectionAllowed( false );
         hadoopNodes.setRequired( true );
         hadoopNodes.setWidth( 200, Unit.PIXELS );
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             hadoopNodes.addItem( node );
             hadoopNodes.setItemCaption( node, node.getHostname() );
@@ -84,7 +84,7 @@ public class AddNodeWindow extends Window
             {
                 addNodeBtn.setEnabled( false );
                 showProgress();
-                ContainerHost host = ( ContainerHost ) hadoopNodes.getValue();
+                EnvironmentContainerHost host = ( EnvironmentContainerHost ) hadoopNodes.getValue();
                 final UUID trackID = mahout.addNode( config.getClusterName(), host.getHostname() );
 
                 ok.setEnabled( false );

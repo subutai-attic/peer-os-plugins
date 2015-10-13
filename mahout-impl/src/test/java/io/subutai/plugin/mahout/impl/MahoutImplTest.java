@@ -17,20 +17,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-import io.subutai.plugin.mahout.impl.Commands;
-import io.subutai.plugin.mahout.impl.MahoutImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,7 +56,7 @@ public class MahoutImplTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -273,7 +272,7 @@ public class MahoutImplTest
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = mahoutImpl.checkNode( "test", "test" );
+        mahoutImpl.checkNode( "test", "test" );
     }
 
 

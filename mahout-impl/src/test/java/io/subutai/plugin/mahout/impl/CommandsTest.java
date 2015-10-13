@@ -5,11 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-import io.subutai.plugin.mahout.impl.Commands;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

@@ -3,11 +3,11 @@ package io.subutai.plugin.mahout.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.mahout.api.Mahout;
-import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.mahout.api.Mahout;
+import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 
 
 /**

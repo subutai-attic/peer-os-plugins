@@ -3,20 +3,19 @@ package io.subutai.plugin.mahout.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mahout.api.Mahout;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 /**
- * sample command :
- *      mahout:uninstall-cluster test \ {cluster name}
+ * sample command : mahout:uninstall-cluster test \ {cluster name}
  */
 @Command( scope = "mahout", name = "uninstall-cluster", description = "Command to uninstall Mahout cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport

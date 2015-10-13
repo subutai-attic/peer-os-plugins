@@ -7,15 +7,15 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mahout.api.Mahout;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 
 public class RestServiceImpl implements RestService
@@ -24,16 +24,12 @@ public class RestServiceImpl implements RestService
     private Mahout mahoutManager;
     private Tracker tracker;
 
-    public RestServiceImpl( final Mahout mahoutManager)
+
+    public RestServiceImpl( final Mahout mahoutManager )
     {
         Preconditions.checkNotNull( mahoutManager );
 
         this.mahoutManager = mahoutManager;
-    }
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 
@@ -86,7 +82,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( String clusterName,  String hadoopClusterName,  String nodes )
+    public Response installCluster( String clusterName, String hadoopClusterName, String nodes )
     {
         MahoutClusterConfig mahoutConfig = new MahoutClusterConfig();
         mahoutConfig.setClusterName( clusterName );
@@ -94,7 +90,7 @@ public class RestServiceImpl implements RestService
         String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
         for ( String node : arr )
         {
-            mahoutConfig.getNodes().add( UUID.fromString( node ) );
+            mahoutConfig.getNodes().add( node );
         }
 
         UUID uuid = mahoutManager.installCluster( mahoutConfig );
@@ -167,6 +163,7 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+
     private OperationState waitUntilOperationFinish( UUID uuid )
     {
         OperationState state = null;
@@ -214,11 +211,5 @@ public class RestServiceImpl implements RestService
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
-    }
-
-
-    private String wrapUUID( UUID uuid )
-    {
-        return JsonUtil.toJson( "OPERATION_ID", uuid );
     }
 }

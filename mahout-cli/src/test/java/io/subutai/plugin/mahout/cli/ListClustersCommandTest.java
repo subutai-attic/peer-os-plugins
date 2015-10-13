@@ -9,9 +9,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.plugin.mahout.api.Mahout;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-import io.subutai.plugin.mahout.cli.ListClustersCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

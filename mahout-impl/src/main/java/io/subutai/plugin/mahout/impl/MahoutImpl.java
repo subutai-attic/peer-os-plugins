@@ -6,37 +6,36 @@
 package io.subutai.plugin.mahout.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.mahout.api.Mahout;
-import io.subutai.plugin.mahout.api.MahoutClusterConfig;
-import io.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.mahout.api.Mahout;
+import io.subutai.plugin.mahout.api.MahoutClusterConfig;
+import io.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
 
 
 public class MahoutImpl implements Mahout, EnvironmentEventListener
@@ -51,7 +50,8 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
     private Hadoop hadoopManager;
 
 
-    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO )
+    public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                       PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -240,16 +240,16 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         //not needed
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Mahout environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Mahout environment event: Container destroyed: %s", containerId ) );
         List<MahoutClusterConfig> clusters = getClusters();
         for ( MahoutClusterConfig clusterConfig : clusters )
         {
@@ -258,13 +258,13 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
                 LOG.info( String.format( "Mahout environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getNodes().contains( uuid ) )
+                if ( clusterConfig.getNodes().contains( containerId ) )
                 {
                     LOG.info( String.format( "Mahout environment event: Before: %s", clusterConfig ) );
 
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
                     {
-                        clusterConfig.getNodes().remove( uuid );
+                        clusterConfig.getNodes().remove( containerId );
                     }
                     try
                     {
@@ -283,14 +283,14 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
-        LOG.info( String.format( "Mahout environment event: Environment destroyed: %s", uuid ) );
+        LOG.info( String.format( "Mahout environment event: Environment destroyed: %s", envId ) );
 
         List<MahoutClusterConfig> clusters = getClusters();
         for ( MahoutClusterConfig clusterConfig : clusters )
         {
-            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
             {
                 LOG.info( String.format( "Mahout environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );

@@ -6,7 +6,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
@@ -47,14 +47,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Environment not found: %s", e ) );
             return;
         }
-        ContainerHost host;
+        EnvironmentContainerHost host;
         try
         {
             host = environment.getContainerHostByHostname( hostname );
@@ -78,7 +78,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
     }
 
 
-    private CommandResult installProductOnNode( ContainerHost host )
+    private CommandResult installProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try
@@ -107,7 +107,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
     }
 
 
-    private CommandResult uninstallProductOnNode( ContainerHost host )
+    private CommandResult uninstallProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try
