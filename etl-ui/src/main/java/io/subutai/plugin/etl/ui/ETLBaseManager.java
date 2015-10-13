@@ -8,14 +8,22 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.ProgressBar;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.etl.api.ETL;
 import io.subutai.plugin.etl.ui.transform.QueryType;
@@ -25,14 +33,6 @@ import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.pig.api.PigConfig;
 import io.subutai.plugin.sqoop.api.Sqoop;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
-
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.ProgressBar;
 
 
 public class ETLBaseManager
@@ -54,9 +54,9 @@ public class ETLBaseManager
     public HorizontalLayout hadoopComboWithProgressIcon;
     public ComboBox hadoopClustersCombo;
 
-    public ETLBaseManager(  ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop,
-                            Tracker tracker, EnvironmentManager environmentManager )
-            throws NamingException
+
+    public ETLBaseManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         this.executorService = executorService;
         this.etl = etl;
@@ -95,20 +95,26 @@ public class ETLBaseManager
     }
 
 
-    public void show( String message ){
+    public void show( String message )
+    {
         Notification.show( message );
     }
 
 
-    public Set<ContainerHost> filterHadoopNodes( Set<ContainerHost> containerHosts, QueryType type ){
-        Set<ContainerHost> resultList = new HashSet<>();
-        for( ContainerHost host : containerHosts ){
+    public Set<EnvironmentContainerHost> filterHadoopNodes( Set<EnvironmentContainerHost> containerHosts,
+                                                            QueryType type )
+    {
+        Set<EnvironmentContainerHost> resultList = new HashSet<>();
+        for ( EnvironmentContainerHost host : containerHosts )
+        {
             String command = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
             try
             {
                 CommandResult result = host.execute( new RequestBuilder( command ) );
-                if( result.hasSucceeded() ){
-                    if ( result.getStdOut().contains( type.name().toLowerCase() ) ){
+                if ( result.hasSucceeded() )
+                {
+                    if ( result.getStdOut().contains( type.name().toLowerCase() ) )
+                    {
                         resultList.add( host );
                     }
                 }
@@ -122,15 +128,19 @@ public class ETLBaseManager
     }
 
 
-    public Set<ContainerHost> filterSqoopInstalledNodes( Set<ContainerHost> containerHosts ){
-        Set<ContainerHost> resultList = new HashSet<>();
-        for( ContainerHost host : containerHosts ){
+    public Set<EnvironmentContainerHost> filterSqoopInstalledNodes( Set<EnvironmentContainerHost> containerHosts )
+    {
+        Set<EnvironmentContainerHost> resultList = new HashSet<>();
+        for ( EnvironmentContainerHost host : containerHosts )
+        {
             String command = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
             try
             {
                 CommandResult result = host.execute( new RequestBuilder( command ) );
-                if( result.hasSucceeded() ){
-                    if ( result.getStdOut().contains( SqoopConfig.PRODUCT_KEY.toLowerCase() ) ){
+                if ( result.hasSucceeded() )
+                {
+                    if ( result.getStdOut().contains( SqoopConfig.PRODUCT_KEY.toLowerCase() ) )
+                    {
                         resultList.add( host );
                     }
                 }
@@ -174,20 +184,21 @@ public class ETLBaseManager
     }
 
 
-    public SqoopConfig findSqoopConfigOfContainerHost( List<SqoopConfig> configs, ContainerHost host ){
+    public SqoopConfig findSqoopConfigOfContainerHost( List<SqoopConfig> configs, EnvironmentContainerHost host )
+    {
         for ( SqoopConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
                 {
@@ -199,20 +210,21 @@ public class ETLBaseManager
     }
 
 
-    public HiveConfig findHiveConfigOfContainerHost( List<HiveConfig> configs, ContainerHost host ){
+    public HiveConfig findHiveConfigOfContainerHost( List<HiveConfig> configs, EnvironmentContainerHost host )
+    {
         for ( HiveConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
                 {
@@ -224,20 +236,21 @@ public class ETLBaseManager
     }
 
 
-    public PigConfig findPigConfigOfContainerHost( List<PigConfig> configs, ContainerHost host ){
+    public PigConfig findPigConfigOfContainerHost( List<PigConfig> configs, EnvironmentContainerHost host )
+    {
         for ( PigConfig config : configs )
         {
             HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
-            for ( ContainerHost containerHost : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
                 if ( containerHost.getId().equals( host.getId() ) )
                 {

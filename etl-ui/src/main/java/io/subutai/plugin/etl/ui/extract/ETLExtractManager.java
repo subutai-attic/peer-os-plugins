@@ -7,11 +7,16 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.google.common.collect.Sets;
+import com.vaadin.data.Property;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.UI;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.etl.api.ETL;
 import io.subutai.plugin.etl.ui.ETLBaseManager;
@@ -21,20 +26,14 @@ import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.sqoop.api.Sqoop;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 
-import com.google.common.collect.Sets;
-import com.vaadin.data.Property;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.UI;
-
 
 public class ETLExtractManager extends ETLBaseManager
 {
     private final ImportPanel importPanel;
 
-    public ETLExtractManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop,
-                              final Sqoop sqoop, Tracker tracker,
-                              final EnvironmentManager environmentManager )
-            throws NamingException
+
+    public ETLExtractManager( final ExecutorService executorService, ETL etl, final Hadoop hadoop, final Sqoop sqoop,
+                              Tracker tracker, final EnvironmentManager environmentManager ) throws NamingException
     {
 
         super( executorService, etl, hadoop, sqoop, tracker, environmentManager );
@@ -80,20 +79,19 @@ public class ETLExtractManager extends ETLBaseManager
                             Environment hadoopEnvironment = null;
                             try
                             {
-                                hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                                hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
                                 e.printStackTrace();
                             }
-                            Set<ContainerHost> hadoopNodes = null;
+                            Set<EnvironmentContainerHost> hadoopNodes = null;
                             if ( hadoopEnvironment != null )
                             {
                                 try
                                 {
-                                    hadoopNodes =
-                                            hadoopEnvironment.getContainerHostsByIds( Sets
-                                                    .newHashSet( hadoopInfo.getAllNodes() ) );
+                                    hadoopNodes = hadoopEnvironment
+                                            .getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
                                 }
                                 catch ( ContainerHostNotFoundException e )
                                 {
@@ -102,26 +100,32 @@ public class ETLExtractManager extends ETLBaseManager
                             }
 
 
-                            final Set<ContainerHost> finalHadoopNodes = hadoopNodes;
-                            UI.getCurrent().access(new Runnable() {
+                            final Set<EnvironmentContainerHost> finalHadoopNodes = hadoopNodes;
+                            UI.getCurrent().access( new Runnable()
+                            {
                                 @Override
-                                public void run() {
+                                public void run()
+                                {
 
-                                    Set<ContainerHost> filteredNodes = filterSqoopInstalledNodes( finalHadoopNodes );
+                                    Set<EnvironmentContainerHost> filteredNodes =
+                                            filterSqoopInstalledNodes( finalHadoopNodes );
 
-                                    if ( filteredNodes.isEmpty() ){
+                                    if ( filteredNodes.isEmpty() )
+                                    {
                                         show( "No node has subutai Sqoop package installed" );
                                     }
-                                    else {
-                                        for ( ContainerHost hadoopNode : filteredNodes )
+                                    else
+                                    {
+                                        for ( EnvironmentContainerHost hadoopNode : filteredNodes )
                                         {
                                             sqoopSelection.addItem( hadoopNode );
                                             sqoopSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
                                         }
-                                    };
+                                    }
+                                    ;
                                     disableProgressBar();
                                 }
-                            });
+                            } );
                         }
                     } );
                 }
@@ -135,7 +139,8 @@ public class ETLExtractManager extends ETLBaseManager
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
+                    EnvironmentContainerHost containerHost =
+                            ( EnvironmentContainerHost ) event.getProperty().getValue();
                     importPanel.setHost( containerHost );
                     SqoopConfig config = findSqoopConfigOfContainerHost( sqoop.getClusters(), containerHost );
                     importPanel.setSqoopClusterName( config.getClusterName() );

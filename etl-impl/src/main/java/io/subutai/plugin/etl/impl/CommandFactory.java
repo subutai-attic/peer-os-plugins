@@ -28,10 +28,8 @@ public class CommandFactory
                 break;
             case INSTALL:
             case UNINSTALL:
-                StringBuilder sb = new StringBuilder( "apt-get --force-yes --assume-yes " );
-                sb.append( type == NodeOperationType.INSTALL ? "install" : "purge" ).append( " " );
-                sb.append( PACKAGE_NAME );
-                s = sb.toString();
+                s = "apt-get --force-yes --assume-yes " + ( type == NodeOperationType.INSTALL ? "install" : "purge" )
+                        + " " + PACKAGE_NAME;
                 break;
             case IMPORT:
                 if ( settings instanceof ImportSetting )

@@ -7,9 +7,11 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.etl.api.ETL;
 import io.subutai.plugin.etl.api.ETLConfig;
@@ -19,8 +21,6 @@ import io.subutai.plugin.pig.api.Pig;
 import io.subutai.plugin.sqoop.api.Sqoop;
 import io.subutai.server.ui.api.PortalModule;
 
-import com.vaadin.ui.Component;
-
 
 public class ETLPortalModule implements PortalModule
 {
@@ -28,7 +28,7 @@ public class ETLPortalModule implements PortalModule
     protected static final Logger LOG = Logger.getLogger( ETLPortalModule.class.getName() );
     private ExecutorService executor;
 
-    /** initialized by context.xml  */
+    /** initialized by context.xml */
     private final ETL etl;
     private final Tracker tracker;
     private final EnvironmentManager environmentManager;
@@ -38,8 +38,8 @@ public class ETLPortalModule implements PortalModule
     private Pig pig;
 
 
-    public ETLPortalModule( ETL etl, Hadoop hadoop, Sqoop sqoop,
-                            Hive hive, Pig pig, Tracker tracker, EnvironmentManager environmentManager )
+    public ETLPortalModule( ETL etl, Hadoop hadoop, Sqoop sqoop, Hive hive, Pig pig, Tracker tracker,
+                            EnvironmentManager environmentManager )
     {
         this.etl = etl;
         this.hadoop = hadoop;

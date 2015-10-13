@@ -7,11 +7,18 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.google.common.collect.Sets;
+import com.vaadin.data.Property;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.etl.api.ETL;
 import io.subutai.plugin.etl.ui.ETLBaseManager;
@@ -24,13 +31,6 @@ import io.subutai.plugin.pig.api.Pig;
 import io.subutai.plugin.pig.api.PigConfig;
 import io.subutai.plugin.sqoop.api.Sqoop;
 
-import com.google.common.collect.Sets;
-import com.vaadin.data.Property;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-
 
 public class ETLTransformManager extends ETLBaseManager
 {
@@ -39,9 +39,9 @@ public class ETLTransformManager extends ETLBaseManager
     private Pig pig;
     private QueryType queryType;
 
+
     public ETLTransformManager( ExecutorService executorService, ETL etl, Hadoop hadoop, Sqoop sqoop, Tracker tracker,
-                                Hive hive, Pig pig, EnvironmentManager environmentManager )
-            throws NamingException
+                                Hive hive, Pig pig, EnvironmentManager environmentManager ) throws NamingException
     {
         super( executorService, etl, hadoop, sqoop, tracker, environmentManager );
         this.hive = hive;
@@ -51,10 +51,11 @@ public class ETLTransformManager extends ETLBaseManager
     }
 
 
-    public void init( final GridLayout gridLayout, QueryType type ){
+    public void init( final GridLayout gridLayout, QueryType type )
+    {
 
         gridLayout.removeAllComponents();
-        queryType  = type;
+        queryType = type;
 
         contentRoot.addComponent( hadoopComboWithProgressIcon, 0, 1 );
 
@@ -76,18 +77,19 @@ public class ETLTransformManager extends ETLBaseManager
 
         final VerticalLayout tab1 = new VerticalLayout();
         tab1.setCaption( QueryType.HIVE.name() );
-        tabsheet.addTab(tab1);
+        tabsheet.addTab( tab1 );
 
         final VerticalLayout tab2 = new VerticalLayout();
         tab2.setCaption( QueryType.PIG.name() );
-        tabsheet.addTab(tab2);
+        tabsheet.addTab( tab2 );
 
         gridLayout.addComponent( tabsheet, 1, 0, 19, 0 );
 
         queryPanel = new QueryPanel( this );
         gridLayout.addComponent( queryPanel, 1, 1, 19, 19 );
 
-        if ( type == null ){
+        if ( type == null )
+        {
             type = QueryType.HIVE;
         }
 
@@ -103,7 +105,8 @@ public class ETLTransformManager extends ETLBaseManager
         pigSelection.setRequired( true );
         pigSelection.setNullSelectionAllowed( false );
 
-        switch ( type ){
+        switch ( type )
+        {
             case HIVE:
                 hadoopClustersCombo.setValue( null );
                 gridLayout.addComponent( hiveSelection, 0, 2 );
@@ -149,19 +152,19 @@ public class ETLTransformManager extends ETLBaseManager
                     Environment hadoopEnvironment = null;
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
                         e.printStackTrace();
                     }
-                    Set<ContainerHost> hadoopNodes = null;
+                    Set<EnvironmentContainerHost> hadoopNodes = null;
                     if ( hadoopEnvironment != null )
                     {
                         try
                         {
-                            hadoopNodes =
-                                    hadoopEnvironment.getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
+                            hadoopNodes = hadoopEnvironment
+                                    .getContainerHostsByIds( Sets.newHashSet( hadoopInfo.getAllNodes() ) );
                         }
                         catch ( ContainerHostNotFoundException e )
                         {
@@ -173,18 +176,22 @@ public class ETLTransformManager extends ETLBaseManager
                     hiveSelection.removeAllItems();
                     pigSelection.removeAllItems();
                     enableProgressBar();
-                    final Set<ContainerHost> finalHadoopNodes = hadoopNodes;
+                    final Set<EnvironmentContainerHost> finalHadoopNodes = hadoopNodes;
                     executorService.execute( new Runnable()
                     {
                         @Override
                         public void run()
                         {
-                            Set<ContainerHost> filteredHadoopNodes = filterHadoopNodes( finalHadoopNodes, queryType );
-                            if ( filteredHadoopNodes.isEmpty() ){
+                            Set<EnvironmentContainerHost> filteredHadoopNodes =
+                                    filterHadoopNodes( finalHadoopNodes, queryType );
+                            if ( filteredHadoopNodes.isEmpty() )
+                            {
                                 show( "No node has subutai " + queryType.name() + " package installed" );
                             }
-                            else {
-                                for ( ContainerHost hadoopNode : filterHadoopNodes( finalHadoopNodes, queryType ) )
+                            else
+                            {
+                                for ( EnvironmentContainerHost hadoopNode : filterHadoopNodes( finalHadoopNodes,
+                                        queryType ) )
                                 {
                                     hiveSelection.addItem( hadoopNode );
                                     hiveSelection.setItemCaption( hadoopNode, hadoopNode.getHostname() );
@@ -207,10 +214,12 @@ public class ETLTransformManager extends ETLBaseManager
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
+                    EnvironmentContainerHost containerHost =
+                            ( EnvironmentContainerHost ) event.getProperty().getValue();
                     HiveConfig config = findHiveConfigOfContainerHost( hive.getClusters(), containerHost );
                     queryPanel.setContainerHost( containerHost );
-                    if ( config != null ){
+                    if ( config != null )
+                    {
                         queryPanel.setClusterName( config.getClusterName() );
                     }
                 }
@@ -224,10 +233,12 @@ public class ETLTransformManager extends ETLBaseManager
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    ContainerHost containerHost = ( ContainerHost ) event.getProperty().getValue();
+                    EnvironmentContainerHost containerHost =
+                            ( EnvironmentContainerHost ) event.getProperty().getValue();
                     PigConfig config = findPigConfigOfContainerHost( pig.getClusters(), containerHost );
                     queryPanel.setContainerHost( containerHost );
-                    if ( config != null ){
+                    if ( config != null )
+                    {
                         queryPanel.setClusterName( config.getClusterName() );
                     }
                 }

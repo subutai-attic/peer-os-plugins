@@ -5,7 +5,11 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.etl.api.ETL;
 import io.subutai.plugin.etl.ui.extract.ETLExtractManager;
@@ -15,10 +19,6 @@ import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.pig.api.Pig;
 import io.subutai.plugin.sqoop.api.Sqoop;
-
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class ETLComponent extends CustomComponent
@@ -63,28 +63,10 @@ public class ETLComponent extends CustomComponent
             {
                 TabSheet tabsheet = event.getTabSheet();
                 String caption = tabsheet.getTab( event.getTabSheet().getSelectedTab() ).getCaption();
-                if ( caption.equals( "ETL" ) )
-                {
-                }
             }
         } );
 
         verticalLayout.addComponent( sheet );
         setCompositionRoot( verticalLayout );
-    }
-
-
-    public void addTab( ImportExportBase component )
-    {
-        TabSheet.Tab tab = sheet.addTab( component );
-        if ( component instanceof ExportPanel )
-        {
-            tab.setCaption( "Export" );
-        }
-        else if ( component instanceof ImportPanel )
-        {
-            tab.setCaption( "Import" );
-        }
-        sheet.setSelectedTab( component );
     }
 }

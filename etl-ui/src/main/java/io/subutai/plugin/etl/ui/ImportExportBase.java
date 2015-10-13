@@ -5,13 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
-import io.subutai.plugin.sqoop.api.setting.CommonSetting;
-
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -21,6 +14,13 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
+import io.subutai.plugin.sqoop.api.setting.CommonSetting;
 
 
 public abstract class ImportExportBase extends VerticalLayout
@@ -106,8 +106,8 @@ public abstract class ImportExportBase extends VerticalLayout
     {
         connStringField = UIUtil.getTextField( "Connection string:" );
         connStringField.setDescription( "Connection string to be used while connecting to " +
-                                        "relational database.\n\n" +
-                                        "e.g. jdbc:mysql://localhost:3306");
+                "relational database.\n\n" +
+                "e.g. jdbc:mysql://localhost:3306" );
 
         tableField = UIUtil.getTextField( "Table name:" );
         usernameField = UIUtil.getTextField( "Username:" );
@@ -161,14 +161,14 @@ public abstract class ImportExportBase extends VerticalLayout
         tab1.setSizeFull();
         tab1.setSpacing( true );
         tab1.setCaption( "Output" );
-        tabsheet.addTab(tab1);
+        tabsheet.addTab( tab1 );
         tab1.addComponent( std_logs );
 
         final VerticalLayout tab2 = new VerticalLayout();
         tab2.setSizeFull();
         tab2.setSpacing( true );
-        tab2.setCaption( "Errors");
-        tabsheet.addTab(tab2);
+        tab2.setCaption( "Errors" );
+        tabsheet.addTab( tab2 );
         tab2.addComponent( std_err_logs );
 
         right.addComponent( tabsheet );

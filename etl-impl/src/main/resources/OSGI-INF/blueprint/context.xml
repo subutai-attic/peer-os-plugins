@@ -16,7 +16,7 @@
   <reference id="sqoop" availability="mandatory"
              interface="io.subutai.plugin.sqoop.api.Sqoop" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <!-- ************************************************************************************************** -->
 
   <bean id="sqoop-impl" scope="singleton" class="io.subutai.plugin.etl.impl.ETLImpl"

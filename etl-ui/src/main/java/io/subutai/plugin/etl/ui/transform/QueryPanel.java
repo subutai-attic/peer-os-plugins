@@ -6,12 +6,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import io.subutai.common.command.CommandException;
-import io.subutai.common.command.CommandResult;
-import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.server.ui.component.QuestionDialog;
-
 import com.vaadin.data.Property;
 import com.vaadin.event.Action;
 import com.vaadin.ui.Alignment;
@@ -28,6 +22,12 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.server.ui.component.QuestionDialog;
+
 
 public class QueryPanel extends VerticalLayout
 {
@@ -38,8 +38,7 @@ public class QueryPanel extends VerticalLayout
     private QueryType type;
     ETLTransformManager etlTransformManager;
     private final int rowSize = 30;
-    private static final String JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/";
-
+    private static final String JAVA_HOME = "/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/";
 
 
     public QueryPanel( ETLTransformManager etlTransformManager )
@@ -47,7 +46,9 @@ public class QueryPanel extends VerticalLayout
         this.etlTransformManager = etlTransformManager;
     }
 
-    public void init( final QueryType type ){
+
+    public void init( final QueryType type )
+    {
 
         final GridLayout upperGrid = new GridLayout();
         upperGrid.setRows( 1 );
@@ -63,14 +64,15 @@ public class QueryPanel extends VerticalLayout
         right.setSpacing( true );
         right.setSizeFull();
 
-        final ProgressBar progressBar; progressBar = new ProgressBar();
+        final ProgressBar progressBar;
+        progressBar = new ProgressBar();
         progressBar.setId( "indicator" );
         progressBar.setIndeterminate( true );
         progressBar.setVisible( false );
 
 
         // Show uploaded file in this placeholder
-        final Embedded uploadedFile = new Embedded("Uploaded Query File");
+        final Embedded uploadedFile = new Embedded( "Uploaded Query File" );
 
         uploadedFile.setVisible( false );
 
@@ -90,10 +92,10 @@ public class QueryPanel extends VerticalLayout
 
 
         // Create the upload with a caption and set receiver later
-        Upload upload = new Upload("", receiver );
-        upload.setButtonCaption("Start Upload");
+        Upload upload = new Upload( "", receiver );
+        upload.setButtonCaption( "Start Upload" );
         upload.addStyleName( "default" );
-        upload.addSucceededListener(receiver);
+        upload.addSucceededListener( receiver );
         upload.addSucceededListener( new Upload.SucceededListener()
         {
             @Override
@@ -104,7 +106,7 @@ public class QueryPanel extends VerticalLayout
         } );
 
         // Put the components in a panel
-        Panel panel = new Panel("Upload Panel");
+        Panel panel = new Panel( "Upload Panel" );
         Layout panelContent = new VerticalLayout();
         panelContent.addComponents( upload, uploadedFile );
         panel.setContent( panelContent );
@@ -143,21 +145,21 @@ public class QueryPanel extends VerticalLayout
             public void buttonClick( final Button.ClickEvent event )
             {
                 final QuestionDialog questionDialog =
-                        new QuestionDialog<>( CREATE_FILE_ACTION, "Name your file...",
-                                String.class, "Create", "Cancel" );
+                        new QuestionDialog<>( CREATE_FILE_ACTION, "Name your file...", String.class, "Create",
+                                "Cancel" );
                 questionDialog.getOk().addClickListener( new Button.ClickListener()
                 {
                     @Override
                     public void buttonClick( final Button.ClickEvent clickEvent )
                     {
-                        if ( questionDialog.getInputField().getValue() != null ){
+                        if ( questionDialog.getInputField().getValue() != null )
+                        {
                             String fileName = questionDialog.getInputField().getValue();
                             File newFile = receiver.createNewFile( fileName );
                             Notification.show( fileName + " is created under " + QueryFileUploader.UPLOAD_PATH + "." );
                             receiver.setFile( newFile );
                             receiver.showUploadedText( contentOfQueryFile, newFile );
                             contentOfQueryFile.setCaption( "Content of \"" + newFile.getName() + "\" query file:" );
-
                         }
                     }
                 } );
@@ -196,7 +198,8 @@ public class QueryPanel extends VerticalLayout
                 receiver.setFile( newFile );
                 receiver.saveChanges( contentOfQueryFile, newFile );
                 receiver.showUploadedText( contentOfQueryFile, newFile );
-                switch ( queryType ){
+                switch ( queryType )
+                {
                     case HIVE:
                         etlTransformManager.executorService.execute( new Runnable()
                         {
@@ -211,10 +214,13 @@ public class QueryPanel extends VerticalLayout
                                 {
                                     e.printStackTrace();
                                 }
-                                CommandResult result = executeCommand( containerHost, ". /etc/profile && hive -f " +
-                                        receiver.getFile().getAbsolutePath() );
-                                if ( result.hasSucceeded() ){
-                                    std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdErr() + "\n" + result.getStdOut() + "\n" );
+                                CommandResult result = executeCommand( containerHost,
+                                        ". /etc/profile && hive -f " + receiver.getFile().getAbsolutePath() );
+                                if ( result.hasSucceeded() )
+                                {
+                                    std_logs.setValue(
+                                            std_logs.getValue() + getCurrentTime() + result.getStdErr() + "\n" + result
+                                                    .getStdOut() + "\n" );
                                     std_err_logs.setValue( std_err_logs.getValue() + "\n" + result.getStdErr() );
                                 }
                                 progressBar.setVisible( false );
@@ -238,21 +244,22 @@ public class QueryPanel extends VerticalLayout
                                 /*
                                  TODO : find a way to run pig queries without export JAVA_HOME
                                  */
-                                CommandResult result = executeCommand( containerHost, ". /etc/profile && "
-                                                                        + "export JAVA_HOME=" + JAVA_HOME + " && "
-                                                                        + "pig -x mapreduce " +
-                                                                          receiver.getFile().getAbsolutePath() );
-                                if ( result.hasSucceeded() ){
-                                    std_logs.setValue( std_logs.getValue() +  getCurrentTime() + result.getStdOut() + "\n" );
-                                    std_err_logs.setValue( std_err_logs.getValue() + getCurrentTime() + result.getStdErr() + "\n");
+                                CommandResult result = executeCommand( containerHost,
+                                        ". /etc/profile && " + "export JAVA_HOME=" + JAVA_HOME + " && "
+                                                + "pig -x mapreduce " +
+                                                receiver.getFile().getAbsolutePath() );
+                                if ( result.hasSucceeded() )
+                                {
+                                    std_logs.setValue(
+                                            std_logs.getValue() + getCurrentTime() + result.getStdOut() + "\n" );
+                                    std_err_logs.setValue(
+                                            std_err_logs.getValue() + getCurrentTime() + result.getStdErr() + "\n" );
                                 }
                                 progressBar.setVisible( false );
                             }
                         } );
                         break;
                 }
-
-
             }
         } );
 
@@ -265,8 +272,8 @@ public class QueryPanel extends VerticalLayout
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing( true );
         buttonLayout.addComponent( refresh );
-//        buttonLayout.addComponent( newFileButton );
-//        buttonLayout.addComponent( saveButton );
+        //        buttonLayout.addComponent( newFileButton );
+        //        buttonLayout.addComponent( saveButton );
         buttonLayout.addComponent( runButtonLayout );
 
         final TabSheet tabsheet = new TabSheet();
@@ -278,14 +285,14 @@ public class QueryPanel extends VerticalLayout
         tab1.setSizeFull();
         tab1.setSpacing( true );
         tab1.setCaption( "Output" );
-        tabsheet.addTab(tab1);
+        tabsheet.addTab( tab1 );
         tab1.addComponent( std_logs );
 
         final VerticalLayout tab2 = new VerticalLayout();
         tab2.setSizeFull();
         tab2.setSpacing( true );
-        tab2.setCaption( "Errors");
-        tabsheet.addTab(tab2);
+        tab2.setCaption( "Errors" );
+        tabsheet.addTab( tab2 );
         tab2.addComponent( std_err_logs );
 
 
@@ -317,12 +324,14 @@ public class QueryPanel extends VerticalLayout
     }
 
 
-    public String getCurrentTime(){
+    public String getCurrentTime()
+    {
         Calendar cal = Calendar.getInstance();
         cal.getTime();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        return  "Query start time  : " + sdf.format( cal.getTime() ) + "\n";
+        SimpleDateFormat sdf = new SimpleDateFormat( "HH:mm:ss" );
+        return "Query start time  : " + sdf.format( cal.getTime() ) + "\n";
     }
+
 
     public ContainerHost getContainerHost()
     {
@@ -360,7 +369,8 @@ public class QueryPanel extends VerticalLayout
     }
 
 
-    private CommandResult executeCommand( ContainerHost containerHost, String command ){
+    private CommandResult executeCommand( ContainerHost containerHost, String command )
+    {
         CommandResult result = null;
         try
         {

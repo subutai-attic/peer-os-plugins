@@ -6,18 +6,18 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.etl.api.ETL;
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.setting.ExportSetting;
-
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
+
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.etl.api.ETL;
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.setting.ExportSetting;
 
 
 public class ExportPanel extends ImportExportBase
@@ -28,6 +28,7 @@ public class ExportPanel extends ImportExportBase
     private final ExecutorService executorService;
     AbstractTextField hdfsPathField = UIUtil.getTextField( "HDFS file path:" );
     public ProgressBar progressIcon = UIUtil.getProgressIcon();
+
 
     public ExportPanel( ETL etl, Sqoop sqoop, ExecutorService executorService, Tracker tracker )
     {
@@ -79,7 +80,8 @@ public class ExportPanel extends ImportExportBase
             @Override
             public void buttonClick( final Button.ClickEvent event )
             {
-                if ( host.getId() == null  ){
+                if ( host.getId() == null )
+                {
                     Notification.show( "Please select sqoop node!" );
                     return;
                 }
@@ -88,7 +90,7 @@ public class ExportPanel extends ImportExportBase
                 String cmd = sqoop.reviewExportQuery( es );
                 Notification.show( cmd );
             }
-        }) );
+        } ) );
 
         buttons.addComponent( UIUtil.getButton( "Export", new Button.ClickListener()
         {
@@ -118,21 +120,20 @@ public class ExportPanel extends ImportExportBase
                             }
                         } );
                         executorService.execute( watcher );
-
                     }
                 } );
             }
         } ) );
 
-//        buttons.addComponent( UIUtil.getButton( "Cancel", new Button.ClickListener()
-//        {
-//
-//            @Override
-//            public void buttonClick( Button.ClickEvent event )
-//            {
-//                detachFromParent();
-//            }
-//        } ) );
+        //        buttons.addComponent( UIUtil.getButton( "Cancel", new Button.ClickListener()
+        //        {
+        //
+        //            @Override
+        //            public void buttonClick( Button.ClickEvent event )
+        //            {
+        //                detachFromParent();
+        //            }
+        //        } ) );
 
         buttons.addComponent( progressIcon );
 

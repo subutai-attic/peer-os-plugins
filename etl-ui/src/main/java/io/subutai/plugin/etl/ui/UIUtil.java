@@ -2,10 +2,6 @@ package io.subutai.plugin.etl.ui;
 
 
 import java.util.List;
-import java.util.UUID;
-
-import io.subutai.plugin.sqoop.api.Sqoop;
-import io.subutai.plugin.sqoop.api.SqoopConfig;
 
 import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -18,6 +14,8 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 
+import io.subutai.plugin.sqoop.api.Sqoop;
+import io.subutai.plugin.sqoop.api.SqoopConfig;
 
 
 public class UIUtil
@@ -35,16 +33,18 @@ public class UIUtil
     }
 
 
-    public static ProgressBar getProgressIcon(){
+    public static ProgressBar getProgressIcon()
+    {
         ProgressBar progressIcon = new com.vaadin.ui.ProgressBar();
         progressIcon.setId( "indicator" );
         progressIcon.setIndeterminate( true );
         progressIcon.setVisible( false );
-        return  progressIcon;
+        return progressIcon;
     }
 
 
-    public static ComboBox getComboBox ( String caption ){
+    public static ComboBox getComboBox( String caption )
+    {
         ComboBox comboBox = new ComboBox();
         comboBox.setCaption( caption );
         comboBox.setNullSelectionAllowed( false );
@@ -93,10 +93,14 @@ public class UIUtil
         return textField;
     }
 
-    public static String findSqoopClusterName( Sqoop sqoop, UUID uuid ){
+
+    public static String findSqoopClusterName( Sqoop sqoop, String hostId )
+    {
         List<SqoopConfig> sqoopConfigList = sqoop.getClusters();
-        for( SqoopConfig config : sqoopConfigList ){
-            if ( config.getNodes().contains( uuid ) ){
+        for ( SqoopConfig config : sqoopConfigList )
+        {
+            if ( config.getNodes().contains( hostId ) )
+            {
                 return config.getClusterName();
             }
         }
