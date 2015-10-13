@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.settings.Common;
@@ -13,31 +14,29 @@ import io.subutai.common.util.UUIDUtil;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.common.api.NodeType;
 
-import com.google.common.collect.Sets;
-
 
 public class HBaseConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "HBase";
     public static final String PRODUCT_NAME = "HBase";
-    private UUID uuid;
+    private String id;
     private String clusterName = "";
-    private UUID hbaseMaster;
-    private Set<UUID> regionServers = Sets.newHashSet();
-    private Set<UUID> quorumPeers = Sets.newHashSet();
-    private Set<UUID> backupMasters = Sets.newHashSet();
+    private String hbaseMaster;
+    private Set<String> regionServers = Sets.newHashSet();
+    private Set<String> quorumPeers = Sets.newHashSet();
+    private Set<String> backupMasters = Sets.newHashSet();
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
-    private Set<UUID> hadoopNodes = new HashSet<>();
-    private UUID environmentId;
+    private Set<String> hadoopNodes = new HashSet<>();
+    private String environmentId;
     private String hadoopClusterName;
-    private UUID hadoopNameNode;
+    private String hadoopNameNode;
     private boolean autoScaling;
 
 
     public HBaseConfig()
     {
-        this.uuid = UUID.fromString( UUIDUtil.generateTimeBasedUUID().toString() );
+        this.id = UUIDUtil.generateTimeBasedUUID().toString();
         autoScaling = false;
     }
 
@@ -66,37 +65,37 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public UUID getHadoopNameNode()
+    public String getHadoopNameNode()
     {
         return hadoopNameNode;
     }
 
 
-    public void setHadoopNameNode( final UUID hadoopNameNode )
+    public void setHadoopNameNode( final String hadoopNameNode )
     {
         this.hadoopNameNode = hadoopNameNode;
     }
 
 
-    public Set<UUID> getHadoopNodes()
+    public Set<String> getHadoopNodes()
     {
         return hadoopNodes;
     }
 
 
-    public void setHadoopNodes( final Set<UUID> hadoopNodes )
+    public void setHadoopNodes( final Set<String> hadoopNodes )
     {
         this.hadoopNodes = hadoopNodes;
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -114,15 +113,15 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public UUID getUuid()
+    public String getId()
     {
-        return uuid;
+        return id;
     }
 
 
-    public void setUuid( UUID uuid )
+    public void setId( String id )
     {
-        this.uuid = uuid;
+        this.id = id;
     }
 
 
@@ -163,9 +162,9 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        final Set<UUID> allNodes = new HashSet<>();
+        final Set<String> allNodes = new HashSet<>();
         allNodes.add( getHbaseMaster() );
         allNodes.addAll( getRegionServers() );
         allNodes.addAll( getQuorumPeers() );
@@ -174,49 +173,49 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public UUID getHbaseMaster()
+    public String getHbaseMaster()
     {
         return hbaseMaster;
     }
 
 
-    public void setHbaseMaster( UUID hbaseMaster )
+    public void setHbaseMaster( String hbaseMaster )
     {
         this.hbaseMaster = hbaseMaster;
     }
 
 
-    public Set<UUID> getRegionServers()
+    public Set<String> getRegionServers()
     {
         return regionServers;
     }
 
 
-    public void setRegionServers( Set<UUID> regionServers )
+    public void setRegionServers( Set<String> regionServers )
     {
         this.regionServers = regionServers;
     }
 
 
-    public Set<UUID> getQuorumPeers()
+    public Set<String> getQuorumPeers()
     {
         return quorumPeers;
     }
 
 
-    public void setQuorumPeers( Set<UUID> quorumPeers )
+    public void setQuorumPeers( Set<String> quorumPeers )
     {
         this.quorumPeers = quorumPeers;
     }
 
 
-    public Set<UUID> getBackupMasters()
+    public Set<String> getBackupMasters()
     {
         return backupMasters;
     }
 
 
-    public void setBackupMasters( Set<UUID> backupMasters )
+    public void setBackupMasters( Set<String> backupMasters )
     {
         this.backupMasters = backupMasters;
     }

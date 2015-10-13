@@ -4,13 +4,18 @@ package io.subutai.plugin.hbase.impl.handler;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
@@ -21,10 +26,6 @@ import io.subutai.plugin.hbase.api.HBaseConfig;
 import io.subutai.plugin.hbase.impl.Commands;
 import io.subutai.plugin.hbase.impl.HBaseImpl;
 import io.subutai.plugin.hbase.impl.HBaseSetupStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl, HBaseConfig>
@@ -46,11 +47,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         this.commandUtil = new CommandUtil();
         try
         {
-            this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            this.environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
         this.trackerOperation = manager.getTracker().createTrackerOperation( HBaseConfig.PRODUCT_KEY,
@@ -98,7 +99,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+            EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStopCommand() );
             if ( result.hasSucceeded() )
             {
@@ -127,7 +128,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+            EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             // start hadoop before starting hbase cluster
             manager.getHadoopManager()
                    .startNameNode( manager.getHadoopManager().getCluster( config.getHadoopClusterName() ) );
@@ -182,14 +183,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
     {
         try
         {
-            Set<ContainerHost> hbaseNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+            Set<EnvironmentContainerHost> hbaseNodes = environment.getContainerHostsByIds( config.getAllNodes() );
 
             if ( hbaseNodes.size() < config.getAllNodes().size() )
             {
                 throw new ClusterException( "Found fewer HBase nodes in environment than exist" );
             }
 
-            for ( ContainerHost node : hbaseNodes )
+            for ( EnvironmentContainerHost node : hbaseNodes )
             {
                 if ( !node.isConnected() )
                 {

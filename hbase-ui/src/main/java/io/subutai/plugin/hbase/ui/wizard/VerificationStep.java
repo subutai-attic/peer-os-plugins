@@ -9,14 +9,6 @@ package io.subutai.plugin.hbase.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hbase.api.HBase;
-import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +20,15 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.hbase.api.HBase;
+import io.subutai.plugin.hbase.api.HBaseConfig;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends Panel
@@ -52,17 +53,16 @@ public class VerificationStep extends Panel
         confirmationLbl.setContentMode( ContentMode.HTML );
 
         final HBaseConfig config = wizard.getConfig();
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = wizard.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = wizard.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             LOGGER.error( "Environment not found.", e );
             return;
         }
-        final HadoopClusterConfig hc = wizard.getHadoopConfig();
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "HBase Cluster Name", wizard.getConfig().getClusterName() );
@@ -72,21 +72,21 @@ public class VerificationStep extends Panel
             cfgView.addStringCfg( "Hadoop cluster Name", wizard.getConfig().getHadoopClusterName() );
             cfgView.addStringCfg( "Master Node",
                     environment.getContainerHostById( wizard.getConfig().getHbaseMaster() ).getHostname() );
-            for ( UUID host : wizard.getConfig().getRegionServers() )
+            for ( String host : wizard.getConfig().getRegionServers() )
             {
                 cfgView.addStringCfg( "Region Servers", environment.getContainerHostById( host ).getHostname() );
             }
 
-            for ( UUID host : wizard.getConfig().getQuorumPeers() )
+            for ( String host : wizard.getConfig().getQuorumPeers() )
             {
                 cfgView.addStringCfg( "Quorum Peers", environment.getContainerHostById( host ).getHostname() );
             }
 
-            for ( UUID host : wizard.getConfig().getBackupMasters() )
+            for ( String host : wizard.getConfig().getBackupMasters() )
             {
                 cfgView.addStringCfg( "Backup Masters", environment.getContainerHostById( host ).getHostname() );
             }
-            cfgView.addStringCfg( "Environment ID", config.getEnvironmentId().toString() );
+            cfgView.addStringCfg( "Environment ID", config.getEnvironmentId() );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -105,8 +105,7 @@ public class VerificationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent clickEvent )
             {
-                UUID trackId = null;
-                trackId = hbase.installCluster( config );
+                UUID trackId = hbase.installCluster( config );
                 ProgressWindow window = new ProgressWindow( executor, tracker, trackId, HBaseConfig.PRODUCT_KEY );
                 window.getWindow().addCloseListener( new Window.CloseListener()
                 {

@@ -57,35 +57,35 @@ public class RestServiceImpl implements RestService
         hbaseConfig.setClusterName( trimmedHBaseConfig.getClusterName() );
         hbaseConfig.setHadoopClusterName( trimmedHBaseConfig.getHadoopClusterName() );
         hbaseConfig.setDomainName( trimmedHBaseConfig.getDomainName() );
-        hbaseConfig.setEnvironmentId( UUID.fromString( trimmedHBaseConfig.getEnvironmentId() ) );
-        hbaseConfig.setHbaseMaster( UUID.fromString( trimmedHBaseConfig.getHmaster() ) );
+        hbaseConfig.setEnvironmentId( trimmedHBaseConfig.getEnvironmentId() );
+        hbaseConfig.setHbaseMaster( trimmedHBaseConfig.getHmaster() );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getQuorumPeers() ) )
         {
-            Set<UUID> slaveNodes = new HashSet<>();
+            Set<String> slaveNodes = new HashSet<>();
             for ( String node : trimmedHBaseConfig.getQuorumPeers() )
             {
-                slaveNodes.add( UUID.fromString( node ) );
+                slaveNodes.add( node );
             }
             hbaseConfig.getQuorumPeers().addAll( slaveNodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getRegionServers() ) )
         {
-            Set<UUID> slaveNodes = new HashSet<>();
+            Set<String> slaveNodes = new HashSet<>();
             for ( String node : trimmedHBaseConfig.getRegionServers() )
             {
-                slaveNodes.add( UUID.fromString( node ) );
+                slaveNodes.add( node );
             }
             hbaseConfig.getRegionServers().addAll( slaveNodes );
         }
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getBackupMasters() ) )
         {
-            Set<UUID> slaveNodes = new HashSet<>();
+            Set<String> slaveNodes = new HashSet<>();
             for ( String node : trimmedHBaseConfig.getBackupMasters() )
             {
-                slaveNodes.add( UUID.fromString( node ) );
+                slaveNodes.add( node );
             }
             hbaseConfig.getBackupMasters().addAll( slaveNodes );
         }
@@ -177,7 +177,7 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        if ( scale == false )
+        if ( !scale )
         {
             message = "disabled";
         }
@@ -245,12 +245,6 @@ public class RestServiceImpl implements RestService
     public void setHbaseManager( final HBase hbaseManager )
     {
         this.hbaseManager = hbaseManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

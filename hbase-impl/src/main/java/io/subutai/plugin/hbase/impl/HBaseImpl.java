@@ -1,38 +1,38 @@
 package io.subutai.plugin.hbase.impl;
 
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 import io.subutai.plugin.hbase.impl.alert.HBaseAlertListener;
 import io.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hbase.impl.handler.NodeOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class HBaseImpl implements HBase, EnvironmentEventListener
@@ -79,7 +79,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -228,10 +228,10 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         List<String> nodeNames = new ArrayList<>();
-        for ( final ContainerHost containerHost : set )
+        for ( final EnvironmentContainerHost containerHost : set )
         {
             nodeNames.add( containerHost.getHostname() );
         }
@@ -241,7 +241,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    public void onContainerDestroyed( final Environment environment, final String containerHostId )
     {
         List<HBaseConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final HBaseConfig clusterConfig : clusterConfigs )
@@ -254,8 +254,8 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
                     clusterConfig.getHadoopNodes().remove( containerHostId );
                     clusterConfig.getRegionServers().remove( containerHostId );
                     getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, clusterConfig.getClusterName(), clusterConfig );
-                    LOG.info( String.format( "Container host:%s is removed from hbase cluster: %s.",
-                            containerHostId.toString(), clusterConfig.getClusterName() ) );
+                    LOG.info( String.format( "Container host:%s is removed from hbase cluster: %s.", containerHostId,
+                            clusterConfig.getClusterName() ) );
                 }
             }
         }
@@ -263,7 +263,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID environmentId )
+    public void onEnvironmentDestroyed( final String environmentId )
     {
         List<HBaseConfig> clusterConfigs = new ArrayList<>( getClusters() );
         for ( final HBaseConfig clusterConfig : clusterConfigs )
@@ -308,21 +308,9 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
-    }
-
-
-    public ExecutorService getExecutor()
-    {
-        return executor;
     }
 
 
@@ -341,12 +329,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
-    }
-
-
-    public Commands getCommands()
-    {
-        return commands;
     }
 
 

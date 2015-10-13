@@ -4,14 +4,18 @@ package io.subutai.plugin.hbase.impl;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -22,11 +26,6 @@ import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 import io.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
 public class HBaseSetupStrategy
@@ -57,7 +56,7 @@ public class HBaseSetupStrategy
     {
         checkConfig();
 
-        Set<ContainerHost> nodes = new HashSet<>();
+        Set<EnvironmentContainerHost> nodes = new HashSet<>();
         try
         {
             nodes = environment.getContainerHostsByIds( config.getAllNodes() );
@@ -71,7 +70,7 @@ public class HBaseSetupStrategy
         {
             throw new ClusterSetupException( "Fewer nodes found in the environment than expected" );
         }
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             if ( !node.isConnected() )
             {
@@ -155,7 +154,7 @@ public class HBaseSetupStrategy
     public static Set<Host> getHosts( HBaseConfig config, Environment environment )
     {
         Set<Host> hosts = new HashSet<>();
-        for ( UUID uuid : config.getAllNodes() )
+        for ( String uuid : config.getAllNodes() )
         {
             try
             {

@@ -6,9 +6,6 @@
 package io.subutai.plugin.hbase.ui.wizard;
 
 
-import io.subutai.common.util.FileUtil;
-import io.subutai.plugin.hbase.ui.HBasePortalModule;
-
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -16,6 +13,9 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
+
+import io.subutai.common.util.FileUtil;
+import io.subutai.plugin.hbase.ui.HBasePortalModule;
 
 
 public class WelcomeStep extends Panel

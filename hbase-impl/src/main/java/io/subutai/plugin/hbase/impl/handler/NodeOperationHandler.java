@@ -4,7 +4,12 @@ package io.subutai.plugin.hbase.impl.handler;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -12,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
@@ -20,15 +25,9 @@ import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBaseConfig;
+import io.subutai.plugin.hbase.impl.ClusterConfiguration;
 import io.subutai.plugin.hbase.impl.Commands;
 import io.subutai.plugin.hbase.impl.HBaseImpl;
-import io.subutai.plugin.hbase.impl.ClusterConfiguration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HBaseConfig>
@@ -37,7 +36,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     private String hostname;
     private NodeOperationType operationType;
     private HBaseConfig config;
-    private ContainerHost node;
+    private EnvironmentContainerHost node;
     private Environment environment;
 
 
@@ -52,7 +51,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         this.config = config;
         try
         {
-            this.environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            this.environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             this.node = environment.getContainerHostByHostname( hostname );
         }
         catch ( ContainerHostNotFoundException e )
@@ -74,10 +73,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     public void run()
     {
         Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
+        EnvironmentContainerHost host = null;
         while ( iterator.hasNext() )
         {
-            host = ( ContainerHost ) iterator.next();
+            host = ( EnvironmentContainerHost ) iterator.next();
             if ( host.getHostname().equals( hostname ) )
             {
                 break;
@@ -93,7 +92,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    protected void runCommand( ContainerHost host, NodeOperationType operationType )
+    protected void runCommand( EnvironmentContainerHost host, NodeOperationType operationType )
     {
         switch ( operationType )
         {
@@ -127,7 +126,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         HadoopClusterConfig hadoopClusterConfig =
                 manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
 
-        List<UUID> hadoopNodes = hadoopClusterConfig.getAllNodes();
+        List<String> hadoopNodes = hadoopClusterConfig.getAllNodes();
         hadoopNodes.removeAll( config.getAllNodes() );
 
         if ( hadoopNodes.isEmpty() )
@@ -143,7 +142,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             }
         }
 
-        ContainerHost node = null;
+        EnvironmentContainerHost node = null;
         try
         {
             node = environment.getContainerHostByHostname( hostname );
@@ -164,11 +163,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                  * just add the new role to that container, otherwise both install and configure node.
                  */
                 CommandResult result = executeCommand( node, Commands.getCheckInstalledCommand() );
-                if ( ! result.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) ){
+                if ( !result.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) )
+                {
                     // install hbase to this node
                     executeCommand( node, Commands.getInstallCommand() );
                     CommandResult commandResult = executeCommand( node, Commands.getCheckInstalledCommand() );
-                    if ( ! commandResult.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) ){
+                    if ( !commandResult.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) )
+                    {
                         LOG.error( "HBase package cannot be installed on container." );
                         trackerOperation
                                 .addLogFailed( String.format( "Failed to install HBase to %s", node.getHostname() ) );
@@ -207,7 +208,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private void clearConfigurationFiles( ContainerHost host ){
+    private void clearConfigurationFiles( EnvironmentContainerHost host )
+    {
         try
         {
             executeCommand( host, Commands.getClearRegionServerConfFile() );
@@ -220,47 +222,53 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private void configureOldNodes( ContainerHost host, HBaseConfig config ){
-        Set<UUID> allNodes = config.getAllNodes();
+    private void configureOldNodes( EnvironmentContainerHost host, HBaseConfig config )
+    {
+        Set<String> allNodes = config.getAllNodes();
         allNodes.remove( host.getId() );
-        ClusterConfiguration.executeCommandOnAllContainer( allNodes, Commands.getConfigRegionCommand(
-                host.getHostname() ), environment );
+        ClusterConfiguration
+                .executeCommandOnAllContainer( allNodes, Commands.getConfigRegionCommand( host.getHostname() ),
+                        environment );
     }
 
 
-    private void configureNewNode( ContainerHost host, HBaseConfig config )
+    private void configureNewNode( EnvironmentContainerHost host, HBaseConfig config )
     {
-        try {
-            HadoopClusterConfig hadoopClusterConfig =  manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
+        try
+        {
+            HadoopClusterConfig hadoopClusterConfig =
+                    manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
 
             try
             {
-                String nameNodeHostname = environment.getContainerHostById( hadoopClusterConfig.getNameNode() )
-                                                          .getHostname();
+                String nameNodeHostname =
+                        environment.getContainerHostById( hadoopClusterConfig.getNameNode() ).getHostname();
                 String hmasterHostname = environment.getContainerHostById( config.getHbaseMaster() ).getHostname();
 
-                executeCommand( host,
-                        Commands.getConfigMasterCommand( nameNodeHostname, hmasterHostname ) );
+                executeCommand( host, Commands.getConfigMasterCommand( nameNodeHostname, hmasterHostname ) );
                 executeCommand( host, Commands.getConfigQuorumCommand( serializeHostName( config.getQuorumPeers() ) ) );
-                executeCommand( host, Commands.getConfigRegionCommand( serializeHostName( config.getRegionServers() ) ) ) ;
-                executeCommand( host, Commands.getConfigBackupMastersCommand( serializeHostName( config.getBackupMasters() ) ) );
+                executeCommand( host,
+                        Commands.getConfigRegionCommand( serializeHostName( config.getRegionServers() ) ) );
+                executeCommand( host,
+                        Commands.getConfigBackupMastersCommand( serializeHostName( config.getBackupMasters() ) ) );
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Could not find container with given uuid : " + hadoopClusterConfig.getNameNode() );
                 e.printStackTrace();
             }
-
-
-        } catch (ClusterException e) {
+        }
+        catch ( ClusterException e )
+        {
             e.printStackTrace();
         }
     }
 
 
-    private String serializeHostName( Set<UUID> uuids ){
+    private String serializeHostName( Set<String> uuids )
+    {
         StringBuilder slavesSpaceSeparated = new StringBuilder();
-        for ( UUID uuid : uuids )
+        for ( String uuid : uuids )
         {
             slavesSpaceSeparated.append( getHost( environment, uuid ).getHostname() ).append( " " );
         }
@@ -268,7 +276,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private ContainerHost getHost( Environment environment, UUID nodeId )
+    private EnvironmentContainerHost getHost( Environment environment, String nodeId )
     {
         try
         {
@@ -276,9 +284,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
         }
         catch ( ContainerHostNotFoundException e )
         {
-            String msg =
-                    String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId.toString(),
-                            environment.getName() );
+            String msg = String.format( "Container host with id: %s doesn't exists in environment: %s", nodeId,
+                    environment.getName() );
             trackerOperation.addLogFailed( msg );
             LOG.error( msg, e );
             return null;
@@ -290,7 +297,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     {
         try
         {
-            ContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
+            EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = executeCommand( hmaster, Commands.getStatusCommand() );
             if ( result.hasSucceeded() )
             {
@@ -315,7 +322,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    private void checkServiceStatus( ContainerHost host )
+    private void checkServiceStatus( EnvironmentContainerHost host )
     {
         try
         {
@@ -423,7 +430,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
     {
         CommandResult result = null;
@@ -463,7 +470,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
         return executeCommand( host, command, false );
     }

@@ -3,22 +3,23 @@ package io.subutai.plugin.hbase.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 @Command( scope = "hbase", name = "start-cluster", description = "Starts cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Tracker tracker;
     private HBase hbaseManager;
 
@@ -61,12 +62,6 @@ public class StartClusterCommand extends OsgiCommandSupport
             }
         }
         return state;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

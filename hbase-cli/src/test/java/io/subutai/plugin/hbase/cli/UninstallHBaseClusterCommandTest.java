@@ -5,12 +5,11 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hbase.api.HBase;
-import io.subutai.plugin.hbase.cli.StartClusterCommand;
-import io.subutai.plugin.hbase.cli.UninstallHBaseClusterCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

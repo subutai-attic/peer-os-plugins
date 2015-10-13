@@ -7,9 +7,9 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.cli.DescribeClusterCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,23 +52,23 @@ public class DescribeClusterCommandTest
     @Test
     public void testDoExecute() throws Exception
     {
-        UUID uuid = new UUID( 50, 50 );
-        Set<UUID> mySet = mock( Set.class );
-        mySet.add( uuid );
-        Set<UUID> mySet2 = mock( Set.class );
-        mySet2.add( uuid );
+        String id = UUID.randomUUID().toString();
+        Set<String> mySet = mock( Set.class );
+        mySet.add( id );
+        Set<String> mySet2 = mock( Set.class );
+        mySet2.add( id );
         describeClusterCommand.setHbaseManager( hBase );
         when( hBase.getCluster( anyString() ) ).thenReturn( hBaseConfig );
         when( hBaseConfig.getRegionServers() ).thenReturn( mySet );
-        Iterator<UUID> iterator = mock( Iterator.class );
+        Iterator<String> iterator = mock( Iterator.class );
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
-        when( iterator.next() ).thenReturn( uuid );
+        when( iterator.next() ).thenReturn( id );
         when( hBaseConfig.getQuorumPeers() ).thenReturn( mySet2 );
-        Iterator<UUID> iterator2 = mock( Iterator.class );
+        Iterator<String> iterator2 = mock( Iterator.class );
         when( mySet2.iterator() ).thenReturn( iterator2 );
         when( iterator2.hasNext() ).thenReturn( true ).thenReturn( false );
-        when( iterator2.next() ).thenReturn( uuid );
+        when( iterator2.next() ).thenReturn( id );
 
         describeClusterCommand.doExecute();
 

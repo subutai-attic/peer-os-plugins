@@ -13,25 +13,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.common.ui.AddNodeWindow;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hbase.api.HBase;
-import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.api.HBaseNodeOperationTask;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +37,27 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.ui.AddNodeWindow;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hbase.api.HBase;
+import io.subutai.plugin.hbase.api.HBaseConfig;
+import io.subutai.plugin.hbase.api.HBaseNodeOperationTask;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
+
 
 public class Manager
 {
@@ -67,9 +69,7 @@ public class Manager
     protected static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
     protected static final String CHECK_BUTTON_CAPTION = "Check";
     protected static final String START_ALL_BUTTON_CAPTION = "Start All";
-    protected static final String START_BUTTON_CAPTION = "Start";
     protected static final String STOP_ALL_BUTTON_CAPTION = "Stop All";
-    protected static final String STOP_BUTTON_CAPTION = "Stop";
     protected static final String REMOVE_CLUSTER_BUTTON_CAPTION = "Remove Cluster";
     protected static final String DESTROY_BUTTON_CAPTION = "Destroy";
     protected static final String HOST_COLUMN_CAPTION = "Host";
@@ -377,15 +377,15 @@ public class Manager
                 try
                 {
                     environment = environmentManager
-                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                            .loadEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                     return;
                 }
 
-                Set<ContainerHost> set = null;
+                Set<EnvironmentContainerHost> set = null;
 
                 String hn = config.getHadoopClusterName();
                 if ( !Strings.isNullOrEmpty( hn ) )
@@ -424,7 +424,13 @@ public class Manager
                     return;
                 }
 
-                AddNodeWindow w = new AddNodeWindow( hbase, executor, tracker, config, set );
+                Set<ContainerHost> chs = Sets.newHashSet();
+
+                for ( EnvironmentContainerHost environmentContainerHost : set )
+                {
+                    chs.add( environmentContainerHost );
+                }
+                AddNodeWindow w = new AddNodeWindow( hbase, executor, tracker, config, chs );
                 contentRoot.getUI().addWindow( w );
                 w.addCloseListener( new Window.CloseListener()
                 {
@@ -499,16 +505,16 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<UUID> containerHosts )
+    private void populateTable( final Table table, Set<String> containerHosts )
     {
-        for ( final UUID containerHost : containerHosts )
+        for ( final String containerHost : containerHosts )
         {
             Environment environment;
             try
             {
                 environment = environmentManager
-                        .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
-                final ContainerHost host = environment.getContainerHostById( containerHost );
+                        .loadEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() );
+                final EnvironmentContainerHost host = environment.getContainerHostById( containerHost );
 
                 final List<NodeType> roles = config.getNodeRoles( host );
                 for ( final NodeType role : roles )
@@ -661,35 +667,34 @@ public class Manager
                             checkBtn.setEnabled( false );
                             destroyBtn.setEnabled( false );
                             executor.execute( new HBaseNodeOperationTask( hbase, tracker, config.getClusterName(), host,
-                                    NodeOperationType.STATUS, role,
-                                    new io.subutai.plugin.common.api.CompleteEvent()
-                                    {
+                                    NodeOperationType.STATUS, role, new io.subutai.plugin.common.api.CompleteEvent()
+                            {
 
-                                        @Override
-                                        public void onComplete( final NodeState state )
+                                @Override
+                                public void onComplete( final NodeState state )
+                                {
+                                    synchronized ( PROGRESS_ICON )
+                                    {
+                                        if ( state.equals( NodeState.RUNNING ) )
                                         {
-                                            synchronized ( PROGRESS_ICON )
-                                            {
-                                                if ( state.equals( NodeState.RUNNING ) )
-                                                {
-                                                    checkBtn.setEnabled( true );
-                                                    destroyBtn.setEnabled( true );
-                                                }
-                                                else if ( state.equals( NodeState.STOPPED ) )
-                                                {
-                                                    checkBtn.setEnabled( true );
-                                                    destroyBtn.setEnabled( true );
-                                                }
-                                                else if ( state.equals( NodeState.UNKNOWN ) )
-                                                {
-                                                    checkBtn.setEnabled( true );
-                                                    destroyBtn.setEnabled( true );
-                                                }
-                                                resultHolder.setValue( state.name() );
-                                                PROGRESS_ICON.setVisible( false );
-                                            }
+                                            checkBtn.setEnabled( true );
+                                            destroyBtn.setEnabled( true );
                                         }
-                                    }, null ) );
+                                        else if ( state.equals( NodeState.STOPPED ) )
+                                        {
+                                            checkBtn.setEnabled( true );
+                                            destroyBtn.setEnabled( true );
+                                        }
+                                        else if ( state.equals( NodeState.UNKNOWN ) )
+                                        {
+                                            checkBtn.setEnabled( true );
+                                            destroyBtn.setEnabled( true );
+                                        }
+                                        resultHolder.setValue( state.name() );
+                                        PROGRESS_ICON.setVisible( false );
+                                    }
+                                }
+                            }, null ) );
                         }
                     } );
                 }
@@ -810,10 +815,10 @@ public class Manager
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION )
                                             .getValue();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     try
                     {
-                        containerHost = environmentManager.findEnvironment(
+                        containerHost = environmentManager.loadEnvironment(
                                 hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
                                                           .getContainerHostByHostname( containerId );
                     }

@@ -21,10 +21,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>vaadin-custom</artifactId>
     </dependency>
     <dependency>
@@ -42,7 +38,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>env-manager-api</artifactId>
+      <artifactId>environment-manager-api</artifactId>
     </dependency>
   </dependencies>
 

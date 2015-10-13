@@ -6,7 +6,7 @@
   <reference id="tracker"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="monitor"
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
@@ -29,7 +29,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="hbase-impl" interface="io.subutai.plugin.hbase.api.HBase" />
-  <service ref="hbase-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="hbase-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
   <!-- *********************************************************************************** -->
 

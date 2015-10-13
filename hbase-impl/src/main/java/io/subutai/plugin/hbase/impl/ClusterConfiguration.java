@@ -3,7 +3,11 @@ package io.subutai.plugin.hbase.impl;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandUtil;
@@ -20,10 +24,6 @@ import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
@@ -53,7 +53,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // configure master
         po.addLog( "Configuring hmaster... !" );
-        UUID hmaster = config.getHbaseMaster();
+        String hmaster = config.getHbaseMaster();
         ContainerHost hmasterContainerHost;
         try
         {
@@ -85,7 +85,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure region servers
         po.addLog( "Configuring region servers..." );
         StringBuilder sb = new StringBuilder();
-        for ( UUID uuid : config.getRegionServers() )
+        for ( String uuid : config.getRegionServers() )
         {
             ContainerHost tmp;
             try
@@ -107,7 +107,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure quorum peers
         po.addLog( "Configuring quorum peers..." );
         sb = new StringBuilder();
-        for ( UUID uuid : config.getQuorumPeers() )
+        for ( String uuid : config.getQuorumPeers() )
         {
             ContainerHost tmp;
             try
@@ -130,7 +130,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure back up master
         po.addLog( "Configuring backup masters..." );
         sb = new StringBuilder();
-        for ( UUID uuid : config.getBackupMasters() )
+        for ( String uuid : config.getBackupMasters() )
         {
             ContainerHost tmp;
             try
@@ -168,9 +168,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    public static void clearConfigurationFiles( Set<UUID> allUUIDs, Environment environment )
+    public static void clearConfigurationFiles( Set<String> allUUIDs, Environment environment )
     {
-        for ( UUID uuid : allUUIDs )
+        for ( String uuid : allUUIDs )
         {
             try
             {
@@ -184,20 +184,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( ContainerHostNotFoundException e )
             {
-                LOG.error( "Error getting container host by uuid: " + uuid.toString(), e );
+                LOG.error( "Error getting container host by uuid: " + uuid, e );
             }
         }
     }
 
 
-    public static void executeCommandOnAllContainer( Set<UUID> allUUIDs, RequestBuilder command,
+    public static void executeCommandOnAllContainer( Set<String> allUUIDs, RequestBuilder command,
                                                      Environment environment )
     {
         CommandUtil commandUtil = new CommandUtil();
         try
         {
             Set<Host> hosts = new HashSet<>();
-            for ( UUID uuid : allUUIDs )
+            for ( String uuid : allUUIDs )
             {
                 hosts.add( environment.getContainerHostById( uuid ) );
             }
@@ -230,7 +230,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // configure master
         po.addLog( "Configuring hmaster... !" );
-        UUID hmaster = config.getHbaseMaster();
+        String hmaster = config.getHbaseMaster();
         ContainerHost hmasterContainerHost;
         try
         {
@@ -262,7 +262,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure region servers
         po.addLog( "Configuring region servers..." );
         StringBuilder sb = new StringBuilder();
-        for ( UUID uuid : config.getRegionServers() )
+        for ( String uuid : config.getRegionServers() )
         {
             ContainerHost tmp;
             try
@@ -284,7 +284,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure quorum peers
         po.addLog( "Configuring quorum peers..." );
         sb = new StringBuilder();
-        for ( UUID uuid : config.getQuorumPeers() )
+        for ( String uuid : config.getQuorumPeers() )
         {
             ContainerHost tmp;
             try
@@ -307,7 +307,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // configure back up master
         po.addLog( "Configuring backup masters..." );
         sb = new StringBuilder();
-        for ( UUID uuid : config.getBackupMasters() )
+        for ( String uuid : config.getBackupMasters() )
         {
             ContainerHost tmp;
             try

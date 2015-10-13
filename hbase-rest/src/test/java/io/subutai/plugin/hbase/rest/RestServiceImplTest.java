@@ -12,11 +12,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -29,9 +29,12 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
-    @Mock HBase hBase;
-    @Mock HBaseConfig hBaseConfig;
-    @Mock Tracker tracker;
+    @Mock
+    HBase hBase;
+    @Mock
+    HBaseConfig hBaseConfig;
+    @Mock
+    Tracker tracker;
     private RestServiceImpl restService;
 
 

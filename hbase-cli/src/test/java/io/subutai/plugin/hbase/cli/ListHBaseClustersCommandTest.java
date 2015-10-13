@@ -6,9 +6,9 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.cli.ListHBaseClustersCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

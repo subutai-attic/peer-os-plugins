@@ -3,14 +3,6 @@ package io.subutai.plugin.hbase.cli;
 
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hbase.api.HBase;
-import io.subutai.plugin.hbase.api.HBaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +10,23 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hbase.api.HBase;
+import io.subutai.plugin.hbase.api.HBaseConfig;
+
 
 @Command( scope = "hbase", name = "check-cluster", description = "Checks cluster nodes' statutes" )
 public class CheckClusterCommand extends OsgiCommandSupport
 {
     private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Tracker tracker;
     private HBase hbaseManager;
     private EnvironmentManager environmentManager;
@@ -37,17 +39,14 @@ public class CheckClusterCommand extends OsgiCommandSupport
         Environment environment;
         try
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-            for ( UUID uuid : config.getAllNodes() )
+            for ( String id : config.getAllNodes() )
             {
 
-                String hostname = environment.getContainerHostById( uuid ).getHostname();
+                String hostname = environment.getContainerHostById( id ).getHostname();
                 UUID checkUUID = hbaseManager.checkNode( clusterName, hostname );
-                StringBuilder sb = new StringBuilder();
-                sb.append( "Status on " ).append( hostname ).append( ": \n" );
-                sb.append( waitUntilOperationFinish( tracker, checkUUID ) );
-                System.out.println( sb.toString() );
+                System.out.println( "Status on " + hostname + ": \n" + waitUntilOperationFinish( tracker, checkUUID ) );
             }
         }
         catch ( EnvironmentNotFoundException e )
@@ -88,12 +87,6 @@ public class CheckClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
@@ -109,12 +102,6 @@ public class CheckClusterCommand extends OsgiCommandSupport
     public void setHbaseManager( final HBase hbaseManager )
     {
         this.hbaseManager = hbaseManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

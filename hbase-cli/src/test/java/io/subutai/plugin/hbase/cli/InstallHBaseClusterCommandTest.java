@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
@@ -12,8 +13,6 @@ import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.cli.InstallHBaseClusterCommand;
-import io.subutai.plugin.hbase.cli.StartClusterCommand;
 
 import static java.util.UUID.randomUUID;
 
@@ -97,7 +96,7 @@ public class InstallHBaseClusterCommandTest
     @Test
     public void testDoExecute() throws Exception
     {
-        when( config.getEnvironmentId() ).thenReturn( randomUUID() );
+        when( config.getEnvironmentId() ).thenReturn( randomUUID().toString() );
         when( hadoop.getCluster( anyString() ) ).thenReturn( config );
         installHBaseClusterCommand.setHadoopManager( hadoop );
         installHBaseClusterCommand.setHbaseManager( hBase );

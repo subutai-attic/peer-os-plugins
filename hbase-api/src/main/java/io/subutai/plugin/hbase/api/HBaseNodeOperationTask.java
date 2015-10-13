@@ -3,7 +3,7 @@ package io.subutai.plugin.hbase.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeState;
@@ -14,15 +14,16 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class HBaseNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private NodeOperationType operationType;
     private HBase hbase;
     private NodeType nodeType;
 
 
-    public HBaseNodeOperationTask( HBase hbase, Tracker tracker, String clusterName, ContainerHost containerHost,
-                                   NodeOperationType operationType, NodeType nodeType,
-                                   io.subutai.plugin.common.api.CompleteEvent completeEvent, UUID trackID )
+    public HBaseNodeOperationTask( HBase hbase, Tracker tracker, String clusterName,
+                                   EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                                   NodeType nodeType, io.subutai.plugin.common.api.CompleteEvent completeEvent,
+                                   UUID trackID )
     {
         super( tracker, hbase.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.hbase = hbase;
