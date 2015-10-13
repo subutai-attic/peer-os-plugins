@@ -1,7 +1,10 @@
 package io.subutai.plugin.presto.impl.handler;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -18,11 +21,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.impl.PrestoImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl, PrestoClusterConfig>
@@ -84,22 +82,23 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Presto..." );
 
-        for ( UUID uuid : config.getAllNodes() )
+        for ( String nodeId : config.getAllNodes() )
         {
-            ContainerHost containerHost = null;
+            ContainerHost containerHost;
             try
             {
-                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                                       .getContainerHostById( uuid );
+                containerHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Container host not found", e );
                 trackerOperation.addLogFailed( "Container host not found" );
+                return;
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
             if ( containerHost.getHostname() == null )
@@ -129,25 +128,31 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     }
 
 
-    public void startNStopNCheckAllNodes( ClusterOperationType type ){
-        for ( UUID uuid : config.getAllNodes() ){
-            ContainerHost containerHost = null;
+    public void startNStopNCheckAllNodes( ClusterOperationType type )
+    {
+        for ( String nodeId : config.getAllNodes() )
+        {
+            ContainerHost containerHost;
             try
             {
-                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                                       .getContainerHostById( uuid );
+                containerHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( nodeId );
                 try
                 {
                     CommandResult result = null;
-                    switch ( type ){
+                    switch ( type )
+                    {
                         case START_ALL:
-                            result = commandUtil.execute( manager.getCommands().getStartCommand().daemon(), containerHost );
+                            result = commandUtil
+                                    .execute( manager.getCommands().getStartCommand().daemon(), containerHost );
                             break;
                         case STOP_ALL:
-                            result = commandUtil.execute( manager.getCommands().getStopCommand().daemon(), containerHost );
+                            result = commandUtil
+                                    .execute( manager.getCommands().getStopCommand().daemon(), containerHost );
                             break;
                         case STATUS_ALL:
-                            result = commandUtil.execute( manager.getCommands().getStatusCommand().daemon(), containerHost );
+                            result = commandUtil
+                                    .execute( manager.getCommands().getStatusCommand().daemon(), containerHost );
                             break;
                     }
                     NodeOperationHanler.logStatusResults( trackerOperation, result );
@@ -164,12 +169,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
         }
     }
-
 
 
     @Override

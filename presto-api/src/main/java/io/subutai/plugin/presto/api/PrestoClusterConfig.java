@@ -3,7 +3,6 @@ package io.subutai.plugin.presto.api;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -13,15 +12,14 @@ public class PrestoClusterConfig implements ConfigBase
 {
 
     public static final String PRODUCT_KEY = "Presto";
-    public static final String TEMPLATE_NAME = "presto";
     public static final String PRODUCT_PACKAGE = ( Common.PACKAGE_PREFIX + PRODUCT_KEY ).toLowerCase();
 
     private String clusterName = "";
     // over-Hadoop params
     private String hadoopClusterName = "";
-    private Set<UUID> workers = new HashSet<>();
-    private UUID coordinatorNode;
-    private UUID environmentId;
+    private Set<String> workers = new HashSet<>();
+    private String coordinatorNode;
+    private String environmentId;
     private boolean autoScaling;
 
 
@@ -76,33 +74,33 @@ public class PrestoClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getWorkers()
+    public Set<String> getWorkers()
     {
         return workers;
     }
 
 
-    public void setWorkers( Set<UUID> workers )
+    public void setWorkers( Set<String> workers )
     {
         this.workers = workers;
     }
 
 
-    public UUID getCoordinatorNode()
+    public String getCoordinatorNode()
     {
         return coordinatorNode;
     }
 
 
-    public void setCoordinatorNode( UUID coordinatorNode )
+    public void setCoordinatorNode( String coordinatorNode )
     {
         this.coordinatorNode = coordinatorNode;
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = new HashSet<>();
+        Set<String> allNodes = new HashSet<>();
         if ( workers != null )
         {
             allNodes.addAll( workers );
@@ -123,13 +121,13 @@ public class PrestoClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }

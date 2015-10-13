@@ -7,6 +7,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -14,9 +17,6 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class RestServiceImpl implements RestService
@@ -69,12 +69,12 @@ public class RestServiceImpl implements RestService
         PrestoClusterConfig config = new PrestoClusterConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-        config.setCoordinatorNode( UUID.fromString( masterNode ) );
+        config.setCoordinatorNode( masterNode );
 
         String[] arr = workers.replaceAll( "\\s+", "" ).split( "," );
         for ( String node : arr )
         {
-            config.getWorkers().add( UUID.fromString( node ) );
+            config.getWorkers().add( node );
         }
 
         UUID uuid = prestoManager.installCluster( config );
@@ -230,7 +230,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
-        String message ="enabled";
+        String message = "enabled";
         PrestoClusterConfig config = prestoManager.getCluster( clusterName );
         config.setAutoScaling( scale );
         try
@@ -242,12 +242,12 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "Auto scale cannot set successfully" ).build();
         }
-        if( scale == false )
+        if ( !scale )
         {
             message = "disabled";
         }
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 
@@ -298,12 +298,6 @@ public class RestServiceImpl implements RestService
             }
         }
         return state;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

@@ -6,14 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.presto.api.Presto;
-import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,31 +13,38 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.presto.api.Presto;
+import io.subutai.plugin.presto.api.PrestoClusterConfig;
+
+
 /**
- * sample command :
- *      presto:install-cluster test \ {cluster name}
- *                             test \ { hadoop cluster name }
- *                             hadoop1 \ { coordinator }
- *                             [ hadoop1, hadoop2 ] \ { list of worker machines }
+ * sample command : presto:install-cluster test \ {cluster name} test \ { hadoop cluster name } hadoop1 \ { coordinator
+ * } [ hadoop1, hadoop2 ] \ { list of worker machines }
  */
-@Command(scope = "presto", name = "install-cluster", description = "Command to install Presto cluster")
+@Command( scope = "presto", name = "install-cluster", description = "Command to install Presto cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
 
-    @Argument(index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
-            multiValued = false)
-    String hadoopClusterName  = null;
+    @Argument( index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
+            multiValued = false )
+    String hadoopClusterName = null;
 
-    @Argument(index = 2, name = "coordinator", description = "The hostname of coordinator container", required = true,
-            multiValued = false)
+    @Argument( index = 2, name = "coordinator", description = "The hostname of coordinator container", required = true,
+            multiValued = false )
     String coordinator = null;
 
-    @Argument(index = 3, name = "workers", description = "The hostname list of worker nodes", required = true,
-            multiValued = false)
+    @Argument( index = 3, name = "workers", description = "The hostname list of worker nodes", required = true,
+            multiValued = false )
     String workers[] = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
@@ -59,15 +58,17 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         try
         {
-            Environment environment = environmentManager.findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+            Environment environment = environmentManager
+                    .loadEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
             try
             {
                 PrestoClusterConfig config = new PrestoClusterConfig();
                 config.setClusterName( clusterName );
                 config.setHadoopClusterName( hadoopClusterName );
                 config.setCoordinatorNode( environment.getContainerHostByHostname( coordinator ).getId() );
-                Set<UUID> workerUUIS = new HashSet<>();
-                for ( String hostname : workers ){
+                Set<String> workerUUIS = new HashSet<>();
+                for ( String hostname : workers )
+                {
                     workerUUIS.add( environment.getContainerHostByHostname( hostname ).getId() );
                 }
                 config.setWorkers( workerUUIS );
@@ -118,21 +119,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

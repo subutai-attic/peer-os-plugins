@@ -9,25 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.presto.api.NodeOperationTask;
-import io.subutai.plugin.presto.api.Presto;
-import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +30,26 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.presto.api.NodeOperationTask;
+import io.subutai.plugin.presto.api.Presto;
+import io.subutai.plugin.presto.api.PrestoClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -314,15 +315,15 @@ public class Manager
                     HadoopClusterConfig info = hadoop.getCluster( hn );
                     if ( info != null )
                     {
-                        List<UUID> availableNodes = info.getAllNodes();
+                        List<String> availableNodes = info.getAllNodes();
                         availableNodes.removeAll( config.getAllNodes() );
 
                         if ( !CollectionUtil.isCollectionEmpty( availableNodes ) )
                         {
-                            Set<ContainerHost> set = null;
+                            Set<EnvironmentContainerHost> set = null;
                             try
                             {
-                                set = environmentManager.findEnvironment( info.getEnvironmentId() )
+                                set = environmentManager.loadEnvironment( info.getEnvironmentId() )
                                                         .getContainerHostsByIds( Sets.newHashSet( availableNodes ) );
                             }
                             catch ( ContainerHostNotFoundException e )
@@ -331,8 +332,7 @@ public class Manager
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
-                                LOGGER.error( "Error getting environment by id: " + info.getEnvironmentId().toString(),
-                                        e );
+                                LOGGER.error( "Error getting environment by id: " + info.getEnvironmentId(), e );
                                 return;
                             }
                             AddNodeWindow addNodeWindow =
@@ -408,12 +408,14 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> workers, final ContainerHost coordinator )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> workers,
+                                final EnvironmentContainerHost coordinator )
     {
         table.removeAllItems();
 
-        if ( ! workers.isEmpty() ){
-            for ( final ContainerHost node : workers )
+        if ( !workers.isEmpty() )
+        {
+            for ( final EnvironmentContainerHost node : workers )
             {
                 final Label resultHolder = new Label();
                 resultHolder.setId( node.getIpByInterfaceName( "eth0" ) + "-prestoResult" );
@@ -440,8 +442,8 @@ public class Manager
                 addGivenComponents( availableOperations, checkBtn, startBtn, stopBtn, destroyBtn );
 
                 table.addItem( new Object[] {
-                        node.getHostname(), node.getIpByInterfaceName( "eth0" ), checkIfCoordinator( node ), resultHolder,
-                        availableOperations
+                        node.getHostname(), node.getIpByInterfaceName( "eth0" ), checkIfCoordinator( node ),
+                        resultHolder, availableOperations
                 }, null );
 
                 /** add click listeners to button */
@@ -503,44 +505,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToSetCoordinatorButton( final ContainerHost host, Button setCoordinatorBtn )
-    {
-        setCoordinatorBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent clickEvent )
-            {
-                ConfirmationDialog alert = new ConfirmationDialog(
-                        String.format( "Do you want to set %s as coordinator node?", host.getHostname() ), "Yes",
-                        "No" );
-                alert.getOk().addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent clickEvent )
-                    {
-                        UUID trackID = presto.uninstallCluster( config.getClusterName() );
-
-                        ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
-                                PrestoClusterConfig.PRODUCT_KEY );
-
-                        window.getWindow().addCloseListener( new Window.CloseListener()
-                        {
-                            @Override
-                            public void windowClose( Window.CloseEvent closeEvent )
-                            {
-                                refreshClustersInfo();
-                            }
-                        } );
-                        contentRoot.getUI().addWindow( window.getWindow() );
-                    }
-                } );
-                contentRoot.getUI().addWindow( alert.getAlert() );
-            }
-        } );
-    }
-
-
-    public void addClickListenerToDestroyButton( final ContainerHost node, Button destroyBtn )
+    public void addClickListenerToDestroyButton( final EnvironmentContainerHost node, Button destroyBtn )
     {
         destroyBtn.addClickListener( new Button.ClickListener()
         {
@@ -574,7 +539,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToStartButtons( final ContainerHost host, final Button... buttons )
+    public void addClickListenerToStartButtons( final EnvironmentContainerHost host, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -602,7 +567,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToStopButtons( final ContainerHost host, final Button... buttons )
+    public void addClickListenerToStopButtons( final EnvironmentContainerHost host, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -630,8 +595,8 @@ public class Manager
     }
 
 
-    public void addClickListenerToMasterCheckButton( final ContainerHost coordinator, final Label resultHolder,
-                                                     final Button... buttons )
+    public void addClickListenerToMasterCheckButton( final EnvironmentContainerHost coordinator,
+                                                     final Label resultHolder, final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -669,7 +634,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToSlavesCheckButton( final ContainerHost host, final Label resultHolder,
+    public void addClickListenerToSlavesCheckButton( final EnvironmentContainerHost host, final Label resultHolder,
                                                      final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -776,11 +741,12 @@ public class Manager
                 if ( event.isDoubleClick() )
                 {
                     String containerId =
-                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION ).getValue();
-                    ContainerHost containerHost = null;
+                            ( String ) table.getItem( event.getItemId() ).getItemProperty( Manager.HOST_COLUMN_CAPTION )
+                                            .getValue();
+                    EnvironmentContainerHost containerHost = null;
                     try
                     {
-                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                        containerHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                           .getContainerHostByHostname( containerId );
                     }
                     catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -802,29 +768,8 @@ public class Manager
         };
     }
 
-    public void disableOREnableAllButtonsOnTable( Table table, boolean value )
-    {
-        if ( table != null )
-        {
-            for ( Object o : table.getItemIds() )
-            {
-                int rowId = ( Integer ) o;
-                Item row = table.getItem( rowId );
-                HorizontalLayout availableOperationsLayout =
-                        ( HorizontalLayout ) ( row.getItemProperty( AVAILABLE_OPERATIONS_COLUMN_CAPTION ).getValue() );
-                if ( availableOperationsLayout != null )
-                {
-                    for ( Component component : availableOperationsLayout )
-                    {
-                        component.setEnabled( value );
-                    }
-                }
-            }
-        }
-    }
 
-
-    public String checkIfCoordinator( ContainerHost node )
+    public String checkIfCoordinator( EnvironmentContainerHost node )
     {
         if ( config.getCoordinatorNode().equals( node.getId() ) )
         {
@@ -838,20 +783,21 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
             try
             {
-                Set<ContainerHost> workerNodes = new HashSet<>();
-                if ( ! config.getWorkers().isEmpty() ){
+                Set<EnvironmentContainerHost> workerNodes = new HashSet<>();
+                if ( !config.getWorkers().isEmpty() )
+                {
                     workerNodes.addAll( environment.getContainerHostsByIds( config.getWorkers() ) );
                 }
                 populateTable( nodesTable, workerNodes,

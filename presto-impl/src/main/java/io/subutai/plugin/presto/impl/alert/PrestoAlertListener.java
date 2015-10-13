@@ -3,25 +3,24 @@ package io.subutai.plugin.presto.impl.alert;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.impl.PrestoImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -34,7 +33,7 @@ public class PrestoAlertListener implements AlertListener
     public static final String PRESTO_ALERT_LISTENER = "PRESTO_ALERT_LISTENER";
     private PrestoImpl presto;
     private CommandUtil commandUtil = new CommandUtil();
-    private static double MAX_RAM_QUOTA_MB;
+    private static double MAX_RAM_QUOTA_MB = 3072;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 100;
     private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
@@ -76,17 +75,17 @@ public class PrestoAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = presto.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        Environment environment = presto.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert's source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getId().equals( metric.getHostId() ) )
             {
@@ -169,10 +168,10 @@ public class PrestoAlertListener implements AlertListener
                     // if available quota on resource host is greater than 10 % of calculated increase amount.
                     // increase quota, otherwise scale horizontally
                     int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if( MAX_RAM_QUOTA_MB > newRamQuota )
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
                     {
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.",
-                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
                     }
                     //we can increase RAM quota
                     sourceHost.setRamQuota( newRamQuota );
@@ -180,7 +179,7 @@ public class PrestoAlertListener implements AlertListener
                     quotaIncreased = true;
                 }
             }
-            else if ( isCpuStressed )
+            else
             {
 
                 //read current CPU quota
@@ -190,8 +189,8 @@ public class PrestoAlertListener implements AlertListener
                 {
                     //we can increase CPU quota
                     int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.",
-                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
                     sourceHost.setCpuQuota( newCpuQuota );
 
                     quotaIncreased = true;
@@ -215,7 +214,7 @@ public class PrestoAlertListener implements AlertListener
             }
 
             boolean isCoordinator = sourceHost.getId().equals( targetCluster.getCoordinatorNode() );
-            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
+            List<String> availableNodes = hadoopClusterConfig.getAllNodes();
             availableNodes.removeAll( targetCluster.getAllNodes() );
 
             //no available nodes or coordinator node is stressed -> notify user
@@ -227,9 +226,9 @@ public class PrestoAlertListener implements AlertListener
             //add first available node
             else
             {
-                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeId = availableNodes.iterator().next();
                 String newNodeHostName = null;
-                for ( ContainerHost containerHost : containers )
+                for ( EnvironmentContainerHost containerHost : containers )
                 {
                     if ( containerHost.getId().equals( newNodeId ) )
                     {

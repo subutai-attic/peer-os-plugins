@@ -4,16 +4,6 @@ package io.subutai.plugin.presto.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.presto.api.Presto;
-import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,33 +11,46 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.presto.api.Presto;
+import io.subutai.plugin.presto.api.PrestoClusterConfig;
+
+
 /**
- * sample command :
- *      presto:check-cluster test \ {cluster name}
+ * sample command : presto:check-cluster test \ {cluster name}
  */
-@Command(scope = "presto", name = "check-cluster", description = "Command to check Presto cluster")
+@Command( scope = "presto", name = "check-cluster", description = "Command to check Presto cluster" )
 public class CheckAllNodesCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Presto prestoManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
 
+
     protected Object doExecute() throws IOException
     {
         System.out.println( "Checking cluster nodes ... " );
         PrestoClusterConfig config = prestoManager.getCluster( clusterName );
-        for ( UUID uuid : config.getAllNodes() ){
+        for ( String id : config.getAllNodes() )
+        {
             try
             {
-                Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 try
                 {
-                    String hostname = environment.getContainerHostById( uuid ).getHostname();
+                    String hostname = environment.getContainerHostById( id ).getHostname();
                     UUID checkUUID = prestoManager.checkNode( clusterName, hostname );
                     System.out.println( hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
                 }
@@ -67,7 +70,8 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     }
 
 
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         NodeState state = NodeState.UNKNOWN;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -126,12 +130,6 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

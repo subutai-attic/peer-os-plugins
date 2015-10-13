@@ -7,16 +7,16 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.server.ui.api.PortalModule;
-
-import com.vaadin.ui.Component;
 
 
 public class PrestoPortalModule implements PortalModule
@@ -30,7 +30,7 @@ public class PrestoPortalModule implements PortalModule
     private final EnvironmentManager environmentManager;
 
 
-    public PrestoPortalModule( Presto presto, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
+    public PrestoPortalModule( Presto presto, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.presto = presto;
         this.hadoop = hadoop;

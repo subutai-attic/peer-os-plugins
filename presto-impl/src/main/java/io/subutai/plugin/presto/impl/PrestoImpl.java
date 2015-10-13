@@ -6,34 +6,34 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import io.subutai.plugin.presto.impl.handler.NodeOperationHanler;
 import io.subutai.plugin.presto.impl.alert.PrestoAlertListener;
 import io.subutai.plugin.presto.impl.handler.ClusterOperationHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.presto.impl.handler.NodeOperationHanler;
 
 
 public class PrestoImpl implements Presto, EnvironmentEventListener
@@ -80,7 +80,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         monitor.activateMonitoring( host, alertSettings );
     }
@@ -318,16 +318,16 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         // not need
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Presto environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Presto environment event: Container destroyed: %s", containerId ) );
         List<PrestoClusterConfig> clusterConfigs = getClusters();
         for ( final PrestoClusterConfig clusterConfig : clusterConfigs )
         {
@@ -336,12 +336,12 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
                 LOG.info( String.format( "Presto environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                if ( clusterConfig.getAllNodes().contains( containerId ) )
                 {
                     LOG.info( String.format( "Hive environment event: Before: %s", clusterConfig ) );
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getWorkers() ) )
                     {
-                        clusterConfig.getWorkers().remove( uuid );
+                        clusterConfig.getWorkers().remove( containerId );
                     }
 
                     try
@@ -361,14 +361,14 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
-        LOG.info( String.format( "Presto environment event: Environment destroyed: %s", uuid ) );
+        LOG.info( String.format( "Presto environment event: Environment destroyed: %s", envId ) );
 
         List<PrestoClusterConfig> clusterConfigs = getClusters();
         for ( final PrestoClusterConfig clusterConfig : clusterConfigs )
         {
-            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            if ( clusterConfig.getEnvironmentId().equals( envId ) )
             {
                 LOG.info( String.format( "Presto environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
@@ -376,7 +376,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info( String.format( "Presto environment event: Cluster removed",
+                    LOG.info( String.format( "Presto environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )

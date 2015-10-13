@@ -4,26 +4,26 @@ package io.subutai.plugin.presto.cli;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
- * sample command :
- *      presto:start-cluster test \ {cluster name}
+ * sample command : presto:start-cluster test \ {cluster name}
  */
-@Command(scope = "presto", name = "start-cluster", description = "Command to start Prsto cluster")
+@Command( scope = "presto", name = "start-cluster", description = "Command to start Prsto cluster" )
 public class StartAllNodesCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Presto prestoManager;
     private Tracker tracker;
@@ -33,12 +33,13 @@ public class StartAllNodesCommand extends OsgiCommandSupport
     {
         System.out.println( "Starting " + clusterName + " presto cluster..." );
         UUID uuid = prestoManager.startAllNodes( clusterName );
-        System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) ) ;
+        System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 
 
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -60,7 +61,7 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 90  * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
             {
                 break;
             }

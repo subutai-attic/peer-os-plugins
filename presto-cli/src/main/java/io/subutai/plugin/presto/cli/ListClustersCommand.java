@@ -3,20 +3,21 @@ package io.subutai.plugin.presto.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.presto.api.Presto;
-import io.subutai.plugin.presto.api.PrestoClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.plugin.presto.api.Presto;
+import io.subutai.plugin.presto.api.PrestoClusterConfig;
+
+
 /**
- * sample command :
- *      presto:list-clusters
+ * sample command : presto:list-clusters
  */
 @Command( scope = "presto", name = "list-clusters", description = "Lists Presto clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
     private Presto prestoManager;
+
 
     protected Object doExecute()
     {
@@ -35,6 +36,7 @@ public class ListClustersCommand extends OsgiCommandSupport
         return null;
     }
 
+
     public Presto getPrestoManager()
     {
         return prestoManager;
@@ -45,5 +47,4 @@ public class ListClustersCommand extends OsgiCommandSupport
     {
         this.prestoManager = prestoManager;
     }
-
 }

@@ -4,6 +4,12 @@ package io.subutai.plugin.presto.impl.handler;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
@@ -11,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
@@ -21,19 +27,13 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import io.subutai.plugin.presto.impl.SetupHelper;
 import io.subutai.plugin.presto.impl.PrestoImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import io.subutai.plugin.presto.impl.SetupHelper;
 
 
 public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, PrestoClusterConfig>
 {
-    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHanler.class);
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHanler.class );
     private String clusterName;
     private String hostName;
     private NodeOperationType operationType;
@@ -63,21 +63,21 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
         Iterator iterator = environment.getContainerHosts().iterator();
-        ContainerHost host = null;
+        EnvironmentContainerHost host = null;
         while ( iterator.hasNext() )
         {
-            host = ( ContainerHost ) iterator.next();
+            host = ( EnvironmentContainerHost ) iterator.next();
             if ( host.getHostname().equals( hostName ) )
             {
                 break;
@@ -89,7 +89,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostName ) );
             return;
         }
-        ContainerHost coordinator = null;
+        EnvironmentContainerHost coordinator;
         try
         {
             coordinator = environment.getContainerHostById( config.getCoordinatorNode() );
@@ -98,6 +98,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         {
             LOG.error( "Container host not found", e );
             trackerOperation.addLogFailed( "Container host not found" );
+            return;
         }
         if ( !coordinator.isConnected() )
         {
@@ -139,12 +140,12 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     }
 
 
-    private CommandResult installProductOnNode( ContainerHost host )
+    private CommandResult installProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try
         {
-            if ( ! host.isConnected() )
+            if ( !host.isConnected() )
             {
                 throw new ClusterSetupException( "New node is not connected" );
             }
@@ -160,17 +161,18 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                 skipInstall = true;
                 trackerOperation.addLog( "Node already has Presto installed" );
             }
-            else if ( ! result.getStdOut().contains( hadoopPackage ) )
+            else if ( !result.getStdOut().contains( hadoopPackage ) )
             {
                 throw new ClusterSetupException( "Node has no Hadoop installation" );
             }
 
-            if ( ! skipInstall )
+            if ( !skipInstall )
             {
                 trackerOperation.addLog( "Installing Presto..." );
                 result = commandUtil.execute( manager.getCommands().getInstallCommand(), host );
-                CommandResult checkResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
-                if ( result.hasSucceeded() && checkResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ))
+                CommandResult checkResult =
+                        commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
+                if ( result.hasSucceeded() && checkResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) )
                 {
                     config.getWorkers().add( host.getId() );
                     manager.saveConfig( config );
@@ -185,26 +187,29 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
                 }
             }
 
-            Set<ContainerHost> set = Sets.newHashSet( host );
+            Set<EnvironmentContainerHost> set = Sets.newHashSet( host );
             SetupHelper sh = new SetupHelper( trackerOperation, manager, config );
             sh.configureAsWorker( set );
 
             // check if coordinator is already running,
             // then newly added node should be started automatically.
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
                 try
                 {
-                    ContainerHost coordinator = environment.getContainerHostById( config.getCoordinatorNode() );
+                    EnvironmentContainerHost coordinator =
+                            environment.getContainerHostById( config.getCoordinatorNode() );
                     RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusCommand();
                     result = commandUtil.execute( checkMasterIsRunning, coordinator );
-                    if ( result.hasSucceeded() ){
+                    if ( result.hasSucceeded() )
+                    {
                         // if Presto service is running on container,
                         // command output will be smt like this: "Running as {pid}"
                         // else it returns "Not running"
-                        if ( ! result.getStdOut().toLowerCase().contains( "not running" ) ){
+                        if ( !result.getStdOut().toLowerCase().contains( "not running" ) )
+                        {
                             sh.startNodes( set );
                         }
                     }
@@ -216,7 +221,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             }
 
 
@@ -240,7 +245,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     }
 
 
-    private CommandResult uninstallProductOnNode( ContainerHost host )
+    private CommandResult uninstallProductOnNode( EnvironmentContainerHost host )
     {
         CommandResult result = null;
         try

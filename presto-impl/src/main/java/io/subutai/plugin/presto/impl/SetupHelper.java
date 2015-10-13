@@ -3,19 +3,20 @@ package io.subutai.plugin.presto.impl;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class SetupHelper
@@ -52,7 +53,7 @@ public class SetupHelper
 
         try
         {
-            for ( ContainerHost host : environment.getContainerHostsByIds( config.getWorkers() ) )
+            for ( EnvironmentContainerHost host : environment.getContainerHostsByIds( config.getWorkers() ) )
             {
                 if ( !host.isConnected() )
                 {
@@ -68,7 +69,7 @@ public class SetupHelper
     }
 
 
-    public void configureAsCoordinator( ContainerHost host, Environment environment )
+    public void configureAsCoordinator( EnvironmentContainerHost host, Environment environment )
             throws ClusterSetupException, CommandException
     {
         po.addLog( "Configuring coordinator..." );
@@ -79,11 +80,11 @@ public class SetupHelper
     }
 
 
-    public void configureAsWorker( Set<ContainerHost> workerHosts ) throws ClusterSetupException
+    public void configureAsWorker( Set<EnvironmentContainerHost> workerHosts ) throws ClusterSetupException
     {
         po.addLog( "Configuring worker(s)..." );
 
-        for ( ContainerHost host : workerHosts )
+        for ( EnvironmentContainerHost host : workerHosts )
         {
             try
             {
@@ -99,10 +100,10 @@ public class SetupHelper
     }
 
 
-    public void startNodes( final Set<ContainerHost> set ) throws ClusterSetupException
+    public void startNodes( final Set<EnvironmentContainerHost> set ) throws ClusterSetupException
     {
         po.addLog( "Starting Presto node(s)..." );
-        for ( ContainerHost host : set )
+        for ( EnvironmentContainerHost host : set )
         {
             try
             {
@@ -119,7 +120,7 @@ public class SetupHelper
     }
 
 
-    public void processResult( ContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
 
         if ( !result.hasSucceeded() )
@@ -130,7 +131,7 @@ public class SetupHelper
     }
 
 
-    public ContainerHost getCoordinatorHost( Environment environment )
+    public EnvironmentContainerHost getCoordinatorHost( Environment environment )
     {
         try
         {
@@ -144,21 +145,22 @@ public class SetupHelper
         return null;
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
         {
-            statusResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand() , host);
+            statusResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) ) )
         {
-            po.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

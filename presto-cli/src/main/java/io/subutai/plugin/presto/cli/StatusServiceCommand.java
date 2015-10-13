@@ -4,18 +4,17 @@ package io.subutai.plugin.presto.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.presto.api.Presto;
-import io.subutai.plugin.presto.api.PrestoClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.presto.api.Presto;
+import io.subutai.plugin.presto.api.PrestoClusterConfig;
+
+
 /**
- * sample command :
- *      presto:check-node test \ {cluster name}
- *                        hadoop1 \ { container hostname }
+ * sample command : presto:check-node test \ {cluster name} hadoop1 \ { container hostname }
  */
 @Command( scope = "presto", name = "check-node", description = "Command to check Cassandra service" )
 public class StatusServiceCommand extends OsgiCommandSupport
@@ -29,6 +28,7 @@ public class StatusServiceCommand extends OsgiCommandSupport
     String hostname = null;
     private Presto prestoManager;
     private Tracker tracker;
+
 
     protected Object doExecute() throws IOException
     {

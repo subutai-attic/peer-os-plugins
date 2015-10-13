@@ -4,33 +4,34 @@ package io.subutai.plugin.presto.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.presto.api.Presto;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.presto.api.Presto;
+
+
 /**
- * sample command :
- *      presto:stop-cluster test \ {cluster name}
+ * sample command : presto:stop-cluster test \ {cluster name}
  */
-@Command(scope = "presto", name = "stop-cluster", description = "Command to stop Presto cluster")
+@Command( scope = "presto", name = "stop-cluster", description = "Command to stop Presto cluster" )
 public class StopAllNodesCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Presto prestoManager;
     private Tracker tracker;
+
 
     protected Object doExecute() throws IOException
     {
         System.out.println( "Stopping " + clusterName + " presto cluster..." );
         UUID uuid = prestoManager.stopAllNodes( clusterName );
-        System.out.println( "Stop cluster operation is " +
-                StartAllNodesCommand.waitUntilOperationFinish( tracker, uuid ) ) ;
+        System.out.println(
+                "Stop cluster operation is " + StartAllNodesCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 

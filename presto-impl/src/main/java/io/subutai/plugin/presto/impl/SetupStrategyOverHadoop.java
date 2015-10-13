@@ -3,7 +3,11 @@ package io.subutai.plugin.presto.impl;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -12,7 +16,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.metric.api.MonitorException;
@@ -21,18 +25,15 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
 
 
 public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetupStrategy
 {
     private static final Logger LOG = LoggerFactory.getLogger( SetupStrategyOverHadoop.class );
     private Environment environment;
-    private Set<ContainerHost> nodesToInstallPresto;
+    private Set<EnvironmentContainerHost> nodesToInstallPresto;
     CommandUtil commandUtil;
+
 
     public SetupStrategyOverHadoop( TrackerOperation po, PrestoImpl manager, PrestoClusterConfig config )
     {
@@ -82,11 +83,11 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId(), e );
             return;
         }
 
@@ -102,12 +103,12 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
 
         //check installed packages
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
-        for ( UUID uuid : config.getAllNodes() )
+        for ( String nodeId : config.getAllNodes() )
         {
-            ContainerHost node = null;
+            EnvironmentContainerHost node = null;
             try
             {
-                node = environment.getContainerHostById( uuid );
+                node = environment.getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -116,13 +117,13 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
             if ( node == null )
             {
-                throw new ClusterSetupException( String.format( "Node %s not found in environment", uuid ) );
+                throw new ClusterSetupException( String.format( "Node %s not found in environment", nodeId ) );
             }
 
             //check if node belongs to some existing presto cluster
             for ( PrestoClusterConfig cluster : prestoClusters )
             {
-                if ( cluster.getAllNodes().contains( uuid ) )
+                if ( cluster.getAllNodes().contains( nodeId ) )
                 {
                     throw new ClusterSetupException(
                             String.format( "Node %s already belongs to Presto cluster %s", node.getHostname(),
@@ -153,7 +154,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         {
             //install presto
             po.addLog( "Installing Presto..." );
-            for ( ContainerHost node : nodesToInstallPresto )
+            for ( EnvironmentContainerHost node : nodesToInstallPresto )
             {
                 CommandResult result = commandUtil.execute( manager.getCommands().getInstallCommand(), node );
                 checkInstalled( node, result );
