@@ -7,13 +7,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -21,11 +27,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class OverHadoopSetupStrategy implements ClusterSetupStrategy
@@ -36,8 +37,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     private final TrackerOperation po;
     private final OozieImpl manager;
     private Environment environment;
-    private ContainerHost server;
-    private Set<ContainerHost> clients;
+    private EnvironmentContainerHost server;
+    private Set<EnvironmentContainerHost> clients;
 
 
     public OverHadoopSetupStrategy( final OozieClusterConfig oozieClusterConfig, final TrackerOperation po,
@@ -88,11 +89,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId(), e );
         }
 
         if ( environment == null )
@@ -103,7 +104,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         po.addLog( "Checking prerequisites..." );
 
-        Set<ContainerHost> oozieNodes = null;
+        Set<EnvironmentContainerHost> oozieNodes;
         try
         {
             oozieNodes = environment.getContainerHostsByIds( oozieClusterConfig.getAllNodes() );
@@ -112,6 +113,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         {
             LOG.error( "Container hosts not found", e );
             po.addLogFailed( "Container hosts not found" );
+            throw new ClusterSetupException( e );
         }
         if ( oozieNodes.size() < oozieClusterConfig.getAllNodes().size() )
         {
@@ -121,7 +123,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         }
 
 
-        for ( ContainerHost oozieNode : oozieNodes )
+        for ( EnvironmentContainerHost oozieNode : oozieNodes )
         {
             if ( !oozieNode.isConnected() )
             {
@@ -158,11 +160,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
         }
 
-        Iterator<ContainerHost> iterator = clients.iterator();
+        Iterator<EnvironmentContainerHost> iterator = clients.iterator();
         int nodeIndex = 0;
         while ( iterator.hasNext() )
         {
-            ContainerHost host = iterator.next();
+            EnvironmentContainerHost host = iterator.next();
             CommandResult result = commandResultList.get( nodeIndex++ );
 
             if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_CLIENT ) )
@@ -181,7 +183,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         // CHECKING for oozie - server
         //======================================================================================================================
         po.addLog( "Configuring cluster..." );
-        Set<ContainerHost> oozieServerNodes = new HashSet<>();
+        Set<EnvironmentContainerHost> oozieServerNodes = new HashSet<>();
         oozieServerNodes.add( server );
 
         //check installed subutai packages
@@ -193,11 +195,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
         }
 
-        Iterator<ContainerHost> iterator2 = oozieServerNodes.iterator();
+        Iterator<EnvironmentContainerHost> iterator2 = oozieServerNodes.iterator();
         int nodeIndex2 = 0;
         while ( iterator2.hasNext() )
         {
-            ContainerHost host = iterator2.next();
+            EnvironmentContainerHost host = iterator2.next();
             CommandResult result = commandResultList2.get( nodeIndex2++ );
 
             if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_SERVER ) )
@@ -210,8 +212,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         po.addLog( String.format( "Installing Oozie Server and Oozie Client..." ) );
 
-        List<ContainerHost> servers = new ArrayList<>( oozieServerNodes );
-        List<ContainerHost> clientNodes = new ArrayList<>( clients );
+        List<EnvironmentContainerHost> servers = new ArrayList<>( oozieServerNodes );
+        List<EnvironmentContainerHost> clientNodes = new ArrayList<>( clients );
         //install
         commandResultList2 = runCommandOnContainers( Commands.make( CommandType.INSTALL_SERVER ), oozieServerNodes );
         checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
@@ -256,10 +258,10 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    private List<CommandResult> runCommandOnContainers( String command, final Set<ContainerHost> oozieNodes )
+    private List<CommandResult> runCommandOnContainers( String command, final Set<EnvironmentContainerHost> oozieNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
-        for ( ContainerHost containerHost : oozieNodes )
+        for ( EnvironmentContainerHost containerHost : oozieNodes )
         {
             try
             {
@@ -288,15 +290,15 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    public void checkInstalled( List<ContainerHost> hosts, List<CommandResult> resultList, String packageName )
-            throws ClusterSetupException
+    public void checkInstalled( List<EnvironmentContainerHost> hosts, List<CommandResult> resultList,
+                                String packageName ) throws ClusterSetupException
     {
         String okString = "install ok installed";
         boolean status = true;
         CommandResult currentResult = null;
-        ContainerHost currentContainer = null;
+        EnvironmentContainerHost currentContainer = null;
         //nodes which already oozie installed on.
-        List<ContainerHost> nodes = new ArrayList<>();
+        List<EnvironmentContainerHost> nodes = new ArrayList<>();
         for ( int i = 0; i < resultList.size(); i++ )
         {
             currentResult = resultList.get( i );
@@ -314,7 +316,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
             if ( !( resultList.get( i ).hasSucceeded() && statusResult.getStdOut().contains( okString ) ) )
             {
-                List<ContainerHost> node = new ArrayList<>();
+                List<EnvironmentContainerHost> node = new ArrayList<>();
                 node.add( currentContainer );
                 uninstallProductOnNode( node, packageName );
                 status = false;
@@ -333,12 +335,12 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    private void uninstallProductOnNode( List<ContainerHost> hosts, String packageName )
+    private void uninstallProductOnNode( List<EnvironmentContainerHost> hosts, String packageName )
     {
         RequestBuilder uninstallCommand = packageName.contains( "server" ) ? Commands.getUninstallServerCommand() :
                                           Commands.getUninstallClientsCommand();
 
-        for ( ContainerHost host : hosts )
+        for ( EnvironmentContainerHost host : hosts )
         {
             try
             {

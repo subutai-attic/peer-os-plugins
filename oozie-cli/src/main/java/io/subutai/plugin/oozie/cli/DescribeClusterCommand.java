@@ -1,20 +1,19 @@
 package io.subutai.plugin.oozie.cli;
 
 
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.oozie.api.Oozie;
-import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.oozie.api.Oozie;
+import io.subutai.plugin.oozie.api.OozieClusterConfig;
 
 
 /**
@@ -37,11 +36,11 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         OozieClusterConfig config = oozieManager.getCluster( clusterName );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( UUID containerId : config.getAllNodes() )
+            for ( String containerId : config.getAllNodes() )
             {
                 try
                 {
@@ -66,7 +65,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 e.printStackTrace();
             }
             sb.append( "Clients :" ).append( "\n" );
-            for ( UUID containerId : config.getClients() )
+            for ( String containerId : config.getClients() )
             {
                 try
                 {
@@ -100,12 +99,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     public void setOozieManager( final Oozie oozieManager )
     {
         this.oozieManager = oozieManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

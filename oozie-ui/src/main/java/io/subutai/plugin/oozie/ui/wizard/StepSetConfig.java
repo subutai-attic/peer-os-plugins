@@ -6,20 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.oozie.api.Oozie;
-import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
@@ -36,19 +22,25 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.oozie.api.OozieClusterConfig;
+
 
 public class StepSetConfig extends Panel
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger( StepSetConfig.class );
 
     public EnvironmentManager environmentManager;
-    private Set<ContainerHost> hosts = null;
     private Wizard wizard;
-    private Environment hadoopEnvironment;
 
 
-    public StepSetConfig( final Oozie oozie, final Hadoop hadoop, final Wizard wizard,
-                          final EnvironmentManager environmentManager ) throws EnvironmentNotFoundException
+    public StepSetConfig( final Wizard wizard, final EnvironmentManager environmentManager )
+            throws EnvironmentNotFoundException
     {
         this.environmentManager = environmentManager;
         this.wizard = wizard;
@@ -90,11 +82,11 @@ public class StepSetConfig extends Panel
         final HadoopClusterConfig hcc =
                 wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
 
-        hadoopEnvironment = environmentManager.findEnvironment( hcc.getEnvironmentId() );
+        final Environment hadoopEnvironment = environmentManager.loadEnvironment( hcc.getEnvironmentId() );
         final Set<ContainerHost> hadoopNodes = Sets.newHashSet();
         for ( ContainerHost host : hadoopEnvironment.getContainerHosts() )
         {
-            for ( UUID nodeId : filterNodes( hcc.getAllNodes() ) )
+            for ( String nodeId : filterNodes( hcc.getAllNodes() ) )
             {
                 try
                 {
@@ -162,20 +154,21 @@ public class StepSetConfig extends Panel
                     wizard.getConfig().setServer( containerID.getId() );
                 }
 
-                Set<UUID> containerIDs = new HashSet<>();
+                Set<String> containerIDs = new HashSet<>();
                 if ( !containerHosts.isEmpty() )
                 {
 
-                        for( ContainerHost host : containerHosts )
-                        {
-                            containerIDs.add( host.getId() );
-                        }
+                    for ( ContainerHost host : containerHosts )
+                    {
+                        containerIDs.add( host.getId() );
+                    }
 
                     wizard.getConfig().setClients( containerIDs );
                 }
 
                 if ( wizard.getConfig().getServer() == null )
                 {
+                    show( "Oozie server is not set" );
                 }
                 else if ( wizard.getConfig().getClients() != null && wizard.getConfig().getClients()
                                                                            .contains( wizard.getConfig().getServer() ) )
@@ -229,15 +222,15 @@ public class StepSetConfig extends Panel
 
 
     //exclude hadoop nodes that are already in another oozie cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> oozieNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> oozieNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( OozieClusterConfig oozieConfig : wizard.getOozieManager().getClusters() )
         {
             oozieNodes.addAll( oozieConfig.getAllNodes() );
         }
-        for ( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
             if ( !oozieNodes.contains( node ) )
             {

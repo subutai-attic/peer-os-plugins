@@ -19,22 +19,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.impl.Commands;
-import io.subutai.plugin.oozie.impl.OozieImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,7 +46,7 @@ import static org.mockito.Mockito.when;
 public class OozieImplTest
 {
     private OozieImpl oozieImpl;
-    private UUID uuid;
+    private String id;
     @Mock
     OozieClusterConfig oozieClusterConfig;
     @Mock
@@ -61,7 +60,7 @@ public class OozieImplTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -95,10 +94,10 @@ public class OozieImplTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         // mock InstallClusterHandler
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( OozieClusterConfig.PRODUCT_KEY, "test", OozieClusterConfig.class ) )
                 .thenReturn( oozieClusterConfig );
 
@@ -199,22 +198,20 @@ public class OozieImplTest
     public void testInstallCluster() throws Exception
     {
         when( oozieClusterConfig.getClusterName() ).thenReturn( "test" );
-        UUID id = oozieImpl.installCluster( oozieClusterConfig );
+        oozieImpl.installCluster( oozieClusterConfig );
 
         // assertions
         assertNotNull( oozieImpl.installCluster( oozieClusterConfig ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        UUID id = oozieImpl.uninstallCluster( "test" );
+        oozieImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( oozieImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -248,44 +245,40 @@ public class OozieImplTest
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = oozieImpl.addNode( "test", "test" );
+        oozieImpl.addNode( "test", "test" );
 
         // assertions
         assertNotNull( oozieImpl.addNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStartNode() throws Exception
     {
-        UUID id = oozieImpl.startNode( "test", "test" );
+        oozieImpl.startNode( "test", "test" );
 
         // assertions
         assertNotNull( oozieImpl.startNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStopNode() throws Exception
     {
-        UUID id = oozieImpl.stopNode( "test", "test" );
+        oozieImpl.stopNode( "test", "test" );
 
         // assertions
         assertNotNull( oozieImpl.stopNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = oozieImpl.checkNode( "test", "test" );
+        oozieImpl.checkNode( "test", "test" );
 
         // assertions
         assertNotNull( oozieImpl.checkNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -302,11 +295,10 @@ public class OozieImplTest
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = oozieImpl.destroyNode( "test", "test" );
+        oozieImpl.destroyNode( "test", "test" );
 
         // assertions
         assertNotNull( oozieImpl.destroyNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -348,7 +340,7 @@ public class OozieImplTest
     @Test
     public void testOnEnvironmentGrown()
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
 
         oozieImpl.onEnvironmentGrown( environment, mySet );
@@ -398,15 +390,15 @@ public class OozieImplTest
         myList.add( oozieClusterConfig );
         when( pluginDAO.getInfo( OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class ) ).thenReturn( myList );
         oozieImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
 
-        oozieImpl.onContainerDestroyed( environment, uuid );
+        oozieImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -417,15 +409,15 @@ public class OozieImplTest
         myList.add( oozieClusterConfig );
         when( pluginDAO.getInfo( OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class ) ).thenReturn( myList );
         oozieImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( false );
 
-        oozieImpl.onContainerDestroyed( environment, uuid );
+        oozieImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -436,11 +428,12 @@ public class OozieImplTest
         myList.add( oozieClusterConfig );
         when( pluginDAO.getInfo( OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class ) ).thenReturn( myList );
         oozieImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
 
-        oozieImpl.onEnvironmentDestroyed( uuid );
+        oozieImpl.onEnvironmentDestroyed( id );
     }
+
 
     @Test
     public void testOnEnvironmentDestroyed()
@@ -449,11 +442,10 @@ public class OozieImplTest
         myList.add( oozieClusterConfig );
         when( pluginDAO.getInfo( OozieClusterConfig.PRODUCT_KEY, OozieClusterConfig.class ) ).thenReturn( myList );
         oozieImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        when( pluginDAO.deleteInfo( anyString(), anyString()) ).thenReturn( true );
+        when( environment.getId() ).thenReturn( id );
+        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+        when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
-        oozieImpl.onEnvironmentDestroyed( uuid );
+        oozieImpl.onEnvironmentDestroyed( id );
     }
-
 }

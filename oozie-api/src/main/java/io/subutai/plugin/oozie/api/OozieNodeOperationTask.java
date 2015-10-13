@@ -8,9 +8,7 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
 import java.util.UUID;
 
-/**
- * Created by ermek on 1/22/15.
- */
+
 public class OozieNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;

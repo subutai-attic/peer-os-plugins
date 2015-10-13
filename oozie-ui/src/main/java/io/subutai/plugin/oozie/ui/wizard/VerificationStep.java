@@ -5,14 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +17,24 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.oozie.api.OozieClusterConfig;
+import io.subutai.server.ui.component.ProgressWindow;
+
 
 public class VerificationStep extends Panel
 {
-    private EnvironmentManager environmentManager;
     private final static Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Wizard wizard, final EnvironmentManager environmentManager )
     {
-        this.environmentManager = environmentManager;
         setSizeFull();
 
         GridLayout grid = new GridLayout( 1, 5 );
@@ -47,35 +48,34 @@ public class VerificationStep extends Panel
 
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", wizard.getConfig().getClusterName() );
-        HadoopClusterConfig hcc =
-                wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
+        HadoopClusterConfig hcc = wizard.getHadoopManager().getCluster( wizard.getConfig().getHadoopClusterName() );
 
-        ContainerHost host = null;
+        ContainerHost host;
         try
         {
-            host =
-                    environmentManager.findEnvironment( hcc.getEnvironmentId() ).getContainerHostById(wizard.getConfig
-                                        ().getServer());
+            host = environmentManager.loadEnvironment( hcc.getEnvironmentId() )
+                                     .getContainerHostById( wizard.getConfig().getServer() );
         }
         catch ( ContainerHostNotFoundException e )
         {
             LOGGER.error( "Container host not found", e );
+            return;
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOGGER.error( "Error getting environment by id: " + hcc.getEnvironmentId().toString(), e );
+            LOGGER.error( "Error getting environment by id: " + hcc.getEnvironmentId(), e );
             return;
         }
         cfgView.addStringCfg( "Server", host.getHostname() + "\n" );
         if ( wizard.getConfig().getClients() != null )
         {
-            Set<UUID> nodes = new HashSet<>(wizard.getConfig().getClients());
+            Set<String> nodes = new HashSet<>( wizard.getConfig().getClients() );
             Set<ContainerHost> hosts = Sets.newHashSet();
             try
             {
-                Environment environment = environmentManager.findEnvironment( hcc.getEnvironmentId() );
+                Environment environment = environmentManager.loadEnvironment( hcc.getEnvironmentId() );
 
-                for( UUID uuid : nodes )
+                for ( String uuid : nodes )
                 {
                     try
                     {
@@ -84,17 +84,16 @@ public class VerificationStep extends Panel
                     catch ( ContainerHostNotFoundException e )
                     {
                         LOGGER.error( "Container host not found" );
-                        continue;
                     }
                 }
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( "Error getting environment by id: " + hcc.getEnvironmentId().toString(), e );
+                LOGGER.error( "Error getting environment by id: " + hcc.getEnvironmentId(), e );
                 return;
             }
 
-            for ( ContainerHost containerHost : hosts)
+            for ( ContainerHost containerHost : hosts )
             {
                 cfgView.addStringCfg( "Clients", containerHost.getHostname() + "\n" );
             }

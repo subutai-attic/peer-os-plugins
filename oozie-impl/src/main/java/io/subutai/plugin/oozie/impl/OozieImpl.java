@@ -6,35 +6,36 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.oozie.api.Oozie;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.alert.OozieAlertListener;
 import io.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class OozieImpl implements Oozie, EnvironmentEventListener
@@ -285,7 +286,7 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -305,16 +306,16 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         // not need
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Oozie environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Oozie environment event: Container destroyed: %s", containerId ) );
         List<OozieClusterConfig> clusterConfigs = getClusters();
         for ( final OozieClusterConfig clusterConfig : clusterConfigs )
         {
@@ -323,12 +324,12 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
                 LOG.info( String.format( "Oozie environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getAllNodes().contains( uuid ) )
+                if ( clusterConfig.getAllNodes().contains( containerId ) )
                 {
                     LOG.info( String.format( "Oozie environment event: Before: %s", clusterConfig ) );
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getClients() ) )
                     {
-                        clusterConfig.getClients().remove( uuid );
+                        clusterConfig.getClients().remove( containerId );
                     }
 
                     try
@@ -348,14 +349,14 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
-        LOG.info( String.format( "Oozie environment event: Environment destroyed: %s", uuid ) );
+        LOG.info( String.format( "Oozie environment event: Environment destroyed: %s", envId ) );
 
         List<OozieClusterConfig> clusterConfigs = getClusters();
         for ( final OozieClusterConfig clusterConfig : clusterConfigs )
         {
-            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            if ( clusterConfig.getEnvironmentId().equals( envId ) )
             {
                 LOG.info( String.format( "Oozie environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
@@ -363,7 +364,7 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info( String.format( "Oozie environment event: Cluster removed",
+                    LOG.info( String.format( "Oozie environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )

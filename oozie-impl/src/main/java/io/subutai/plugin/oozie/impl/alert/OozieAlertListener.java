@@ -3,25 +3,25 @@ package io.subutai.plugin.oozie.impl.alert;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.Commands;
 import io.subutai.plugin.oozie.impl.OozieImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class OozieAlertListener implements AlertListener
@@ -72,17 +72,17 @@ public class OozieAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = oozie.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        Environment environment = oozie.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getId().equals( metric.getHostId() ) )
             {
@@ -194,7 +194,7 @@ public class OozieAlertListener implements AlertListener
                         String.format( "Oozie cluster %s not found", targetCluster.getHadoopClusterName() ), null );
             }
 
-            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
+            List<String> availableNodes = hadoopClusterConfig.getAllNodes();
             availableNodes.removeAll( targetCluster.getNodes() );
 
             //no available nodes -> notify user
@@ -205,9 +205,9 @@ public class OozieAlertListener implements AlertListener
             //add first available node
             else
             {
-                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeId = availableNodes.iterator().next();
                 String newNodeHostName = null;
-                for ( ContainerHost containerHost : containers )
+                for ( EnvironmentContainerHost containerHost : containers )
                 {
                     if ( containerHost.getId().equals( newNodeId ) )
                     {

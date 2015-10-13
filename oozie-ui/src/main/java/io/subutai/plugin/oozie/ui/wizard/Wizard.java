@@ -5,15 +5,15 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
+
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.oozie.api.Oozie;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-
-import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class Wizard
@@ -29,11 +29,10 @@ public class Wizard
     private Hadoop hadoop;
 
 
-    public Wizard(final ExecutorService executorService, Oozie oozie, Hadoop hadoop, Tracker tracker,
-                  EnvironmentManager environmentManager) throws NamingException
+    public Wizard( final ExecutorService executorService, Oozie oozie, Hadoop hadoop, Tracker tracker,
+                   EnvironmentManager environmentManager ) throws NamingException
     {
 
-//        tracker = serviceLocator.getService( Tracker.class );
         this.hadoop = hadoop;
         this.oozie = oozie;
         this.executor = executorService;
@@ -41,7 +40,7 @@ public class Wizard
         this.environmentManager = environmentManager;
         vlayout = new VerticalLayout();
         vlayout.setSizeFull();
-        vlayout.setMargin(true);
+        vlayout.setMargin( true );
         putForm();
     }
 
@@ -49,23 +48,23 @@ public class Wizard
     private void putForm()
     {
         vlayout.removeAllComponents();
-        switch (step)
+        switch ( step )
         {
             case 1:
             {
-                vlayout.addComponent(new StepStart(this));
+                vlayout.addComponent( new StepStart( this ) );
                 break;
             }
             case 2:
             {
-                vlayout.addComponent(new ConfigurationStep(this));
+                vlayout.addComponent( new ConfigurationStep( this ) );
                 break;
             }
             case 3:
             {
                 try
                 {
-                    vlayout.addComponent(new StepSetConfig(oozie, hadoop, this, environmentManager));
+                    vlayout.addComponent( new StepSetConfig( this, environmentManager ) );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
@@ -75,13 +74,13 @@ public class Wizard
             }
             case 4:
             {
-                vlayout.addComponent(new VerificationStep(this, environmentManager));
+                vlayout.addComponent( new VerificationStep( this, environmentManager ) );
                 break;
             }
             default:
             {
                 step = 1;
-                vlayout.addComponent(new StepStart(this));
+                vlayout.addComponent( new StepStart( this ) );
                 break;
             }
         }

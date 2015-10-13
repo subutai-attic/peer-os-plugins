@@ -9,22 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.oozie.api.Oozie;
-import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.api.OozieNodeOperationTask;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +30,23 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.oozie.api.Oozie;
+import io.subutai.plugin.oozie.api.OozieClusterConfig;
+import io.subutai.plugin.oozie.api.OozieNodeOperationTask;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -188,7 +189,7 @@ public class Manager
                     show( String.format( "Hadoop cluster %s not found", config.getHadoopClusterName() ) );
                     return;
                 }
-                Set<UUID> set = new HashSet<>( hc.getAllNodes() );
+                Set<String> set = new HashSet<>( hc.getAllNodes() );
                 set.remove( config.getServer() );
                 set.removeAll( config.getClients() );
                 if ( set.isEmpty() )
@@ -197,14 +198,14 @@ public class Manager
                     return;
                 }
 
-                Set<ContainerHost> myHostSet = new HashSet<>();
-                for ( UUID uuid : set )
+                Set<EnvironmentContainerHost> myHostSet = new HashSet<>();
+                for ( String id : set )
                 {
                     try
                     {
-                        myHostSet.add( environmentManager.findEnvironment(
+                        myHostSet.add( environmentManager.loadEnvironment(
                                 hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
-                                                         .getContainerHostById( uuid ) );
+                                                         .getContainerHostById( id ) );
                     }
                     catch ( ContainerHostNotFoundException e )
                     {
@@ -212,14 +213,12 @@ public class Manager
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                         return;
                     }
                 }
 
-                AddNodeWindow w =
-                        new AddNodeWindow( oozie, executorService, tracker,
-                                config, myHostSet );
+                AddNodeWindow w = new AddNodeWindow( oozie, executorService, tracker, config, myHostSet );
                 contentRoot.getUI().addWindow( w );
                 w.addCloseListener( new Window.CloseListener()
                 {
@@ -353,11 +352,11 @@ public class Manager
             {
                 String containerId =
                         ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION ).getValue();
-                ContainerHost containerHost = null;
+                EnvironmentContainerHost containerHost = null;
                 try
                 {
                     containerHost = environmentManager
-                            .findEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
+                            .loadEnvironment( hadoop.getCluster( config.getHadoopClusterName() ).getEnvironmentId() )
                             .getContainerHostByHostname( containerId );
                 }
                 catch ( ContainerHostNotFoundException e )
@@ -366,7 +365,7 @@ public class Manager
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                    LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                     return;
                 }
 
@@ -397,18 +396,18 @@ public class Manager
             try
             {
                 populateTable( serverTable,
-                        getServers( environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        getServers( environmentManager.loadEnvironment( config.getEnvironmentId() ).getContainerHosts(),
                                 config ) );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
             try
             {
                 populateTable( clientsTable,
-                        getClients( environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts(),
+                        getClients( environmentManager.loadEnvironment( config.getEnvironmentId() ).getContainerHosts(),
                                 config ) );
             }
             catch ( EnvironmentNotFoundException e )
@@ -424,10 +423,11 @@ public class Manager
     }
 
 
-    public Set<ContainerHost> getServers( Set<ContainerHost> containerHosts, OozieClusterConfig config )
+    public Set<EnvironmentContainerHost> getServers( Set<EnvironmentContainerHost> containerHosts,
+                                                     OozieClusterConfig config )
     {
-        Set<ContainerHost> list = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> list = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( config.getServer().equals( containerHost.getId() ) )
             {
@@ -438,10 +438,11 @@ public class Manager
     }
 
 
-    public Set<ContainerHost> getClients( Set<ContainerHost> containerHosts, OozieClusterConfig config )
+    public Set<EnvironmentContainerHost> getClients( Set<EnvironmentContainerHost> containerHosts,
+                                                     OozieClusterConfig config )
     {
-        Set<ContainerHost> list = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> list = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( config.getClients().contains( containerHost.getId() ) )
             {
@@ -452,11 +453,11 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
 
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
             checkBtn.setId( containerHost.getIpByInterfaceName( "eth0" ) );
@@ -529,7 +530,7 @@ public class Manager
     }
 
 
-    public String checkNodeRole( ContainerHost agent )
+    public String checkNodeRole( EnvironmentContainerHost agent )
     {
 
         if ( config.getServer().equals( agent.getId() ) )
@@ -543,7 +544,7 @@ public class Manager
     }
 
 
-    private boolean isServer( ContainerHost agent )
+    private boolean isServer( EnvironmentContainerHost agent )
     {
         return config.getServer().equals( agent.getId() );
     }
@@ -576,7 +577,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToStopButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToStopButton( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -600,7 +601,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToStartButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToStartButton( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -625,7 +626,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToCheckButton( final ContainerHost containerHost, final Button... buttons )
+    private void addClickListenerToCheckButton( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {

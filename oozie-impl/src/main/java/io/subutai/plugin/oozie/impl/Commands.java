@@ -37,11 +37,7 @@ public class Commands
                 return "export DEBIAN_FRONTEND=noninteractive && apt-get --assume-yes --force-yes install "
                         + CLIENT_PACKAGE_NAME;
             case PURGE:
-                StringBuilder sb = new StringBuilder();
-                sb.append( "apt-get --force-yes --assume-yes " );
-                sb.append( type.toString().toLowerCase() ).append( " " );
-                sb.append( PACKAGE_NAME );
-                return sb.toString();
+                return "apt-get --force-yes --assume-yes " + type.toString().toLowerCase() + " " + PACKAGE_NAME;
             case START:
             case STOP:
                 String s = "service oozie-ng " + type.toString().toLowerCase() + " agent";

@@ -12,14 +12,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.oozie.api.Oozie;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.rest.RestServiceImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -32,11 +32,7 @@ public class RestServiceImplTest
 {
     private RestServiceImpl restService;
     private OozieClusterConfig oozieClusterConfig;
-    private String config2 =
-            "{\"clusterName\": \"my-accumulo-cluster\",\"instanceName\": \"instance-name\",\"password\": " +
-                    "\"password\",\"masterNode\": \"master-node-hostname\",\"gcNode\": \"gc-node-hostname\"," +
-                    "\"monitor\": \"monitor-node-hostname\",\"tracers\": [\"lxc-2\",\"lxc-1\"],\"slaves\": " +
-                    "[\"lxc-3\",\"lxc-4\"]}";
+
 
     @Mock
     Oozie oozie;
@@ -57,7 +53,7 @@ public class RestServiceImplTest
         restService.setTracker( tracker );
         oozieClusterConfig = new OozieClusterConfig();
         when( oozie.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
 
@@ -84,7 +80,6 @@ public class RestServiceImplTest
         // assertions
         assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
-
 
 
     @Test

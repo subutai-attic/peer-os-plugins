@@ -26,8 +26,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>env-manager-api</artifactId>
-      <version>${subutai.mgmt.parent.version}</version>
+      <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

@@ -10,24 +10,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.Commands;
 import io.subutai.plugin.oozie.impl.OozieImpl;
-import io.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -62,7 +62,7 @@ public class NodeOperationHandlerTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -99,12 +99,12 @@ public class NodeOperationHandlerTest
                 new NodeOperationHandler( oozieImpl, "testClusterName", "testHostName", NodeOperationType.UNINSTALL );
 
         // mock run method
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
 
         // mock installProductOnNode
         when( commandResult.hasSucceeded() ).thenReturn( true );
@@ -211,7 +211,8 @@ public class NodeOperationHandlerTest
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
         assertFalse( commandResult.hasSucceeded() );
-        verify( trackerOperation ).addLogFailed( "Could not install " + OozieClusterConfig.PRODUCT_KEY + " to node " + "testHostName" );
+        verify( trackerOperation )
+                .addLogFailed( "Could not install " + OozieClusterConfig.PRODUCT_KEY + " to node " + "testHostName" );
     }
 
 
@@ -243,7 +244,8 @@ public class NodeOperationHandlerTest
         // assertions
         assertNotNull( oozieImpl.getCluster( "testClusterName" ) );
         assertFalse( commandResult.hasSucceeded() );
-        verify( trackerOperation ).addLogFailed( "Could not uninstall " + OozieClusterConfig.PRODUCT_KEY + " from node " + "testHostName" );
+        verify( trackerOperation ).addLogFailed(
+                "Could not uninstall " + OozieClusterConfig.PRODUCT_KEY + " from node " + "testHostName" );
     }
 
 
@@ -261,7 +263,7 @@ public class NodeOperationHandlerTest
     {
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( null );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( null );
 
         nodeOperationHandler.run();
     }

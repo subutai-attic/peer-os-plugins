@@ -1,12 +1,11 @@
 package io.subutai.plugin.oozie.api;
 
 
-import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.ConfigBase;
-
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
+import io.subutai.common.settings.Common;
+import io.subutai.plugin.common.api.ConfigBase;
 
 
 /**
@@ -24,19 +23,20 @@ public class OozieClusterConfig implements ConfigBase
     private String templateNameServer = PRODUCT_NAME_SERVER;
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private String hadoopClusterName;
-    private UUID uuid;
-    private UUID server;
-    private Set<UUID> clients;
+    private String id;
+    private String server;
+    private Set<String> clients;
     private String clusterName = "";
     private SetupType setupType;
-    private UUID environmentId;
-    private Set<UUID> nodes = new HashSet();
+    private String environmentId;
+    private Set<String> nodes = new HashSet<>();
     private boolean autoScaling;
 
 
     public OozieClusterConfig()
     {
     }
+
 
     public SetupType getSetupType()
     {
@@ -62,37 +62,37 @@ public class OozieClusterConfig implements ConfigBase
     }
 
 
-    public UUID getUuid()
+    public String getId()
     {
-        return uuid;
+        return id;
     }
 
 
-    public void setUuid( UUID uuid )
+    public void setId( String id )
     {
-        this.uuid = uuid;
+        this.id = id;
     }
 
 
-    public UUID getServer()
+    public String getServer()
     {
         return server;
     }
 
 
-    public void setServer( UUID server )
+    public void setServer( String server )
     {
         this.server = server;
     }
 
 
-    public Set<UUID> getClients()
+    public Set<String> getClients()
     {
         return clients;
     }
 
 
-    public void setClients( Set<UUID> clients )
+    public void setClients( Set<String> clients )
     {
         this.clients = clients;
     }
@@ -129,7 +129,7 @@ public class OozieClusterConfig implements ConfigBase
     {
         return "OozieConfig{" +
                 "domainName='" + domainName + '\'' +
-                ", uuid=" + uuid +
+                ", id=" + id +
                 ", server='" + server + '\'' +
                 ", clients=" + clients +
                 //                ", hadoopNodes=" + hadoopNodes +
@@ -137,10 +137,12 @@ public class OozieClusterConfig implements ConfigBase
                 '}';
     }
 
+
     public boolean isAutoScaling()
     {
         return autoScaling;
     }
+
 
     public void setAutoScaling( final boolean autoScaling )
     {
@@ -148,32 +150,34 @@ public class OozieClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = new HashSet<>();
-        if ( clients != null)
+        Set<String> allNodes = new HashSet<>();
+        if ( clients != null )
         {
             allNodes.addAll( clients );
         }
-        if ( server != null)
+        if ( server != null )
         {
             allNodes.add( server );
         }
         return allNodes;
     }
 
-    public UUID getEnvironmentId()
+
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
 
-    public Set<UUID> getNodes()
+
+    public Set<String> getNodes()
     {
         return nodes;
     }

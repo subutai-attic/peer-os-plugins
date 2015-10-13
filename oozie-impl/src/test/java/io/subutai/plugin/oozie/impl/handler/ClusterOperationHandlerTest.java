@@ -10,22 +10,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.Commands;
 import io.subutai.plugin.oozie.impl.OozieImpl;
-import io.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -40,7 +40,6 @@ public class ClusterOperationHandlerTest
 {
     private ClusterOperationHandler clusterOperationHandler;
     private ClusterOperationHandler clusterOperationHandler2;
-    private UUID uuid;
     @Mock
     RequestBuilder requestBuilder;
     @Mock
@@ -56,7 +55,7 @@ public class ClusterOperationHandlerTest
     @Mock
     Environment environment;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
     @Mock
@@ -75,15 +74,15 @@ public class ClusterOperationHandlerTest
     public void setUp() throws Exception
     {
         // mock constructor
-        uuid = UUID.randomUUID();
+        final String id = UUID.randomUUID().toString();
         when( oozieImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         // mock runOperationOnContainers method
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
 
         clusterOperationHandler =
@@ -92,10 +91,10 @@ public class ClusterOperationHandlerTest
                 new ClusterOperationHandler( oozieImpl, oozieClusterConfig, ClusterOperationType.UNINSTALL );
 
         when( oozieImpl.getPluginDao() ).thenReturn( pluginDAO );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
     }
 
@@ -141,12 +140,12 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeUninstallFailed() throws Exception
     {
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( UUID.randomUUID() );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID().toString() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
 
@@ -162,12 +161,12 @@ public class ClusterOperationHandlerTest
     public void testRunOperationTypeUninstall() throws Exception
     {
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( UUID.randomUUID() );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( UUID.randomUUID().toString() );
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 

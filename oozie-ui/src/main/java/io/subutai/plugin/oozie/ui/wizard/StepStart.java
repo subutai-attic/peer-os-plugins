@@ -1,18 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package io.subutai.plugin.oozie.ui.wizard;
 
-
-import io.subutai.common.util.FileUtil;
-import io.subutai.plugin.oozie.api.SetupType;
-import io.subutai.plugin.oozie.ui.OoziePortalModule;
 
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -22,10 +9,11 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 
+import io.subutai.common.util.FileUtil;
+import io.subutai.plugin.oozie.api.SetupType;
+import io.subutai.plugin.oozie.ui.OoziePortalModule;
 
-/**
- * @author dilshat
- */
+
 public class StepStart extends Panel
 {
 
@@ -55,7 +43,7 @@ public class StepStart extends Panel
         startOverHadoopNZK.setId( "OozieStartOverHadoop" );
         startOverHadoopNZK.addStyleName( "default" );
         grid.addComponent( startOverHadoopNZK, 7, 4, 7, 4 );
-        grid.setComponentAlignment( startOverHadoopNZK, Alignment.BOTTOM_LEFT);
+        grid.setComponentAlignment( startOverHadoopNZK, Alignment.BOTTOM_LEFT );
 
         startOverHadoopNZK.addClickListener( new Button.ClickListener()
         {

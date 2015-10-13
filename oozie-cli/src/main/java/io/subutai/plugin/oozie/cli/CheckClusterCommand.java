@@ -3,19 +3,16 @@ package io.subutai.plugin.oozie.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.oozie.api.Oozie;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
@@ -32,8 +29,6 @@ public class CheckClusterCommand extends OsgiCommandSupport
     String server = null;
     private Oozie oozieManager;
     private Tracker tracker;
-    private EnvironmentManager environmentManager;
-    private static final Logger LOG = LoggerFactory.getLogger( CheckClusterCommand.class.getName() );
 
 
     @Override
@@ -107,17 +102,5 @@ public class CheckClusterCommand extends OsgiCommandSupport
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

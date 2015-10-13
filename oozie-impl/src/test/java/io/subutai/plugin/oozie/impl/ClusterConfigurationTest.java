@@ -12,17 +12,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.impl.ClusterConfiguration;
-import io.subutai.plugin.oozie.impl.OozieImpl;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
@@ -48,9 +47,10 @@ public class ClusterConfigurationTest
     @Mock
     HadoopClusterConfig hadoopClusterConfig;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
+
 
     @Before
     public void setUp() throws Exception
@@ -64,14 +64,14 @@ public class ClusterConfigurationTest
     {
         when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        List<UUID> myUUID = new ArrayList<>();
-        myUUID.add( UUID.randomUUID() );
-        when( hadoopClusterConfig.getAllNodes() ).thenReturn(myUUID);
-        Set<ContainerHost> mySet = new HashSet<>(  );
+        List<String> myUUID = new ArrayList<>();
+        myUUID.add( UUID.randomUUID().toString() );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn(mySet);
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
@@ -81,23 +81,21 @@ public class ClusterConfigurationTest
     }
 
 
-    @Test(expected = ClusterConfigurationException.class)
+    @Test( expected = ClusterConfigurationException.class )
     public void testConfigureClusterHasNotSucceeded() throws Exception
     {
         when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-        List<UUID> myUUID = new ArrayList<>();
-        myUUID.add( UUID.randomUUID() );
-        when( hadoopClusterConfig.getAllNodes() ).thenReturn(myUUID);
-        Set<ContainerHost> mySet = new HashSet<>(  );
+        List<String> myUUID = new ArrayList<>();
+        myUUID.add( UUID.randomUUID().toString() );
+        when( hadoopClusterConfig.getAllNodes() ).thenReturn( myUUID );
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn(mySet);
-        when( environment.getContainerHostById( any(UUID.class) ) ).thenReturn( containerHost );
-        when( containerHost.execute( any( RequestBuilder.class) ) ).thenReturn( commandResult );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
+        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
 
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
     }
-
-
 }
