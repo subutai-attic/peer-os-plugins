@@ -4,17 +4,6 @@ package io.subutai.plugin.spark.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,36 +11,51 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+
 
 /**
- * sample command :
- *      spark:check-cluster test \ {cluster name}
+ * sample command : spark:check-cluster test \ {cluster name}
  */
-@Command(scope = "spark", name = "check-cluster", description = "Command to check spark cluster")
+@Command( scope = "spark", name = "check-cluster", description = "Command to check spark cluster" )
 public class CheckAllNodesCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Spark sparkManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
 
+
     protected Object doExecute() throws IOException
     {
         System.out.println( "Checking cluster nodes ... " );
         SparkClusterConfig config = sparkManager.getCluster( clusterName );
-        for ( UUID uuid : config.getAllNodesIds() ){
+        for ( String id : config.getAllNodesIds() )
+        {
             try
             {
-                Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 try
                 {
-                    String hostname = environment.getContainerHostById( uuid ).getHostname();
-                    UUID checkUUID = sparkManager.checkNode( clusterName, hostname, isMaster( config, hostname, environmentManager ) );
-                    System.out.println( "Spark on " + hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
+                    String hostname = environment.getContainerHostById( id ).getHostname();
+                    UUID checkUUID = sparkManager
+                            .checkNode( clusterName, hostname, isMaster( config, hostname, environmentManager ) );
+                    System.out.println(
+                            "Spark on " + hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -69,15 +73,17 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     }
 
 
-    protected static boolean isMaster( SparkClusterConfig config, String hostname, EnvironmentManager environmentManager )
+    protected static boolean isMaster( SparkClusterConfig config, String hostname,
+                                       EnvironmentManager environmentManager )
     {
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             try
             {
                 ContainerHost master = environment.getContainerHostById( config.getMasterNodeId() );
-                if ( master.getHostname().equals( hostname ) ){
+                if ( master.getHostname().equals( hostname ) )
+                {
                     return true;
                 }
             }
@@ -94,7 +100,8 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     }
 
 
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         NodeState state = NodeState.UNKNOWN;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -153,12 +160,6 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

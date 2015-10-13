@@ -8,7 +8,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
@@ -37,7 +37,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
     public void configureCluster( final SparkClusterConfig config, final Environment environment )
             throws ClusterConfigurationException
     {
-        final ContainerHost master;
+        final EnvironmentContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -46,7 +46,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
         {
             throw new ClusterConfigurationException( e );
         }
-        final Set<ContainerHost> slaves;
+        final Set<EnvironmentContainerHost> slaves;
         try
         {
             slaves = environment.getContainerHostsByIds( config.getSlaveIds() );
@@ -60,7 +60,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
         po.addLog( "Setting master IP..." );
 
         RequestBuilder setMasterIPCommand = manager.getCommands().getSetMasterIPCommand( master.getHostname() );
-        for ( ContainerHost host : slaves )
+        for ( EnvironmentContainerHost host : slaves )
         {
             executeCommand( host, setMasterIPCommand );
         }
@@ -71,7 +71,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
 
         Set<String> slaveHostnames = Sets.newHashSet();
 
-        for ( ContainerHost host : slaves )
+        for ( EnvironmentContainerHost host : slaves )
         {
             slaveHostnames.add( host.getHostname() );
         }
@@ -84,7 +84,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command )
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command )
             throws ClusterConfigurationException
     {
 

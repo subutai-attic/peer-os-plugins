@@ -4,15 +4,6 @@ package io.subutai.plugin.spark.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,17 +11,26 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+
 
 /**
- * sample command :
- *      spark:start-cluster test \ {cluster name}
+ * sample command : spark:start-cluster test \ {cluster name}
  */
-@Command(scope = "spark", name = "start-cluster", description = "Command to start spark cluster")
+@Command( scope = "spark", name = "start-cluster", description = "Command to start spark cluster" )
 public class StartAllNodesCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Spark sparkManager;
     private Tracker tracker;
@@ -42,16 +42,16 @@ public class StartAllNodesCommand extends OsgiCommandSupport
     {
         System.out.println( "Starting " + clusterName + " spark cluster..." );
         SparkClusterConfig config = sparkManager.getCluster( clusterName );
-        UUID sparkMaster = config.getMasterNodeId();
+        String sparkMaster = config.getMasterNodeId();
         Environment environment;
         try
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             try
             {
-                String sparkMasterHostname = environment.getContainerHostById( sparkMaster ).getHostname();
+                environment.getContainerHostById( sparkMaster ).getHostname();
                 UUID uuid = sparkManager.startCluster( clusterName );
-                System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) ) ;
+                System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -68,7 +68,8 @@ public class StartAllNodesCommand extends OsgiCommandSupport
     }
 
 
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid ){
+    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -90,7 +91,7 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 90  * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
             {
                 break;
             }
@@ -120,12 +121,6 @@ public class StartAllNodesCommand extends OsgiCommandSupport
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

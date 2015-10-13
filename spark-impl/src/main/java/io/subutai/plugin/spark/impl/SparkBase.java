@@ -1,17 +1,17 @@
 package io.subutai.plugin.spark.impl;
 
 
-import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public abstract class SparkBase
@@ -79,7 +79,7 @@ public abstract class SparkBase
 
 
     protected SparkBase( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                         final Monitor monitor,final PluginDAO pluginDAO)
+                         final Monitor monitor, final PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;

@@ -3,13 +3,16 @@ package io.subutai.plugin.spark.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
@@ -21,9 +24,6 @@ import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.impl.SparkImpl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl, SparkClusterConfig>
         implements ClusterOperationHandlerInterface
@@ -32,7 +32,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private Environment environment;
-    private ContainerHost master;
+    private EnvironmentContainerHost master;
 
 
     public ClusterOperationHandler( final SparkImpl manager, final SparkClusterConfig config,
@@ -79,7 +79,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -129,7 +129,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
 
             CommandResult result = executeCommand( master, manager.getCommands().getStartAllCommand() );
 
-            if ( ! result.getStdOut().contains( "starting" ) )
+            if ( !result.getStdOut().contains( "starting" ) )
             {
                 trackerOperation.addLogFailed( "Failed to start cluster" );
             }
@@ -172,7 +172,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
         {
             checkPrerequisites();
 
-            Set<ContainerHost> allNodes;
+            Set<EnvironmentContainerHost> allNodes;
             try
             {
                 allNodes = environment.getContainerHostsByIds( config.getSlaveIds() );
@@ -182,7 +182,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
                 throw new ClusterException( String.format( "Failed to obtain master environment container: %s", e ) );
             }
 
-            for ( ContainerHost node : allNodes )
+            for ( EnvironmentContainerHost node : allNodes )
             {
                 if ( !node.isConnected() )
                 {
@@ -195,7 +195,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
             trackerOperation.addLog( "Uninstalling Spark..." );
 
             RequestBuilder uninstallCommand = manager.getCommands().getUninstallCommand();
-            for ( ContainerHost node : allNodes )
+            for ( EnvironmentContainerHost node : allNodes )
             {
                 try
                 {
@@ -254,7 +254,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
             Environment env;
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( hadoopConfig.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( hadoopConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -290,7 +290,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
 
         CommandResult result;

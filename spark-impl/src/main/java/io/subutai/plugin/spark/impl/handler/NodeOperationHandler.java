@@ -4,13 +4,18 @@ package io.subutai.plugin.spark.impl.handler;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -20,10 +25,6 @@ import io.subutai.plugin.common.api.OperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.impl.SparkImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, SparkClusterConfig>
@@ -34,7 +35,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
     private OperationType operationType;
     private NodeType nodeType;
     private Environment environment;
-    private ContainerHost node;
+    private EnvironmentContainerHost node;
 
 
     public NodeOperationHandler( final SparkImpl manager, final SparkClusterConfig config, final String hostname,
@@ -61,7 +62,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -146,7 +147,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
     public void addSlaveNode() throws ClusterException
     {
-        final ContainerHost master;
+        final EnvironmentContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -241,8 +242,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         // check if cluster is already running, then newly added node should be started automatically.
         RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusMasterCommand();
         result = executeCommand( master, checkMasterIsRunning );
-        if ( result.hasSucceeded() ){
-            if ( result.getStdOut().contains( "pid" ) ){
+        if ( result.hasSucceeded() )
+        {
+            if ( result.getStdOut().contains( "pid" ) )
+            {
 
                 RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
                 trackerOperation.addLog( "Restarting master..." );
@@ -288,7 +291,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         }
 
 
-        final ContainerHost master;
+        final EnvironmentContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -316,8 +319,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         // check if cluster is already running, then newly added node should be started automatically.
         RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusMasterCommand();
         CommandResult result = executeCommand( master, checkMasterIsRunning );
-        if ( result.hasSucceeded() ){
-            if ( result.getStdOut().contains( "pid" ) ){
+        if ( result.hasSucceeded() )
+        {
+            if ( result.getStdOut().contains( "pid" ) )
+            {
 
                 RequestBuilder restartMasterCommand = manager.getCommands().getRestartMasterCommand();
                 trackerOperation.addLog( "Restarting master..." );
@@ -359,7 +364,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
             throw new ClusterException( String.format( "Node %s does not belong to this cluster", hostname ) );
         }
 
-        ContainerHost master;
+        EnvironmentContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -383,7 +388,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         }
 
 
-        Set<ContainerHost> allNodes;
+        Set<EnvironmentContainerHost> allNodes;
         try
         {
             allNodes = environment.getContainerHostsByIds( config.getSlaveIds() );
@@ -394,7 +399,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
             throw new ClusterException( String.format( "Failed to obtain Spark environment container: %s", e ) );
         }
 
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
             if ( !node.isConnected() )
             {
@@ -436,7 +441,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
 
         Set<String> slaveHostnames = Sets.newHashSet();
-        for ( ContainerHost slave : allNodes )
+        for ( EnvironmentContainerHost slave : allNodes )
         {
             slaveHostnames.add( slave.getHostname() );
         }
@@ -451,7 +456,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         //modify master ip on all nodes
         RequestBuilder setMasterIPCommand = manager.getCommands().getSetMasterIPCommand( hostname );
 
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
             executeCommand( node, setMasterIPCommand, false );
 
@@ -479,14 +484,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
 
         return executeCommand( host, command, false );
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
     {
 

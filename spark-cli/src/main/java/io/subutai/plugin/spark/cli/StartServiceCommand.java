@@ -4,20 +4,18 @@ package io.subutai.plugin.spark.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+
 
 /**
- * sample command :
- *      spark:start-node test \ {cluster name}
- *                        hadoop1 \ { container hostname }
+ * sample command : spark:start-node test \ {cluster name} hadoop1 \ { container hostname }
  */
 @Command( scope = "spark", name = "start-node", description = "Command to start spark service" )
 public class StartServiceCommand extends OsgiCommandSupport
@@ -32,10 +30,12 @@ public class StartServiceCommand extends OsgiCommandSupport
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
+
     protected Object doExecute() throws IOException
     {
         SparkClusterConfig config = sparkManager.getCluster( clusterName );
-        UUID uuid = sparkManager.startNode( clusterName, hostname, CheckAllNodesCommand.isMaster( config, hostname, environmentManager  ) );
+        UUID uuid = sparkManager.startNode( clusterName, hostname,
+                CheckAllNodesCommand.isMaster( config, hostname, environmentManager ) );
         tracker.printOperationLog( SparkClusterConfig.PRODUCT_KEY, uuid, 30000 );
         return null;
     }
@@ -62,12 +62,6 @@ public class StartServiceCommand extends OsgiCommandSupport
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

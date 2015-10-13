@@ -5,13 +5,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Lists;
 
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;
-
-import com.google.common.collect.Lists;
 
 
 public class SparkClusterConfig implements ConfigBase
@@ -22,9 +21,9 @@ public class SparkClusterConfig implements ConfigBase
 
     private String clusterName = "";
     private String hadoopClusterName = "";
-    private UUID masterNodeId;
-    private Set<UUID> slaveIds = new HashSet<>();
-    private UUID environmentId;
+    private String masterNodeId;
+    private Set<String> slaveIds = new HashSet<>();
+    private String environmentId;
     private boolean autoScaling;
 
 
@@ -40,35 +39,37 @@ public class SparkClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
 
 
-    public UUID getMasterNodeId()
+    public String getMasterNodeId()
     {
         return masterNodeId;
     }
 
 
-    public Set<UUID> getSlaveIds()
+    public Set<String> getSlaveIds()
     {
         return slaveIds;
     }
 
 
-    public void setSlavesId( Set<UUID> slaves ){
+    public void setSlavesId( Set<String> slaves )
+    {
         slaveIds = slaves;
     }
 
-    public void setMasterNodeId( final UUID masterNodeId )
+
+    public void setMasterNodeId( final String masterNodeId )
     {
         this.masterNodeId = masterNodeId;
     }
@@ -113,9 +114,9 @@ public class SparkClusterConfig implements ConfigBase
     }
 
 
-    public List<UUID> getAllNodesIds()
+    public List<String> getAllNodesIds()
     {
-        List<UUID> allNodesIds = Lists.newArrayList();
+        List<String> allNodesIds = Lists.newArrayList();
         if ( !CollectionUtil.isCollectionEmpty( slaveIds ) )
         {
             allNodesIds.addAll( slaveIds );

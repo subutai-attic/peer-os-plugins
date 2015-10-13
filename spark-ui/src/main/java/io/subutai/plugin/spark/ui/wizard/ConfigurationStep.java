@@ -6,17 +6,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -34,6 +23,16 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
 
 
 public class ConfigurationStep extends Panel
@@ -119,7 +118,8 @@ public class ConfigurationStep extends Panel
     {
         final ComboBox hadoopClustersCombo = new ComboBox( "Hadoop cluster" );
         final ComboBox masterNodeCombo = new ComboBox( "Master node" );
-        final TwinColSelect slaveNodesSelect = new TwinColSelect( "Slave nodes", Lists.<ContainerHost>newArrayList() );
+        final TwinColSelect slaveNodesSelect =
+                new TwinColSelect( "Slave nodes", Lists.<EnvironmentContainerHost>newArrayList() );
 
         hadoopClustersCombo.setId( "sparkHadoopCluster" );
         masterNodeCombo.setId( "sparkMasterNode" );
@@ -183,22 +183,23 @@ public class ConfigurationStep extends Panel
             config.setHadoopClusterName( hadoopInfo.getClusterName() );
             try
             {
-                hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
                 Notification.show( String.format( "Failed to obtain Hadoop environment: %s", e ) );
             }
-            Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+            Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
             try
             {
-                for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                 {
                     hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                 }
 
-                slaveNodesSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
-                for ( ContainerHost hadoopNode : hadoopNodes )
+                slaveNodesSelect.setContainerDataSource(
+                        new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
+                for ( EnvironmentContainerHost hadoopNode : hadoopNodes )
                 {
                     masterNodeCombo.addItem( hadoopNode );
                     masterNodeCombo.setItemCaption( hadoopNode, hadoopNode.getHostname() );
@@ -220,17 +221,17 @@ public class ConfigurationStep extends Panel
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) event.getProperty().getValue();
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
                         Notification.show( String.format( "Failed to obtain Hadoop environment: %s", e ) );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -241,11 +242,11 @@ public class ConfigurationStep extends Panel
                         return;
                     }
                     slaveNodesSelect.setValue( null );
-                    slaveNodesSelect
-                            .setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+                    slaveNodesSelect.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
                     masterNodeCombo.setValue( null );
                     masterNodeCombo.removeAllItems();
-                    for ( ContainerHost hadoopNode : hadoopNodes )
+                    for ( EnvironmentContainerHost hadoopNode : hadoopNodes )
                     {
                         masterNodeCombo.addItem( hadoopNode );
                         masterNodeCombo.setItemCaption( hadoopNode, hadoopNode.getHostname() );
@@ -264,7 +265,7 @@ public class ConfigurationStep extends Panel
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    ContainerHost master = ( ContainerHost ) event.getProperty().getValue();
+                    EnvironmentContainerHost master = ( EnvironmentContainerHost ) event.getProperty().getValue();
                     config.setMasterNodeId( master.getId() );
 
                     //fill slave nodes without newly selected master node
@@ -273,17 +274,17 @@ public class ConfigurationStep extends Panel
                     HadoopClusterConfig hadoopInfo = ( HadoopClusterConfig ) hadoopClustersCombo.getValue();
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
                         Notification.show( String.format( "Failed to obtain Hadoop environment: %s", e ) );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -293,9 +294,9 @@ public class ConfigurationStep extends Panel
                         Notification.show( String.format( "Failed to obtain Hadoop environment containers: %s", e ) );
                         return;
                     }
-                    for ( Iterator<ContainerHost> iterator = hadoopNodes.iterator(); iterator.hasNext(); )
+                    for ( Iterator<EnvironmentContainerHost> iterator = hadoopNodes.iterator(); iterator.hasNext(); )
                     {
-                        final ContainerHost haddopNode = iterator.next();
+                        final EnvironmentContainerHost haddopNode = iterator.next();
 
                         if ( haddopNode.getId().equals( master.getId() ) )
                         {
@@ -304,7 +305,7 @@ public class ConfigurationStep extends Panel
                         }
                     }
                     slaveNodesSelect.getContainerDataSource().removeAllItems();
-                    for ( ContainerHost hadoopNode : hadoopNodes )
+                    for ( EnvironmentContainerHost hadoopNode : hadoopNodes )
                     {
                         slaveNodesSelect.getContainerDataSource().addItem( hadoopNode );
                     }
@@ -319,8 +320,8 @@ public class ConfigurationStep extends Panel
 
                     try
                     {
-                        List<ContainerHost> containerHostList = new ArrayList<ContainerHost>();
-                        for ( UUID id : config.getSlaveIds() )
+                        List<EnvironmentContainerHost> containerHostList = new ArrayList<>();
+                        for ( String id : config.getSlaveIds() )
                         {
                             containerHostList.add( hadoopEnvironment.getContainerHostById( id ) );
                         }
@@ -377,12 +378,12 @@ public class ConfigurationStep extends Panel
                 if ( event.getProperty().getValue() != null && event.getProperty().getValue() instanceof Set )
                 {
                     Set nodes = ( Set ) event.getProperty().getValue();
-                    Set<UUID> slaveIds = Sets.newHashSet();
+                    Set<String> slaveIds = Sets.newHashSet();
                     for ( Object node : nodes )
                     {
-                        if ( node instanceof ContainerHost )
+                        if ( node instanceof EnvironmentContainerHost )
                         {
-                            ContainerHost containerHost = ( ContainerHost ) node;
+                            EnvironmentContainerHost containerHost = ( EnvironmentContainerHost ) node;
                             slaveIds.add( containerHost.getId() );
                         }
                     }
@@ -399,15 +400,15 @@ public class ConfigurationStep extends Panel
 
 
     //exclude hadoop nodes that are already in another hipi cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> sparkNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> sparkNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( SparkClusterConfig hipiConfig : wizard.getSparkManager().getClusters() )
         {
             sparkNodes.addAll( hipiConfig.getAllNodesIds() );
         }
-        for ( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
             if ( !sparkNodes.contains( node ) )
             {

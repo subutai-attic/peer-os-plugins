@@ -7,15 +7,15 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class RestServiceImpl implements RestService
@@ -69,12 +69,12 @@ public class RestServiceImpl implements RestService
         SparkClusterConfig config = new SparkClusterConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-        config.setMasterNodeId( UUID.fromString( master ) );
+        config.setMasterNodeId( master );
 
         String[] arr = workers.replaceAll( "\\s+", "" ).split( "," );
         for ( String node : arr )
         {
-            config.getSlaveIds().add( UUID.fromString( node ) );
+            config.getSlaveIds().add( node );
         }
 
         UUID uuid = sparkManager.installCluster( config );
@@ -291,12 +291,6 @@ public class RestServiceImpl implements RestService
             }
         }
         return state;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 

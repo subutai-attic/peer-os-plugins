@@ -5,12 +5,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -22,9 +25,6 @@ import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
 
 public class SetupStrategyOverHadoop implements ClusterSetupStrategy
 {
@@ -32,7 +32,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
     final SparkImpl manager;
     final SparkClusterConfig config;
     private Environment environment;
-    private Set<ContainerHost> nodesToInstallSpark;
+    private Set<EnvironmentContainerHost> nodesToInstallSpark;
 
 
     public SetupStrategyOverHadoop( TrackerOperation po, SparkImpl manager, SparkClusterConfig config,
@@ -76,7 +76,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             throw new ClusterSetupException( "No slave nodes" );
         }
 
-        ContainerHost master;
+        EnvironmentContainerHost master;
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -92,7 +92,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             throw new ClusterSetupException( "Master is not connected" );
         }
 
-        Set<ContainerHost> slaves;
+        Set<EnvironmentContainerHost> slaves;
         try
         {
             slaves = environment.getContainerHostsByIds( config.getSlaveIds() );
@@ -107,7 +107,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             throw new ClusterSetupException( "Fewer slaves found in the environment than indicated" );
         }
 
-        for ( ContainerHost slave : slaves )
+        for ( EnvironmentContainerHost slave : slaves )
         {
             if ( !slave.isConnected() )
             {
@@ -131,12 +131,12 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
         po.addLog( "Checking prerequisites..." );
 
         //gather all nodes
-        final Set<ContainerHost> allNodes = Sets.newHashSet( master );
+        final Set<EnvironmentContainerHost> allNodes = Sets.newHashSet( master );
         allNodes.addAll( slaves );
 
         //check if node belongs to some existing spark cluster
         List<SparkClusterConfig> sparkClusters = manager.getClusters();
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
             for ( SparkClusterConfig cluster : sparkClusters )
             {
@@ -154,9 +154,9 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
         //check hadoop installation & filter nodes needing Spark installation
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
 
-        for ( Iterator<ContainerHost> iterator = allNodes.iterator(); iterator.hasNext(); )
+        for ( Iterator<EnvironmentContainerHost> iterator = allNodes.iterator(); iterator.hasNext(); )
         {
-            final ContainerHost node = iterator.next();
+            final EnvironmentContainerHost node = iterator.next();
             try
             {
                 CommandResult result = node.execute( checkInstalledCommand );
@@ -199,7 +199,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             po.addLog( "Installing Spark..." );
             //install spark
             RequestBuilder installCommand = manager.getCommands().getInstallCommand();
-            for ( ContainerHost node : nodesToInstallSpark )
+            for ( EnvironmentContainerHost node : nodesToInstallSpark )
             {
                 CommandResult result = executeCommand( node, installCommand );
                 checkInstalled( node, result );
@@ -234,7 +234,8 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterSetupException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command )
+            throws ClusterSetupException
     {
 
         CommandResult result;
@@ -254,7 +255,8 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
         return result;
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result ) throws ClusterSetupException
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try

@@ -6,14 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,32 +13,38 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+
 
 /**
- * sample command :
- *      spark:install-cluster test \ {cluster name}
- *                             test \ { hadoop cluster name }
- *                             hadoop1 \ { coordinator }
- *                             [ hadoop1, hadoop2 ] \ { list of worker machines }
+ * sample command : spark:install-cluster test \ {cluster name} test \ { hadoop cluster name } hadoop1 \ { coordinator }
+ * [ hadoop1, hadoop2 ] \ { list of worker machines }
  */
-@Command(scope = "spark", name = "install-cluster", description = "Command to install spark cluster")
+@Command( scope = "spark", name = "install-cluster", description = "Command to install spark cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
 
-    @Argument(index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
-            multiValued = false)
-    String hadoopClusterName  = null;
+    @Argument( index = 1, name = "hadoopClusterName", description = "The name of hadoop cluster.", required = true,
+            multiValued = false )
+    String hadoopClusterName = null;
 
-    @Argument(index = 2, name = "master", description = "The hostname of master container", required = true,
-            multiValued = false)
+    @Argument( index = 2, name = "master", description = "The hostname of master container", required = true,
+            multiValued = false )
     String master = null;
 
-    @Argument(index = 3, name = "slaves", description = "The hostname list of slave nodes", required = true,
-            multiValued = false)
+    @Argument( index = 3, name = "slaves", description = "The hostname list of slave nodes", required = true,
+            multiValued = false )
     String slaves[] = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
@@ -60,15 +58,17 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         try
         {
-            Environment environment = environmentManager.findEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
+            Environment environment = environmentManager
+                    .loadEnvironment( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
             try
             {
                 SparkClusterConfig config = new SparkClusterConfig();
                 config.setClusterName( clusterName );
                 config.setHadoopClusterName( hadoopClusterName );
                 config.setMasterNodeId( environment.getContainerHostByHostname( master ).getId() );
-                Set<UUID> slaveUUIDs = new HashSet<>();
-                for ( String hostname : slaves ){
+                Set<String> slaveUUIDs = new HashSet<>();
+                for ( String hostname : slaves )
+                {
                     slaveUUIDs.add( environment.getContainerHostByHostname( hostname ).getId() );
                 }
                 config.setSlavesId( slaveUUIDs );
@@ -119,21 +119,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
-    }
-
-
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

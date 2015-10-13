@@ -8,24 +8,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.spark.api.NodeOperationTask;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -46,6 +28,24 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.spark.api.NodeOperationTask;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -239,7 +239,7 @@ public class Manager
                     return;
                 }
 
-                Set<ContainerHost> set = null;
+                Set<EnvironmentContainerHost> set = null;
 
                 String hn = config.getHadoopClusterName();
                 if ( !Strings.isNullOrEmpty( hn ) )
@@ -452,7 +452,7 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost node;
+                    EnvironmentContainerHost node;
                     try
                     {
                         node = environment.getContainerHostByHostname( hostname );
@@ -476,7 +476,7 @@ public class Manager
         {
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 populateTable( nodesTable, environment.getContainerHostsByIds( config.getSlaveIds() ),
                         environment.getContainerHostById( config.getMasterNodeId() ) );
                 checkAllNodesStatus();
@@ -529,7 +529,7 @@ public class Manager
     }
 
 
-    public String checkIfMaster( ContainerHost node )
+    public String checkIfMaster( EnvironmentContainerHost node )
     {
         if ( config.getMasterNodeId().equals( node.getId() ) )
         {
@@ -652,12 +652,13 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> slaves, final ContainerHost master )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> slaves,
+                                final EnvironmentContainerHost master )
     {
 
         table.removeAllItems();
 
-        for ( final ContainerHost node : slaves )
+        for ( final EnvironmentContainerHost node : slaves )
         {
             final Label resultHolder = new Label();
             final Button checkBtn = new Button( CHECK_BUTTON_CAPTION );
@@ -725,7 +726,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToSlaveCheckButton( final ContainerHost node, final Label resultHolder,
+    public void addClickListenerToSlaveCheckButton( final EnvironmentContainerHost node, final Label resultHolder,
                                                     final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -735,42 +736,43 @@ public class Manager
             {
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
-                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
-                        NodeOperationType.STATUS, false, new io.subutai.plugin.common.api.CompleteEvent()
-                {
-                    @Override
-                    public void onComplete( NodeState nodeState )
-                    {
-                        synchronized ( progressIcon )
+                executor.execute(
+                        new NodeOperationTask( spark, tracker, config.getClusterName(), node, NodeOperationType.STATUS,
+                                false, new io.subutai.plugin.common.api.CompleteEvent()
                         {
-                            if ( nodeState.equals( NodeState.RUNNING ) )
+                            @Override
+                            public void onComplete( NodeState nodeState )
                             {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                synchronized ( progressIcon )
+                                {
+                                    if ( nodeState.equals( NodeState.RUNNING ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
+                                    else if ( nodeState.equals( NodeState.STOPPED ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                    }
+                                    else if ( nodeState.equals( NodeState.UNKNOWN ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
+                                    resultHolder.setValue( nodeState.name() );
+                                    progressIcon.setVisible( false );
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                }
                             }
-                            else if ( nodeState.equals( NodeState.STOPPED ) )
-                            {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                            }
-                            else if ( nodeState.equals( NodeState.UNKNOWN ) )
-                            {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            }
-                            resultHolder.setValue( nodeState.name() );
-                            progressIcon.setVisible( false );
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            getButton( DESTROY_BUTTON_CAPTION, buttons ).setEnabled( true );
-                        }
-                    }
-                }, null ) );
+                        }, null ) );
             }
         } );
     }
 
 
-    public void addClickListenerToMasterCheckButton( final ContainerHost node, final Label resultHolder,
+    public void addClickListenerToMasterCheckButton( final EnvironmentContainerHost node, final Label resultHolder,
                                                      final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -781,49 +783,50 @@ public class Manager
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
 
-                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
-                        NodeOperationType.STATUS, true, new io.subutai.plugin.common.api.CompleteEvent()
-                {
-                    @Override
-                    public void onComplete( NodeState nodeState )
-                    {
-                        synchronized ( progressIcon )
+                executor.execute(
+                        new NodeOperationTask( spark, tracker, config.getClusterName(), node, NodeOperationType.STATUS,
+                                true, new io.subutai.plugin.common.api.CompleteEvent()
                         {
-                            if ( nodeState.equals( NodeState.RUNNING ) )
+                            @Override
+                            public void onComplete( NodeState nodeState )
                             {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            }
-                            else if ( nodeState.equals( NodeState.STOPPED ) )
-                            {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
-                            }
-                            else if ( nodeState.equals( NodeState.UNKNOWN ) )
-                            {
-                                getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
-                                getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            }
-                            resultHolder.setValue( nodeState.name() );
-                            progressIcon.setVisible( false );
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            for ( Button b : buttons )
-                            {
-                                if ( b.getCaption().equals( CHECK_BUTTON_CAPTION ) || b.getCaption().equals(
-                                        DESTROY_BUTTON_CAPTION ) )
+                                synchronized ( progressIcon )
                                 {
-                                    enableButtons( b );
+                                    if ( nodeState.equals( NodeState.RUNNING ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
+                                    else if ( nodeState.equals( NodeState.STOPPED ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( false );
+                                    }
+                                    else if ( nodeState.equals( NodeState.UNKNOWN ) )
+                                    {
+                                        getButton( START_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                        getButton( STOP_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    }
+                                    resultHolder.setValue( nodeState.name() );
+                                    progressIcon.setVisible( false );
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    for ( Button b : buttons )
+                                    {
+                                        if ( b.getCaption().equals( CHECK_BUTTON_CAPTION ) || b.getCaption().equals(
+                                                DESTROY_BUTTON_CAPTION ) )
+                                        {
+                                            enableButtons( b );
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }, null ) );
+                        }, null ) );
             }
         } );
     }
 
 
-    public void addClickListenerToStartButton( final ContainerHost node, final boolean isMaster,
+    public void addClickListenerToStartButton( final EnvironmentContainerHost node, final boolean isMaster,
                                                final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -834,25 +837,26 @@ public class Manager
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
 
-                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
-                        NodeOperationType.START, isMaster, new io.subutai.plugin.common.api.CompleteEvent()
-                {
-                    @Override
-                    public void onComplete( NodeState nodeState )
-                    {
-                        synchronized ( progressIcon )
+                executor.execute(
+                        new NodeOperationTask( spark, tracker, config.getClusterName(), node, NodeOperationType.START,
+                                isMaster, new io.subutai.plugin.common.api.CompleteEvent()
                         {
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).click();
-                        }
-                    }
-                }, null ) );
+                            @Override
+                            public void onComplete( NodeState nodeState )
+                            {
+                                synchronized ( progressIcon )
+                                {
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                                }
+                            }
+                        }, null ) );
             }
         } );
     }
 
 
-    public void addClickListenerToDestroyButton( final ContainerHost node, final Button... buttons )
+    public void addClickListenerToDestroyButton( final EnvironmentContainerHost node, final Button... buttons )
     {
         getButton( DESTROY_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -887,7 +891,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToStopButton( final ContainerHost node, final boolean isMaster,
+    public void addClickListenerToStopButton( final EnvironmentContainerHost node, final boolean isMaster,
                                               final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -898,19 +902,20 @@ public class Manager
                 progressIcon.setVisible( true );
                 disableButtons( buttons );
 
-                executor.execute( new NodeOperationTask( spark, tracker, config.getClusterName(), node,
-                        NodeOperationType.STOP, isMaster, new io.subutai.plugin.common.api.CompleteEvent()
-                {
-                    @Override
-                    public void onComplete( NodeState nodeState )
-                    {
-                        synchronized ( progressIcon )
+                executor.execute(
+                        new NodeOperationTask( spark, tracker, config.getClusterName(), node, NodeOperationType.STOP,
+                                isMaster, new io.subutai.plugin.common.api.CompleteEvent()
                         {
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
-                            getButton( CHECK_BUTTON_CAPTION, buttons ).click();
-                        }
-                    }
-                }, null ) );
+                            @Override
+                            public void onComplete( NodeState nodeState )
+                            {
+                                synchronized ( progressIcon )
+                                {
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).setEnabled( true );
+                                    getButton( CHECK_BUTTON_CAPTION, buttons ).click();
+                                }
+                            }
+                        }, null ) );
             }
         } );
     }

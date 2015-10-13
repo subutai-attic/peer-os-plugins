@@ -44,7 +44,7 @@
     </dependency>
     <dependency>
        <groupId>io.subutai</groupId>
-      <artifactId>env-manager-api</artifactId>
+      <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
        <groupId>io.subutai</groupId>

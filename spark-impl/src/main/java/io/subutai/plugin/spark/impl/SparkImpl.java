@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
@@ -25,11 +27,9 @@ import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-import io.subutai.plugin.spark.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.spark.impl.alert.SparkAlertListener;
 import io.subutai.plugin.spark.impl.handler.ClusterOperationHandler;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.spark.impl.handler.NodeOperationHandler;
 
 
 public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListener
@@ -39,9 +39,9 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                      final Monitor monitor, final PluginDAO pluginDAO)
+                      final Monitor monitor, final PluginDAO pluginDAO )
     {
-        super( tracker, environmentManager, hadoopManager, monitor, pluginDAO);
+        super( tracker, environmentManager, hadoopManager, monitor, pluginDAO );
     }
 
 
@@ -57,7 +57,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -285,16 +285,16 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         //not needed
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Spark environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Spark environment event: Container destroyed: %s", containerId ) );
 
         List<SparkClusterConfig> clusters = getClusters();
         for ( SparkClusterConfig clusterConfig : clusters )
@@ -304,16 +304,16 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
                 LOG.info( String.format( "Spark environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getAllNodesIds().contains( uuid ) )
+                if ( clusterConfig.getAllNodesIds().contains( containerId ) )
                 {
                     LOG.info( String.format( "Spark environment event: Before: %s", clusterConfig ) );
 
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSlaveIds() ) )
                     {
-                        clusterConfig.getSlaveIds().remove( uuid );
+                        clusterConfig.getSlaveIds().remove( containerId );
                     }
 
-                    if ( uuid.equals( clusterConfig.getMasterNodeId() ) )
+                    if ( containerId.equals( clusterConfig.getMasterNodeId() ) )
                     {
                         clusterConfig.setMasterNodeId( null );
                     }
@@ -334,14 +334,14 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
-        LOG.info( String.format( "Spark environment event: Environment destroyed: %s", uuid ) );
+        LOG.info( String.format( "Spark environment event: Environment destroyed: %s", envId ) );
 
         List<SparkClusterConfig> clusters = getClusters();
         for ( SparkClusterConfig clusterConfig : clusters )
         {
-            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
             {
                 LOG.info( String.format( "Spark environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );

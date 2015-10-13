@@ -3,25 +3,24 @@ package io.subutai.plugin.spark.impl.alert;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.impl.SparkImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -34,7 +33,7 @@ public class SparkAlertListener implements AlertListener
     public static final String SPARK_ALERT_LISTENER = "SPARK_ALERT_LISTENER";
     private SparkImpl spark;
     private CommandUtil commandUtil = new CommandUtil();
-    private static double MAX_RAM_QUOTA_MB;
+    private static double MAX_RAM_QUOTA_MB = 3072;
     private static final int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static final int MAX_CPU_QUOTA_PERCENT = 100;
     private static final int CPU_QUOTA_INCREMENT_PERCENT = 15;
@@ -69,7 +68,7 @@ public class SparkAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = spark.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        Environment environment = spark.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new AlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ),
@@ -77,10 +76,10 @@ public class SparkAlertListener implements AlertListener
         }
 
         //get environment containers and find alert's source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getId().equals( metric.getHostId() ) )
             {
@@ -157,15 +156,17 @@ public class SparkAlertListener implements AlertListener
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
 
-                if ( ramQuota < MAX_RAM_QUOTA_MB ) {
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
 
                     // if available quota on resource host is greater than 10 % of calculated increase amount,
                     // increase quota, otherwise scale horizontally
                     int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota ) {
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
 
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.",
-                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota );
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getRamQuota(), newRamQuota );
                         //we can increase RAM quota
                         sourceHost.setRamQuota( newRamQuota );
 
@@ -178,10 +179,11 @@ public class SparkAlertListener implements AlertListener
             {
                 //read current CPU quota
                 int cpuQuota = sourceHost.getCpuQuota();
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT ) {
+                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                {
                     int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.",
-                            sourceHost.getHostname(), cpuQuota, newCpuQuota );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                            newCpuQuota );
                     //we can increase CPU quota
                     sourceHost.setCpuQuota( newCpuQuota );
 
@@ -205,7 +207,7 @@ public class SparkAlertListener implements AlertListener
                         String.format( "Hadoop cluster %s not found", targetCluster.getHadoopClusterName() ), null );
             }
 
-            List<UUID> availableNodes = hadoopClusterConfig.getAllNodes();
+            List<String> availableNodes = hadoopClusterConfig.getAllNodes();
             availableNodes.removeAll( targetCluster.getAllNodesIds() );
 
             //no available nodes or master node is stressed -> notify user
@@ -217,9 +219,9 @@ public class SparkAlertListener implements AlertListener
             //add first available node
             else
             {
-                UUID newNodeId = availableNodes.iterator().next();
+                String newNodeId = availableNodes.iterator().next();
                 String newNodeHostName = null;
-                for ( ContainerHost containerHost : containers )
+                for ( EnvironmentContainerHost containerHost : containers )
                 {
                     if ( containerHost.getId().equals( newNodeId ) )
                     {
