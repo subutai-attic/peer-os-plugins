@@ -26,10 +26,6 @@
     </dependency>
     <dependency>
        <groupId>io.subutai</groupId>
-      <artifactId>vaadin-api</artifactId>
-    </dependency>
-    <dependency>
-       <groupId>io.subutai</groupId>
       <artifactId>vaadin-custom</artifactId>
     </dependency>
     <dependency>

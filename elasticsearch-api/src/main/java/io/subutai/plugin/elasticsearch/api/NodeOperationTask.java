@@ -3,7 +3,7 @@ package io.subutai.plugin.elasticsearch.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.CompleteEvent;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -13,13 +13,13 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Elasticsearch elasticsearch;
     private NodeOperationType operationType;
 
 
     public NodeOperationTask( Elasticsearch elasticsearch, Tracker tracker, String clusterName,
-                              ContainerHost containerHost, NodeOperationType operationType, CompleteEvent completeEvent,
+                              EnvironmentContainerHost containerHost, NodeOperationType operationType, CompleteEvent completeEvent,
                               UUID trackID )
     {
         super( tracker, elasticsearch.getCluster( clusterName ), completeEvent, trackID, containerHost );

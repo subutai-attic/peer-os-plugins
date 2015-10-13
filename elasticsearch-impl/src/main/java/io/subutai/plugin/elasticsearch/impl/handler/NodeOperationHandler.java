@@ -9,7 +9,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -48,7 +48,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
         Environment environment = null;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -113,7 +113,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
             try
             {
                 configurator
-                        .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {

@@ -9,23 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.elasticsearch.api.Elasticsearch;
-import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
-import io.subutai.plugin.elasticsearch.api.NodeOperationTask;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
-
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -43,6 +26,23 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.elasticsearch.api.Elasticsearch;
+import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+import io.subutai.plugin.elasticsearch.api.NodeOperationTask;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -208,8 +208,7 @@ public class Manager
             }
         } );
 
-        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, removeClusterBtn,
-                addNodeBtn );
+        addStyleNameToButtons( refreshClustersBtn, checkAllBtn, startAllBtn, stopAllBtn, removeClusterBtn, addNodeBtn );
 
         PROGRESS_ICON.setVisible( false );
         PROGRESS_ICON.setId( "indicator" );
@@ -378,19 +377,15 @@ public class Manager
 
     public void startAllNodes()
     {
-        for ( UUID containerUUID : config.getNodes() )
+        for ( String containerUUID : config.getNodes() )
         {
-            ContainerHost containerHost = null;
+            EnvironmentContainerHost containerHost = null;
             try
             {
-                containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
-                                                                .getContainerHostById( containerUUID );
+                containerHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
+                                                  .getContainerHostById( containerUUID );
             }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            catch ( EnvironmentNotFoundException e )
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
             {
                 e.printStackTrace();
             }
@@ -416,19 +411,15 @@ public class Manager
 
     private void stopAllNodes()
     {
-        for ( UUID containerUUID : config.getNodes() )
+        for ( String containerUUID : config.getNodes() )
         {
-            ContainerHost containerHost = null;
+            EnvironmentContainerHost containerHost = null;
             try
             {
-                containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
-                                                                .getContainerHostById( containerUUID );
+                containerHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
+                                                  .getContainerHostById( containerUUID );
             }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            catch ( EnvironmentNotFoundException e )
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
             {
                 e.printStackTrace();
             }
@@ -526,21 +517,21 @@ public class Manager
                     String containerId =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( HOST_COLUMN_CAPTION )
                                             .getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<EnvironmentContainerHost> containerHosts;
                     try
                     {
                         containerHosts =
-                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                                environmentManager.loadEnvironment( config.getEnvironmentId() ).getContainerHosts();
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        e.printStackTrace();
+                        throw new RuntimeException( e );
                     }
                     Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     while ( iterator.hasNext() )
                     {
-                        containerHost = ( ContainerHost ) iterator.next();
+                        containerHost = ( EnvironmentContainerHost ) iterator.next();
                         if ( containerHost.getHostname().equals( containerId ) )
                         {
                             break;
@@ -571,14 +562,14 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
             try
             {
@@ -670,10 +661,10 @@ public class Manager
      * @param table table to be filled
      * @param containerHosts nodes
      */
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
         table.removeAllItems();
-        for ( final ContainerHost containerHost : containerHosts )
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             final Label resultHolder = new Label();
             final Button checkButton = new Button( CHECK_BUTTON_CAPTION );
@@ -723,7 +714,7 @@ public class Manager
     }
 
 
-    private void addDestroyButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    private void addDestroyButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( DESTROY_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -760,7 +751,7 @@ public class Manager
     }
 
 
-    public void addStopButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    public void addStopButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -788,7 +779,7 @@ public class Manager
     }
 
 
-    public void addStartButtonClickListener( final ContainerHost containerHost, final Button... buttons )
+    public void addStartButtonClickListener( final EnvironmentContainerHost containerHost, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -816,7 +807,7 @@ public class Manager
     }
 
 
-    public void addCheckButtonClickListener( final ContainerHost containerHost, final Label resultHolder,
+    public void addCheckButtonClickListener( final EnvironmentContainerHost containerHost, final Label resultHolder,
                                              final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()

@@ -6,13 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.peer.PeerException;
-import io.subutai.common.settings.Common;
-import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -28,12 +21,14 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
+
 
 public class ConfigurationStep extends VerticalLayout
 {
-    public static final String PACKAGE_NAME =
-            Common.PACKAGE_PREFIX + ElasticsearchClusterConfiguration.PRODUCT_KEY.toLowerCase();
-
 
     public ConfigurationStep( final EnvironmentWizard environmentWizard )
     {
@@ -81,9 +76,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -113,7 +109,8 @@ public class ConfigurationStep extends VerticalLayout
                 environmentWizard.getConfig().getNodes().clear();
 
 
-                for ( ContainerHost host : filterEnvironmentContainers( e.getContainerHosts(), environmentWizard, e ) )
+                for ( EnvironmentContainerHost host : filterEnvironmentContainers( e.getContainerHosts(),
+                        environmentWizard, e ) )
                 {
                     allNodesSelect.addItem( host );
                     allNodesSelect.setItemCaption( host,
@@ -175,9 +172,9 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts )
+    private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             try
             {
@@ -195,10 +192,12 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts, EnvironmentWizard environmentWizard, Environment environment )
+    private Set<EnvironmentContainerHost> filterEnvironmentContainers( Set<EnvironmentContainerHost> containerHosts,
+                                                                       EnvironmentWizard environmentWizard,
+                                                                       Environment environment )
     {
-        Set<ContainerHost> filteredSet = new HashSet<>();
-        for ( ContainerHost containerHost : containerHosts )
+        Set<EnvironmentContainerHost> filteredSet = new HashSet<>();
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             try
             {
@@ -216,16 +215,16 @@ public class ConfigurationStep extends VerticalLayout
 
         //exclude nodes which are in other clusters
         List<ElasticsearchClusterConfiguration> configs = environmentWizard.getElasticsearch().getClusters();
-        for( ElasticsearchClusterConfiguration config : configs )
+        for ( ElasticsearchClusterConfiguration config : configs )
         {
-            if( !config.getEnvironmentId().equals( environment.getId() ))
+            if ( !config.getEnvironmentId().equals( environment.getId() ) )
             {
                 continue;
             }
-            for( Iterator<ContainerHost> iterator = filteredSet.iterator(); iterator.hasNext(); )
+            for ( Iterator<EnvironmentContainerHost> iterator = filteredSet.iterator(); iterator.hasNext(); )
             {
-                ContainerHost node = iterator.next();
-                if( config.getNodes().contains( node.getId() ))
+                EnvironmentContainerHost node = iterator.next();
+                if ( config.getNodes().contains( node.getId() ) )
                 {
                     iterator.remove();
                 }

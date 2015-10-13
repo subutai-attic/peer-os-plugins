@@ -5,15 +5,15 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.elasticsearch.api.Elasticsearch;
-import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
-
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.elasticsearch.api.Elasticsearch;
+import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 
 
 public class EnvironmentWizard
@@ -67,7 +67,8 @@ public class EnvironmentWizard
             }
             case 3:
             {
-                verticalLayout.addComponent( new VerificationStep( getElasticsearch(), executorService, tracker, this ) );
+                verticalLayout
+                        .addComponent( new VerificationStep( getElasticsearch(), executorService, tracker, this ) );
                 break;
             }
             default:

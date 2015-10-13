@@ -5,21 +5,20 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.ui.manager.Manager;
 import io.subutai.plugin.elasticsearch.ui.wizard.EnvironmentWizard;
 
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-
 
 public class ElasticsearchComponent extends CustomComponent
 {
     private final Manager manager;
-    private final EnvironmentWizard environmentWizard;
 
 
     public ElasticsearchComponent( ExecutorService executorService, Elasticsearch elasticsearch, Tracker tracker,
@@ -35,7 +34,8 @@ public class ElasticsearchComponent extends CustomComponent
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
         manager = new Manager( executorService, elasticsearch, tracker, environmentManager );
-        environmentWizard = new EnvironmentWizard( executorService, elasticsearch, tracker, environmentManager );
+        final EnvironmentWizard environmentWizard =
+                new EnvironmentWizard( executorService, elasticsearch, tracker, environmentManager );
 
 
         sheet.addTab( environmentWizard.getContent(), "Setup" );

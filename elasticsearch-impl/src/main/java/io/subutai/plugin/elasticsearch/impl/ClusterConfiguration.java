@@ -8,8 +8,9 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
@@ -38,7 +39,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
 
         ElasticsearchClusterConfiguration clusterConfiguration = ( ElasticsearchClusterConfiguration ) config;
-        Set<ContainerHost> esNodes = null;
+        Set<EnvironmentContainerHost> esNodes = null;
         try
         {
             esNodes = environment.getContainerHostsByIds( clusterConfiguration.getNodes() );
@@ -48,8 +49,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             e.printStackTrace();
         }
 
+        if ( CollectionUtil.isCollectionEmpty( esNodes ) )
+        {
+            throw new ClusterConfigurationException( "No nodes found in environment" );
+        }
 
-        for ( ContainerHost containerHost : esNodes )
+
+        for ( EnvironmentContainerHost containerHost : esNodes )
         {
             try
             {

@@ -2,14 +2,13 @@ package io.subutai.plugin.elasticsearch.rest;
 
 
 import java.util.Set;
-import java.util.UUID;
 
 
 public class TrimmedClusterConfig
 {
     private String clusterName;
-    private UUID environmentId;
-    private Set<UUID> nodes;
+    private String environmentId;
+    private Set<String> nodes;
 
 
     public String getClusterName()
@@ -18,13 +17,13 @@ public class TrimmedClusterConfig
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }

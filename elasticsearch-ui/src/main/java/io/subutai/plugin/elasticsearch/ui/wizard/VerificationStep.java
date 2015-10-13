@@ -4,6 +4,14 @@ package io.subutai.plugin.elasticsearch.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -12,14 +20,6 @@ import io.subutai.plugin.common.ui.ConfigView;
 import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.server.ui.component.ProgressWindow;
-
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 
 
 public class VerificationStep extends VerticalLayout
@@ -47,14 +47,14 @@ public class VerificationStep extends VerticalLayout
         Environment environment = null;
         try
         {
-            environment = environmentWizard.getEnvironmentManager().findEnvironment(
-                    environmentWizard.getConfig().getEnvironmentId() );
+            environment = environmentWizard.getEnvironmentManager()
+                                           .loadEnvironment( environmentWizard.getConfig().getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
             e.printStackTrace();
         }
-        for ( UUID uuid : environmentWizard.getConfig().getNodes() )
+        for ( String uuid : environmentWizard.getConfig().getNodes() )
         {
             if ( environment != null )
             {
