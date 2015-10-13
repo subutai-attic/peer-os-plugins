@@ -9,20 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.shark.api.Shark;
-import io.subutai.plugin.shark.api.SharkClusterConfig;
-import io.subutai.plugin.spark.api.Spark;
-import io.subutai.plugin.spark.api.SparkClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
-
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -39,6 +25,20 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.shark.api.Shark;
+import io.subutai.plugin.shark.api.SharkClusterConfig;
+import io.subutai.plugin.spark.api.Spark;
+import io.subutai.plugin.spark.api.SparkClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -177,15 +177,16 @@ public class Manager
                     Environment environment;
                     try
                     {
-                        environment = environmentManager.findEnvironment( sparkInfo.getEnvironmentId() );
-                        Set<UUID> nodeIds = new HashSet<>( sparkInfo.getAllNodesIds() );
+                        environment = environmentManager.loadEnvironment( sparkInfo.getEnvironmentId() );
+                        Set<String> nodeIds = new HashSet<>( sparkInfo.getAllNodesIds() );
                         nodeIds.removeAll( config.getNodeIds() );
-                        Set<ContainerHost> availableNodes = Sets.newHashSet();
+                        Set<EnvironmentContainerHost> availableNodes = Sets.newHashSet();
                         try
                         {
-                            if( nodeIds.size() == 0 )
+                            if ( nodeIds.size() == 0 )
                             {
-                                throw new ContainerHostNotFoundException( "All nodes in corresponding Spark cluster have Shark installed");
+                                throw new ContainerHostNotFoundException(
+                                        "All nodes in corresponding Spark cluster have Shark installed" );
                             }
                             availableNodes.addAll( environment.getContainerHostsByIds( nodeIds ) );
                             AddNodeWindow win =
@@ -289,7 +290,7 @@ public class Manager
                 {
                     String hostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    ContainerHost node;
+                    EnvironmentContainerHost node;
                     try
                     {
                         node = environment.getContainerHostByHostname( hostname );
@@ -318,7 +319,7 @@ public class Manager
         {
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 populateTable( nodesTable, environment.getContainerHostsByIds( config.getNodeIds() ) );
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -333,10 +334,10 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> nodes )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> nodes )
     {
         table.removeAllItems();
-        for ( final ContainerHost node : nodes )
+        for ( final EnvironmentContainerHost node : nodes )
         {
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
             destroyBtn.setId( node.getIpByInterfaceName( "eth0" ) + "-sharkDestroy" );

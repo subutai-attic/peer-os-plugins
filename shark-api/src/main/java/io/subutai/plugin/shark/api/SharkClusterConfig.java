@@ -2,11 +2,10 @@ package io.subutai.plugin.shark.api;
 
 
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.plugin.common.api.ConfigBase;
 
 import com.google.common.collect.Sets;
+
+import io.subutai.plugin.common.api.ConfigBase;
 
 
 public class SharkClusterConfig implements ConfigBase
@@ -16,8 +15,8 @@ public class SharkClusterConfig implements ConfigBase
 
     private String clusterName = "";
     private String sparkClusterName = "";
-    private Set<UUID> nodeIds = Sets.newHashSet();
-    private UUID environmentId;
+    private Set<String> nodeIds = Sets.newHashSet();
+    private String environmentId;
     private boolean autoScaling;
 
 
@@ -33,13 +32,13 @@ public class SharkClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -72,7 +71,7 @@ public class SharkClusterConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodeIds()
+    public Set<String> getNodeIds()
     {
         return nodeIds;
     }

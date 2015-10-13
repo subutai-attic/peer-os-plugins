@@ -4,12 +4,15 @@ package io.subutai.plugin.shark.impl;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ClusterException;
@@ -18,9 +21,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class SetupStrategyOverSpark implements ClusterSetupStrategy
@@ -32,9 +32,9 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
     private final TrackerOperation trackerOperation;
 
     private SparkClusterConfig sparkConfig;
-    private ContainerHost sparkMaster;
-    private Set<ContainerHost> allNodes;
-    private Set<ContainerHost> nodesToInstallShark;
+    private EnvironmentContainerHost sparkMaster;
+    private Set<EnvironmentContainerHost> allNodes;
+    private Set<EnvironmentContainerHost> nodesToInstallShark;
 
 
     public SetupStrategyOverSpark( Environment environment, SharkImpl manager, SharkClusterConfig config,
@@ -73,7 +73,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
             throw new ClusterSetupException( "Invalid Shark node ids" );
         }
 
-        final Set<ContainerHost> sparkSlaves;
+        final Set<EnvironmentContainerHost> sparkSlaves;
         try
         {
             sparkSlaves = environment.getContainerHostsByIds( Sets.newHashSet( sparkConfig.getSlaveIds() ) );
@@ -89,7 +89,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
             throw new ClusterSetupException( "Fewer Spark nodes found in environment than exist in Spark cluster" );
         }
 
-        for ( ContainerHost slave : sparkSlaves )
+        for ( EnvironmentContainerHost slave : sparkSlaves )
         {
             if ( !slave.isConnected() )
             {
@@ -118,7 +118,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
 
         //check if node belongs to some existing spark cluster
         List<SharkClusterConfig> sparkClusters = manager.getClusters();
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
             for ( SharkClusterConfig cluster : sparkClusters )
             {
@@ -136,7 +136,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
         RequestBuilder checkCommand = manager.getCommands().getCheckInstalledCommand();
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
 
             CommandResult result = executeCommand( node, checkCommand );
@@ -157,7 +157,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
 
             //install shark
             RequestBuilder installCommand = manager.getCommands().getInstallCommand();
-            for ( ContainerHost node : nodesToInstallShark )
+            for ( EnvironmentContainerHost node : nodesToInstallShark )
             {
                 executeCommand( node, installCommand );
             }
@@ -167,7 +167,7 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
         trackerOperation.addLog( "Setting master IP..." );
 
         RequestBuilder setMasterIpCommand = manager.getCommands().getSetMasterIPCommand( sparkMaster );
-        for ( ContainerHost node : allNodes )
+        for ( EnvironmentContainerHost node : allNodes )
         {
             executeCommand( node, setMasterIpCommand );
         }
@@ -201,7 +201,8 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterSetupException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command )
+            throws ClusterSetupException
     {
 
         CommandResult result;

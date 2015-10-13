@@ -5,13 +5,13 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+import com.vaadin.ui.GridLayout;
+
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.spark.api.Spark;
-
-import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
 
 
 public class Wizard

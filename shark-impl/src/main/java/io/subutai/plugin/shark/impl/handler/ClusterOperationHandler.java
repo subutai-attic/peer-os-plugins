@@ -3,13 +3,18 @@ package io.subutai.plugin.shark.impl.handler;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -19,10 +24,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.shark.impl.SharkImpl;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl, SharkClusterConfig>
@@ -74,7 +75,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             }
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -83,7 +84,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             }
 
 
-            Set<ContainerHost> sharkNodes;
+            Set<EnvironmentContainerHost> sharkNodes;
             try
             {
                 sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
@@ -98,7 +99,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
                 throw new ClusterException( "Found fewer Shark nodes in environment than exist" );
             }
 
-            ContainerHost sparkMaster;
+            EnvironmentContainerHost sparkMaster;
             try
             {
                 sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
@@ -109,7 +110,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             }
 
 
-            for ( ContainerHost node : sharkNodes )
+            for ( EnvironmentContainerHost node : sharkNodes )
             {
                 if ( !node.isConnected() )
                 {
@@ -123,7 +124,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
 
             trackerOperation.addLog( "Setting master IP..." );
 
-            for ( ContainerHost sharkNode : sharkNodes )
+            for ( EnvironmentContainerHost sharkNode : sharkNodes )
             {
                 executeCommand( sharkNode, actualizeMasterIpCommand );
             }
@@ -153,7 +154,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             }
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( sparkConfig.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( sparkConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -184,7 +185,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
         {
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -192,7 +193,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
                         String.format( "Environment not found by id %s", config.getEnvironmentId() ) );
             }
 
-            Set<ContainerHost> sharkNodes;
+            Set<EnvironmentContainerHost> sharkNodes;
             try
             {
                 sharkNodes = environment.getContainerHostsByIds( config.getNodeIds() );
@@ -208,7 +209,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
             }
 
 
-            for ( ContainerHost node : sharkNodes )
+            for ( EnvironmentContainerHost node : sharkNodes )
             {
                 if ( !node.isConnected() )
                 {
@@ -221,7 +222,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
 
             trackerOperation.addLog( "Uninstalling Shark..." );
 
-            for ( ContainerHost sharkNode : sharkNodes )
+            for ( EnvironmentContainerHost sharkNode : sharkNodes )
             {
                 executeCommand( sharkNode, uninstallCommand );
             }
@@ -249,7 +250,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SharkImpl,
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
 
         CommandResult result;

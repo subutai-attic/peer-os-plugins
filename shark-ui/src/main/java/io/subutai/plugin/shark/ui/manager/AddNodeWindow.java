@@ -5,13 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.shark.api.Shark;
-import io.subutai.plugin.shark.api.SharkClusterConfig;
-
 import com.google.common.base.Strings;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -24,6 +17,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.shark.api.Shark;
+import io.subutai.plugin.shark.api.SharkClusterConfig;
+
 
 public class AddNodeWindow extends Window
 {
@@ -35,7 +35,7 @@ public class AddNodeWindow extends Window
 
 
     public AddNodeWindow( final Shark shark, final ExecutorService executorService, final Tracker tracker,
-                          final SharkClusterConfig config, Set<ContainerHost> nodes )
+                          final SharkClusterConfig config, Set<EnvironmentContainerHost> nodes )
     {
         super( "Add New Node" );
         setModal( true );
@@ -61,7 +61,7 @@ public class AddNodeWindow extends Window
         cmbNodes.setNullSelectionAllowed( false );
         cmbNodes.setRequired( true );
         cmbNodes.setWidth( 80, Unit.PERCENTAGE );
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             cmbNodes.addItem( node );
             cmbNodes.setItemCaption( node, node.getHostname() );
@@ -95,7 +95,7 @@ public class AddNodeWindow extends Window
             {
                 addNodeBtn.setEnabled( false );
                 showProgress();
-                ContainerHost node = ( ContainerHost ) cmbNodes.getValue();
+                EnvironmentContainerHost node = ( EnvironmentContainerHost ) cmbNodes.getValue();
                 final UUID trackID = shark.addNode( config.getClusterName(), node.getHostname() );
                 executorService.execute( new Runnable()
                 {

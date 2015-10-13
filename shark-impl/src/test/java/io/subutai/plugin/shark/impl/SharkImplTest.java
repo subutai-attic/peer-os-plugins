@@ -12,18 +12,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
-import io.subutai.plugin.shark.impl.SharkImpl;
 import io.subutai.plugin.spark.api.Spark;
 
 import static org.junit.Assert.assertEquals;

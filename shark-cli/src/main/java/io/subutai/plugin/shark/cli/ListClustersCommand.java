@@ -3,17 +3,17 @@ package io.subutai.plugin.shark.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.shark.api.Shark;
-import io.subutai.plugin.shark.api.SharkClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.shark.api.Shark;
+import io.subutai.plugin.shark.api.SharkClusterConfig;
 
 
 /**
  * Displays the last log entries
  */
-@Command(scope = "shark", name = "list-clusters", description = "mydescription")
+@Command( scope = "shark", name = "list-clusters", description = "mydescription" )
 public class ListClustersCommand extends OsgiCommandSupport
 {
 

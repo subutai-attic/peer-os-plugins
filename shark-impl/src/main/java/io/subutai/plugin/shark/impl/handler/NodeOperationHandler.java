@@ -3,13 +3,19 @@ package io.subutai.plugin.shark.impl.handler;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
@@ -18,11 +24,6 @@ import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.shark.impl.Commands;
 import io.subutai.plugin.shark.impl.SharkImpl;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, SharkClusterConfig>
@@ -32,7 +33,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
     private String hostname;
     private OperationType operationType;
     private Environment environment;
-    private ContainerHost node;
+    private EnvironmentContainerHost node;
 
 
     public NodeOperationHandler( final SharkImpl manager, final SharkClusterConfig config, final String hostname,
@@ -60,7 +61,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
             try
             {
-                environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -129,8 +130,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
         manager.saveConfig( config );
         trackerOperation.addLogDone(
-                SharkClusterConfig.PRODUCT_KEY + " is uninstalled from node " + node.getHostname()
-                        + " successfully." );
+                SharkClusterConfig.PRODUCT_KEY + " is uninstalled from node " + node.getHostname() + " successfully." );
     }
 
 
@@ -149,7 +149,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
                     String.format( "Underlying Spark cluster '%s' not found.", config.getSparkClusterName() ) );
         }
 
-        ContainerHost sparkMaster;
+        EnvironmentContainerHost sparkMaster;
         try
         {
             sparkMaster = environment.getContainerHostById( sparkConfig.getMasterNodeId() );
@@ -201,8 +201,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
         manager.saveConfig( config );
         trackerOperation.addLogDone(
-                SharkClusterConfig.PRODUCT_KEY + " is installed on node " + node.getHostname()
-                        + " successfully." );
+                SharkClusterConfig.PRODUCT_KEY + " is installed on node " + node.getHostname() + " successfully." );
 
         //subscribe to alerts
         try
@@ -216,14 +215,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command ) throws ClusterException
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
     {
 
         return executeCommand( host, command, false );
     }
 
 
-    public CommandResult executeCommand( ContainerHost host, RequestBuilder command, boolean skipError )
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command, boolean skipError )
             throws ClusterException
     {
 

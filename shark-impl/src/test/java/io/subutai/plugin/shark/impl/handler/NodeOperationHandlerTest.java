@@ -1,28 +1,27 @@
 package io.subutai.plugin.shark.impl.handler;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.OperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.shark.impl.Commands;
 import io.subutai.plugin.shark.impl.SharkImpl;
-import io.subutai.plugin.shark.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -45,10 +44,10 @@ public class NodeOperationHandlerTest
     private TrackerOperation trackerOperation;
     private EnvironmentManager environmentManager;
     private Environment environment;
-    private ContainerHost containerHost;
+    private EnvironmentContainerHost containerHost;
     private RequestBuilder requestBuilder;
     private CommandResult commandResult;
-    private UUID uuid;
+    private String id;
     private Spark spark;
     private SparkClusterConfig sparkClusterConfig;
     private Commands commands;
@@ -62,10 +61,10 @@ public class NodeOperationHandlerTest
         commands = mock( Commands.class );
         sparkClusterConfig = mock( SparkClusterConfig.class );
         spark = mock( Spark.class );
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         commandResult = mock( CommandResult.class );
         requestBuilder = mock( RequestBuilder.class );
-        containerHost = mock( ContainerHost.class );
+        containerHost = mock( EnvironmentContainerHost.class );
         environment = mock( Environment.class );
         environmentManager = mock( EnvironmentManager.class );
         trackerOperation = mock( TrackerOperation.class );
@@ -87,19 +86,19 @@ public class NodeOperationHandlerTest
         // mock run method
         when( sharkImpl.getCluster( any( String.class ) ) ).thenReturn( sharkClusterConfig );
         when( sharkImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( "test" ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
 
         // mock addNode method
-        List<UUID> myList = mock( ArrayList.class );
-        myList.add( uuid );
-        when( containerHost.getId() ).thenReturn( uuid );
+        List<String> myList = mock( List.class );
+        myList.add( id );
+        when( containerHost.getId() ).thenReturn( id );
         when( sharkImpl.getSparkManager() ).thenReturn( spark );
         when( spark.getCluster( any( String.class ) ) ).thenReturn( sparkClusterConfig );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( sparkClusterConfig.getAllNodesIds() ).thenReturn( myList );
-        when( sparkClusterConfig.getAllNodesIds().contains( uuid ) ).thenReturn( true );
+        when( sparkClusterConfig.getAllNodesIds().contains( id ) ).thenReturn( true );
 
         when( commands.getCheckInstalledCommand() ).thenReturn( requestBuilder );
         when( commandResult.getStdOut() ).thenReturn( "test" );
@@ -122,7 +121,7 @@ public class NodeOperationHandlerTest
         assertNotNull( commandResult );
         assertEquals( commandResult,
                 nodeOperationHandler.executeCommand( containerHost, sharkImpl.getCommands().getInstallCommand() ) );
-        assertEquals( uuid, containerHost.getId() );
+        assertEquals( id, containerHost.getId() );
         assertTrue( containerHost.isConnected() );
         assertTrue( pluginDAO.saveInfo( anyString(), anyString(), any() ) );
     }
@@ -134,17 +133,17 @@ public class NodeOperationHandlerTest
         // mock run method
         when( sharkImpl.getCluster( any( String.class ) ) ).thenReturn( sharkClusterConfig );
         when( sharkImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( "test" ) ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
 
         // mock removeNode method
-        Set<UUID> mySet = mock( Set.class );
-        mySet.add( uuid );
-        when( containerHost.getId() ).thenReturn( uuid );
+        Set<String> mySet = mock( Set.class );
+        mySet.add( id );
+        when( containerHost.getId() ).thenReturn( id );
         when( sharkClusterConfig.getNodeIds() ).thenReturn( mySet );
-        when( sharkClusterConfig.getNodeIds().contains( any() ) ).thenReturn( true );
-        when( sharkClusterConfig.getNodeIds().remove( any( UUID.class ) ) ).thenReturn( true );
+        when( sharkClusterConfig.getNodeIds().contains( anyString() ) ).thenReturn( true );
+        when( sharkClusterConfig.getNodeIds().remove( any( String.class ) ) ).thenReturn( true );
         when( sharkImpl.getPluginDao() ).thenReturn( pluginDAO );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
 
@@ -166,10 +165,10 @@ public class NodeOperationHandlerTest
         assertNotNull( commandResult );
         assertEquals( commandResult,
                 nodeOperationHandler.executeCommand( containerHost, sharkImpl.getCommands().getUninstallCommand() ) );
-        assertEquals( uuid, containerHost.getId() );
+        assertEquals( id, containerHost.getId() );
         assertTrue( containerHost.isConnected() );
         assertTrue( pluginDAO.saveInfo( anyString(), anyString(), any() ) );
-        assertTrue( sharkClusterConfig.getNodeIds().remove( any( UUID.class ) ) );
+        assertTrue( sharkClusterConfig.getNodeIds().remove( any( String.class ) ) );
     }
 
 

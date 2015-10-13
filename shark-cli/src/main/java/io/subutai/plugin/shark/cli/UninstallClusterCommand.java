@@ -3,29 +3,26 @@ package io.subutai.plugin.shark.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.shark.api.Shark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.shark.api.Shark;
 
 
 /**
  * sample command : shark:uninstall-cluster test \ {cluster name}
  */
-@Command(scope = "shark", name = "uninstall-cluster", description = "Command to uninstall Shark cluster")
+@Command( scope = "shark", name = "uninstall-cluster", description = "Command to uninstall Shark cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
 
-    @Argument(index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false)
+    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
+            multiValued = false )
     String clusterName = null;
     private Shark sharkManager;
     private Tracker tracker;
-    private static final Logger LOG = LoggerFactory.getLogger( UninstallClusterCommand.class.getName() );
 
 
     protected Object doExecute()
@@ -43,21 +40,9 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Shark getSharkManager()
-    {
-        return sharkManager;
     }
 
 

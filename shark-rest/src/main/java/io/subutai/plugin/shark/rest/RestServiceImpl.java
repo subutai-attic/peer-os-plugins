@@ -7,6 +7,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -15,9 +18,6 @@ import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class RestServiceImpl implements RestService
@@ -140,6 +140,7 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( SharkClusterConfig.PRODUCT_KEY, uuid );
@@ -190,21 +191,11 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
 
-
-    public Spark getSparkManager() {
-        return sparkManager;
-    }
 
     public void setSparkManager( final Spark sparkManager )
     {

@@ -3,26 +3,25 @@ package io.subutai.plugin.shark.impl.handler;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.shark.impl.Commands;
 import io.subutai.plugin.shark.impl.SharkImpl;
-import io.subutai.plugin.shark.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -46,7 +45,7 @@ public class ClusterOperationHandlerTest
     private TrackerOperation trackerOperation;
     private EnvironmentManager environmentManager;
     private Environment environment;
-    private ContainerHost containerHost;
+    private EnvironmentContainerHost containerHost;
     private RequestBuilder requestBuilder;
     private CommandResult commandResult;
     private Spark spark;
@@ -66,7 +65,7 @@ public class ClusterOperationHandlerTest
         spark = mock( Spark.class );
         commandResult = mock( CommandResult.class );
         requestBuilder = mock( RequestBuilder.class );
-        containerHost = mock( ContainerHost.class );
+        containerHost = mock( EnvironmentContainerHost.class );
         environment = mock( Environment.class );
         environmentManager = mock( EnvironmentManager.class );
         trackerOperation = mock( TrackerOperation.class );
@@ -91,7 +90,7 @@ public class ClusterOperationHandlerTest
         when( sharkImpl.getSparkManager() ).thenReturn( spark );
         when( spark.getCluster( any( String.class ) ) ).thenReturn( sparkClusterConfig );
         when( sharkImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( sharkImpl.getClusterSetupStrategy( trackerOperation, sharkClusterConfig, environment ) )
                 .thenReturn( clusterSetupStrategy );
 
@@ -102,7 +101,7 @@ public class ClusterOperationHandlerTest
         assertNotNull( sparkClusterConfig );
         assertEquals( sparkClusterConfig, sharkImpl.getSparkManager().getCluster( anyString() ) );
         assertNotNull( environment );
-        assertEquals( environment, sharkImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
+        assertEquals( environment, sharkImpl.getEnvironmentManager().loadEnvironment( any( String.class ) ) );
         verify( sharkImpl ).getClusterSetupStrategy( trackerOperation, sharkClusterConfig, environment );
     }
 
@@ -111,12 +110,12 @@ public class ClusterOperationHandlerTest
     public void testRunWithOperationTypeUninstall() throws Exception
     {
         // mock destroyCluster method
-        Set<ContainerHost> mySet = mock( Set.class );
+        Set<EnvironmentContainerHost> mySet = mock( Set.class );
         mySet.add( containerHost );
         when( sharkImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostsByIds( any( Set.class ) ) ).thenReturn( mySet ).thenReturn( mySet );
-        Iterator<ContainerHost> iterator = mock( Iterator.class );
+        Iterator<EnvironmentContainerHost> iterator = mock( Iterator.class );
         when( mySet.iterator() ).thenReturn( iterator ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost ).thenReturn( containerHost );
@@ -137,7 +136,7 @@ public class ClusterOperationHandlerTest
 
         // asserts
         assertNotNull( environment );
-        assertEquals( environment, sharkImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
+        assertEquals( environment, sharkImpl.getEnvironmentManager().loadEnvironment( any( String.class ) ) );
         assertTrue( containerHost.isConnected() );
         assertEquals( requestBuilder, sharkImpl.getCommands().getUninstallCommand() );
         assertTrue( sharkImpl.getPluginDao().deleteInfo( anyString(), anyString() ) );
@@ -151,17 +150,17 @@ public class ClusterOperationHandlerTest
         when( sharkImpl.getSparkManager() ).thenReturn( spark );
         when( spark.getCluster( anyString() ) ).thenReturn( sparkClusterConfig );
         when( sharkImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        Set<ContainerHost> mySet = mock( Set.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        Set<EnvironmentContainerHost> mySet = mock( Set.class );
         mySet.add( containerHost );
         when( environment.getContainerHostsByIds( any( Set.class ) ) ).thenReturn( mySet ).thenReturn( mySet );
-        Iterator<ContainerHost> iterator = mock( Iterator.class );
+        Iterator<EnvironmentContainerHost> iterator = mock( Iterator.class );
         when( mySet.iterator() ).thenReturn( iterator ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost ).thenReturn( containerHost );
         when( containerHost.isConnected() ).thenReturn( true );
         when( mySet.size() ).thenReturn( 1 );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( sharkImpl.getCommands() ).thenReturn( commands );
         when( commands.getSetMasterIPCommand( containerHost ) ).thenReturn( requestBuilder );
 
@@ -176,10 +175,10 @@ public class ClusterOperationHandlerTest
         assertEquals( sparkClusterConfig, sharkImpl.getSparkManager().getCluster( anyString() ) );
         assertNotNull( sparkClusterConfig );
         assertNotNull( environment );
-        assertEquals( environment, sharkImpl.getEnvironmentManager().findEnvironment( any( UUID.class ) ) );
+        assertEquals( environment, sharkImpl.getEnvironmentManager().loadEnvironment( any( String.class ) ) );
         assertTrue( containerHost.isConnected() );
         assertNotNull( containerHost );
-        assertEquals( containerHost, environment.getContainerHostById( any( UUID.class ) ) );
+        assertEquals( containerHost, environment.getContainerHostById( any( String.class ) ) );
         assertEquals( commandResult, clusterOperationHandler3.executeCommand( containerHost, requestBuilder ) );
     }
 

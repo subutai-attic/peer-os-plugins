@@ -7,22 +7,20 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
-import io.subutai.plugin.shark.impl.Commands;
-import io.subutai.plugin.shark.impl.SetupStrategyOverSpark;
-import io.subutai.plugin.shark.impl.SharkImpl;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -45,10 +43,10 @@ public class SetupStrategyOverSparkTest
     private TrackerOperation trackerOperation;
     private EnvironmentManager environmentManager;
     private Environment environment;
-    private ContainerHost containerHost;
+    private EnvironmentContainerHost containerHost;
     private RequestBuilder requestBuilder;
     private CommandResult commandResult;
-    private UUID uuid;
+    private String id;
     private Spark spark;
     private SparkClusterConfig sparkClusterConfig;
     private Commands commands;
@@ -63,10 +61,10 @@ public class SetupStrategyOverSparkTest
         commands = mock( Commands.class );
         sparkClusterConfig = mock( SparkClusterConfig.class );
         spark = mock( Spark.class );
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         commandResult = mock( CommandResult.class );
         requestBuilder = mock( RequestBuilder.class );
-        containerHost = mock( ContainerHost.class );
+        containerHost = mock( EnvironmentContainerHost.class );
         environment = mock( Environment.class );
         environmentManager = mock( EnvironmentManager.class );
         trackerOperation = mock( TrackerOperation.class );
@@ -88,22 +86,22 @@ public class SetupStrategyOverSparkTest
         when( sharkImpl.getSparkManager() ).thenReturn( spark );
         when( spark.getCluster( anyString() ) ).thenReturn( sparkClusterConfig );
 
-        Set<ContainerHost> mySet = mock( Set.class );
+        Set<EnvironmentContainerHost> mySet = mock( Set.class );
         mySet.add( containerHost );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
 
-        ContainerHost[] arr = new ContainerHost[1];
+        EnvironmentContainerHost[] arr = new EnvironmentContainerHost[1];
         arr[0] = containerHost;
 
         when( environment.getContainerHostsByIds( any( Set.class ) ) ).thenReturn( mySet );
-        Iterator<ContainerHost> iterator = mock( Iterator.class );
+        Iterator<EnvironmentContainerHost> iterator = mock( Iterator.class );
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost );
         when( mySet.size() ).thenReturn( 1 );
 
         when( containerHost.isConnected() ).thenReturn( true );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( mySet.toArray() ).thenReturn( arr );
 
         when( sharkImpl.getCommands() ).thenReturn( commands );
@@ -114,11 +112,11 @@ public class SetupStrategyOverSparkTest
         when( commandResult.getStdOut() ).thenReturn( "test" );
 
         // mock configure method
-        Set<UUID> myUUID = mock( Set.class );
-        myUUID.add( uuid );
+        Set<String> myUUID = mock( Set.class );
+        myUUID.add( id );
         when( sharkClusterConfig.getNodeIds() ).thenReturn( myUUID );
-        when( myUUID.addAll( anyListOf( UUID.class ) ) ).thenReturn( true );
-        when( environment.getId() ).thenReturn( uuid );
+        when( myUUID.addAll( anyListOf( String.class ) ) ).thenReturn( true );
+        when( environment.getId() ).thenReturn( id );
         when( commands.getSetMasterIPCommand( containerHost ) ).thenReturn( requestBuilder );
         when( sharkImpl.getPluginDao() ).thenReturn( pluginDAO );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
@@ -131,7 +129,7 @@ public class SetupStrategyOverSparkTest
         assertNotNull( containerHost );
         assertNotNull( sparkClusterConfig );
         assertNotNull( commandResult );
-        assertEquals( uuid, containerHost.getId() );
+        assertEquals( id, containerHost.getId() );
         assertTrue( containerHost.isConnected() );
         assertTrue( pluginDAO.saveInfo( anyString(), anyString(), any() ) );
     }

@@ -1,38 +1,38 @@
 package io.subutai.plugin.shark.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.OperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.shark.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.shark.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.spark.api.Spark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class SharkImpl implements Shark, EnvironmentEventListener
@@ -51,7 +51,8 @@ public class SharkImpl implements Shark, EnvironmentEventListener
     protected Commands commands;
 
 
-    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, Monitor monitor, PluginDAO pluginDAO )
+    public SharkImpl( Tracker tracker, EnvironmentManager environmentManager, Spark sparkManager, Monitor monitor,
+                      PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -73,7 +74,7 @@ public class SharkImpl implements Shark, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
     }
@@ -228,7 +229,7 @@ public class SharkImpl implements Shark, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         //not needed
     }
@@ -247,9 +248,9 @@ public class SharkImpl implements Shark, EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Shark environment event: Container destroyed: %s", uuid ) );
+        LOG.info( String.format( "Shark environment event: Container destroyed: %s", containerId ) );
 
         List<SharkClusterConfig> clusters = getClusters();
         for ( SharkClusterConfig clusterConfig : clusters )
@@ -259,13 +260,13 @@ public class SharkImpl implements Shark, EnvironmentEventListener
                 LOG.info( String.format( "Shark environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getNodeIds().contains( uuid ) )
+                if ( clusterConfig.getNodeIds().contains( containerId ) )
                 {
                     LOG.info( String.format( "Shark environment event: Before: %s", clusterConfig ) );
 
                     if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodeIds() ) )
                     {
-                        clusterConfig.getNodeIds().remove( uuid );
+                        clusterConfig.getNodeIds().remove( containerId );
                     }
                     try
                     {
@@ -284,14 +285,14 @@ public class SharkImpl implements Shark, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String envId )
     {
-        LOG.info( String.format( "Shark environment event: Environment destroyed: %s", uuid ) );
+        LOG.info( String.format( "Shark environment event: Environment destroyed: %s", envId ) );
 
         List<SharkClusterConfig> clusters = getClusters();
         for ( SharkClusterConfig clusterConfig : clusters )
         {
-            if ( uuid.equals( clusterConfig.getEnvironmentId() ) )
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
             {
                 LOG.info( String.format( "Shark environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );

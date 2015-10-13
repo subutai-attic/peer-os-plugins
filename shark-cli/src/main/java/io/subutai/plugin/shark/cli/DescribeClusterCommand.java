@@ -1,20 +1,19 @@
 package io.subutai.plugin.shark.cli;
 
 
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.shark.api.Shark;
-import io.subutai.plugin.shark.api.SharkClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.shark.api.Shark;
+import io.subutai.plugin.shark.api.SharkClusterConfig;
 
 
 /**
@@ -37,11 +36,11 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         SharkClusterConfig config = getSharkManager().getCluster( clusterName );
         try
         {
-            Environment environment = getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment environment = getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( UUID containerId : config.getNodeIds() )
+            for ( String containerId : config.getNodeIds() )
             {
                 try
                 {
@@ -65,7 +64,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 
         return null;
     }
-
 
 
     public EnvironmentManager getEnvironmentManager()

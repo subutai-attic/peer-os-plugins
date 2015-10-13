@@ -11,16 +11,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import com.google.common.collect.Lists;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
-import io.subutai.plugin.shark.rest.RestServiceImpl;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-
-import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -55,14 +55,13 @@ public class RestServiceImplTest
         restService = new RestServiceImpl( shark );
         restService.setTracker( tracker );
         restService.setSparkManager( sparkManager );
-        when( shark.getCluster( anyString() )).thenReturn( sharkClusterConfig );
+        when( shark.getCluster( anyString() ) ).thenReturn( sharkClusterConfig );
         when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
-        List<UUID> myList = Lists.newArrayList();
-        myList.add( UUID.randomUUID() );
+        List<String> myList = Lists.newArrayList();
+        myList.add( UUID.randomUUID().toString() );
         sparkClusterConfig.getAllNodesIds().addAll( myList );
-        when( sparkManager.getCluster( anyString() )).thenReturn( sparkClusterConfig );
-
+        when( sparkManager.getCluster( anyString() ) ).thenReturn( sparkClusterConfig );
     }
 
 

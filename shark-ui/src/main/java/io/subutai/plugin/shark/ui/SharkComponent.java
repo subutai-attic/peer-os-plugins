@@ -5,22 +5,23 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.ui.manager.Manager;
 import io.subutai.plugin.shark.ui.wizard.Wizard;
 import io.subutai.plugin.spark.api.Spark;
 
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-
 
 public class SharkComponent extends CustomComponent
 {
 
-    public SharkComponent( ExecutorService executorService, Shark shark, Spark spark, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public SharkComponent( ExecutorService executorService, Shark shark, Spark spark, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
         VerticalLayout verticalLayout = new VerticalLayout();

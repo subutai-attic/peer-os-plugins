@@ -4,21 +4,22 @@ package io.subutai.plugin.shark.cli;
 import java.io.IOException;
 import java.util.UUID;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.shark.api.Shark;
-import io.subutai.plugin.shark.api.SharkClusterConfig;
-import io.subutai.plugin.spark.api.Spark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.shark.api.Shark;
+import io.subutai.plugin.shark.api.SharkClusterConfig;
+import io.subutai.plugin.spark.api.Spark;
 
 
 /**
@@ -48,7 +49,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         try
         {
             Environment environment = getEnvironmentManager()
-                    .findEnvironment( getSparkManager().getCluster( sparkClusterName ).getEnvironmentId() );
+                    .loadEnvironment( getSparkManager().getCluster( sparkClusterName ).getEnvironmentId() );
 
             SharkClusterConfig config = new SharkClusterConfig();
             config.setClusterName( clusterName );

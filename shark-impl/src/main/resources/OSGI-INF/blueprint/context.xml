@@ -4,7 +4,7 @@
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="sparkManager" availability="mandatory"
              interface="io.subutai.plugin.spark.api.Spark" />
   <reference id="monitor" availability="mandatory"
@@ -23,7 +23,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="shark-impl" interface="io.subutai.plugin.shark.api.Shark" />
-  <service ref="shark-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="shark-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
 </blueprint>
