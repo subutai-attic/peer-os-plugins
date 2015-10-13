@@ -10,22 +10,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.StormImpl;
-import io.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
 import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
@@ -39,43 +39,56 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormNodeOperationHandlerTest
 {
-    @Mock CommandResult commandResult;
-    @Mock ContainerHost containerHost;
-    @Mock StormImpl stormImpl;
-    @Mock StormClusterConfiguration stormClusterConfiguration;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ClusterSetupStrategy clusterSetupStrategy;
-    @Mock PluginDAO pluginDAO;
-    @Mock Zookeeper zookeeper;
-    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock PeerManager peerManager;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    StormImpl stormImpl;
+    @Mock
+    StormClusterConfiguration stormClusterConfiguration;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    Zookeeper zookeeper;
+    @Mock
+    ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    PeerManager peerManager;
     private StormNodeOperationHandler stormNodeOperationHandler;
     private StormNodeOperationHandler stormNodeOperationHandler2;
     private StormNodeOperationHandler stormNodeOperationHandler3;
     private StormNodeOperationHandler stormNodeOperationHandler4;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
-    private Set<UUID> myUUID;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
+    private Set<String> myUUID;
 
 
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         mySet = new HashSet<>();
         mySet.add( containerHost );
 
         myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        myUUID.add( id );
 
         // mock constructor
         when( stormImpl.getCluster( "testClusterName" ) ).thenReturn( stormClusterConfiguration );
         when( stormImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         stormNodeOperationHandler =
                 new StormNodeOperationHandler( stormImpl, "testClusterName", "testHostName", NodeOperationType.START );
@@ -89,12 +102,12 @@ public class StormNodeOperationHandlerTest
         // mock run method
         when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
         when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( zookeeper.getCommand( any( CommandType.class ) ) ).thenReturn( "testCommand" );
     }
@@ -160,7 +173,7 @@ public class StormNodeOperationHandlerTest
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( null );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormNodeOperationHandler.run();
@@ -184,7 +197,7 @@ public class StormNodeOperationHandlerTest
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( null );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormNodeOperationHandler2.run();
@@ -208,7 +221,7 @@ public class StormNodeOperationHandlerTest
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( null );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormNodeOperationHandler3.run();

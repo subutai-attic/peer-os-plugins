@@ -2,10 +2,14 @@ package io.subutai.plugin.storm.impl;
 
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -13,7 +17,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.Criteria;
 import io.subutai.common.protocol.PlacementStrategy;
@@ -25,10 +29,6 @@ import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
 
 
 public class StormSetupStrategyDefault implements ClusterSetupStrategy
@@ -38,7 +38,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
     private final StormClusterConfiguration config;
     private final TrackerOperation po;
     private Environment environment;
-    private ContainerHost nimbusHost;
+    private EnvironmentContainerHost nimbusHost;
 
 
     public StormSetupStrategyDefault( StormImpl manager, StormClusterConfiguration config, TrackerOperation po )
@@ -72,12 +72,12 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logException( String.format( "Environment not found by id: %s",
-                    zookeeperClusterConfig.getEnvironmentId().toString() ), e );
+            logException( String.format( "Environment not found by id: %s", zookeeperClusterConfig.getEnvironmentId() ),
+                    e );
             return null;
         }
         if ( environment == null )
@@ -91,7 +91,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
 
         // check installed packages
-        for ( ContainerHost n : environment.getContainerHosts() )
+        for ( EnvironmentContainerHost n : environment.getContainerHosts() )
         {
             try
             {
@@ -136,7 +136,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         else
         // find out nimbus node in environment
         {
-            for ( ContainerHost n : environment.getContainerHosts() )
+            for ( EnvironmentContainerHost n : environment.getContainerHosts() )
             {
                 if ( n.getNodeGroupName().equals( StormService.NIMBUS.toString() ) )
                 {
@@ -146,7 +146,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
 
         // collect worker nodes in environment
-        for ( ContainerHost n : environment.getContainerHosts() )
+        for ( EnvironmentContainerHost n : environment.getContainerHosts() )
         {
             if ( n.getNodeGroupName().equals( StormService.SUPERVISOR.toString() ) )
             {
@@ -166,11 +166,11 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
 
         try
         {
-            ContainerHost containerHost = environment.getContainerHostById( config.getNimbus() );
+            environment.getContainerHostById( config.getNimbus() );
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+            logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
             return null;
         }
 
@@ -214,16 +214,17 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         {
             ZookeeperClusterConfig zookeeperClusterConfig =
                     manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment = null;
+            Environment zookeeperEnvironment;
             try
             {
                 zookeeperEnvironment =
-                        manager.getEnvironmentManager().findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                        manager.getEnvironmentManager().loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException( String.format( "Environment not found by id: %s",
-                        zookeeperClusterConfig.getEnvironmentId().toString() ), e );
+                logException(
+                        String.format( "Environment not found by id: %s", zookeeperClusterConfig.getEnvironmentId() ),
+                        e );
                 return;
             }
             try
@@ -232,7 +233,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return;
             }
         }
@@ -244,13 +245,13 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return;
             }
         }
         paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
 
-        Set<ContainerHost> supervisorNodes = null;
+        Set<EnvironmentContainerHost> supervisorNodes;
         try
         {
             supervisorNodes = environment.getContainerHostsByIds( config.getSupervisors() );
@@ -262,16 +263,15 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             return;
         }
 
-        Set<ContainerHost> allNodes = new HashSet<>();
+        Set<EnvironmentContainerHost> allNodes = new HashSet<>();
         allNodes.add( nimbusHost );
         allNodes.addAll( supervisorNodes );
 
-        ContainerHost stormNode;
-        Iterator<ContainerHost> iterator = allNodes.iterator();
+        EnvironmentContainerHost stormNode;
 
-        while ( iterator.hasNext() )
+        for ( final EnvironmentContainerHost allNode : allNodes )
         {
-            stormNode = iterator.next();
+            stormNode = allNode;
             int operation_count = 0;
 
             for ( Map.Entry<String, String> entry : paramValues.entrySet() )
@@ -284,7 +284,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                         && operation_count == 0 )
                 {
                     String installZookeeperCommand = manager.getZookeeperManager().getCommand( CommandType.INSTALL );
-                    CommandResult commandResult = null;
+                    CommandResult commandResult;
                     try
                     {
                         commandResult =
@@ -302,9 +302,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 else if ( config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
                         && operation_count == 0 )
                 {
-                    String installStormCommand =
-                            Commands.make( io.subutai.plugin.storm.impl.CommandType.INSTALL );
-                    CommandResult commandResult = null;
+                    String installStormCommand = Commands.make( io.subutai.plugin.storm.impl.CommandType.INSTALL );
+                    CommandResult commandResult;
                     try
                     {
                         commandResult =
@@ -344,20 +343,18 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
             if ( zk_config != null )
             {
                 StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment = null;
+                Environment zookeeperEnvironment;
                 try
                 {
                     zookeeperEnvironment =
-                            manager.getEnvironmentManager().findEnvironment( zk_config.getEnvironmentId() );
+                            manager.getEnvironmentManager().loadEnvironment( zk_config.getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    logException(
-                            String.format( "Environment not found by id: %s", zk_config.getEnvironmentId().toString() ),
-                            e );
+                    logException( String.format( "Environment not found by id: %s", zk_config.getEnvironmentId() ), e );
                     return "";
                 }
-                Set<ContainerHost> zookeeperNodes = null;
+                Set<EnvironmentContainerHost> zookeeperNodes;
                 try
                 {
                     zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
@@ -368,7 +365,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                             zk_config.getNodes().toString() ), e );
                     return "";
                 }
-                for ( ContainerHost containerHost : zookeeperNodes )
+                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
                 {
                     if ( sb.length() > 0 )
                     {
@@ -381,14 +378,14 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         }
         else if ( config.getNimbus() != null )
         {
-            ContainerHost nimbusHost = null;
+            EnvironmentContainerHost nimbusHost;
             try
             {
                 nimbusHost = environment.getContainerHostById( config.getNimbus() );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return "";
             }
             return nimbusHost.getIpByInterfaceName( "eth0" );

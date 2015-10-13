@@ -11,7 +11,7 @@
     </cxf:features>
   </cxf:bus>
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <reference id="stormManager" availability="mandatory" interface="io.subutai.plugin.storm.api.Storm" />
   <reference id="zookeeperManager" availability="mandatory"

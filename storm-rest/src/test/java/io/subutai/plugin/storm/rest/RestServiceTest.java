@@ -12,18 +12,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.storm.rest.RestServiceImpl;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
@@ -37,15 +37,24 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class RestServiceTest
 {
-    @Mock Tracker tracker;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Storm storm;
-    @Mock EnvironmentManager environmentManager;
-    @Mock Zookeeper zookeeper;
-    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock Environment environment;
-    @Mock ContainerHost containerHost;
-    @Mock TrackerOperationView trackerOperationView;
+    @Mock
+    Tracker tracker;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Storm storm;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    Zookeeper zookeeper;
+    @Mock
+    ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    Environment environment;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    TrackerOperationView trackerOperationView;
     private RestServiceImpl restService;
     private StormClusterConfiguration stormClusterConfiguration;
     private UUID uuid;
@@ -68,9 +77,9 @@ public class RestServiceTest
 
         // mock
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
-        when( containerHost.getId() ).thenReturn( UUID.randomUUID() );
+        when( containerHost.getId() ).thenReturn( UUID.randomUUID().toString() );
         when( storm.installCluster( any( StormClusterConfiguration.class ) ) ).thenReturn( UUID.randomUUID() );
         when( storm.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
         when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );

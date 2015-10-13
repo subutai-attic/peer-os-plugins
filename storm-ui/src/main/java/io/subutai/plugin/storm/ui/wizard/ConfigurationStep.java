@@ -5,16 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +25,19 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+
 
 public class ConfigurationStep extends Panel
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
-    private EnvironmentManager environmentManager;
     private GridLayout installationControls;
     private TextField clusterNameTxtFld;
     private TextField domainNameTxtFld;
@@ -49,8 +48,6 @@ public class ConfigurationStep extends Panel
     private TwinColSelect allNodesSelect;
     private Wizard wizard;
     private Zookeeper zookeeper;
-    private Component nimbusElem;
-    private HorizontalLayout hl;
 
 
     public ConfigurationStep( final Zookeeper zookeeper, final Wizard wizard,
@@ -58,7 +55,6 @@ public class ConfigurationStep extends Panel
     {
         this.wizard = wizard;
         this.zookeeper = zookeeper;
-        this.environmentManager = environmentManager;
 
         installationControls = new GridLayout( 1, 3 );
         installationControls.setSizeFull();
@@ -125,7 +121,8 @@ public class ConfigurationStep extends Panel
                     nimbusNode.removeAllItems();
                     nimbusNode.setValue( null );
 
-                    for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) )
+                    for ( EnvironmentContainerHost host : filterEnvironmentContainers(
+                            environment.getContainerHosts() ) )
                     {
                         allNodesSelect.addItem( host.getId() );
                         allNodesSelect.setItemCaption( host.getId(),
@@ -143,12 +140,11 @@ public class ConfigurationStep extends Panel
                 Environment env;
                 try
                 {
-                    env = environmentManager.findEnvironment( wizard.getConfig().getEnvironmentId() );
+                    env = environmentManager.loadEnvironment( wizard.getConfig().getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    LOGGER.error( "Environment not found with id: " + wizard.getConfig().getEnvironmentId().toString(),
-                            e );
+                    LOGGER.error( "Environment not found with id: " + wizard.getConfig().getEnvironmentId(), e );
                     return;
                 }
                 fillUpComboBox( allNodesSelect, env );
@@ -170,24 +166,23 @@ public class ConfigurationStep extends Panel
                 Environment env;
                 try
                 {
-                    env = environmentManager.findEnvironment( wizard.getConfig().getEnvironmentId() );
+                    env = environmentManager.loadEnvironment( wizard.getConfig().getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    LOGGER.error( "Environment not found with id: " + wizard.getConfig().getEnvironmentId().toString(),
-                            e );
+                    LOGGER.error( "Environment not found with id: " + wizard.getConfig().getEnvironmentId(), e );
                     return;
                 }
                 fillUpComboBox( allNodesSelect, env );
-                UUID uuid = ( UUID ) event.getProperty().getValue();
-                ContainerHost containerHost = null;
+                String id = ( String ) event.getProperty().getValue();
+                EnvironmentContainerHost containerHost;
                 try
                 {
-                    containerHost = env.getContainerHostById( uuid );
+                    containerHost = env.getContainerHostById( id );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
-                    LOGGER.error( "Container host not found with id: " + uuid.toString(), e );
+                    LOGGER.error( "Container host not found with id: " + id, e );
                     return;
                 }
                 wizard.getConfig().setNimbus( containerHost.getId() );
@@ -207,9 +202,10 @@ public class ConfigurationStep extends Panel
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -272,22 +268,22 @@ public class ConfigurationStep extends Panel
                     ZookeeperClusterConfig zookeeperClusterConfig =
                             ( ZookeeperClusterConfig ) e.getProperty().getValue();
 
-                    Environment zookeeperEnvironment = null;
+                    Environment zookeeperEnvironment;
                     try
                     {
                         zookeeperEnvironment = wizard.getEnvironmentManager()
-                                                     .findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                                                     .loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e1 )
                     {
-                        LOGGER.error( "Environment not found with id: " + zookeeperClusterConfig.getEnvironmentId()
-                                                                                                .toString(), e );
+                        LOGGER.error( "Environment not found with id: " + zookeeperClusterConfig.getEnvironmentId(),
+                                e );
                         return;
                     }
-                    Set<ContainerHost> zookeeperNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> zookeeperNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterZKNodes( zookeeperClusterConfig.getNodes() ) )
+                        for ( String nodeId : filterZKNodes( zookeeperClusterConfig.getNodes() ) )
                         {
                             zookeeperNodes.add( zookeeperEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -299,7 +295,7 @@ public class ConfigurationStep extends Panel
                                 e1 );
                         return;
                     }
-                    for ( ContainerHost containerHost : zookeeperNodes )
+                    for ( EnvironmentContainerHost containerHost : zookeeperNodes )
                     {
                         masterNodeCombo.addItem( containerHost );
                         masterNodeCombo.setItemCaption( containerHost, containerHost.getHostname() );
@@ -330,7 +326,7 @@ public class ConfigurationStep extends Panel
         {
             masterNodeCombo.setValue( wizard.getConfig().getNimbus() );
         }
-        nimbusElem = new Panel( "Nimbus node", hl );
+        final Component nimbusElem = new Panel( "Nimbus node" );
         nimbusElem.setSizeUndefined();
         nimbusElem.setStyleName( "default" );
 
@@ -392,7 +388,7 @@ public class ConfigurationStep extends Panel
             @Override
             public void valueChange( Property.ValueChangeEvent event )
             {
-                ContainerHost serverNode = ( ContainerHost ) event.getProperty().getValue();
+                EnvironmentContainerHost serverNode = ( EnvironmentContainerHost ) event.getProperty().getValue();
                 wizard.getConfig().setNimbus( serverNode.getId() );
             }
         } );
@@ -449,9 +445,9 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private boolean isTemplateExists( Set<ContainerHost> containerHosts, String templateName )
+    private boolean isTemplateExists( Set<EnvironmentContainerHost> containerHosts, String templateName )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             if ( host.getTemplateName().equals( templateName ) )
             {
@@ -476,15 +472,15 @@ public class ConfigurationStep extends Panel
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( Set<ContainerHost> containerHosts )
+    private Set<EnvironmentContainerHost> filterEnvironmentContainers( Set<EnvironmentContainerHost> containerHosts )
     {
-        Set<ContainerHost> filteredSet = new HashSet<>();
-        List<UUID> stormNodes = new ArrayList<>();
+        Set<EnvironmentContainerHost> filteredSet = new HashSet<>();
+        List<String> stormNodes = new ArrayList<>();
         for ( StormClusterConfiguration stormConfig : wizard.getStormManager().getClusters() )
         {
             stormNodes.addAll( stormConfig.getAllNodes() );
         }
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( ( containerHost.getTemplateName().equals( StormClusterConfiguration.TEMPLATE_NAME ) ) && !( stormNodes
                     .contains( containerHost.getId() ) ) )
@@ -504,7 +500,7 @@ public class ConfigurationStep extends Panel
             target.removeAllItems();
             target.setValue( null );
 
-            for ( ContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) )
+            for ( EnvironmentContainerHost host : filterEnvironmentContainers( environment.getContainerHosts() ) )
             {
                 target.addItem( host );
                 target.setItemCaption( host,
@@ -517,16 +513,17 @@ public class ConfigurationStep extends Panel
         }
     }
 
+
     //exclude nodes that are already in another zookeeper cluster
-    private List<UUID> filterZKNodes( Set<UUID> zookeeperNodes )
+    private List<String> filterZKNodes( Set<String> zookeeperNodes )
     {
-        List<UUID> zkNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> zkNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( StormClusterConfiguration stormConfig : wizard.getStormManager().getClusters() )
         {
             zkNodes.addAll( stormConfig.getAllNodes() );
         }
-        for ( UUID node : zookeeperNodes )
+        for ( String node : zookeeperNodes )
         {
             if ( !zkNodes.contains( node ) )
             {
@@ -535,5 +532,4 @@ public class ConfigurationStep extends Panel
         }
         return filteredNodes;
     }
-
 }

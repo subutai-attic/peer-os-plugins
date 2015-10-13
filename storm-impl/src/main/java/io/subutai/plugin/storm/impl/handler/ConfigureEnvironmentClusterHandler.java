@@ -3,6 +3,9 @@ package io.subutai.plugin.storm.impl.handler;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.TrackerOperation;
@@ -12,8 +15,6 @@ import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.ClusterConfiguration;
 import io.subutai.plugin.storm.impl.StormImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler<StormImpl, StormClusterConfiguration>
@@ -47,16 +48,14 @@ public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler
 
         try
         {
-            Environment env = null;
+            Environment env;
             try
             {
-                env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+                env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException(
-                        String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
-                        e );
+                logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId() ), e );
                 return;
             }
 

@@ -10,20 +10,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.StormImpl;
-import io.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
@@ -39,23 +39,36 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class ConfigureEnvironmentClusterHandlerTest
 {
-    @Mock CommandResult commandResult;
-    @Mock ContainerHost containerHost;
-    @Mock StormImpl stormImpl;
-    @Mock StormClusterConfiguration stormClusterConfiguration;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ClusterSetupStrategy clusterSetupStrategy;
-    @Mock PluginDAO pluginDAO;
-    @Mock Zookeeper zookeeper;
-    @Mock ZookeeperClusterConfig zookeeperClusterConfig;
-    @Mock PeerManager peerManager;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    StormImpl stormImpl;
+    @Mock
+    StormClusterConfiguration stormClusterConfiguration;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    Zookeeper zookeeper;
+    @Mock
+    ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    PeerManager peerManager;
     private ConfigureEnvironmentClusterHandler configureEnvironmentClusterHandler;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
-    private Set<UUID> myUUID;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
+    private Set<String> myUUID;
 
 
     @Before
@@ -65,19 +78,19 @@ public class ConfigureEnvironmentClusterHandlerTest
         mySet.add( containerHost );
 
         myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        myUUID.add( id );
 
         // mock constructor
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         when( stormImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( stormClusterConfiguration.getClusterName() ).thenReturn( "testClusterName" );
 
         configureEnvironmentClusterHandler =
                 new ConfigureEnvironmentClusterHandler( stormImpl, stormClusterConfiguration );
 
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
     }
 
 
@@ -104,15 +117,15 @@ public class ConfigureEnvironmentClusterHandlerTest
     public void testRun() throws Exception
     {
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( stormClusterConfiguration.getZookeeperClusterName() ).thenReturn( "testZookeeper" );
         when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
+        when( containerHost.getId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
 

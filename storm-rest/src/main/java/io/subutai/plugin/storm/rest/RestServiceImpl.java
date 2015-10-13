@@ -2,6 +2,7 @@ package io.subutai.plugin.storm.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,41 +10,35 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.storm.api.Storm;
-import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.storm.api.Storm;
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+
 
 public class RestServiceImpl implements RestService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( RestServiceImpl.class );
-    private static final String OPERATION_ID = "OPERATION_ID";
-    private UUID nimbusID;
+    private String nimbusID;
     private Storm stormManager;
     private Zookeeper zookeeperManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
 
 
     public void setTracker( final Tracker tracker )
@@ -101,21 +96,21 @@ public class RestServiceImpl implements RestService
     public Response installCluster( String clusterName, String environmentId, boolean externalZookeeper,
                                     String zookeeperClusterName, String nimbus, String supervisors )
     {
-        Set<UUID> uuidSet = new HashSet<>();
+        Set<String> uuidSet = new HashSet<>();
         StormClusterConfiguration config = new StormClusterConfiguration();
         config.setClusterName( clusterName );
         config.setExternalZookeeper( externalZookeeper );
         config.setZookeeperClusterName( zookeeperClusterName );
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setEnvironmentId( environmentId );
 
         if ( externalZookeeper )
         {
             ZookeeperClusterConfig zookeeperClusterConfig =
                     zookeeperManager.getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment = null;
+            Environment zookeeperEnvironment;
             try
             {
-                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -134,25 +129,22 @@ public class RestServiceImpl implements RestService
         }
         else
         {
-            Environment stormEnvironment = null;
+
             try
             {
-                stormEnvironment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
                 LOGGER.error( "Environment with id not found.", e );
                 return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
             }
-            nimbusID = UUID.fromString( nimbus );
+            nimbusID = nimbus;
             config.setNimbus( nimbusID );
         }
 
         String[] arr = supervisors.replaceAll( "\\s+", "" ).split( "," );
-        for ( String client : arr )
-        {
-            uuidSet.add( UUID.fromString( client ) );
-        }
+        Collections.addAll( uuidSet, arr );
 
         config.setSupervisors( uuidSet );
 
@@ -319,7 +311,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
-        String message ="enabled";
+        String message = "enabled";
         StormClusterConfiguration config = stormManager.getCluster( clusterName );
         config.setAutoScaling( scale );
         try
@@ -330,12 +322,12 @@ public class RestServiceImpl implements RestService
         {
             e.printStackTrace();
         }
-        if( scale == false )
+        if ( scale == false )
         {
             message = "disabled";
         }
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is "+ message+" successfully" ).build();
+        return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
 

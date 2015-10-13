@@ -2,10 +2,11 @@ package io.subutai.plugin.storm.impl;
 
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -13,16 +14,15 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
@@ -31,7 +31,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private TrackerOperation po;
     private StormImpl stormManager;
     private EnvironmentManager environmentManager;
-    private ContainerHost nimbusHost;
+    private EnvironmentContainerHost nimbusHost;
 
 
     public ClusterConfiguration( final TrackerOperation operation, final StormImpl stormManager )
@@ -63,15 +63,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             ZookeeperClusterConfig zookeeperClusterConfig =
                     stormManager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment = null;
+            Environment zookeeperEnvironment;
             try
             {
-                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId().toString() ),
-                        e );
+                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
                 return;
             }
             try
@@ -80,7 +79,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return;
             }
         }
@@ -92,13 +91,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return;
             }
         }
         paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
 
-        Set<ContainerHost> supervisorNodes = null;
+        Set<EnvironmentContainerHost> supervisorNodes;
         try
         {
             supervisorNodes = environment.getContainerHostsByIds( config.getSupervisors() );
@@ -110,15 +109,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             return;
         }
 
-        Set<ContainerHost> allNodes = new HashSet<>();
+        Set<EnvironmentContainerHost> allNodes = new HashSet<>();
         allNodes.add( nimbusHost );
         allNodes.addAll( supervisorNodes );
 
-        ContainerHost stormNode;
+        EnvironmentContainerHost stormNode;
 
-        for ( Iterator<ContainerHost> iterator = allNodes.iterator(); iterator.hasNext(); )
+        for ( final EnvironmentContainerHost allNode : allNodes )
         {
-            stormNode = iterator.next();
+            stormNode = allNode;
             int operation_count = 0;
 
             for ( Map.Entry<String, String> entry : paramValues.entrySet() )
@@ -132,7 +131,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 {
                     String installZookeeperCommand = stormManager.getZookeeperManager().getCommand(
                             io.subutai.plugin.zookeeper.api.CommandType.INSTALL );
-                    CommandResult commandResult = null;
+                    CommandResult commandResult;
                     try
                     {
                         commandResult =
@@ -150,9 +149,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 else if ( config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
                         && operation_count == 0 )
                 {
-                    String installStormCommand =
-                            Commands.make( CommandType.INSTALL );
-                    CommandResult commandResult = null;
+                    String installStormCommand = Commands.make( CommandType.INSTALL );
+                    CommandResult commandResult;
                     try
                     {
                         commandResult =
@@ -205,19 +203,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             if ( zk_config != null )
             {
                 StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment = null;
+                Environment zookeeperEnvironment;
                 try
                 {
-                    zookeeperEnvironment = environmentManager.findEnvironment( zk_config.getEnvironmentId() );
+                    zookeeperEnvironment = environmentManager.loadEnvironment( zk_config.getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
-                    logException(
-                            String.format( "Environment not found by id: %s", zk_config.getEnvironmentId().toString() ),
-                            e );
+                    logException( String.format( "Environment not found by id: %s", zk_config.getEnvironmentId() ), e );
                     return "";
                 }
-                Set<ContainerHost> zookeeperNodes = null;
+                Set<EnvironmentContainerHost> zookeeperNodes;
                 try
                 {
                     zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
@@ -228,7 +224,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                             zk_config.getNodes().toString() ), e );
                     return "";
                 }
-                for ( ContainerHost containerHost : zookeeperNodes )
+                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
                 {
                     if ( sb.length() > 0 )
                     {
@@ -241,21 +237,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else if ( config.getNimbus() != null )
         {
-            ContainerHost nimbusHost = null;
+            EnvironmentContainerHost nimbusHost;
             try
             {
-                nimbusHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                nimbusHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                .getContainerHostById( config.getNimbus() );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus().toString() ), e );
+                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return "";
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId().toString() ),
-                        e );
+                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
                 return "";
             }
             return nimbusHost.getIpByInterfaceName( "eth0" );

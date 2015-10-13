@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
@@ -145,8 +145,4 @@ public class Wizard
         return storm;
     }
 
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeper;
-    }
 }

@@ -3,22 +3,23 @@ package io.subutai.plugin.storm.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
-
 
 @Command( scope = "storm", name = "start-cluster", description = "Starts cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Tracker tracker;
 
     private Storm stormManager;
@@ -65,21 +66,9 @@ public class StartClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Storm getStormManager()
-    {
-        return stormManager;
     }
 
 

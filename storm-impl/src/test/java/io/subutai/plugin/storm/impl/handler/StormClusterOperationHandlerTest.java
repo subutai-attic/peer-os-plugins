@@ -17,17 +17,17 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.env.api.exception.EnvironmentDestructionException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.environment.api.exception.EnvironmentDestructionException;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.StormImpl;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
@@ -46,7 +46,7 @@ public class StormClusterOperationHandlerTest
     @Mock
     CommandResult commandResult;
     @Mock
-    ContainerHost containerHost;
+    EnvironmentContainerHost containerHost;
     @Mock
     StormImpl stormImpl;
     @Mock
@@ -78,25 +78,25 @@ public class StormClusterOperationHandlerTest
     private StormClusterOperationHandler stormClusterOperationHandler5;
     private StormClusterOperationHandler stormClusterOperationHandler6;
     private StormClusterOperationHandler stormClusterOperationHandler7;
-    private UUID uuid;
-    private Set<ContainerHost> mySet;
-    private Set<UUID> myUUID;
+    private String id;
+    private Set<EnvironmentContainerHost> mySet;
+    private Set<String> myUUID;
 
 
     @Before
     public void setUp() throws Exception
     {
-        uuid = UUID.randomUUID();
+        id = UUID.randomUUID().toString();
         mySet = new HashSet<>();
         mySet.add( containerHost );
 
         myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        myUUID.add( id );
 
         // mock constructor
         when( stormImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         stormClusterOperationHandler =
                 new StormClusterOperationHandler( stormImpl, stormClusterConfiguration, ClusterOperationType.INSTALL );
@@ -118,16 +118,16 @@ public class StormClusterOperationHandlerTest
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
         //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
-        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( uuid );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
+        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenReturn( environment );
+        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( stormImpl.getPeerManager() ).thenReturn( peerManager );
         when( environment.getContainerHosts() ).thenReturn( mySet );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
-        when( environment.getContainerHostsByIds( anySetOf( UUID.class ) ) ).thenReturn( mySet );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
         when( peerManager.getLocalPeer() ).thenReturn( localPeer );
     }
 
@@ -215,7 +215,8 @@ public class StormClusterOperationHandlerTest
     {
         when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
+                .thenThrow( EnvironmentNotFoundException.class );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         stormClusterOperationHandler2.run();
@@ -227,7 +228,8 @@ public class StormClusterOperationHandlerTest
     {
         when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenThrow( ContainerHostNotFoundException.class );
+        when( environment.getContainerHostById( any( String.class ) ) )
+                .thenThrow( ContainerHostNotFoundException.class );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         stormClusterOperationHandler2.run();
@@ -240,7 +242,7 @@ public class StormClusterOperationHandlerTest
     {
         when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-        when( environment.getContainerHostById( any( UUID.class ) ) ).thenReturn( containerHost );
+        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         stormClusterOperationHandler2.run();
@@ -263,7 +265,7 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStartAll() throws Exception
     {
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
 
         stormClusterOperationHandler3.run();
     }
@@ -272,8 +274,8 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStartAll2() throws Exception
     {
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
+        when( containerHost.getId() ).thenReturn( id );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormClusterOperationHandler3.run();
@@ -292,7 +294,7 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStopAll() throws Exception
     {
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
 
         stormClusterOperationHandler4.run();
     }
@@ -301,8 +303,8 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStopAll2() throws Exception
     {
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
+        when( containerHost.getId() ).thenReturn( id );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormClusterOperationHandler4.run();
@@ -321,7 +323,7 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStatusAll() throws Exception
     {
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( containerHost.getId() ).thenReturn( id );
 
         stormClusterOperationHandler5.run();
     }
@@ -330,8 +332,8 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeStatusAll2() throws Exception
     {
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
-        when( containerHost.getId() ).thenReturn( uuid );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
+        when( containerHost.getId() ).thenReturn( id );
         when( stormClusterConfiguration.getSupervisors() ).thenReturn( myUUID );
 
         stormClusterOperationHandler5.run();
@@ -341,7 +343,8 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeAddNoEnvironment() throws Exception
     {
-        when( environmentManager.findEnvironment( any( UUID.class ) ) ).thenThrow( EnvironmentNotFoundException.class );
+        when( environmentManager.loadEnvironment( any( String.class ) ) )
+                .thenThrow( EnvironmentNotFoundException.class );
 
         stormClusterOperationHandler6.run();
     }
@@ -365,7 +368,7 @@ public class StormClusterOperationHandlerTest
     {
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( false );
         when( containerHost.getIpByInterfaceName( "eth0" ) ).thenReturn( "test" );
-        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID() );
+        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( null );
 
         stormClusterOperationHandler6.run();

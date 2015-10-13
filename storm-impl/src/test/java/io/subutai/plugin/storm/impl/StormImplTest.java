@@ -13,19 +13,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.storm.impl.Commands;
-import io.subutai.plugin.storm.impl.StormImpl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,35 +36,47 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class StormImplTest
 {
-    @Mock StormClusterConfiguration stormClusterConfiguration;
+    @Mock
+    StormClusterConfiguration stormClusterConfiguration;
     @Mock
     Commands commands;
-    @Mock Tracker tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock TrackerOperation trackerOperation;
-    @Mock Environment environment;
-    @Mock ContainerHost containerHost;
-    @Mock CommandResult commandResult;
-    @Mock ClusterSetupStrategy clusterSetupStrategy;
-    @Mock PluginDAO pluginDAO;
-    @Mock RequestBuilder requestBuilder;
-    @Mock ExecutorService executorService;
-    @Mock io.subutai.core.metric.api.Monitor monitor;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    Environment environment;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    RequestBuilder requestBuilder;
+    @Mock
+    ExecutorService executorService;
+    @Mock
+    io.subutai.core.metric.api.Monitor monitor;
     private StormImpl stormImpl;
-    private UUID uuid;
+    private String id;
 
 
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
+        id = UUID.randomUUID().toString();
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( StormClusterConfiguration.PRODUCT_KEY, "test", StormClusterConfiguration.class ) )
                 .thenReturn( stormClusterConfiguration );
 
 
-        stormImpl = new StormImpl(monitor, pluginDAO);
+        stormImpl = new StormImpl( monitor, pluginDAO );
 
         stormImpl.setTracker( tracker );
         stormImpl.setEnvironmentManager( environmentManager );
@@ -79,22 +90,20 @@ public class StormImplTest
     @Test
     public void testInstallCluster() throws Exception
     {
-        UUID id = stormImpl.installCluster( stormClusterConfiguration );
+        stormImpl.installCluster( stormClusterConfiguration );
 
         // assertions
         assertNotNull( stormImpl.installCluster( stormClusterConfiguration ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        UUID id = stormImpl.uninstallCluster( "test" );
+        stormImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( stormImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -136,77 +145,70 @@ public class StormImplTest
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = stormImpl.checkNode( "test", "test" );
+        stormImpl.checkNode( "test", "test" );
 
         // assertions
         assertNotNull( stormImpl.checkNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStartNode() throws Exception
     {
-        UUID id = stormImpl.startNode( "test", "test" );
+        stormImpl.startNode( "test", "test" );
 
         // assertions
         assertNotNull( stormImpl.startNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStopNode() throws Exception
     {
-        UUID id = stormImpl.stopNode( "test", "test" );
+        stormImpl.stopNode( "test", "test" );
 
         // assertions
         assertNotNull( stormImpl.stopNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testRestartNode() throws Exception
     {
-        UUID id = stormImpl.restartNode( "test", "test" );
+        stormImpl.restartNode( "test", "test" );
 
         // assertions
         assertNotNull( stormImpl.restartNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testAddNode1() throws Exception
     {
-        UUID id = stormImpl.addNode( "test" );
+        stormImpl.addNode( "test" );
 
         // assertions
         assertNotNull( stormImpl.addNode( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = stormImpl.destroyNode( "test", "test" );
+        stormImpl.destroyNode( "test", "test" );
 
         // assertions
         assertNotNull( stormImpl.destroyNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testRemoveCluster() throws Exception
     {
-        UUID id = stormImpl.removeCluster( "test" );
+        stormImpl.removeCluster( "test" );
 
         // assertions
         assertNotNull( stormImpl.removeCluster( "test" ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -218,19 +220,6 @@ public class StormImplTest
         // assertions
         assertNotNull( stormImpl.getClusterSetupStrategy( stormClusterConfiguration, trackerOperation ) );
     }
-
-
-//    @Test
-//    public void testConfigureEnvironmentCluster() throws Exception
-//    {
-//        when( stormClusterConfiguration.getClusterName() ).thenReturn( "test" );
-//
-//        UUID id = stormImpl.configureEnvironmentCluster( stormClusterConfiguration );
-//
-//        // assertions
-//        assertNotNull( stormImpl.configureEnvironmentCluster( stormClusterConfiguration ) );
-//        assertEquals( uuid, id );
-//    }
 
 
     @Test( expected = ClusterException.class )
@@ -275,7 +264,7 @@ public class StormImplTest
     @Test
     public void testOnEnvironmentGrown() throws Exception
     {
-        Set<ContainerHost> mySet = new HashSet<>();
+        Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         stormImpl.onEnvironmentGrown( environment, mySet );
     }
@@ -290,13 +279,13 @@ public class StormImplTest
         when( pluginDAO.getInfo( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.class ) )
                 .thenReturn( myList );
         stormImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
         when( stormClusterConfiguration.getAllNodes() ).thenReturn( myUUID );
 
-        stormImpl.onContainerDestroyed( environment, uuid );
+        stormImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -308,14 +297,14 @@ public class StormImplTest
         when( pluginDAO.getInfo( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.class ) )
                 .thenReturn( myList );
         stormImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
-        Set<UUID> myUUID = new HashSet<>();
-        myUUID.add( uuid );
-        myUUID.add( UUID.randomUUID() );
+        when( environment.getId() ).thenReturn( id );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
+        Set<String> myUUID = new HashSet<>();
+        myUUID.add( id );
+        myUUID.add( UUID.randomUUID().toString() );
         when( stormClusterConfiguration.getAllNodes() ).thenReturn( myUUID );
 
-        stormImpl.onContainerDestroyed( environment, uuid );
+        stormImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -327,10 +316,10 @@ public class StormImplTest
         when( pluginDAO.getInfo( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.class ) )
                 .thenReturn( myList );
         stormImpl.getClusters();
-        when( environment.getId() ).thenReturn( uuid );
-        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( uuid );
+        when( environment.getId() ).thenReturn( id );
+        when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
         when( pluginDAO.deleteInfo( anyString(), anyString() ) ).thenReturn( true );
 
-        stormImpl.onEnvironmentDestroyed( uuid );
+        stormImpl.onEnvironmentDestroyed( id );
     }
 }

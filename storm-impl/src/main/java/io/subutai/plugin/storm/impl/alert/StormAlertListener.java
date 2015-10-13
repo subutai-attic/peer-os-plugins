@@ -11,10 +11,10 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
@@ -69,17 +69,17 @@ public class StormAlertListener implements AlertListener
         }
 
         //get cluster environment
-        Environment environment = storm.getEnvironmentManager().findEnvironment( metric.getEnvironmentId() );
+        Environment environment = storm.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
         if ( environment == null )
         {
             throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert's source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        ContainerHost sourceHost = null;
-        for ( ContainerHost containerHost : containers )
+        EnvironmentContainerHost sourceHost = null;
+        for ( EnvironmentContainerHost containerHost : containers )
         {
             if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
             {

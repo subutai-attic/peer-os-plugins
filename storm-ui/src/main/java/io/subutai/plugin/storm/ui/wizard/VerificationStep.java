@@ -4,16 +4,6 @@ package io.subutai.plugin.storm.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.storm.api.Storm;
-import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,18 +15,27 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.storm.api.Storm;
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.server.ui.component.ProgressWindow;
+
 
 public class VerificationStep extends VerticalLayout
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( VerificationStep.class );
-    private Environment environment;
-    private EnvironmentManager environmentManager;
 
 
     public VerificationStep( final Storm storm, final ExecutorService executorService, final Tracker tracker,
                              final Wizard wizard, final EnvironmentManager environmentManager )
     {
-        this.environmentManager = environmentManager;
         setSizeFull();
 
         GridLayout grid = new GridLayout( 1, 5 );
@@ -55,16 +54,17 @@ public class VerificationStep extends VerticalLayout
         if ( !config.isExternalZookeeper() )
         {
             String selectedNodes = "";
+            final Environment environment;
             try
             {
-                environment = wizard.getEnvironmentManager().findEnvironment( wizard.getConfig().getEnvironmentId() );
+                environment = wizard.getEnvironmentManager().loadEnvironment( wizard.getConfig().getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
                 LOGGER.error( "Environment not found." );
                 return;
             }
-            for ( UUID uuid : wizard.getConfig().getSupervisors() )
+            for ( String uuid : wizard.getConfig().getSupervisors() )
             {
                 try
                 {
@@ -76,7 +76,7 @@ public class VerificationStep extends VerticalLayout
                 }
             }
 
-            ContainerHost nimbusNodeNode = null;
+            ContainerHost nimbusNodeNode;
             try
             {
                 nimbusNodeNode = environment.getContainerHostById( wizard.getConfig().getNimbus() );
@@ -142,24 +142,24 @@ public class VerificationStep extends VerticalLayout
         else
         {
             ZookeeperClusterConfig zookeeperClusterConfig = wizard.getZookeeperClusterConfig();
-            Environment zookeeperEnvironment = null;
+            Environment zookeeperEnvironment;
             try
             {
-                zookeeperEnvironment = environmentManager.findEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( "Environment not found " + zookeeperClusterConfig.getEnvironmentId().toString(), e );
+                LOGGER.error( "Environment not found " + zookeeperClusterConfig.getEnvironmentId(), e );
                 return;
             }
-            ContainerHost nimbusHost = null;
+            ContainerHost nimbusHost;
             try
             {
                 nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                LOGGER.error( "Container host not found " + config.getNimbus().toString(), e );
+                LOGGER.error( "Container host not found " + config.getNimbus(), e );
                 return;
             }
             cfgView.addStringCfg( "Master node", nimbusHost.getHostname() );

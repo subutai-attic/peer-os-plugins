@@ -4,6 +4,11 @@ package io.subutai.plugin.storm.impl.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,7 +18,7 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -23,10 +28,6 @@ import io.subutai.plugin.storm.impl.Commands;
 import io.subutai.plugin.storm.impl.StormImpl;
 import io.subutai.plugin.storm.impl.StormService;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -67,12 +68,11 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
-                    e );
+            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId() ), e );
             return;
         }
         ContainerHost containerHost = null;
@@ -93,12 +93,13 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
             try
             {
                 zookeeperEnvironment =
-                        manager.getEnvironmentManager().findEnvironment( zookeeperCluster.getEnvironmentId() );
+                        manager.getEnvironmentManager().loadEnvironment( zookeeperCluster.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                logException( String.format( "Couldn't find environment by id: %s",
-                        zookeeperCluster.getEnvironmentId().toString() ), e );
+                logException(
+                        String.format( "Couldn't find environment by id: %s", zookeeperCluster.getEnvironmentId() ),
+                        e );
                 return;
             }
             try
@@ -189,12 +190,11 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         Environment environment;
         try
         {
-            environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId().toString() ),
-                    e );
+            logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId() ), e );
             return;
         }
         ContainerHost host;

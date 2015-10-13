@@ -6,13 +6,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -23,16 +27,11 @@ import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import io.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
 import io.subutai.plugin.storm.impl.handler.StormNodeOperationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class StormImpl extends StormBase implements EnvironmentEventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
-    private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
     public StormImpl( Monitor monitor1, PluginDAO pluginDAO )
@@ -225,10 +224,10 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         List<String> containerNames = new ArrayList<>();
-        for ( final ContainerHost containerHost : set )
+        for ( final EnvironmentContainerHost containerHost : set )
         {
             containerNames.add( containerHost.getHostname() );
         }
@@ -238,7 +237,7 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID containerHostId )
+    public void onContainerDestroyed( final Environment environment, final String containerHostId )
     {
         LOG.info( String.format( "Storm environment event: Container destroyed: %s", containerHostId ) );
         List<StormClusterConfiguration> clusterConfigs = getClusters();
@@ -273,7 +272,7 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String uuid )
     {
         LOG.info( String.format( "Storm environment event: Environment destroyed: %s", uuid ) );
 
@@ -288,7 +287,7 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
                 try
                 {
                     deleteConfig( clusterConfig );
-                    LOG.info( String.format( "Storm environment event: Cluster removed",
+                    LOG.info( String.format( "Storm environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )

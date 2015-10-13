@@ -4,7 +4,6 @@ package io.subutai.plugin.storm.api;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -21,9 +20,9 @@ public class StormClusterConfiguration implements ConfigBase
     private int supervisorsCount;
     private boolean externalZookeeper;
     private String zookeeperClusterName;
-    private UUID nimbus; // master node
-    private Set<UUID> supervisors = new HashSet(); // worker nodes
-    private UUID environmentId;
+    private String nimbus; // master node
+    private Set<String> supervisors = new HashSet<>(); // worker nodes
+    private String environmentId;
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private boolean isAutoScaling;
 
@@ -40,13 +39,13 @@ public class StormClusterConfiguration implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
@@ -79,13 +78,13 @@ public class StormClusterConfiguration implements ConfigBase
     }
 
 
-    public UUID getNimbus()
+    public String getNimbus()
     {
         return nimbus;
     }
 
 
-    public void setNimbus( UUID nimbus )
+    public void setNimbus( String nimbus )
     {
         this.nimbus = nimbus;
     }
@@ -103,13 +102,13 @@ public class StormClusterConfiguration implements ConfigBase
     }
 
 
-    public Set<UUID> getSupervisors()
+    public Set<String> getSupervisors()
     {
         return supervisors;
     }
 
 
-    public void setSupervisors( Set<UUID> supervisors )
+    public void setSupervisors( Set<String> supervisors )
     {
         this.supervisors = supervisors;
     }
@@ -151,9 +150,9 @@ public class StormClusterConfiguration implements ConfigBase
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allAgents = new HashSet<>();
+        Set<String> allAgents = new HashSet<>();
         if ( nimbus != null )
         {
             allAgents.add( nimbus );

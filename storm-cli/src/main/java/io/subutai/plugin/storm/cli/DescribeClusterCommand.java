@@ -1,12 +1,12 @@
 package io.subutai.plugin.storm.cli;
 
 
-import io.subutai.plugin.storm.api.Storm;
-import io.subutai.plugin.storm.api.StormClusterConfiguration;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.plugin.storm.api.Storm;
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
 
 
 @Command( scope = "storm", name = "describe-cluster", description = "Shows the details of the storm cluster." )
@@ -14,7 +14,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 {
 
     @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true,
-            multiValued = false ) String clusterName = null;
+            multiValued = false )
+    String clusterName = null;
     private Storm stormManager;
 
 
@@ -36,12 +37,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
-    }
-
-
-    public Storm getStormManager()
-    {
-        return stormManager;
     }
 
 

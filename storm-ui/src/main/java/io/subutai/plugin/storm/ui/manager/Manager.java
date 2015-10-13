@@ -9,24 +9,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.storm.api.Storm;
-import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.storm.api.StormNodeOperationTask;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +29,25 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.storm.api.Storm;
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.storm.api.StormNodeOperationTask;
+import io.subutai.plugin.zookeeper.api.Zookeeper;
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -102,8 +103,8 @@ public class Manager
         contentRoot.setColumns( 1 );
 
         //tables go here
-        masterTable = createTableTemplate( "Master node", true );
-        workersTable = createTableTemplate( "Workers", false );
+        masterTable = createTableTemplate( "Master node" );
+        workersTable = createTableTemplate( "Workers" );
         masterTable.setId( "StormMngMasterNode" );
         workersTable.setId( "StormMngWorkerNodes" );
         //tables go here
@@ -393,7 +394,7 @@ public class Manager
     }
 
 
-    private Table createTableTemplate( String caption, boolean master )
+    private Table createTableTemplate( String caption )
     {
         final Table table = new Table( caption );
         table.addContainerProperty( HOST_COLUMN_CAPTION, String.class, null );
@@ -415,10 +416,10 @@ public class Manager
                 {
                     String containerName =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Environment environment = null;
+                    Environment environment;
                     try
                     {
-                        environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                        environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
@@ -426,7 +427,7 @@ public class Manager
                         return;
                     }
 
-                    ContainerHost containerHost = null;
+                    ContainerHost containerHost;
                     try
                     {
                         containerHost = environment.getContainerHostByHostname( containerName );
@@ -444,11 +445,11 @@ public class Manager
                                 zookeeper.getCluster( config.getZookeeperClusterName() );
                         if ( zookeeperCluster != null )
                         {
-                            Environment zookeeperEnvironment = null;
+                            Environment zookeeperEnvironment;
                             try
                             {
                                 zookeeperEnvironment =
-                                        environmentManager.findEnvironment( zookeeperCluster.getEnvironmentId() );
+                                        environmentManager.loadEnvironment( zookeeperCluster.getEnvironmentId() );
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
@@ -557,10 +558,10 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = null;
+            Environment environment;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
@@ -583,10 +584,10 @@ public class Manager
             else
             {
                 ZookeeperClusterConfig zookeeperCluster = zookeeper.getCluster( config.getZookeeperClusterName() );
-                Environment zookeeperEnvironment = null;
+                Environment zookeeperEnvironment;
                 try
                 {
-                    zookeeperEnvironment = environmentManager.findEnvironment( zookeeperCluster.getEnvironmentId() );
+                    zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperCluster.getEnvironmentId() );
                 }
                 catch ( EnvironmentNotFoundException e )
                 {
@@ -606,7 +607,7 @@ public class Manager
             populateTable( masterTable, true, nimbusHost );
 
             Set<ContainerHost> supervisorHosts = new HashSet<>();
-            for ( UUID uuid : config.getSupervisors() )
+            for ( String uuid : config.getSupervisors() )
             {
                 try
                 {
@@ -901,6 +902,7 @@ public class Manager
             }
         }
     }
+
 
     public Component getContent()
     {
