@@ -12,16 +12,16 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.nutch.api.Nutch;
 import io.subutai.plugin.nutch.api.NutchConfig;
 import io.subutai.server.ui.api.PortalModule;
-
-import com.vaadin.ui.Component;
 
 
 public class NutchPortalModule implements PortalModule

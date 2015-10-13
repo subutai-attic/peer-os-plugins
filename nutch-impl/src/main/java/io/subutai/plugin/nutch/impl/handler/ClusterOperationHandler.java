@@ -3,12 +3,14 @@ package io.subutai.plugin.nutch.impl.handler;
 
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -17,8 +19,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.nutch.api.NutchConfig;
 import io.subutai.plugin.nutch.impl.Commands;
 import io.subutai.plugin.nutch.impl.NutchImpl;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl, NutchConfig>
@@ -74,7 +74,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -82,7 +82,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
             return;
         }
 
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -93,7 +93,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
             return;
         }
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {

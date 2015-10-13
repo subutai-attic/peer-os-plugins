@@ -1,9 +1,14 @@
 package io.subutai.plugin.nutch.cli;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -11,12 +16,6 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.nutch.api.Nutch;
 import io.subutai.plugin.nutch.api.NutchConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
@@ -38,7 +37,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String nodes[] = null;
 
-    private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Nutch nutchManager;
     private Hadoop hadoopManager;
     private Tracker tracker;
@@ -52,11 +50,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-        Set<UUID> nodeSet = new HashSet<>();
-        for ( String uuid : nodes )
-        {
-            nodeSet.add( UUID.fromString( uuid ) );
-        }
+        Set<String> nodeSet = new HashSet<>();
+        Collections.addAll( nodeSet, nodes );
         config.setNodes( nodeSet );
         System.out.println( "Installing nutch cluster..." );
         UUID uuid = nutchManager.installCluster( config );
@@ -98,33 +93,15 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Nutch getNutchManager()
-    {
-        return nutchManager;
-    }
-
-
     public void setNutchManager( final Nutch nutchManager )
     {
         this.nutchManager = nutchManager;
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
     }
 
 

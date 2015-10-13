@@ -5,14 +5,14 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.GridLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.nutch.api.Nutch;
 import io.subutai.plugin.nutch.api.NutchConfig;
-
-import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
 
 
 public class Wizard
@@ -112,6 +112,7 @@ public class Wizard
     {
         return config;
     }
+
 
     public Nutch getNutchManager()
     {

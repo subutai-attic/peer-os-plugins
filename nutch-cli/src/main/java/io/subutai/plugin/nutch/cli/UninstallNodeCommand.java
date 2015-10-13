@@ -3,12 +3,12 @@ package io.subutai.plugin.nutch.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.nutch.api.Nutch;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.nutch.api.Nutch;
 
 
 /**
@@ -38,21 +38,9 @@ public class UninstallNodeCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Nutch getNutchManager()
-    {
-        return nutchManager;
     }
 
 

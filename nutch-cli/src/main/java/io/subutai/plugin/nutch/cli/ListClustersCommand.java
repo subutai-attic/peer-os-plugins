@@ -3,11 +3,12 @@ package io.subutai.plugin.nutch.cli;
 
 import java.util.List;
 
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.plugin.nutch.api.Nutch;
 import io.subutai.plugin.nutch.api.NutchConfig;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command : nutch:list-clusters
@@ -17,12 +18,6 @@ public class ListClustersCommand extends OsgiCommandSupport
 {
 
     private Nutch nutchManager;
-
-
-    public Nutch getNutchManager()
-    {
-        return nutchManager;
-    }
 
 
     public void setNutchManager( Nutch nutchManager )

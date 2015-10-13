@@ -5,19 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.nutch.api.NutchConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -35,10 +22,19 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.nutch.api.NutchConfig;
+
 
 public class ConfigurationStep extends Panel
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class );
 
     private final Hadoop hadoop;
     private final EnvironmentManager environmentManager;
@@ -138,7 +134,7 @@ public class ConfigurationStep extends Panel
         nameTxt.setValue( wizard.getConfig().getClusterName() );
 
 
-        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
+        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<EnvironmentContainerHost>() );
 
         ComboBox hadoopClusters = new ComboBox( "Hadoop cluster" );
         hadoopClusters.setId( "hadoopClusters" );
@@ -159,7 +155,7 @@ public class ConfigurationStep extends Panel
                     config.getNodes().clear();
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
@@ -167,10 +163,10 @@ public class ConfigurationStep extends Panel
                         return;
                     }
 
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for ( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -181,7 +177,8 @@ public class ConfigurationStep extends Panel
                         return;
                     }
 
-                    select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+                    select.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
                 }
             }
         } );
@@ -230,9 +227,10 @@ public class ConfigurationStep extends Panel
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -249,15 +247,15 @@ public class ConfigurationStep extends Panel
 
 
     //exclude hadoop nodes that are already in another nutch cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes )
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> nutchNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
+        List<String> nutchNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
         for ( NutchConfig nutchConfig : wizard.getNutchManager().getClusters() )
         {
             nutchNodes.addAll( nutchConfig.getNodes() );
         }
-        for ( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
             if ( !nutchNodes.contains( node ) )
             {

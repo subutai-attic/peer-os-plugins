@@ -3,13 +3,13 @@ package io.subutai.plugin.nutch.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.nutch.api.Nutch;
-import io.subutai.plugin.nutch.api.NutchConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.nutch.api.Nutch;
+import io.subutai.plugin.nutch.api.NutchConfig;
 
 
 @Command( scope = "nutch", name = "uninstall-cluster", description = "Command to uninstall Nutch cluster" )
@@ -23,21 +23,9 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     private Tracker tracker;
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Nutch getNutchManager()
-    {
-        return nutchManager;
     }
 
 

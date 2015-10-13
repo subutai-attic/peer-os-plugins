@@ -4,12 +4,6 @@ package io.subutai.plugin.nutch.ui.wizard;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.nutch.api.Nutch;
-import io.subutai.plugin.nutch.api.NutchConfig;
-import io.subutai.server.ui.component.ProgressWindow;
-
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -17,6 +11,12 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.nutch.api.Nutch;
+import io.subutai.plugin.nutch.api.NutchConfig;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends Panel
@@ -44,9 +44,9 @@ public class VerificationStep extends Panel
         cfgView.addStringCfg( "Hadoop cluster name", config.getHadoopClusterName() );
 
 
-        for ( UUID nodeId : config.getNodes() )
+        for ( String nodeId : config.getNodes() )
         {
-            cfgView.addStringCfg( "Node to install", nodeId.toString() );
+            cfgView.addStringCfg( "Node to install", nodeId );
         }
 
 

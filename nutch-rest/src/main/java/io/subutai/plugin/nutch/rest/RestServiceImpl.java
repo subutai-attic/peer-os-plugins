@@ -7,15 +7,15 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.nutch.api.Nutch;
 import io.subutai.plugin.nutch.api.NutchConfig;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 
 public class RestServiceImpl implements RestService
@@ -24,7 +24,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
-    public RestServiceImpl ( final Nutch nutchManager )
+    public RestServiceImpl( final Nutch nutchManager )
     {
         this.nutchManager = nutchManager;
     }
@@ -72,7 +72,7 @@ public class RestServiceImpl implements RestService
         for ( String node : arr )
         {
 
-            config.getNodes().add( UUID.fromString( node ) );
+            config.getNodes().add( node );
         }
 
         UUID uuid = nutchManager.installCluster( config );
@@ -86,7 +86,7 @@ public class RestServiceImpl implements RestService
     public Response uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( nutchManager.getCluster( clusterName ) == null )
+        if ( nutchManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -102,7 +102,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( nutchManager.getCluster( clusterName ) == null )
+        if ( nutchManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -118,7 +118,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( nutchManager.getCluster( clusterName ) == null )
+        if ( nutchManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -128,20 +128,27 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-    private Response createResponse( UUID uuid, OperationState state ){
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( NutchConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -169,10 +176,6 @@ public class RestServiceImpl implements RestService
             }
         }
         return state;
-    }
-
-    public Tracker getTracker(){
-        return tracker;
     }
 
 

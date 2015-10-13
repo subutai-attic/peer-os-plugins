@@ -2,7 +2,9 @@ package io.subutai.plugin.nutch.impl;
 
 
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -10,7 +12,7 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -20,9 +22,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.nutch.api.NutchConfig;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 
 class NutchSetupStrategy implements ClusterSetupStrategy
@@ -78,7 +77,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -87,7 +86,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
 
 
         //check nodes are connected
-        Set<ContainerHost> nodes;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -97,7 +96,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( String.format( "Failed obtaining environment containers: %s", e ) );
         }
 
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             if ( !host.isConnected() )
             {
@@ -113,7 +112,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
 
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -148,23 +147,22 @@ class NutchSetupStrategy implements ClusterSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        Set<ContainerHost> nodes = Sets.newHashSet();
+        Set<EnvironmentContainerHost> nodes = Sets.newHashSet();
 
-            for( UUID uuid : config.getNodes() )
+        for ( String uuid : config.getNodes() )
+        {
+
+            try
             {
-
-                try
-                {
-                    nodes.add( environment.getContainerHostById( uuid ) );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    trackerOperation.addLog( String.format( "Failed obtaining environment containers: %s", e ) );
-                    continue;
-                }
+                nodes.add( environment.getContainerHostById( uuid ) );
             }
+            catch ( ContainerHostNotFoundException e )
+            {
+                trackerOperation.addLog( String.format( "Failed obtaining environment containers: %s", e ) );
+            }
+        }
         //install nutch,
-        for ( ContainerHost node : nodes )
+        for ( EnvironmentContainerHost node : nodes )
         {
             try
             {
@@ -194,7 +192,8 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Cluster info saved to DB\nInstalling Nutch..." );
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
@@ -203,12 +202,12 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) ) )
         {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

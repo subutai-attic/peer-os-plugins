@@ -6,30 +6,31 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.nutch.api.Nutch;
-import io.subutai.plugin.nutch.api.NutchConfig;
-import io.subutai.plugin.nutch.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.nutch.impl.handler.NodeOperationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.nutch.api.Nutch;
+import io.subutai.plugin.nutch.api.NutchConfig;
+import io.subutai.plugin.nutch.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.nutch.impl.handler.NodeOperationHandler;
 
 
 public class NutchImpl implements Nutch, EnvironmentEventListener
@@ -43,7 +44,8 @@ public class NutchImpl implements Nutch, EnvironmentEventListener
     private EnvironmentManager environmentManager;
 
 
-    public NutchImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO )
+    public NutchImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                      PluginDAO pluginDAO )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -196,14 +198,14 @@ public class NutchImpl implements Nutch, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( final Environment environment, final Set<ContainerHost> set )
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
         //not needed
     }
 
 
     @Override
-    public void onContainerDestroyed( final Environment environment, final UUID uuid )
+    public void onContainerDestroyed( final Environment environment, final String uuid )
     {
         LOG.info( String.format( "Nutch environment event: Container destroyed: %s", uuid ) );
         List<NutchConfig> clusters = getClusters();
@@ -239,7 +241,7 @@ public class NutchImpl implements Nutch, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed( final UUID uuid )
+    public void onEnvironmentDestroyed( final String uuid )
     {
         LOG.info( String.format( "Nutch environment event: Environment destroyed: %s", uuid ) );
 

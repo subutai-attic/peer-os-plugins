@@ -14,8 +14,8 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.nutch.api.NutchConfig;
-import io.subutai.plugin.nutch.impl.NutchImpl;
 import io.subutai.plugin.nutch.impl.Commands;
+import io.subutai.plugin.nutch.impl.NutchImpl;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, NutchConfig>
@@ -53,7 +53,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, Nu
         Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {

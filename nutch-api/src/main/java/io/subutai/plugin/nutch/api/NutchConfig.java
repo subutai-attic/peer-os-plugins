@@ -3,7 +3,6 @@ package io.subutai.plugin.nutch.api;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -16,8 +15,8 @@ public class NutchConfig implements ConfigBase
 
     private String clusterName = "";
     private String hadoopClusterName;
-    private Set<UUID> nodes = new HashSet<>();
-    private UUID environmentId;
+    private Set<String> nodes = new HashSet<>();
+    private String environmentId;
 
 
     public String getClusterName()
@@ -46,13 +45,13 @@ public class NutchConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public void setNodes( Set<UUID> nodes )
+    public void setNodes( Set<String> nodes )
     {
         this.nodes = nodes;
     }
@@ -77,13 +76,13 @@ public class NutchConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
