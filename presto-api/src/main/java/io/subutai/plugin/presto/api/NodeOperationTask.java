@@ -3,7 +3,7 @@ package io.subutai.plugin.presto.api;
 
 import java.util.UUID;
 
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.CompleteEvent;
 import io.subutai.plugin.common.api.NodeOperationType;
@@ -13,12 +13,14 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final ContainerHost containerHost;
+    private final EnvironmentContainerHost containerHost;
     private final Presto presto;
     private final NodeOperationType operationType;
 
-    public NodeOperationTask( Presto presto, Tracker tracker, String clusterName, ContainerHost containerHost,
-                              NodeOperationType operationType, CompleteEvent completeEvent, UUID trackID )
+
+    public NodeOperationTask( Presto presto, Tracker tracker, String clusterName,
+                              EnvironmentContainerHost containerHost, NodeOperationType operationType,
+                              CompleteEvent completeEvent, UUID trackID )
     {
         super( tracker, presto.getCluster( clusterName ), completeEvent, trackID, containerHost );
         this.presto = presto;
@@ -43,7 +45,6 @@ public class NodeOperationTask extends AbstractNodeOperationTask implements Runn
             case STATUS:
                 trackID = presto.checkNode( clusterName, containerHost.getHostname() );
                 break;
-
         }
         return trackID;
     }
