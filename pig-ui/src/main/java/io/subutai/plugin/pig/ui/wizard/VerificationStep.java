@@ -5,18 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.pig.api.Pig;
-import io.subutai.plugin.pig.api.PigConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +16,24 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.pig.api.Pig;
+import io.subutai.plugin.pig.api.PigConfig;
+import io.subutai.server.ui.component.ProgressWindow;
+
 
 public class VerificationStep extends Panel
 {
     private final static Logger LOG = LoggerFactory.getLogger( VerificationStep.class );
+
 
     public VerificationStep( final Pig pig, final Hadoop hadoop, final ExecutorService executorService,
                              final Tracker tracker, final EnvironmentManager environmentManager, final Wizard wizard )
@@ -57,17 +59,17 @@ public class VerificationStep extends Panel
 
         HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
 
-        Environment hadoopEnvironment = null;
+        Environment hadoopEnvironment;
         try
         {
-            hadoopEnvironment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            hadoopEnvironment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId(), e );
             return;
         }
-        Set<ContainerHost> nodes = null;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
@@ -75,8 +77,9 @@ public class VerificationStep extends Panel
         catch ( ContainerHostNotFoundException e )
         {
             LOG.error( "Container host not found", e );
+            return;
         }
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
         }

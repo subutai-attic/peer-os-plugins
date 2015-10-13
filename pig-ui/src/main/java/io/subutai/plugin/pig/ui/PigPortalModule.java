@@ -7,16 +7,16 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.pig.api.Pig;
 import io.subutai.plugin.pig.api.PigConfig;
 import io.subutai.server.ui.api.PortalModule;
-
-import com.vaadin.ui.Component;
 
 
 public class PigPortalModule implements PortalModule

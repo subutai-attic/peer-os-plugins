@@ -7,7 +7,7 @@
   <reference id="hadoop" availability="mandatory" interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="portalModuleService" availability="mandatory"
              interface="io.subutai.server.ui.api.PortalModuleService" />
 

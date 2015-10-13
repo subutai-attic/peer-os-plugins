@@ -3,12 +3,12 @@ package io.subutai.plugin.pig.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.pig.api.Pig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.pig.api.Pig;
 
 
 /**
@@ -25,21 +25,9 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     private Tracker tracker;
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Pig getPigManager()
-    {
-        return pigManager;
     }
 
 

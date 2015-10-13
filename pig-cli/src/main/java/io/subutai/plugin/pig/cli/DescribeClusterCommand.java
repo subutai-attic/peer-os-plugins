@@ -1,20 +1,19 @@
 package io.subutai.plugin.pig.cli;
 
 
-import java.util.UUID;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.pig.api.Pig;
-import io.subutai.plugin.pig.api.PigConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.pig.api.Pig;
+import io.subutai.plugin.pig.api.PigConfig;
 
 
 /**
@@ -37,11 +36,11 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         PigConfig config = pigManager.getCluster( clusterName );
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( UUID containerId : config.getNodes() )
+            for ( String containerId : config.getNodes() )
             {
                 try
                 {
@@ -66,21 +65,9 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Pig getPigManager()
-    {
-        return pigManager;
-    }
-
-
     public void setPigManager( final Pig pigManager )
     {
         this.pigManager = pigManager;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

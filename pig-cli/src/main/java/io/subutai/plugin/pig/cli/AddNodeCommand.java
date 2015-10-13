@@ -3,12 +3,12 @@ package io.subutai.plugin.pig.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.pig.api.Pig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.pig.api.Pig;
 
 
 /**
@@ -32,27 +32,15 @@ public class AddNodeCommand extends OsgiCommandSupport
     {
         System.out.println( "Adding " + node + " node..." );
         UUID uuid = pigManager.addNode( clusterName, node );
-        System.out.println(
-                "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        System.out
+                .println( "Add node operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Pig getPigManager()
-    {
-        return pigManager;
     }
 
 

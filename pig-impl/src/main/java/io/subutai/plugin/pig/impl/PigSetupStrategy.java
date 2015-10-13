@@ -2,7 +2,11 @@ package io.subutai.plugin.pig.impl;
 
 
 import java.util.Set;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -11,7 +15,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -21,10 +25,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.pig.api.PigConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
 class PigSetupStrategy implements ClusterSetupStrategy
@@ -82,11 +82,11 @@ class PigSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId(), e );
             return;
         }
 
@@ -96,7 +96,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
         }
 
         //      check nodes are connected
-        Set<ContainerHost> nodes = null;
+        Set<EnvironmentContainerHost> nodes;
         try
         {
             nodes = environment.getContainerHostsByIds( config.getNodes() );
@@ -105,8 +105,9 @@ class PigSetupStrategy implements ClusterSetupStrategy
         {
             LOG.error( "Container hosts not found", e );
             trackerOperation.addLogFailed( "Container hosts not found" );
+            return;
         }
-        for ( ContainerHost host : nodes )
+        for ( EnvironmentContainerHost host : nodes )
         {
             if ( !host.isConnected() )
             {
@@ -117,21 +118,22 @@ class PigSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Checking prerequisites..." );
 
         RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
-        for ( UUID uuid : config.getNodes() )
+        for ( String nodeId : config.getNodes() )
         {
-            ContainerHost node = null;
+            EnvironmentContainerHost node;
             try
             {
-                node = environment.getContainerHostById( uuid );
+                node = environment.getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Container host not found", e );
                 trackerOperation.addLogFailed( "Container host not found" );
+                return;
             }
             try
             {
-                CommandResult result = commandUtil.execute( checkInstalledCommand,node );
+                CommandResult result = commandUtil.execute( checkInstalledCommand, node );
                 if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation.addLog(
@@ -165,12 +167,13 @@ class PigSetupStrategy implements ClusterSetupStrategy
         //install pig
         try
         {
-            for ( ContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
+            for ( EnvironmentContainerHost node : environment.getContainerHostsByIds( config.getNodes() ) )
             {
                 try
                 {
-                    CommandResult result = commandUtil.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ), node );
-                    checkInstalled( node,result );
+                    CommandResult result = commandUtil
+                            .execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ), node );
+                    checkInstalled( node, result );
                 }
                 catch ( CommandException e )
                 {
@@ -200,21 +203,22 @@ class PigSetupStrategy implements ClusterSetupStrategy
         }
     }
 
-    public void checkInstalled( ContainerHost host, CommandResult result) throws ClusterSetupException
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
         CommandResult statusResult;
         try
         {
-            statusResult = commandUtil.execute( new RequestBuilder( Commands.checkCommand ), host);
+            statusResult = commandUtil.execute( new RequestBuilder( Commands.checkCommand ), host );
         }
         catch ( CommandException e )
         {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname()) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
         if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PigConfig.PRODUCT_PACKAGE ) ) )
         {
-            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname()) );
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
                     result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }

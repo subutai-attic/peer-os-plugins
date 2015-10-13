@@ -3,11 +3,12 @@ package io.subutai.plugin.pig.cli;
 
 import java.util.List;
 
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.plugin.pig.api.Pig;
 import io.subutai.plugin.pig.api.PigConfig;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * sample command : pig:list-clusters

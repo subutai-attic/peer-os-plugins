@@ -1,7 +1,10 @@
 package io.subutai.plugin.pig.impl.handler;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -17,13 +20,8 @@ import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.pig.api.PigConfig;
-import io.subutai.plugin.pig.impl.PigImpl;
 import io.subutai.plugin.pig.impl.Commands;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
+import io.subutai.plugin.pig.impl.PigImpl;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, PigConfig>
@@ -60,11 +58,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
                     uninstallCluster();
                     break;
             }
-        } catch ( ClusterException e )
+        }
+        catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "Operation failed, %s", e.getMessage() ) );
         }
-
     }
 
 
@@ -110,18 +108,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PigImpl, P
         TrackerOperation po = trackerOperation;
         po.addLog( "Uninstalling Pig..." );
 
-        for ( UUID uuid : config.getNodes() )
+        for ( String nodeId : config.getNodes() )
         {
-            ContainerHost containerHost = null;
+            ContainerHost containerHost;
             try
             {
-                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                                       .getContainerHostById( uuid );
+                containerHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
             {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
-                return;            }
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
+                return;
+            }
             try
             {
                 CommandResult result = containerHost.execute( new RequestBuilder( Commands.uninstallCommand ) );

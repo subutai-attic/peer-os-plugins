@@ -20,7 +20,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 public class PigImplTest
 {
     private PigImpl pigImpl;
-    private UUID uuid;
     @Mock
     PigConfig pigConfig;
     @Mock
@@ -85,18 +84,13 @@ public class PigImplTest
         when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        uuid = new UUID( 50, 50 );
+
         pigImpl = new PigImpl( tracker, environmentManager, hadoop, pluginDAO );
-        //        pigImpl.setEnvironmentManager(environmentManager);
-        //        pigImpl.setHadoopManager(hadoop);
-        //        pigImpl.setTracker(tracker);
-        //        pigImpl.setPluginDao(pluginDAO);
-        //        pigImpl.setExecutor(executor);
-        //        pigImpl.setCommands(commands);
+
 
         // mock InstallClusterHandler
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( PigConfig.PRODUCT_KEY, "test", PigConfig.class ) ).thenReturn( pigConfig );
 
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );

@@ -3,6 +3,9 @@ package io.subutai.plugin.pig.impl.handler;
 
 import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -13,11 +16,8 @@ import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.pig.api.PigConfig;
-import io.subutai.plugin.pig.impl.PigImpl;
 import io.subutai.plugin.pig.impl.Commands;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.subutai.plugin.pig.impl.PigImpl;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigConfig>
@@ -50,14 +50,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
 
@@ -95,7 +95,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
                     uninstallProductOnNode( host );
                     break;
             }
-        } catch ( ClusterException e )
+        }
+        catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "Operation failed, %s", e.getMessage() ) );
         }
