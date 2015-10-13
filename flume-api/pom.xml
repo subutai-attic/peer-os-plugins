@@ -20,18 +20,9 @@
       <artifactId>subutai-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>env-manager-api</artifactId>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common</artifactId>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>hadoop-plugin-api</artifactId>
-      <version>${hadoop.version}</version>
-    </dependency>
-      <dependency>
-          <groupId>io.subutai</groupId>
-          <artifactId>plugin-common</artifactId>
-      </dependency>
   </dependencies>
 
   <build>

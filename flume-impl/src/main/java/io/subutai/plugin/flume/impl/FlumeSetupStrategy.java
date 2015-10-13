@@ -1,7 +1,10 @@
 package io.subutai.plugin.flume.impl;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -17,10 +20,6 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 
 class FlumeSetupStrategy implements ClusterSetupStrategy
@@ -118,11 +117,11 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( hc.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( hc.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + hc.getEnvironmentId(), e );
             return;
         }
 
@@ -135,17 +134,18 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
         po.addLog( "Checking prerequisites..." );
 
         RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.make( CommandType.STATUS ) );
-        for ( UUID uuid : config.getNodes() )
+        for ( String nodeId : config.getNodes() )
         {
-            ContainerHost node = null;
+            ContainerHost node ;
             try
             {
-                node = environment.getContainerHostById( uuid );
+                node = environment.getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Container host not found", e );
                 po.addLogFailed( "Container host not found" );
+                return;
             }
             try
             {

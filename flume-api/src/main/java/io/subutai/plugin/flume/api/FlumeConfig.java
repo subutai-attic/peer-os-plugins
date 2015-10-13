@@ -2,12 +2,11 @@ package io.subutai.plugin.flume.api;
 
 
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
-
-import com.google.common.collect.Sets;
 
 
 public class FlumeConfig implements ConfigBase
@@ -18,8 +17,8 @@ public class FlumeConfig implements ConfigBase
 
     private String clusterName = "";
     private String hadoopClusterName;
-    private Set<UUID> nodes = Sets.newHashSet();
-    private UUID environmentId;
+    private Set<String> nodes = Sets.newHashSet();
+    private String environmentId;
 
 
     @Override
@@ -61,24 +60,25 @@ public class FlumeConfig implements ConfigBase
     }
 
 
-    public Set<UUID> getNodes()
+    public Set<String> getNodes()
     {
         return nodes;
     }
 
 
-    public void setNodes( Set<UUID> nodes ){
+    public void setNodes( Set<String> nodes )
+    {
         this.nodes = nodes;
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }

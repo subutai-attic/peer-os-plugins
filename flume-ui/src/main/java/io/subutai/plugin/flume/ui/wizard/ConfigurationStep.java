@@ -5,17 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.plugin.flume.api.FlumeConfig;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +23,16 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.plugin.flume.api.FlumeConfig;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public class ConfigurationStep extends VerticalLayout
@@ -124,7 +124,7 @@ public class ConfigurationStep extends VerticalLayout
 
     private void addSettingsControls( ComponentContainer parent, final FlumeConfig config )
     {
-        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<ContainerHost>() );
+        final TwinColSelect select = new TwinColSelect( "Nodes", new ArrayList<EnvironmentContainerHost>() );
 
         ComboBox hadoopClusters = new ComboBox( "Hadoop cluster" );
         hadoopClusters.setId( "FluHadoopClustersCb" );
@@ -143,18 +143,17 @@ public class ConfigurationStep extends VerticalLayout
                     config.setHadoopClusterName( hadoopInfo.getClusterName() );
                     try
                     {
-                        hadoopEnvironment = environmentManager.findEnvironment( hadoopInfo.getEnvironmentId() );
+                        hadoopEnvironment = environmentManager.loadEnvironment( hadoopInfo.getEnvironmentId() );
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId().toString(),
-                                e );
+                        LOGGER.error( "Error getting environment by id: " + hadoopInfo.getEnvironmentId(), e );
                         return;
                     }
-                    Set<ContainerHost> hadoopNodes = Sets.newHashSet();
+                    Set<EnvironmentContainerHost> hadoopNodes = Sets.newHashSet();
                     try
                     {
-                        for( UUID nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
+                        for ( String nodeId : filterNodes( hadoopInfo.getAllNodes() ) )
                         {
                             hadoopNodes.add( hadoopEnvironment.getContainerHostById( nodeId ) );
                         }
@@ -164,7 +163,8 @@ public class ConfigurationStep extends VerticalLayout
                         LOGGER.error( "Container hosts not found", e );
                     }
                     select.setValue( null );
-                    select.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class, hadoopNodes ) );
+                    select.setContainerDataSource(
+                            new BeanItemContainer<>( EnvironmentContainerHost.class, hadoopNodes ) );
                 }
             }
         } );
@@ -213,9 +213,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -230,18 +231,19 @@ public class ConfigurationStep extends VerticalLayout
         parent.addComponent( select );
     }
 
+
     //exclude hadoop nodes that are already in another flume cluster
-    private List<UUID> filterNodes( List<UUID> hadoopNodes)
+    private List<String> filterNodes( List<String> hadoopNodes )
     {
-        List<UUID> flumeNodes = new ArrayList<>();
-        List<UUID> filteredNodes = new ArrayList<>();
-        for( FlumeConfig flumeConfig : wizard.getFlumeManager().getClusters() )
+        List<String> flumeNodes = new ArrayList<>();
+        List<String> filteredNodes = new ArrayList<>();
+        for ( FlumeConfig flumeConfig : wizard.getFlumeManager().getClusters() )
         {
             flumeNodes.addAll( flumeConfig.getNodes() );
         }
-        for( UUID node : hadoopNodes )
+        for ( String node : hadoopNodes )
         {
-            if( !flumeNodes.contains( node ))
+            if ( !flumeNodes.contains( node ) )
             {
                 filteredNodes.add( node );
             }

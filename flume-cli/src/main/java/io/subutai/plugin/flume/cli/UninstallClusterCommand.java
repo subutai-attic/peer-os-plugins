@@ -3,15 +3,15 @@ package io.subutai.plugin.flume.cli;
 
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 /**
@@ -26,6 +26,7 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     String clusterName = null;
     private Flume flumeManager;
     private Tracker tracker;
+
 
     @Override
     protected Object doExecute()
@@ -65,11 +66,6 @@ public class UninstallClusterCommand extends OsgiCommandSupport
         return null;
     }
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
 
     public void setTracker( Tracker tracker )
     {
@@ -77,15 +73,8 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Flume getFlumeManager()
-    {
-        return flumeManager;
-    }
-
-
     public void setFlumeManager( Flume flumeManager )
     {
         this.flumeManager = flumeManager;
     }
-
 }

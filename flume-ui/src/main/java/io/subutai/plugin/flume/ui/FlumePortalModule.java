@@ -7,16 +7,16 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.Component;
+
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.util.FileUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.server.ui.api.PortalModule;
-
-import com.vaadin.ui.Component;
 
 
 public class FlumePortalModule implements PortalModule
@@ -30,7 +30,7 @@ public class FlumePortalModule implements PortalModule
     private EnvironmentManager environmentManager;
 
 
-    public FlumePortalModule( Flume flume, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager)
+    public FlumePortalModule( Flume flume, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager )
     {
         this.flume = flume;
         this.hadoop = hadoop;

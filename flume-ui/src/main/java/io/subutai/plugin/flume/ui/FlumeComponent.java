@@ -5,26 +5,24 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.core.env.api.EnvironmentManager;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.ui.manager.Manager;
 import io.subutai.plugin.flume.ui.wizard.Wizard;
 import io.subutai.plugin.hadoop.api.Hadoop;
 
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
-
 
 public class FlumeComponent extends CustomComponent
 {
 
-    private final Wizard wizard;
-    private final Manager manager;
 
-
-    public FlumeComponent( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker, EnvironmentManager environmentManager ) throws NamingException
+    public FlumeComponent( ExecutorService executorService, Flume flume, Hadoop hadoop, Tracker tracker,
+                           EnvironmentManager environmentManager ) throws NamingException
     {
         setSizeFull();
 
@@ -34,8 +32,8 @@ public class FlumeComponent extends CustomComponent
 
         TabSheet sheet = new TabSheet();
         sheet.setSizeFull();
-        manager = new Manager( executorService, flume, hadoop, tracker, environmentManager );
-        wizard = new Wizard( executorService, flume, hadoop, tracker, environmentManager );
+        final Manager manager = new Manager( executorService, flume, hadoop, tracker, environmentManager );
+        final Wizard wizard = new Wizard( executorService, flume, hadoop, tracker, environmentManager );
         sheet.addTab( wizard.getContent(), "Install" );
         sheet.getTab( 0 ).setId( "FlumeInstallTab" );
         sheet.addTab( manager.getContent(), "Manage" );

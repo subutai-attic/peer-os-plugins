@@ -38,10 +38,6 @@ public class ListClustersCommand extends OsgiCommandSupport
     private Flume flumeManager;
 
 
-    public Flume getFlumeManager()
-    {
-        return flumeManager;
-    }
 
 
     public void setFlumeManager( Flume flumeManager )

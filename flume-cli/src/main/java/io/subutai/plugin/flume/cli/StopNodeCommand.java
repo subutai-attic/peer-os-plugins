@@ -3,13 +3,12 @@ package io.subutai.plugin.flume.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.flume.api.Flume;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.flume.api.Flume;
 
 
 @Command( scope = "flume", name = "start-cluster", description = "Stops cluster" )
@@ -37,21 +36,9 @@ public class StopNodeCommand extends OsgiCommandSupport
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public Flume getFlumeManager()
-    {
-        return flumeManager;
     }
 
 

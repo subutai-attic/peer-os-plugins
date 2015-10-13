@@ -5,18 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.flume.api.Flume;
-import io.subutai.plugin.flume.api.FlumeConfig;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.server.ui.component.ProgressWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +15,20 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.util.CollectionUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.flume.api.Flume;
+import io.subutai.plugin.flume.api.FlumeConfig;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.server.ui.component.ProgressWindow;
 
 
 public class VerificationStep extends VerticalLayout
@@ -55,17 +57,17 @@ public class VerificationStep extends VerticalLayout
         ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Installation Name", wizard.getConfig().getClusterName() );
 
-        Environment hadoopEnvironment = null;
+        Environment hadoopEnvironment ;
         try
         {
-            hadoopEnvironment = environmentManager.findEnvironment( hadoopClusterConfig.getEnvironmentId() );
+            hadoopEnvironment = environmentManager.loadEnvironment( hadoopClusterConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId().toString(), e );
+            LOGGER.error( "Error getting environment by id: " + hadoopClusterConfig.getEnvironmentId(), e );
             return;
         }
-        Set<ContainerHost> nodes = null;
+        Set<EnvironmentContainerHost> nodes = null;
         try
         {
             nodes = hadoopEnvironment.getContainerHostsByIds( wizard.getConfig().getNodes() );
@@ -74,7 +76,12 @@ public class VerificationStep extends VerticalLayout
         {
             LOGGER.error( "Container hosts not found", e );
         }
-        for ( ContainerHost host : nodes )
+        if ( CollectionUtil.isCollectionEmpty( nodes ) )
+        {
+            throw new RuntimeException( "No containers found in environment" );
+        }
+
+        for ( EnvironmentContainerHost host : nodes )
         {
             cfgView.addStringCfg( "Node to install", host.getHostname() + "" );
         }

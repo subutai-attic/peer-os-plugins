@@ -17,15 +17,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.flume.api.FlumeConfig;
-import io.subutai.plugin.flume.impl.Commands;
-import io.subutai.plugin.flume.impl.FlumeImpl;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -39,7 +38,6 @@ import static org.mockito.Mockito.when;
 public class FlumeImplTest
 {
     private FlumeImpl flumeImpl;
-    private UUID uuid;
     @Mock
     FlumeConfig flumeConfig;
     @Mock
@@ -77,7 +75,6 @@ public class FlumeImplTest
     @Before
     public void setUp() throws Exception
     {
-        uuid = new UUID( 50, 50 );
 
         flumeImpl = new FlumeImpl( tracker, environmentManager, hadoop, pluginDAO );
         flumeImpl.setExecutor( executor );
@@ -85,11 +82,10 @@ public class FlumeImplTest
 
         // mock InstallClusterHandler
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        when( trackerOperation.getId() ).thenReturn( uuid );
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( FlumeConfig.PRODUCT_KEY, "test", FlumeConfig.class ) ).thenReturn( flumeConfig );
 
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-
     }
 
 
@@ -147,11 +143,10 @@ public class FlumeImplTest
     @Test
     public void testInstallCluster() throws Exception
     {
-        UUID id = flumeImpl.installCluster( flumeConfig );
+        flumeImpl.installCluster( flumeConfig );
 
         // assertions
         assertNotNull( flumeImpl.installCluster( flumeConfig ) );
-        assertEquals( uuid, id );
     }
 
 
@@ -192,91 +187,81 @@ public class FlumeImplTest
     @Test
     public void testInstallCluster1() throws Exception
     {
-        UUID id = flumeImpl.installCluster( flumeConfig);
+        flumeImpl.installCluster( flumeConfig );
 
         // assertions
         assertNotNull( flumeImpl.installCluster( flumeConfig ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStartNode() throws Exception
     {
-        UUID id = flumeImpl.startNode( "test", "test" );
+        flumeImpl.startNode( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.startNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testStopNode() throws Exception
     {
-        UUID id = flumeImpl.stopNode( "test", "test" );
+        flumeImpl.stopNode( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.stopNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testCheckNode() throws Exception
     {
-        UUID id = flumeImpl.checkNode( "test", "test" );
+        flumeImpl.checkNode( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.checkNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testCheckServiceStatus() throws Exception
     {
-        UUID id = flumeImpl.checkServiceStatus( "test", "test" );
+        flumeImpl.checkServiceStatus( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.checkServiceStatus( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testAddNode() throws Exception
     {
-        UUID id = flumeImpl.addNode( "test", "test" );
+        flumeImpl.addNode( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.addNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testDestroyNode() throws Exception
     {
-        UUID id = flumeImpl.destroyNode( "test", "test" );
+        flumeImpl.destroyNode( "test", "test" );
 
         // assertions
         assertNotNull( flumeImpl.destroyNode( "test", "test" ) );
-        assertEquals( uuid, id );
     }
 
 
     @Test
     public void testUninstallCluster1() throws Exception
     {
-        UUID id = flumeImpl.uninstallCluster( "test" );
+        flumeImpl.uninstallCluster( "test" );
 
         // assertions
         assertNotNull( flumeImpl.uninstallCluster( "test" ) );
-        assertEquals( uuid, id );
     }
-
-
 
 
     @Test

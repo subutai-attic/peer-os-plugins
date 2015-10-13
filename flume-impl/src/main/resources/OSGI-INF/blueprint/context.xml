@@ -4,7 +4,7 @@
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
-             interface="io.subutai.core.env.api.EnvironmentManager" />
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="hadoopManager" availability="mandatory"
              interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
@@ -20,7 +20,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="flume-impl" interface="io.subutai.plugin.flume.api.Flume" />
-  <service ref="flume-impl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="flume-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
 </blueprint>

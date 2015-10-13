@@ -1,6 +1,11 @@
 package io.subutai.plugin.flume.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -15,11 +20,6 @@ import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.CommandType;
 import io.subutai.plugin.flume.impl.Commands;
 import io.subutai.plugin.flume.impl.FlumeImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
@@ -53,14 +53,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             return;
         }
 
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+            LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
             return;
         }
 
@@ -179,11 +179,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         StringBuilder log = new StringBuilder();
         String status;
         String output = result.getStdOut();
-        if( operationType.equals( NodeOperationType.START ) && output.contains( "starting" ) )
+        if ( operationType.equals( NodeOperationType.START ) && output.contains( "starting" ) )
         {
             status = "Flume is running";
         }
-        else if( operationType.equals( NodeOperationType.STATUS ) && !result.getStdOut().equals( "" ))
+        else if ( operationType.equals( NodeOperationType.STATUS ) && !result.getStdOut().equals( "" ) )
         {
             status = "Flume is running";
         }

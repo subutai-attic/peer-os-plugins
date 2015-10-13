@@ -10,23 +10,6 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.flume.api.Flume;
-import io.subutai.plugin.flume.api.FlumeConfig;
-import io.subutai.plugin.flume.api.NodeOperationTask;
-import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +29,24 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.flume.api.Flume;
+import io.subutai.plugin.flume.api.FlumeConfig;
+import io.subutai.plugin.flume.api.NodeOperationTask;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
 
 public class Manager
@@ -130,14 +131,14 @@ public class Manager
                     HadoopClusterConfig hadoopConfig = hadoop.getCluster( config.getHadoopClusterName() );
                     if ( hadoopConfig != null )
                     {
-                        Set<UUID> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+                        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
                         nodes.removeAll( config.getNodes() );
                         if ( !nodes.isEmpty() )
                         {
-                            Set<ContainerHost> hosts = null;
+                            Set<EnvironmentContainerHost> hosts = null;
                             try
                             {
-                                hosts = environmentManager.findEnvironment( hadoopConfig.getEnvironmentId() )
+                                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
                                                           .getContainerHostsByIds( nodes );
                             }
                             catch ( ContainerHostNotFoundException e )
@@ -146,8 +147,8 @@ public class Manager
                             }
                             catch ( EnvironmentNotFoundException e )
                             {
-                                LOGGER.error( "Error getting environment by id: " + hadoopConfig.getEnvironmentId()
-                                                                                                .toString(), e );
+                                LOGGER.error( "Error getting environment by id: " + hadoopConfig.getEnvironmentId(),
+                                        e );
                                 return;
                             }
                             AddNodeWindow addNodeWindow =
@@ -318,17 +319,17 @@ public class Manager
     {
         if ( config != null )
         {
-            Environment environment = null;
+            Environment environment ;
             try
             {
-                environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
-            Set<ContainerHost> hosts = null;
+            Set<EnvironmentContainerHost> hosts = null;
             try
             {
                 hosts = environment.getContainerHostsByIds( config.getNodes() );
@@ -346,12 +347,12 @@ public class Manager
     }
 
 
-    private void populateTable( final Table table, Set<ContainerHost> containerHosts )
+    private void populateTable( final Table table, Set<EnvironmentContainerHost> containerHosts )
     {
 
         table.removeAllItems();
 
-        for ( final ContainerHost host : containerHosts )
+        for ( final EnvironmentContainerHost host : containerHosts )
         {
             final Label resultHolder = new Label();
             final Button destroyBtn = new Button( DESTROY_BUTTON_CAPTION );
@@ -418,7 +419,7 @@ public class Manager
     }
 
 
-    private void addClickListenerToStartButton( final ContainerHost host, final Button... buttons )
+    private void addClickListenerToStartButton( final EnvironmentContainerHost host, final Button... buttons )
     {
         getButton( START_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -446,7 +447,7 @@ public class Manager
     }
 
 
-    public void addClickListenerToStopButton( final ContainerHost host, final Button... buttons )
+    public void addClickListenerToStopButton( final EnvironmentContainerHost host, final Button... buttons )
     {
         getButton( STOP_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
         {
@@ -474,7 +475,7 @@ public class Manager
     }
 
 
-    public void addCheckButtonClickListener( final ContainerHost host, final Label resultHolder,
+    public void addCheckButtonClickListener( final EnvironmentContainerHost host, final Label resultHolder,
                                              final Button... buttons )
     {
         getButton( CHECK_BUTTON_CAPTION, buttons ).addClickListener( new Button.ClickListener()
@@ -629,22 +630,22 @@ public class Manager
                 {
                     String containerHostname =
                             ( String ) table.getItem( event.getItemId() ).getItemProperty( "Host" ).getValue();
-                    Set<ContainerHost> containerHosts = null;
+                    Set<EnvironmentContainerHost> containerHosts;
                     try
                     {
                         containerHosts =
-                                environmentManager.findEnvironment( config.getEnvironmentId() ).getContainerHosts();
+                                environmentManager.loadEnvironment( config.getEnvironmentId() ).getContainerHosts();
                     }
                     catch ( EnvironmentNotFoundException e )
                     {
-                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                        LOGGER.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                         return;
                     }
                     Iterator iterator = containerHosts.iterator();
-                    ContainerHost containerHost = null;
+                    EnvironmentContainerHost containerHost = null;
                     while ( iterator.hasNext() )
                     {
-                        containerHost = ( ContainerHost ) iterator.next();
+                        containerHost = ( EnvironmentContainerHost ) iterator.next();
                         if ( containerHost.getHostname().equals( containerHostname ) )
                         {
                             break;

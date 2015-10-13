@@ -1,18 +1,19 @@
 package io.subutai.plugin.flume.cli;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.hadoop.api.Hadoop;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 
 @Command( scope = "flume", name = "install-cluster", description = "Command to install Flume cluster" )
@@ -28,7 +29,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String hadoopClusterName;
 
-    @Argument( index = 2, name = "nodes", description = "The list of nodes that Flume will be installed", required = true,
+    @Argument( index = 2, name = "nodes", description = "The list of nodes that Flume will be installed", required =
+            true,
             multiValued = false )
     String nodes[];
 
@@ -45,21 +47,13 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
-        Set<UUID> nodesSet = new HashSet<>();
-        for ( String uuid : nodes ){
-            nodesSet.add( UUID.fromString( uuid ) );
-        }
+        Set<String> nodesSet = new HashSet<>();
+        Collections.addAll( nodesSet, nodes );
         config.setNodes( nodesSet );
         UUID uuid = flumeManager.installCluster( config );
-        System.out.println(
-                "Install operation is " + StartNodeCommand.waitUntilOperationFinish( tracker, uuid ) + "." );
+        System.out
+                .println( "Install operation is " + StartNodeCommand.waitUntilOperationFinish( tracker, uuid ) + "." );
         return null;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
     }
 
 
@@ -69,21 +63,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public Flume getFlumeManager()
-    {
-        return flumeManager;
-    }
-
-
     public void setFlumeManager( final Flume flumeManager )
     {
         this.flumeManager = flumeManager;
-    }
-
-
-    public Hadoop getHadoopManager()
-    {
-        return hadoopManager;
     }
 
 

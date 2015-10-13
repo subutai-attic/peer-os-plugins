@@ -1,7 +1,10 @@
 package io.subutai.plugin.flume.impl.handler;
 
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -19,10 +22,6 @@ import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.CommandType;
 import io.subutai.plugin.flume.impl.Commands;
 import io.subutai.plugin.flume.impl.FlumeImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
@@ -82,22 +81,23 @@ public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl,
 
         po.addLog( "Uninstalling Flume..." );
 
-        for ( UUID uuid : config.getNodes() )
+        for ( String nodeId : config.getNodes() )
         {
-            ContainerHost containerHost = null;
+            ContainerHost containerHost ;
             try
             {
-                containerHost = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() )
-                       .getContainerHostById( uuid );
+                containerHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                       .getContainerHostById( nodeId );
             }
             catch ( ContainerHostNotFoundException e )
             {
                 LOG.error( "Container host not found", e );
                 trackerOperation.addLogFailed( "Container host not found" );
+                return;
             }
             catch ( EnvironmentNotFoundException e )
             {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId().toString(), e );
+                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
                 return;
             }
             CommandResult result;

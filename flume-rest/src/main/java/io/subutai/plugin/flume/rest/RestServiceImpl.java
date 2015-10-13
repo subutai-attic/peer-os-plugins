@@ -6,6 +6,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -13,15 +16,12 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
 
 public class RestServiceImpl implements RestService
 {
-    private static final String OPERATION_ID = "OPERATION_ID";
     private Flume flumeManager;
     private Tracker tracker;
+
 
     public RestServiceImpl( final Flume flumeManager )
     {
@@ -48,7 +48,7 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         FlumeConfig config = flumeManager.getCluster( clusterName );
-        if( config == null )
+        if ( config == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found" ).build();
@@ -57,7 +57,6 @@ public class RestServiceImpl implements RestService
         String cluster = JsonUtil.GSON.toJson( config );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
-
 
 
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String nodes )
@@ -74,7 +73,7 @@ public class RestServiceImpl implements RestService
         for ( String node : arr )
         {
 
-            config.getNodes().add( UUID.fromString( node ) );
+            config.getNodes().add( node );
         }
 
         UUID uuid = flumeManager.installCluster( config );
@@ -87,7 +86,7 @@ public class RestServiceImpl implements RestService
     public Response uninstallCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -102,7 +101,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -117,7 +116,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -132,7 +131,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -147,7 +146,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -162,7 +161,7 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hostname );
-        if( flumeManager.getCluster( clusterName ) == null )
+        if ( flumeManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
@@ -172,20 +171,27 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-    private Response createResponse( UUID uuid, OperationState state ){
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
         TrackerOperationView po = tracker.getTrackerOperation( FlumeConfig.PRODUCT_KEY, uuid );
-        if ( state == OperationState.FAILED ){
+        if ( state == OperationState.FAILED )
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
         }
-        else if ( state == OperationState.SUCCEEDED ){
+        else if ( state == OperationState.SUCCEEDED )
+        {
             return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
         }
-        else {
+        else
+        {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
         }
     }
 
-    private OperationState waitUntilOperationFinish( UUID uuid ){
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -215,15 +221,9 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    public Tracker getTracker(){
-        return tracker;
-    }
-
 
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
-
-
 }
