@@ -8,6 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
@@ -16,6 +18,7 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -138,9 +141,11 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             Set<EnvironmentContainerHost> allNodes = new HashSet<>();
             allNodes.addAll( newlyCreatedContainers );
             allNodes.addAll( environment.getContainerHosts() );
+            Set<ContainerHost> ch = Sets.newHashSet();
+            ch.addAll( allNodes );
             try
             {
-                manager.getNetworkManager().exchangeSshKeys( allNodes );
+                manager.getNetworkManager().exchangeSshKeys( ch );
             }
             catch ( NetworkManagerException e )
             {
