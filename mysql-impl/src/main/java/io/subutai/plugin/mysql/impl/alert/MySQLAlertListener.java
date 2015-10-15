@@ -10,30 +10,28 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
-import io.subutai.core.metric.api.ContainerHostMetric;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
 import io.subutai.plugin.mysql.impl.common.Commands;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 
-/**
- * Created by tkila on 6/1/15.
- */
 public class MySQLAlertListener implements AlertListener
 {
 
     private static final Logger LOG = Logger.getLogger( MySQLAlertListener.class.toString() );
     private static final String MYSQL_ALERT_LISTENER = "MYSQL_ALERT_LISTENER";
     //@formatter:off
-    private static double  MAX_RAM_QUOTA_MB;
-    private static int     RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
-    private static int     MAX_CPU_QUOTA_PERCENT          = 100;
-    private static int     CPU_QUOTA_INCREMENT_PERCENT    = 15;
+    private static double MAX_RAM_QUOTA_MB = 3072;
+    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    private static int MAX_CPU_QUOTA_PERCENT = 100;
+    private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
     //@formatter:on
     private MySQLCImpl mysql;
     private CommandUtil commandUtil = new CommandUtil();
@@ -70,7 +68,7 @@ public class MySQLAlertListener implements AlertListener
 
         //get cluster environment
         Environment environment =
-                mysql.getEnvironmentManager().findEnvironment( containerHostMetric.getEnvironmentId() );
+                mysql.getEnvironmentManager().loadEnvironment( containerHostMetric.getEnvironmentId() );
         if ( environment == null )
         {
             throw new Exception(
@@ -78,7 +76,7 @@ public class MySQLAlertListener implements AlertListener
         }
 
         //get environment containers and find alert source host
-        Set<ContainerHost> containers = environment.getContainerHosts();
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
         ContainerHost sourceHost = null;
         for ( ContainerHost containerHost : containers )
@@ -110,7 +108,7 @@ public class MySQLAlertListener implements AlertListener
         MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out mysql  process pid
-        int mysqlPid = 0;
+        int mysqlPid;
         try
         {
             CommandResult result = commandUtil.execute( new RequestBuilder( Commands.getPidCommand ), sourceHost );
@@ -166,8 +164,8 @@ public class MySQLAlertListener implements AlertListener
 
                     if ( MAX_RAM_QUOTA_MB > newRamQuota )
                     {
-                        LOG.info( String.format("Increasing ram quota of %s from %s MB to %s MB.", sourceHost.getHostname(),
-                                sourceHost.getRamQuota(), newRamQuota ));
+                        LOG.info( String.format( "Increasing ram quota of %s from %s MB to %s MB.",
+                                sourceHost.getHostname(), sourceHost.getRamQuota(), newRamQuota ) );
 
                         //we can increase RAM quota
                         sourceHost.setRamQuota( newRamQuota );
@@ -230,7 +228,7 @@ public class MySQLAlertListener implements AlertListener
 
     protected int parsePid( String output ) throws Exception
     {
-        int pid = 0;
+        int pid;
         output = output.replaceAll( "\n", "" );
         pid = Integer.parseInt( output );
         if ( pid == 0 )

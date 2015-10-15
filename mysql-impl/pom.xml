@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mysql-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC1</version>
+    <version>4.0.0-RC2</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -45,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>env-manager-api</artifactId>
+      <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

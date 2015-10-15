@@ -10,21 +10,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.mysql.impl.MySQLCImpl;
-import io.subutai.plugin.mysql.impl.alert.MySQLAlertListener;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
+import io.subutai.plugin.mysql.impl.alert.MySQLAlertListener;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
@@ -33,29 +33,39 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-/**
- * Created by tkila on 6/2/15.
- */
 @RunWith( MockitoJUnitRunner.class )
 public class MySQLImplTest
 {
 
     //@formatter:off
-    @Mock private Tracker            tracker;
-    @Mock private ExecutorService    executor;
-    @Mock private EnvironmentManager environmentManager;
-    @Mock private PluginDAO          pluginDAO;
-    @Mock private Monitor            monitor;
-    @Mock private QuotaManager       quotaManager;
-    @Mock private PeerManager        peerManager;
-    @Mock private NetworkManager     networkManager;
-    @Mock private MySQLAlertListener mySQLAlertListener;
-    @Mock private Set<ContainerHost> mySet;
-    @Mock private CommandResult      commandResult;
-    @Mock private MySQLClusterConfig clusterConfig;
-    @Mock private TrackerOperation   trackerOperation;
-          private UUID               uuid;
-          private MySQLCImpl impl;
+    @Mock
+    private Tracker tracker;
+    @Mock
+    private ExecutorService executor;
+    @Mock
+    private EnvironmentManager environmentManager;
+    @Mock
+    private PluginDAO pluginDAO;
+    @Mock
+    private Monitor monitor;
+    @Mock
+    private QuotaManager quotaManager;
+    @Mock
+    private PeerManager peerManager;
+    @Mock
+    private NetworkManager networkManager;
+    @Mock
+    private MySQLAlertListener mySQLAlertListener;
+    @Mock
+    private Set<ContainerHost> mySet;
+    @Mock
+    private CommandResult commandResult;
+    @Mock
+    private MySQLClusterConfig clusterConfig;
+    @Mock
+    private TrackerOperation trackerOperation;
+    private UUID uuid;
+    private MySQLCImpl impl;
 
     //@formatter:on
 
@@ -77,7 +87,8 @@ public class MySQLImplTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( trackerOperation.getId() ).thenReturn( uuid );
         when( impl.getCluster( clusterConfig.getClusterName() ) ).thenReturn( clusterConfig );
-        when( impl.getPluginDAO().getInfo( MySQLClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), MySQLClusterConfig.class ) )
+        when( impl.getPluginDAO()
+                  .getInfo( MySQLClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName(), MySQLClusterConfig.class ) )
                 .thenReturn( clusterConfig );
     }
 

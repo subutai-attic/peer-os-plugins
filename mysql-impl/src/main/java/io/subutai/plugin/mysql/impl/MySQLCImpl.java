@@ -1,18 +1,11 @@
 package io.subutai.plugin.mysql.impl;
 
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
-
-import io.subutai.plugin.mysql.impl.alert.MySQLAlertListener;
-import io.subutai.plugin.mysql.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.mysql.impl.handler.NodeOperationHandler;
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -20,9 +13,10 @@ import com.google.gson.GsonBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentEventListener;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentEventListener;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
@@ -30,18 +24,20 @@ import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
+import io.subutai.plugin.mysql.impl.alert.MySQLAlertListener;
+import io.subutai.plugin.mysql.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.mysql.impl.handler.NodeOperationHandler;
 
 
-/**
- * Created by tkila on 5/7/15.
- */
 public class MySQLCImpl implements MySQLC, EnvironmentEventListener
 {
 
@@ -68,7 +64,6 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
     {
         this.monitor = monitor;
         this.mySQLAlertListener = new MySQLAlertListener( this );
-        //        this.monitor.addAlertListener( mySQLAlertListener );
         this.pluginDAO = pluginDAO;
     }
 
@@ -116,7 +111,7 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
 
     public void init()
     {
-         executor = SubutaiExecutors.newSingleThreadExecutor();
+        executor = SubutaiExecutors.newSingleThreadExecutor();
     }
 
 
@@ -176,27 +171,27 @@ public class MySQLCImpl implements MySQLC, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentGrown( Environment environment, Set<ContainerHost> set )
+    public void onEnvironmentGrown( Environment environment, Set<EnvironmentContainerHost> set )
     {
         LOG.info( "Environment grown" );
     }
 
 
     @Override
-    public void onContainerDestroyed( Environment environment, UUID uuid )
+    public void onContainerDestroyed( Environment environment, String containerId )
     {
 
     }
 
 
     @Override
-    public void onEnvironmentDestroyed( UUID uuid )
+    public void onEnvironmentDestroyed( String envId )
     {
         List<String> clusterDataList = pluginDAO.getInfo( MySQLClusterConfig.PRODUCT_KEY );
         for ( final String clusterData : clusterDataList )
         {
             MySQLClusterConfig clusterConfig = gson.fromJson( clusterData, MySQLClusterConfig.class );
-            if ( clusterConfig.getEnvironmentId().equals( uuid ) )
+            if ( clusterConfig.getEnvironmentId().equals( envId ) )
             {
                 try
                 {

@@ -11,12 +11,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 import static org.junit.Assert.assertEquals;
@@ -24,9 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-/**
- * Created by tkila on 6/1/15.
- */
 @RunWith( MockitoJUnitRunner.class )
 public class ClusterConfigTest
 {
@@ -50,17 +48,17 @@ public class ClusterConfigTest
     @Test
     public void testConfigureCluster() throws ContainerHostNotFoundException, ClusterConfigurationException
     {
-        ContainerHost host = mock( ContainerHost.class );
-        ContainerHost host2 = mock( ContainerHost.class );
-        Set<ContainerHost> mySet = mock( Set.class );
+        EnvironmentContainerHost host = mock( EnvironmentContainerHost.class );
+        EnvironmentContainerHost host2 = mock( EnvironmentContainerHost.class );
+        Set<EnvironmentContainerHost> mySet = mock( Set.class );
         mySet.add( host );
         mySet.add( host2 );
-        UUID uuid = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
-        List<UUID> myList = mock( ArrayList.class );
+        String uuid = UUID.randomUUID().toString();
+        String uuid2 = UUID.randomUUID().toString();
+        List<String> myList = mock( ArrayList.class );
         myList.add( uuid );
         myList.add( uuid );
-        Set<UUID> uuidSet = mock( Set.class );
+        Set<String> uuidSet = mock( Set.class );
         uuidSet.add( uuid );
         uuidSet.add( uuid2 );
 
@@ -68,24 +66,24 @@ public class ClusterConfigTest
 
         MySQLClusterConfig config = mock( MySQLClusterConfig.class );
 
-        Iterator<UUID> iterator = mock( Iterator.class );
+        Iterator<String> iterator = mock( Iterator.class );
         when( iterator.next() ).thenReturn( uuid ).thenReturn( uuid2 );
-        when(config.getDataNodes()).thenReturn(uuidSet);
-        when(config.getManagerNodes()).thenReturn( uuidSet );
+        when( config.getDataNodes() ).thenReturn( uuidSet );
+        when( config.getManagerNodes() ).thenReturn( uuidSet );
         when( uuidSet.iterator() ).thenReturn( iterator );
 
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( environment.getContainerHostById( config.getDataNodes().iterator().next() ) ).thenReturn( host );
         when( environment.getContainerHostById( config.getManagerNodes().iterator().next() ) ).thenReturn( host );
 
-        Iterator<ContainerHost> iterator2 = mock( Iterator.class );
+        Iterator<EnvironmentContainerHost> iterator2 = mock( Iterator.class );
 
         when( mySet.iterator() ).thenReturn( iterator2 );
         when( iterator2.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false ).thenReturn( true )
                                    .thenReturn( false );
         when( iterator2.next() ).thenReturn( host ).thenReturn( host2 ).thenReturn( host );
 
-        Iterator<UUID> iterator1 = mock( Iterator.class );
+        Iterator<String> iterator1 = mock( Iterator.class );
         when( uuidSet.iterator() ).thenReturn( iterator1 );
         when( iterator1.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
         when( iterator1.next() ).thenReturn( uuid ).thenReturn( uuid2 );
@@ -93,7 +91,7 @@ public class ClusterConfigTest
         when( pluginDAO.saveInfo( MySQLClusterConfig.PRODUCT_KEY, config.getClusterName(), config ) )
                 .thenReturn( true );
 
-        UUID uuid1 = new UUID( 50, 50 );
+        String uuid1 = UUID.randomUUID().toString();
         when( environment.getId() ).thenReturn( uuid1 );
 
         clusterConfig.configureCluster( config, environment );

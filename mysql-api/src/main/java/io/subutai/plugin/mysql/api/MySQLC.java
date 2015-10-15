@@ -11,10 +11,6 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.NodeType;
 
-
-/**
- * Created by tkila on 5/7/15.
- */
 public interface MySQLC extends ApiBase<MySQLClusterConfig>
 {
 

@@ -3,15 +3,15 @@ package io.subutai.plugin.mysql.ui.environment;
 
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.VerticalLayout;
+
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 
 public class EnvironmentWizard

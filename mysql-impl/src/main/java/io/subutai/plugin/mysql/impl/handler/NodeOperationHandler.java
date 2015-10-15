@@ -10,21 +10,18 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.ClusterConfig;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
 import io.subutai.plugin.mysql.impl.common.Commands;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 
-/**
- * Created by tkila on 5/14/15.
- */
 public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, MySQLClusterConfig>
 {
     private String clusterName;
@@ -59,10 +56,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
             LOG.severe( ( String.format( "Cluster with name %s does not exist", clusterName ) ) );
             return;
         }
-        Environment environment = null;
+        Environment environment;
         try
         {
-            environment = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -136,7 +133,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
             }
             manager.saveConfig( config );
             ClusterConfig clusterConfig = new ClusterConfig( trackerOperation, manager );
-            clusterConfig.configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+            clusterConfig.configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
             trackerOperation.addLog( String.format( "Cluster information has been udpated" ) );
             trackerOperation
                     .addLogDone( String.format( "Container %s has been removed from cluster. ", host.getHostname() ) );
@@ -155,7 +152,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
             return;
         }
         MySQLClusterConfig config = manager.getCluster( clusterName );
-        CommandResult result = null;
+        CommandResult result;
 
         if ( !config.getIsSqlInstalled().get( host.getHostname() ) )
         {
@@ -203,7 +200,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
                     //if first time launch,
                     if ( config.getIsInitialStart().get( host.getHostname() ) )
                     {
-                        host.execute( new RequestBuilder( String.format("cp %s /etc/my.cnf" ,config.getConfNodeDataFile())));
+                        host.execute( new RequestBuilder(
+                                String.format( "cp %s /etc/my.cnf", config.getConfNodeDataFile() ) ) );
                         result = host.execute(
                                 new RequestBuilder( Commands.ndbdInit ).withCwd( config.getDataNodeDataDir() ) );
                         config.getIsInitialStart().put( host.getHostname(), false );
@@ -228,7 +226,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
             {
                 e.printStackTrace();
             }
-            trackerOperation.addLogDone( result.getStdOut() );
+            if ( result != null )
+            {
+                trackerOperation.addLogDone( result.getStdOut() );
+            }
         }
         catch ( CommandException e )
         {
@@ -236,7 +237,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MySQLCImpl, M
         }
     }
 
-    @Deprecated
+
     private void stopNode( ContainerHost host, NodeType nodeType )
     {
         CommandResult result = null;

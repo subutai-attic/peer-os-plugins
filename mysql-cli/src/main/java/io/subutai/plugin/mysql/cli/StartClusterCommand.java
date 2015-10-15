@@ -3,11 +3,6 @@ package io.subutai.plugin.mysql.cli;
 
 import java.util.UUID;
 
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +10,12 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
-/**
- * Created by tkila on 5/18/15.
- */
 
 @Command( scope = "mysql", name = "start-cluster", description = "Command to start MySQL Cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
@@ -39,9 +36,8 @@ public class StartClusterCommand extends OsgiCommandSupport
     {
         UUID uuid = getMySqlManager().startCluster( clusterName );
 
-        System.out.print("Starting cluster " + waitUntilOperationFinish(tracker,uuid));
+        System.out.print( "Starting cluster " + waitUntilOperationFinish( tracker, uuid ) );
         return null;
-
     }
 
 
@@ -79,6 +75,7 @@ public class StartClusterCommand extends OsgiCommandSupport
     {
         this.tracker = tracker;
     }
+
 
     protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
     {

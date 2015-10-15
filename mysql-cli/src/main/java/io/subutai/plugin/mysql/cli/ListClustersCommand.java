@@ -3,16 +3,13 @@ package io.subutai.plugin.mysql.cli;
 
 import java.util.List;
 
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
-/**
- * Created by tkila on 5/27/15.
- */
+
 @Command( scope = "mysql", name = "list-clusters", description = "command to list mysql clusters" )
 public class ListClustersCommand extends OsgiCommandSupport
 {

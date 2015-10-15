@@ -6,9 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 
-/**
- * Created by tkila on 5/11/15.
- */
+
 public class MySQLManagerNodeConfig
 {
 

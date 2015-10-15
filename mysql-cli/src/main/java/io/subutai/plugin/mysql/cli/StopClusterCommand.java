@@ -3,17 +3,14 @@ package io.subutai.plugin.mysql.cli;
 
 import java.util.UUID;
 
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.mysql.api.MySQLC;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.mysql.api.MySQLC;
 
-/**
- * Created by tkila on 5/27/15.
- */
+
 @Command( scope = "mysql", name = "stop-cluster", description = "Stop MySQL Cluster" )
 public class StopClusterCommand extends OsgiCommandSupport
 {
@@ -27,7 +24,7 @@ public class StopClusterCommand extends OsgiCommandSupport
     @Override
     protected Object doExecute() throws Exception
     {
-        UUID uuid = manager.stopCluster(clusterName);
+        UUID uuid = manager.stopCluster( clusterName );
 
         System.out.println(
                 "Stop cluster operation is " + InstallClusterCommand.waitUntilOperationFinish( tracker, uuid ) );

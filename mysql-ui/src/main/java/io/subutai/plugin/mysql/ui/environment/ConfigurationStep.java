@@ -5,13 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.Property;
@@ -27,15 +20,14 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
-/**
- * Created by tkila on 5/14/15.
- */
+
 public class ConfigurationStep extends VerticalLayout
 {
     private EnvironmentWizard wizard;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( ConfigurationStep.class.getName() );
 
 
     public ConfigurationStep( final EnvironmentWizard environmentWizard )
@@ -156,7 +148,7 @@ public class ConfigurationStep extends VerticalLayout
 
         final ComboBox envCombo = new ComboBox( "Choose environment" );
         envCombo.setId( "envCombo" );
-        BeanItemContainer<Environment> eBean = new BeanItemContainer<Environment>( Environment.class );
+        BeanItemContainer<Environment> eBean = new BeanItemContainer<>( Environment.class );
         eBean.addAll( environmentList );
         envCombo.setContainerDataSource( eBean );
         envCombo.setNullSelectionAllowed( false );
@@ -170,9 +162,9 @@ public class ConfigurationStep extends VerticalLayout
             {
                 Environment e = ( Environment ) valueChangeEvent.getProperty().getValue();
                 environmentWizard.getConfig().setEnvironmentId( e.getId() );
-                managerNodeSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class,
+                managerNodeSelect.setContainerDataSource( new BeanItemContainer<>( EnvironmentContainerHost.class,
                         filterEnvironmentContainers( e.getContainerHosts() ) ) );
-                dataNodesSelect.setContainerDataSource( new BeanItemContainer<>( ContainerHost.class,
+                dataNodesSelect.setContainerDataSource( new BeanItemContainer<>( EnvironmentContainerHost.class,
                         filterEnvironmentContainers( e.getContainerHosts() ) ) );
             }
         } );
@@ -184,9 +176,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( event.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) event.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) event.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -201,9 +194,10 @@ public class ConfigurationStep extends VerticalLayout
             {
                 if ( valueChangeEvent.getProperty().getValue() != null )
                 {
-                    Set<UUID> nodes = new HashSet<UUID>();
-                    Set<ContainerHost> nodeList = ( Set<ContainerHost> ) valueChangeEvent.getProperty().getValue();
-                    for ( ContainerHost host : nodeList )
+                    Set<String> nodes = new HashSet<>();
+                    Set<EnvironmentContainerHost> nodeList =
+                            ( Set<EnvironmentContainerHost> ) valueChangeEvent.getProperty().getValue();
+                    for ( EnvironmentContainerHost host : nodeList )
                     {
                         nodes.add( host.getId() );
                     }
@@ -279,15 +273,16 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private Set<ContainerHost> filterEnvironmentContainers( final Set<ContainerHost> containerHosts )
+    private Set<EnvironmentContainerHost> filterEnvironmentContainers(
+            final Set<EnvironmentContainerHost> containerHosts )
     {
-        Set<ContainerHost> filteredSet = new HashSet<>();
-        List<UUID> sqlNodes = new ArrayList<>();
+        Set<EnvironmentContainerHost> filteredSet = new HashSet<>();
+        List<String> sqlNodes = new ArrayList<>();
         for ( MySQLClusterConfig mySQLClusterConfig : wizard.getMySQLManager().getClusters() )
         {
             sqlNodes.addAll( mySQLClusterConfig.getAllNodes() );
         }
-        for ( ContainerHost containerHost : containerHosts )
+        for ( EnvironmentContainerHost containerHost : containerHosts )
         {
             if ( containerHost.getTemplateName().equals( MySQLClusterConfig.TEMPLATE_NAME ) && !( sqlNodes
                     .contains( containerHost.getId() ) ) )
@@ -316,9 +311,9 @@ public class ConfigurationStep extends VerticalLayout
     }
 
 
-    private boolean isTemplateExists( final Set<ContainerHost> containerHosts, final String templateName )
+    private boolean isTemplateExists( final Set<EnvironmentContainerHost> containerHosts, final String templateName )
     {
-        for ( ContainerHost host : containerHosts )
+        for ( EnvironmentContainerHost host : containerHosts )
         {
             if ( host.getTemplateName().equals( templateName ) )
             {

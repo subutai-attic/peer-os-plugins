@@ -10,16 +10,13 @@ import javax.ws.rs.core.Response;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.mysql.api.MySQLC;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 
-/**
- * Created by tkila on 5/22/15.
- */
 public class RestServiceImpl implements RestService
 {
 
@@ -262,21 +259,9 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
     }
 
 

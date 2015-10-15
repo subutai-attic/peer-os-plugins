@@ -4,7 +4,6 @@ package io.subutai.plugin.mysql.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -15,15 +14,12 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.mysql.impl.common.Commands;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.api.MySQLDataNodeConfig;
 import io.subutai.plugin.mysql.api.MySQLManagerNodeConfig;
+import io.subutai.plugin.mysql.impl.common.Commands;
 
 
-/**
- * Created by tkila on 5/13/15.
- */
 public class ClusterConfig
 {
     private TrackerOperation po;
@@ -56,11 +52,11 @@ public class ClusterConfig
         MySQLDataNodeConfig mySQLDataNodeConfig =
                 new MySQLDataNodeConfig( getIpsSeperatedByComma( config.getManagerNodes(), environment ) );
         //configure manager node(s)
-        for ( UUID uuid : config.getManagerNodes() )
+        for ( String nodeId : config.getManagerNodes() )
         {
             try
             {
-                ContainerHost containerHost = environment.getContainerHostById( uuid );
+                ContainerHost containerHost = environment.getContainerHostById( nodeId );
                 po.addLog( "Configuring manager node: " + containerHost.getHostname() );
 
                 //create data/conf dir
@@ -88,12 +84,12 @@ public class ClusterConfig
             }
         }
         //configure data node(s)
-        for ( UUID uuid : config.getDataNodes() )
+        for ( String nodeId : config.getDataNodes() )
         {
-            ContainerHost containerHost = null;
+            ContainerHost containerHost;
             try
             {
-                containerHost = environment.getContainerHostById( uuid );
+                containerHost = environment.getContainerHostById( nodeId );
                 po.addLog( "Configuring data node:" + containerHost.getHostname() );
                 CommandResult commandResult;
                 commandResult =
@@ -148,16 +144,16 @@ public class ClusterConfig
     }
 
 
-    private String getIpsSeperatedByComma( Collection<UUID> collection, Environment environment )
+    private String getIpsSeperatedByComma( Collection<String> collection, Environment environment )
     {
         StringBuilder sb = new StringBuilder();
-        for ( UUID uuid : collection )
+        for ( String nodeId : collection )
         {
             ContainerHost containerHost;
 
             try
             {
-                containerHost = environment.getContainerHostById( uuid );
+                containerHost = environment.getContainerHostById( nodeId );
                 sb.append( containerHost.getIpByInterfaceName( "eth0" ) ).append( "," );
             }
             catch ( ContainerHostNotFoundException e )
@@ -173,18 +169,18 @@ public class ClusterConfig
     }
 
 
-    private List<String> getIps( Collection<UUID> collection, Environment environment )
+    private List<String> getIps( Collection<String> collection, Environment environment )
     {
 
         List<String> dataNodeIPAddressList = new ArrayList<>();
 
-        for ( UUID uuid : collection )
+        for ( String nodeId : collection )
         {
             ContainerHost containerHost;
 
             try
             {
-                containerHost = environment.getContainerHostById( uuid );
+                containerHost = environment.getContainerHostById( nodeId );
                 dataNodeIPAddressList.add( containerHost.getIpByInterfaceName( "eth0" ) );
             }
             catch ( ContainerHostNotFoundException e )

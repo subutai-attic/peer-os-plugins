@@ -15,9 +15,7 @@ import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
 
 
-/**
- * Created by tkila on 5/14/15.
- */
+
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;

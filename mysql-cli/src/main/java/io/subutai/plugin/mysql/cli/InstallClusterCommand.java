@@ -5,20 +5,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.console.OsgiCommandSupport;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mysql.api.MySQLC;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-
-/**
- * Created by tkila on 5/27/15.
- */
 @Command( scope = "mysql", name = "install-cluster", description = "Command to install cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {
@@ -39,21 +36,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private MySQLC manager;
 
 
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public MySQLC getManager()
-    {
-        return manager;
     }
 
 
@@ -68,20 +53,22 @@ public class InstallClusterCommand extends OsgiCommandSupport
     {
         MySQLClusterConfig config = new MySQLClusterConfig();
         config.setClusterName( clusterName );
-        config.setEnvironmentId( UUID.fromString( environmentId ) );
+        config.setEnvironmentId( environmentId );
 
-        Set<UUID> dataNodes = new HashSet<>();
+        Set<String> dataNodes = new HashSet<>();
         for ( String node : datanodes )
         {
-            dataNodes.add( UUID.fromString( node ) );
+            dataNodes.add( node );
         }
+        config.setDataNodes( dataNodes );
 
-        Set<UUID> managerNodes = new HashSet<>();
+        Set<String> managerNodes = new HashSet<>();
         for ( String node : managernodes )
         {
 
-            managerNodes.add( UUID.fromString( node ) );
+            managerNodes.add( node );
         }
+        config.setManagerNodes( managerNodes );
         UUID uuid = manager.installCluster( config );
         System.out.println( "Install operation is " + waitUntilOperationFinish( tracker, uuid ) );
         return null;

@@ -1,17 +1,14 @@
 package io.subutai.plugin.mysql.cli;
 
 
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
-/**
- * Created by tkila on 5/18/15.
- */
+
 @Command( scope = "mysql", name = "describe-cluster", description = "Shows the details of the MySQL cluster." )
 public class DescribeClusterCommand extends OsgiCommandSupport
 {
@@ -19,6 +16,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String clusterName = null;
     private MySQLC mySqlManager;
+
 
     @Override
     protected Object doExecute() throws Exception

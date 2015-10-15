@@ -4,46 +4,40 @@ package io.subutai.plugin.mysql.api;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;
 
-import com.google.common.collect.Sets;
-
-
-/**
- * Created by tkila on 5/7/15.
- */
 
 public class MySQLClusterConfig implements ConfigBase
 {
 
     //@formatter:off
-    public static final String PRODUCT_KEY                        ="MySQLCluster";
-    public static final String PRODUCT_NAME                       ="MySQLCluster";
+    public static final String PRODUCT_KEY = "MySQLCluster";
+    public static final String PRODUCT_NAME = "MySQLCluster";
 
-    public static final String TEMPLATE_NAME                      ="mysqlcluster";
-    public static final String PACKAGE_NAME                       =( Common.PACKAGE_PREFIX + PRODUCT_NAME )
-            .toLowerCase();
-    private             String domainName                         =  Common.DEFAULT_DOMAIN_NAME;
-    private             String clusterName                        = "";
+    public static final String TEMPLATE_NAME = "mysqlcluster";
+    public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase();
+    private String domainName = Common.DEFAULT_DOMAIN_NAME;
+    private String clusterName = "";
 
-    private             String dataNodeDataDir                    ="/usr/local/mysql/data";
-    private             String confNodeDataFile                   ="/usr/local/mysql/my.cnf";
-    private             String dataManNodeDir                     ="/usr/local/mysql/mysql-cluster";
-    private             String confManNodeFile                    ="/usr/local/mysql/mysql-cluster/config.ini";
-    private             boolean isAutoScaling                     =true;
-    private             UUID                   environmentId;
-    private             Set<UUID>              dataNodes;
-    private             Set<UUID>              managerNodes;
-    private             MySQLManagerNodeConfig managerNodeConfig;
-    private             MySQLDataNodeConfig    dataNodeConfig;
+    private String dataNodeDataDir = "/usr/local/mysql/data";
+    private String confNodeDataFile = "/usr/local/mysql/my.cnf";
+    private String dataManNodeDir = "/usr/local/mysql/mysql-cluster";
+    private String confManNodeFile = "/usr/local/mysql/mysql-cluster/config.ini";
+    private boolean isAutoScaling = true;
+    private String environmentId;
+    private Set<String> dataNodes;
+    private Set<String> managerNodes;
+    private MySQLManagerNodeConfig managerNodeConfig;
+    private MySQLDataNodeConfig dataNodeConfig;
 
-    private Map<String,Boolean> isSqlInstalled = new HashMap<>();
-    private Map<String,Boolean> requiresReloadConf = new HashMap<>();
-    private Map<String,Boolean> isInitialStart = new HashMap<>();
+    private Map<String, Boolean> isSqlInstalled = new HashMap<>();
+    private Map<String, Boolean> requiresReloadConf = new HashMap<>();
+    private Map<String, Boolean> isInitialStart = new HashMap<>();
 
     //@formatter:on
 
@@ -58,7 +52,6 @@ public class MySQLClusterConfig implements ConfigBase
     {
         this.isAutoScaling = isAutoScaling;
     }
-
 
 
     public String getDataNodeDataDir()
@@ -157,19 +150,19 @@ public class MySQLClusterConfig implements ConfigBase
     }
 
 
-    public void setEnvironmentId( final UUID environmentId )
+    public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
     }
 
 
-    public Set<UUID> getDataNodes()
+    public Set<String> getDataNodes()
     {
         return dataNodes;
     }
 
 
-    public Set<UUID> getManagerNodes()
+    public Set<String> getManagerNodes()
     {
         return managerNodes;
     }
@@ -199,7 +192,7 @@ public class MySQLClusterConfig implements ConfigBase
     }
 
 
-    public UUID getEnvironmentId()
+    public String getEnvironmentId()
     {
         return environmentId;
     }
@@ -244,21 +237,21 @@ public class MySQLClusterConfig implements ConfigBase
     }
 
 
-    public void setDataNodes( final Set<UUID> dataNodes )
+    public void setDataNodes( final Set<String> dataNodes )
     {
         this.dataNodes = dataNodes;
     }
 
 
-    public void setManagerNodes( final Set<UUID> managerNodes )
+    public void setManagerNodes( final Set<String> managerNodes )
     {
         this.managerNodes = managerNodes;
     }
 
 
-    public Set<UUID> getAllNodes()
+    public Set<String> getAllNodes()
     {
-        Set<UUID> allNodes = Sets.newHashSet();
+        Set<String> allNodes = Sets.newHashSet();
         if ( !CollectionUtil.isCollectionEmpty( managerNodes ) )
         {
             allNodes.addAll( managerNodes );
@@ -270,5 +263,4 @@ public class MySQLClusterConfig implements ConfigBase
 
         return allNodes;
     }
-
 }

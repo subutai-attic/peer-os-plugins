@@ -4,15 +4,6 @@ package io.subutai.plugin.mysql.ui.environment;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-import io.subutai.server.ui.component.ProgressWindow;
-
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
@@ -22,10 +13,16 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
+import io.subutai.server.ui.component.ProgressWindow;
 
-/**
- * Created by tkila on 5/14/15.
- */
+
 public class VerificationStep extends VerticalLayout
 {
     public VerificationStep( final MySQLC mySQLC, final ExecutorService executorService, final Tracker tracker,
@@ -55,12 +52,12 @@ public class VerificationStep extends VerticalLayout
         try
         {
             environment = environmentWizard.getEnvironmentManager()
-                                           .findEnvironment( environmentWizard.getConfig().getEnvironmentId() );
-            for ( UUID uuid : environmentWizard.getConfig().getManagerNodes() )
+                                           .loadEnvironment( environmentWizard.getConfig().getEnvironmentId() );
+            for ( String uuid : environmentWizard.getConfig().getManagerNodes() )
             {
                 selectedNodes += environment.getContainerHostById( uuid ).getHostname() + ",";
             }
-            for ( UUID uuid : environmentWizard.getConfig().getDataNodes() )
+            for ( String uuid : environmentWizard.getConfig().getDataNodes() )
             {
                 seeds += environment.getContainerHostById( uuid ).getHostname() + ",";
             }

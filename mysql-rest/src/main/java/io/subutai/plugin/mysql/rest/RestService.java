@@ -13,9 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-/**
- * Created by tkila on 5/22/15.
- */
 public interface RestService
 {
 

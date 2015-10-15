@@ -11,67 +11,88 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.impl.PluginDataService;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.ClusterConfig;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
-import io.subutai.plugin.mysql.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-/**
- * Created by tkila on 6/3/15.
- */
 @RunWith( MockitoJUnitRunner.class )
 public class ClusterOperationHandlerTest
 {
     //@formatter:off
-    @Mock MySQLClusterConfig config;
-    @Mock MySQLCImpl         impl;
-    @Mock Environment        environment;
-    @Mock Tracker            tracker;
-    @Mock EnvironmentManager environmentManager;
-    @Mock Set<ContainerHost> containerHosts;
-    @Mock Set<UUID>          mySet;
-    @Mock CommandResult      commandResult;
-    @Mock ExecutorService    executor;
-    @Mock Monitor            monitor;
-    @Mock NetworkManager     networkManager;
-    @Mock PeerManager        peerManager;
-    @Mock PluginDAO          pluginDAO;
-    @Mock QuotaManager       quotaManager;
-    @Mock TrackerOperation   trackerOperation;
-    @Mock PluginDataService  dataService;
-    @Mock ClusterConfig      clusterConfig;
-    @Mock Topology           topology;
-    @Mock LocalPeer          localPeer;
-    @Mock NodeGroup          nodeGroup;
-    @Mock ContainerHost      containerHost;
-    @Mock ContainerHost      containerHost2;
-    @Mock Iterator<ContainerHost>  iterator;
-    @Mock Set<ContainerHost> hostSet;
-    private String           clusterName;
-    private String           hostName;
-    private UUID             uuid;
+    @Mock
+    MySQLClusterConfig config;
+    @Mock
+    MySQLCImpl impl;
+    @Mock
+    Environment environment;
+    @Mock
+    Tracker tracker;
+    @Mock
+    EnvironmentManager environmentManager;
+    @Mock
+    Set<EnvironmentContainerHost> containerHosts;
+    @Mock
+    Set<String> mySet;
+    @Mock
+    CommandResult commandResult;
+    @Mock
+    ExecutorService executor;
+    @Mock
+    Monitor monitor;
+    @Mock
+    NetworkManager networkManager;
+    @Mock
+    PeerManager peerManager;
+    @Mock
+    PluginDAO pluginDAO;
+    @Mock
+    QuotaManager quotaManager;
+    @Mock
+    TrackerOperation trackerOperation;
+    @Mock
+    PluginDataService dataService;
+    @Mock
+    ClusterConfig clusterConfig;
+    @Mock
+    Topology topology;
+    @Mock
+    LocalPeer localPeer;
+    @Mock
+    NodeGroup nodeGroup;
+    @Mock
+    EnvironmentContainerHost containerHost;
+    @Mock
+    EnvironmentContainerHost containerHost2;
+    @Mock
+    Iterator<EnvironmentContainerHost> iterator;
+    @Mock
+    Set<EnvironmentContainerHost> hostSet;
+    private String clusterName;
+    private String hostName;
+    private String id;
 
     ClusterOperationHandler clusterOperationHandler;
     //@formatter:on
@@ -80,8 +101,8 @@ public class ClusterOperationHandlerTest
     @Before
     public void setUp() throws Exception
     {
-        impl = new MySQLCImpl( monitor,pluginDAO );
-        uuid = UUID.randomUUID();
+        impl = new MySQLCImpl( monitor, pluginDAO );
+        id = UUID.randomUUID().toString();
         impl.setEnvironmentManager( environmentManager );
         impl.setExecutor( executor );
         impl.setNetworkManager( networkManager );
@@ -91,8 +112,8 @@ public class ClusterOperationHandlerTest
         impl.setTracker( tracker );
         clusterName = "test";
 
-        mySet.add( uuid );
-        mySet.add( uuid );
+        mySet.add( id );
+        mySet.add( id );
         containerHosts.add( containerHost );
         containerHosts.add( containerHost2 );
         hostSet.add( containerHost );
@@ -102,19 +123,18 @@ public class ClusterOperationHandlerTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
 
         when( config.getClusterName() ).thenReturn( clusterName );
-        when( config.getEnvironmentId() ).thenReturn( uuid );
+        when( config.getEnvironmentId() ).thenReturn( id );
 
-        when(iterator.hasNext()).thenReturn( true ).thenReturn( true );
-        when(iterator.next()).thenReturn( containerHost ).thenReturn( containerHost );
+        when( iterator.hasNext() ).thenReturn( true ).thenReturn( true );
+        when( iterator.next() ).thenReturn( containerHost ).thenReturn( containerHost );
 
-        when(containerHosts.iterator()).thenReturn( iterator );
+        when( containerHosts.iterator() ).thenReturn( iterator );
 
-        when( impl.getEnvironmentManager().findEnvironment( config.getEnvironmentId() ) ).thenReturn( environment );
+        when( impl.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ) ).thenReturn( environment );
         when( impl.getCluster( clusterName ) ).thenReturn( config );
         when( impl.getPeerManager().getLocalPeer() ).thenReturn( localPeer );
         when( environmentManager.growEnvironment( config.getEnvironmentId(), topology, false ) )
                 .thenReturn( containerHosts );
-
     }
 
 
@@ -166,6 +186,4 @@ public class ClusterOperationHandlerTest
         clusterOperationHandler.run();
         verify( trackerOperation ).addLog( "Node added" );
     }
-
-
 }

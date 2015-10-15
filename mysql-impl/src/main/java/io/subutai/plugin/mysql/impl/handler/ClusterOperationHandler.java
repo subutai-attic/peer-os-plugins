@@ -2,13 +2,13 @@ package io.subutai.plugin.mysql.impl.handler;
 
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Logger;
+
+import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandCallback;
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
-import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.command.Response;
 import io.subutai.common.environment.ContainerHostNotFoundException;
@@ -17,9 +17,9 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
-import io.subutai.core.env.api.EnvironmentManager;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -27,12 +27,10 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.ClusterConfig;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
 import io.subutai.plugin.mysql.impl.common.Commands;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-
-import com.google.common.base.Preconditions;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl, MySQLClusterConfig>
@@ -42,7 +40,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
     private ClusterOperationType operationType;
     private MySQLClusterConfig config;
     private NodeType nodeType;
-    private CommandUtil commandUtil;
 
 
     public ClusterOperationHandler( final MySQLCImpl manager, final MySQLClusterConfig mySQLClusterConfig,
@@ -54,7 +51,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         this.nodeType = nodeType;
         trackerOperation = manager.getTracker().createTrackerOperation( MySQLClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
-        commandUtil = new CommandUtil();
     }
 
 
@@ -93,17 +89,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         Topology topology = new Topology();
         topology.addNodeGroupPlacement( localPeer, nodeGroup );
 
-        ContainerHost newNode;
+        EnvironmentContainerHost newNode;
 
 
-        ContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
+        EnvironmentContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
         if ( unusedNodeInEnvironment != null )
         {
             newNode = unusedNodeInEnvironment;
         }
         else
         {
-            Set<ContainerHost> newNodeSet = null;
+            Set<EnvironmentContainerHost> newNodeSet;
 
             try
             {
@@ -112,7 +108,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
             catch ( EnvironmentModificationException | EnvironmentNotFoundException e )
             {
                 LOG.severe( "Could not add new node to environment" );
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
             newNode = newNodeSet.iterator().next();
         }
@@ -139,7 +135,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         {
 
             new ClusterConfig( trackerOperation, manager )
-                    .configureCluster( config, environmentManager.findEnvironment( config.getEnvironmentId() ) );
+                    .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
         }
         catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
         {
@@ -149,15 +145,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
     }
 
 
-    private ContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
+    private EnvironmentContainerHost findUnUsedContainerInEnvironment( EnvironmentManager environmentManager )
     {
-        ContainerHost unusedNode = null;
+        EnvironmentContainerHost unusedNode = null;
 
         try
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
-            Set<ContainerHost> containerHostSet = environment.getContainerHosts();
-            for ( ContainerHost host : containerHostSet )
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Set<EnvironmentContainerHost> containerHostSet = environment.getContainerHosts();
+            for ( EnvironmentContainerHost host : containerHostSet )
             {
                 if ( ( !config.getAllNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
                         MySQLClusterConfig.TEMPLATE_NAME ) )
@@ -175,7 +171,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
     }
 
 
-    private ContainerHost checkUnusedNode( ContainerHost node )
+    private EnvironmentContainerHost checkUnusedNode( EnvironmentContainerHost node )
     {
         if ( node != null )
         {
@@ -190,28 +186,29 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         return null;
     }
 
+
     /*
     *  Stops whole cluster through manager node
     * */
     private void stopCluster( MySQLClusterConfig config )
     {
-        Environment env = null;
-        CommandResult commandResult = null;
+        Environment env;
+        CommandResult commandResult;
 
         try
         {
-            env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
         //on each management node issue ndb_mgm -e shutdown command
-        for ( UUID uuid : config.getManagerNodes() )
+        for ( String nodeId : config.getManagerNodes() )
         {
             try
             {
-                ContainerHost host = env.getContainerHostById( uuid );
+                EnvironmentContainerHost host = env.getContainerHostById( nodeId );
                 commandResult = host.execute( new RequestBuilder( Commands.stopAllCommand ) );
                 trackerOperation.addLog( Commands.stopAllCommand + "\n" + commandResult.getStdOut() );
             }
@@ -221,11 +218,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
             }
         }
         //shutdown mysql servers if they are installed on data nodes
-        for ( UUID uuid : config.getDataNodes() )
+        for ( String nodeId : config.getDataNodes() )
         {
             try
             {
-                ContainerHost host = env.getContainerHostById( uuid );
+                EnvironmentContainerHost host = env.getContainerHostById( nodeId );
                 if ( config.getIsSqlInstalled().get( host.getHostname() ) )
                 {
                     host.executeAsync( new RequestBuilder( Commands.stopMySQLServer ), new CommandCallback()
@@ -247,25 +244,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
                 .addLogDone( String.format( "MySQL Cluster %s", config.getClusterName() + " has been stopped" ) );
     }
 
+
     //start cluster
     public void startCluster( MySQLClusterConfig config )
     {
-        Environment env = null;
+        Environment env;
         try
         {
-            env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
 
-        CommandResult result = null;
-        ContainerHost containerHost = null;
+        CommandResult result;
+        EnvironmentContainerHost containerHost;
 
         LOG.info( String.format( "Total management nodes to start: %d", config.getManagerNodes().size() ) );
         //start management nodes, before starting data nodes
-        for ( UUID managerNode : config.getManagerNodes() )
+        for ( String managerNode : config.getManagerNodes() )
         {
             try
             {
@@ -289,13 +287,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
             }
             catch ( CommandException | ContainerHostNotFoundException | ClusterException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
         }
 
         LOG.info( String.format( "Total data nodes to start: %d", config.getDataNodes().size() ) );
         //start data nodes. order and sequence does not matter
-        for ( UUID dataNode : config.getDataNodes() )
+        for ( String dataNode : config.getDataNodes() )
         {
 
             try
@@ -320,7 +318,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
 
 
                     config.getIsInitialStart().put( containerHost.getHostname(), false );
-                    trackerOperation.addLog( result.getStdOut() );
                     manager.saveConfig( config );
                     LOG.info( "Initial start of data node " + containerHost.getHostname() );
                 }
@@ -382,7 +379,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         trackerOperation.addLog( "Setting up cluster ..." );
         try
         {
-            Environment env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            Environment env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
 
             new ClusterConfig( trackerOperation, manager ).configureCluster( config, env );
             trackerOperation.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
@@ -405,10 +402,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }
-        Environment env = null;
+
         try
         {
-            env = manager.getEnvironmentManager().findEnvironment( config.getEnvironmentId() );
+            manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException ex )
         {

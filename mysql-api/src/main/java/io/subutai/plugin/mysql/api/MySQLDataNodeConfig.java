@@ -1,9 +1,6 @@
 package io.subutai.plugin.mysql.api;
 
 
-/**
- * Created by tkila on 5/11/15.
- */
 public class MySQLDataNodeConfig
 {
     //

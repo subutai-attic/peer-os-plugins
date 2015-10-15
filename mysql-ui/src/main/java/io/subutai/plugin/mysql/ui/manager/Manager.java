@@ -6,24 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
-
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.peer.ContainerHost;
-import io.subutai.core.env.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.mysql.api.MySQLC;
-import io.subutai.plugin.mysql.api.MySQLClusterConfig;
-import io.subutai.plugin.mysql.api.NodeOperationTask;
-import io.subutai.server.ui.component.ConfirmationDialog;
-import io.subutai.server.ui.component.ProgressWindow;
-import io.subutai.server.ui.component.TerminalWindow;
 
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -43,50 +25,58 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.CompleteEvent;
+import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.plugin.common.api.NodeState;
+import io.subutai.plugin.common.api.NodeType;
+import io.subutai.plugin.mysql.api.MySQLC;
+import io.subutai.plugin.mysql.api.MySQLClusterConfig;
+import io.subutai.plugin.mysql.api.NodeOperationTask;
+import io.subutai.server.ui.component.ConfirmationDialog;
+import io.subutai.server.ui.component.ProgressWindow;
+import io.subutai.server.ui.component.TerminalWindow;
 
-/**
- * Created by tkila on 5/14/15.
- */
+
 public class Manager extends VerticalLayout
 {
     //@formatter:off
-    protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION  = "AVAILABLE_OPTIONS";
-    protected static final String START_ALL_BUTTON_CAPTION             = "Start Cluster";
-    protected static final String STOP_ALL_BUTTON_CAPTION              = "Stop Cluster";
-    protected static final String DESTROY_ALL_BUTTON_CAPTION           = "Destroy Cluster";
-    protected static final String BUTTON_STYLE_NAME                    = "default";
-    private   static final String DESTROY_NODE_BUTTON_CAPTION          = "Destroy";
-    private   static final String CHECK_ALL_BUTTON_CAPTION             = "Check All" ;
-    private   static final String ADD_DATA_NODE_BUTTON_CAPTION         = "Add data node" ;
-    private   static final String ADD_MAST_NODE_BUTTON_CAPTION         = "Add master node" ;
-    private   static final String ADD_SQL_NODE_BUTTON_CAPTION          = "Install MySQL API" ;
-    protected static final String HOST_COLUMN_CAPTION                  = "Host";
-    protected static final String IP_COLUMN_CAPTION                    = "IP List";
-    protected static final String NODE_ROLE_COLUMN_CAPTION             = "Node Role";
-    protected static final String STATUS_COLUMN_CAPTION                = "Status";
-    private   static final String CHECK_BUTTON_CAPTION                 = "Check";
-    private   static final Logger LOG      = Logger.getLogger( Manager.class.getName() );
+    protected static final String AVAILABLE_OPERATIONS_COLUMN_CAPTION = "AVAILABLE_OPTIONS";
+    protected static final String START_ALL_BUTTON_CAPTION = "Start Cluster";
+    protected static final String STOP_ALL_BUTTON_CAPTION = "Stop Cluster";
+    protected static final String DESTROY_ALL_BUTTON_CAPTION = "Destroy Cluster";
+    protected static final String BUTTON_STYLE_NAME = "default";
+    private static final String DESTROY_NODE_BUTTON_CAPTION = "Destroy";
+    private static final String CHECK_ALL_BUTTON_CAPTION = "Check All";
+    private static final String ADD_DATA_NODE_BUTTON_CAPTION = "Add data node";
+    private static final String ADD_MAST_NODE_BUTTON_CAPTION = "Add master node";
+    private static final String ADD_SQL_NODE_BUTTON_CAPTION = "Install MySQL API";
+    protected static final String HOST_COLUMN_CAPTION = "Host";
+    protected static final String IP_COLUMN_CAPTION = "IP List";
+    protected static final String NODE_ROLE_COLUMN_CAPTION = "Node Role";
+    protected static final String STATUS_COLUMN_CAPTION = "Status";
+    private static final String CHECK_BUTTON_CAPTION = "Check";
 
 
-    final         Button             startAll,
-                                     stopAll,
-                                     destroyAll,
-                                     checkAll,
-                                     addDataNodeBtn,
-                                     addMasterNodeBtn;
+    final Button startAll, stopAll, destroyAll, checkAll, addDataNodeBtn, addMasterNodeBtn;
 
-    private final Embedded           PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
+    private final Embedded PROGRESS_ICON = new Embedded( "", new ThemeResource( "img/spinner.gif" ) );
 
-    private final ExecutorService    executorService;
-    private final Tracker            tracker;
+    private final ExecutorService executorService;
+    private final Tracker tracker;
     private final EnvironmentManager environmentManager;
-    private final MySQLC             mySQLC;
-    private final Table              nodesTable;
-    private final Table              managersTable;
-    private final GridLayout         contentRoot;
-    private       MySQLClusterConfig config;
-    private       ComboBox           clusterCombo;
-   //@formatter:on
+    private final MySQLC mySQLC;
+    private final Table nodesTable;
+    private final Table managersTable;
+    private final GridLayout contentRoot;
+    private MySQLClusterConfig config;
+    private ComboBox clusterCombo;
+    //@formatter:on
 
 
     public Manager( final ExecutorService executorService, final MySQLC mySQLC, final Tracker tracker,
@@ -176,7 +166,8 @@ public class Manager extends VerticalLayout
                 synchronized ( PROGRESS_ICON )
                 {
                     UUID uuid = mySQLC.startCluster( config.getClusterName() );
-                    ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
+                    ProgressWindow window =
+                            new ProgressWindow( executorService, tracker, uuid, MySQLClusterConfig.PRODUCT_KEY );
                     window.getWindow().addCloseListener( new Window.CloseListener()
                     {
                         @Override
@@ -208,7 +199,8 @@ public class Manager extends VerticalLayout
                 synchronized ( PROGRESS_ICON )
                 {
                     UUID uuid = mySQLC.stopCluster( config.getClusterName() );
-                    ProgressWindow window = new ProgressWindow( executorService, tracker, uuid, config.PRODUCT_KEY );
+                    ProgressWindow window =
+                            new ProgressWindow( executorService, tracker, uuid, MySQLClusterConfig.PRODUCT_KEY );
                     window.getWindow().addCloseListener( new Window.CloseListener()
                     {
                         @Override
@@ -244,8 +236,8 @@ public class Manager extends VerticalLayout
                         {
                             mySQLC.stopCluster( config.getClusterName() );
                             UUID trackID = mySQLC.addNode( config.getClusterName(), NodeType.DATANODE );
-                            ProgressWindow window =
-                                    new ProgressWindow( executorService, tracker, trackID, config.PRODUCT_KEY );
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                    MySQLClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
                             {
                                 @Override
@@ -283,8 +275,8 @@ public class Manager extends VerticalLayout
                         {
                             mySQLC.stopCluster( config.getClusterName() );
                             UUID trackID = mySQLC.addNode( config.getClusterName(), NodeType.MASTER_NODE );
-                            ProgressWindow window =
-                                    new ProgressWindow( executorService, tracker, trackID, config.PRODUCT_KEY );
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                    MySQLClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
                             {
                                 @Override
@@ -369,19 +361,19 @@ public class Manager extends VerticalLayout
 
         if ( config != null )
         {
-            Environment environment = environmentManager.findEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
 
             Set<ContainerHost> dataNodes = new HashSet<>();
             Set<ContainerHost> managerNodes = new HashSet<>();
 
-            for ( UUID uuid : config.getDataNodes() )
+            for ( String nodeId : config.getDataNodes() )
             {
-                dataNodes.add( environment.getContainerHostById( uuid ) );
+                dataNodes.add( environment.getContainerHostById( nodeId ) );
             }
-            for ( UUID uuid : config.getManagerNodes() )
+            for ( String nodeId : config.getManagerNodes() )
             {
-                managerNodes.add( environment.getContainerHostById( uuid ) );
+                managerNodes.add( environment.getContainerHostById( nodeId ) );
             }
             if ( environment != null )
             {
@@ -456,7 +448,7 @@ public class Manager extends VerticalLayout
                 {
                     if ( config != null )
                     {
-                        ConfirmationDialog alert = null;
+                        ConfirmationDialog alert;
                         if ( !config.getIsSqlInstalled().get( containerHost.getHostname() ) )
                         {
                             alert = new ConfirmationDialog(
@@ -536,8 +528,8 @@ public class Manager extends VerticalLayout
                         {
                             mySQLC.stopCluster( config.getClusterName() );
                             UUID trackID = mySQLC.destroyService( config.getClusterName(), containerHost, nodeType );
-                            ProgressWindow window =
-                                    new ProgressWindow( executorService, tracker, trackID, config.PRODUCT_KEY );
+                            ProgressWindow window = new ProgressWindow( executorService, tracker, trackID,
+                                    MySQLClusterConfig.PRODUCT_KEY );
                             window.getWindow().addCloseListener( new Window.CloseListener()
                             {
                                 @Override
@@ -673,7 +665,7 @@ public class Manager extends VerticalLayout
                     ContainerHost containerHost = null;
                     try
                     {
-                        containerHost = environmentManager.findEnvironment( config.getEnvironmentId() )
+                        containerHost = environmentManager.loadEnvironment( config.getEnvironmentId() )
                                                           .getContainerHostByHostname( containerId );
                     }
                     catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
