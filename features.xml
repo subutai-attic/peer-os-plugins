@@ -1,9 +1,9 @@
-<features name="presto-plugin" version="4.0.0-RC1">
-  <feature name="presto-plugin" version="4.0.0-RC1">
-    <bundle> mvn:io.subutai/presto-plugin-api/4.0.0-RC1</bundle>
-    <bundle> mvn:io.subutai/presto-plugin-impl/4.0.0-RC1</bundle>
-    <bundle> mvn:io.subutai/presto-plugin-ui/4.0.0-RC1</bundle>
-    <bundle> mvn:io.subutai/presto-plugin-cli/4.0.0-RC1</bundle>
-    <bundle> mvn:io.subutai/presto-plugin-rest/4.0.0-RC1</bundle>
+<features name="presto-plugin" version="4.0.0-RC2">
+  <feature name="presto-plugin" version="4.0.0-RC2">
+    <bundle>mvn:io.subutai/presto-plugin-api/4.0.0-RC2</bundle>
+    <bundle>mvn:io.subutai/presto-plugin-impl/4.0.0-RC2</bundle>
+    <bundle>mvn:io.subutai/presto-plugin-ui/4.0.0-RC2</bundle>
+    <bundle>mvn:io.subutai/presto-plugin-cli/4.0.0-RC2</bundle>
+    <bundle>mvn:io.subutai/presto-plugin-rest/4.0.0-RC2</bundle>
   </feature>
 </features>
