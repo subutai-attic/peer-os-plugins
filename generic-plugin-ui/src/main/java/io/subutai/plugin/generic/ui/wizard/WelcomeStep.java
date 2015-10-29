@@ -23,7 +23,7 @@ public class WelcomeStep extends Panel
         grid.setMargin( true );
         grid.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Generic Plugin, execute Your custom commands on containers </h2>" );
+        Label welcomeMsg = new Label( "<center><h2>Welcome to Generic Plugin, execute your custom commands on containers </h2>" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         grid.addComponent( welcomeMsg, 3, 1, 6, 2 );
 

@@ -1,6 +1,7 @@
 package io.subutai.plugin.generic.ui.wizard;
 
 
+import com.google.common.base.Strings;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
-@Theme( "valo" )
+@Theme ("valo")
 public class ManageContainersStep extends Panel
 {
 	private static final Logger LOG = LoggerFactory.getLogger(Wizard.class.getName());
@@ -24,15 +25,17 @@ public class ManageContainersStep extends Panel
 	private Environment currentEnvironment;
 	private String currentTemplate;
 	private Table containerTable = new Table ("Containers");
+	private Wizard wizard;
+	private TextArea output = new TextArea ("Output");
 
 
 	private void populateTable()
 	{
-		for (ContainerHost c : this.currentEnvironment.getContainerHosts())
+		for (final ContainerHost c : this.currentEnvironment.getContainerHosts())
 		{
 			if (c.getTemplateName() == this.currentTemplate)
 			{
-				ComboBox operations = new ComboBox();
+				final ComboBox operations = new ComboBox();
 				operations.setNullSelectionAllowed(false);
 				operations.setTextInputAllowed(false);
 				for (String o : this.currentProfile.getOperations())
@@ -46,12 +49,13 @@ public class ManageContainersStep extends Panel
 					@Override
 					public void buttonClick (final Button.ClickEvent clickEvent)
 					{
-						// TODO: execute command defined by "operations" ComboBox
+						wizard.getConfig().setHost (c);
+						wizard.getConfig().setInstruction (currentProfile, operations.getValue().toString());
+						addOutput(wizard.getGenericPlugin().executeCommandOnContainer (wizard.getConfig()));
 					}
 				});
 				Object newItemId = containerTable.addItem();
 				Item row = containerTable.getItem (newItemId);
-				LOG.info ("Adding container: " + c.getHostname());
 				row.getItemProperty ("Container name").setValue (c.getHostname());
 				row.getItemProperty ("Operation").setValue (operations);
 				row.getItemProperty ("Action").setValue (execute);
@@ -94,6 +98,7 @@ public class ManageContainersStep extends Panel
 
 	public ManageContainersStep (final Wizard wizard)
 	{
+		this.wizard = wizard;
 		this.setSizeFull();
 		VerticalLayout content = new VerticalLayout();
 		Label title = new Label ("Manage containers");
@@ -106,7 +111,6 @@ public class ManageContainersStep extends Panel
 		boolean assigned = false;
 		for (Environment e : wizard.getManager().getEnvironments())
 		{
-			LOG.info (e.getName());
 			envSelect.addItem(e.getName());
 			if (!assigned)
 			{
@@ -140,7 +144,6 @@ public class ManageContainersStep extends Panel
 		final Set <String> tempSet = new HashSet<>();
 		for (ContainerHost c : currentEnvironment.getContainerHosts())
 		{
-			LOG.info ("Template: " + c.getTemplateName());
 			tempSet.add(c.getTemplateName());
 		}
 		assigned = false;
@@ -212,7 +215,6 @@ public class ManageContainersStep extends Panel
 					tempSet.clear();
 					for (ContainerHost c : currentEnvironment.getContainerHosts())
 					{
-						LOG.info ("Template: " + c.getTemplateName());
 						tempSet.add (c.getTemplateName());
 					}
 					found = false;
@@ -248,12 +250,21 @@ public class ManageContainersStep extends Panel
 			}
 		});
 		content.addComponent (back);
-		TextArea output = new TextArea ("Output");
 		output.setSizeFull();
 		output.setRows (15);
 		// output.setReadOnly (true); TODO: set output readonly without making its design like a label
 		content.addComponent (output);
 		this.setContent(content);
+	}
+
+
+	protected void addOutput (String output)
+	{
+		if (!Strings.isNullOrEmpty (output))
+		{
+			this.output.setValue (output);
+			this.output.setCursorPosition (this.output.getValue().length() - 1);
+		}
 	}
 
 }
