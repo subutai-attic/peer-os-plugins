@@ -1,0 +1,12 @@
+Source: sample-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Pre-Depends: plugin-common
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+Version: [[project.version]]
+Package: plugin-subutai-module
+Architecture: all
+Description: Sample plugin for Subutai
