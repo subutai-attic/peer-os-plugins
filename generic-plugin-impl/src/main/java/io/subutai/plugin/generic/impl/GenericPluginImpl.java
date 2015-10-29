@@ -1,9 +1,9 @@
 package io.subutai.plugin.generic.impl;
 
-import io.subutai.plugin.generic.api.GenericPluginConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.subutai.plugin.generic.api.GenericPlugin;
+import io.subutai.plugin.generic.api.GenericPluginConfiguration;
+import io.subutai.plugin.generic.api.Profile;
+
 
 public class GenericPluginImpl implements GenericPlugin
 {
@@ -15,4 +15,18 @@ public class GenericPluginImpl implements GenericPlugin
 		ExecutorManager exec = new ExecutorManager (config);
 		exec.execute();
 	}
+
+
+    @Override
+    public void saveProfile( final Profile profile )
+    {
+
+    }
+
+
+    @Override
+    public Profile getProfile()
+    {
+        return null;
+    }
 }
