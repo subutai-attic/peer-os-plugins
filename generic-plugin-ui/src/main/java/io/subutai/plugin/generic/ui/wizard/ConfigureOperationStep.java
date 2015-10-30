@@ -9,11 +9,14 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 //import io.subutai.common.protocol.Template;
 import io.subutai.plugin.generic.api.Profile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Theme ("valo")
 public class ConfigureOperationStep extends Panel
 {
+	private static final Logger LOG = LoggerFactory.getLogger (ConfigureOperationStep.class.getName());
 	private Profile currentProfile;
 	private TextField cwd = new TextField ("cwd");
 	private FloatField timeOut = new FloatField ("Timeout");
@@ -36,29 +39,25 @@ public class ConfigureOperationStep extends Panel
 		@Override
 		public void textChange (FieldEvents.TextChangeEvent event) {
 			String text = event.getText();
-			try {
-				new Float (text);
-				this.lastValue = text;
-			} catch (NumberFormatException e) {
-				this.setValue (lastValue);
+			if (!text.isEmpty())
+			{
+				try
+				{
+					new Float(text);
+					this.lastValue = text;
+				} catch (NumberFormatException e)
+				{
+					this.setValue(lastValue);
+				}
 			}
 		}
 	}
 
 	class EditButton extends Button
 	{
-		private TextField cwd = new TextField ("cwd");
-		private FloatField timeOut = new FloatField ("Timeout");
-		private CheckBox daemon = new CheckBox ("Daemon");
 		public EditButton (String caption, Object itemId)
 		{
 			super (caption);
-			cwd.setValue ("/");
-			cwd.setData ("/");
-			timeOut.setValue ("30");
-			timeOut.setData ("30");
-			daemon.setValue (false);
-			daemon.setData (false);
 			this.setData (itemId);
 			this.addClickListener (new Button.ClickListener()
 			{
@@ -97,72 +96,19 @@ public class ConfigureOperationStep extends Panel
 					}
 					editTemplate.setValue (operationTable.getItem (edit.getData()).getItemProperty ("Template").toString());*/
 
+					final TextField editCwd = new TextField ("Edit cwd");
+					editCwd.setValue (currentProfile.getCwds().get (currentProfile.getIndex (operationTable.getItem (getData()).getItemProperty ("Operation name").toString())));
+
+					final FloatField editTimeout = new FloatField ("Edit timeout");
+					editTimeout.setValue (currentProfile.getTimeouts().get(currentProfile.getIndex(operationTable.getItem(getData()).getItemProperty("Operation name").toString())).toString());
+
+					final CheckBox editDaemon = new CheckBox ("Edit daemon");
+					editDaemon.setValue (currentProfile.getDaemons().get(currentProfile.getIndex(operationTable.getItem(getData()).getItemProperty("Operation name").toString())));
+
 
 					HorizontalLayout buttons = new HorizontalLayout();
 					buttons.setSpacing (true);
 					buttons.setWidth ("100%");
-
-
-					Button options = new Button ("Options");
-					options.addClickListener (new Button.ClickListener()
-					{
-						@Override
-						public void buttonClick (Button.ClickEvent event)
-						{
-							final Window subWindow = new Window("Edit operation");
-							subWindow.setClosable(false);
-							subWindow.addStyleName("default");
-							subWindow.center();
-							VerticalLayout subContent = new VerticalLayout();
-							subContent.setSpacing(true);
-							subContent.setMargin(true);
-							HorizontalLayout fields = new HorizontalLayout();
-							fields.setSpacing(true);
-							fields.addComponent (cwd);
-							fields.addComponent (timeOut);
-							fields.setComponentAlignment (cwd, Alignment.BOTTOM_LEFT);
-							fields.setComponentAlignment (timeOut, Alignment.BOTTOM_LEFT);
-							HorizontalLayout buttonGrid = new HorizontalLayout();
-							buttonGrid.setSpacing (true);
-							Button back = new Button ("Back");
-							back.setSizeFull();
-							back.addClickListener (new Button.ClickListener()
-							{
-								@Override
-								public void buttonClick (Button.ClickEvent event)
-								{
-									cwd.setValue ((String)cwd.getData());
-									timeOut.setValue ((String)timeOut.getData());
-									daemon.setValue ((boolean)daemon.getData());
-									subWindow.close();
-								}
-							});
-							Button save = new Button("Save");
-							save.setSizeFull();
-							save.addClickListener(new Button.ClickListener()
-							{
-								@Override
-								public void buttonClick(Button.ClickEvent event)
-								{
-									cwd.setData (cwd.getValue());
-									timeOut.setData (timeOut.getValue());
-									daemon.setData (daemon.getValue());
-									subWindow.close();
-								}
-							});
-							buttonGrid.addComponent (back);
-							buttonGrid.addComponent (save);
-							buttonGrid.setComponentAlignment (back, Alignment.BOTTOM_CENTER);
-							buttonGrid.setComponentAlignment (save, Alignment.BOTTOM_CENTER);
-							subContent.addComponent (fields);
-							subContent.addComponent (daemon);
-							subContent.addComponent (buttonGrid);
-							subContent.setComponentAlignment (daemon, Alignment.BOTTOM_LEFT);
-							subContent.setComponentAlignment (buttonGrid, Alignment.BOTTOM_CENTER);
-							subWindow.setContent (subContent);
-							UI.getCurrent().addWindow(subWindow);
-						}
-					});
 
 					Button cancel = new Button ("Cancel");
 					cancel.addClickListener (new Button.ClickListener()
@@ -198,26 +144,31 @@ public class ConfigureOperationStep extends Panel
 								boolean exists = false;
 								for (int i = 0; i < currentProfile.getOperations().size(); ++i)
 								{
-									if (currentProfile.getOperations().get(i).equals (editName.getValue()))
+									if (i != currentProfile.getIndex (operationTable.getItem (getData()).getItemProperty ("Operation name").toString()))
 									{
-										Notification notif = new Notification ("Command with such operation name already exists");
-										notif.setDelayMsec (2000);
-										notif.show (Page.getCurrent());
-										exists = true;
-										break;
-									} else if (currentProfile.getCommands().get(i).equals (editCommand.getValue()))
-									{
-										Notification notif = new Notification ("Operation with such command already exists");
-										notif.setDelayMsec (2000);
-										notif.show (Page.getCurrent());
-										exists = true;
-										break;
+										if (currentProfile.getOperations().get(i).equals (editName.getValue()))
+										{
+											Notification notif = new Notification ("Command with such operation name already exists");
+											notif.setDelayMsec(2000);
+											notif.show(Page.getCurrent());
+											exists = true;
+											break;
+										}
+										else if (currentProfile.getCommands().get(i).equals (editCommand.getValue()))
+										{
+											Notification notif = new Notification("Operation with such command already exists");
+											notif.setDelayMsec(2000);
+											notif.show(Page.getCurrent());
+											exists = true;
+											break;
+										}
 									}
 								}
 								if (!exists)
 								{
-									currentProfile.deleteOperation (operationTable.getItem (getData()).getItemProperty ("Operation name").getValue().toString());
-									currentProfile.addOperation (editName.getValue(), editCommand.getValue()/*, editTemplate.getValue().toString()*/, cwd.getValue(), new Float (timeOut.getValue()), new Boolean (daemon.getValue()));
+									LOG.info (editDaemon.getValue().toString());
+									currentProfile.deleteOperation(operationTable.getItem(getData()).getItemProperty("Operation name").getValue().toString());
+									currentProfile.addOperation (editName.getValue(), editCommand.getValue()/*, editTemplate.getValue().toString()*/, editCwd.getValue(), new Float (editTimeout.getValue()), new Boolean (editDaemon.getValue()));
 									wizard.getConfig().replaceProfile (currentProfile);
 									operationTable.getItem (getData()).getItemProperty ("Operation name").setValue (editName.getValue());
 									operationTable.getItem (getData()).getItemProperty ("Command").setValue (editCommand.getValue());
@@ -235,7 +186,13 @@ public class ConfigureOperationStep extends Panel
 					editInfo.addComponent (editName);
 					editInfo.addComponent (editCommand);
 					//editInfo.addComponent (editTemplate);
-
+					editInfo.addComponent (editCwd);
+					editInfo.addComponent (editTimeout);
+					editInfo.setComponentAlignment (editName, Alignment.BOTTOM_LEFT);
+					editInfo.setComponentAlignment (editCommand, Alignment.BOTTOM_LEFT);
+					//editInfo.setComponentAlignment (editTemplate, Alignment.BOTTOM_LEFT);
+					editInfo.setComponentAlignment (editCwd, Alignment.BOTTOM_LEFT);
+					editInfo.setComponentAlignment (editTimeout, Alignment.BOTTOM_LEFT);
 
 					buttons.addComponent (cancel);
 					buttons.addComponent (finalEdit);
@@ -244,6 +201,8 @@ public class ConfigureOperationStep extends Panel
 
 
 					subContent.addComponent (editInfo);
+					subContent.addComponent (editDaemon);
+					subContent.setComponentAlignment(editDaemon, Alignment.BOTTOM_CENTER);
 					subContent.addComponent (buttons);
 
 
@@ -257,7 +216,7 @@ public class ConfigureOperationStep extends Panel
 
 
 
-	private void addRow (final String newOperation, String newCommand/*, String newTemplate*/)
+	private void addRow (final String newOperation, final String newCommand/*, String newTemplate*/)
 	{
 		Object newItemId = operationTable.addItem();
 		Item row = operationTable.getItem (newItemId);
@@ -265,7 +224,65 @@ public class ConfigureOperationStep extends Panel
 		row.getItemProperty ("Command").setValue (newCommand);
 		//row.getItemProperty ("Template").setValue (newTemplate);
 		HorizontalLayout buttonGrid = new HorizontalLayout();
+		buttonGrid.setSpacing (true);
+
+		final Button view = new Button ("View");
+		view.addClickListener(new Button.ClickListener()
+		{
+			@Override
+			public void buttonClick (Button.ClickEvent event)
+			{
+				final Window subWindow = new Window ("Edit operation");
+				subWindow.setClosable (false);
+				subWindow.addStyleName ("default");
+				subWindow.center();
+
+				VerticalLayout subContent = new VerticalLayout();
+				subContent.setSpacing (true);
+				subContent.setMargin (true);
+
+
+				Label operation = new Label ("Operation name: " + newOperation);
+				Label command = new Label ("Command: " + newCommand);
+				Label cwd = new Label ("Cwd: " + currentProfile.getCwds().get (currentProfile.getIndex (newOperation)));
+				Label timeout = new Label ("Timeout: " + currentProfile.getTimeouts().get(currentProfile.getIndex(newOperation)).toString());
+				Label daemon = new Label ("Daemon: ");
+				if (currentProfile.getDaemons().get(currentProfile.getIndex(newOperation)))
+				{
+					daemon.setValue (daemon.getValue() + "yes");
+				}
+				else
+				{
+					daemon.setValue (daemon.getValue() + "no");
+				}
+
+				Button close = new Button ("Close");
+				close.addClickListener (new Button.ClickListener()
+				{
+					@Override
+					public void buttonClick (Button.ClickEvent event)
+					{
+						subWindow.close();
+					}
+				});
+
+				subContent.addComponent(operation);
+				subContent.addComponent (command);
+				subContent.addComponent (cwd);
+				subContent.addComponent (timeout);
+				subContent.addComponent (daemon);
+				subContent.addComponent (close);
+				subContent.setComponentAlignment (close, Alignment.BOTTOM_CENTER);
+
+				subWindow.setContent(subContent);
+				UI.getCurrent().addWindow(subWindow);
+			}
+		});
+
+
 		EditButton edit = new EditButton ("Edit", newItemId);
+
+
 		final Button delete = new Button ("Delete");
 		delete.setData (newItemId);
 		delete.addClickListener (new Button.ClickListener()
@@ -275,11 +292,12 @@ public class ConfigureOperationStep extends Panel
 			{
 				currentProfile.deleteOperation (newOperation);
 				wizard.getConfig().replaceProfile (currentProfile);
-				operationTable.removeItem(delete.getData());
+				operationTable.removeItem (delete.getData());
 			}
 		});
+		buttonGrid.addComponent (view);
 		buttonGrid.addComponent (edit);
-		buttonGrid.addComponent (delete);
+		buttonGrid.addComponent(delete);
 		row.getItemProperty ("Actions").setValue (buttonGrid);
 	}
 

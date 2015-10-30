@@ -7,13 +7,11 @@ import io.subutai.plugin.generic.api.Profile;
 
 public class GenericPluginImpl implements GenericPlugin
 {
-	private String name;
-
 	@Override
-	public void executeCommandOnContainer (GenericPluginConfiguration config)
+	public String executeCommandOnContainer (GenericPluginConfiguration config)
 	{
 		ExecutorManager exec = new ExecutorManager (config);
-		exec.execute();
+		return exec.execute();
 	}
 
 

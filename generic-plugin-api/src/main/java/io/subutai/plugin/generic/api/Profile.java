@@ -8,7 +8,7 @@ public class Profile extends Object
 	private String name;
 	private ArrayList <String> operations;
 	private ArrayList <String> commands;
-	private ArrayList <String> templates;
+//	private ArrayList <String> templates;
 	private ArrayList <String> cwds;
 	private ArrayList <Float> timeOuts;
 	private ArrayList <Boolean> daemons;
@@ -17,17 +17,13 @@ public class Profile extends Object
 		this.name = name;
 		this.operations = new ArrayList<>();
 		this.commands = new ArrayList<>();
-		this.templates = new ArrayList<>();
+//		this.templates = new ArrayList<>();
 		this.cwds = new ArrayList<>();
 		this.timeOuts = new ArrayList<>();
 		this.daemons = new ArrayList<>();
 	}
 	public void addOperation (String operation, String command/*, String template*/, String cwd, Float timeOut, Boolean daemon)
 	{
-		if (this.operations.contains (operation) || this.commands.contains (command))
-		{
-			return;
-		}
 		this.operations.add (operation);
 		this.commands.add (command);
 		//this.templates.add (template);
@@ -38,9 +34,17 @@ public class Profile extends Object
 
 	public void deleteOperation (String operation)
 	{
-		if (this.operations.contains (operation))
+		for (int i = 0; i < this.operations.size(); ++i)
 		{
-			this.operations.remove (operation);
+			if (this.operations.get (i) == operation)
+			{
+				this.operations.remove(i);
+				this.commands.remove (i);
+				//this.templates.remove (i);
+				this.cwds.remove (i);
+				this.timeOuts.remove (i);
+				this.daemons.remove (i);
+			}
 		}
 	}
 
@@ -59,9 +63,37 @@ public class Profile extends Object
 		return this.commands;
 	}
 
-	public ArrayList <String> getTemplates()
+	public ArrayList <String> getCwds()
+	{
+		return this.cwds;
+	}
+
+	public ArrayList <Float> getTimeouts()
+	{
+		return this.timeOuts;
+	}
+
+	public ArrayList <Boolean> getDaemons()
+	{
+		return this.daemons;
+	}
+
+/*	public ArrayList <String> getTemplates()
 	{
 		return this.templates;
+	}*/
+
+
+	public int getIndex (String operation)
+	{
+		for (int i = 0; i < this.operations.size(); ++i)
+		{
+			if (this.operations.get (i) == operation)
+			{
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	@Override

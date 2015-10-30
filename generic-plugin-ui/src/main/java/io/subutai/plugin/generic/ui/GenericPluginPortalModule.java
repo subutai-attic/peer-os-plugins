@@ -51,7 +51,7 @@ public class GenericPluginPortalModule implements PortalModule
     @Override
     public Component createComponent()
     {
-        return new GenericPluginComponent (this.registry, this.manager);
+        return new GenericPluginComponent (this.registry, this.manager, this.genericPlugin);
     }
 
 

@@ -2,14 +2,10 @@ package io.subutai.plugin.generic.ui.wizard;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
-import io.subutai.plugin.generic.api.Profile;
+import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.GenericPluginConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.registry.api.TemplateRegistry;
-
-import java.util.ArrayList;
 
 
 public class Wizard
@@ -19,11 +15,12 @@ public class Wizard
     private int step = 0; // 0 - welcome, 1 - create profile, 2 - configure operations, 3 - manage containers
 	private TemplateRegistry registry;
 	private EnvironmentManager manager;
-
-    public Wizard (TemplateRegistry registry, EnvironmentManager manager)
+	private GenericPlugin genericPlugin;
+    public Wizard (TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin)
     {
 		this.registry = registry;
 		this.manager = manager;
+		this.genericPlugin = genericPlugin;
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
         grid.setSizeFull();
@@ -95,14 +92,19 @@ public class Wizard
 	}
 
 
-	public TemplateRegistry getRegistry()
+/*	public TemplateRegistry getRegistry()
 	{
 		return this.registry;
-	}
+	}*/
 
 
 	public EnvironmentManager getManager()
 	{
 		return this.manager;
+	}
+
+	public GenericPlugin getGenericPlugin()
+	{
+		return this.genericPlugin;
 	}
 }

@@ -5,19 +5,19 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
-@Theme( "valo" )
+@Theme ("valo")
 public class ProfileCreationStep extends Panel
 {
     public ProfileCreationStep (final Wizard wizard)
     {
         this.setSizeFull();
 
-        final Panel panel = new Panel ("Create profile");
+        final Panel panel = new Panel ("<h2>Create profile<h2>");
         final VerticalLayout panelContent = new VerticalLayout();
         panel.setContent (panelContent);
         panelContent.setSpacing(true);
         final TextField newProfile = new TextField ("Profile");
-        newProfile.setInputPrompt("New profile name");
+        newProfile.setInputPrompt ("New profile name");
         newProfile.setRequired (true);
         panelContent.addComponent (newProfile);
         final HorizontalLayout buttonsGrid = new HorizontalLayout();
