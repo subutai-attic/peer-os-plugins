@@ -1,17 +1,21 @@
 package io.subutai.plugin.generic.impl;
 
 
-import com.google.common.base.Strings;
 import java.util.concurrent.ExecutorService;
 
-
-import io.subutai.common.command.*;
-import io.subutai.common.mdc.SubutaiExecutors;
-
-
-import io.subutai.plugin.generic.api.GenericPluginConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
+import io.subutai.common.command.CommandCallback;
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.command.Response;
+import io.subutai.common.command.ResponseType;
+import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.plugin.generic.api.GenericPluginConfiguration;
 
 public class ExecutorManager
 {
