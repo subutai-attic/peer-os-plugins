@@ -1,9 +1,9 @@
-<features name="mahout-plugin" version="4.0.0-RC2">
-  <feature name="mahout-plugin" version="4.0.0-RC2">
-    <bundle>mvn:io.subutai/mahout-plugin-api/4.0.0-RC2</bundle>
-    <bundle>mvn:io.subutai/mahout-plugin-impl/4.0.0-RC2</bundle>
-    <bundle>mvn:io.subutai/mahout-plugin-ui/4.0.0-RC2</bundle>
-    <bundle>mvn:io.subutai/mahout-plugin-cli/4.0.0-RC2</bundle>
-    <bundle>mvn:io.subutai/mahout-plugin-rest/4.0.0-RC2</bundle>
+<features name="mahout-plugin" version="4.0.0-RC3">
+  <feature name="mahout-plugin" version="4.0.0-RC3">
+    <bundle>mvn:io.subutai/mahout-plugin-api/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/mahout-plugin-impl/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/mahout-plugin-ui/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/mahout-plugin-cli/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/mahout-plugin-rest/4.0.0-RC3</bundle>
   </feature>
 </features>
