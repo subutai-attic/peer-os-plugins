@@ -1,9 +1,9 @@
-<features name="nutch-plugin" version="4.0.0-RC2">
-  <feature name="nutch-plugin" version="4.0.0-RC2">
-    <bundle> mvn:io.subutai/nutch-plugin-api/4.0.0-RC2</bundle>
-    <bundle> mvn:io.subutai/nutch-plugin-impl/4.0.0-RC2</bundle>
-    <bundle> mvn:io.subutai/nutch-plugin-ui/4.0.0-RC2</bundle>
-    <bundle> mvn:io.subutai/nutch-plugin-cli/4.0.0-RC2</bundle>
-    <bundle> mvn:io.subutai/nutch-plugin-rest/4.0.0-RC2</bundle>
+<features name="nutch-plugin" version="4.0.0-RC3">
+  <feature name="nutch-plugin" version="4.0.0-RC3">
+    <bundle> mvn:io.subutai/nutch-plugin-api/4.0.0-RC3</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-impl/4.0.0-RC3</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-ui/4.0.0-RC3</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-cli/4.0.0-RC3</bundle>
+    <bundle> mvn:io.subutai/nutch-plugin-rest/4.0.0-RC3</bundle>
   </feature>
 </features>
