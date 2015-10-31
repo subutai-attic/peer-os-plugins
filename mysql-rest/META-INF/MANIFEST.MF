@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1444921168520
+Bnd-LastModified: 1446303853713
 Build-Jdk: 1.8.0_60
 Built-By: dilshat
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml,OSGI-INF/blueprint/rest
@@ -8,9 +8,9 @@ Bundle-Description: Subutai MySQL Rest
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Rest
 Bundle-SymbolicName: io.subutai.plugin.mysql.rest
-Bundle-Version: 4.0.0.RC2
+Bundle-Version: 4.0.0.RC3
 Created-By: Apache Maven Bundle Plugin
-Export-Package: io.subutai.plugin.mysql.rest;version="4.0.0.RC2";uses:="
+Export-Package: io.subutai.plugin.mysql.rest;version="4.0.0.RC3";uses:="
  io.subutai.core.environment.api,io.subutai.core.tracker.api,io.subutai.
  plugin.mysql.api,javax.ws.rs,javax.ws.rs.core"
 Import-Package: io.subutai.common.tracker;version="[4.0,5)",io.subutai.c

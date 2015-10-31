@@ -1,17 +1,17 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1444921163154
+Bnd-LastModified: 1446303848535
 Build-Jdk: 1.8.0_60
 Built-By: dilshat
 Bundle-Description: Subutai MySQL Cluster Api
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Cluster Plugin Api
 Bundle-SymbolicName: io.subutai.plugin.mysql.api
-Bundle-Version: 4.0.0.RC2
+Bundle-Version: 4.0.0.RC3
 Created-By: Apache Maven Bundle Plugin
 Export-Package: io.subutai.plugin.mysql.api;uses:="io.subutai.common.env
  ironment,io.subutai.common.peer,io.subutai.common.tracker,io.subutai.co
  re.tracker.api,io.subutai.plugin.common.api,io.subutai.plugin.common.im
- pl";version="4.0.0.RC2"
+ pl";version="4.0.0.RC3"
 Import-Package: com.google.common.collect;version="[16.0,17)",io.subutai
  .common.environment;version="[4.0,5)",io.subutai.common.peer;version="[
  4.0,5)",io.subutai.common.settings;version="[4.0,5)",io.subutai.common.

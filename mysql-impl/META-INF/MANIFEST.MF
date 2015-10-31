@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1444921165722
+Bnd-LastModified: 1446303851017
 Build-Jdk: 1.8.0_60
 Built-By: dilshat
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
@@ -7,7 +7,7 @@ Bundle-Description: Subutai MySQL Cluster Impl
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Cluster Impl
 Bundle-SymbolicName: io.subutai.plugin.mysql.impl
-Bundle-Version: 4.0.0.RC2
+Bundle-Version: 4.0.0.RC3
 Created-By: Apache Maven Bundle Plugin
 Export-Service: io.subutai.core.env.api.EnvironmentEventListener,io.subu
  tai.core.metric.api.AlertListener,io.subutai.plugin.mysql.api.MySQLC
