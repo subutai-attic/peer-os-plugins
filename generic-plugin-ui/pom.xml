@@ -16,42 +16,55 @@
 	<packaging>bundle</packaging>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-server</artifactId>
-			<version>7.1.6</version>
-		</dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>environment-manager-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>template-registry-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>vaadin-custom</artifactId>
+    </dependency>
+
+    <!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-server</artifactId>-->
+			<!--<version>7.1.6</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>generic-plugin-api</artifactId>
 			<version>4.0.0-RC2</version>
 		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-theme-compiler</artifactId>
-			<version>7.1.15</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-sass-compiler</artifactId>
-			<version>0.9.12</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-push</artifactId>
-			<version>7.5.7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-themes</artifactId>
-			<version>7.5.7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-client-compiler</artifactId>
-			<version>7.5.7</version>
-			<scope>provided</scope>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-theme-compiler</artifactId>-->
+			<!--<version>7.1.15</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-sass-compiler</artifactId>-->
+			<!--<version>0.9.12</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-push</artifactId>-->
+			<!--<version>7.5.7</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-themes</artifactId>-->
+			<!--<version>7.5.7</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.vaadin</groupId>-->
+			<!--<artifactId>vaadin-client-compiler</artifactId>-->
+			<!--<version>7.5.7</version>-->
+			<!--<scope>provided</scope>-->
+		<!--</dependency>-->
   </dependencies>
 
 	<build>

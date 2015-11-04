@@ -3,9 +3,14 @@ package io.subutai.plugin.generic.ui.wizard;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.server.FileResource;
-import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
+
 import io.subutai.common.util.FileUtil;
 import io.subutai.plugin.generic.api.Profile;
 import io.subutai.plugin.generic.ui.GenericPluginPortalModule;
@@ -14,7 +19,7 @@ import io.subutai.plugin.generic.ui.GenericPluginPortalModule;
 @Theme( "valo" )
 public class WelcomeStep extends Panel
 {
-    public WelcomeStep (final Wizard wizard)
+    public WelcomeStep( final Wizard wizard )
     {
         setSizeFull();
 
@@ -23,7 +28,8 @@ public class WelcomeStep extends Panel
         grid.setMargin( true );
         grid.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Generic Plugin, execute your custom commands on containers </h2>" );
+        Label welcomeMsg =
+                new Label( "<center><h2>Welcome to Generic Plugin, execute your custom commands on containers </h2>" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         grid.addComponent( welcomeMsg, 3, 1, 6, 2 );
 
@@ -41,7 +47,7 @@ public class WelcomeStep extends Panel
         configureOperations.addStyleName( "default" );
         final Button manageContainers = new Button( "Manage containers" );
         manageContainers.addStyleName( "default" );
-		buttonsGrid.addComponent( createProfile );
+        buttonsGrid.addComponent( createProfile );
         buttonsGrid.addComponent( configureOperations );
         buttonsGrid.addComponent( manageContainers );
         grid.addComponent( buttonsGrid, 6, 4, 6, 4 );
@@ -62,17 +68,17 @@ public class WelcomeStep extends Panel
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-            	if (wizard.getConfig().getProfiles().isEmpty())
-				{
-					Notification notif = new Notification ("Please create profiles first");
-					notif.setDelayMsec(2000);
-					notif.show(Page.getCurrent());
-				}
-				else
-				{
-					wizard.changeWindow( 2 );
-					wizard.putForm();
-				}
+                //            	if (wizard.getConfig().getProfiles().isEmpty())
+                //				{
+                //					Notification notif = new Notification ("Please create profiles first");
+                //					notif.setDelayMsec(2000);
+                //					notif.show(Page.getCurrent());
+                //				}
+                //				else
+                //				{
+                wizard.changeWindow( 2 );
+                wizard.putForm();
+                //				}
             }
         } );
 
@@ -81,45 +87,21 @@ public class WelcomeStep extends Panel
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-				if (wizard.getConfig().getProfiles().isEmpty())
-				{
-					Notification notif = new Notification ("Please create profiles first");
-					notif.setDelayMsec(2000);
-					notif.show(Page.getCurrent());
-				}
-				else if (wizard.getManager().getEnvironments().isEmpty())
-				{
-					Notification notif = new Notification ("Please create environments first");
-					notif.setDelayMsec(2000);
-					notif.show(Page.getCurrent());
-				}
-				else
-				{
-					boolean exist = false;
-					for (Profile p : wizard.getConfig().getProfiles())
-					{
-						if (!p.getOperations().isEmpty())
-						{
-							exist = true;
-							break;
-						}
-					}
-					if (exist)
-					{
-						wizard.changeWindow(3);
-						wizard.putForm();
-					}
-					else
-					{
-						Notification notif = new Notification ("Please create at least one operation on one of profiles");
-						notif.setDelayMsec(2000);
-						notif.show(Page.getCurrent());
-					}
-				}
+                boolean exist = false;
+                for ( Profile p : wizard.getConfig().getProfiles() )
+                {
+                    if ( !p.getOperations().isEmpty() )
+                    {
+                        exist = true;
+                        break;
+                    }
+                }
+                    wizard.changeWindow( 3 );
+                    wizard.putForm();
             }
         } );
 
-        setContent(grid);
+        setContent( grid );
     }
 }
 

@@ -1,26 +1,30 @@
 package io.subutai.plugin.generic.ui.wizard;
 
+
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
-import io.subutai.plugin.generic.api.GenericPlugin;
-import io.subutai.plugin.generic.api.GenericPluginConfiguration;
+
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.registry.api.TemplateRegistry;
+import io.subutai.plugin.generic.api.GenericPlugin;
+import io.subutai.plugin.generic.api.GenericPluginConfiguration;
 
 
 public class Wizard
 {
-	private GenericPluginConfiguration config = new GenericPluginConfiguration();
+    private GenericPluginConfiguration config = new GenericPluginConfiguration();
     private final GridLayout grid;
     private int step = 0; // 0 - welcome, 1 - create profile, 2 - configure operations, 3 - manage containers
-	private TemplateRegistry registry;
-	private EnvironmentManager manager;
-	private GenericPlugin genericPlugin;
-    public Wizard (TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin)
+    private TemplateRegistry registry;
+    private EnvironmentManager manager;
+    private GenericPlugin genericPlugin;
+
+
+    public Wizard( TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin )
     {
-		this.registry = registry;
-		this.manager = manager;
-		this.genericPlugin = genericPlugin;
+        this.registry = registry;
+        this.manager = manager;
+        this.genericPlugin = genericPlugin;
         grid = new GridLayout( 1, 20 );
         grid.setMargin( true );
         grid.setSizeFull();
@@ -37,22 +41,22 @@ public class Wizard
         {
             case ( 0 ):
             {
-                component = new WelcomeStep (this);
+                component = new WelcomeStep( this );
                 break;
             }
             case ( 1 ):
             {
-                component = new ProfileCreationStep (this);
+                component = new ProfileCreationStep( this, genericPlugin );
                 break;
             }
             case ( 2 ):
             {
-                component = new ConfigureOperationStep (this);
+                component = new ConfigureOperationStep( this, genericPlugin );
                 break;
             }
             case ( 3 ):
             {
-                component = new ManageContainersStep (this);
+                component = new ManageContainersStep( this, genericPlugin );
                 break;
             }
             default:
@@ -66,16 +70,16 @@ public class Wizard
         }
     }
 
-	protected void init()
-	{
-		step = 1;
-		config = new GenericPluginConfiguration();
-		putForm();
-	}
+
+    protected void init()
+    {
+        step = 1;
+        config = new GenericPluginConfiguration();
+        putForm();
+    }
 
 
-
-	public void changeWindow( int newStep )
+    public void changeWindow( int newStep )
     {
         this.step = newStep;
     }
@@ -86,25 +90,27 @@ public class Wizard
         return this.grid;
     }
 
+
     public GenericPluginConfiguration getConfig()
-	{
-		return this.config;
-	}
+    {
+        return this.config;
+    }
 
 
 /*	public TemplateRegistry getRegistry()
-	{
+    {
 		return this.registry;
 	}*/
 
 
-	public EnvironmentManager getManager()
-	{
-		return this.manager;
-	}
+    public EnvironmentManager getManager()
+    {
+        return this.manager;
+    }
 
-	public GenericPlugin getGenericPlugin()
-	{
-		return this.genericPlugin;
-	}
+
+    public GenericPlugin getGenericPlugin()
+    {
+        return this.genericPlugin;
+    }
 }

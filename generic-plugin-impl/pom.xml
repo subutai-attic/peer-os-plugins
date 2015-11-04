@@ -10,13 +10,18 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>generic-plugin-impl</artifactId>
-
-	<name>Generic Plugin Impl</name>
-	<description>Generic Plugin Impl</description>
-	<packaging>bundle</packaging>
+  <packaging>bundle</packaging>
+  <name>Generic Plugin Impl</name>
+  <description>Generic Plugin Impl</description>
 
 	<dependencies>
-		<dependency>
+
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+
+    <dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>generic-plugin-api</artifactId>
 			<version>4.0.0-RC2</version>
@@ -26,7 +31,7 @@
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.12</version>
 		</dependency>
-	</dependencies>
+  </dependencies>
 
 
 	<build>
@@ -40,7 +45,8 @@
 				<artifactId>maven-bundle-plugin</artifactId>
 				<configuration>
 					<instructions>
-						<Bundle-SymbolicName>${project.groupId}.plugin.generic.impl</Bundle-SymbolicName>
+            <Meta-Persistence>META-INF/persistence.xml</Meta-Persistence>
+            <Bundle-SymbolicName>${project.groupId}.plugin.generic.impl</Bundle-SymbolicName>
 					</instructions>
 				</configuration>
 			</plugin>

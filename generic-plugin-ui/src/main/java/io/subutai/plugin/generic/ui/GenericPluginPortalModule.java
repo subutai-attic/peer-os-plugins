@@ -1,14 +1,15 @@
 package io.subutai.plugin.generic.ui;
 
 
+import java.io.File;
+
 import com.vaadin.ui.Component;
+
 import io.subutai.common.util.FileUtil;
-import io.subutai.plugin.generic.api.GenericPlugin;
-import io.subutai.server.ui.api.PortalModule;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.registry.api.TemplateRegistry;
-
-import java.io.File;
+import io.subutai.plugin.generic.api.GenericPlugin;
+import io.subutai.server.ui.api.PortalModule;
 
 
 public class GenericPluginPortalModule implements PortalModule
@@ -51,7 +52,7 @@ public class GenericPluginPortalModule implements PortalModule
     @Override
     public Component createComponent()
     {
-        return new GenericPluginComponent (this.registry, this.manager, this.genericPlugin);
+        return new GenericPluginComponent (registry, manager, genericPlugin);
     }
 
 
