@@ -11,9 +11,7 @@
 
   <service id="genericPlugin" ref="genericPluginImpl" interface="io.subutai.plugin.generic.api.GenericPlugin">
   </service>
-  <bean id="genericPluginImpl"
-        class="io.subutai.plugin.generic.impl.GenericPluginImpl"
-        scope="singleton" activation="eager">
+  <bean id="genericPluginImpl" class="io.subutai.plugin.generic.impl.GenericPluginImpl" init-method="init" scope="singleton" activation="eager">
     <argument ref="daoManagerPlugin" />
   </bean>
 </blueprint>

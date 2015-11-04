@@ -1,81 +1,89 @@
 package io.subutai.plugin.generic.ui.wizard;
 
 
+import com.google.gwt.thirdparty.guava.common.base.Strings;
 import com.vaadin.annotations.Theme;
-import com.vaadin.server.Page;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
-@Theme ("valo")
+import io.subutai.plugin.generic.api.GenericPlugin;
+
+
+@Theme( "valo" )
 public class ProfileCreationStep extends Panel
 {
-    public ProfileCreationStep (final Wizard wizard)
+//    private GenericPlugin genericPlugin;
+    private Panel panel;
+    private VerticalLayout panelContent;
+    private TextField newProfile;
+    private HorizontalLayout buttonsGrid;
+    private Button create;
+    private Button back;
+
+    public ProfileCreationStep( final Wizard wizard, final GenericPlugin genericPlugin )
     {
         this.setSizeFull();
 
-        final Panel panel = new Panel ("<h2>Create profile<h2>");
-        final VerticalLayout panelContent = new VerticalLayout();
-        panel.setContent (panelContent);
-        panelContent.setSpacing(true);
-        final TextField newProfile = new TextField ("Profile");
-        newProfile.setInputPrompt ("New profile name");
-        newProfile.setRequired (true);
-        panelContent.addComponent (newProfile);
-        final HorizontalLayout buttonsGrid = new HorizontalLayout();
-        buttonsGrid.setSpacing(true);
-        final Button create = new Button("Create");
+        panel = new Panel( "<h2>Create profile<h2>" );
+        panelContent = new VerticalLayout();
+        panel.setContent( panelContent );
+        panelContent.setSpacing( true );
+
+        newProfile = new TextField( "Profile" );
+        newProfile.setInputPrompt( "New profile name" );
+        newProfile.setRequired( true );
+        panelContent.addComponent( newProfile );
+
+        buttonsGrid = new HorizontalLayout();
+        buttonsGrid.setSpacing( true );
+
+        create = new Button( "Create" );
         create.addStyleName( "default" );
-        final Button back = new Button ("Back");
+
+        back = new Button( "Back" );
         back.addStyleName( "default" );
-		buttonsGrid.addComponent (back);
-        buttonsGrid.addComponent (create);
+        buttonsGrid.addComponent( back );
+        buttonsGrid.addComponent( create );
         panelContent.addComponent( buttonsGrid );
-        create.addClickListener (new Button.ClickListener()
+
+        create.addClickListener( new Button.ClickListener()
         {
             @Override
-            public void buttonClick (final Button.ClickEvent clickEvent)
+            public void buttonClick( final Button.ClickEvent clickEvent )
             {
-            	Notification notif = new Notification("");
-                if (newProfile.getValue() == null || newProfile.getValue().isEmpty())
+                if ( Strings.isNullOrEmpty( newProfile.getValue() ) )
                 {
-					notif.setCaption("Please enter profile name");
-					notif.setDelayMsec (2000);
-					notif.show (Page.getCurrent());
+                    show( "Please enter profile name" );
                 }
                 else
                 {
-                	boolean exists = false;
-                	for (int i = 0; i < wizard.getConfig().getProfiles().size(); ++i)
-					{
-						if (newProfile.getValue().equals (wizard.getConfig().getProfiles().get (i).getName()))
-						{
-							notif.setCaption("Profile already exists");
-							notif.setDelayMsec (2000);
-							notif.show (Page.getCurrent());
-							exists = true;
-							break;
-						}
-					}
-					if (!exists)
-					{
-						wizard.getConfig().addProfile(newProfile.getValue());
-						wizard.changeWindow(0);
-						wizard.putForm();
-						notif.setCaption("Profile " + newProfile.getValue() + " created");
-						notif.setDelayMsec(2000);
-						notif.show(Page.getCurrent());
-					}
+                    genericPlugin.saveProfile( newProfile.getValue() );
+                    wizard.changeWindow( 0 );
+                    wizard.putForm();
                 }
             }
-        });
-        back.addClickListener(new Button.ClickListener()
+        } );
+
+        back.addClickListener( new Button.ClickListener()
         {
             @Override
-            public void buttonClick(final Button.ClickEvent clickEvent)
+            public void buttonClick( final Button.ClickEvent clickEvent )
             {
-                wizard.changeWindow (0);
+                wizard.changeWindow( 0 );
                 wizard.putForm();
             }
-        });
-        this.setContent(panel);
+        } );
+
+        this.setContent( panel );
+    }
+
+
+    private void show( String notification )
+    {
+        Notification.show( notification );
     }
 }
