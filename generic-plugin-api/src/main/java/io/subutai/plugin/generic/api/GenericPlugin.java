@@ -5,25 +5,24 @@ import java.util.List;
 
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.plugin.generic.api.model.Operation;
+import io.subutai.plugin.generic.api.model.Profile;
 
 
 public interface GenericPlugin
 {
-    public void saveProfile( String profileName );
+	void saveProfile (String profileName);
 
-    public List<io.subutai.plugin.generic.api.model.Profile> getProfiles();
+	List <Profile> getProfiles();
 
-    public void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
-                               Boolean daemon );
+	void saveOperation (Long profileId, String operationName, String commandName, String cwd, String timeout, Boolean daemon);
 
-    public List<Operation> getProfileOperations( Long profileId );
+	List <Operation> getProfileOperations (Long profileId);
 
-    public boolean IsOperationRegistered( String operationName );
+	boolean IsOperationRegistered (String operationName);
 
-    public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue );
+	void updateOperation (final Operation operation, final String commandValue, final String cwdValue, final String timeoutValue, final Boolean daemonValue);
 
-    public void deleteOperation( Long operationId );
+	void deleteOperation (Long operationId);
 
-    public String executeCommandOnContainer( ContainerHost host, Operation operation );
+	String executeCommandOnContainer (ContainerHost host, Operation operation);
 }

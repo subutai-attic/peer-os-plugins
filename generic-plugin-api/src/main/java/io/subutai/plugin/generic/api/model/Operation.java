@@ -3,43 +3,43 @@ package io.subutai.plugin.generic.api.model;
 
 public interface Operation
 {
-    public String getOperationName();
+	String getOperationName();
 
 
-    public void setOperationName( final String operationName );
+	void setOperationName (final String operationName);
 
 
-    public String getCommandName();
+	String getCommandName();
 
 
-    public void setCommandName( final String commandName );
+	void setCommandName (final String commandName);
 
 
-    public String getCwd();
+	String getCwd();
 
 
-    public void setCwd( final String cwd );
+	void setCwd (final String cwd);
 
 
-    public String getTimeout();
+	String getTimeout();
 
 
-    public void setTimeout( final String timeout );
+	void setTimeout (final String timeout);
 
 
-    public Boolean getDaemon();
+	Boolean getDaemon();
 
 
-    public void setDaemon( final Boolean daemon );
+	void setDaemon (final Boolean daemon);
 
-    public Long getProfileId();
-
-
-    public void setProfileId( final Long profileId );
+	Long getProfileId();
 
 
-    public Long getOperationId();
+	void setProfileId (final Long profileId);
 
 
-    public void setOperationId( final Long operationId );
+	Long getOperationId();
+
+
+	void setOperationId (final Long operationId);
 }

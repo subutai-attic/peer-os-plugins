@@ -9,21 +9,19 @@ import io.subutai.plugin.generic.api.model.Profile;
 
 public interface ConfigDataService
 {
-    public void saveProfile( String profileName );
+	void saveProfile (String profileName);
 
-    public List<Profile> getAllProfiles();
+	List <Profile> getAllProfiles();
 
-    public void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
-                               Boolean daemon );
+	void saveOperation (Long profileId, String operationName, String commandName, String cwd, String timeout, Boolean daemon);
 
-    public List<Operation> getOperations( Long profileId );
+	List <Operation> getOperations (Long profileId);
 
-    public boolean isOperationRegistered( String operationName );
+	boolean isOperationRegistered (String operationName);
 
-    public Operation getOperationByName( String operationName );
+	Operation getOperationByName (String operationName);
 
-    public void updateOperation( Operation operation, String commandValue, String cwdValue, String timeoutValue,
-                          Boolean daemonValue );
+	void updateOperation (Operation operation, String commandValue, String cwdValue, String timeoutValue, Boolean daemonValue);
 
-    public void deleteOperation( Long operationId );
+	void deleteOperation (Long operationId);
 }
