@@ -3,11 +3,11 @@ package io.subutai.plugin.generic.api.model;
 
 public interface Profile
 {
-	Long getId();
+    Long getId();
 
-	void setId (final Long id);
+    void setId( final Long id );
 
-	String getName();
+    String getName();
 
-	void setName (final String name);
+    void setName( final String name );
 }
