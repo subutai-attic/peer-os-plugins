@@ -12,6 +12,7 @@ public class ConfigManager
 {
     private Profile profile = new ProfileEntity();
 
+
     public void addProfile( final String profileName )
     {
         profile.setName( profileName );
