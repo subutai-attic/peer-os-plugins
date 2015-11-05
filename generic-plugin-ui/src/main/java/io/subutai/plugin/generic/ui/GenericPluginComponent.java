@@ -11,15 +11,15 @@ import io.subutai.plugin.generic.ui.wizard.Wizard;
 
 public class GenericPluginComponent extends CustomComponent
 {
-    private final Wizard wizard;
-    public GenericPluginComponent(TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin)
-    {
-        this.wizard = new Wizard (registry, manager, genericPlugin);
-        setSizeFull();
-        VerticalLayout content = new VerticalLayout();
-        content.setSpacing( true );
-        content.setSizeFull();
-        content.addComponent (this.wizard.getContent());
-        setCompositionRoot( content );
-    }
+	private final Wizard wizard;
+	public GenericPluginComponent (TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin)
+	{
+		this.wizard = new Wizard (registry, manager, genericPlugin);
+		setSizeFull();
+		VerticalLayout content = new VerticalLayout();
+		content.setSpacing (true);
+		content.setSizeFull();
+		content.addComponent (this.wizard.getContent());
+		setCompositionRoot (content);
+	}
 }

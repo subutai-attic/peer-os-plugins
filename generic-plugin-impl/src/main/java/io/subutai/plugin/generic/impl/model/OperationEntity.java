@@ -13,113 +13,113 @@ import io.subutai.plugin.generic.api.model.Operation;
 
 
 @Entity
-@Table( name = "plugin_operation" )
-@Access( AccessType.FIELD )
+@Table (name = "plugin_operation")
+@Access (AccessType.FIELD)
 public class OperationEntity implements Operation
 {
-    @Id
-    @Column( name = "operation_id" )
-    @GeneratedValue
-    private Long operationId;
+	@Id
+	@Column (name = "operation_id")
+	@GeneratedValue
+	private Long operationId;
 
-    @Column( name = "profile_id" )
-    private Long profileId;
+	@Column (name = "profile_id")
+	private Long profileId;
 
-    @Column( name = "operation_name" )
-    private String operationName;
+	@Column (name = "operation_name")
+	private String operationName;
 
-    @Column( name = "command_name" )
-    private String commandName;
+	@Column (name = "command_name")
+	private String commandName;
 
-    @Column( name = "cwd" )
-    private String cwd;
+	@Column (name = "cwd")
+	private String cwd;
 
-    @Column( name = "timeout" )
-    private String timeout;
+	@Column (name = "timeout")
+	private String timeout;
 
-    @Column( name = "daemon" )
-    private Boolean daemon;
+	@Column (name = "daemon")
+	private Boolean daemon;
 
-    public String getOperationName()
-    {
-        return operationName;
-    }
-
-
-    public void setOperationName( final String operationName )
-    {
-        this.operationName = operationName;
-    }
+	public String getOperationName()
+	{
+		return operationName;
+	}
 
 
-    public String getCommandName()
-    {
-        return commandName;
-    }
+	public void setOperationName (final String operationName)
+	{
+		this.operationName = operationName;
+	}
 
 
-    public void setCommandName( final String commandName )
-    {
-        this.commandName = commandName;
-    }
+	public String getCommandName()
+	{
+		return commandName;
+	}
 
 
-    public String getCwd()
-    {
-        return cwd;
-    }
+	public void setCommandName (final String commandName)
+	{
+		this.commandName = commandName;
+	}
 
 
-    public void setCwd( final String cwd )
-    {
-        this.cwd = cwd;
-    }
+	public String getCwd()
+	{
+		return cwd;
+	}
 
 
-    public String getTimeout()
-    {
-        return timeout;
-    }
+	public void setCwd (final String cwd)
+	{
+		this.cwd = cwd;
+	}
 
 
-    public void setTimeout( final String timeout )
-    {
-        this.timeout = timeout;
-    }
+	public String getTimeout()
+	{
+		return timeout;
+	}
 
 
-    public Boolean getDaemon()
-    {
-        return daemon;
-    }
+	public void setTimeout (final String timeout)
+	{
+		this.timeout = timeout;
+	}
 
 
-    public void setDaemon( final Boolean daemon )
-    {
-        this.daemon = daemon;
-    }
+	public Boolean getDaemon()
+	{
+		return daemon;
+	}
 
 
-    public Long getProfileId()
-    {
-        return profileId;
-    }
+	public void setDaemon (final Boolean daemon)
+	{
+		this.daemon = daemon;
+	}
 
 
-    public void setProfileId( final Long profileId )
-    {
-        this.profileId = profileId;
-    }
+	public Long getProfileId()
+	{
+		return profileId;
+	}
 
 
-    public Long getOperationId()
-    {
-        return operationId;
-    }
+	public void setProfileId (final Long profileId)
+	{
+		this.profileId = profileId;
+	}
 
 
-    public void setOperationId( final Long operationId )
-    {
-        this.operationId = operationId;
-    }
+	public Long getOperationId()
+	{
+		return operationId;
+	}
+
+
+	public void setOperationId (final Long operationId)
+	{
+		this.operationId = operationId;
+	}
 }
