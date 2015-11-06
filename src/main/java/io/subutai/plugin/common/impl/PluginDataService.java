@@ -79,7 +79,7 @@ public class PluginDataService
         Long userId;
         try
         {
-            userId = identityManager.getUser().getId();
+            userId = identityManager.getActiveUser().getId();
         }
         catch ( Exception e )
         {
@@ -118,7 +118,7 @@ public class PluginDataService
         Long userId;
         try
         {
-            userId = identityManager.getUser().getId();
+            userId = identityManager.getActiveUser().getId();
         }
         catch ( Exception e )
         {
@@ -156,11 +156,11 @@ public class PluginDataService
         EntityManager em = emf.createEntityManager();
         List<T> result = new ArrayList<>();
         Long userId;
-        boolean isAdmin;
+        boolean isAdmin = true;
         try
         {
-            userId = identityManager.getUser().getId();
-            isAdmin = identityManager.getUser().isAdmin();
+            userId = identityManager.getActiveUser().getId();
+            //isAdmin = identityManager.getUser().isAdmin();
         }
         catch ( Exception e )
         {
@@ -214,11 +214,10 @@ public class PluginDataService
         EntityManager em = emf.createEntityManager();
         T result = null;
         Long userId;
-        boolean isAdmin;
+        boolean isAdmin = true;
         try
         {
-            userId = identityManager.getUser().getId();
-            isAdmin = identityManager.getUser().isAdmin();
+            userId = identityManager.getActiveUser().getId();
         }
         catch ( Exception e )
         {
@@ -272,11 +271,11 @@ public class PluginDataService
         EntityManager em = emf.createEntityManager();
         List<String> result = new ArrayList<>();
         Long userId;
-        boolean isAdmin;
+        boolean isAdmin = true;
         try
         {
-            userId = identityManager.getUser().getId();
-            isAdmin = identityManager.getUser().isAdmin();
+            userId = identityManager.getActiveUser().getId();
+            //isAdmin = identityManager.getUser().isAdmin();
         }
         catch ( Exception e )
         {
@@ -324,11 +323,11 @@ public class PluginDataService
         EntityManager em = emf.createEntityManager();
         String result = null;
         Long userId;
-        boolean isAdmin;
+        boolean isAdmin = true;
         try
         {
-            userId = identityManager.getUser().getId();
-            isAdmin = identityManager.getUser().isAdmin();
+            userId = identityManager.getActiveUser().getId();
+            //isAdmin = identityManager.getUser().isAdmin();
         }
         catch ( Exception e )
         {
