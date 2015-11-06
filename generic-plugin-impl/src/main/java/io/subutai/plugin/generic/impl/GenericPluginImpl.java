@@ -89,6 +89,13 @@ public class GenericPluginImpl implements GenericPlugin
     }
 
 
+    @Override
+    public Profile getProfileById( final Long id )
+    {
+        return configDataService.getProfileById( id );
+    }
+
+
     public ConfigDataService getConfigDataService()
     {
         return configDataService;

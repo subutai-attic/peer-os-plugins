@@ -27,4 +27,7 @@ public interface GenericPlugin
     void deleteOperation( Long operationId );
 
     String executeCommandOnContainer( ContainerHost host, Operation operation );
+
+    Profile getProfileById( Long id );
+
 }

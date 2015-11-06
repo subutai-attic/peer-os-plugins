@@ -9,15 +9,27 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.vaadin.ui.*;
-
-import org.apache.commons.io.FileUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.io.FileUtils;
+
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.Upload;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.model.Operation;
@@ -39,9 +51,10 @@ public class ConfigureOperationStep extends Panel
     private HorizontalLayout fieldGrid;
     private Profile profile;
 
-    private final Table operationTable;
+    private Table operationTable;
     private TextField newCommand;
     private Window uploadWindow;
+    private Wizard wizard;
 
 
     class MyUploader implements Upload.Receiver, Upload.SucceededListener, Upload.FailedListener
@@ -100,6 +113,7 @@ public class ConfigureOperationStep extends Panel
     public ConfigureOperationStep( final Wizard wizard, final GenericPlugin genericPlugin )
     {
         this.genericPlugin = genericPlugin;
+        this.wizard = wizard;
 
         operationTable = createTableTemplate( "Operations" );
 
@@ -477,7 +491,7 @@ public class ConfigureOperationStep extends Panel
                 editCommand.setValue( operation.getCommandName() );
 
 				/*final ComboBox editTemplate = new ComboBox ("Edit template");
-				for (Template t : wizard.getRegistry().getAllTemplates())
+                for (Template t : wizard.getRegistry().getAllTemplates())
 				{
 					editTemplate.addItem (t.getTemplateName());
 				}
@@ -569,15 +583,22 @@ public class ConfigureOperationStep extends Panel
         List<Profile> profileInfo = genericPlugin.getProfiles();
         if ( profileInfo != null && !profileInfo.isEmpty() )
         {
-            boolean set = false;
             for ( Profile pi : profileInfo )
             {
                 profileSelect.addItem( pi );
                 profileSelect.setItemCaption( pi, pi.getName() );
-                if ( !set )
+            }
+
+            Long currentProfileId = wizard.getCurrentPluginId();
+            if ( currentProfileId != null )
+            {
+                for ( final Profile pi : profileInfo )
                 {
-                    profileSelect.setValue( pi );
-                    set = true;
+                    if ( pi.getId().equals( currentProfileId ) )
+                    {
+                        profileSelect.setValue( pi );
+                        profileSelect.setItemCaption( pi, pi.getName() );
+                    }
                 }
             }
         }

@@ -26,4 +26,6 @@ public interface ConfigDataService
                           Boolean daemonValue );
 
     void deleteOperation( Long operationId );
+
+    Profile getProfileById( Long id );
 }
