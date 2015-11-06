@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.vaadin.server.Page;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +13,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.Property;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
@@ -224,15 +223,9 @@ public class ManageContainersStep extends Panel
             {
                 tempSet.add( c.getTemplateName() );
             }
-            boolean set = false;
             for ( String s : tempSet )
             {
                 templates.addItem( s );
-                if ( !set )
-                {
-                    templates.setValue( s );
-                    set = true;
-                }
             }
         }
     }

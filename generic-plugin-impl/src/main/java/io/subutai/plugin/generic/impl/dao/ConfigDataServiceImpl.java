@@ -224,4 +224,29 @@ public class ConfigDataServiceImpl implements ConfigDataService
             daoManager.closeEntityManager( em );
         }
     }
+
+
+    @Override
+    public Profile getProfileById( final Long id )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        Profile profile = null;
+        try
+        {
+            daoManager.startTransaction( em );
+            profile = em.find( ProfileEntity.class, id );
+            daoManager.commitTransaction( em );
+        }
+        catch ( Exception ex )
+        {
+            daoManager.rollBackTransaction( em );
+            LOG.error( "ConfigDataService deleteOperation:" + ex.toString() );
+        }
+        finally
+        {
+            daoManager.closeEntityManager( em );
+        }
+
+        return profile;
+    }
 }
