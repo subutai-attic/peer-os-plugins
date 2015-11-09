@@ -1,7 +1,7 @@
 <features name="generic-plugin" version="4.0.0-RC3">
-	<feature name="generic-plugin" version="4.0.0-RC3">
-		<bundle>mvn:io.subutai/generic-plugin-api/4.0.0-RC3</bundle>
-		<bundle>mvn:io.subutai/generic-plugin-impl/4.0.0-RC3</bundle>
-		<bundle>mvn:io.subutai/generic-plugin-ui/4.0.0-RC3</bundle>
-	</feature>
+  <feature name="generic-plugin" version="4.0.0-RC3">
+    <bundle>mvn:io.subutai/generic-plugin-api/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/generic-plugin-impl/4.0.0-RC3</bundle>
+    <bundle>mvn:io.subutai/generic-plugin-ui/4.0.0-RC3</bundle>
+  </feature>
 </features>

@@ -110,8 +110,8 @@ public class ProfileCreationStep extends Panel
                     {
                         genericPlugin.saveProfile( newProfile.getValue() );
                         populateTable();
-//                        wizard.changeWindow( 0 );
-//                        wizard.putForm();
+                        //                        wizard.changeWindow( 0 );
+                        //                        wizard.putForm();
                         show( "Profile successfully created" );
                     }
                 }
@@ -130,6 +130,7 @@ public class ProfileCreationStep extends Panel
 
         this.setContent( panel );
     }
+
 
     private void populateTable()
     {
@@ -161,13 +162,11 @@ public class ProfileCreationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                wizard.setCurrentPluginId( profile.getId() );
+                wizard.setCurrentProfileId( profile.getId() );
                 wizard.changeWindow( 2 );
                 wizard.putForm();
-
             }
         } );
-
     }
 
 
@@ -191,6 +190,7 @@ public class ProfileCreationStep extends Panel
         notif.show( Page.getCurrent() );
     }
 
+
     private Table createTableTemplate( final String tableName )
     {
         final Table table = new Table( tableName );
@@ -203,5 +203,4 @@ public class ProfileCreationStep extends Panel
 
         return table;
     }
-
 }

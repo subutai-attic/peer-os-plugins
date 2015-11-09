@@ -42,4 +42,9 @@ public interface Operation
 
 
     void setOperationId( final Long operationId );
+
+
+    Boolean getScript();
+
+    void setScript( final Boolean script );
 }

@@ -55,6 +55,7 @@ public class ConfigureOperationStep extends Panel
     private TextField newCommand;
     private Window uploadWindow;
     private Wizard wizard;
+    private boolean fromFile = false;
 
 
     class MyUploader implements Upload.Receiver, Upload.SucceededListener, Upload.FailedListener
@@ -66,22 +67,30 @@ public class ConfigureOperationStep extends Panel
         @Override
         public OutputStream receiveUpload( String filename, String MIMEType )
         {
-            FileOutputStream fos;
-            new File( "/tmp/uploads" ).mkdirs();
-            this.file = new File( "/tmp/uploads/" + filename );
-            this.path = new String( "/tmp/uploads/" + filename );
-            try
+            if ( filename != null && !filename.isEmpty() )
             {
-                fos = new FileOutputStream( this.file );
+                FileOutputStream fos;
+                new File( "/tmp/uploads" ).mkdirs();
+                this.file = new File( "/tmp/uploads/" + filename );
+                this.path = new String( "/tmp/uploads/" + filename );
+                try
+                {
+                    fos = new FileOutputStream( this.file );
+                }
+                catch ( final java.io.FileNotFoundException e )
+                {
+                    // Error while opening the file
+                    // TODO: notify that file is not opened
+                    return null;
+                }
+
+                return fos;
             }
-            catch ( final java.io.FileNotFoundException e )
+            else
             {
-                // Error while opening the file
-                // TODO: notify that file is not opened
+                show( "Please select file" );
                 return null;
             }
-
-            return fos;
         }
 
 
@@ -93,10 +102,13 @@ public class ConfigureOperationStep extends Panel
                 byte[] encoded = Files.readAllBytes( Paths.get( this.path ) );
                 newCommand.setValue( new String( encoded ) );
                 FileUtils.deleteDirectory( new File( "/tmp" ) );
+                fromFile = true;
                 uploadWindow.close();
+                show( "File is uploaded" );
             }
             catch ( IOException e )
             {
+                show( "Server is busy, please try again" );
                 // TODO: file is not saved
             }
         }
@@ -105,6 +117,7 @@ public class ConfigureOperationStep extends Panel
         @Override
         public void uploadFailed( Upload.FailedEvent event )
         {
+            show( "Upload failed, please try again" );
             // TODO: Log the failure on screen.
         }
     }
@@ -330,7 +343,7 @@ public class ConfigureOperationStep extends Panel
                     else
                     {
                         genericPlugin.saveOperation( current.getId(), newName.getValue(), newCommand.getValue(),
-                                cwd.getValue(), timeOut.getValue(), daemon.getValue() );
+                                cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
                         show( "Operation saved successfully!" );
                         refreshUI();
                     }
@@ -540,8 +553,9 @@ public class ConfigureOperationStep extends Panel
                         else
                         {
                             genericPlugin.updateOperation( operation, editCommand.getValue(), editCwd.getValue(),
-                                    editTimeout.getValue(), editDaemon.getValue() );
+                                    editTimeout.getValue(), editDaemon.getValue(), fromFile );
                             show( "Operation saved successfully!" );
+                            fromFile = false;
                             subWindow.close();
                             refreshUI();
                         }
@@ -589,7 +603,7 @@ public class ConfigureOperationStep extends Panel
                 profileSelect.setItemCaption( pi, pi.getName() );
             }
 
-            Long currentProfileId = wizard.getCurrentPluginId();
+            Long currentProfileId = wizard.getCurrentProfileId();
             if ( currentProfileId != null )
             {
                 for ( final Profile pi : profileInfo )
@@ -600,6 +614,12 @@ public class ConfigureOperationStep extends Panel
                         profileSelect.setItemCaption( pi, pi.getName() );
                     }
                 }
+            }
+            else
+            {
+                Profile temp = profileInfo.get( 0 );
+                profileSelect.setValue( temp );
+                profileSelect.setItemCaption( temp, temp.getName() );
             }
         }
     }

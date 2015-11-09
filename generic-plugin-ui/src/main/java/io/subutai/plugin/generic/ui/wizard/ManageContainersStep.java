@@ -180,7 +180,7 @@ public class ManageContainersStep extends Panel
             }
         }
 
-        Environment currentEvn = ( Environment ) envSelect.getValue();
+        Environment currentEnv = ( Environment ) envSelect.getValue();
         envSelect.removeAllItems();
         Set<Environment> environments = wizard.getManager().getEnvironments();
         if ( environments != null && !environments.isEmpty() )
@@ -190,11 +190,11 @@ public class ManageContainersStep extends Panel
                 envSelect.addItem( environment );
                 envSelect.setItemCaption( environment, environment.getName() );
             }
-            if ( currentEvn != null )
+            if ( currentEnv != null )
             {
                 for ( Environment env : environments )
                 {
-                    if ( env.getName().equals( currentEvn.getName() ) )
+                    if ( env.getName().equals( currentEnv.getName() ) )
                     {
                         envSelect.setValue( env );
                     }
@@ -223,6 +223,9 @@ public class ManageContainersStep extends Panel
             {
                 tempSet.add( c.getTemplateName() );
             }
+            templates.addItem( "all" );
+            templates.setValue( "all" );
+            currentTemplate = "all";
             for ( String s : tempSet )
             {
                 templates.addItem( s );
@@ -254,7 +257,7 @@ public class ManageContainersStep extends Panel
         {
             Set<EnvironmentContainerHost> hosts = currentEnvironment.getContainerHosts();
 
-            if ( currentTemplate == null )
+            if ( currentTemplate == "all" )
             {
                 populateTable( containerTable, hosts, currentProfile );
             }
@@ -322,35 +325,7 @@ public class ManageContainersStep extends Panel
                             genericPlugin.executeCommandOnContainer( host, ( Operation ) operationSelect.getValue() ) );
                 }
             } );
-            // addClickListenerToExecuteButton( executeBtn, host, ( Operation ) operationSelect.getValue() );
         }
-    }
-
-
-    private void addClickListenerToExecuteButton( final Button executeBtn, final ContainerHost host,
-                                                  final Operation operation )
-    {
-        executeBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                addOutput( genericPlugin.executeCommandOnContainer( host, operation ) );
-            }
-        } );
-    }
-
-
-    private Button getButton( String caption, Button... buttons )
-    {
-        for ( Button b : buttons )
-        {
-            if ( b.getCaption().equals( caption ) )
-            {
-                return b;
-            }
-        }
-        return null;
     }
 
 
@@ -360,13 +335,5 @@ public class ManageContainersStep extends Panel
         {
             b.addStyleName( BUTTON_STYLE_NAME );
         }
-    }
-
-
-    private void show( String notification )
-    {
-        Notification notif = new Notification( notification );
-        notif.setDelayMsec( 2000 );
-        notif.show( Page.getCurrent() );
     }
 }

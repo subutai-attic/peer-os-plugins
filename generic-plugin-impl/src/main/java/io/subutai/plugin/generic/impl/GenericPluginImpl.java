@@ -46,9 +46,9 @@ public class GenericPluginImpl implements GenericPlugin
 
     @Override
     public void saveOperation( final Long profileId, final String operationName, final String commandName,
-                               final String cwd, final String timeout, final Boolean daemon )
+                               final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
-        configDataService.saveOperation( profileId, operationName, commandName, cwd, timeout, daemon );
+        configDataService.saveOperation( profileId, operationName, commandName, cwd, timeout, daemon, fromFile );
     }
 
 
@@ -68,9 +68,9 @@ public class GenericPluginImpl implements GenericPlugin
 
     @Override
     public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
     {
-        configDataService.updateOperation( operation, commandValue, cwdValue, timeoutValue, daemonValue );
+        configDataService.updateOperation( operation, commandValue, cwdValue, timeoutValue, daemonValue, fromFile );
     }
 
 
@@ -86,18 +86,5 @@ public class GenericPluginImpl implements GenericPlugin
     {
         ExecutorManager manager = new ExecutorManager( host, operation );
         return manager.execute();
-    }
-
-
-    @Override
-    public Profile getProfileById( final Long id )
-    {
-        return configDataService.getProfileById( id );
-    }
-
-
-    public ConfigDataService getConfigDataService()
-    {
-        return configDataService;
     }
 }

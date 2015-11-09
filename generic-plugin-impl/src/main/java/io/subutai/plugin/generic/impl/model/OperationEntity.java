@@ -40,7 +40,7 @@ public class OperationEntity implements Operation
     @Column( name = "daemon" )
     private Boolean daemon;
 
-    @Column( name = "script")
+    @Column( name = "script" )
     private Boolean script;
 
 
