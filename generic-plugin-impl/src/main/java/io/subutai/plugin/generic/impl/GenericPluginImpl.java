@@ -14,90 +14,77 @@ import io.subutai.plugin.generic.impl.dao.ConfigDataServiceImpl;
 
 public class GenericPluginImpl implements GenericPlugin
 {
-    private DaoManager daoManager;
-    private ConfigDataService configDataService;
+	private DaoManager daoManager;
+	private ConfigDataService configDataService;
 
 
-    public GenericPluginImpl( final DaoManager daoManager )
-    {
-        this.daoManager = daoManager;
-    }
+	public GenericPluginImpl (final DaoManager daoManager)
+	{
+		this.daoManager = daoManager;
+	}
 
 
-    public void init()
-    {
-        configDataService = new ConfigDataServiceImpl( daoManager );
-    }
+	public void init ()
+	{
+		configDataService = new ConfigDataServiceImpl (daoManager);
+	}
 
 
-    @Override
-    public void saveProfile( final String profileName )
-    {
-        configDataService.saveProfile( profileName );
-    }
+	@Override
+	public void saveProfile (final String profileName)
+	{
+		configDataService.saveProfile (profileName);
+	}
 
 
-    @Override
-    public List<Profile> getProfiles()
-    {
-        return configDataService.getAllProfiles();
-    }
+	@Override
+	public List<Profile> getProfiles ()
+	{
+		return configDataService.getAllProfiles ();
+	}
 
 
-    @Override
-    public void saveOperation( final Long profileId, final String operationName, final String commandName,
-                               final String cwd, final String timeout, final Boolean daemon )
-    {
-        configDataService.saveOperation( profileId, operationName, commandName, cwd, timeout, daemon );
-    }
+	@Override
+	public void saveOperation (final Long profileId, final String operationName, final String commandName,
+							   final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile)
+	{
+		configDataService.saveOperation (profileId, operationName, commandName, cwd, timeout, daemon, fromFile);
+	}
 
 
-    @Override
-    public List<Operation> getProfileOperations( final Long profileId )
-    {
-        return configDataService.getOperations( profileId );
-    }
+	@Override
+	public List<Operation> getProfileOperations (final Long profileId)
+	{
+		return configDataService.getOperations (profileId);
+	}
 
 
-    @Override
-    public boolean IsOperationRegistered( final String operationName )
-    {
-        return configDataService.isOperationRegistered( operationName );
-    }
+	@Override
+	public boolean IsOperationRegistered (final String operationName)
+	{
+		return configDataService.isOperationRegistered (operationName);
+	}
 
 
-    @Override
-    public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue )
-    {
-        configDataService.updateOperation( operation, commandValue, cwdValue, timeoutValue, daemonValue );
-    }
+	@Override
+	public void updateOperation (final Operation operation, final String commandValue, final String cwdValue,
+								 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile)
+	{
+		configDataService.updateOperation (operation, commandValue, cwdValue, timeoutValue, daemonValue, fromFile);
+	}
 
 
-    @Override
-    public void deleteOperation( final Long operationId )
-    {
-        configDataService.deleteOperation( operationId );
-    }
+	@Override
+	public void deleteOperation (final Long operationId)
+	{
+		configDataService.deleteOperation (operationId);
+	}
 
 
-    @Override
-    public String executeCommandOnContainer( final ContainerHost host, final Operation operation )
-    {
-        ExecutorManager manager = new ExecutorManager( host, operation );
-        return manager.execute();
-    }
-
-
-    @Override
-    public Profile getProfileById( final Long id )
-    {
-        return configDataService.getProfileById( id );
-    }
-
-
-    public ConfigDataService getConfigDataService()
-    {
-        return configDataService;
-    }
+	@Override
+	public String executeCommandOnContainer (final ContainerHost host, final Operation operation)
+	{
+		ExecutorManager manager = new ExecutorManager (host, operation);
+		return manager.execute ();
+	}
 }

@@ -10,11 +10,11 @@ import io.subutai.plugin.generic.impl.model.ProfileEntity;
  */
 public class ConfigManager
 {
-    private Profile profile = new ProfileEntity();
+	private Profile profile = new ProfileEntity ();
 
 
-    public void addProfile( final String profileName )
-    {
-        profile.setName( profileName );
-    }
+	public void addProfile (final String profileName)
+	{
+		profile.setName (profileName);
+	}
 }

@@ -16,20 +16,20 @@
 	<packaging>bundle</packaging>
 
 	<dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>environment-manager-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>template-registry-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-custom</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>environment-manager-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>template-registry-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>vaadin-custom</artifactId>
+		</dependency>
 
-    <dependency>
+		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-server</artifactId>
 			<version>7.5.8</version>
@@ -65,12 +65,12 @@
 			<version>7.5.8</version>
 			<scope>provided</scope>
 		</dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.12</version>
-    </dependency>
-  </dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.12</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
