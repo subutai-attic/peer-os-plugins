@@ -40,6 +40,9 @@ public class OperationEntity implements Operation
     @Column( name = "daemon" )
     private Boolean daemon;
 
+    @Column( name = "script")
+    private Boolean script;
+
 
     public String getOperationName()
     {
@@ -122,5 +125,17 @@ public class OperationEntity implements Operation
     public void setOperationId( final Long operationId )
     {
         this.operationId = operationId;
+    }
+
+
+    public Boolean getScript()
+    {
+        return script;
+    }
+
+
+    public void setScript( final Boolean script )
+    {
+        this.script = script;
     }
 }
