@@ -14,7 +14,7 @@ public interface ConfigDataService
     List<Profile> getAllProfiles();
 
     void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
-                        Boolean daemon );
+                        Boolean daemon, Boolean fromFile );
 
     List<Operation> getOperations( Long profileId );
 
@@ -23,9 +23,7 @@ public interface ConfigDataService
     Operation getOperationByName( String operationName );
 
     void updateOperation( Operation operation, String commandValue, String cwdValue, String timeoutValue,
-                          Boolean daemonValue );
+                          Boolean daemonValue, Boolean fromFile );
 
     void deleteOperation( Long operationId );
-
-    Profile getProfileById( Long id );
 }

@@ -81,7 +81,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
     @Override
     public void saveOperation( final Long profileId, final String operationName, final String commandName,
-                               final String cwd, final String timeout, final Boolean daemon )
+                               final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
         Operation operation = new OperationEntity();
         operation.setProfileId( profileId );
@@ -90,6 +90,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
         operation.setCwd( cwd );
         operation.setTimeout( timeout );
         operation.setDaemon( daemon );
+        operation.setScript( fromFile );
 
         EntityManager em = daoManager.getEntityManagerFactory().createEntityManager();
 
@@ -173,7 +174,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
     @Override
     public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
 
@@ -185,6 +186,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
             entity.setCwd( commandValue );
             entity.setTimeout( timeoutValue );
             entity.setDaemon( daemonValue );
+            entity.setScript( fromFile );
             em.merge( entity );
             em.flush();
             daoManager.commitTransaction( em );
@@ -223,30 +225,5 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.closeEntityManager( em );
         }
-    }
-
-
-    @Override
-    public Profile getProfileById( final Long id )
-    {
-        EntityManager em = daoManager.getEntityManagerFromFactory();
-        Profile profile = null;
-        try
-        {
-            daoManager.startTransaction( em );
-            profile = em.find( ProfileEntity.class, id );
-            daoManager.commitTransaction( em );
-        }
-        catch ( Exception ex )
-        {
-            daoManager.rollBackTransaction( em );
-            LOG.error( "ConfigDataService deleteOperation:" + ex.toString() );
-        }
-        finally
-        {
-            daoManager.closeEntityManager( em );
-        }
-
-        return profile;
     }
 }

@@ -16,7 +16,7 @@ public class Wizard
     private TemplateRegistry registry;
     private EnvironmentManager manager;
     private GenericPlugin genericPlugin;
-    private Long currentPluginId;
+    private Long currentProfileId;
 
 
     public Wizard( TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin )
@@ -101,14 +101,14 @@ public class Wizard
     }
 
 
-    public void setCurrentPluginId( Long id )
+    public void setCurrentProfileId( Long id )
     {
-        currentPluginId = id;
+        currentProfileId = id;
     }
 
 
-    public Long getCurrentPluginId()
+    public Long getCurrentProfileId()
     {
-        return currentPluginId;
+        return currentProfileId;
     }
 }

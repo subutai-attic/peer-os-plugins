@@ -1,20 +1,16 @@
 package io.subutai.plugin.generic.impl;
 
 
-import java.util.concurrent.ExecutorService;
+import java.io.*;
+import java.util.UUID;
+
+import io.subutai.common.command.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
-import io.subutai.common.command.CommandCallback;
-import io.subutai.common.command.CommandException;
-import io.subutai.common.command.CommandResult;
-import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.command.Response;
-import io.subutai.common.command.ResponseType;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.plugin.generic.api.model.Operation;
 
@@ -26,6 +22,7 @@ public class ExecutorManager
     private String output;
     private ContainerHost containerHost;
     private Operation operation;
+    private RequestBuilder requestBuilder;
 
 
     public ExecutorManager( final ContainerHost host, final Operation operation )
@@ -35,21 +32,46 @@ public class ExecutorManager
     }
 
 
-    public String execute()
+    private String parseCommand()
     {
-        final RequestBuilder requestBuilder = new RequestBuilder( operation.getCommandName() );
-        requestBuilder.withCwd( operation.getCwd() );
-        // TODO: timeout cannot be float???
-        requestBuilder.withTimeout( Integer.parseInt( operation.getTimeout() ) );
-        if ( operation.getDaemon() )
+        StringBuilder command = new StringBuilder( operation.getCommandName() );
+        StringBuilder result = new StringBuilder( operation.getCommandName() );
+        int counter = 0;
+        for ( int i = 0; i < command.length(); ++i )
         {
-            requestBuilder.daemon();
+            if ( command.charAt( i ) == '\n' )
+            {
+                LOG.info( "1 " + String.valueOf( counter ) + " " + String.valueOf( i ) );
+                result.setCharAt( i + counter, '\\' );
+                result.insert( i + counter + 1, 'n' );
+                ++counter;
+            }
+            else if ( command.charAt( i ) == '\"' )
+            {
+                LOG.info( "2 " + String.valueOf( counter ) + " " + String.valueOf( i ) );
+                result.insert( i + counter, '\\' );
+                ++counter;
+            }
+            else if ( command.charAt( i ) == '\\' )
+            {
+                LOG.info( "3 " + String.valueOf( counter ) + " " + String.valueOf( i ) );
+                result.insert( i + counter, '\\' );
+                ++counter;
+            }
+            else if ( command.charAt( i ) == '$' )
+            {
+                LOG.info( "4 " + String.valueOf( counter ) + " " + String.valueOf( i ) );
+                result.insert( i + counter, '\\' );
+                ++counter;
+            }
         }
-        /* executor.execute (new Runnable()
-		{
-			@Override
-			public void run()
-			{*/
+        LOG.info( "Parsed:\n" + command.toString() );
+        return result.toString();
+    }
+
+
+    private void executeOnContainer()
+    {
         try
         {
             containerHost.execute( requestBuilder, new CommandCallback()
@@ -80,7 +102,6 @@ public class ExecutorManager
 
                     if ( out.length() > 0 )
                     {
-                        LOG.info( "out is:\n" + out );
                         output = String.format( "%s [%d]:%n%s", containerHost.getHostname(), response.getPid(), out );
                     }
                 }
@@ -91,10 +112,52 @@ public class ExecutorManager
             LOG.error( "Error in ExecuteCommandTask", e );
             output = e.getMessage() + "\n";
         }
-		/*	}
-		});*/
+    }
 
-        LOG.info( "Output is:\n" + output );
+
+    public String execute()
+    {
+        if ( operation.getScript() )
+        {
+            String uuid = UUID.randomUUID().toString();
+            requestBuilder = new RequestBuilder( "rm -rf " + uuid + ".sh" );
+            try
+            {
+
+                containerHost.execute( requestBuilder );
+                requestBuilder = new RequestBuilder( "echo \"" + parseCommand() + " \" > " + uuid + ".sh" );
+                containerHost.execute( requestBuilder );
+                requestBuilder = new RequestBuilder( "chmod 777 " + uuid + ".sh" );
+                containerHost.execute( requestBuilder );
+                requestBuilder = new RequestBuilder( "bash " + uuid + ".sh" );
+                this.executeOnContainer();
+                requestBuilder = new RequestBuilder( "rm -rf " + uuid + ".sh" );
+                containerHost.execute( requestBuilder );
+            }
+            catch ( CommandException e )
+            {
+                LOG.error( "script failed to be created" );
+            }
+        }
+        else
+        {
+            requestBuilder = new RequestBuilder( operation.getCommandName() );
+            requestBuilder.withCwd( operation.getCwd() );
+            // TODO: timeout cannot be float???
+            requestBuilder.withTimeout( Integer.parseInt( operation.getTimeout() ) );
+            if ( operation.getDaemon() )
+            {
+                requestBuilder.daemon();
+            }
+            /* executor.execute (new Runnable()
+			{
+				@Override
+				public void run()
+				{*/
+            this.executeOnContainer();
+			/*	}
+			});*/
+        }
         return output;
     }
 }
