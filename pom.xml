@@ -24,6 +24,7 @@
     <module>generic-plugin-impl</module>
     <module>generic-plugin-ui</module>
     <module>generic-plugin-kar</module>
+    <module>generic-plugin-rest</module>
   </modules>
 
   <dependencyManagement>
