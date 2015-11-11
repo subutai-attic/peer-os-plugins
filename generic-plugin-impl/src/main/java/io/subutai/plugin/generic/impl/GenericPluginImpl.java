@@ -15,6 +15,22 @@ import io.subutai.plugin.generic.impl.dao.ConfigDataServiceImpl;
 public class GenericPluginImpl implements GenericPlugin
 {
     private DaoManager daoManager;
+
+
+    @Override
+    public ConfigDataService getConfigDataService()
+    {
+        return configDataService;
+    }
+
+
+    @Override
+    public void deleteProfile( final Long profileId )
+    {
+        configDataService.deleteProfile( profileId );
+    }
+
+
     private ConfigDataService configDataService;
 
 
@@ -67,10 +83,10 @@ public class GenericPluginImpl implements GenericPlugin
 
 
     @Override
-    public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
+    public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
                                  final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
     {
-        configDataService.updateOperation( operation, commandValue, cwdValue, timeoutValue, daemonValue, fromFile );
+        configDataService.updateOperation( operationId, commandValue, cwdValue, timeoutValue, daemonValue, fromFile );
     }
 
 

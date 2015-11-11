@@ -11,14 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.vaadin.annotations.Theme;
 import com.vaadin.data.Property;
-import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextArea;
@@ -32,7 +29,6 @@ import io.subutai.plugin.generic.api.model.Operation;
 import io.subutai.plugin.generic.api.model.Profile;
 
 
-@Theme( "valo" )
 public class ManageContainersStep extends Panel
 {
     private static final Logger LOG = LoggerFactory.getLogger( Wizard.class.getName() );

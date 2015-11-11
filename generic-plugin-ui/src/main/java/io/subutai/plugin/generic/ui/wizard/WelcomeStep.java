@@ -1,11 +1,18 @@
 package io.subutai.plugin.generic.ui.wizard;
 
 
-import com.vaadin.annotations.Theme;
+import java.util.List;
+
 import com.vaadin.server.FileResource;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
 
 import io.subutai.common.util.FileUtil;
 import io.subutai.plugin.generic.api.GenericPlugin;
@@ -13,10 +20,7 @@ import io.subutai.plugin.generic.api.model.Operation;
 import io.subutai.plugin.generic.api.model.Profile;
 import io.subutai.plugin.generic.ui.GenericPluginPortalModule;
 
-import java.util.List;
 
-
-@Theme( "valo" )
 public class WelcomeStep extends Panel
 {
     public WelcomeStep( final Wizard wizard, final GenericPlugin genericPlugin )

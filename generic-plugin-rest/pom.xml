@@ -9,21 +9,17 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>generic-plugin-ui</artifactId>
-
-  <name>Generic Plugin UI</name>
-  <description>Generic Plugin UI</description>
+  <artifactId>generic-plugin-rest</artifactId>
+  <name>Generic Plugin REST</name>
+  <description>Generic Plugin REST</description>
   <packaging>bundle</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>environment-manager-api</artifactId>
+      <artifactId>subutai-common</artifactId>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>template-registry-api</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>generic-plugin-api</artifactId>
@@ -35,10 +31,15 @@
       <version>1.7.12</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-custom</artifactId>
+      <groupId>org.apache.servicemix.bundles</groupId>
+      <artifactId>org.apache.servicemix.bundles.junit</artifactId>
+      <scope>test</scope>
     </dependency>
-
+    <!--CXF-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -48,7 +49,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.generic.ui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.generic.rest</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>

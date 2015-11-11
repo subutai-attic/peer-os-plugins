@@ -552,7 +552,7 @@ public class ConfigureOperationStep extends Panel
                         }
                         else
                         {
-                            genericPlugin.updateOperation( operation, editCommand.getValue(), editCwd.getValue(),
+                            genericPlugin.updateOperation( operation.getOperationId(), editCommand.getValue(), editCwd.getValue(),
                                     editTimeout.getValue(), editDaemon.getValue(), fromFile );
                             show( "Operation saved successfully!" );
                             fromFile = false;

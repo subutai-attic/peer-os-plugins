@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gwt.thirdparty.guava.common.base.Strings;
-import com.vaadin.annotations.Theme;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
@@ -21,7 +20,6 @@ import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.model.Profile;
 
 
-@Theme( "valo" )
 public class ProfileCreationStep extends Panel
 {
     private static final String CONFIGURE_BUTTON_CAPTION = "Configure Operations";
