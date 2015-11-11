@@ -22,8 +22,10 @@ public interface ConfigDataService
 
     Operation getOperationByName( String operationName );
 
-    void updateOperation( Operation operation, String commandValue, String cwdValue, String timeoutValue,
+    void updateOperation( Long operationId, String commandValue, String cwdValue, String timeoutValue,
                           Boolean daemonValue, Boolean fromFile );
 
     void deleteOperation( Long operationId );
+
+    void deleteProfile( Long profileId );
 }

@@ -173,7 +173,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
 
     @Override
-    public void updateOperation( final Operation operation, final String commandValue, final String cwdValue,
+    public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
                                  final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
@@ -181,7 +181,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
         try
         {
             daoManager.startTransaction( em );
-            OperationEntity entity = em.find( OperationEntity.class, operation.getOperationId() );
+            OperationEntity entity = em.find( OperationEntity.class, operationId );
             entity.setCommandName( commandValue );
             entity.setCwd( commandValue );
             entity.setTimeout( timeoutValue );
@@ -212,6 +212,31 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.startTransaction( em );
             OperationEntity entity = em.find( OperationEntity.class, operationId );
+            em.remove( entity );
+            em.flush();
+            daoManager.commitTransaction( em );
+        }
+        catch ( Exception ex )
+        {
+            daoManager.rollBackTransaction( em );
+            LOG.error( "ConfigDataService deleteOperation:" + ex.toString() );
+        }
+        finally
+        {
+            daoManager.closeEntityManager( em );
+        }
+    }
+
+
+    @Override
+    public void deleteProfile( final Long profileId )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+
+        try
+        {
+            daoManager.startTransaction( em );
+            ProfileEntity entity = em.find( ProfileEntity.class, profileId );
             em.remove( entity );
             em.flush();
             daoManager.commitTransaction( em );
