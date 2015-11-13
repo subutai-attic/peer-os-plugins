@@ -23,6 +23,7 @@ import io.subutai.plugin.generic.api.model.Profile;
 public class ProfileCreationStep extends Panel
 {
     private static final String CONFIGURE_BUTTON_CAPTION = "Configure Operations";
+    private static final String DELETE_BUTTON_CAPTION = "Delete";
     private GenericPlugin genericPlugin;
     private Wizard wizard;
     private static final Logger LOG = LoggerFactory.getLogger( ProfileCreationStep.class.getName() );
@@ -62,7 +63,8 @@ public class ProfileCreationStep extends Panel
 
         profileTable = new Table( "Profiles" );
         profileTable.addContainerProperty( "Profile name", String.class, null );
-        profileTable.addContainerProperty( "Action", Button.class, null );
+        //        profileTable.addContainerProperty( "Action", Button.class, null );
+        profileTable.addContainerProperty( "Actions", HorizontalLayout.class, null );
         profileTable.setSizeFull();
         profileTable.setPageLength( 10 );
         profileTable.setSelectable( false );
@@ -142,12 +144,21 @@ public class ProfileCreationStep extends Panel
             {
                 final Button configureBtn = new Button( CONFIGURE_BUTTON_CAPTION );
                 configureBtn.addStyleName( "default" );
+                final Button deleteBtn = new Button( DELETE_BUTTON_CAPTION );
+                deleteBtn.addStyleName( "default" );
+
+                final HorizontalLayout availableOperations = new HorizontalLayout();
+                availableOperations.addStyleName( "default" );
+                availableOperations.setSpacing( true );
+
+                addGivenComponents( availableOperations, configureBtn, deleteBtn );
 
                 profileTable.addItem( new Object[] {
-                        profile.getName(), configureBtn
+                        profile.getName(), availableOperations
                 }, null );
 
                 addClickListenerToConfigureButton( configureBtn, profile );
+                addClickListenerToDeleteButton( deleteBtn, profile );
             }
         }
     }
@@ -163,6 +174,21 @@ public class ProfileCreationStep extends Panel
                 wizard.setCurrentProfileId( profile.getId() );
                 wizard.changeWindow( 2 );
                 wizard.putForm();
+            }
+        } );
+    }
+
+
+    private void addClickListenerToDeleteButton( final Button deleteBtn, final Profile profile )
+    {
+        getButton( DELETE_BUTTON_CAPTION, deleteBtn ).addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( Button.ClickEvent event )
+            {
+                genericPlugin.deleteProfile( profile.getId() );
+                populateTable();
+                show( "Profile deleted successfully" );
             }
         } );
     }
@@ -200,5 +226,14 @@ public class ProfileCreationStep extends Panel
         table.setImmediate( true );
 
         return table;
+    }
+
+
+    private void addGivenComponents( HorizontalLayout layout, Button... buttons )
+    {
+        for ( Button b : buttons )
+        {
+            layout.addComponent( b );
+        }
     }
 }
