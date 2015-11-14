@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -40,7 +41,7 @@ public class ConfigureOperationStep extends Panel
 {
     private static final Logger LOG = LoggerFactory.getLogger( ConfigureOperationStep.class.getName() );
     protected static final String BUTTON_STYLE_NAME = "default";
-    private TextField cwd = new TextField( "cwd" );
+    private TextField cwd = new TextField( "CWD" );
     private TextField timeOut = new TextField( "Timeout" );
     private CheckBox daemon = new CheckBox( "Daemon" );
 
@@ -53,9 +54,11 @@ public class ConfigureOperationStep extends Panel
 
     private Table operationTable;
     private TextField newCommand;
+    private TextField newName;
     private Window uploadWindow;
     private Wizard wizard;
     private boolean fromFile = false;
+    private CheckBox scriptCheck;
 
 
     class MyUploader implements Upload.Receiver, Upload.SucceededListener, Upload.FailedListener
@@ -104,6 +107,8 @@ public class ConfigureOperationStep extends Panel
                 FileUtils.deleteDirectory( new File( "/tmp" ) );
                 fromFile = true;
                 uploadWindow.close();
+                scriptCheck.setValue( true );
+                newCommand.setEnabled( false );
                 show( "File is uploaded" );
             }
             catch ( IOException e )
@@ -131,9 +136,10 @@ public class ConfigureOperationStep extends Panel
         operationTable = createTableTemplate( "Operations" );
 
         content = new VerticalLayout();
-        title = new Label( "Configure operations" );
+        title = new Label( "<h2>Configure operations</h2>" );
+        title.setContentMode( ContentMode.HTML );
 
-        profileSelect = new ComboBox( "Profile" );
+        profileSelect = new ComboBox( "Choose Profile" );
         profileSelect.setNullSelectionAllowed( false );
         profileSelect.setTextInputAllowed( false );
         profileSelect.addValueChangeListener( new Property.ValueChangeListener()
@@ -151,11 +157,11 @@ public class ConfigureOperationStep extends Panel
         fieldGrid.setSpacing( true );
         fieldGrid.setWidth( "100%" );
 
-        final TextField newName = new TextField( "New operation name" );
+        newName = new TextField( "Operation name" );
         newName.setInputPrompt( "Enter new operation name" );
         newName.setRequired( true );
 
-        newCommand = new TextField( "New command" );
+        newCommand = new TextField( "Command" );
         newCommand.setRequired( true );
         newCommand.setInputPrompt( "Enter new command" );
 
@@ -177,6 +183,10 @@ public class ConfigureOperationStep extends Panel
         timeOut.setData( "30" );
         daemon.setValue( false );
         daemon.setData( false );
+
+        scriptCheck = new CheckBox( "Script" );
+        scriptCheck.setEnabled( false );
+        scriptCheck.setValue( false );
 
         Button options = new Button( "Options" );
         options.addStyleName( BUTTON_STYLE_NAME );
@@ -225,14 +235,19 @@ public class ConfigureOperationStep extends Panel
 
         fieldGrid.addComponent( newName );
         fieldGrid.addComponent( newCommand );
+        fieldGrid.addComponent( cwd );
+        fieldGrid.addComponent( timeOut );
+        fieldGrid.addComponent( daemon );
         // fieldGrid.addComponent (templates);
-        fieldGrid.addComponent( options );
+        //        fieldGrid.addComponent( options );
         fieldGrid.addComponent( addOperation );
+        fieldGrid.addComponent( scriptCheck );
         fieldGrid.addComponent( uploadScript );
-        fieldGrid.setComponentAlignment( newName, Alignment.BOTTOM_LEFT );
-        fieldGrid.setComponentAlignment( newCommand, Alignment.BOTTOM_LEFT );
+        fieldGrid.setComponentAlignment( daemon, Alignment.BOTTOM_LEFT );
+        fieldGrid.setComponentAlignment( scriptCheck, Alignment.BOTTOM_RIGHT );
+        //        fieldGrid.setComponentAlignment( newCommand, Alignment.BOTTOM_LEFT );
         //fieldGrid.setComponentAlignment (templates, Alignment.BOTTOM_LEFT);
-        fieldGrid.setComponentAlignment( options, Alignment.BOTTOM_LEFT );
+        //        fieldGrid.setComponentAlignment( options, Alignment.BOTTOM_LEFT );
         fieldGrid.setComponentAlignment( addOperation, Alignment.BOTTOM_LEFT );
         fieldGrid.setComponentAlignment( uploadScript, Alignment.BOTTOM_LEFT );
 
@@ -240,6 +255,7 @@ public class ConfigureOperationStep extends Panel
         content.addComponent( profileSelect );
         content.addComponent( fieldGrid );
         content.addComponent( operationTable );
+        content.setSpacing( true );
 
         Button back = new Button( "Back" );
         back.addStyleName( BUTTON_STYLE_NAME );
@@ -335,15 +351,25 @@ public class ConfigureOperationStep extends Panel
                 }
                 else
                 {
+
+
                     Profile current = ( Profile ) profileSelect.getValue();
-                    if ( genericPlugin.IsOperationRegistered( newName.getValue() ) )
+                    boolean exist = false;
+                    for ( final Operation operation : genericPlugin.getProfileOperations( current.getId() ) )
                     {
-                        show( "Operation with such name already exists" );
+                        if ( newName.getValue().equals( operation.getOperationName() ) )
+                        {
+                            show( "Operation with such name already exists" );
+                            exist = true;
+                        }
                     }
-                    else
+
+                    if ( !exist )
                     {
                         genericPlugin.saveOperation( current.getId(), newName.getValue(), newCommand.getValue(),
                                 cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
+                        newCommand.setEnabled( true );
+                        cleanTextBoxes();
                         show( "Operation saved successfully!" );
                         refreshUI();
                     }
@@ -552,8 +578,8 @@ public class ConfigureOperationStep extends Panel
                         }
                         else
                         {
-                            genericPlugin.updateOperation( operation.getOperationId(), editCommand.getValue(), editCwd.getValue(),
-                                    editTimeout.getValue(), editDaemon.getValue(), fromFile );
+                            genericPlugin.updateOperation( operation.getOperationId(), editCommand.getValue(),
+                                    editCwd.getValue(), editTimeout.getValue(), editDaemon.getValue(), fromFile );
                             show( "Operation saved successfully!" );
                             fromFile = false;
                             subWindow.close();
@@ -648,5 +674,12 @@ public class ConfigureOperationStep extends Panel
         Notification notif = new Notification( notification );
         notif.setDelayMsec( 2000 );
         notif.show( Page.getCurrent() );
+    }
+
+
+    private void cleanTextBoxes()
+    {
+        newName.setValue( "" );
+        newCommand.setValue( "" );
     }
 }

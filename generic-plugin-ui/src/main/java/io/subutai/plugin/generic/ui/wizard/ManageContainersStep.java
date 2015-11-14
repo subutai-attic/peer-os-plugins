@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.vaadin.data.Property;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
@@ -57,7 +58,9 @@ public class ManageContainersStep extends Panel
         this.setSizeFull();
 
         content = new VerticalLayout();
-        Label title = new Label( "Manage containers" );
+        content.setSpacing( true );
+        Label title = new Label( "<h2>Manage containers</h2>" );
+        title.setContentMode( ContentMode.HTML );
 
         comboGrid = new HorizontalLayout();
         comboGrid.setWidth( "100%" );
