@@ -12,11 +12,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
@@ -32,6 +35,7 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class HadoopImplTest
 {
+    private static final String LOCAL_PEER_ID = UUID.randomUUID().toString();
     private HadoopImpl hadoopImpl;
     private String id;
 
@@ -57,6 +61,12 @@ public class HadoopImplTest
     @Mock
     EnvironmentContainerHost containerHost;
 
+    @Mock
+    PeerManager peerManager;
+
+    @Mock
+    LocalPeer localPeer;
+
 
     @Before
     public void setUp()
@@ -68,9 +78,11 @@ public class HadoopImplTest
         //when(resultSetMetaData.getColumnCount()).thenReturn(1);
         //when(preparedStatement.executeUpdate()).thenReturn(5);
 
-
+        when( localPeer.getId() ).thenReturn( LOCAL_PEER_ID );
+        when( peerManager.getLocalPeer() ).thenReturn( localPeer );
         hadoopImpl = new HadoopImpl( monitor, pluginDAO );
         //        hadoopImpl.init();
+        hadoopImpl.setPeerManager( peerManager );
         hadoopImpl.setExecutor( executorService );
         hadoopImpl.setTracker( tracker );
         hadoopImpl.setPluginDAO( pluginDAO );
@@ -78,9 +90,9 @@ public class HadoopImplTest
         id = new UUID( 50, 50 ).toString();
 
         // mock ClusterOperationHandler
-        when(trackerOperation.getId()).thenReturn( UUID.randomUUID() );
-        when(tracker.createTrackerOperation(anyString(), anyString())).thenReturn(trackerOperation);
-        when(hadoopClusterConfig.getClusterName()).thenReturn("test");
+        when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
+        when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
+        when( hadoopClusterConfig.getClusterName() ).thenReturn( "test" );
 
         when( hadoopClusterConfig.getEnvironmentId() ).thenReturn( id );
 

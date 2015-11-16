@@ -546,7 +546,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
 
         NodeGroup nodeGroup = new NodeGroup( "Hadoop node group", HadoopClusterConfig.TEMPLATE_NAME,
                 HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(), 1, 1,
-                new PlacementStrategy( "ROUND_ROBIN" ) );
+                new PlacementStrategy( "ROUND_ROBIN" ), peerManager.getLocalPeer().getId() );
         return new Blueprint(
                 String.format( "%s-%s", HadoopClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
                 Sets.newHashSet( nodeGroup ) );

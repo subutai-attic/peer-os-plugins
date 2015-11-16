@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
@@ -89,9 +90,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
                 NodeGroup nodeGroup = new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME,
-                        nodeCount - numberOfContainersNotBeingUsed, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
-                Topology topology = new Topology();
-                topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
+                        nodeCount - numberOfContainersNotBeingUsed, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ),
+                        manager.getPeerManager().getLocalPeer().getId() );
 
 
                 if ( numberOfContainersNotBeingUsed > 0 )
@@ -104,8 +104,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                newlyCreatedContainers =
-                        environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                newlyCreatedContainers = environmentManager.growEnvironment( config.getEnvironmentId(),
+                        new Blueprint( nodeGroupName, null, Sets.newHashSet( nodeGroup ) ), false );
                 for ( EnvironmentContainerHost host : newlyCreatedContainers )
                 {
                     config.getDataNodes().add( host.getId() );

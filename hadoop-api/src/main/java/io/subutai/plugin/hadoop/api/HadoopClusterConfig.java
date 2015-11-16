@@ -30,7 +30,7 @@ public class HadoopClusterConfig implements ConfigBase
     private Set<String> blockedAgents;
     private String environmentId;
     private boolean autoScaling;
-    private Topology topology;
+//    private Topology topology;
 
 
     public HadoopClusterConfig()
@@ -39,7 +39,7 @@ public class HadoopClusterConfig implements ConfigBase
         dataNodes = new ArrayList<>();
         taskTrackers = new ArrayList<>();
         blockedAgents = new HashSet<>();
-        topology = new Topology();
+//        topology = new Topology();
         autoScaling = false;
     }
 
@@ -393,18 +393,18 @@ public class HadoopClusterConfig implements ConfigBase
         this.blockedAgents = blockedAgents;
     }
 
-
-    public Topology getTopology()
-    {
-        return topology;
-    }
-
-
-    public void setTopology( final Topology topology )
-    {
-        this.topology = topology;
-    }
-
+//
+//    public Topology getTopology()
+//    {
+//        return topology;
+//    }
+//
+//
+//    public void setTopology( final Topology topology )
+//    {
+//        this.topology = topology;
+//    }
+//
 
     public boolean isMasterNode( EnvironmentContainerHost containerHost )
     {
