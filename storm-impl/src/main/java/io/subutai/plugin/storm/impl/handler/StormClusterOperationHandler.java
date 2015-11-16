@@ -12,11 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
@@ -24,12 +26,12 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -79,7 +81,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     public void runOperationOnContainers( ClusterOperationType clusterOperationType )
     {
         List<CommandResult> commandResultList = new ArrayList<>();
-        Environment zookeeperEnvironment ;
+        Environment zookeeperEnvironment;
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
@@ -224,11 +226,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup =
                 new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, 1, 0, 0,
-                        new PlacementStrategy( "ROUND_ROBIN" ) );
-
-        Topology topology = new Topology();
-
-        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+                        new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
 
         EnvironmentContainerHost newNode;
         try
@@ -245,7 +243,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
+                            new Blueprint( StormClusterConfiguration.PRODUCT_KEY, null, Sets.newHashSet( nodeGroup ) ),
+                            false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
@@ -340,7 +340,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
 
         String zk_servers = makeZookeeperServersList( config );
-        EnvironmentContainerHost nimbusHost ;
+        EnvironmentContainerHost nimbusHost;
         try
         {
             nimbusHost = environment.getContainerHostById( config.getNimbus() );
@@ -429,7 +429,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                             e );
                     return "";
                 }
-                Set<EnvironmentContainerHost> zookeeperNodes ;
+                Set<EnvironmentContainerHost> zookeeperNodes;
                 try
                 {
                     zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
@@ -453,7 +453,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         }
         else if ( config.getNimbus() != null )
         {
-            EnvironmentContainerHost nimbusHost ;
+            EnvironmentContainerHost nimbusHost;
             try
             {
                 nimbusHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
