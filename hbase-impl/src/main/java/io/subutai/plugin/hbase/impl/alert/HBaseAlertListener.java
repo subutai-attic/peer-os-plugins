@@ -133,7 +133,7 @@ public class HBaseAlertListener implements AlertListener
                     CommandResult result = commandUtil.execute( Commands.getStatusCommand(), sourceHost );
                     pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
                     ProcessResourceUsage processResourceUsage =
-                            hbase.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                            hbase.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), pid );
                     ramConsumption
                             .put( NodeType.HMASTER, ( int ) Math.floor( processResourceUsage.getUsedRam() + 0.5d ) );
                     cpuConsumption
@@ -142,7 +142,7 @@ public class HBaseAlertListener implements AlertListener
                 case HREGIONSERVER:
                     result = commandUtil.execute( Commands.getStatusCommand(), sourceHost );
                     pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hbase.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = hbase.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), pid );
                     ramConsumption.put( NodeType.HREGIONSERVER,
                             ( int ) Math.floor( processResourceUsage.getUsedRam() + 0.5d ) );
                     cpuConsumption.put( NodeType.HREGIONSERVER,
@@ -151,7 +151,7 @@ public class HBaseAlertListener implements AlertListener
                 case HQUORUMPEER:
                     result = commandUtil.execute( Commands.getStatusCommand(), sourceHost );
                     pid = parsePid( parseService( result.getStdOut(), nodeType.name().toLowerCase() ) );
-                    processResourceUsage = hbase.getMonitor().getProcessResourceUsage( sourceHost, pid );
+                    processResourceUsage = hbase.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), pid );
                     ramConsumption.put( NodeType.HQUORUMPEER,
                             ( int ) Math.floor( processResourceUsage.getUsedRam() + 0.5d ) );
                     cpuConsumption.put( NodeType.HQUORUMPEER,
