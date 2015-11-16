@@ -4,10 +4,10 @@ package io.subutai.plugin.zookeeper.impl;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.environment.api.exception.EnvironmentCreationException;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationType;

@@ -11,11 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
@@ -187,11 +189,12 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 {
                     NodeGroup nodeGroup =
                             new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME, 1,
-                                    1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                                    1, 1, new PlacementStrategy( "ROUND_ROBIN" ),
+                                    manager.getPeerManager().getLocalPeer().getId() );
+                    Blueprint blueprint =
+                            new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );
 
-                    Topology topology = new Topology();
-                    topology.addNodeGroupPlacement( manager.getPeerManager().getLocalPeer(), nodeGroup );
-                    johnnyRawSet.addAll( environment.growEnvironment( topology, false ) );
+                    johnnyRawSet.addAll( environment.growEnvironment( environment.getId(), blueprint, false ) );
                 }
                 if ( johnnyRawSet.isEmpty() )
                 {

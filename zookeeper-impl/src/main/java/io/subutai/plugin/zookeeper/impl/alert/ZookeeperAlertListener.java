@@ -121,7 +121,7 @@ public class ZookeeperAlertListener implements AlertListener
 
         //get Zookeeper process resource usage by Zookeeper pid
         ProcessResourceUsage processResourceUsage =
-                zookeeper.getMonitor().getProcessResourceUsage( sourceHost, zookeeperPid );
+                zookeeper.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), zookeeperPid );
 
         //confirm that Zookeeper is causing the stress, otherwise no-op
         MonitoringSettings thresholds = zookeeper.getAlertSettings();
