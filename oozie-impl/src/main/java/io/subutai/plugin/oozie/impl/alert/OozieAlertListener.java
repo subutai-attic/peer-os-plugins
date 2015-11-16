@@ -117,7 +117,7 @@ public class OozieAlertListener implements AlertListener
         }
 
         //get oozie process resource usage by oozie pid
-        ProcessResourceUsage processResourceUsage = oozie.getMonitor().getProcessResourceUsage( sourceHost, ooziePid );
+        ProcessResourceUsage processResourceUsage = oozie.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), ooziePid );
 
         //confirm that oozie is causing the stress, otherwise no-op
         MonitoringSettings thresholds = oozie.getAlertSettings();
