@@ -52,6 +52,12 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
+        <artifactId>local-peer-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>

@@ -26,6 +26,10 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>local-peer-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>cassandra-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import io.subutai.common.environment.ContainerType;
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -28,7 +29,20 @@ public class CassandraClusterConfig implements ConfigBase
     private String commitLogDirectory = "/var/lib/cassandra/commitlog";
     private String savedCachesDirectory = "/var/lib/cassandra/saved_caches";
     private String environmentId;
+    private ContainerType containerType;
     private boolean autoScaling;
+
+
+    public ContainerType getContainerType()
+    {
+        return containerType;
+    }
+
+
+    public void setContainerType( final ContainerType containerType )
+    {
+        this.containerType = containerType;
+    }
 
 
     public boolean isAutoScaling()
