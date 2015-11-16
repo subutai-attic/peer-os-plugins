@@ -24,6 +24,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.UUIDUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -42,6 +43,7 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     private static final Logger LOG = LoggerFactory.getLogger( SolrImpl.class.getName() );
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private PeerManager peerManager;
     private ExecutorService executor;
     private PluginDAO pluginDAO;
 
@@ -85,6 +87,12 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
+    }
+
+
+    public void setPeerManager( final PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 
 
@@ -232,7 +240,8 @@ public class SolrImpl implements Solr, EnvironmentEventListener
         //1 node group
         NodeGroup nodeGroup = new NodeGroup(
                 String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
-                config.getTemplateName(), config.getNumberOfNodes(), 1, 1, new PlacementStrategy( "ROUND_ROBIN" ) );
+                config.getTemplateName(), config.getNumberOfNodes(), 1, 1, new PlacementStrategy( "ROUND_ROBIN" ),
+                peerManager.getLocalPeer().getId() );
 
 
         return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),

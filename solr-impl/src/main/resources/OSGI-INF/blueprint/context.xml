@@ -3,6 +3,7 @@
 
   <!-- *********************************************************************************** -->
   <reference id="tracker" interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="peerManager" interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="environmentManager" interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
   <!-- *********************************************************************************** -->
@@ -13,6 +14,7 @@
     <argument ref="pluginDAO" />
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
+    <property name="peerManager" ref="peerManager" />
   </bean>
 
   <!-- *********************************************************************************** -->
