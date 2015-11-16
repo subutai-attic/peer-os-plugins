@@ -7,22 +7,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -191,11 +192,8 @@ public class ClusterOperationHandler
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY,
-                ElasticsearchClusterConfiguration.TEMPLATE_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ) );
-
-        Topology topology = new Topology();
-
-        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+                ElasticsearchClusterConfiguration.TEMPLATE_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ),
+                localPeer.getId() );
 
         EnvironmentContainerHost newNode;
         try
@@ -212,7 +210,9 @@ public class ClusterOperationHandler
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
+                            new Blueprint( ElasticsearchClusterConfiguration.PRODUCT_KEY, null,
+                                    Sets.newHashSet( nodeGroup ) ), false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
