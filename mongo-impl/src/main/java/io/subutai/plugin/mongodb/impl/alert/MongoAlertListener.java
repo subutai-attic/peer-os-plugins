@@ -119,7 +119,7 @@ public class MongoAlertListener implements AlertListener
         }
 
         //get Zookeeper process resource usage by Mongo pid
-        ProcessResourceUsage processResourceUsage = mongo.getMonitor().getProcessResourceUsage( sourceHost, mongoPid );
+        ProcessResourceUsage processResourceUsage = mongo.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), mongoPid );
 
         //confirm that Mongo is causing the stress, otherwise no-op
         MonitoringSettings thresholds = mongo.getAlertSettings();
