@@ -1,9 +1,10 @@
 package io.subutai.plugin.hive.api;
 
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import io.subutai.common.environment.Topology;
+
 import io.subutai.plugin.common.api.ConfigBase;
 
 
@@ -16,18 +17,10 @@ public class HiveConfig implements ConfigBase
     private String server;
     private Set<String> clients = new HashSet<>();
     private String environmentId;
-    private Topology topology;
 
 
     public HiveConfig()
     {
-        this.topology = new Topology();
-    }
-
-
-    public Topology getTopology()
-    {
-        return topology;
     }
 
 
