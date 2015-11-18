@@ -11,8 +11,12 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import io.subutai.common.security.objects.PermissionObject;
+import io.subutai.common.security.objects.PermissionOperation;
+import io.subutai.common.security.objects.PermissionScope;
 import io.subutai.common.util.ServiceLocator;
 import io.subutai.core.identity.api.IdentityManager;
+import io.subutai.core.identity.api.model.User;
 import io.subutai.plugin.common.model.ClusterDataEntity;
 
 import org.slf4j.Logger;
@@ -71,22 +75,53 @@ public class PluginDataService
     }
 
 
+    //**********************************************
+    private boolean checkActiveUser(User user)
+    {
+        return identityManager.isUserPermitted( user, PermissionObject.EnvironmentManagement, PermissionScope.ALL_SCOPE,
+                PermissionOperation.Read );
+    }
+    //**********************************************
+
+    private long getActiveUserId()
+    {
+        long userId = 0;
+
+        try
+        {
+            User user = identityManager.getActiveUser();
+
+            if(user == null)
+                userId = 0;
+            else
+                userId = user.getId();
+        }
+        catch ( Exception e )
+        {
+            LOG.error( "Could not retrieve current user!" );
+            return 0;
+        }
+
+        return userId;
+    }
+    //**********************************************
+
+
     public void update( String source, String key, final Object info ) throws SQLException
 
     {
         String infoJson = gson.toJson( info );
         EntityManager em = emf.createEntityManager();
-        Long userId;
+
+        long userId = 0;
         try
         {
-            userId = identityManager.getActiveUser().getId();
+            userId = getActiveUserId();
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
+
         try
         {
             source = source.toUpperCase();
@@ -115,17 +150,17 @@ public class PluginDataService
     public void update( String source, String key, final String info ) throws SQLException
     {
         EntityManager em = emf.createEntityManager();
-        Long userId;
+        long userId = 0;
+
         try
         {
-            userId = identityManager.getActiveUser().getId();
+            userId = getActiveUserId();
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
+
+
         try
         {
             source = source.toUpperCase();
@@ -155,19 +190,21 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         List<T> result = new ArrayList<>();
-        Long userId;
+        long userId = 0;
         boolean isAdmin = true;
         try
         {
-            userId = identityManager.getActiveUser().getId();
-            //isAdmin = identityManager.getUser().isAdmin();
+            userId = getActiveUserId();
+
+            if(userId == 0 )
+            {
+                isAdmin = true;
+            }
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
+
         try
         {
             source = source.toUpperCase();
@@ -213,19 +250,21 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         T result = null;
-        Long userId;
+        long userId = 0;
         boolean isAdmin = true;
         try
         {
-            userId = identityManager.getActiveUser().getId();
+            userId = getActiveUserId();
+
+            if(userId == 0 )
+            {
+                isAdmin = true;
+            }
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
 
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
         try
         {
             source = source.toUpperCase();
@@ -270,19 +309,21 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         List<String> result = new ArrayList<>();
-        Long userId;
+        long userId = 0;
         boolean isAdmin = true;
         try
         {
-            userId = identityManager.getActiveUser().getId();
-            //isAdmin = identityManager.getUser().isAdmin();
+            userId = getActiveUserId();
+
+            if(userId == 0 )
+            {
+                isAdmin = true;
+            }
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
+
         try
         {
             source = source.toUpperCase();
@@ -322,19 +363,21 @@ public class PluginDataService
     {
         EntityManager em = emf.createEntityManager();
         String result = null;
-        Long userId;
+        long userId = 0;
         boolean isAdmin = true;
         try
         {
-            userId = identityManager.getActiveUser().getId();
-            //isAdmin = identityManager.getUser().isAdmin();
+            userId = getActiveUserId();
+
+            if(userId == 0 )
+            {
+                isAdmin = true;
+            }
         }
         catch ( Exception e )
         {
-            LOG.error( "Could not retrieve current user!" );
-            throw new SQLException( e );
         }
-        Preconditions.checkNotNull( userId, "UserId cannot be null." );
+
         try
         {
             source = source.toUpperCase();
