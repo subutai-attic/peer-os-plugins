@@ -187,6 +187,7 @@ public class ProfileCreationStep extends Panel
             public void buttonClick( Button.ClickEvent event )
             {
                 genericPlugin.deleteProfile( profile.getId() );
+                genericPlugin.deleteOperations( profile.getId() );
                 populateTable();
                 show( "Profile deleted successfully" );
             }
@@ -212,20 +213,6 @@ public class ProfileCreationStep extends Panel
         Notification notif = new Notification( notification );
         notif.setDelayMsec( 2000 );
         notif.show( Page.getCurrent() );
-    }
-
-
-    private Table createTableTemplate( final String tableName )
-    {
-        final Table table = new Table( tableName );
-        table.addContainerProperty( "Profile name", String.class, null );
-        table.addContainerProperty( "Action", Button.class, null );
-        table.setSizeFull();
-        table.setPageLength( 10 );
-        table.setSelectable( false );
-        table.setImmediate( true );
-
-        return table;
     }
 
 

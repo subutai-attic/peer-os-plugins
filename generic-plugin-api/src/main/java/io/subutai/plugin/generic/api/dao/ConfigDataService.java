@@ -28,4 +28,6 @@ public interface ConfigDataService
     void deleteOperation( Long operationId );
 
     void deleteProfile( Long profileId );
+
+    void deleteOperations( Long profileId );
 }

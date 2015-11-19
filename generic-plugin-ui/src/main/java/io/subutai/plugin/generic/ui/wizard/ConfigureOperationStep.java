@@ -12,6 +12,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 
 import com.vaadin.data.Property;
@@ -422,9 +423,11 @@ public class ConfigureOperationStep extends Panel
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
+            byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
+
             addGivenComponents( availableOperations, viewBtn, editBtn, deleteBtn );
             sampleTable.addItem(
-                    new Object[] { operation.getOperationName(), operation.getCommandName(), availableOperations },
+                    new Object[] { operation.getOperationName(), new String( decodedBytes ), availableOperations },
                     null );
 
             addClickListenerToViewButton( viewBtn, operation );
@@ -465,9 +468,10 @@ public class ConfigureOperationStep extends Panel
                 subContent.setSpacing( true );
                 subContent.setMargin( true );
 
+                byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
 
                 Label operationLbl = new Label( "Operation name: " + operation.getOperationName() );
-                Label command = new Label( "Command: " + operation.getCommandName() );
+                Label command = new Label( "Command: " + new String( decodedBytes ) );
                 Label cwd = new Label( "Cwd: " + operation.getCwd() );
                 Label timeout = new Label( "Timeout: " + operation.getTimeout() );
                 Label daemon = new Label( "Daemon: " );

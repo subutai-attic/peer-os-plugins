@@ -31,6 +31,13 @@ public class GenericPluginImpl implements GenericPlugin
     }
 
 
+    @Override
+    public void deleteOperations( final Long profileId )
+    {
+        configDataService.deleteOperations( profileId );
+    }
+
+
     private ConfigDataService configDataService;
 
 
