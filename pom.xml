@@ -15,7 +15,6 @@
   <properties>
     <subutai.mgmt.parent.version>4.0.0-RC3</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
     <mockito.version>1.9.5</mockito.version>
@@ -29,7 +28,7 @@
   <modules>
     <module>cassandra-api</module>
     <module>cassandra-impl</module>
-    <module>cassandra-ui</module>
+    <module>cassandra-webui</module>
     <module>cassandra-cli</module>
     <module>cassandra-rest</module>
     <module>cassandra-kar</module>
@@ -59,12 +58,6 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
