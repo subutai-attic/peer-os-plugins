@@ -32,4 +32,6 @@ public interface GenericPlugin
     ConfigDataService getConfigDataService();
 
     void deleteProfile( Long profileId );
+
+    void deleteOperations( Long profileId );
 }

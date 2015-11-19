@@ -135,6 +135,9 @@ public class ManageContainersStep extends Panel
         content.addComponent( back );
         output.setSizeFull();
         output.setRows( 15 );
+        output.setImmediate( true );
+        output.setWordwrap( false );
+
         // output.setReadOnly (true); TODO: set output readonly without making its design like a label
         content.addComponent( output );
         this.setContent( content );

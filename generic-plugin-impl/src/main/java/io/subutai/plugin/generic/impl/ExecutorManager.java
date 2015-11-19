@@ -1,16 +1,18 @@
 package io.subutai.plugin.generic.impl;
 
 
-import java.io.*;
 import java.util.UUID;
-
-import io.subutai.common.command.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.google.common.base.Strings;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.plugin.generic.api.model.Operation;
 
@@ -74,38 +76,19 @@ public class ExecutorManager
     {
         try
         {
-            containerHost.execute( requestBuilder, new CommandCallback()
-            {
-                @Override
-                public void onResponse( Response response, CommandResult commandResult )
-                {
-                    StringBuilder out = new StringBuilder();
-                    if ( !Strings.isNullOrEmpty( response.getStdOut() ) )
-                    {
-                        out.append( response.getStdOut() ).append( "\n" );
-                    }
-                    if ( !Strings.isNullOrEmpty( response.getStdErr() ) )
-                    {
-                        out.append( response.getStdErr() ).append( "\n" );
-                    }
-                    if ( commandResult.hasCompleted() || commandResult.hasTimedOut() )
-                    {
-                        if ( response.getType() == ResponseType.EXECUTE_RESPONSE && response.getExitCode() != 0 )
-                        {
-                            out.append( "Exit code: " ).append( response.getExitCode() ).append( "\n\n" );
-                        }
-                        else if ( response.getType() != ResponseType.EXECUTE_RESPONSE )
-                        {
-                            out.append( response.getType() ).append( "\n\n" );
-                        }
-                    }
+            CommandResult result = containerHost.execute( requestBuilder );
+            StringBuilder out = new StringBuilder();
 
-                    if ( out.length() > 0 )
-                    {
-                        output = String.format( "%s [%d]:%n%s", containerHost.getHostname(), response.getPid(), out );
-                    }
-                }
-            } );
+            if ( !Strings.isNullOrEmpty( result.getStdOut() ) )
+            {
+                out.append( result.getStdOut() );
+            }
+            if ( !Strings.isNullOrEmpty( result.getStdErr() ) )
+            {
+                out.append( result.getStdErr() );
+            }
+
+            output = String.format( "%s:%n%s", containerHost.getHostname(), out );
         }
         catch ( CommandException e )
         {
@@ -125,9 +108,9 @@ public class ExecutorManager
             {
 
                 containerHost.execute( requestBuilder );
-                requestBuilder = new RequestBuilder( "echo \"" + parseCommand() + " \" > " + uuid + ".sh" );
+                requestBuilder = new RequestBuilder( "echo " + operation.getCommandName() + " | base64 --decode >> " + uuid + ".sh" );
                 containerHost.execute( requestBuilder );
-                requestBuilder = new RequestBuilder( "chmod 777 " + uuid + ".sh" );
+                requestBuilder = new RequestBuilder( "chmod +x " + uuid + ".sh" );
                 containerHost.execute( requestBuilder );
                 requestBuilder = new RequestBuilder( "bash " + uuid + ".sh" );
                 this.executeOnContainer();
@@ -141,7 +124,8 @@ public class ExecutorManager
         }
         else
         {
-            requestBuilder = new RequestBuilder( operation.getCommandName() );
+            byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
+            requestBuilder = new RequestBuilder( new String( decodedBytes ) );
             requestBuilder.withCwd( operation.getCwd() );
             // TODO: timeout cannot be float???
             requestBuilder.withTimeout( Integer.parseInt( operation.getTimeout() ) );
@@ -150,7 +134,7 @@ public class ExecutorManager
                 requestBuilder.daemon();
             }
             /* executor.execute (new Runnable()
-			{
+            {
 				@Override
 				public void run()
 				{*/

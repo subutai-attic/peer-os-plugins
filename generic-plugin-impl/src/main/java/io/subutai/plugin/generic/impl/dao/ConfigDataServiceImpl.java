@@ -9,6 +9,8 @@ import javax.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.google.common.collect.Lists;
 
 import io.subutai.common.dao.DaoManager;
@@ -83,10 +85,12 @@ public class ConfigDataServiceImpl implements ConfigDataService
     public void saveOperation( final Long profileId, final String operationName, final String commandName,
                                final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
+        byte[] encodedBytes = Base64.encodeBase64( commandName.getBytes() );
+
         Operation operation = new OperationEntity();
         operation.setProfileId( profileId );
         operation.setOperationName( operationName );
-        operation.setCommandName( commandName );
+        operation.setCommandName( new String( encodedBytes ) );
         operation.setCwd( cwd );
         operation.setTimeout( timeout );
         operation.setDaemon( daemon );
@@ -250,5 +254,26 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.closeEntityManager( em );
         }
+    }
+
+
+    @Override
+    public void deleteOperations( final Long profileId )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        Query query;
+        try
+        {
+            daoManager.startTransaction( em );
+            query = em.createQuery( "delete from OperationEntity e where e.profileId = :profileId" );
+            query.setParameter( "profileId", profileId );
+            query.executeUpdate();
+            daoManager.commitTransaction( em );
+        }
+        catch ( Exception e )
+        {
+            daoManager.closeEntityManager( em );
+        }
+
     }
 }
