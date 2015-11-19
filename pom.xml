@@ -28,7 +28,7 @@
   <modules>
     <module>hadoop-api</module>
     <module>hadoop-impl</module>
-    <module>hadoop-ui</module>
+    <!--<module>hadoop-ui</module>-->
     <module>hadoop-cli</module>
     <module>hadoop-rest</module>
     <module>hadoop-kar</module>
