@@ -29,9 +29,11 @@
     <module>cassandra-api</module>
     <module>cassandra-impl</module>
     <module>cassandra-webui</module>
+    <module>cassandra-webui-impl</module>
     <module>cassandra-cli</module>
     <module>cassandra-rest</module>
     <module>cassandra-kar</module>
+    <module>cassandra-module</module>
   </modules>
 
   <dependencyManagement>
@@ -88,6 +90,13 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-implementation</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>webui</artifactId>
+        <classifier>classes</classifier>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
