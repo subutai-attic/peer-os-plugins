@@ -79,7 +79,7 @@ public class RestServiceImpl implements RestService
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if( response.getStatus() == 200 && response.getEntity().toString().toUpperCase().contains( "RUN" ) )
+                if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
                 {
                     containerInfoJson.setStatus( "RUNNING" );
                 }
@@ -329,8 +329,8 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNodes( @FormParam( "clusterName" ) final String clusterName,
-                                @FormParam( "lxcHosts" ) final String lxcHosts )
+    public Response startNodes( final String clusterName,
+                                final String lxcHosts )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
@@ -366,8 +366,8 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response stopNodes( @FormParam( "clusterName" ) final String clusterName,
-                               @FormParam( "lxcHosts" ) final String lxcHosts )
+    public Response stopNodes( final String clusterName,
+                               final String lxcHosts )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
