@@ -1,5 +1,6 @@
 package io.subutai.plugin.cassandra.rest;
 
+import java.util.Map;
 import java.util.Set;
 
 
@@ -13,6 +14,23 @@ public class ClusterConfJson
     private Set<String> containers;
     private Set<String> seeds;
     private String environmentId;
+
+
+    public boolean isScaling()
+    {
+        return scaling;
+    }
+
+
+    public void setScaling( final boolean scaling )
+    {
+        this.scaling = scaling;
+    }
+
+
+    private boolean scaling;
+
+    private Map< String, ContainerInfoJson > containersStatuses;
 
 
     public String getName()
@@ -108,5 +126,17 @@ public class ClusterConfJson
     public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
+    }
+
+
+    public Map<String, ContainerInfoJson> getContainersStatuses()
+    {
+        return containersStatuses;
+    }
+
+
+    public void setContainersStatuses( final Map<String, ContainerInfoJson> containersStatuses )
+    {
+        this.containersStatuses = containersStatuses;
     }
 }

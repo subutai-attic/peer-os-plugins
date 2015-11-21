@@ -3,18 +3,22 @@ package io.subutai.plugin.cassandra.rest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -50,15 +54,66 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
+
+        boolean thrownException = false;
         if ( config == null )
+        {
+            thrownException = true;
+        }
+
+
+        Map< String, ContainerInfoJson > map = new HashMap<>(  );
+
+        for( String node : config.getNodes() )
+        {
+            try
+            {
+                ContainerInfoJson containerInfoJson = new ContainerInfoJson();
+
+                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+
+                String ip = containerHost.getIpByInterfaceName( "eth0" );
+                containerInfoJson.setIp( ip );
+
+                UUID uuid = cassandraManager.checkNode( clusterName, node );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+                if( response.getStatus() == 200 && response.getEntity().toString().toUpperCase().contains( "RUN" ) )
+                {
+                    containerInfoJson.setStatus( "RUNNING" );
+                }
+                else
+                {
+                    containerInfoJson.setStatus( "STOPPED" );
+                }
+
+                map.put( node, containerInfoJson );
+            }
+            catch ( Exception e )
+            {
+                map.put( node, new ContainerInfoJson() );
+                thrownException = true;
+            }
+        }
+
+        ClusterConfJson result = new ClusterConfJson();
+        result.setSeeds( config.getSeedNodes() );
+        result.setContainers( config.getNodes() );
+        result.setContainersStatuses( map );
+        result.setName( config.getClusterName() );
+        result.setScaling( config.isAutoScaling() );
+
+        String cluster = JsonUtil.toJson( config );
+
+
+
+
+        if( thrownException )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
                            .entity( clusterName + " cluster not found." ).build();
         }
-        String cluster = JsonUtil.toJson( config );
-
-//        environmentManager.g
-
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -274,6 +329,83 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response startNodes( @FormParam( "clusterName" ) final String clusterName,
+                                @FormParam( "lxcHosts" ) final String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+
+        if( hosts == null || hosts.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
+
+        int errors = 0;
+
+        for( String host : hosts )
+        {
+            UUID uuid = cassandraManager.startService( clusterName, host );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response =createResponse( uuid, state );
+
+            if( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
+    public Response stopNodes( @FormParam( "clusterName" ) final String clusterName,
+                               @FormParam( "lxcHosts" ) final String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+
+        if( hosts == null || hosts.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
+
+        int errors = 0;
+
+        for( String host : hosts )
+        {
+            UUID uuid = cassandraManager.stopService( clusterName, host );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response =createResponse( uuid, state );
+
+            if( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
     public Response stopNode( final String clusterName, final String lxchostId )
     {
         Preconditions.checkNotNull( clusterName );
@@ -373,7 +505,7 @@ public class RestServiceImpl implements RestService
 
     public Response installCluster( String config )
     {
-        ClusterConfJson clusterConfJson = new Gson().fromJson( config, ClusterConfJson.class );
+        ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
 
         CassandraClusterConfig clusterConfig = new CassandraClusterConfig( );
 

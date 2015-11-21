@@ -118,14 +118,14 @@ public interface RestService
     @Path("clusters/nodes/start")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response startNodes( @FormParam("clusterName") String clusterName,
-                                @FormParam("lxcHosts") String lxcHostId );
+                                @FormParam("lxcHosts") String lxcHosts );
 
 
     @POST
     @Path("clusters/nodes/stop")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopNodes( @FormParam("clusterName") String clusterName,
-                               @FormParam("lxcHosts") String lxcHostId );
+                               @FormParam("lxcHosts") String lxcHosts );
 
 
 
