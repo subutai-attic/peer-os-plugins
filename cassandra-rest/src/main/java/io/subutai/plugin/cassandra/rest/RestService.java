@@ -94,31 +94,47 @@ public interface RestService
 
     //destroy node
     @DELETE
-    @Path("clusters/{clusterName}/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/node/{lxcHostId}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response destroyNode( @PathParam("clusterName") String clusterName,
-                                 @PathParam("lxcHostname") String lxcHostname );
+                                 @PathParam("lxcHostId") String lxcHostId );
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/status/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/status/node/{lxcHostId}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response checkNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+                               @PathParam("lxcHostId") String lxcHostId );
 
     //start node
     @PUT
-    @Path("clusters/{clusterName}/start/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/start/node/{lxcHostId}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response startNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+                               @PathParam("lxcHostId") String lxcHostId );
+
+
+    @POST
+    @Path("clusters/nodes/start")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response startNodes( @FormParam("clusterName") String clusterName,
+                                @FormParam("lxcHosts") String lxcHostId );
+
+
+    @POST
+    @Path("clusters/nodes/stop")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response stopNodes( @FormParam("clusterName") String clusterName,
+                               @FormParam("lxcHosts") String lxcHostId );
+
+
 
     //stop node
     @PUT
-    @Path("clusters/{clusterName}/stop/node/{lxcHostname}")
+    @Path("clusters/{clusterName}/stop/node/{lxcHostId}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+                               @PathParam("lxcHostId") String lxcHostId );
 
 
     @POST

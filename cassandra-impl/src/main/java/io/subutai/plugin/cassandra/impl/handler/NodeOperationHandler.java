@@ -29,15 +29,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
 {
 
     private String clusterName;
-    private String hostname;
+    private String id;
     private NodeOperationType operationType;
 
 
-    public NodeOperationHandler( final CassandraImpl manager, final String clusterName, final String hostname,
+    public NodeOperationHandler( final CassandraImpl manager, final String clusterName, final String id,
                                  NodeOperationType operationType )
     {
         super( manager, clusterName );
-        this.hostname = hostname;
+        this.id = id;
         this.clusterName = clusterName;
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
@@ -69,7 +69,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         EnvironmentContainerHost host = null;
         try
         {
-            host = environment.getContainerHostByHostname( hostname );
+            host = environment.getContainerHostById( id );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -78,14 +78,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
 
         if ( host == null )
         {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+            trackerOperation.addLogFailed( String.format( "No Container with ID %s", id ) );
             return;
         }
 
         if ( !config.getAllNodes().contains( host.getId() ) )
         {
             trackerOperation
-                    .addLogFailed( String.format( "Node %s does not belong to %s cluster.", hostname, clusterName ) );
+                    .addLogFailed( String.format( "Node %s does not belong to %s cluster.", id, clusterName ) );
             return;
         }
 

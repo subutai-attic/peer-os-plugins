@@ -56,6 +56,9 @@ public class RestServiceImpl implements RestService
                            .entity( clusterName + " cluster not found." ).build();
         }
         String cluster = JsonUtil.toJson( config );
+
+//        environmentManager.g
+
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -203,7 +206,7 @@ public class RestServiceImpl implements RestService
         }
 
 
-        return Response.status( Response.Status.OK ).entity( "Auto scale is set successfully" ).build();
+        return Response.ok().build();
     }
 
 
@@ -223,64 +226,64 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response destroyNode( final String clusterName, final String hostname )
+    public Response destroyNode( final String clusterName, final String hostId )
     {
         Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( hostname );
+        Preconditions.checkNotNull( hostId );
         if ( cassandraManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = cassandraManager.destroyNode( clusterName, hostname );
+        UUID uuid = cassandraManager.destroyNode( clusterName, hostId );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response checkNode( final String clusterName, final String hostname )
+    public Response checkNode( final String clusterName, final String hostId )
     {
         Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( hostname );
+        Preconditions.checkNotNull( hostId );
         if ( cassandraManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
-        UUID uuid = cassandraManager.checkNode( clusterName, hostname );
+        UUID uuid = cassandraManager.checkNode( clusterName, hostId );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response startNode( final String clusterName, final String lxcHostname )
+    public Response startNode( final String clusterName, final String lxchostId )
     {
         Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( lxcHostname );
+        Preconditions.checkNotNull( lxchostId );
         if ( cassandraManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found" ).build();
         }
-        UUID uuid = cassandraManager.startService( clusterName, lxcHostname );
+        UUID uuid = cassandraManager.startService( clusterName, lxchostId );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response stopNode( final String clusterName, final String lxcHostname )
+    public Response stopNode( final String clusterName, final String lxchostId )
     {
         Preconditions.checkNotNull( clusterName );
-        Preconditions.checkNotNull( lxcHostname );
+        Preconditions.checkNotNull( lxchostId );
         if ( cassandraManager.getCluster( clusterName ) == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found" ).build();
         }
-        UUID uuid = cassandraManager.stopService( clusterName, lxcHostname );
+        UUID uuid = cassandraManager.stopService( clusterName, lxchostId );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -298,7 +301,7 @@ public class RestServiceImpl implements RestService
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.ok( po.getLog() ).build();
         }
         else
         {
@@ -381,6 +384,10 @@ public class RestServiceImpl implements RestService
         clusterConfig.setSavedCachesDirectory( clusterConfJson.getCacheDir() );
         clusterConfig.setNodes( clusterConfJson.getContainers() );
         clusterConfig.setSeedNodes( clusterConfJson.getSeeds() );
+
+        clusterConfig.setNumberOfNodes( clusterConfJson.getContainers().size() );
+        clusterConfig.setNumberOfSeeds( clusterConfJson.getSeeds().size() );
+        clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
 
         cassandraManager.installCluster( clusterConfig );
         return Response.ok().build();

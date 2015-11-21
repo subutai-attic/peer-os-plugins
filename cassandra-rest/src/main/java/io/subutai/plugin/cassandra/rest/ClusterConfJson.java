@@ -12,6 +12,7 @@ public class ClusterConfJson
     private String cacheDir;
     private Set<String> containers;
     private Set<String> seeds;
+    private String environmentId;
 
 
     public String getName()
@@ -95,5 +96,17 @@ public class ClusterConfJson
     public void setSeeds( final Set<String> seeds )
     {
         this.seeds = seeds;
+    }
+
+
+    public String getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final String environmentId )
+    {
+        this.environmentId = environmentId;
     }
 }
