@@ -125,8 +125,6 @@ public class ConfigDataServiceImpl implements ConfigDataService
         Query query;
         try
         {
-            // result = (List <Operation>) em.createQuery ("select h from OperationEntity h where h.profileId =
-            // :profileId").getResultList();
             query = em.createQuery( "select h from OperationEntity h where h.profileId = :profileId" );
             query.setParameter( "profileId", profileId );
             result = ( List<Operation> ) query.getResultList();
@@ -182,12 +180,14 @@ public class ConfigDataServiceImpl implements ConfigDataService
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
 
+        byte[] encodedBytes = Base64.encodeBase64( commandValue.getBytes() );
+
         try
         {
             daoManager.startTransaction( em );
             OperationEntity entity = em.find( OperationEntity.class, operationId );
-            entity.setCommandName( commandValue );
-            entity.setCwd( commandValue );
+            entity.setCommandName( new String( encodedBytes ) );
+            entity.setCwd( cwdValue );
             entity.setTimeout( timeoutValue );
             entity.setDaemon( daemonValue );
             entity.setScript( fromFile );
