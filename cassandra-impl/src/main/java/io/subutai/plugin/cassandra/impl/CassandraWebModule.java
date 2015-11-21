@@ -7,7 +7,7 @@ import io.subutai.webui.api.WebuiModule;
 public class CassandraWebModule implements WebuiModule
 {
     public static String NAME = "Cassandra";
-    public static String IMG = "plugins/keshig/keshig.png";
+    public static String IMG = "plugins/cassandra/cassandra.png";
 
     public CassandraWebModule()
     {
