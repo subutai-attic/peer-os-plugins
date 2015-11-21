@@ -20,7 +20,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextArea;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
@@ -35,6 +37,7 @@ public class ManageContainersStep extends Panel
     private static final Logger LOG = LoggerFactory.getLogger( Wizard.class.getName() );
     private static final String EXECUTE_BUTTON_CAPTION = "Execute";
     private static final String BUTTON_STYLE_NAME = "default";
+    private static final String VIEW_BUTTON_CAPTION = "View";
     private Environment currentEnvironment;
     private Profile currentProfile;
     private String currentTemplate;
@@ -241,9 +244,7 @@ public class ManageContainersStep extends Panel
         final Table table = new Table( caption );
         table.addContainerProperty( "Container name", String.class, null );
         table.addContainerProperty( "Operation", ComboBox.class, null );
-        table.addContainerProperty( "Action", Button.class, null );
-        // table.addContainerProperty ("Template", String.class, null);
-        // table.addContainerProperty ("Action", HorizontalLayout.class, null);
+        table.addContainerProperty( "Actions", HorizontalLayout.class, null );
         table.setSizeFull();
         table.setPageLength( 10 );
         table.setSelectable( false );
@@ -289,6 +290,14 @@ public class ManageContainersStep extends Panel
         {
             final Button executeBtn = new Button( EXECUTE_BUTTON_CAPTION );
             addStyleNameToButtons( executeBtn );
+            final Button viewBtn = new Button( VIEW_BUTTON_CAPTION );
+            addStyleNameToButtons( viewBtn );
+
+            final HorizontalLayout availableOperations = new HorizontalLayout();
+            availableOperations.addStyleName( "default" );
+            availableOperations.setSpacing( true );
+
+            addGivenComponents( availableOperations, viewBtn, executeBtn );
 
             final ComboBox operationSelect = new ComboBox();
             operationSelect.setNullSelectionAllowed( false );
@@ -316,7 +325,7 @@ public class ManageContainersStep extends Panel
                 }
             } );
 
-            containerTable.addItem( new Object[] { host.getHostname(), operationSelect, executeBtn }, null );
+            containerTable.addItem( new Object[] { host.getHostname(), operationSelect, availableOperations }, null );
 
             executeBtn.addClickListener( new Button.ClickListener()
             {
@@ -327,6 +336,25 @@ public class ManageContainersStep extends Panel
                             genericPlugin.executeCommandOnContainer( host, ( Operation ) operationSelect.getValue() ) );
                 }
             } );
+
+            viewBtn.addClickListener( new Button.ClickListener()
+            {
+                @Override
+                public void buttonClick( final Button.ClickEvent clickEvent )
+                {
+                    Window subWindow = new ViewOperationWindow( ( Operation ) operationSelect.getValue() );
+                    UI.getCurrent().addWindow( subWindow );
+                }
+            } );
+        }
+    }
+
+
+    private void addGivenComponents( HorizontalLayout layout, Button... buttons )
+    {
+        for ( Button b : buttons )
+        {
+            layout.addComponent( b );
         }
     }
 

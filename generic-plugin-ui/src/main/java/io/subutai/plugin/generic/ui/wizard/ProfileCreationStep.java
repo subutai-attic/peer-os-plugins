@@ -18,6 +18,7 @@ import com.vaadin.ui.VerticalLayout;
 
 import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.model.Profile;
+import io.subutai.server.ui.component.ConfirmationDialog;
 
 
 public class ProfileCreationStep extends Panel
@@ -63,9 +64,8 @@ public class ProfileCreationStep extends Panel
 
         profileTable = new Table( "Profiles" );
         profileTable.addContainerProperty( "Profile name", String.class, null );
-        //        profileTable.addContainerProperty( "Action", Button.class, null );
         profileTable.addContainerProperty( "Actions", HorizontalLayout.class, null );
-        profileTable.setSizeFull();
+        profileTable.setWidth( "50%" );
         profileTable.setPageLength( 10 );
         profileTable.setSelectable( false );
         profileTable.setImmediate( true );
@@ -186,10 +186,22 @@ public class ProfileCreationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                genericPlugin.deleteProfile( profile.getId() );
-                genericPlugin.deleteOperations( profile.getId() );
-                populateTable();
-                show( "Profile deleted successfully" );
+
+                ConfirmationDialog alert = new ConfirmationDialog(
+                        String.format( "Do you want to remove %s profile ?", profile.getName() ), "Yes", "No" );
+                alert.getOk().addClickListener( new Button.ClickListener()
+                {
+                    @Override
+                    public void buttonClick( Button.ClickEvent clickEvent )
+                    {
+                        genericPlugin.deleteProfile( profile.getId() );
+                        genericPlugin.deleteOperations( profile.getId() );
+                        populateTable();
+                        show( "Profile deleted successfully" );
+                    }
+                } );
+
+                panelContent.getUI().addWindow( alert.getAlert() );
             }
         } );
     }

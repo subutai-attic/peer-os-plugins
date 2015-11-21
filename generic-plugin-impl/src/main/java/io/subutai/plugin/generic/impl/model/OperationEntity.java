@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import io.subutai.plugin.generic.api.model.Operation;
@@ -28,6 +29,7 @@ public class OperationEntity implements Operation
     @Column( name = "operation_name" )
     private String operationName;
 
+    @Lob
     @Column( name = "command_name" )
     private String commandName;
 

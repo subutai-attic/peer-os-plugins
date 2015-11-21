@@ -27,6 +27,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
@@ -36,6 +37,7 @@ import com.vaadin.ui.Window;
 import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.model.Operation;
 import io.subutai.plugin.generic.api.model.Profile;
+import io.subutai.server.ui.component.ConfirmationDialog;
 
 
 public class ConfigureOperationStep extends Panel
@@ -60,6 +62,10 @@ public class ConfigureOperationStep extends Panel
     private Wizard wizard;
     private boolean fromFile = false;
     private CheckBox scriptCheck;
+    private Button addOperation;
+    private Button uploadScript;
+    private Button showAddOperationWindow;
+    private TextArea commandArea;
 
 
     class MyUploader implements Upload.Receiver, Upload.SucceededListener, Upload.FailedListener
@@ -104,7 +110,7 @@ public class ConfigureOperationStep extends Panel
             try
             {
                 byte[] encoded = Files.readAllBytes( Paths.get( this.path ) );
-                newCommand.setValue( new String( encoded ) );
+                commandArea.setValue( new String( encoded ) );
                 FileUtils.deleteDirectory( new File( "/tmp" ) );
                 fromFile = true;
                 uploadWindow.close();
@@ -161,22 +167,17 @@ public class ConfigureOperationStep extends Panel
         newName = new TextField( "Operation name" );
         newName.setInputPrompt( "Enter new operation name" );
         newName.setRequired( true );
+        newName.setWidth( "30%" );
 
         newCommand = new TextField( "Command" );
         newCommand.setRequired( true );
         newCommand.setInputPrompt( "Enter new command" );
 
-        //
-        /*final ComboBox templates = new ComboBox ("Template");
-        templates.setNullSelectionAllowed (false);
-		templates.setTextInputAllowed (false);
-		for (Template t : wizard.getRegistry().getAllTemplates())
-		{
-			templates.addItem (t.getTemplateName());
-		}
-		templates.setValue (wizard.getRegistry().getAllTemplates().get (0).getTemplateName());*/
-        //
-
+        commandArea = new TextArea( "Command" );
+        commandArea.setRequired( true );
+        commandArea.setInputPrompt( "Enter new command" );
+        commandArea.setRequired( true );
+        commandArea.setWidth( "100%" );
 
         cwd.setValue( "/" );
         cwd.setData( "/" );
@@ -189,32 +190,110 @@ public class ConfigureOperationStep extends Panel
         scriptCheck.setEnabled( false );
         scriptCheck.setValue( false );
 
-        Button options = new Button( "Options" );
-        options.addStyleName( BUTTON_STYLE_NAME );
+        showAddOperationWindow = new Button( "Add Operation" );
+        showAddOperationWindow.addStyleName( BUTTON_STYLE_NAME );
 
-        Button addOperation = new Button( "Add operation" );
-        addOperation.addStyleName( BUTTON_STYLE_NAME );
+        showAddOperationWindow.addClickListener( new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( final Button.ClickEvent clickEvent )
+            {
+                cleanTextBoxes();
+                final Window subWindow = createWindowTemplate( "Adding operation" );
+                subWindow.setHeight( "50%" );
+                subWindow.setWidth( "50%" );
+                subWindow.setEnabled( true );
 
+                VerticalLayout subContent = new VerticalLayout();
+                subContent.setSpacing( true );
+                subContent.setMargin( true );
 
-        Button uploadScript = new Button( "Upload script" );
+                HorizontalLayout scriptLayout = new HorizontalLayout();
+                scriptLayout.setSpacing( true );
+                scriptLayout.setWidth( "100%" );
+
+                VerticalLayout scriptItems = new VerticalLayout();
+                scriptItems.setSpacing( true );
+
+                scriptItems.addComponent( uploadScript );
+                scriptItems.addComponent( scriptCheck );
+
+                addOperation = new Button( "Save" );
+                addOperation.addStyleName( BUTTON_STYLE_NAME );
+                addOperation.addClickListener( new Button.ClickListener()
+                {
+                    public void buttonClick( final Button.ClickEvent clickEvent )
+                    {
+                        if ( newName.getValue().isEmpty() )
+                        {
+                            show( "Please enter operation name" );
+                        }
+                        else if ( commandArea.getValue().isEmpty() )
+                        {
+                            show( "Please enter command" );
+                        }
+                        else
+                        {
+                            Profile current = ( Profile ) profileSelect.getValue();
+                            boolean exist = false;
+                            for ( final Operation operation : genericPlugin.getProfileOperations( current.getId() ) )
+                            {
+                                if ( newName.getValue().equals( operation.getOperationName() ) )
+                                {
+                                    show( "Operation with such name already exists" );
+                                    exist = true;
+                                }
+                            }
+
+                            if ( !exist )
+                            {
+                                genericPlugin
+                                        .saveOperation( current.getId(), newName.getValue(), commandArea.getValue(),
+                                                cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
+                                cleanTextBoxes();
+                                show( "Operation saved successfully!" );
+                                refreshUI();
+                                subWindow.close();
+                            }
+                        }
+                    }
+                } );
+
+                scriptLayout.addComponent( commandArea );
+                scriptLayout.addComponent( scriptItems );
+                scriptLayout.setComponentAlignment( scriptItems, Alignment.MIDDLE_LEFT );
+
+                subContent.addComponent( newName );
+                subContent.addComponent( cwd );
+                subContent.addComponent( timeOut );
+                subContent.addComponent( daemon );
+                subContent.addComponent( scriptLayout );
+                subContent.addComponent( addOperation );
+
+                subWindow.setContent( subContent );
+                UI.getCurrent().addWindow( subWindow );
+            }
+        } );
+
+        uploadScript = new Button( "Upload script" );
         uploadScript.addStyleName( "default" );
         uploadScript.addClickListener( new Button.ClickListener()
         {
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                uploadWindow = new Window( "Upload Script" );
-                uploadWindow.center();
-                uploadWindow.setClosable( false );
-                uploadWindow.addStyleName( "default" );
+                uploadWindow = createWindowTemplate( "Upload Script" );
+
                 VerticalLayout content = new VerticalLayout();
                 content.setSpacing( true );
                 content.setMargin( true );
+
                 MyUploader uploader = new MyUploader();
                 Upload upload = new Upload( "", uploader );
                 upload.setButtonCaption( "Start Upload" );
                 upload.addSucceededListener( uploader );
                 upload.addFailedListener( uploader );
+
                 Button cancel = new Button( "Cancel" );
                 cancel.addClickListener( new Button.ClickListener()
                 {
@@ -224,6 +303,7 @@ public class ConfigureOperationStep extends Panel
                         uploadWindow.close();
                     }
                 } );
+
                 content.addComponent( upload );
                 content.addComponent( cancel );
                 content.setComponentAlignment( upload, Alignment.BOTTOM_CENTER );
@@ -233,28 +313,10 @@ public class ConfigureOperationStep extends Panel
             }
         } );
 
-
-        fieldGrid.addComponent( newName );
-        fieldGrid.addComponent( newCommand );
-        fieldGrid.addComponent( cwd );
-        fieldGrid.addComponent( timeOut );
-        fieldGrid.addComponent( daemon );
-        // fieldGrid.addComponent (templates);
-        //        fieldGrid.addComponent( options );
-        fieldGrid.addComponent( addOperation );
-        fieldGrid.addComponent( scriptCheck );
-        fieldGrid.addComponent( uploadScript );
-        fieldGrid.setComponentAlignment( daemon, Alignment.BOTTOM_LEFT );
-        fieldGrid.setComponentAlignment( scriptCheck, Alignment.BOTTOM_RIGHT );
-        //        fieldGrid.setComponentAlignment( newCommand, Alignment.BOTTOM_LEFT );
-        //fieldGrid.setComponentAlignment (templates, Alignment.BOTTOM_LEFT);
-        //        fieldGrid.setComponentAlignment( options, Alignment.BOTTOM_LEFT );
-        fieldGrid.setComponentAlignment( addOperation, Alignment.BOTTOM_LEFT );
-        fieldGrid.setComponentAlignment( uploadScript, Alignment.BOTTOM_LEFT );
-
         content.addComponent( title );
         content.addComponent( profileSelect );
         content.addComponent( fieldGrid );
+        content.addComponent( showAddOperationWindow );
         content.addComponent( operationTable );
         content.setSpacing( true );
 
@@ -271,113 +333,7 @@ public class ConfigureOperationStep extends Panel
         } );
         content.addComponent( back );
 
-
-        options.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                final Window subWindow = new Window( "Edit operation" );
-                subWindow.setClosable( false );
-                subWindow.addStyleName( "default" );
-                subWindow.center();
-                VerticalLayout subContent = new VerticalLayout();
-                subContent.setSpacing( true );
-                subContent.setMargin( true );
-                HorizontalLayout fields = new HorizontalLayout();
-                fields.setSpacing( true );
-                fields.addComponent( cwd );
-                fields.addComponent( timeOut );
-                fields.setComponentAlignment( cwd, Alignment.BOTTOM_LEFT );
-                fields.setComponentAlignment( timeOut, Alignment.BOTTOM_LEFT );
-
-                HorizontalLayout buttonGrid = new HorizontalLayout();
-                buttonGrid.setSpacing( true );
-
-                Button back = new Button( "Back" );
-                back.setSizeFull();
-                back.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        cwd.setValue( ( String ) cwd.getData() );
-                        timeOut.setValue( ( String ) timeOut.getData() );
-                        daemon.setValue( ( boolean ) daemon.getData() );
-                        subWindow.close();
-                    }
-                } );
-
-                Button save = new Button( "Save" );
-                save.setSizeFull();
-                save.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        cwd.setData( cwd.getValue() );
-                        timeOut.setData( timeOut.getValue() );
-                        daemon.setData( daemon.getValue() );
-                        subWindow.close();
-                    }
-                } );
-
-                buttonGrid.addComponent( back );
-                buttonGrid.addComponent( save );
-                buttonGrid.setComponentAlignment( back, Alignment.BOTTOM_CENTER );
-                buttonGrid.setComponentAlignment( save, Alignment.BOTTOM_CENTER );
-
-                subContent.addComponent( fields );
-                subContent.addComponent( daemon );
-                subContent.addComponent( buttonGrid );
-                subContent.setComponentAlignment( daemon, Alignment.BOTTOM_LEFT );
-                subContent.setComponentAlignment( buttonGrid, Alignment.BOTTOM_CENTER );
-                subWindow.setContent( subContent );
-                UI.getCurrent().addWindow( subWindow );
-            }
-        } );
-
-
-        addOperation.addClickListener( new Button.ClickListener()
-        {
-            public void buttonClick( final Button.ClickEvent clickEvent )
-            {
-                if ( newName.getValue().isEmpty() )
-                {
-                    show( "Please enter operation name" );
-                }
-                else if ( newCommand.getValue().isEmpty() )
-                {
-                    show( "Please enter command" );
-                }
-                else
-                {
-
-
-                    Profile current = ( Profile ) profileSelect.getValue();
-                    boolean exist = false;
-                    for ( final Operation operation : genericPlugin.getProfileOperations( current.getId() ) )
-                    {
-                        if ( newName.getValue().equals( operation.getOperationName() ) )
-                        {
-                            show( "Operation with such name already exists" );
-                            exist = true;
-                        }
-                    }
-
-                    if ( !exist )
-                    {
-                        genericPlugin.saveOperation( current.getId(), newName.getValue(), newCommand.getValue(),
-                                cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
-                        newCommand.setEnabled( true );
-                        cleanTextBoxes();
-                        show( "Operation saved successfully!" );
-                        refreshUI();
-                    }
-                }
-            }
-        } );
-        this.setContent( content );
+        setContent( content );
     }
 
 
@@ -385,15 +341,25 @@ public class ConfigureOperationStep extends Panel
     {
         final Table table = new Table( caption );
         table.addContainerProperty( "Operation name", String.class, null );
-        table.addContainerProperty( "Command", String.class, null );
-        // table.addContainerProperty ("Template", String.class, null);
         table.addContainerProperty( "Actions", HorizontalLayout.class, null );
-        table.setSizeFull();
+        table.setWidth( "50%" );
         table.setPageLength( 10 );
         table.setSelectable( false );
         table.setImmediate( true );
 
         return table;
+    }
+
+
+    private Window createWindowTemplate( final String caption )
+    {
+        Window subWindow = new Window( caption );
+        subWindow.setClosable( true );
+        subWindow.setModal( true );
+        subWindow.addStyleName( "default" );
+        subWindow.center();
+
+        return subWindow;
     }
 
 
@@ -423,12 +389,8 @@ public class ConfigureOperationStep extends Panel
             availableOperations.addStyleName( "default" );
             availableOperations.setSpacing( true );
 
-            byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
-
             addGivenComponents( availableOperations, viewBtn, editBtn, deleteBtn );
-            sampleTable.addItem(
-                    new Object[] { operation.getOperationName(), new String( decodedBytes ), availableOperations },
-                    null );
+            sampleTable.addItem( new Object[] { operation.getOperationName(), availableOperations }, null );
 
             addClickListenerToViewButton( viewBtn, operation );
             addClickListenerToEditButton( editBtn, operation );
@@ -444,9 +406,21 @@ public class ConfigureOperationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                genericPlugin.deleteOperation( operation.getOperationId() );
-                show( "Operation deleted successfully!" );
-                refreshUI();
+                ConfirmationDialog alert = new ConfirmationDialog(
+                        String.format( "Do you want to remove %s profile ?", profile.getName() ), "Yes", "No" );
+                alert.getOk().addClickListener( new Button.ClickListener()
+                {
+                    @Override
+                    public void buttonClick( Button.ClickEvent clickEvent )
+                    {
+                        genericPlugin.deleteOperation( operation.getOperationId() );
+                        show( "Operation deleted successfully!" );
+                        refreshUI();
+                    }
+                } );
+
+                content.getUI().addWindow( alert.getAlert() );
+
             }
         } );
     }
@@ -459,52 +433,8 @@ public class ConfigureOperationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                final Window subWindow = new Window( "Edit operation" );
-                subWindow.setClosable( false );
-                subWindow.addStyleName( "default" );
-                subWindow.center();
-
-                VerticalLayout subContent = new VerticalLayout();
-                subContent.setSpacing( true );
-                subContent.setMargin( true );
-
-                byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
-
-                Label operationLbl = new Label( "Operation name: " + operation.getOperationName() );
-                Label command = new Label( "Command: " + new String( decodedBytes ) );
-                Label cwd = new Label( "Cwd: " + operation.getCwd() );
-                Label timeout = new Label( "Timeout: " + operation.getTimeout() );
-                Label daemon = new Label( "Daemon: " );
-                if ( operation.getDaemon() )
-                {
-                    daemon.setValue( daemon.getValue() + "yes" );
-                }
-                else
-                {
-                    daemon.setValue( daemon.getValue() + "no" );
-                }
-
-                Button close = new Button( "Close" );
-                close.addStyleName( BUTTON_STYLE_NAME );
-                close.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        subWindow.close();
-                    }
-                } );
-
-                subContent.addComponent( operationLbl );
-                subContent.addComponent( command );
-                subContent.addComponent( cwd );
-                subContent.addComponent( timeout );
-                subContent.addComponent( daemon );
-                subContent.addComponent( close );
-                subContent.setComponentAlignment( close, Alignment.BOTTOM_CENTER );
-
-                subWindow.setContent( subContent );
-                UI.getCurrent().addWindow( subWindow );
+                Window subwindow = new ViewOperationWindow( operation );
+                UI.getCurrent().addWindow( subwindow );
             }
         } );
     }
@@ -517,10 +447,9 @@ public class ConfigureOperationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                final Window subWindow = new Window( "Edit operation" );
-                subWindow.setClosable( false );
-                subWindow.addStyleName( "default" );
-                subWindow.center();
+                final Window subWindow = createWindowTemplate( "Operation info" );
+                subWindow.setHeight( "50%" );
+                subWindow.setWidth( "50%" );
 
                 VerticalLayout subContent = new VerticalLayout();
                 subContent.setSpacing( true );
@@ -530,26 +459,12 @@ public class ConfigureOperationStep extends Panel
                 editInfo.setSpacing( true );
                 editInfo.setWidth( "100%" );
 
-                final TextField editCommand = new TextField( "Edit command" );
-                editCommand.setValue( operation.getCommandName() );
+                byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
 
-				/*final ComboBox editTemplate = new ComboBox ("Edit template");
-                for (Template t : wizard.getRegistry().getAllTemplates())
-				{
-					editTemplate.addItem (t.getTemplateName());
-				}
-				editTemplate.setValue (operationTable.getItem (edit.getData()).getItemProperty ("Template").toString()
-				);*/
-
-                final TextField editCwd = new TextField( "Edit cwd" );
-                editCwd.setValue( operation.getCwd() );
-
-                final TextField editTimeout = new TextField( "Edit timeout" );
-                editTimeout.setValue( operation.getTimeout() );
-
-                final CheckBox editDaemon = new CheckBox( "Edit daemon" );
-                editDaemon.setValue( operation.getDaemon() );
-
+                commandArea.setValue( new String( decodedBytes ) );
+                cwd.setValue( operation.getCwd() );
+                timeOut.setValue( operation.getTimeout() );
+                daemon.setValue( operation.getDaemon() );
 
                 HorizontalLayout buttons = new HorizontalLayout();
                 buttons.setSpacing( true );
@@ -574,7 +489,7 @@ public class ConfigureOperationStep extends Panel
                     @Override
                     public void buttonClick( Button.ClickEvent clickEvent )
                     {
-                        if ( editCommand.getValue().isEmpty() )
+                        if ( commandArea.getValue().isEmpty() )
                         {
                             Notification notif = new Notification( "Please enter command" );
                             notif.setDelayMsec( 2000 );
@@ -582,8 +497,8 @@ public class ConfigureOperationStep extends Panel
                         }
                         else
                         {
-                            genericPlugin.updateOperation( operation.getOperationId(), editCommand.getValue(),
-                                    editCwd.getValue(), editTimeout.getValue(), editDaemon.getValue(), fromFile );
+                            genericPlugin.updateOperation( operation.getOperationId(), commandArea.getValue(),
+                                    cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
                             show( "Operation saved successfully!" );
                             fromFile = false;
                             subWindow.close();
@@ -593,14 +508,10 @@ public class ConfigureOperationStep extends Panel
                 } );
 
 
-                editInfo.addComponent( editCommand );
-                // editInfo.addComponent (editTemplate);
-                editInfo.addComponent( editCwd );
-                editInfo.addComponent( editTimeout );
-                editInfo.setComponentAlignment( editCommand, Alignment.BOTTOM_LEFT );
-                // editInfo.setComponentAlignment (editTemplate, Alignment.BOTTOM_LEFT);
-                editInfo.setComponentAlignment( editCwd, Alignment.BOTTOM_LEFT );
-                editInfo.setComponentAlignment( editTimeout, Alignment.BOTTOM_LEFT );
+                subContent.addComponent( cwd );
+                subContent.addComponent( timeOut );
+                subContent.addComponent( daemon );
+                subContent.addComponent( commandArea );
 
                 buttons.addComponent( cancel );
                 buttons.addComponent( finalEdit );
@@ -608,9 +519,6 @@ public class ConfigureOperationStep extends Panel
                 buttons.setComponentAlignment( finalEdit, Alignment.BOTTOM_CENTER );
 
 
-                subContent.addComponent( editInfo );
-                subContent.addComponent( editDaemon );
-                subContent.setComponentAlignment( editDaemon, Alignment.BOTTOM_CENTER );
                 subContent.addComponent( buttons );
 
 
@@ -684,6 +592,7 @@ public class ConfigureOperationStep extends Panel
     private void cleanTextBoxes()
     {
         newName.setValue( "" );
-        newCommand.setValue( "" );
+        commandArea.setValue( "" );
+        scriptCheck.setRequired( false );
     }
 }
