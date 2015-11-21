@@ -23,7 +23,7 @@ public class StepStart extends VerticalLayout
         GridLayout gridLayout = new GridLayout( 10, 6 );
         gridLayout.setSizeFull();
 
-        Label welcomeMsg = new Label( "<center><h2>Welcome to Cassandra Installation Wizard!</h2></center>" );
+        Label welcomeMsg = new Label( "<center><h2>Welcome to Cassandra Installation Wizard2!</h2></center>" );
         welcomeMsg.addStyleName( "h2" );
         welcomeMsg.setContentMode( ContentMode.HTML );
         gridLayout.addComponent( welcomeMsg, 3, 1, 6, 2 );

@@ -1,8 +1,8 @@
-<features name="cassandra-plugin" version="4.0.0-RC3">
-  <feature name="cassandra-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/cassandra-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/cassandra-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/cassandra-plugin-cli/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/cassandra-plugin-rest/4.0.0-RC3</bundle>
+<features name="cassandra-plugin" version="4.0.0-RC4">
+  <feature name="cassandra-plugin" version="4.0.0-RC4">
+    <bundle>mvn:io.subutai/cassandra-plugin-api/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-impl/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-cli/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>
