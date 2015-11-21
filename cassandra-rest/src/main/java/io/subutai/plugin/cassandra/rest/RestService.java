@@ -2,6 +2,7 @@ package io.subutai.plugin.cassandra.rest;
 
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -118,4 +119,9 @@ public interface RestService
     @Produces({ MediaType.APPLICATION_JSON })
     public Response stopNode( @PathParam("clusterName") String clusterName,
                                @PathParam("lxcHostname") String lxcHostname );
+
+
+    @POST
+    @Path( "clusters/create" )
+    Response installCluster( @FormParam("clusterConfJson") String config );
 }

@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -365,5 +366,23 @@ public class RestServiceImpl implements RestService
     public void setCassandraManager( final Cassandra cassandraManager )
     {
         this.cassandraManager = cassandraManager;
+    }
+
+    public Response installCluster( String config )
+    {
+        ClusterConfJson clusterConfJson = new Gson().fromJson( config, ClusterConfJson.class );
+
+        CassandraClusterConfig clusterConfig = new CassandraClusterConfig( );
+
+        clusterConfig.setClusterName( clusterConfJson.getName() );
+        clusterConfig.setDomainName( clusterConfJson.getDomainName() );
+        clusterConfig.setDataDirectory( clusterConfJson.getDataDir() );
+        clusterConfig.setCommitLogDirectory( clusterConfJson.getCommitDir() );
+        clusterConfig.setSavedCachesDirectory( clusterConfJson.getCacheDir() );
+        clusterConfig.setNodes( clusterConfJson.getContainers() );
+        clusterConfig.setSeedNodes( clusterConfJson.getSeeds() );
+
+        cassandraManager.installCluster( clusterConfig );
+        return Response.ok().build();
     }
 }
