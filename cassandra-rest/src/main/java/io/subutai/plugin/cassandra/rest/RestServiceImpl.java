@@ -104,7 +104,7 @@ public class RestServiceImpl implements RestService
         result.setName( config.getClusterName() );
         result.setScaling( config.isAutoScaling() );
 
-        String cluster = JsonUtil.toJson( config );
+        String cluster = JsonUtil.toJson( result );
 
 
 

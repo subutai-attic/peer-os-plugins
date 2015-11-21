@@ -14,6 +14,9 @@ public class ClusterConfJson
     private Set<String> containers;
     private Set<String> seeds;
     private String environmentId;
+    private boolean scaling;
+    private Map< String, ContainerInfoJson > containersStatuses;
+
 
 
     public boolean isScaling()
@@ -26,11 +29,6 @@ public class ClusterConfJson
     {
         this.scaling = scaling;
     }
-
-
-    private boolean scaling;
-
-    private Map< String, ContainerInfoJson > containersStatuses;
 
 
     public String getName()
