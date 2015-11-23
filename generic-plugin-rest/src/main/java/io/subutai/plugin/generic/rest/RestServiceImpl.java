@@ -94,13 +94,13 @@ public class RestServiceImpl implements RestService
 
     @Override
     public Response updateOperation( final String operationId, final String commandName, final String cwd,
-                                     final String timeout, final Boolean daemon, final Boolean script )
+                                     final String timeout, final Boolean daemon, final Boolean script, final String operaitonName )
     {
         ConfigDataService configDataService = genericPlugin.getConfigDataService();
         try
         {
             configDataService
-                    .updateOperation( Long.parseLong( operationId ), commandName, cwd, timeout, daemon, script );
+                    .updateOperation( Long.parseLong( operationId ), commandName, cwd, timeout, daemon, script, operaitonName );
         }
         catch ( Exception e )
         {

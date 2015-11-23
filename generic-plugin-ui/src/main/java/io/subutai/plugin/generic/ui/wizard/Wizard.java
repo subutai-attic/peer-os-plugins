@@ -7,6 +7,7 @@ import com.vaadin.ui.GridLayout;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.registry.api.TemplateRegistry;
 import io.subutai.plugin.generic.api.GenericPlugin;
+import io.subutai.plugin.generic.api.model.Operation;
 
 
 public class Wizard
@@ -17,6 +18,8 @@ public class Wizard
     private EnvironmentManager manager;
     private GenericPlugin genericPlugin;
     private Long currentProfileId;
+    private ConfigureOperationStep configureOperationStep;
+    private Operation currentOperation;
 
 
     public Wizard( TemplateRegistry registry, EnvironmentManager manager, GenericPlugin genericPlugin )
@@ -110,5 +113,29 @@ public class Wizard
     public Long getCurrentProfileId()
     {
         return currentProfileId;
+    }
+
+
+    public ConfigureOperationStep getConfigureOperationStep()
+    {
+        return configureOperationStep;
+    }
+
+
+    public void setConfigureOperationStep( final ConfigureOperationStep configureOperationStep )
+    {
+        this.configureOperationStep = configureOperationStep;
+    }
+
+
+    public Operation getCurrentOperation()
+    {
+        return currentOperation;
+    }
+
+
+    public void setCurrentOperation( final Operation currentOperation )
+    {
+        this.currentOperation = currentOperation;
     }
 }

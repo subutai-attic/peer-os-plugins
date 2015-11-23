@@ -176,7 +176,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
     @Override
     public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName )
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
 
@@ -191,6 +191,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
             entity.setTimeout( timeoutValue );
             entity.setDaemon( daemonValue );
             entity.setScript( fromFile );
+            entity.setOperationName( operationName );
             em.merge( entity );
             em.flush();
             daoManager.commitTransaction( em );
