@@ -91,9 +91,9 @@ public class GenericPluginImpl implements GenericPlugin
 
     @Override
     public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName )
     {
-        configDataService.updateOperation( operationId, commandValue, cwdValue, timeoutValue, daemonValue, fromFile );
+        configDataService.updateOperation( operationId, commandValue, cwdValue, timeoutValue, daemonValue, fromFile, operationName );
     }
 
 

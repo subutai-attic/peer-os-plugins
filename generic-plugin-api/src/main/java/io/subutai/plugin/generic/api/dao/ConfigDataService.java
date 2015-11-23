@@ -23,7 +23,7 @@ public interface ConfigDataService
     Operation getOperationByName( String operationName );
 
     void updateOperation( Long operationId, String commandValue, String cwdValue, String timeoutValue,
-                          Boolean daemonValue, Boolean fromFile );
+                          Boolean daemonValue, Boolean fromFile, String operationName );
 
     void deleteOperation( Long operationId );
 

@@ -23,7 +23,7 @@ public interface GenericPlugin
     boolean IsOperationRegistered( String operationName );
 
     void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                          final String timeoutValue, final Boolean daemonValue, final Boolean fromFile );
+                          final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName );
 
     void deleteOperation( Long operationId );
 

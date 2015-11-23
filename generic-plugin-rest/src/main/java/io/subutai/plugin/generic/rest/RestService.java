@@ -52,7 +52,7 @@ public interface RestService
     public Response updateOperation( @QueryParam( "operationId" ) String operationId,
                                      @QueryParam( "commandName" ) String commandName, @QueryParam( "cwd" ) String cwd,
                                      @QueryParam( "timeout" ) String timeout, @QueryParam( "daemon" ) Boolean daemon,
-                                     @QueryParam( "script" ) Boolean script );
+                                     @QueryParam( "script" ) Boolean script, @QueryParam( "operationName" ) String operationName );
 
     // delete operation
     @DELETE

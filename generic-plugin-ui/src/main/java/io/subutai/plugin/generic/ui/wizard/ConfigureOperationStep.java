@@ -1,24 +1,14 @@
 package io.subutai.plugin.generic.ui.wizard;
 
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
@@ -30,7 +20,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
@@ -66,79 +55,14 @@ public class ConfigureOperationStep extends Panel
     private Button uploadScript;
     private Button showAddOperationWindow;
     private TextArea commandArea;
-
-
-    class MyUploader implements Upload.Receiver, Upload.SucceededListener, Upload.FailedListener
-    {
-        private File file;
-        private String path;
-
-
-        @Override
-        public OutputStream receiveUpload( String filename, String MIMEType )
-        {
-            if ( filename != null && !filename.isEmpty() )
-            {
-                FileOutputStream fos;
-                new File( "/tmp/uploads" ).mkdirs();
-                this.file = new File( "/tmp/uploads/" + filename );
-                this.path = new String( "/tmp/uploads/" + filename );
-                try
-                {
-                    fos = new FileOutputStream( this.file );
-                }
-                catch ( final java.io.FileNotFoundException e )
-                {
-                    // Error while opening the file
-                    // TODO: notify that file is not opened
-                    return null;
-                }
-
-                return fos;
-            }
-            else
-            {
-                show( "Please select file" );
-                return null;
-            }
-        }
-
-
-        @Override
-        public void uploadSucceeded( Upload.SucceededEvent event )
-        {
-            try
-            {
-                byte[] encoded = Files.readAllBytes( Paths.get( this.path ) );
-                commandArea.setValue( new String( encoded ) );
-                FileUtils.deleteDirectory( new File( "/tmp" ) );
-                fromFile = true;
-                uploadWindow.close();
-                scriptCheck.setValue( true );
-                newCommand.setEnabled( false );
-                show( "File is uploaded" );
-            }
-            catch ( IOException e )
-            {
-                show( "Server is busy, please try again" );
-                // TODO: file is not saved
-            }
-        }
-
-
-        @Override
-        public void uploadFailed( Upload.FailedEvent event )
-        {
-            show( "Upload failed, please try again" );
-            // TODO: Log the failure on screen.
-        }
-    }
+    private boolean isSave;
 
 
     public ConfigureOperationStep( final Wizard wizard, final GenericPlugin genericPlugin )
     {
         this.genericPlugin = genericPlugin;
         this.wizard = wizard;
+        wizard.setConfigureOperationStep( this );
 
         operationTable = createTableTemplate( "Operations" );
 
@@ -198,120 +122,11 @@ public class ConfigureOperationStep extends Panel
             @Override
             public void buttonClick( final Button.ClickEvent clickEvent )
             {
-                cleanTextBoxes();
-                final Window subWindow = createWindowTemplate( "Adding operation" );
-                subWindow.setHeight( "50%" );
-                subWindow.setWidth( "50%" );
-                subWindow.setEnabled( true );
-
-                VerticalLayout subContent = new VerticalLayout();
-                subContent.setSpacing( true );
-                subContent.setMargin( true );
-
-                HorizontalLayout scriptLayout = new HorizontalLayout();
-                scriptLayout.setSpacing( true );
-                scriptLayout.setWidth( "100%" );
-
-                VerticalLayout scriptItems = new VerticalLayout();
-                scriptItems.setSpacing( true );
-
-                scriptItems.addComponent( uploadScript );
-                scriptItems.addComponent( scriptCheck );
-
-                addOperation = new Button( "Save" );
-                addOperation.addStyleName( BUTTON_STYLE_NAME );
-                addOperation.addClickListener( new Button.ClickListener()
-                {
-                    public void buttonClick( final Button.ClickEvent clickEvent )
-                    {
-                        if ( newName.getValue().isEmpty() )
-                        {
-                            show( "Please enter operation name" );
-                        }
-                        else if ( commandArea.getValue().isEmpty() )
-                        {
-                            show( "Please enter command" );
-                        }
-                        else
-                        {
-                            Profile current = ( Profile ) profileSelect.getValue();
-                            boolean exist = false;
-                            for ( final Operation operation : genericPlugin.getProfileOperations( current.getId() ) )
-                            {
-                                if ( newName.getValue().equals( operation.getOperationName() ) )
-                                {
-                                    show( "Operation with such name already exists" );
-                                    exist = true;
-                                }
-                            }
-
-                            if ( !exist )
-                            {
-                                genericPlugin
-                                        .saveOperation( current.getId(), newName.getValue(), commandArea.getValue(),
-                                                cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
-                                cleanTextBoxes();
-                                show( "Operation saved successfully!" );
-                                refreshUI();
-                                subWindow.close();
-                            }
-                        }
-                    }
-                } );
-
-                scriptLayout.addComponent( commandArea );
-                scriptLayout.addComponent( scriptItems );
-                scriptLayout.setComponentAlignment( scriptItems, Alignment.MIDDLE_LEFT );
-
-                subContent.addComponent( newName );
-                subContent.addComponent( cwd );
-                subContent.addComponent( timeOut );
-                subContent.addComponent( daemon );
-                subContent.addComponent( scriptLayout );
-                subContent.addComponent( addOperation );
-
-                subWindow.setContent( subContent );
+                Window subWindow = new SaveOperationWindow( genericPlugin, profile.getId(), wizard, true );
                 UI.getCurrent().addWindow( subWindow );
             }
         } );
 
-        uploadScript = new Button( "Upload script" );
-        uploadScript.addStyleName( "default" );
-        uploadScript.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( Button.ClickEvent event )
-            {
-                uploadWindow = createWindowTemplate( "Upload Script" );
-
-                VerticalLayout content = new VerticalLayout();
-                content.setSpacing( true );
-                content.setMargin( true );
-
-                MyUploader uploader = new MyUploader();
-                Upload upload = new Upload( "", uploader );
-                upload.setButtonCaption( "Start Upload" );
-                upload.addSucceededListener( uploader );
-                upload.addFailedListener( uploader );
-
-                Button cancel = new Button( "Cancel" );
-                cancel.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent event )
-                    {
-                        uploadWindow.close();
-                    }
-                } );
-
-                content.addComponent( upload );
-                content.addComponent( cancel );
-                content.setComponentAlignment( upload, Alignment.BOTTOM_CENTER );
-                content.setComponentAlignment( cancel, Alignment.BOTTOM_CENTER );
-                uploadWindow.setContent( content );
-                UI.getCurrent().addWindow( uploadWindow );
-            }
-        } );
 
         content.addComponent( title );
         content.addComponent( profileSelect );
@@ -363,7 +178,7 @@ public class ConfigureOperationStep extends Panel
     }
 
 
-    private void refreshUI()
+    public void refreshUI()
     {
         if ( profile != null )
         {
@@ -420,7 +235,6 @@ public class ConfigureOperationStep extends Panel
                 } );
 
                 content.getUI().addWindow( alert.getAlert() );
-
             }
         } );
     }
@@ -447,82 +261,84 @@ public class ConfigureOperationStep extends Panel
             @Override
             public void buttonClick( Button.ClickEvent event )
             {
-                final Window subWindow = createWindowTemplate( "Operation info" );
-                subWindow.setHeight( "50%" );
-                subWindow.setWidth( "50%" );
-
-                VerticalLayout subContent = new VerticalLayout();
-                subContent.setSpacing( true );
-                subContent.setMargin( true );
-
-                HorizontalLayout editInfo = new HorizontalLayout();
-                editInfo.setSpacing( true );
-                editInfo.setWidth( "100%" );
-
-                byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
-
-                commandArea.setValue( new String( decodedBytes ) );
-                cwd.setValue( operation.getCwd() );
-                timeOut.setValue( operation.getTimeout() );
-                daemon.setValue( operation.getDaemon() );
-
-                HorizontalLayout buttons = new HorizontalLayout();
-                buttons.setSpacing( true );
-                buttons.setWidth( "100%" );
-
-                Button cancel = new Button( "Cancel" );
-                cancel.addStyleName( BUTTON_STYLE_NAME );
-                cancel.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent clickEvent )
-                    {
-                        subWindow.close();
-                    }
-                } );
-
-
-                Button finalEdit = new Button( "Edit" );
-                finalEdit.addStyleName( BUTTON_STYLE_NAME );
-                finalEdit.addClickListener( new Button.ClickListener()
-                {
-                    @Override
-                    public void buttonClick( Button.ClickEvent clickEvent )
-                    {
-                        if ( commandArea.getValue().isEmpty() )
-                        {
-                            Notification notif = new Notification( "Please enter command" );
-                            notif.setDelayMsec( 2000 );
-                            notif.show( Page.getCurrent() );
-                        }
-                        else
-                        {
-                            genericPlugin.updateOperation( operation.getOperationId(), commandArea.getValue(),
-                                    cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
-                            show( "Operation saved successfully!" );
-                            fromFile = false;
-                            subWindow.close();
-                            refreshUI();
-                        }
-                    }
-                } );
-
-
-                subContent.addComponent( cwd );
-                subContent.addComponent( timeOut );
-                subContent.addComponent( daemon );
-                subContent.addComponent( commandArea );
-
-                buttons.addComponent( cancel );
-                buttons.addComponent( finalEdit );
-                buttons.setComponentAlignment( cancel, Alignment.BOTTOM_CENTER );
-                buttons.setComponentAlignment( finalEdit, Alignment.BOTTOM_CENTER );
-
-
-                subContent.addComponent( buttons );
-
-
-                subWindow.setContent( subContent );
+//                final Window subWindow = createWindowTemplate( "Operation info" );
+//                subWindow.setHeight( "50%" );
+//                subWindow.setWidth( "50%" );
+//
+//                VerticalLayout subContent = new VerticalLayout();
+//                subContent.setSpacing( true );
+//                subContent.setMargin( true );
+//
+//                HorizontalLayout editInfo = new HorizontalLayout();
+//                editInfo.setSpacing( true );
+//                editInfo.setWidth( "100%" );
+//
+//                byte[] decodedBytes = Base64.decodeBase64( operation.getCommandName() );
+//
+//                commandArea.setValue( new String( decodedBytes ) );
+//                cwd.setValue( operation.getCwd() );
+//                timeOut.setValue( operation.getTimeout() );
+//                daemon.setValue( operation.getDaemon() );
+//
+//                HorizontalLayout buttons = new HorizontalLayout();
+//                buttons.setSpacing( true );
+//                buttons.setWidth( "100%" );
+//
+//                Button cancel = new Button( "Cancel" );
+//                cancel.addStyleName( BUTTON_STYLE_NAME );
+//                cancel.addClickListener( new Button.ClickListener()
+//                {
+//                    @Override
+//                    public void buttonClick( Button.ClickEvent clickEvent )
+//                    {
+//                        subWindow.close();
+//                    }
+//                } );
+//
+//
+//                Button finalEdit = new Button( "Edit" );
+//                finalEdit.addStyleName( BUTTON_STYLE_NAME );
+//                finalEdit.addClickListener( new Button.ClickListener()
+//                {
+//                    @Override
+//                    public void buttonClick( Button.ClickEvent clickEvent )
+//                    {
+//                        if ( commandArea.getValue().isEmpty() )
+//                        {
+//                            Notification notif = new Notification( "Please enter command" );
+//                            notif.setDelayMsec( 2000 );
+//                            notif.show( Page.getCurrent() );
+//                        }
+//                        else
+//                        {
+//                            genericPlugin.updateOperation( operation.getOperationId(), commandArea.getValue(),
+//                                    cwd.getValue(), timeOut.getValue(), daemon.getValue(), fromFile );
+//                            show( "Operation saved successfully!" );
+//                            fromFile = false;
+//                            subWindow.close();
+//                            refreshUI();
+//                        }
+//                    }
+//                } );
+//
+//
+//                subContent.addComponent( cwd );
+//                subContent.addComponent( timeOut );
+//                subContent.addComponent( daemon );
+//                subContent.addComponent( commandArea );
+//
+//                buttons.addComponent( cancel );
+//                buttons.addComponent( finalEdit );
+//                buttons.setComponentAlignment( cancel, Alignment.BOTTOM_CENTER );
+//                buttons.setComponentAlignment( finalEdit, Alignment.BOTTOM_CENTER );
+//
+//
+//                subContent.addComponent( buttons );
+//
+//
+//                subWindow.setContent( subContent );
+                wizard.setCurrentOperation( operation );
+                Window subWindow = new SaveOperationWindow( genericPlugin, profile.getId(), wizard, false);
                 UI.getCurrent().addWindow( subWindow );
             }
         } );
@@ -586,13 +402,5 @@ public class ConfigureOperationStep extends Panel
         Notification notif = new Notification( notification );
         notif.setDelayMsec( 2000 );
         notif.show( Page.getCurrent() );
-    }
-
-
-    private void cleanTextBoxes()
-    {
-        newName.setValue( "" );
-        commandArea.setValue( "" );
-        scriptCheck.setRequired( false );
     }
 }
