@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
@@ -62,9 +61,9 @@ public class RestServiceImpl implements RestService
         }
 
 
-        Map< String, ContainerInfoJson > map = new HashMap<>(  );
+        Map<String, ContainerInfoJson> map = new HashMap<>();
 
-        for( String node : config.getNodes() )
+        for ( String node : config.getNodes() )
         {
             try
             {
@@ -79,7 +78,7 @@ public class RestServiceImpl implements RestService
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+                if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
                 {
                     containerInfoJson.setStatus( "RUNNING" );
                 }
@@ -107,9 +106,7 @@ public class RestServiceImpl implements RestService
         String cluster = JsonUtil.toJson( result );
 
 
-
-
-        if( thrownException )
+        if ( thrownException )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
                            .entity( clusterName + " cluster not found." ).build();
@@ -329,36 +326,38 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNodes( final String clusterName,
-                                final String lxcHosts )
+    public Response startNodes( final String clusterName, final String lxcHosts )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
 
-        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+        {
+        }.getType() );
 
-        if( hosts == null || hosts.isEmpty() )
+        if ( hosts == null || hosts.isEmpty() )
         {
             return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
         }
 
         int errors = 0;
 
-        for( String host : hosts )
+        for ( String host : hosts )
         {
             UUID uuid = cassandraManager.startService( clusterName, host );
             OperationState state = waitUntilOperationFinish( uuid );
-            Response response =createResponse( uuid, state );
+            Response response = createResponse( uuid, state );
 
-            if( response.getStatus() != 200 )
+            if ( response.getStatus() != 200 )
             {
                 errors++;
             }
         }
 
-        if( errors > 0 )
+        if ( errors > 0 )
         {
-            return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
         }
 
         return Response.ok().build();
@@ -366,8 +365,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response stopNodes( final String clusterName,
-                               final String lxcHosts )
+    public Response stopNodes( final String clusterName, final String lxcHosts )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
@@ -375,30 +373,33 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
 
-        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+        {
+        }.getType() );
 
-        if( hosts == null || hosts.isEmpty() )
+        if ( hosts == null || hosts.isEmpty() )
         {
             return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
         }
 
         int errors = 0;
 
-        for( String host : hosts )
+        for ( String host : hosts )
         {
             UUID uuid = cassandraManager.stopService( clusterName, host );
             OperationState state = waitUntilOperationFinish( uuid );
-            Response response =createResponse( uuid, state );
+            Response response = createResponse( uuid, state );
 
-            if( response.getStatus() != 200 )
+            if ( response.getStatus() != 200 )
             {
                 errors++;
             }
         }
 
-        if( errors > 0 )
+        if ( errors > 0 )
         {
-            return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
         }
 
         return Response.ok().build();
@@ -503,11 +504,12 @@ public class RestServiceImpl implements RestService
         this.cassandraManager = cassandraManager;
     }
 
+
     public Response installCluster( String config )
     {
         ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
 
-        CassandraClusterConfig clusterConfig = new CassandraClusterConfig( );
+        CassandraClusterConfig clusterConfig = new CassandraClusterConfig();
 
         clusterConfig.setClusterName( clusterConfJson.getName() );
         clusterConfig.setDomainName( clusterConfJson.getDomainName() );

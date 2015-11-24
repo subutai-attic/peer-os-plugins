@@ -18,6 +18,7 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.quota.CpuQuota;
 import io.subutai.common.quota.RamQuota;
 import io.subutai.common.quota.RamQuotaUnit;
 import io.subutai.core.metric.api.AlertListener;
@@ -194,14 +195,15 @@ public class CassandraAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = sourceHost.getCpuQuota().getPercentage();
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                CpuQuota cpuQuota = sourceHost.getCpuQuota();
+                if ( cpuQuota.getPercentage() < MAX_CPU_QUOTA_PERCENT )
                 {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota.getPercentage() + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota.getPercentage(),
                             newCpuQuota );
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( newCpuQuota );
+                    cpuQuota.setPercentage( newCpuQuota );
+                    sourceHost.setCpuQuota( cpuQuota );
 
                     quotaIncreased = true;
                 }
