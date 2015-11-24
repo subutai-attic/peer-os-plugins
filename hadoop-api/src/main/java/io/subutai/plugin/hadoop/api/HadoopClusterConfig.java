@@ -8,7 +8,6 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -30,7 +29,6 @@ public class HadoopClusterConfig implements ConfigBase
     private Set<String> blockedAgents;
     private String environmentId;
     private boolean autoScaling;
-//    private Topology topology;
 
 
     public HadoopClusterConfig()
@@ -39,7 +37,6 @@ public class HadoopClusterConfig implements ConfigBase
         dataNodes = new ArrayList<>();
         taskTrackers = new ArrayList<>();
         blockedAgents = new HashSet<>();
-//        topology = new Topology();
         autoScaling = false;
     }
 
@@ -393,18 +390,19 @@ public class HadoopClusterConfig implements ConfigBase
         this.blockedAgents = blockedAgents;
     }
 
-//
-//    public Topology getTopology()
-//    {
-//        return topology;
-//    }
-//
-//
-//    public void setTopology( final Topology topology )
-//    {
-//        this.topology = topology;
-//    }
-//
+    //
+    //    public Topology getTopology()
+    //    {
+    //        return topology;
+    //    }
+    //
+    //
+    //    public void setTopology( final Topology topology )
+    //    {
+    //        this.topology = topology;
+    //    }
+    //
+
 
     public boolean isMasterNode( EnvironmentContainerHost containerHost )
     {

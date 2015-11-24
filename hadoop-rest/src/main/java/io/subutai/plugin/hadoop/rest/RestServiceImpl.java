@@ -46,7 +46,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response getCluster( String clusterName )
+    public Response getCluster( final String clusterName )
     {
         String cluster = JsonUtil.GSON.toJson( hadoopManager.getCluster( clusterName ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();

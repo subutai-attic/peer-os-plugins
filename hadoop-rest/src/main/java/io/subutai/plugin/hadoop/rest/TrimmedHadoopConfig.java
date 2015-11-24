@@ -3,9 +3,9 @@ package io.subutai.plugin.hadoop.rest;
 
 import java.util.Set;
 
-import io.subutai.common.settings.Common;
-
 import com.google.common.collect.Sets;
+
+import io.subutai.common.settings.Common;
 
 
 public class TrimmedHadoopConfig

@@ -75,10 +75,12 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
         HadoopClusterConfig config = manager.getCluster( clusterName );
         try
         {
-            EnvironmentContainerHost namenode = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
-                                            .getContainerHostById( config.getNameNode() );
-            EnvironmentContainerHost jobtracker = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
-                                              .getContainerHostById( config.getJobTracker() );
+            EnvironmentContainerHost namenode =
+                    manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                           .getContainerHostById( config.getNameNode() );
+            EnvironmentContainerHost jobtracker =
+                    manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                           .getContainerHostById( config.getJobTracker() );
 
             namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
             jobtracker.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );

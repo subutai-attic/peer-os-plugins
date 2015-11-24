@@ -831,8 +831,7 @@ public class ManagerListener
         final Label statusDecommission = hadoopManager.getStatusDecommissionLabel( statusGroupLayout );
         if ( host != null )
         {
-            statusDecommission.setValue( Manager.DECOMMISSION_STATUS_CAPTION + hadoopManager
-                    .getDecommissionStatus( hadoopManager.getDecommissionStatus(), host ) );
+            statusDecommission.setValue( Manager.DECOMMISSION_STATUS_CAPTION + hadoopManager.getDecommissionStatus( hadoopManager.getDecommissionStatus(), host ) );
             checkButton.setEnabled( true );
             destroyButton.setEnabled( true );
             hadoopManager.disableProgressBar();
