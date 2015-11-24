@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-import io.subutai.common.environment.ContainerType;
+import io.subutai.common.peer.ContainerType;
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.plugin.common.api.ConfigBase;

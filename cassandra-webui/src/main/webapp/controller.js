@@ -203,14 +203,14 @@ function CassandraCtrl(cassandraSrv, SweetAlert) {
 function colSelectContainers() {
 	return {
 		restrict: 'E',
-		templateUrl: 'subutai-app/plugins/cassandra/directives/col-select/col-select-containers.html'
+		templateUrl: 'plugins/cassandra/directives/col-select/col-select-containers.html'
 	}
 };
 
 function colSelectSeeds() {
 	return {
 		restrict: 'E',
-		templateUrl: 'subutai-app/plugins/cassandra/directives/col-select/col-select-seeds.html'
+		templateUrl: 'plugins/cassandra/directives/col-select/col-select-seeds.html'
 	}
 };
 

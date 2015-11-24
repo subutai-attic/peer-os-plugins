@@ -3,13 +3,12 @@
 angular.module('subutai.plugins.cassandra.service',[])
 	.factory('cassandraSrv', cassandraSrv);
 
-cassandraSrv.$inject = ['$http'];
+cassandraSrv.$inject = ['$http', 'environmentService'];
 
-function cassandraSrv($http) {
+function cassandraSrv($http, environmentService) {
 
-	var baseURL = serverUrl + 'cassandra/';
-	var clustersURL = baseURL + 'clusters/';
-	var environmentsURL = serverUrl + 'environments_ui/';	
+	var BASE_URL = SERVER_URL + 'rest/cassandra/';
+	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var cassandraSrv = {
 		getClusters: getClusters,
@@ -26,13 +25,13 @@ function cassandraSrv($http) {
 	return cassandraSrv;
 
 	function addNode(clusterName) {
-		return $http.post(clustersURL + clusterName + '/add');
+		return $http.post(CLUSTER_URL + clusterName + '/add');
 	}
 
 	function startNodes(clusterName, nodesArray) {
 		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
 		return $http.post(
-			clustersURL + 'nodes/start', 
+			CLUSTER_URL + 'nodes/start',
 			postData, 
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
@@ -41,32 +40,32 @@ function cassandraSrv($http) {
 	function stopNodes(clusterName, nodesArray) {
 		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
 		return $http.post(
-			clustersURL + 'nodes/stop', 
+			CLUSTER_URL + 'nodes/stop',
 			postData, 
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
 	}
 
 	function changeClusterScaling(clusterName, scale) {
-		return $http.post(clustersURL + clusterName + '/auto_scale/' + scale);
+		return $http.post(CLUSTER_URL + clusterName + '/auto_scale/' + scale);
 	}
 
 	function deleteCluster(clusterName) {
-		return $http.delete(clustersURL + clusterName);
+		return $http.delete(CLUSTER_URL + clusterName);
 	}
 
 	function deleteNode(clusterName, nodeId) {
-		return $http.delete(clustersURL + clusterName + '/node/' + nodeId);
+		return $http.delete(CLUSTER_URL + clusterName + '/node/' + nodeId);
 	}
 
 	function getEnvironments() {
-		return $http.get(environmentsURL, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+		return environmentService.getEnvironments();
 	}
 
 	function getClusters(clusterName) {
 		if(clusterName === undefined || clusterName === null) clusterName = '';
 		return $http.get(
-			clustersURL + clusterName,
+			CLUSTER_URL + clusterName,
 			{withCredentials: true, headers: {'Content-Type': 'application/json'}}
 		);
 	}
@@ -74,7 +73,7 @@ function cassandraSrv($http) {
 	function createCassandra(cassandraJson) {
 		var postData = 'clusterConfJson=' + cassandraJson;
 		return $http.post(
-			clustersURL + 'create', 
+			CLUSTER_URL + 'create',
 			postData, 
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
