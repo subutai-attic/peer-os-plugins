@@ -31,11 +31,21 @@ public class CassandraWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return String.format( "{" +
-                "name: 'subutai.blueprints', files: ["
-                + "'subutai-app/blueprints/blueprints.js',"
-                + "'subutai-app/blueprints/controller.js',"
-                + "'subutai-app/environment/service.js'"
-                + "]}" );
+        return "{"
+                + "url: '/plugins/cassandra',"
+                + "templateUrl: 'plugins/cassandra/partials/view.html',"
+                + "resolve: {"
+                    + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
+                    + "{"
+                        + "name: 'subutai.plugins.cassandra',"
+                        + "files: ["
+                            + "'plugins/cassandra/cassandra.js',"
+                            + "'plugins/cassandra/controller.js',"
+                            + "'plugins/cassandra/service.js'"
+                        + "]"
+                    + "}"
+                    + "]);"
+                + "}]"
+                + "}";
     }
 }

@@ -15,15 +15,6 @@
   <name>Subutai Cassandra Plugin Web UI</name>
   <description>Subutai Cassandra Web UI</description>
 
-  <dependencies>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -56,13 +47,9 @@
           </supportedProjectTypes>
           <instructions>
             <Bundle-SymbolicName>${project.groupId}.plugin.cassandra.webui</Bundle-SymbolicName>
-            <Bundle-ClassPath>.,WEB-INF/classes</Bundle-ClassPath>
 
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
-            <Export-Package>
-              {local-packages};version=${project.version};-noimport:=true
-            </Export-Package>
 
             <Web-ContextPath>/plugins/cassandra</Web-ContextPath>
           </instructions>
