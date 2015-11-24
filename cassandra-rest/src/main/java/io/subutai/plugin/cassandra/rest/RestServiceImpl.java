@@ -434,7 +434,8 @@ public class RestServiceImpl implements RestService
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.ok( po.getLog() ).build();
+            String operationId = JsonUtil.toJson( "log", po.getLog() );
+            return Response.status( Response.Status.OK ).entity( operationId ).build();
         }
         else
         {

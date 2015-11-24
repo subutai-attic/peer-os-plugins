@@ -2,6 +2,7 @@ package io.subutai.plugin.cassandra.impl.handler;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -84,8 +85,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
 
         if ( !config.getAllNodes().contains( host.getId() ) )
         {
-            trackerOperation
-                    .addLogFailed( String.format( "Node %s does not belong to %s cluster.", id, clusterName ) );
+            trackerOperation.addLogFailed( String.format( "Node %s does not belong to %s cluster.", id, clusterName ) );
             return;
         }
 
@@ -151,16 +151,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
     public static void logResults( TrackerOperation po, CommandResult result )
     {
         Preconditions.checkNotNull( result );
-        String message = "UNKNOWN";
-        if ( result.getExitCode() == 0 )
-        {
-            message = result.getStdOut();
-        }
 
-        else if ( result.getExitCode() == 768 )
+        if ( result.hasSucceeded() || !Strings.isNullOrEmpty( result.getStdOut() ) )
         {
-            message = "cassandra is not running";
+            po.addLogDone( result.getStdOut() );
         }
-        po.addLogDone( message );
+        else
+        {
+            po.addLogFailed( result.getStdErr() );
+        }
     }
 }
