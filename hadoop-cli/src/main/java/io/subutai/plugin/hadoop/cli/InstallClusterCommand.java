@@ -59,7 +59,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     @Argument( index = 7, name = "slaveNodes", description = "The uuid set of slaves nodes", required = true,
             multiValued = false )
-    String slaveNodes[];
+    String slaveNodes;
 
     private Hadoop hadoopManager;
     private Tracker tracker;
@@ -76,8 +76,10 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setNameNode( namenodeUUID );
         config.setJobTracker( jobTrackerUUID );
         config.setSecondaryNameNode( secondaryNamenodeUUID );
+
+        String[] configNodes = slaveNodes.replaceAll( "\\s+", "" ).split( "," );
         List<String> slaves = new ArrayList<>();
-        Collections.addAll( slaves, slaveNodes );
+        Collections.addAll( slaves, configNodes );
         config.setDataNodes( slaves );
         config.setTaskTrackers( slaves );
         System.out.println( "Configuring " + clusterName + " hadoop cluster..." );
