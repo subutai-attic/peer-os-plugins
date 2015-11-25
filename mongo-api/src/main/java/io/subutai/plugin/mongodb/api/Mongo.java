@@ -117,4 +117,31 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
      * @param config config to be deleted
      */
     public void deleteConfig( MongoClusterConfig config ) throws ClusterException;
+
+
+
+
+
+	/**
+	 * Starts the specified nodes
+	 *
+	 * @param clusterName - name of cluster
+	 * @param hostname - hostname of node
+	 *
+	 * @return - UUID of operation to track
+	 */
+	UUID startService( String clusterName, String hostname );
+
+
+
+
+	/**
+	 * Stops the specified nodes
+	 *
+	 * @param clusterName - name of cluster
+	 * @param hostname - hostname of node
+	 *
+	 * @return - UUID of operation to track
+	 */
+	UUID stopService( String clusterName, String hostname );
 }

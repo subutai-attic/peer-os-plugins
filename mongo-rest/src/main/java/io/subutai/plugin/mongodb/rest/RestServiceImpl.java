@@ -5,16 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 
+import com.google.gson.reflect.TypeToken;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
@@ -142,8 +146,43 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+	@Override
+	public Response startNodes (@FormParam ("clusterName") String clusterName, @FormParam ("lxcHosts") String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
 
-    @Override
+		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>> (){}.getType() );
+
+		if( hosts == null || hosts.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( String host : hosts )
+		{
+			UUID uuid = mongo.startService( clusterName, host );
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
+	@Override
     public Response stopNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
@@ -171,8 +210,46 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+	@Override
+	public Response stopNodes (String clusterName, String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
 
-    @Override
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
+
+		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+
+		if( hosts == null || hosts.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( String host : hosts )
+		{
+			UUID uuid = mongo.stopService( clusterName, host );
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
+	@Override
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -289,8 +366,52 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+	@Override
+	public Response autoScaleCluster (String clusterName, boolean scale)
+	{
+		MongoClusterConfig config = mongo.getCluster( clusterName );
+		config.setAutoScaling( scale );
+		try
+		{
+			mongo.saveConfig( config );
+		}
+		catch ( ClusterException e )
+		{
+			e.printStackTrace();
+		}
 
-    private Response createResponse( UUID uuid, OperationState state )
+
+		return Response.ok().build();
+	}
+
+	@Override
+	public Response installCluster (String config)
+	{
+		ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
+
+		MongoClusterConfig clusterConfig = new MongoClusterConfig( );
+
+		clusterConfig.setClusterName( clusterConfJson.getName() );
+		clusterConfig.setDomainName( clusterConfJson.getDomainName() );
+		clusterConfig.setReplicaSetName ( clusterConfJson.getRepl () );
+		clusterConfig.setCfgSrvPort ( Integer.parseInt (clusterConfJson.getConfigPort ()) );
+		clusterConfig.setRouterPort ( Integer.parseInt (clusterConfJson.getRoutePort ()) );
+		clusterConfig.setDataNodePort ( Integer.parseInt (clusterConfJson.getDataPort ()) );
+		clusterConfig.setConfigHosts ( clusterConfJson.getConfigNodes () );
+		clusterConfig.setRouterHosts ( clusterConfJson.getRouteNodes () );
+		clusterConfig.setDataHosts ( clusterConfJson.getDataNodes () );
+
+		clusterConfig.setNumberOfConfigServers ( clusterConfJson.getConfigNodes ().size() );
+		clusterConfig.setNumberOfRouters ( clusterConfJson.getRouteNodes ().size() );
+		clusterConfig.setNumberOfDataNodes (clusterConfJson.getDataNodes ().size() );
+		clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
+
+		mongo.installCluster( clusterConfig );
+		return Response.ok().build();
+	}
+
+
+	private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )

@@ -6,16 +6,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>mongo-plugin-parent</artifactId>
-  <version>4.0.0-RC3</version>
+  <version>4.0.0-RC4</version>
 
   <name>Subutai MongoDB Parent</name>
   <description>Subutai MongoDB Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC3</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC4</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
     <mockito.version>1.9.5</mockito.version>
@@ -28,7 +27,6 @@
   <modules>
     <module>mongo-api</module>
     <module>mongo-impl</module>
-    <module>mongo-ui</module>
     <module>mongo-cli</module>
     <module>mongo-rest</module>
     <module>mongo-kar</module>
@@ -37,6 +35,13 @@
   <dependencyManagement>
     <dependencies>
 
+
+	  <dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>webui</artifactId>
+		<classifier>classes</classifier>
+		<version>${subutai.mgmt.parent.version}</version>
+	  </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
@@ -61,11 +66,6 @@
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>

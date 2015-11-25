@@ -4,6 +4,7 @@ package io.subutai.plugin.mongodb.impl.alert;
 import java.util.List;
 import java.util.Set;
 
+import io.subutai.common.quota.CpuQuota;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +105,7 @@ public class MongoAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        MAX_RAM_QUOTA_MB = Float.parseFloat (sourceHost.getAvailableRamQuota().getValue()) * 0.8;
 
         //figure out Mongo  process pid
         int mongoPid;
@@ -153,7 +154,7 @@ public class MongoAlertListener implements AlertListener
             if ( ramStressedByMongo )
             {
                 //read current RAM quota
-                int ramQuota = sourceHost.getRamQuota();
+                int ramQuota = (int) Float.parseFloat (sourceHost.getRamQuota().getValue());
 
 
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
@@ -177,13 +178,13 @@ public class MongoAlertListener implements AlertListener
             {
 
                 //read current CPU quota
-                int cpuQuota = sourceHost.getCpuQuota();
+                int cpuQuota = (int) Float.parseFloat (sourceHost.getCpuQuota().getValue ());
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
                 {
                     int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( newCpuQuota );
+                    sourceHost.setCpuQuota( new CpuQuota (newCpuQuota) );
 
                     quotaIncreased = true;
                 }

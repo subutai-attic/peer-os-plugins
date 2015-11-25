@@ -30,4 +30,10 @@
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
   <!-- *********************************************************************************** -->
 
+	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+
+	<bean id="module" scope="singleton" class="io.subutai.plugin.mongodb.impl.MongoWebModule">
+	</bean>
+
 </blueprint>
