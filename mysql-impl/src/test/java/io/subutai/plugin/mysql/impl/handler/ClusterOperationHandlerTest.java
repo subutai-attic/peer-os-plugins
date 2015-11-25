@@ -13,16 +13,17 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -77,7 +78,7 @@ public class ClusterOperationHandlerTest
     @Mock
     ClusterConfig clusterConfig;
     @Mock
-    Topology topology;
+    Blueprint blueprint;
     @Mock
     LocalPeer localPeer;
     @Mock
@@ -133,7 +134,7 @@ public class ClusterOperationHandlerTest
         when( impl.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ) ).thenReturn( environment );
         when( impl.getCluster( clusterName ) ).thenReturn( config );
         when( impl.getPeerManager().getLocalPeer() ).thenReturn( localPeer );
-        when( environmentManager.growEnvironment( config.getEnvironmentId(), topology, false ) )
+        when( environmentManager.growEnvironment( config.getEnvironmentId(), blueprint, false ) )
                 .thenReturn( containerHosts );
     }
 

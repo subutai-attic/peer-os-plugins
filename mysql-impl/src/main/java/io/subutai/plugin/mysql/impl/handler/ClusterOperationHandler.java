@@ -5,22 +5,23 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandCallback;
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.command.Response;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.peer.api.LocalPeer;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -85,9 +86,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( MySQLClusterConfig.PRODUCT_NAME, MySQLClusterConfig.TEMPLATE_NAME, 1, 1, 1,
-                new PlacementStrategy( "ROUND_ROBIN" ) );
-        Topology topology = new Topology();
-        topology.addNodeGroupPlacement( localPeer, nodeGroup );
+                new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
+
+        Blueprint blueprint = new Blueprint( "nodeGroup" + nodeType.name(), null, Sets.newHashSet( nodeGroup ) );
 
         EnvironmentContainerHost newNode;
 
@@ -103,7 +104,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MySQLCImpl
 
             try
             {
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), blueprint, false );
             }
             catch ( EnvironmentModificationException | EnvironmentNotFoundException e )
             {

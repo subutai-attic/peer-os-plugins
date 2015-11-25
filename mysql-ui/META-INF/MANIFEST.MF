@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1446303852192
+Bnd-LastModified: 1448451787375
 Build-Jdk: 1.8.0_60
-Built-By: dilshat
+Built-By: tzhamakeev
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-Description: Subutai MySQL Cluster Plugin UI
 Bundle-ManifestVersion: 2
@@ -12,9 +12,9 @@ Created-By: Apache Maven Bundle Plugin
 Export-Package: io.subutai.plugin.mysql.ui;uses:="com.vaadin.ui,io.subut
  ai.core.environment.api,io.subutai.core.tracker.api,io.subutai.plugin.m
  ysql.api,io.subutai.server.ui.api,javax.naming";version="4.0.0.RC3",io.
- subutai.plugin.mysql.ui.environment;uses:="com.vaadin.ui,io.subutai.cor
- e.environment.api,io.subutai.core.tracker.api,io.subutai.plugin.mysql.a
- pi";version="4.0.0.RC3",io.subutai.plugin.mysql.ui.manager;version="4.0
+ subutai.plugin.mysql.ui.manager;uses:="com.vaadin.ui,io.subutai.core.en
+ vironment.api,io.subutai.core.tracker.api,io.subutai.plugin.mysql.api";
+ version="4.0.0.RC3",io.subutai.plugin.mysql.ui.environment;version="4.0
  .0.RC3";uses:="com.vaadin.ui,io.subutai.core.environment.api,io.subutai
  .core.tracker.api,io.subutai.plugin.mysql.api"
 Export-Service: io.subutai.server.ui.api.PortalModule

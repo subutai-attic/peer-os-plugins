@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1446303848535
+Bnd-LastModified: 1448451783930
 Build-Jdk: 1.8.0_60
-Built-By: dilshat
+Built-By: tzhamakeev
 Bundle-Description: Subutai MySQL Cluster Api
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai MySQL Cluster Plugin Api

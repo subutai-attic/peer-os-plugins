@@ -119,7 +119,7 @@ public class MySQLAlertListener implements AlertListener
             throw new Exception( "Error obtaining mysql process PID", e );
         }
 
-        ProcessResourceUsage processResourceUsage = mysql.getMonitor().getProcessResourceUsage( sourceHost, mysqlPid );
+        ProcessResourceUsage processResourceUsage = mysql.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), mysqlPid );
 
         //confirm that mysql is causing the stress, otherwise no-op
         MonitoringSettings thresholds = mysql.getAlertSettings();
