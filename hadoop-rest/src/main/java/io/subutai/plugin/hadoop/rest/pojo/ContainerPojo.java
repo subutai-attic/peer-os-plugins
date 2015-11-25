@@ -9,6 +9,7 @@ public class ContainerPojo implements Serializable
     private String uuid;
     private String hostname;
     private String status;
+    private String ip;
 
 
     public ContainerPojo()
@@ -24,6 +25,18 @@ public class ContainerPojo implements Serializable
         this.uuid = uuid;
         this.hostname = hostname;
         this.status = status;
+    }
+
+
+    public String getIp()
+    {
+        return ip;
+    }
+
+
+    public void setIp( final String ip )
+    {
+        this.ip = ip;
     }
 
 
@@ -64,17 +77,6 @@ public class ContainerPojo implements Serializable
 
 
     @Override
-    public String toString()
-    {
-        return "ContainerPojo{" +
-                "uuid='" + uuid + '\'' +
-                ", hostname='" + hostname + '\'' +
-                ", status='" + status + '\'' +
-                '}';
-    }
-
-
-    @Override
     public boolean equals( final Object o )
     {
         if ( this == o )
@@ -88,7 +90,19 @@ public class ContainerPojo implements Serializable
 
         final ContainerPojo that = ( ContainerPojo ) o;
 
-        return ( !getUuid().equals( that.getUuid() ) );
+        if ( !getUuid().equals( that.getUuid() ) )
+        {
+            return false;
+        }
+        if ( getHostname() != null ? !getHostname().equals( that.getHostname() ) : that.getHostname() != null )
+        {
+            return false;
+        }
+        if ( getStatus() != null ? !getStatus().equals( that.getStatus() ) : that.getStatus() != null )
+        {
+            return false;
+        }
+        return !( getIp() != null ? !getIp().equals( that.getIp() ) : that.getIp() != null );
     }
 
 
@@ -98,6 +112,19 @@ public class ContainerPojo implements Serializable
         int result = getUuid().hashCode();
         result = 31 * result + ( getHostname() != null ? getHostname().hashCode() : 0 );
         result = 31 * result + ( getStatus() != null ? getStatus().hashCode() : 0 );
+        result = 31 * result + ( getIp() != null ? getIp().hashCode() : 0 );
         return result;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return "ContainerPojo{" +
+                "uuid='" + uuid + '\'' +
+                ", hostname='" + hostname + '\'' +
+                ", status='" + status + '\'' +
+                ", ip='" + ip + '\'' +
+                '}';
     }
 }

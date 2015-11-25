@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -328,37 +329,43 @@ public class RestServiceImpl implements RestService
         try
         {
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-            Map<String, UUID> nodes = new HashMap<>();
-            String hostname;
 
-            nodes.put( config.getNameNode(), hadoopManager.statusNameNode( config ) );
-            nodes.put( config.getSecondaryNameNode(), hadoopManager.statusSecondaryNameNode( config ) );
-            nodes.put( config.getJobTracker(), hadoopManager.statusJobTracker( config ) );
+            UUID uuid = hadoopManager.statusNameNode( config );
+            ContainerHost ch = environment.getContainerHostById( pojo.getNameNode().getUuid() );
+            pojo.getNameNode().setHostname( ch.getHostname() );
+            pojo.getNameNode().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getNameNode().setStatus( parseStatus( uuid ) );
 
-            for ( String container : config.getAllDataNodeAgent() )
-            {
-                hostname = environment.getContainerHostById( container ).getHostname();
-                nodes.put( container, hadoopManager.startDataNode( config, hostname ) );
-            }
+            uuid = hadoopManager.statusSecondaryNameNode( config );
+            ch = environment.getContainerHostById( pojo.getSecondaryNameNode().getUuid() );
+            pojo.getSecondaryNameNode().setHostname( ch.getHostname() );
+            pojo.getSecondaryNameNode().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getSecondaryNameNode().setStatus( parseStatus( uuid ) );
 
-            for ( String container : config.getAllTaskTrackerNodeAgents() )
-            {
-                hostname = environment.getContainerHostById( container ).getHostname();
-                nodes.put( container, hadoopManager.startDataNode( config, hostname ) );
-            }
-
-            pojo.getNameNode().setStatus( parseStatus( nodes.get( pojo.getNameNode().getUuid() ) ) );
-            pojo.getSecondaryNameNode().setStatus( parseStatus( nodes.get( pojo.getSecondaryNameNode().getUuid() ) ) );
-            pojo.getJobTracker().setStatus( parseStatus( nodes.get( pojo.getJobTracker().getUuid() ) ) );
+            uuid = hadoopManager.statusJobTracker( config );
+            ch = environment.getContainerHostById( pojo.getJobTracker().getUuid() );
+            pojo.getJobTracker().setHostname( ch.getHostname() );
+            pojo.getJobTracker().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getJobTracker().setStatus( parseStatus( uuid ) );
 
             for ( ContainerPojo container : pojo.getAllDataNodeAgent() )
             {
-                container.setStatus( parseStatus( nodes.get( container.getUuid() ) ) );
+                ch = environment.getContainerHostById( container.getUuid() );
+                container.setHostname( ch.getHostname() );
+                container.setIp( ch.getIpByInterfaceName( "eth0" ) );
+
+                uuid = hadoopManager.statusDataNode( config, container.getHostname() );
+                container.setStatus( parseStatus( uuid ) );
             }
 
             for ( ContainerPojo container : pojo.getAllTaskTrackerNodeAgents() )
             {
-                container.setStatus( parseStatus( nodes.get( container.getUuid() ) ) );
+                ch = environment.getContainerHostById( container.getUuid() );
+                container.setHostname( ch.getHostname() );
+                container.setIp( ch.getIpByInterfaceName( "eth0" ) );
+
+                uuid = hadoopManager.statusTaskTracker( config, container.getHostname() );
+                container.setStatus( parseStatus( uuid ) );
             }
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
@@ -381,7 +388,19 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    log = po.getLog();
+                    String temp = po.getLog();
+                    if ( temp.contains( "STOPPED" ) )
+                    {
+                        log = "STOPPED";
+                    }
+                    else if ( temp.contains( "RUNNING" ) )
+                    {
+                        log = "RUNNING";
+                    }
+                    else
+                    {
+                        log = "UNKNOWN";
+                    }
                     break;
                 }
             }
