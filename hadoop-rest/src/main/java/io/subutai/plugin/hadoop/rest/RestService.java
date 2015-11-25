@@ -35,19 +35,7 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     Response configureCluster( @QueryParam( "config" ) String config );
 
-    //configure cluster
-    @POST
-    @Path( "configure_environment" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response configureCluster( @QueryParam( "environmentId" ) String environmentId,
-                               @QueryParam( "clusterName" ) String clusterName,
-                               @QueryParam( "nameNode" ) String nameNode,
-                               @QueryParam( "secNameNode" ) String secNameNode,
-                               @QueryParam( "jobTracker" ) String jobTracker,
-                               @QueryParam( "slaves" ) String slaves,
-                               @QueryParam( "replicationFactor" ) int replicationFactor);
-
-
+    
     //uninstall cluster
     @DELETE
     @Path( "clusters/{clusterName}" ) //Maps for the `hello/John` in the URL
