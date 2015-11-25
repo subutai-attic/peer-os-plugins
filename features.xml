@@ -1,8 +1,8 @@
-<features name="hadoop-plugin" version="4.0.0-RC3">
-  <feature name="hadoop-plugin" version="4.0.0-RC3">
-    <bundle> mvn:io.subutai/hadoop-plugin-api/4.0.0-RC3</bundle>
-    <bundle> mvn:io.subutai/hadoop-plugin-impl/4.0.0-RC3</bundle>
-    <bundle> mvn:io.subutai/hadoop-plugin-cli/4.0.0-RC3</bundle>
-    <bundle> mvn:io.subutai/hadoop-plugin-rest/4.0.0-RC3</bundle>
+<features name="hadoop-plugin" version="4.0.0-RC4">
+  <feature name="hadoop-plugin" version="4.0.0-RC4">
+    <bundle> mvn:io.subutai/hadoop-plugin-api/4.0.0-RC4</bundle>
+    <bundle> mvn:io.subutai/hadoop-plugin-impl/4.0.0-RC4</bundle>
+    <bundle> mvn:io.subutai/hadoop-plugin-cli/4.0.0-RC4</bundle>
+    <bundle> mvn:io.subutai/hadoop-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>
