@@ -56,6 +56,12 @@ public class TrimmedHadoopConfig
     }
 
 
+    public void setReplicationFactor( String replicationFactor )
+    {
+        this.replicationFactor = replicationFactor;
+    }
+
+
     public String getReplicationFactor()
     {
         return replicationFactor;

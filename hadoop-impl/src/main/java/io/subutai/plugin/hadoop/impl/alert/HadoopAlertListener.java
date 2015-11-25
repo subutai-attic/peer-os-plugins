@@ -39,11 +39,9 @@ public class HadoopAlertListener implements AlertListener
     public static final String HADOOP_ALERT_LISTENER = "HADOOP_ALERT_LISTENER";
     private HadoopImpl hadoop;
     private CommandUtil commandUtil = new CommandUtil();
-    private static double MAX_RAM_QUOTA_MB;
-    private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
-    private static int MAX_CPU_QUOTA_PERCENT = 80;
-    private static int CPU_QUOTA_INCREMENT_PERCENT = 10;
-    private static int PHYSICAL_MACHINE_RESERVED_RAM_CAPACITY_IN_MB = 2048;
+    public static final int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
+    public static final int MAX_CPU_QUOTA_PERCENT = 80;
+    public static final int CPU_QUOTA_INCREMENT_PERCENT = 10;
     private static final String PID_STRING = "pid";
 
 
@@ -127,7 +125,7 @@ public class HadoopAlertListener implements AlertListener
 
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota().getRamQuotaValue( RamQuotaUnit.MB ) * 0.5;
+        final double MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota().getRamQuotaValue( RamQuotaUnit.MB ) * 0.5;
 
         List<NodeType> nodeRoles = HadoopClusterConfig.getNodeRoles( targetCluster, sourceHost );
 

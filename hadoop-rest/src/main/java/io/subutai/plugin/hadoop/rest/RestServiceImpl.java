@@ -2,6 +2,7 @@ package io.subutai.plugin.hadoop.rest;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,10 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -77,6 +82,62 @@ public class RestServiceImpl implements RestService
         }
 
         UUID uuid = hadoopManager.installCluster( hadoopConfig );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response configureCluster( final String environmentId, final String clusterName, final String nameNode,
+                                      final String secNameNode, final String jobTracker, final String slaves,
+                                      final int replicationFactor )
+    {
+        Preconditions.checkNotNull( environmentId );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( nameNode );
+        Preconditions.checkNotNull( secNameNode );
+        Preconditions.checkNotNull( jobTracker );
+        Preconditions.checkNotNull( slaves );
+        Preconditions.checkNotNull( replicationFactor );
+
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.loadEnvironment( environmentId );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        if ( environment == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Could not find environment with id : " + environmentId ).build();
+        }
+
+        if ( hadoopManager.getCluster( clusterName ) != null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "There is already a cluster with same name !" ).build();
+        }
+
+        HadoopClusterConfig config = new HadoopClusterConfig();
+        config.setEnvironmentId( environmentId );
+        config.setClusterName( clusterName );
+        config.setNameNode( nameNode );
+        config.setSecondaryNameNode( secNameNode );
+        config.setJobTracker( jobTracker );
+        config.setReplicationFactor( replicationFactor );
+
+        String[] slaveNodes = slaves.replaceAll( "\\s+", "" ).split( "," );
+        List<String> allNodes = new ArrayList<>();
+        Collections.addAll( allNodes, slaveNodes );
+
+        config.setDataNodes( allNodes );
+        config.setTaskTrackers( allNodes );
+
+        UUID uuid = hadoopManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
