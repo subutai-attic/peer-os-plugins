@@ -60,43 +60,43 @@ public class Commands
 
     public static String getClearMastersCommand()
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh masters clear";
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh masters clear";
     }
 
 
     public static String getClearSlavesCommand()
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves clear";
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear";
     }
 
 
     public static String getRefreshJobTrackerCommand()
     {
-        return ". /etc/profile && " + "hadoop mradmin -refreshNodes";
+        return "/opt/hadoop*/bin/hadoop mradmin -refreshNodes";
     }
 
 
     public static String getStartDataNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemon.sh start datanode";
+        return "/opt/hadoop*/bin/hadoop-daemon.sh start datanode";
     }
 
 
     public static String getStopDataNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemon.sh stop datanode";
+        return "/opt/hadoop*/bin/hadoop-daemon.sh stop datanode";
     }
 
 
     public static String getStartTaskTrackerCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemon.sh start tasktracker";
+        return "/opt/hadoop*/bin/hadoop-daemon.sh start tasktracker";
     }
 
 
     public static String getStopTaskTrackerCommand()
     {
-        return ". /etc/profile && " + "hadoop-daemon.sh stop tasktracker";
+        return "/opt/hadoop*/bin/hadoop-daemon.sh stop tasktracker";
     }
 
 
@@ -108,98 +108,98 @@ public class Commands
 
     public static String getFormatNameNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop namenode -format";
+        return "/opt/hadoop*/bin/hadoop namenode -format";
     }
 
 
     public static String getReportHadoopCommand()
     {
-        return ". /etc/profile && " + "hadoop dfsadmin -report";
+        return "/opt/hadoop*/bin/hadoop dfsadmin -report";
     }
 
 
     public static String getRefreshNameNodeCommand()
     {
-        return ". /etc/profile && " + "hadoop dfsadmin -refreshNodes";
+        return "/opt/hadoop*/bin/hadoop dfsadmin -refreshNodes";
     }
 
 
     public static String getSetDataNodeCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
     }
 
 
     public static String getExcludeDataNodeCommand( String ip )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude clear " + ip;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude clear " + ip;
     }
 
 
     public static String getSetTaskTrackerCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
     }
 
 
     public static String getExcludeTaskTrackerCommand( String ip )
     {
 
-        return ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude clear " + ip;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude clear " + ip;
     }
 
 
     public static String getRemoveTaskTrackerCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves clear " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname;
     }
 
 
     public static String getIncludeTaskTrackerCommand( String ip )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude " + ip;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude " + ip;
     }
 
 
     public static String getRemoveDataNodeCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves clear " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname;
     }
 
 
     public static String getIncludeDataNodeCommand( String ip )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude " + ip;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude " + ip;
     }
 
 
     public static String getConfigureJobTrackerCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
     }
 
 
     public static String getConfigureSecondaryNameNodeCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh masters " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh masters " + hostname;
     }
 
 
     public static String getConfigureSlaveNodes( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
     }
 
 
     public static  String getConfigureTaskTrackersCommand( String hostname )
     {
-        return ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname;
+        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
     }
 
 
     public String getSetMastersCommand( String namenode, String jobtracker )
     {
-        return ". /etc/profile && " + "hadoop-configure.sh " +
+        return "/opt/hadoop*/bin/hadoop-configure.sh " +
                 namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
                 jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
                 config.getReplicationFactor();
@@ -207,7 +207,7 @@ public class Commands
 
     public static String getSetMastersCommand( String namenode, String jobtracker, int replicationFactor )
     {
-        return ". /etc/profile && " + "hadoop-configure.sh " +
+        return "/opt/hadoop*/bin/hadoop-configure.sh " +
                 namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
                 jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
                 replicationFactor;
