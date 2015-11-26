@@ -1,9 +1,7 @@
 package io.subutai.plugin.mongodb.rest;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PathParam;
@@ -12,6 +10,8 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 
 import com.google.gson.reflect.TypeToken;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -59,14 +59,135 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getCluster( final String clusterName )
     {
-        MongoClusterConfig config = mongo.getCluster( clusterName );
-        if ( config == null )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
-                    entity( clusterName + " cluster not found " ).build();
-        }
-        String cluster = JsonUtil.toJson( mongo.getCluster( clusterName ) );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
+		MongoClusterConfig config = mongo.getCluster( clusterName );
+
+		boolean thrownException = false;
+		if ( config == null )
+		{
+			thrownException = true;
+		}
+
+
+		Map< String, ContainerInfoJson > map = new HashMap<> (  );
+		for( String node : config.getConfigHosts () )
+		{
+			try
+			{
+				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
+
+				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+
+				String ip = containerHost.getIpByInterfaceName( "eth0" );
+				containerInfoJson.setIp( ip );
+
+				UUID uuid = mongo.checkNode( clusterName, node, NodeType.CONFIG_NODE );
+				OperationState state = waitUntilOperationFinish( uuid );
+				Response response = createResponse( uuid, state );
+				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+				{
+					containerInfoJson.setStatus( "RUNNING" );
+				}
+				else
+				{
+					containerInfoJson.setStatus( "STOPPED" );
+				}
+
+				map.put( node, containerInfoJson );
+			}
+			catch ( Exception e )
+			{
+				map.put( node, new ContainerInfoJson() );
+				thrownException = true;
+			}
+		}
+		for( String node : config.getRouterHosts () )
+		{
+			try
+			{
+				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
+
+				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+
+				String ip = containerHost.getIpByInterfaceName( "eth0" );
+				containerInfoJson.setIp( ip );
+
+				UUID uuid = mongo.checkNode( clusterName, node, NodeType.ROUTER_NODE );
+				OperationState state = waitUntilOperationFinish( uuid );
+				Response response = createResponse( uuid, state );
+				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+				{
+					containerInfoJson.setStatus( "RUNNING" );
+				}
+				else
+				{
+					containerInfoJson.setStatus( "STOPPED" );
+				}
+
+				map.put( node, containerInfoJson );
+			}
+			catch ( Exception e )
+			{
+				map.put( node, new ContainerInfoJson() );
+				thrownException = true;
+			}
+		}
+		for( String node : config.getDataHosts () )
+		{
+			try
+			{
+				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
+
+				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+
+				String ip = containerHost.getIpByInterfaceName( "eth0" );
+				containerInfoJson.setIp( ip );
+
+				UUID uuid = mongo.checkNode( clusterName, node, NodeType.DATA_NODE );
+				OperationState state = waitUntilOperationFinish( uuid );
+				Response response = createResponse( uuid, state );
+				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+				{
+					containerInfoJson.setStatus( "RUNNING" );
+				}
+				else
+				{
+					containerInfoJson.setStatus( "STOPPED" );
+				}
+
+				map.put( node, containerInfoJson );
+			}
+			catch ( Exception e )
+			{
+				map.put( node, new ContainerInfoJson() );
+				thrownException = true;
+			}
+		}
+
+		ClusterConfJson result = new ClusterConfJson();
+		result.setConfigPort (String.valueOf (config.getCfgSrvPort ()));
+		result.setRoutePort (String.valueOf (config.getRouterPort ()));
+		result.setDataPort (String.valueOf (config.getDataNodePort ()));
+		result.setConfigNodes (config.getConfigHosts ());
+		result.setRouteNodes (config.getRouterHosts ());
+		result.setDataNodes (config.getDataHosts ());
+		result.setContainersStatuses( map );
+		result.setName( config.getClusterName() );
+		result.setScaling( config.isAutoScaling() );
+
+		String cluster = JsonUtil.toJson( result );
+
+
+
+
+		if( thrownException )
+		{
+			return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+					.entity( clusterName + " cluster not found." ).build();
+		}
+		return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
 
@@ -147,7 +268,7 @@ public class RestServiceImpl implements RestService
     }
 
 	@Override
-	public Response startNodes (@FormParam ("clusterName") String clusterName, @FormParam ("lxcHosts") String lxcHosts)
+	public Response startNodes (String clusterName, String lxcHosts)
 	{
 		Preconditions.checkNotNull( clusterName );
 		Preconditions.checkNotNull( lxcHosts );
@@ -416,11 +537,11 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson (po.getLog()) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson (po.getLog()) ).build();
         }
         else
         {
