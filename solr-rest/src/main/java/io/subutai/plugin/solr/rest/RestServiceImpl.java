@@ -2,16 +2,22 @@ package io.subutai.plugin.solr.rest;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
@@ -25,14 +31,16 @@ public class RestServiceImpl implements RestService
 {
 
     private Solr solrManager;
+    private EnvironmentManager environmentManager;
     private Tracker tracker;
 
 
-    public void setSolrManager( Solr solrManager )
+    public void setSolrManager( Solr solrManager, EnvironmentManager environmentManager )
     {
         Preconditions.checkNotNull( solrManager );
 
         this.solrManager = solrManager;
+        this.environmentManager = environmentManager;
     }
 
 
@@ -67,14 +75,56 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         SolrClusterConfig config = solrManager.getCluster( clusterName );
+
+        boolean thrownException = false;
         if ( config == null )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( clusterName + "cluster not found" )
-                           .build();
+            thrownException = true;
         }
 
-        String cluster = JsonUtil.GSON.toJson( config );
-        return Response.status( Response.Status.OK ).entity( cluster ).build();
+
+        SolrInfoJson solrInfoJson = new SolrInfoJson( clusterName );
+
+        for ( String node : config.getNodes() )
+        {
+            try
+            {
+                ContainerInfo containerInfoJson = new ContainerInfo();
+
+                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+
+                String ip = containerHost.getIpByInterfaceName( "eth0" );
+                containerInfoJson.setIp( ip );
+
+                UUID uuid = solrManager.checkNode( clusterName, node );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+                if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+                {
+                    containerInfoJson.setStatus( "RUNNING" );
+                }
+                else
+                {
+                    containerInfoJson.setStatus( "STOPPED" );
+                }
+
+                solrInfoJson.addContainerInfo( containerInfoJson );
+            }
+            catch ( Exception e )
+            {
+                thrownException = true;
+            }
+        }
+
+
+        if ( thrownException )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( clusterName + " cluster not found." ).build();
+        }
+
+        return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( solrInfoJson ) ).build();
     }
 
 
@@ -149,6 +199,76 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response startNodes( final String clusterName, final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, true );
+    }
+
+
+    @Override
+    public Response stopNodes( final String clusterName, final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, false );
+    }
+
+
+    private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        List<String> hosts;
+
+
+        if ( solrManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+
+        try
+        {
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>() {}.getType() );
+        }
+        catch ( Exception e )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) ).build();
+        }
+
+        int errors = 0;
+
+        for( String host : hosts )
+        {
+            UUID uuid;
+            if( startNode )
+            {
+                uuid = solrManager.startNode( clusterName, host );
+            }
+            else
+            {
+                uuid = solrManager.stopNode( clusterName, host );
+            }
+
+            OperationState state = waitUntilOperationFinish( uuid );
+
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
     public Response checkNode( final String clusterName, final String lxcHostname )
     {
         Preconditions.checkNotNull( clusterName );
@@ -169,11 +289,11 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( SolrClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( po.getLog() ) ).build();
         }
         else
         {

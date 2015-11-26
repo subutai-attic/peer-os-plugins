@@ -12,11 +12,14 @@
 
   <reference id="solrManager" availability="mandatory"
              interface="io.subutai.plugin.solr.api.Solr" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
 
   <bean id="solrRestServiceImpl" class="io.subutai.plugin.solr.rest.RestServiceImpl">
     <property name="solrManager" ref="solrManager" />
+    <property name="environmentManager" ref="environmentManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
