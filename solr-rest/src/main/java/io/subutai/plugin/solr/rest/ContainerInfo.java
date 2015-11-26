@@ -6,6 +6,8 @@ public class ContainerInfo
     private String hostname;
     private String ip;
     private String status;
+    private String id;
+
 
     public ContainerInfo() {}
 
@@ -50,5 +52,11 @@ public class ContainerInfo
     public void setStatus( final String status )
     {
         this.status = status;
+    }
+
+
+    public void setId( final String id )
+    {
+        this.id = id;
     }
 }

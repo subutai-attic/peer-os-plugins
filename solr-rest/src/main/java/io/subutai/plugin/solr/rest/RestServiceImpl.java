@@ -2,9 +2,7 @@ package io.subutai.plugin.solr.rest;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
@@ -95,6 +93,8 @@ public class RestServiceImpl implements RestService
 
                 String ip = containerHost.getIpByInterfaceName( "eth0" );
                 containerInfoJson.setIp( ip );
+                containerInfoJson.setId( node );
+                containerInfoJson.setHostname( containerHost.getHostname() );
 
                 UUID uuid = solrManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
