@@ -10,7 +10,10 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -84,9 +87,52 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setTaskTrackers( slaves );
         System.out.println( "Configuring " + clusterName + " hadoop cluster..." );
         UUID uuid = hadoopManager.installCluster( config );
+        waitUntilOperationFinish( tracker, uuid );
         System.out.println(
                 "Install cluster operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
         return null;
+    }
+
+
+    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
+    {
+        NodeState state = NodeState.UNKNOWN;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_NAME, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().toLowerCase().contains( NodeState.STOPPED.name().toLowerCase() ) )
+                    {
+                        state = NodeState.STOPPED;
+                    }
+                    else if ( po.getLog().toLowerCase().contains( NodeState.RUNNING.name().toLowerCase() ) )
+                    {
+                        state = NodeState.RUNNING;
+                    }
+
+                    System.out.println( po.getLog() );
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 
 
