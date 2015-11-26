@@ -35,7 +35,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
-    public void setSolrManager( Solr solrManager, EnvironmentManager environmentManager )
+    public void setSolrManager( Solr solrManager, EnvironmentManager environmentManager, Tracker tracker )
     {
         Preconditions.checkNotNull( solrManager );
 
