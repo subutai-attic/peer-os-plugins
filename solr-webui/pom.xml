@@ -51,7 +51,7 @@
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
 
-            <Web-ContextPath>/plugins/cassandra</Web-ContextPath>
+            <Web-ContextPath>/plugins/solr</Web-ContextPath>
           </instructions>
         </configuration>
         <executions>
