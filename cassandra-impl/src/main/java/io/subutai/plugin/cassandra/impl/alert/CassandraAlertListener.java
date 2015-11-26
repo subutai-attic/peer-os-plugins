@@ -1,6 +1,7 @@
 package io.subutai.plugin.cassandra.impl.alert;
 
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -18,6 +19,9 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.resource.MeasureUnit;
+import io.subutai.common.resource.ResourceType;
+import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -113,10 +117,9 @@ public class CassandraAlertListener implements AlertListener
             return;
         }
 
-//        @todo quota exception
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-//        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota().getRamQuotaValue( RamQuotaUnit.MB ) * 0.5;
+        MAX_RAM_QUOTA_MB = sourceHost.getAvailableQuota(ResourceType.RAM).getValue( MeasureUnit.MB ).doubleValue() * 0.5;
 
 
         //figure out process pid
@@ -164,49 +167,50 @@ public class CassandraAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-//            @todo quota exception
-//            if ( isRamStressed )
-//            {
-//                //read current RAM quota
-//                double ramQuota = sourceHost.getRamQuota().getRamQuotaValue( RamQuotaUnit.MB );
-//
-//                if ( ramQuota < MAX_RAM_QUOTA_MB )
-//                {
-//
-//                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-//                    // increase quota, otherwise scale horizontally
-//                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-//                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
-//                    {
-//
-//                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-//                                sourceHost.getRamQuota(), newRamQuota );
-//                        //we can increase RAM quota
-//                        RamQuota quota = new RamQuota( RamQuotaUnit.MB, ( long ) newRamQuota );
-//                        sourceHost.setRamQuota( quota );
-//
-//                        quotaIncreased = true;
-//                    }
-//                }
-//            }
-//
-//            if ( isCpuStressed )
-//            {
-//
-//                //read current CPU quota
-//                CpuQuota cpuQuota = sourceHost.getCpuQuota();
-//                if ( cpuQuota.getPercentage() < MAX_CPU_QUOTA_PERCENT )
-//                {
-//                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota.getPercentage() + CPU_QUOTA_INCREMENT_PERCENT );
-//                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota.getPercentage(),
-//                            newCpuQuota );
-//                    //we can increase CPU quota
-//                    cpuQuota.setPercentage( newCpuQuota );
-//                    sourceHost.setCpuQuota( cpuQuota );
-//
-//                    quotaIncreased = true;
-//                }
-//            }
+            if ( isRamStressed )
+            {
+                //read current RAM quota
+                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
+
+                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                {
+
+                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+                    // increase quota, otherwise scale horizontally
+                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    {
+
+                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
+                                newRamQuota );
+                        //we can increase RAM quota
+                        ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
+                        sourceHost.setQuota( ResourceType.RAM, quota );
+
+                        quotaIncreased = true;
+                    }
+                }
+            }
+
+            if ( isCpuStressed )
+            {
+
+                //read current CPU quota
+                ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
+                if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
+                {
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
+                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
+                    //we can increase CPU quota
+                    ResourceValue newQuota = new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
+                    sourceHost.setQuota( ResourceType.CPU, newQuota );
+
+                    quotaIncreased = true;
+                }
+            }
 
             //quota increase is made, return
             if ( quotaIncreased )
