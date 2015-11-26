@@ -12,8 +12,8 @@
   <artifactId>solr-plugin-webui</artifactId>
 
   <packaging>war</packaging>
-  <name>Subutai Cassandra Plugin Web UI</name>
-  <description>Subutai Cassandra Web UI</description>
+  <name>Subutai Solr Plugin Web UI</name>
+  <description>Subutai Solr Web UI</description>
 
   <build>
     <plugins>
