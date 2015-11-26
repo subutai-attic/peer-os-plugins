@@ -18,7 +18,7 @@
              interface="io.subutai.core.tracker.api.Tracker" />
 
   <bean id="solrRestServiceImpl" class="io.subutai.plugin.solr.rest.RestServiceImpl">
-    <property ref="solrManager" />
+    <property name="solrManager" ref="solrManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="tracker" ref="tracker" />
   </bean>
