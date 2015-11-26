@@ -46,7 +46,7 @@
             <supportedProjectType>war</supportedProjectType>
           </supportedProjectTypes>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.cassandra.webui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.solr.webui</Bundle-SymbolicName>
 
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
