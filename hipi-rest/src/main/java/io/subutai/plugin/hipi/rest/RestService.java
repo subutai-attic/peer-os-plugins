@@ -58,4 +58,10 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostname" ) String node );
+
+    //get available nodes for adding
+    @GET
+    @Path( "clusters/{clusterName}/available/nodes" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 }
