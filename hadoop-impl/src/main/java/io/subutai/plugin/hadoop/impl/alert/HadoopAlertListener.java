@@ -19,9 +19,6 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.quota.CpuQuota;
-import io.subutai.common.quota.RamQuota;
-import io.subutai.common.quota.RamQuotaUnit;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.common.api.NodeType;
@@ -125,7 +122,8 @@ public class HadoopAlertListener implements AlertListener
 
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        final double MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota().getRamQuotaValue( RamQuotaUnit.MB ) * 0.5;
+//        @todo quote expection
+//        final double MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota().getRamQuotaValue( RamQuotaUnit.MB ) * 0.5;
 
         List<NodeType> nodeRoles = HadoopClusterConfig.getNodeRoles( targetCluster, sourceHost );
 
@@ -266,49 +264,50 @@ public class HadoopAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRAMStressedByHadoop )
-            {
-                //read current RAM quota
-                double ramQuota = sourceHost.getRamQuota().getRamQuotaValue( RamQuotaUnit.MB );
-
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
-
-                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-                    // increase quota, otherwise scale horizontally
-                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
-                    {
-
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getRamQuota(), newRamQuota );
-                        //we can increase RAM quota
-                        RamQuota quota = new RamQuota( RamQuotaUnit.MB, ( long ) newRamQuota );
-                        sourceHost.setRamQuota( quota );
-
-                        quotaIncreased = true;
-                    }
-                }
-            }
-
-            if ( isCPUStressedByHadoop )
-            {
-
-                //read current CPU quota
-                CpuQuota cpuQuota = sourceHost.getCpuQuota();
-                if ( cpuQuota.getPercentage() < MAX_CPU_QUOTA_PERCENT )
-                {
-                    int newCpuQuota =
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota.getPercentage() + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
-                            cpuQuota.getPercentage(), newCpuQuota );
-                    //we can increase CPU quota
-                    cpuQuota.setPercentage( newCpuQuota );
-                    sourceHost.setCpuQuota( cpuQuota );
-
-                    quotaIncreased = true;
-                }
-            }
+//            @todo quota exception
+//            if ( isRAMStressedByHadoop )
+//            {
+//                //read current RAM quota
+//                double ramQuota = sourceHost.getRamQuota().getRamQuotaValue( RamQuotaUnit.MB );
+//
+//                if ( ramQuota < MAX_RAM_QUOTA_MB )
+//                {
+//
+//                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+//                    // increase quota, otherwise scale horizontally
+//                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+//                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+//                    {
+//
+//                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+//                                sourceHost.getRamQuota(), newRamQuota );
+//                        //we can increase RAM quota
+//                        RamQuota quota = new RamQuota( RamQuotaUnit.MB, ( long ) newRamQuota );
+//                        sourceHost.setRamQuota( quota );
+//
+//                        quotaIncreased = true;
+//                    }
+//                }
+//            }
+//
+//            if ( isCPUStressedByHadoop )
+//            {
+//
+//                //read current CPU quota
+//                CpuQuota cpuQuota = sourceHost.getCpuQuota();
+//                if ( cpuQuota.getPercentage() < MAX_CPU_QUOTA_PERCENT )
+//                {
+//                    int newCpuQuota =
+//                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota.getPercentage() + CPU_QUOTA_INCREMENT_PERCENT );
+//                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+//                            cpuQuota.getPercentage(), newCpuQuota );
+//                    //we can increase CPU quota
+//                    cpuQuota.setPercentage( newCpuQuota );
+//                    sourceHost.setCpuQuota( cpuQuota );
+//
+//                    quotaIncreased = true;
+//                }
+//            }
 
             //quota increase is made, return
             if ( quotaIncreased )
