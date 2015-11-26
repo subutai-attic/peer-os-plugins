@@ -14,10 +14,16 @@
   <reference id="mahoutManager" availability="mandatory" interface="io.subutai.plugin.mahout.api.Mahout" />
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
   <bean id="restService" class="io.subutai.plugin.mahout.rest.RestServiceImpl">
     <argument ref="mahoutManager" />
     <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+    <property name="hadoopManager" ref="hadoopManager" />
   </bean>
 
   <jaxrs:server address="/mahout" id="mahoutRestService">
