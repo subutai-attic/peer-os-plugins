@@ -5,11 +5,11 @@ set -e
 productName=hive
 
 # 1) Check if the version is changed or not. If not changed, dont create a new debian.
-checkVersion $productName "plugin"
+checkVersion ${productName} "plugin"
 # 2) Get the sources which are downloaded from version control system
 #    to local machine to relevant directories to generate the debian package
-getSourcesToRelevantDirectories $productName "plugin"
+getSourcesToRelevantDirectories ${productName} "plugin"
 # 3) Create the Debian package
 generateDebianPackagePlugins $productName
 # 4) Create the Wrapper Repo Debian Package
-generateRepoPackage $productName-"subutai-plugin"
+generateRepoPackage ${productName}-"subutai-plugin"

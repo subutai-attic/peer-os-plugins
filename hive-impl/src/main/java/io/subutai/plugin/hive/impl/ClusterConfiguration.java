@@ -1,6 +1,9 @@
 package io.subutai.plugin.hive.impl;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
@@ -11,8 +14,6 @@ import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
 import io.subutai.plugin.hive.api.HiveConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface

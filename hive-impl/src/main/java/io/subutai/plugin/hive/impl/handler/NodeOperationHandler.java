@@ -1,10 +1,16 @@
 package io.subutai.plugin.hive.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.settings.Common;
@@ -14,12 +20,6 @@ import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.hive.impl.Commands;
 import io.subutai.plugin.hive.impl.HiveImpl;
-import io.subutai.common.environment.Environment;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 
 /**
@@ -118,22 +118,24 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
 
     public static void logResults( TrackerOperation po, CommandResult result )
     {
-        Preconditions.checkNotNull(result);
+        Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
         String status;
         String cmdResult = result.getStdErr() + result.getStdOut();
-        if (cmdResult.contains("Hive Thrift Server is running"))
+        if ( cmdResult.contains( "Hive Thrift Server is running" ) )
         {
             status = "Hive Thrift Server is running";
-        } else if (cmdResult.contains("Hive Thrift Server is not running"))
+        }
+        else if ( cmdResult.contains( "Hive Thrift Server is not running" ) )
         {
             status = "Hive Thrift Server is not running";
-        } else
+        }
+        else
         {
             status = result.getStdOut();
         }
-        log.append(String.format("%s", status));
-        po.addLogDone(log.toString());
+        log.append( String.format( "%s", status ) );
+        po.addLogDone( log.toString() );
     }
 
 
@@ -151,7 +153,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             try
             {
                 result = host.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ).withTimeout( 600 ) );
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
+                        .withTimeout( 600 ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().add( host.getId() );
