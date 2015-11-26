@@ -33,6 +33,7 @@
     <module>hadoop-cli</module>
     <module>hadoop-rest</module>
     <module>hadoop-kar</module>
+    <module>hadoop-webui</module>
   </modules>
 
   <dependencyManagement>

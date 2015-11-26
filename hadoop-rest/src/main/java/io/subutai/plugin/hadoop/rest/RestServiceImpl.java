@@ -277,11 +277,11 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_NAME, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( JsonUtil.toJson( po.getLog() ) ) ).build();
         }
         else
         {
