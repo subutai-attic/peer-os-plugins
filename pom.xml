@@ -32,7 +32,6 @@
     <module>cassandra-cli</module>
     <module>cassandra-rest</module>
     <module>cassandra-kar</module>
-    <module>cassandra-module</module>
   </modules>
 
   <dependencyManagement>
