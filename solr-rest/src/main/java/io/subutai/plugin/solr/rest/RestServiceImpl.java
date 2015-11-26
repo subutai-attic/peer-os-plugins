@@ -35,7 +35,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
-    public RestServiceImpl( Solr solrManager )
+    public void setSolrManager( Solr solrManager )
     {
         Preconditions.checkNotNull( solrManager );
 
@@ -335,6 +335,8 @@ public class RestServiceImpl implements RestService
 
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
+        Preconditions.checkNotNull( environmentManager );
+
         this.environmentManager = environmentManager;
     }
 }
