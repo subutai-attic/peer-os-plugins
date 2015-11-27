@@ -1,6 +1,7 @@
 package io.subutai.plugin.spark.rest;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -10,12 +11,17 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
+import io.subutai.plugin.spark.rest.pojo.NodePojo;
+import io.subutai.plugin.spark.rest.pojo.SparkPojo;
 
 
 public class RestServiceImpl implements RestService
@@ -23,11 +29,19 @@ public class RestServiceImpl implements RestService
 
     private Spark sparkManager;
     private Tracker tracker;
+    private EnvironmentManager environmentManager;
 
 
-    public RestServiceImpl( final Spark sparkManager )
+    public RestServiceImpl( final Spark sparkManager, final Tracker tracker,
+                            final EnvironmentManager environmentManager )
     {
+        Preconditions.checkNotNull( sparkManager );
+        Preconditions.checkNotNull( tracker );
+        Preconditions.checkNotNull( environmentManager );
+
         this.sparkManager = sparkManager;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
     }
 
 
@@ -78,7 +92,6 @@ public class RestServiceImpl implements RestService
         }
 
         UUID uuid = sparkManager.installCluster( config );
-        waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -249,15 +262,17 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( SparkClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.GSON.toJson( "Timeout" ) )
+                           .build();
         }
     }
 
@@ -294,8 +309,77 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public void setTracker( final Tracker tracker )
+    private SparkPojo parsePojo( SparkClusterConfig config )
     {
-        this.tracker = tracker;
+        SparkPojo pojo = new SparkPojo();
+        try
+        {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setHadoopClusterName( config.getHadoopClusterName() );
+            pojo.setServer( new NodePojo( config.getMasterNodeId(), env ) );
+            UUID uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getHostname(), true );
+            pojo.getServer().setStatus( checkStatus( tracker, uuid ) );
+
+            Set<NodePojo> clients = new HashSet<>();
+            for ( String slave : config.getSlaveIds() )
+            {
+                NodePojo node = new NodePojo( slave, env );
+                uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getHostname(), false );
+                node.setStatus( checkStatus( tracker, uuid ) );
+
+                clients.add( node );
+            }
+            pojo.setClients( clients );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+
+        return pojo;
+    }
+
+
+    protected String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( SparkClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 }
