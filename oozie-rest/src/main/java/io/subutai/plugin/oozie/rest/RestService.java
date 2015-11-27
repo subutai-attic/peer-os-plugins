@@ -2,6 +2,7 @@ package io.subutai.plugin.oozie.rest;
 
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -25,9 +26,9 @@ public interface RestService
     @POST
     @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "server" ) String server, @QueryParam( "clients" ) String clients );
+    public Response installCluster( @FormParam( "clusterName" ) String clusterName,
+                                    @FormParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @FormParam( "server" ) String server, @QueryParam( "clients" ) String clients );
 
     // remove cluster
     @DELETE
@@ -74,4 +75,10 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostName" ) String node );
+
+    //get available nodes for adding
+    @GET
+    @Path( "clusters/{clusterName}/available/nodes" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 }

@@ -17,11 +17,18 @@
   <bean id="oozieRestServiceImpl" class="io.subutai.plugin.oozie.rest.RestServiceImpl">
     <argument ref="oozieManager" />
     <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+    <property name="hadoopManager" ref="hadoopManager" />
 
   </bean>
   <reference id="oozieManager" availability="mandatory"
              interface="io.subutai.plugin.oozie.api.Oozie" />
   <reference id="tracker"  availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+
 
 </blueprint>
