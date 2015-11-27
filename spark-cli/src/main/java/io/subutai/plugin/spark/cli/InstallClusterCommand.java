@@ -76,8 +76,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
                 System.out.println( "Installing spark cluster..." );
                 UUID uuid = sparkManager.installCluster( config );
-                System.out.println(
-                        "Install operation is " + StartAllNodesCommand.waitUntilOperationFinish( tracker, uuid ) );
+                System.out.println( "Install operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
             }
             catch ( ContainerHostNotFoundException e )
             {

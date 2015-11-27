@@ -14,8 +14,6 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.spark.api.Spark;
@@ -51,7 +49,8 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             {
                 environment.getContainerHostById( sparkMaster ).getHostname();
                 UUID uuid = sparkManager.startCluster( clusterName );
-                System.out.println( "Start cluster operation is " + waitUntilOperationFinish( tracker, uuid ) );
+                System.out.println(
+                        "Start cluster operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -65,38 +64,6 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             e.printStackTrace();
         }
         return null;
-    }
-
-
-    protected static OperationState waitUntilOperationFinish( Tracker tracker, UUID uuid )
-    {
-        OperationState state = null;
-        long start = System.currentTimeMillis();
-        while ( !Thread.interrupted() )
-        {
-            TrackerOperationView po = tracker.getTrackerOperation( SparkClusterConfig.PRODUCT_KEY, uuid );
-            if ( po != null )
-            {
-                if ( po.getState() != OperationState.RUNNING )
-                {
-                    state = po.getState();
-                    break;
-                }
-            }
-            try
-            {
-                Thread.sleep( 1000 );
-            }
-            catch ( InterruptedException ex )
-            {
-                break;
-            }
-            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
-            {
-                break;
-            }
-        }
-        return state;
     }
 
 

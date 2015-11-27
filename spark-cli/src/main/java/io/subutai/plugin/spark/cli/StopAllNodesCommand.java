@@ -50,7 +50,7 @@ public class StopAllNodesCommand extends OsgiCommandSupport
                 environment.getContainerHostById( sparkMaster ).getHostname();
                 UUID uuid = sparkManager.stopCluster( clusterName );
                 System.out.println(
-                        "Stop cluster operation is " + StartAllNodesCommand.waitUntilOperationFinish( tracker, uuid ) );
+                        "Stop cluster operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
             }
             catch ( ContainerHostNotFoundException e )
             {

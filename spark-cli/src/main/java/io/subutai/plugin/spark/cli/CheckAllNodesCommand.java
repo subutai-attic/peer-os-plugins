@@ -15,11 +15,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.tracker.OperationState;
-import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -55,7 +52,7 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
                     UUID checkUUID = sparkManager
                             .checkNode( clusterName, hostname, isMaster( config, hostname, environmentManager ) );
                     System.out.println(
-                            "Spark on " + hostname + " is " + waitUntilOperationFinish( tracker, checkUUID ) );
+                            "Spark on " + hostname + " is " + TrackerReader.checkStatus( tracker, checkUUID ) );
                 }
                 catch ( ContainerHostNotFoundException e )
                 {
@@ -97,45 +94,6 @@ public class CheckAllNodesCommand extends OsgiCommandSupport
             e.printStackTrace();
         }
         return false;
-    }
-
-
-    protected static NodeState waitUntilOperationFinish( Tracker tracker, UUID uuid )
-    {
-        NodeState state = NodeState.UNKNOWN;
-        long start = System.currentTimeMillis();
-        while ( !Thread.interrupted() )
-        {
-            TrackerOperationView po = tracker.getTrackerOperation( SparkClusterConfig.PRODUCT_KEY, uuid );
-            if ( po != null )
-            {
-                if ( po.getState() != OperationState.RUNNING )
-                {
-                    if ( po.getLog().toLowerCase().contains( "not" ) )
-                    {
-                        state = NodeState.STOPPED;
-                    }
-                    else if ( po.getLog().toLowerCase().contains( NodeState.RUNNING.name().toLowerCase() ) )
-                    {
-                        state = NodeState.RUNNING;
-                    }
-                    break;
-                }
-            }
-            try
-            {
-                Thread.sleep( 1000 );
-            }
-            catch ( InterruptedException ex )
-            {
-                break;
-            }
-            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
-            {
-                break;
-            }
-        }
-        return state;
     }
 
 
