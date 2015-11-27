@@ -333,26 +333,26 @@ public class RestServiceImpl implements RestService
             UUID uuid = hadoopManager.statusNameNode( config );
             ContainerHost ch = environment.getContainerHostById( pojo.getNameNode().getUuid() );
             pojo.getNameNode().setHostname( ch.getHostname() );
-            pojo.getNameNode().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getNameNode().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
             pojo.getNameNode().setStatus( parseStatus( uuid ) );
 
             uuid = hadoopManager.statusSecondaryNameNode( config );
             ch = environment.getContainerHostById( pojo.getSecondaryNameNode().getUuid() );
             pojo.getSecondaryNameNode().setHostname( ch.getHostname() );
-            pojo.getSecondaryNameNode().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getSecondaryNameNode().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
             pojo.getSecondaryNameNode().setStatus( parseStatus( uuid ) );
 
             uuid = hadoopManager.statusJobTracker( config );
             ch = environment.getContainerHostById( pojo.getJobTracker().getUuid() );
             pojo.getJobTracker().setHostname( ch.getHostname() );
-            pojo.getJobTracker().setIp( ch.getIpByInterfaceName( "eth0" ) );
+            pojo.getJobTracker().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
             pojo.getJobTracker().setStatus( parseStatus( uuid ) );
 
             for ( ContainerPojo container : pojo.getAllDataNodeAgent() )
             {
                 ch = environment.getContainerHostById( container.getUuid() );
                 container.setHostname( ch.getHostname() );
-                container.setIp( ch.getIpByInterfaceName( "eth0" ) );
+                container.setIp( ch.getInterfaceByName( "eth0" ).getIp() );
 
                 uuid = hadoopManager.statusDataNode( config, container.getHostname() );
                 container.setStatus( parseStatus( uuid ) );
@@ -362,7 +362,7 @@ public class RestServiceImpl implements RestService
             {
                 ch = environment.getContainerHostById( container.getUuid() );
                 container.setHostname( ch.getHostname() );
-                container.setIp( ch.getIpByInterfaceName( "eth0" ) );
+                container.setIp( ch.getInterfaceByName( "eth0" ).getIp() );
 
                 uuid = hadoopManager.statusTaskTracker( config, container.getHostname() );
                 container.setStatus( parseStatus( uuid ) );
