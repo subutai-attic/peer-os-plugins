@@ -6,17 +6,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>lucene-plugin-parent</artifactId>
-  <version>4.0.0-RC3</version>
+  <version>4.0.0-RC4</version>
 
   <name>Subutai Lucene Parent</name>
   <description>Subutai Lucene Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC3</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC4</subutai.mgmt.parent.version>
     <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
     <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
     <mockito.version>1.9.5</mockito.version>
@@ -29,10 +28,10 @@
   <modules>
     <module>lucene-api</module>
     <module>lucene-impl</module>
-    <module>lucene-ui</module>
     <module>lucene-cli</module>
     <module>lucene-rest</module>
     <module>lucene-kar</module>
+    <module>lucene-webui</module>
   </modules>
 
   <dependencyManagement>
@@ -58,7 +57,8 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
+        <artifactId>webui</artifactId>
+        <classifier>classes</classifier>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 

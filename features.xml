@@ -1,9 +1,8 @@
-<features name="lucene-plugin" version="4.0.0-RC3">
-  <feature name="lucene-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/lucene-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-ui/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-cli/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-rest/4.0.0-RC3</bundle>
+<features name="lucene-plugin" version="4.0.0-RC4">
+  <feature name="lucene-plugin" version="4.0.0-RC4">
+    <bundle>mvn:io.subutai/lucene-plugin-api/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-impl/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-cli/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>

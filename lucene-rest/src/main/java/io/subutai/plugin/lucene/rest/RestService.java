@@ -2,6 +2,7 @@ package io.subutai.plugin.lucene.rest;
 
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -33,9 +34,9 @@ public interface RestService
     @POST
     @Path( "clusters/install" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes );
+    public Response installCluster( @FormParam( "clusterName" ) String clusterName,
+                                    @FormParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @FormParam( "nodes" ) String nodes );
 
 
     //destroy cluster

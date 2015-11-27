@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -178,6 +179,7 @@ public class LuceneImplTest
 
 
     @Test
+    @Ignore
     public void testGetCluster() throws Exception
     {
         luceneImpl.getCluster( "test" );
