@@ -32,7 +32,7 @@ public class Commands
 
     public static String configureHiveServer( String ip )
     {
-        return ". /etc/profile && hive-configure.sh " + ip;
+        return "/opt/hive*/bin/hive-configure.sh " + ip;
     }
 
 
@@ -46,7 +46,7 @@ public class Commands
     public static String addHiveProperty( String cmd, String propFile, String property, String value )
     {
         StringBuilder sb = new StringBuilder();
-        sb.append( ". /etc/profile && hive-property.sh " ).append( cmd ).append( " " );
+        sb.append( "/opt/hive*/bin/hive-property.sh " ).append( cmd ).append( " " );
         sb.append( propFile ).append( " " ).append( property );
         if ( value != null )
         {
