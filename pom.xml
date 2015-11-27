@@ -30,7 +30,7 @@
     <module>hive-api</module>
     <module>hive-impl</module>
     <module>hive-cli</module>
-    <!--<module>hive-rest</module>-->
+    <module>hive-rest</module>
     <module>hive-kar</module>
   </modules>
 

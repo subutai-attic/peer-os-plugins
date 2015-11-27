@@ -8,6 +8,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.hive.api.Hive;
 
 
@@ -32,7 +33,8 @@ public class AddNodeCommand extends OsgiCommandSupport
     {
         System.out.println( "Adding " + node + " node..." );
         UUID uuid = hiveManager.addNode( clusterName, node );
-        System.out.println( "Add node operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        NodeState state = TrackerReader.waitUntilOperationFinish( tracker, uuid );
+        System.out.println( "Add node operation is " + node );
         return null;
     }
 

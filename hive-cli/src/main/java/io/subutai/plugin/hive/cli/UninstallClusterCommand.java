@@ -28,7 +28,7 @@ public class UninstallClusterCommand extends OsgiCommandSupport
     {
         UUID uuid = hiveManager.uninstallCluster( clusterName );
         System.out.println(
-                "Uninstall operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) + "." );
+                "Uninstall operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) + "." );
         return null;
     }
 

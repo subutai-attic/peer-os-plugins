@@ -13,37 +13,33 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;
+import io.subutai.plugin.hive.rest.pojo.HivePojo;
+import io.subutai.plugin.hive.rest.pojo.NodePojo;
 
 
 public class RestServiceImpl implements RestService
 {
     private Hive hiveManager;
     private Tracker tracker;
+    private EnvironmentManager environmentManager;
 
 
-    public RestServiceImpl( final Hive hiveManager )
+    public RestServiceImpl( final Hive hiveManager, final Tracker tracker, final EnvironmentManager environmentManager )
     {
         Preconditions.checkNotNull( hiveManager );
 
         this.hiveManager = hiveManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
         this.tracker = tracker;
+        this.environmentManager = environmentManager;
     }
 
 
@@ -73,7 +69,7 @@ public class RestServiceImpl implements RestService
                            .build();
         }
 
-        String cluster = JsonUtil.GSON.toJson( config );
+        String cluster = JsonUtil.GSON.toJson( parsePojo( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -231,15 +227,88 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( HiveConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.GSON.toJson( "Timeout" ) )
+                           .build();
         }
+    }
+
+
+    private HivePojo parsePojo( HiveConfig config )
+    {
+        HivePojo pojo = new HivePojo();
+        try
+        {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setHadoopClusterName( config.getHadoopClusterName() );
+            pojo.setServer( new NodePojo( config.getServer(), env ) );
+            UUID uuid = hiveManager.statusCheck( config.getClusterName(), pojo.getServer().getHostname() );
+            pojo.getServer().setStatus( checkStatus( tracker, uuid ) );
+
+            Set<NodePojo> clients = new HashSet<>();
+            for ( String slave : config.getClients() )
+            {
+                clients.add( new NodePojo( slave, env ) );
+            }
+            pojo.setClients( clients );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+
+        return pojo;
+    }
+
+
+    protected String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HiveConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 }

@@ -1,6 +1,7 @@
 package io.subutai.plugin.hive.api;
 
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -8,7 +9,7 @@ import java.util.Set;
 import io.subutai.plugin.common.api.ConfigBase;
 
 
-public class HiveConfig implements ConfigBase
+public class HiveConfig implements ConfigBase, Serializable
 {
 
     public static final String PRODUCT_KEY = "Hive";

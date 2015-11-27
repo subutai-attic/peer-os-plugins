@@ -32,8 +32,7 @@ public class StopClusterCommand extends OsgiCommandSupport
     {
         System.out.println( "Stopping " + clusterName + " hive cluster..." );
         UUID uuid = hiveManager.stopNode( clusterName, server );
-        System.out.println(
-                "Stop cluster operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        System.out.println( "Stop cluster operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 

@@ -44,6 +44,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             {
                 try
                 {
+                    sb.append( "   Container ID: " ).
+                            append( containerId ).append( "\n" );
                     sb.append( "   Container Hostname: " ).
                             append( environment.getContainerHostById( containerId ).getHostname() ).append( "\n" );
                 }
@@ -56,6 +58,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             sb.append( "Server:" ).append( "\n" );
             try
             {
+                sb.append( "   Container ID: " ).
+                        append( config.getServer() ).append( "\n" );
                 sb.append( "   Container Hostname: " ).
                         append( environment.getContainerHostById( config.getServer() ).getHostname() ).append( "\n" );
             }
@@ -69,6 +73,8 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             {
                 try
                 {
+                    sb.append( "   Container ID: " ).
+                            append( containerId ).append( "\n" );
                     sb.append( "   Container Hostname: " ).
                             append( environment.getContainerHostById( containerId ).getHostname() ).append( "\n" );
                 }

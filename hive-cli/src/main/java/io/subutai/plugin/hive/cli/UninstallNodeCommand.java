@@ -32,8 +32,7 @@ public class UninstallNodeCommand extends OsgiCommandSupport
     {
         System.out.println( "Uninstalling " + node + " node..." );
         UUID uuid = hiveManager.uninstallNode( clusterName, node );
-        System.out.println(
-                "Uninstall node operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        System.out.println( "Uninstall node operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
         return null;
     }
 

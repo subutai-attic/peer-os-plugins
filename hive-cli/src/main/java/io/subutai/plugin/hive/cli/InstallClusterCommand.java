@@ -15,6 +15,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.NodeState;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;
@@ -42,7 +43,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     @Argument( index = 3, name = "clients", description = "The hostname list of client nodes", required = true,
             multiValued = false )
-    String clients[] = null;
+    String clients = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Hive hiveManager;
@@ -58,13 +59,15 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
         config.setServer( server );
 
+        String[] configNodes = clients.replaceAll( "\\s+", "" ).split( "," );
         Set<String> nodeSet = new HashSet<>();
-        Collections.addAll( nodeSet, clients );
+        Collections.addAll( nodeSet, configNodes );
         config.setClients( nodeSet );
 
         System.out.println( "Installing hive cluster..." );
         UUID uuid = hiveManager.installCluster( config );
-        System.out.println( "Install operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+        NodeState state = TrackerReader.waitUntilOperationFinish( tracker, uuid );
+        System.out.println( "Install operation is " + state );
 
         return null;
     }
