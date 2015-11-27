@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -87,12 +88,13 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
-        String[] arr = nodeIds.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
-        {
-
-            config.getNodes().add( node );
-        }
+//        String[] arr = nodeIds.replaceAll( "\\s+", "" ).split( "," );
+//        for ( String node : arr )
+//        {
+//
+//            config.getNodes().add( node );
+//        }
+        config.setNodes( (Set<String>)JsonUtil.fromJson( nodeIds, new TypeToken<Set<String>>() { }.getType() ) );
 
         UUID uuid = luceneManager.installCluster( config );
         waitUntilOperationFinish( uuid );
