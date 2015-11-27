@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-     <groupId>io.subutai</groupId>
+    <groupId>io.subutai</groupId>
     <artifactId>spark-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>spark-plugin-api</artifactId>
@@ -28,7 +28,7 @@
       <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>
-       <groupId>io.subutai</groupId>
+      <groupId>io.subutai</groupId>
       <artifactId>hadoop-plugin-api</artifactId>
     </dependency>
   </dependencies>
