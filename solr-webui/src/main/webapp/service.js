@@ -61,7 +61,7 @@ function solrSrv($http, environmentService) {
 	}
 
 	function deleteCluster(clusterName) {
-		return $http.delete(CLUSTER_URL + clusterName);
+		return $http.delete(CLUSTER_URL + "destroy/" + clusterName);
 	}
 
 	function deleteNode(clusterName, nodeId) {

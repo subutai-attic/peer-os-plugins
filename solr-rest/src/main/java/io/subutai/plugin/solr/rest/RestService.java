@@ -69,13 +69,13 @@ public interface RestService
     @POST
     @Path("clusters/nodes/start")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response startNodes( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHosts") String lxcHosts );
+    public Response startNodes( @FormParam("clusterName") String clusterName,
+                               @FormParam("lxcHosts") String lxcHosts );
 
     //stop node
     @POST
     @Path("clusters/nodes/stop")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response stopNodes( @PathParam("clusterName") String clusterName,
-                              @PathParam("lxcHosts") String lxcHosts );
+    public Response stopNodes( @FormParam("clusterName") String clusterName,
+                              @FormParam("lxcHosts") String lxcHosts );
 }

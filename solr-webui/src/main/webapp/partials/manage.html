@@ -5,8 +5,8 @@
 			<div class="b-form__wrapper b-form__wrapper_margin-bottom">
 				<label class="b-form-label b-form-label_margin_r">Select the cluster</label>
 				<select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r" 
-					ng-model="selectedCluster" 
-					ng-change="solrCtrl.getClustersInfo(selectedCluster)">
+					ng-model="solrCtrl.selectedOption" 
+					ng-change="solrCtrl.getClustersInfo(solrCtrl.selectedOption)">
 					<option ng-repeat="cluster in solrCtrl.clusters" value="{{cluster}}">{{cluster}}</option>
 				</select>
 				<a href 
@@ -36,35 +36,23 @@
 		<table class="b-main-table b-main-table_with-header">
 			<tr>
 				<th><input type="checkbox"></th>
-				<th>Host</th>
-				<th>IP List</th>
-				<th>Node role</th>
 				<th>Status</th>
-				<th></th>
+				<th>Host</th>
+				<th>IP</th>
 			</tr>
-			<tr ng-repeat="clusterNode in solrCtrl.currentCluster.nodes">
+			<tr ng-repeat="clusterNode in solrCtrl.currentCluster.containerInfos">
 				<td class="b-main-table__edit-icon">
-					<input type="checkbox" ng-click="solrCtrl.pushNode(clusterNode)">
-				</td>
-				<td>{{ clusterNode }}</td>
-				<td>{{ solrCtrl.currentCluster.containersStatuses[clusterNode].ip }}</td>
-				<td>
-					<span ng-if="solrCtrl.currentCluster.seeds.indexOf(clusterNode) >= 0">
-						Seed+Data
-					</span>
-					<span ng-if="solrCtrl.currentCluster.seeds.indexOf(clusterNode) == -1">
-						Data
-					</span>
+					<input type="checkbox" ng-click="solrCtrl.pushNode(clusterNode.id)">
 				</td>
 				<td class="b-main-table__container-status">
 					<div 
-						class="b-status-icon b-status-icon_{{ solrCtrl.currentCluster.containersStatuses[clusterNode].status }}" 
-						title="{{ solrCtrl.currentCluster.containersStatuses[clusterNode].status }}">
+						class="b-status-icon b-status-icon_{{ clusterNode.status }}" 
+						tooltips 
+						tooltip-title="{{ clusterNode.status }}">
 					</div>
 				</td>
-				<td>
-					<a href ng-click="solrCtrl.deleteNode(clusterNode)" class="b-icon b-icon_remove"></a>
-				</td>
+				<td>{{ clusterNode.hostname }}</td>
+				<td>{{ clusterNode.ip }}</td>
 			</tr>
 		</table>
 	</div>
