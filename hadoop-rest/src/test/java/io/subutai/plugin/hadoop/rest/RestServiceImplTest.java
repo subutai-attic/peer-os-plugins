@@ -11,14 +11,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import com.google.common.collect.Lists;
+
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.rest.RestServiceImpl;
-
-import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -26,14 +26,17 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith( MockitoJUnitRunner.class )
 public class RestServiceImplTest
 {
     private RestServiceImpl restService;
-    private String testConfig =
-            "{\"clusterName\": \"test\",\"domainName\": \"intra.lan\",\"replicationFactor\": " +
-                    "\"1\", \"environmentId\": \""+UUID.randomUUID().toString()+"\", \"nameNode\": \""+UUID.randomUUID().toString()+"\",\"jobTracker\": \""+UUID.randomUUID().toString()+"\"," +
-                    "\"secNameNode\": \""+UUID.randomUUID().toString()+"\",\"slaves\": [\""+UUID.randomUUID().toString()+"\",\""+UUID.randomUUID().toString()+"\"]}";
+    private String testConfig = "{\"clusterName\": \"test\",\"domainName\": \"intra.lan\",\"replicationFactor\": " +
+            "\"1\", \"environmentId\": \"" + UUID.randomUUID().toString() + "\", \"nameNode\": \"" + UUID.randomUUID()
+                                                                                                         .toString()
+            + "\",\"jobTracker\": \"" + UUID.randomUUID().toString() + "\"," +
+            "\"secNameNode\": \"" + UUID.randomUUID().toString() + "\",\"slaves\": [\"" + UUID.randomUUID().toString()
+            + "\",\"" + UUID.randomUUID().toString() + "\"]}";
     @Mock
     Hadoop hadoop;
     @Mock
@@ -43,16 +46,17 @@ public class RestServiceImplTest
     @Mock
     TrackerOperationView trackerOperationView;
 
+
     @Before
     public void setUp() throws Exception
     {
-        restService = new RestServiceImpl();
-        restService.setHadoopManager(hadoop);
-        restService.setTracker( tracker );
-        when( hadoop.getCluster( anyString() )).thenReturn( hadoopClusterConfig );
-        when( tracker.getTrackerOperation( anyString(), any( UUID.class) ) ).thenReturn( trackerOperationView );
+        restService = new RestServiceImpl( hadoop, tracker, null );
+
+        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+        when( tracker.getTrackerOperation( anyString(), any( UUID.class ) ) ).thenReturn( trackerOperationView );
         when( trackerOperationView.getState() ).thenReturn( OperationState.SUCCEEDED );
     }
+
 
     @Test
     public void testGetHadoopManager() throws Exception
@@ -60,35 +64,38 @@ public class RestServiceImplTest
         restService.getHadoopManager();
 
         // assertions
-        assertNotNull(restService.getHadoopManager());
-        assertEquals(hadoop, restService.getHadoopManager());
+        assertNotNull( restService.getHadoopManager() );
+        assertEquals( hadoop, restService.getHadoopManager() );
     }
+
 
     @Test
     public void testListClusters() throws Exception
     {
         List<HadoopClusterConfig> myList = Lists.newArrayList();
-        myList.add(hadoopClusterConfig);
-        when(hadoop.getClusters()).thenReturn(myList);
-        when(hadoopClusterConfig.getClusterName()).thenReturn("test");
+        myList.add( hadoopClusterConfig );
+        when( hadoop.getClusters() ).thenReturn( myList );
+        when( hadoopClusterConfig.getClusterName() ).thenReturn( "test" );
 
         Response response = restService.listClusters();
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testGetCluster() throws Exception
     {
         HadoopClusterConfig hadoopClusterConfig1 = new HadoopClusterConfig();
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig1);
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig1 );
 
-        Response response = restService.getCluster("test");
+        Response response = restService.getCluster( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testConfigureCluster() throws Exception
@@ -97,136 +104,145 @@ public class RestServiceImplTest
         Response response = restService.configureCluster( testConfig );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testUninstallCluster() throws Exception
     {
-        when(hadoop.uninstallCluster("test")).thenReturn(UUID.randomUUID());
+        when( hadoop.uninstallCluster( "test" ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.uninstallCluster("test");
+        Response response = restService.uninstallCluster( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStartNameNode() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.startNameNode(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.startNameNode( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.startNameNode("test");
+        Response response = restService.startNameNode( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStopNameNode() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.stopNameNode(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.stopNameNode( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.stopNameNode("test");
+        Response response = restService.stopNameNode( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStatusNameNode() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.statusNameNode(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.statusNameNode( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.statusNameNode("test");
+        Response response = restService.statusNameNode( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStatusSecondaryNameNode() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.statusSecondaryNameNode(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.statusSecondaryNameNode( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.statusSecondaryNameNode("test");
+        Response response = restService.statusSecondaryNameNode( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStartJobTracker() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.startJobTracker(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.startJobTracker( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.startJobTracker("test");
+        Response response = restService.startJobTracker( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStopJobTracker() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.stopJobTracker(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.stopJobTracker( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.stopJobTracker("test");
+        Response response = restService.stopJobTracker( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStatusJobTracker() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
-        when(hadoop.statusJobTracker(hadoopClusterConfig)).thenReturn(UUID.randomUUID());
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
+        when( hadoop.statusJobTracker( hadoopClusterConfig ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.statusJobTracker("test");
+        Response response = restService.statusJobTracker( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testAddNode() throws Exception
     {
-        when(hadoop.addNode("test")).thenReturn(UUID.randomUUID());
+        when( hadoop.addNode( "test" ) ).thenReturn( UUID.randomUUID() );
 
-        Response response = restService.addNode("test");
+        Response response = restService.addNode( "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStatusDataNode() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
 
-        Response response = restService.statusDataNode("test", "test");
+        Response response = restService.statusDataNode( "test", "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
+
 
     @Test
     public void testStatusTaskTracker() throws Exception
     {
-        when(hadoop.getCluster("test")).thenReturn(hadoopClusterConfig);
+        when( hadoop.getCluster( "test" ) ).thenReturn( hadoopClusterConfig );
 
-        Response response = restService.statusTaskTracker("test", "test");
+        Response response = restService.statusTaskTracker( "test", "test" );
 
         // assertions
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals( Response.Status.OK.getStatusCode(), response.getStatus() );
     }
 }

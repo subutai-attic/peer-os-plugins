@@ -2,10 +2,8 @@ package io.subutai.plugin.hadoop.rest;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,6 +32,15 @@ public class RestServiceImpl implements RestService
     private Hadoop hadoopManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+
+
+    public RestServiceImpl( final Hadoop hadoopManager, final Tracker tracker,
+                            final EnvironmentManager environmentManager )
+    {
+        this.hadoopManager = hadoopManager;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
+    }
 
 
     @Override
@@ -242,46 +249,18 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public void setHadoopManager( Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public EnvironmentManager getEnvironmentManager()
-    {
-        return environmentManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
-    }
-
-
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_NAME, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) )
+                           .build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( JsonUtil.toJson( po.getLog() ) ) ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( JsonUtil.toJson( po.getLog() ) ) )
+                           .build();
         }
         else
         {

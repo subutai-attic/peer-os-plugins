@@ -24,9 +24,9 @@
              interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="hadoopRestServiceImpl" class="io.subutai.plugin.hadoop.rest.RestServiceImpl">
-    <property name="hadoopManager" ref="hadoopManager" />
-    <property name="tracker" ref="tracker" />
-    <property name="environmentManager" ref="environmentManager" />
+    <argument ref="hadoopManager" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
   </bean>
 
 </blueprint>
