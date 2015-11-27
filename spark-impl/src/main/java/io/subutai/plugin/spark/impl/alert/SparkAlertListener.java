@@ -18,7 +18,6 @@ import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.impl.SparkImpl;
 
@@ -105,7 +104,7 @@ public class SparkAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        //        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Spark process pid
         int sparkPID;
@@ -146,105 +145,111 @@ public class SparkAlertListener implements AlertListener
         }
 
         //auto-scaling is enabled -> scale cluster
-        if ( targetCluster.isAutoScaling() )
-        {
-            // check if a quota limit increase does it
-            boolean quotaIncreased = false;
+        //        if ( targetCluster.isAutoScaling() )
+        //        {
+        // check if a quota limit increase does it
+        //            boolean quotaIncreased = false;
 
-            if ( isRamStressedBySpark )
-            {
-                //read current RAM quota
-                int ramQuota = sourceHost.getRamQuota();
+        //            if ( isRamStressedBySpark )
+        //            {
+        //                //read current RAM quota
+        //                int ramQuota = sourceHost.getRamQuota();
+        //
+        //                if ( ramQuota < MAX_RAM_QUOTA_MB )
+        //                {
+        //
+        //                    // if available quota on resource host is greater than 10 % of calculated increase
+        // amount,
+        //                    // increase quota, otherwise scale horizontally
+        //                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+        //                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+        //                    {
+        //
+        //                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost
+        // .getHostname(),
+        //                                sourceHost.getRamQuota(), newRamQuota );
+        //                        //we can increase RAM quota
+        //                        sourceHost.setRamQuota( newRamQuota );
+        //
+        //                        quotaIncreased = true;
+        //                    }
+        //                }
+        //            }
 
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
+        //            if ( isCpuStressedBySpark )
+        //            {
+        //                //read current CPU quota
+        //                int cpuQuota = sourceHost.getCpuQuota();
+        //                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+        //                {
+        //                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota +
+        // CPU_QUOTA_INCREMENT_PERCENT );
+        //                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+        // cpuQuota,
+        //                            newCpuQuota );
+        //                    //we can increase CPU quota
+        //                    sourceHost.setCpuQuota( newCpuQuota );
+        //
+        //                    quotaIncreased = true;
+        //                }
+        //            }
+        //
+        //            //quota increase is made, return
+        //            if ( quotaIncreased )
+        //            {
+        //                return;
+        //            }
 
-                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-                    // increase quota, otherwise scale horizontally
-                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
-                    {
-
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getRamQuota(), newRamQuota );
-                        //we can increase RAM quota
-                        sourceHost.setRamQuota( newRamQuota );
-
-                        quotaIncreased = true;
-                    }
-                }
-            }
-
-            if ( isCpuStressedBySpark )
-            {
-                //read current CPU quota
-                int cpuQuota = sourceHost.getCpuQuota();
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-                {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
-                            newCpuQuota );
-                    //we can increase CPU quota
-                    sourceHost.setCpuQuota( newCpuQuota );
-
-                    quotaIncreased = true;
-                }
-            }
-
-            //quota increase is made, return
-            if ( quotaIncreased )
-            {
-                return;
-            }
-
-            // add new node
-            LOG.info( "Adding new node to {} spark cluster", targetCluster.getClusterName() );
-            HadoopClusterConfig hadoopClusterConfig =
-                    spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
-            if ( hadoopClusterConfig == null )
-            {
-                throw new AlertException(
-                        String.format( "Hadoop cluster %s not found", targetCluster.getHadoopClusterName() ), null );
-            }
-
-            List<String> availableNodes = hadoopClusterConfig.getAllNodes();
-            availableNodes.removeAll( targetCluster.getAllNodesIds() );
-
-            //no available nodes or master node is stressed -> notify user
-            if ( availableNodes.isEmpty() || isMasterNode )
-            {
-                //for master node we can use only vertical scaling, so we need to notify user
-                notifyUser();
-            }
-            //add first available node
-            else
-            {
-                String newNodeId = availableNodes.iterator().next();
-                String newNodeHostName = null;
-                for ( EnvironmentContainerHost containerHost : containers )
-                {
-                    if ( containerHost.getId().equals( newNodeId ) )
-                    {
-                        newNodeHostName = containerHost.getHostname();
-                        break;
-                    }
-                }
-
-                if ( newNodeHostName == null )
-                {
-                    throw new AlertException(
-                            String.format( "Could not obtain available hadoop node from environment by id %s",
-                                    newNodeId ), null );
-                }
-
-                //launch node addition process
-                spark.addSlaveNode( targetCluster.getClusterName(), newNodeHostName );
-            }
-        }
-        else
-        {
-            notifyUser();
-        }
+        // add new node
+        //            LOG.info( "Adding new node to {} spark cluster", targetCluster.getClusterName() );
+        //            HadoopClusterConfig hadoopClusterConfig =
+        //                    spark.getHadoopManager().getCluster( targetCluster.getHadoopClusterName() );
+        //            if ( hadoopClusterConfig == null )
+        //            {
+        //                throw new AlertException(
+        //                        String.format( "Hadoop cluster %s not found", targetCluster
+        // .getHadoopClusterName() ), null );
+        //            }
+        //
+        //            List<String> availableNodes = hadoopClusterConfig.getAllNodes();
+        //            availableNodes.removeAll( targetCluster.getAllNodesIds() );
+        //
+        //            //no available nodes or master node is stressed -> notify user
+        //            if ( availableNodes.isEmpty() || isMasterNode )
+        //            {
+        //                //for master node we can use only vertical scaling, so we need to notify user
+        //                notifyUser();
+        //            }
+        //            //add first available node
+        //            else
+        //            {
+        //                String newNodeId = availableNodes.iterator().next();
+        //                String newNodeHostName = null;
+        //                for ( EnvironmentContainerHost containerHost : containers )
+        //                {
+        //                    if ( containerHost.getId().equals( newNodeId ) )
+        //                    {
+        //                        newNodeHostName = containerHost.getHostname();
+        //                        break;
+        //                    }
+        //                }
+        //
+        //                if ( newNodeHostName == null )
+        //                {
+        //                    throw new AlertException(
+        //                            String.format( "Could not obtain available hadoop node from environment by
+        // id %s",
+        //                                    newNodeId ), null );
+        //                }
+        //
+        //                //launch node addition process
+        //                spark.addSlaveNode( targetCluster.getClusterName(), newNodeHostName );
+        //            }
+        //        }
+        //        else
+        //        {
+        //            notifyUser();
+        //        }
     }
 
 
