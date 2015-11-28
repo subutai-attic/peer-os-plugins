@@ -25,16 +25,16 @@ import io.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 public class NodeOperationHandler extends AbstractOperationHandler<ElasticsearchImpl, ElasticsearchClusterConfiguration>
 {
 
-    private String hostname;
+    private String hostId;
     private NodeOperationType operationType;
     CommandUtil commandUtil = new CommandUtil();
 
 
-    public NodeOperationHandler( final ElasticsearchImpl manager, final String clusterName, final String hostname,
+    public NodeOperationHandler( final ElasticsearchImpl manager, final String clusterName, final String hostId,
                                  NodeOperationType operationType )
     {
         super( manager, manager.getCluster( clusterName ) );
-        this.hostname = hostname;
+        this.hostId = hostId;
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker()
                                        .createTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY,
@@ -59,7 +59,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
         {
             try
             {
-                host = environment.getContainerHostByHostname( hostname );
+                host = environment.getContainerHostById( hostId );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -69,7 +69,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
 
         if ( host == null )
         {
-            trackerOperation.addLogFailed( String.format( "Container %s not found in environment", hostname ) );
+            trackerOperation.addLogFailed( String.format( "Container %s not found in environment", hostId ) );
             return;
         }
 

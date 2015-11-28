@@ -6,7 +6,7 @@
   <parent>
      <groupId>io.subutai</groupId>
     <artifactId>elasticsearch-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>elasticsearch-plugin-impl</artifactId>
@@ -38,6 +38,11 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
     </dependency>
   </dependencies>
 

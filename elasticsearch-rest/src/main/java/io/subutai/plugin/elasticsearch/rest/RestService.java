@@ -2,6 +2,7 @@ package io.subutai.plugin.elasticsearch.rest;
 
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -22,15 +23,14 @@ public interface RestService
 
     //configure cluster
     @POST
-    @Path( "configure_environment/{environmentId}/clusterName/{clusterName}/nodes/{nodes}" )
-    @Produces( {MediaType.APPLICATION_JSON } )
-    public Response configureCluster( @PathParam( "environmentId" ) String environmentId,
-                                      @PathParam( "clusterName" ) String clusterName,
-                                      @PathParam( "nodes" ) String nodes );
+    @Path( "clusters/install" )
+    public Response configureCluster( @FormParam( "environmentId" ) String environmentId,
+                                      @FormParam( "clusterName" ) String clusterName,
+                                      @FormParam( "nodes" ) String nodes );
     //remove cluster
     @DELETE
     @Path( "clusters/remove/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response removeCluster( @PathParam( "clusterName" ) String clusterName );
 
     //view cluster info
@@ -48,14 +48,14 @@ public interface RestService
     //start cluster
     @PUT
     @Path( "clusters/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //stop cluster
     @PUT
     @Path( "clusters/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
 
     //check node
@@ -67,31 +67,45 @@ public interface RestService
     //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
     //stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
     //add node
     @POST
     @Path( "clusters/{clusterName}/add" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName );
 
     //destroy node
     @DELETE
     @Path( "clusters/{clusterName}/remove/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
     //auto-scale cluster
     @POST
     @Path("clusters/{clusterName}/auto_scale/{scale}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
     public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
                                       @PathParam( "scale" ) boolean scale );
+
+    //start nodes
+    @POST
+    @Path("clusters/nodes/start")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Response startNodes( @FormParam("clusterName") String clusterName,
+                                @FormParam("lxcHosts") String lxcHosts );
+
+    //stop nodes
+    @POST
+    @Path("clusters/nodes/stop")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Response stopNodes( @FormParam("clusterName") String clusterName,
+                               @FormParam("lxcHosts") String lxcHosts );
 }
