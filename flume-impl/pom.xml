@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>flume-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>flume-plugin-impl</artifactId>
@@ -45,6 +45,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>environment-manager-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>

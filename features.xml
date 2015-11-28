@@ -1,9 +1,8 @@
-<features name="flume-plugin" version="4.0.0-RC3">
-  <feature name="flume-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/flume-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/flume-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/flume-plugin-ui/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/flume-plugin-cli/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/flume-plugin-rest/4.0.0-RC3</bundle>
+<features name="flume-plugin" version="4.0.0-RC4">
+  <feature name="flume-plugin" version="4.0.0-RC4">
+    <bundle>mvn:io.subutai/flume-plugin-api/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-impl/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-cli/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>

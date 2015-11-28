@@ -13,14 +13,17 @@
 
   <reference id="flumeManager" availability="mandatory"
              interface="io.subutai.plugin.flume.api.Flume" />
+  <reference id="environmentManager"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="tracker"  availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+
 
   <bean id="restService" class="io.subutai.plugin.flume.rest.RestServiceImpl">
     <argument ref="flumeManager" />
     <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
   </bean>
-
-  <reference id="tracker"  availability="mandatory"
-             interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/flume" id="flumeRestService">
     <jaxrs:serviceBeans>

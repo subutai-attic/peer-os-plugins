@@ -23,4 +23,10 @@
   <service ref="flume-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.flume.impl.FlumeWebModule">
+  </bean>
+
+
 </blueprint>
