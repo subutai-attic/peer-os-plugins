@@ -99,7 +99,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
         }
         catch ( ContainerHostNotFoundException e )
         {
-            throw new ClusterSetupException( e );
+            throw new ClusterSetupException( "Slaves are not connected" );
         }
 
         if ( slaves.size() > config.getSlaveIds().size() )
