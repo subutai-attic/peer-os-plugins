@@ -148,7 +148,7 @@ public class OozieAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRamStressedByOozie )
+           /* if ( isRamStressedByOozie )
             {
                 //read current RAM quota
                 int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
@@ -177,7 +177,7 @@ public class OozieAlertListener implements AlertListener
 
                     quotaIncreased = true;
                 }
-            }
+            }*/
 
             //quota increase is made, return
             if ( quotaIncreased )

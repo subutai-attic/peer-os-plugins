@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>oozie-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>oozie-plugin-impl</artifactId>
@@ -15,6 +15,11 @@
   <description>Subutai Oozie Plugin</description>
 
   <dependencies>
+	<dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>webui</artifactId>
+	  <classifier>classes</classifier>
+	</dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>metric-api</artifactId>
@@ -48,6 +53,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>hadoop-plugin-api</artifactId>
+      <version>4.0.0-RC4</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
