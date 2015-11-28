@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>nutch-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>nutch-plugin-impl</artifactId>
@@ -15,6 +15,11 @@
   <description>Subutai Nutch Impl</description>
 
   <dependencies>
+  	<dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>webui</artifactId>
+	  <classifier>classes</classifier>
+  	</dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>nutch-plugin-api</artifactId>

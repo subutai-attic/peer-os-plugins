@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,13 +86,13 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
-        String[] arr = nodeIds.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
+		List<String> hosts = JsonUtil.fromJson( nodeIds, new TypeToken<List<String>> (){}.getType() );
+
+        for ( String node : hosts )
         {
 
             config.getNodes().add( node );
         }
-
         UUID uuid = nutchManager.installCluster( config );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -190,15 +191,15 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( NutchConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).build();
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 

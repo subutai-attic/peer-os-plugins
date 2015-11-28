@@ -6,17 +6,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>nutch-plugin-parent</artifactId>
-  <version>4.0.0-RC3</version>
+  <version>4.0.0-RC4</version>
 
   <name>Subutai Nutch Parent</name>
   <description>Subutai Nutch Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC3</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC4</subutai.mgmt.parent.version>
     <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
     <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
     <mockito.version>1.9.5</mockito.version>
@@ -29,7 +28,6 @@
   <modules>
     <module>nutch-api</module>
     <module>nutch-impl</module>
-    <module>nutch-ui</module>
     <module>nutch-cli</module>
     <module>nutch-rest</module>
     <module>nutch-kar</module>
@@ -38,6 +36,12 @@
   <dependencyManagement>
     <dependencies>
 
+	  <dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>webui</artifactId>
+		<classifier>classes</classifier>
+		<version>${subutai.mgmt.parent.version}</version>
+	  </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
@@ -53,12 +57,6 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 
