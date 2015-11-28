@@ -110,7 +110,7 @@ public class RestServiceImpl implements RestService
                     containerDtoJson.setStatus( "STOPPED" );
                 }
 
-                clusterDto.addContainerInfo( containerDtoJson );
+                clusterDto.addContainerDto( containerDtoJson );
             }
             catch ( Exception e )
             {

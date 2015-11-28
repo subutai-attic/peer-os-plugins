@@ -17,7 +17,7 @@ public class ClusterDto
         this.containerDtos = new ArrayList<>(  );
     }
 
-    public void addContainerInfo( ContainerDto containerDto )
+    public void addContainerDto( ContainerDto containerDto )
     {
         containerDtos.add( containerDto );
     }
