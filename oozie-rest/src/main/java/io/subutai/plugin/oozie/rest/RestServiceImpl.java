@@ -2,7 +2,6 @@ package io.subutai.plugin.oozie.rest;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -93,18 +93,25 @@ public class RestServiceImpl implements RestService
     @Override
     public Response installCluster( String clusterName, String hadoopClusterName, String server, String clients )
     {
-        Set<String> uuidSet = new HashSet<>();
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hadoopClusterName );
+        Preconditions.checkNotNull( server );
+        Preconditions.checkNotNull( clients);
+
         OozieClusterConfig config = new OozieClusterConfig();
         config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
 
-        String[] arr = clients.replaceAll( "\\s+", "" ).split( "," );
-        Collections.addAll( uuidSet, arr );
+        List<String> hosts = JsonUtil.fromJson( clients, new TypeToken<List<String>>()
+        {
+        }.getType() );
 
-        config.setClients( uuidSet );
-
+        for ( final String host : hosts )
+        {
+            config.getClients().add( host );
+        }
 
         UUID uuid = oozieManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
