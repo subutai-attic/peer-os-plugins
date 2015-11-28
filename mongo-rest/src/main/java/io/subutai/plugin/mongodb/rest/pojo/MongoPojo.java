@@ -11,6 +11,7 @@ public class MongoPojo
     private Set<ContainerPojo> configHosts;
     private Set<ContainerPojo> routerHosts;
     private Set<ContainerPojo> dataHosts;
+    private boolean autoScaling;
 
 
     public String getClusterName()
@@ -70,5 +71,17 @@ public class MongoPojo
     public void setDataHosts( final Set<ContainerPojo> dataHosts )
     {
         this.dataHosts = dataHosts;
+    }
+
+
+    public boolean isAutoScaling()
+    {
+        return autoScaling;
+    }
+
+
+    public void setAutoScaling( final boolean autoScaling )
+    {
+        this.autoScaling = autoScaling;
     }
 }

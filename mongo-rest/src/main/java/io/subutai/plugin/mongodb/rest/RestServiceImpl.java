@@ -433,6 +433,7 @@ public class RestServiceImpl implements RestService
         {
             pojo.setClusterName( config.getClusterName() );
             pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setAutoScaling( config.isAutoScaling() );
 
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
