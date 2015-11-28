@@ -2,6 +2,7 @@ package io.subutai.plugin.pig.rest;
 
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -31,31 +32,30 @@ public interface RestService
 
     //install cluster
     @POST
-    @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Response installCluster( @QueryParam( "clusterName" ) String clusterName,
-                                    @QueryParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @QueryParam( "nodes" ) String nodes );
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response installCluster( @FormParam( "clusterName" ) String clusterName,
+                                    @FormParam( "hadoopClusterName" ) String hadoopClusterName,
+                                    @FormParam( "nodes" ) String nodes );
 
 
     //destroy cluster
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //add node
     @POST
     @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
     //destroy node
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostname" ) String node );
 
