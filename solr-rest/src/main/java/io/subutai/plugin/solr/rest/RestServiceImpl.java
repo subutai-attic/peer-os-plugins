@@ -19,6 +19,8 @@ import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
+import io.subutai.plugin.solr.rest.dto.ContainerDto;
+import io.subutai.plugin.solr.rest.dto.ClusterDto;
 
 
 /**
@@ -80,35 +82,35 @@ public class RestServiceImpl implements RestService
         }
 
 
-        SolrInfoJson solrInfoJson = new SolrInfoJson( clusterName );
+        ClusterDto clusterDto = new ClusterDto( clusterName );
 
         for ( String node : config.getNodes() )
         {
             try
             {
-                ContainerInfo containerInfoJson = new ContainerInfo();
+                ContainerDto containerDtoJson = new ContainerDto();
 
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
 
                 String ip = containerHost.getIpByInterfaceName( "eth0" );
-                containerInfoJson.setIp( ip );
-                containerInfoJson.setId( node );
-                containerInfoJson.setHostname( containerHost.getHostname() );
+                containerDtoJson.setIp( ip );
+                containerDtoJson.setId( node );
+                containerDtoJson.setHostname( containerHost.getHostname() );
 
                 UUID uuid = solrManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
                 if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
                 {
-                    containerInfoJson.setStatus( "RUNNING" );
+                    containerDtoJson.setStatus( "RUNNING" );
                 }
                 else
                 {
-                    containerInfoJson.setStatus( "STOPPED" );
+                    containerDtoJson.setStatus( "STOPPED" );
                 }
 
-                solrInfoJson.addContainerInfo( containerInfoJson );
+                clusterDto.addContainerInfo( containerDtoJson );
             }
             catch ( Exception e )
             {
@@ -123,7 +125,7 @@ public class RestServiceImpl implements RestService
                            .entity( clusterName + " cluster not found." ).build();
         }
 
-        return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( solrInfoJson ) ).build();
+        return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( clusterDto ) ).build();
     }
 
 

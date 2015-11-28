@@ -40,7 +40,7 @@
 				<th>Host</th>
 				<th>IP</th>
 			</tr>
-			<tr ng-repeat="clusterNode in solrCtrl.currentCluster.containerInfos">
+			<tr ng-repeat="clusterNode in solrCtrl.currentCluster.containerDtos">
 				<td class="b-main-table__edit-icon">
 					<input type="checkbox" ng-click="solrCtrl.pushNode(clusterNode.id)">
 				</td>

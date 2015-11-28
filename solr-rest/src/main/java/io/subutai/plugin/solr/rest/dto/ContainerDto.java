@@ -1,7 +1,7 @@
-package io.subutai.plugin.solr.rest;
+package io.subutai.plugin.solr.rest.dto;
 
 
-public class ContainerInfo
+public class ContainerDto
 {
     private String hostname;
     private String ip;
@@ -9,9 +9,9 @@ public class ContainerInfo
     private String id;
 
 
-    public ContainerInfo() {}
+    public ContainerDto() {}
 
-    public ContainerInfo( final String hostname, final String ip, final String status )
+    public ContainerDto( final String hostname, final String ip, final String status )
     {
         this.hostname = hostname;
         this.ip = ip;
