@@ -32,8 +32,7 @@ public interface RestService
 
     //install cluster
     @POST
-    @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                     @FormParam( "hadoopClusterName" ) String hadoopClusterName,
                                     @FormParam( "nodes" ) String nodes );
@@ -41,22 +40,22 @@ public interface RestService
 
     //destroy cluster
     @DELETE
+    @Produces( { MediaType.TEXT_PLAIN } )
     @Path( "clusters/destroy/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
     public Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //add node
     @POST
+    @Produces( { MediaType.TEXT_PLAIN } )
     @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
 
 
     //destroy node
     @DELETE
+    @Produces( { MediaType.TEXT_PLAIN } )
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostname" ) String node );
 
