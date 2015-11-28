@@ -72,7 +72,7 @@ public interface RestService
     public Response startNodes( @FormParam("clusterName") String clusterName,
                                @FormParam("lxcHosts") String lxcHosts );
 
-    //stop node
+    //stop nodes
     @POST
     @Path("clusters/nodes/stop")
     @Produces({ MediaType.APPLICATION_JSON })
