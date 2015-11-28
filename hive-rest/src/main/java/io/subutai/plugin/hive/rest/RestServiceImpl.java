@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -85,16 +86,14 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( server );
         Preconditions.checkNotNull( clients );
 
-        Set<String> uuidSet = new HashSet<>();
         HiveConfig config = new HiveConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
 
-        String[] arr = clients.replaceAll( "\\s+", "" ).split( "," );
-        Collections.addAll( uuidSet, arr );
+        Set<String> hosts = JsonUtil.fromJson( clients, new TypeToken<Set<String>>() { }.getType() );
 
-        config.setClients( uuidSet );
+        config.setClients( hosts );
 
         UUID uuid = hiveManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
