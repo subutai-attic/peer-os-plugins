@@ -30,23 +30,23 @@
     <module>mongo-cli</module>
     <module>mongo-rest</module>
     <module>mongo-kar</module>
+    <module>mongo-webui</module>
   </modules>
 
   <dependencyManagement>
-    <dependencies>
-	  <dependency>
-		<groupId>org.json</groupId>
-		<artifactId>json</artifactId>
-		<version>20151123</version>
-	  </dependency>
+      <dependencies>
+        <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20151123</version>
+      </dependency>
 
-
-	  <dependency>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>webui</artifactId>
-		<classifier>classes</classifier>
-		<version>${subutai.mgmt.parent.version}</version>
-	  </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>webui</artifactId>
+        <classifier>classes</classifier>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
