@@ -36,6 +36,8 @@ public class RestServiceImpl implements RestService
     public RestServiceImpl( final Hive hiveManager, final Tracker tracker, final EnvironmentManager environmentManager )
     {
         Preconditions.checkNotNull( hiveManager );
+        Preconditions.checkNotNull( tracker );
+        Preconditions.checkNotNull( environmentManager );
 
         this.hiveManager = hiveManager;
         this.tracker = tracker;
@@ -78,6 +80,11 @@ public class RestServiceImpl implements RestService
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String server,
                                     final String clients )
     {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hadoopClusterName );
+        Preconditions.checkNotNull( server );
+        Preconditions.checkNotNull( clients );
+
         Set<String> uuidSet = new HashSet<>();
         HiveConfig config = new HiveConfig();
         config.setClusterName( clusterName );
