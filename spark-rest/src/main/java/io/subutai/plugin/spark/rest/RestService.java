@@ -34,24 +34,23 @@ public interface RestService
 
     //install cluster
     @POST
-    @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response installCluster( @FormParam( "clusterName" ) String clusterName,
                              @FormParam( "hadoopClusterName" ) String hadoopClusterName,
-                             @FormParam( "master" ) String master, @QueryParam( "slaves" ) String workers );
+                             @FormParam( "master" ) String master, @FormParam( "slaves" ) String workers );
 
 
     //destroy cluster
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //add slave node
     @POST
     @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response addSlaveNode( @PathParam( "clusterName" ) String clusterName,
                            @PathParam( "lxcHostName" ) String lxcHostName );
 
@@ -59,7 +58,7 @@ public interface RestService
     //destroy slave node
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response destroySlaveNode( @PathParam( "clusterName" ) String clusterName,
                                @PathParam( "lxcHostName" ) String lxcHostName );
 
@@ -67,7 +66,7 @@ public interface RestService
     //change master node
     @PUT
     @Path( "clusters/{clusterName}/change_master/nodes/{lxcHostName}/{keepSlave}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response changeMasterNode( @PathParam( "clusterName" ) String clusterName,
                                @PathParam( "lxcHostName" ) String lxcHostName,
                                @PathParam( "keepSlave" ) boolean keepSlave );
@@ -76,7 +75,7 @@ public interface RestService
     //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostName}/master/{master}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
                         @PathParam( "master" ) boolean master );
 
@@ -84,7 +83,7 @@ public interface RestService
     //stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{lxcHostName}/master/{master}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
                        @PathParam( "master" ) boolean master );
 
@@ -99,14 +98,14 @@ public interface RestService
     //start cluster
     @PUT
     @Path( "clusters/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response startCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //stop cluster
     @PUT
     @Path( "clusters/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     Response stopCluster( @PathParam( "clusterName" ) String clusterName );
 
 
