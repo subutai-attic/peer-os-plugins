@@ -31,6 +31,7 @@
     <module>oozie-cli</module>
     <module>oozie-rest</module>
     <module>oozie-kar</module>
+    <module>oozie-webui</module>
   </modules>
 
   <dependencyManagement>
