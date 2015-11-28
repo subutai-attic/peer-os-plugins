@@ -10,17 +10,25 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.hive.rest.pojo.HivePojo;
@@ -29,9 +37,11 @@ import io.subutai.plugin.hive.rest.pojo.NodePojo;
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Hive hiveManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private Hadoop hadoopManager;
 
 
     public RestServiceImpl( final Hive hiveManager, final Tracker tracker, final EnvironmentManager environmentManager )
@@ -86,14 +96,23 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( server );
         Preconditions.checkNotNull( clients );
 
+        Set<String> uuidSet = Sets.newHashSet();
         HiveConfig config = new HiveConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
 
-        Set<String> hosts = JsonUtil.fromJson( clients, new TypeToken<Set<String>>() { }.getType() );
+        List<String> hosts = JsonUtil.fromJson( clients, new TypeToken<List<String>>()
+        {
+        }.getType() );
 
-        config.setClients( hosts );
+        for ( String node : hosts )
+        {
+            uuidSet.add( node );
+        }
+
+
+        config.setClients( uuidSet );
 
         UUID uuid = hiveManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -193,6 +212,44 @@ public class RestServiceImpl implements RestService
         UUID uuid = hiveManager.uninstallNode( clusterName, hostName );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        HiveConfig hiveConfig = hiveManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( hiveConfig.getHadoopClusterName() );
+
+        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+        nodes.removeAll( hiveConfig.getAllNodes() );
+        if ( !nodes.isEmpty() )
+        {
+            Set<EnvironmentContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                          .getContainerHostsByIds( nodes );
+
+                for ( final EnvironmentContainerHost host : hosts )
+                {
+                    hostsName.add( host.getHostname() );
+                }
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+//            return Response.status( Response.Status.NOT_FOUND ).build();
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
     }
 
 
@@ -316,5 +373,11 @@ public class RestServiceImpl implements RestService
         }
 
         return state;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }
