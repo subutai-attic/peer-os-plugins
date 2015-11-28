@@ -17,7 +17,7 @@ public class Commands
 
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 300000 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }
@@ -110,26 +110,26 @@ public class Commands
     public RequestBuilder getSetMasterIPCommand( String masterHostname )
     {
         return new RequestBuilder(
-                String.format( ". /etc/profile && sparkMasterConf.sh clear ; sparkMasterConf.sh %s", masterHostname ) );
+                String.format( "/opt/spark*/bin/sparkMasterConf.sh clear ; /opt/spark*/bin/sparkMasterConf.sh %s", masterHostname ) );
     }
 
 
     public RequestBuilder getClearSlavesCommand()
     {
-        return new RequestBuilder( ". /etc/profile && sparkSlaveConf.sh clear" );
+        return new RequestBuilder( "/opt/spark*/bin/sparkSlaveConf.sh clear" );
     }
 
 
     public RequestBuilder getClearSlaveCommand( String slaveHostname )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && sparkSlaveConf.sh clear %s", slaveHostname ) )
+        return new RequestBuilder( String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear %s", slaveHostname ) )
                 .withTimeout( 60 );
     }
 
 
     public RequestBuilder getAddSlaveCommand( String slaveHostname )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && sparkSlaveConf.sh %s", slaveHostname ) )
+        return new RequestBuilder( String.format( "/opt/spark*/bin/sparkSlaveConf.sh %s", slaveHostname ) )
                 .withTimeout( 60 );
     }
 
@@ -143,7 +143,7 @@ public class Commands
         }
 
         return new RequestBuilder(
-                String.format( ". /etc/profile && sparkSlaveConf.sh clear ; sparkSlaveConf.sh %s", slaves ) )
+                String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear ; /opt/spark*/bin/sparkSlaveConf.sh %s", slaves ) )
                 .withTimeout( 60 );
     }
 }
