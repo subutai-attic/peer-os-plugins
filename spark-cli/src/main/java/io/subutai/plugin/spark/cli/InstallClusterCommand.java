@@ -45,7 +45,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     @Argument( index = 3, name = "slaves", description = "The hostname list of slave nodes", required = true,
             multiValued = false )
-    String slaves[] = null;
+    String slaves = null;
 
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
     private Spark sparkManager;
@@ -66,12 +66,14 @@ public class InstallClusterCommand extends OsgiCommandSupport
                 config.setClusterName( clusterName );
                 config.setHadoopClusterName( hadoopClusterName );
                 config.setMasterNodeId( environment.getContainerHostByHostname( master ).getId() );
-                Set<String> slaveUUIDs = new HashSet<>();
-                for ( String hostname : slaves )
+
+                String[] configNodes = slaves.replaceAll( "\\s+", "" ).split( "," );
+                Set<String> slaveHostnames = new HashSet<>();
+                for ( String hostname : configNodes )
                 {
-                    slaveUUIDs.add( environment.getContainerHostByHostname( hostname ).getId() );
+                    slaveHostnames.add( environment.getContainerHostByHostname( hostname ).getId() );
                 }
-                config.setSlavesId( slaveUUIDs );
+                config.setSlavesId( slaveHostnames );
                 config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
 
                 System.out.println( "Installing spark cluster..." );
