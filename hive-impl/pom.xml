@@ -15,6 +15,11 @@
   <description>Subutai Hive Impl</description>
 
   <dependencies>
+	<dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>webui</artifactId>
+	  <classifier>classes</classifier>
+	</dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
