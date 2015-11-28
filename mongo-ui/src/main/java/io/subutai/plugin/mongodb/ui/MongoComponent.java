@@ -10,15 +10,15 @@ import java.util.concurrent.ExecutorService;
 
 import javax.naming.NamingException;
 
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
+
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.ui.manager.Manager;
 import io.subutai.plugin.mongodb.ui.wizard.Wizard;
-
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 
 
 public class MongoComponent extends CustomComponent
@@ -58,6 +58,6 @@ public class MongoComponent extends CustomComponent
         verticalLayout.addComponent( mongoSheet );
 
         setCompositionRoot( verticalLayout );
-        manager.refreshClustersInfo();
+//        manager.refreshClustersInfo();
     }
 }

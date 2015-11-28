@@ -2,17 +2,26 @@ package io.subutai.plugin.mongodb.rest;
 
 
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -25,6 +34,8 @@ import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import io.subutai.plugin.mongodb.rest.pojo.ContainerPojo;
+import io.subutai.plugin.mongodb.rest.pojo.MongoPojo;
 
 
 /**
@@ -62,135 +73,14 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getCluster( final String clusterName )
     {
-		MongoClusterConfig config = mongo.getCluster( clusterName );
-
-		boolean thrownException = false;
-		if ( config == null )
-		{
-			thrownException = true;
-		}
-
-
-		Map< String, ContainerInfoJson > map = new HashMap<> (  );
-		for( String node : config.getConfigHosts () )
-		{
-			try
-			{
-				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
-
-				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-
-				String ip = containerHost.getIpByInterfaceName( "eth0" );
-				containerInfoJson.setIp( ip );
-
-				UUID uuid = mongo.checkNode( clusterName, node, NodeType.CONFIG_NODE );
-				OperationState state = waitUntilOperationFinish( uuid );
-				Response response = createResponse( uuid, state );
-				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
-				{
-					containerInfoJson.setStatus( "RUNNING" );
-				}
-				else
-				{
-					containerInfoJson.setStatus( "STOPPED" );
-				}
-
-				map.put( node, containerInfoJson );
-			}
-			catch ( Exception e )
-			{
-				map.put( node, new ContainerInfoJson() );
-				thrownException = true;
-			}
-		}
-		for( String node : config.getRouterHosts () )
-		{
-			try
-			{
-				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
-
-				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-
-				String ip = containerHost.getIpByInterfaceName( "eth0" );
-				containerInfoJson.setIp( ip );
-
-				UUID uuid = mongo.checkNode( clusterName, node, NodeType.ROUTER_NODE );
-				OperationState state = waitUntilOperationFinish( uuid );
-				Response response = createResponse( uuid, state );
-				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
-				{
-					containerInfoJson.setStatus( "RUNNING" );
-				}
-				else
-				{
-					containerInfoJson.setStatus( "STOPPED" );
-				}
-
-				map.put( node, containerInfoJson );
-			}
-			catch ( Exception e )
-			{
-				map.put( node, new ContainerInfoJson() );
-				thrownException = true;
-			}
-		}
-		for( String node : config.getDataHosts () )
-		{
-			try
-			{
-				ContainerInfoJson containerInfoJson = new ContainerInfoJson();
-
-				Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-				EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-
-				String ip = containerHost.getIpByInterfaceName( "eth0" );
-				containerInfoJson.setIp( ip );
-
-				UUID uuid = mongo.checkNode( clusterName, node, NodeType.DATA_NODE );
-				OperationState state = waitUntilOperationFinish( uuid );
-				Response response = createResponse( uuid, state );
-				if( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
-				{
-					containerInfoJson.setStatus( "RUNNING" );
-				}
-				else
-				{
-					containerInfoJson.setStatus( "STOPPED" );
-				}
-
-				map.put( node, containerInfoJson );
-			}
-			catch ( Exception e )
-			{
-				map.put( node, new ContainerInfoJson() );
-				thrownException = true;
-			}
-		}
-
-		ClusterConfJson result = new ClusterConfJson();
-		result.setConfigPort (String.valueOf (config.getCfgSrvPort ()));
-		result.setRoutePort (String.valueOf (config.getRouterPort ()));
-		result.setDataPort (String.valueOf (config.getDataNodePort ()));
-		result.setConfigNodes (config.getConfigHosts ());
-		result.setRouteNodes (config.getRouterHosts ());
-		result.setDataNodes (config.getDataHosts ());
-		result.setContainersStatuses( map );
-		result.setName( config.getClusterName() );
-		result.setScaling( config.isAutoScaling() );
-
-		String cluster = JsonUtil.toJson( result );
-
-
-
-
-		if( thrownException )
-		{
-			return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
-					.entity( clusterName + " cluster not found." ).build();
-		}
-		return Response.status( Response.Status.OK ).entity( cluster ).build();
+        MongoClusterConfig config = mongo.getCluster( clusterName );
+        if ( config == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found " ).build();
+        }
+        String cluster = JsonUtil.toJson( updateConfig( config ) );
+        return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
 
@@ -361,22 +251,41 @@ public class RestServiceImpl implements RestService
 	{
 		Preconditions.checkNotNull( clusterName );
 		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<>();
+		List <String> types = new ArrayList<>();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+			String type = obj.getString ("type");
+			types.add (type);
+		}
 
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-
-		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
-
-		if( hosts == null || hosts.isEmpty() )
+		if( names == null || names.isEmpty() )
 		{
 			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
 		}
 
 		int errors = 0;
 
-		for( String host : hosts )
+		for( int i = 0; i < names.size(); ++i )
 		{
-			UUID uuid = mongo.stopService( clusterName, host );
+			NodeType type = null;
+			if ( types.get(i).contains( "config" ) )
+			{
+				type = NodeType.CONFIG_NODE;
+			}
+			else if ( types.get(i).contains( "data" ) )
+			{
+				type = NodeType.DATA_NODE;
+			}
+			else if ( types.get(i).contains( "router" ) )
+			{
+				type = NodeType.ROUTER_NODE;
+			}
+			UUID uuid = mongo.stopNode ( clusterName, names.get (i), type );
 			OperationState state = waitUntilOperationFinish( uuid );
 			Response response =createResponse( uuid, state );
 
@@ -510,6 +419,96 @@ public class RestServiceImpl implements RestService
         UUID uuid = mongo.addNode( clusterName, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    private MongoPojo updateConfig( MongoClusterConfig config )
+    {
+        MongoPojo pojo = new MongoPojo();
+        Set<ContainerPojo> configHosts = Sets.newHashSet();
+        Set<ContainerPojo> routerHosts = Sets.newHashSet();
+        Set<ContainerPojo> dataHosts = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getConfigHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname (), NodeType.CONFIG_NODE );
+                configHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setConfigHosts( configHosts );
+
+            for ( final String uuid : config.getRouterHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.ROUTER_NODE );
+                routerHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setRouterHosts( routerHosts );
+
+            for ( final String uuid : config.getDataHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.DATA_NODE );
+                dataHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setDataHosts( dataHosts );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "service is NOT running on node" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    else if ( po.getLog().contains( "service is running on node" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 
 	@Override
