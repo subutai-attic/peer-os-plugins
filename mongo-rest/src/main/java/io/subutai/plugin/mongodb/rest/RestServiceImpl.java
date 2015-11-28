@@ -1,16 +1,23 @@
 package io.subutai.plugin.mongodb.rest;
 
 
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -21,9 +28,12 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import io.subutai.plugin.mongodb.rest.pojo.ContainerPojo;
 import io.subutai.plugin.mongodb.rest.pojo.MongoPojo;
 
@@ -150,8 +160,65 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+	@Override
+	public Response startNodes (String clusterName, String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<>();
+		List <String> types = new ArrayList<>();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+			String type = obj.getString ("type");
+			types.add (type);
+		}
 
-    @Override
+		if( names == null || names.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( int i = 0; i < names.size(); ++i )
+		{
+			NodeType type = null;
+			if ( types.get(i).contains( "config" ) )
+			{
+				type = NodeType.CONFIG_NODE;
+			}
+			else if ( types.get(i).contains( "data" ) )
+			{
+				type = NodeType.DATA_NODE;
+			}
+			else if ( types.get(i).contains( "router" ) )
+			{
+				type = NodeType.ROUTER_NODE;
+			}
+			UUID uuid = mongo.startNode ( clusterName, names.get (i), type );
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
+	@Override
     public Response stopNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
@@ -179,8 +246,46 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+	@Override
+	public Response stopNodes (String clusterName, String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
 
-    @Override
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
+
+		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
+
+		if( hosts == null || hosts.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( String host : hosts )
+		{
+			UUID uuid = mongo.stopService( clusterName, host );
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
+	@Override
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -387,17 +492,61 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
+	@Override
+	public Response autoScaleCluster (String clusterName, boolean scale)
+	{
+		MongoClusterConfig config = mongo.getCluster( clusterName );
+		config.setAutoScaling( scale );
+		try
+		{
+			mongo.saveConfig( config );
+		}
+		catch ( ClusterException e )
+		{
+			e.printStackTrace();
+		}
 
-    private Response createResponse( UUID uuid, OperationState state )
+
+		return Response.ok().build();
+	}
+
+	@Override
+	public Response installCluster (String config)
+	{
+		ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
+
+		MongoClusterConfig clusterConfig = new MongoClusterConfig( );
+
+		clusterConfig.setClusterName( clusterConfJson.getName() );
+		clusterConfig.setDomainName( clusterConfJson.getDomainName() );
+		clusterConfig.setReplicaSetName ( clusterConfJson.getRepl () );
+		clusterConfig.setCfgSrvPort ( Integer.parseInt (clusterConfJson.getConfigPort ()) );
+		clusterConfig.setRouterPort ( Integer.parseInt (clusterConfJson.getRoutePort ()) );
+		clusterConfig.setDataNodePort ( Integer.parseInt (clusterConfJson.getDataPort ()) );
+		clusterConfig.setConfigHosts ( clusterConfJson.getConfigNodes () );
+		clusterConfig.setRouterHosts ( clusterConfJson.getRouteNodes () );
+		clusterConfig.setDataHosts ( clusterConfJson.getDataNodes () );
+
+		clusterConfig.setNumberOfConfigServers ( clusterConfJson.getConfigNodes ().size() );
+		clusterConfig.setNumberOfRouters ( clusterConfJson.getRouteNodes ().size() );
+		clusterConfig.setNumberOfDataNodes (clusterConfJson.getDataNodes ().size() );
+		clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
+
+		mongo.installCluster( clusterConfig );
+		return Response.ok().build();
+	}
+
+
+	private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson (po.getLog()) ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson (po.getLog()) ).build();
         }
         else
         {

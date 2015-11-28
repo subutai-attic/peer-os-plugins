@@ -52,6 +52,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
+	public NodeOperationHandler( final MongoImpl manager, final String clusterName, final String hostname,
+								 NodeOperationType operationType )
+	{
+		super( manager, clusterName );
+		this.hostname = hostname;
+		this.clusterName = clusterName;
+		this.operationType = operationType;
+		this.trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+				String.format( "Creating %s tracker object...", clusterName ) );
+	}
+
     @Override
     public void run()
     {
@@ -76,7 +87,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         EnvironmentContainerHost host = null;
         try
         {
-            host = environment.getContainerHostByHostname( hostname );
+            host = environment.getContainerHostById ( hostname );
         }
         catch ( ContainerHostNotFoundException e )
         {

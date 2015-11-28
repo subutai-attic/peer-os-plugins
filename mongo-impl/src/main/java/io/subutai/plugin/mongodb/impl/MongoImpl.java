@@ -320,8 +320,26 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         }
     }
 
+	@Override
+	public UUID startService (String clusterName, String hostname)
+	{
+		AbstractOperationHandler operationHandler =
+				new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.START );
+		executor.execute( operationHandler );
+		return operationHandler.getTrackerId();
+	}
 
-    public Monitor getMonitor()
+	@Override
+	public UUID stopService (String clusterName, String hostname)
+	{
+		AbstractOperationHandler operationHandler =
+				new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
+		executor.execute( operationHandler );
+		return operationHandler.getTrackerId();
+	}
+
+
+	public Monitor getMonitor()
     {
         return monitor;
     }
