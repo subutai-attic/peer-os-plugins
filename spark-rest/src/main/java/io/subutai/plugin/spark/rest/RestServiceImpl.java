@@ -66,7 +66,7 @@ public class RestServiceImpl implements RestService
     {
         SparkClusterConfig config = sparkManager.getCluster( clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( config );
+        String cluster = JsonUtil.GSON.toJson( parsePojo( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -327,7 +327,7 @@ public class RestServiceImpl implements RestService
             for ( String slave : config.getSlaveIds() )
             {
                 NodePojo node = new NodePojo( slave, env );
-                uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getHostname(), false );
+                uuid = sparkManager.checkNode( config.getClusterName(), node.getHostname(), false );
                 node.setStatus( checkStatus( tracker, uuid ) );
 
                 clients.add( node );
@@ -355,11 +355,11 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
+                    if ( po.getLog().toLowerCase().contains( "not" ) )
                     {
                         state = "STOPPED";
                     }
-                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
+                    else if ( po.getLog().toLowerCase().contains( "is running" ) )
                     {
                         state = "RUNNING";
                     }
