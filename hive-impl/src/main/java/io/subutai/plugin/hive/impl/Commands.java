@@ -38,7 +38,7 @@ public class Commands
 
     public static String configureClient( ContainerHost server )
     {
-        String uri = "thrift://" + server.getIpByInterfaceName( "eth0" ) + ":10000";
+        String uri = "thrift://" + server.getInterfaceByName( "eth0" ).getIp() + ":10000";
         return Commands.addHiveProperty( "add", "hive-site.xml", "hive.metastore.uris", uri );
     }
 

@@ -28,7 +28,7 @@ public class NodePojo implements Serializable
         {
             ContainerHost container = environment.getContainerHostById( uuid );
             this.hostname = container.getHostname();
-            this.ip = container.getIpByInterfaceName( "eth0" );
+            this.ip = container.getInterfaceByName( "eth0" ).getIp();
         }
         catch ( ContainerHostNotFoundException e )
         {
