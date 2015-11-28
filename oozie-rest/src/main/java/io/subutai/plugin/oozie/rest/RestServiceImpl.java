@@ -98,6 +98,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( server );
         Preconditions.checkNotNull( clients);
 
+		Set<String> uuidSet = Sets.newHashSet ();
         OozieClusterConfig config = new OozieClusterConfig();
         config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
@@ -110,8 +111,10 @@ public class RestServiceImpl implements RestService
 
         for ( final String host : hosts )
         {
-            config.getClients().add( host );
+        	uuidSet.add (host);
         }
+//		config.getClients().add( host );
+		config.setClients (uuidSet);
 
         UUID uuid = oozieManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -368,15 +371,15 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( OozieClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).build();
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 
