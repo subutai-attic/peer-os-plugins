@@ -6,7 +6,7 @@
   <parent>
      <groupId>io.subutai</groupId>
     <artifactId>mongo-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>mongo-plugin-rest</artifactId>
@@ -15,7 +15,11 @@
   <packaging>bundle</packaging>
 
   <dependencies>
-
+	<dependency>
+	  <groupId>org.json</groupId>
+	  <artifactId>json</artifactId>
+	  <version>20151123</version>
+	</dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>

@@ -1,9 +1,8 @@
-<features name="mongo-plugin" version="4.0.0-RC3">
-  <feature name="mongo-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/mongo-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/mongo-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/mongo-plugin-ui/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/mongo-plugin-cli/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/mongo-plugin-rest/4.0.0-RC3</bundle>
+<features name="mongo-plugin" version="4.0.0-RC4">
+  <feature name="mongo-plugin" version="4.0.0-RC4">
+    <bundle>mvn:io.subutai/mongo-plugin-api/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-impl/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-cli/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>

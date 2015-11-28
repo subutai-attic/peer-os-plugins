@@ -1,14 +1,7 @@
 package io.subutai.plugin.mongodb.rest;
 
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -49,6 +42,14 @@ public interface RestService
                                @PathParam("lxcHostname") String lxcHostname,
                                @PathParam("nodeType") String nodeType );
 
+
+	//start nodes
+	@POST
+	@Path("clusters/nodes/start")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response startNodes( @FormParam("clusterName") String clusterName,
+								@FormParam("lxcHosts") String lxcHosts );
+
     //stop node
     @PUT
     @Path("clusters/{clusterName}/stop/node/{lxcHostname}/nodeType/{nodeType}")
@@ -56,6 +57,14 @@ public interface RestService
     public Response stopNode( @PathParam("clusterName") String clusterName,
                               @PathParam("lxcHostname") String lxcHostname,
                               @PathParam("nodeType") String nodeType );
+
+
+	//stop nodes
+	@POST
+	@Path("clusters/nodes/stop")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response stopNodes( @FormParam("clusterName") String clusterName,
+							   @FormParam("lxcHosts") String lxcHosts );
 
     //start cluster
     @PUT
@@ -92,4 +101,18 @@ public interface RestService
     @Path("clusters/{clusterName}/add/node/nodeType/{nodeType}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addNode( @PathParam("clusterName") String clusterName, @PathParam("nodeType") String nodeType );
+
+
+    // auto-scale
+    @POST
+    @Path ("clusters/{clusterName}/auto_scale/{scale}")
+    @Produces ({MediaType.APPLICATION_JSON})
+	public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+									  @PathParam( "scale" ) boolean scale );
+
+	@POST
+	@Path( "clusters/create" )
+	@Produces({MediaType.APPLICATION_JSON})
+	Response installCluster( @FormParam ("clusterConfJson") String config );
+
 }

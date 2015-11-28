@@ -6,7 +6,7 @@
   <parent>
      <groupId>io.subutai</groupId>
     <artifactId>mongo-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>mongo-plugin-ui</artifactId>
@@ -22,6 +22,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>vaadin-custom</artifactId>
+      <version>4.0.0-RC3</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

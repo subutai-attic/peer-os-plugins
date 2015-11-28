@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.server.ui.component.ProgressWindow;
@@ -42,7 +41,7 @@ public class EnvironmentVerificationStep extends VerticalLayout
                 + "(you may change them by clicking on Back button)</strong><br/>" );
         confirmationLbl.setContentMode( ContentMode.HTML );
 
-        ConfigView cfgView = new ConfigView( "Installation configuration" );
+        /*ConfigView cfgView = new ConfigView( "Installation configuration" );
         cfgView.addStringCfg( "Cluster Name", wizard.getMongoClusterConfig().getClusterName() );
         cfgView.addStringCfg( "Replica Set Name", wizard.getMongoClusterConfig().getReplicaSetName() );
         cfgView.addStringCfg( "Domain Name", wizard.getMongoClusterConfig().getDomainName() );
@@ -118,7 +117,7 @@ public class EnvironmentVerificationStep extends VerticalLayout
 
         grid.addComponent( cfgView.getCfgTable(), 0, 1, 0, 3 );
 
-        grid.addComponent( buttons, 0, 4 );
+        grid.addComponent( buttons, 0, 4 );*/
 
         addComponent( grid );
     }
