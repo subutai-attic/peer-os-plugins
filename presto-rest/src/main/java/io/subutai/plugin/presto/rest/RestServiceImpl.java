@@ -1,28 +1,46 @@
 package io.subutai.plugin.presto.rest;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
+import io.subutai.plugin.presto.rest.pojo.ContainerPojo;
+import io.subutai.plugin.presto.rest.pojo.PrestoPojo;
 
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Presto prestoManager;
     private Tracker tracker;
+    private EnvironmentManager environmentManager;
+    private Hadoop hadoopManager;
 
 
     public RestServiceImpl( final Presto prestoManager )
@@ -52,7 +70,7 @@ public class RestServiceImpl implements RestService
     {
         PrestoClusterConfig config = prestoManager.getCluster( clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( config );
+        String cluster = JsonUtil.GSON.toJson( updateConfig( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -71,8 +89,12 @@ public class RestServiceImpl implements RestService
         config.setHadoopClusterName( hadoopClusterName );
         config.setCoordinatorNode( masterNode );
 
-        String[] arr = workers.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
+        List<String> hosts = JsonUtil.fromJson( workers, new TypeToken<List<String>>()
+        {
+        }.getType() );
+
+
+        for ( String node : hosts )
         {
             config.getWorkers().add( node );
         }
@@ -227,6 +249,124 @@ public class RestServiceImpl implements RestService
     }
 
 
+    private PrestoPojo updateConfig( PrestoClusterConfig config )
+    {
+        PrestoPojo pojo = new PrestoPojo();
+        Set<ContainerPojo> containerPojoSet = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setHadoopClusterName( config.getHadoopClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setAutoScaling( config.isAutoScaling() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getWorkers() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+
+            pojo.setWorkers( containerPojoSet );
+
+            ContainerHost ch = environment.getContainerHostById( config.getCoordinatorNode() );
+            UUID uuid = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
+            pojo.setCoordinator(
+                    new ContainerPojo( ch.getHostname(), config.getCoordinatorNode(), ch.getIpByInterfaceName( "eth0" ),
+                            checkStatus( tracker, uuid ) ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        PrestoClusterConfig oozieClusterConfig = prestoManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( oozieClusterConfig.getHadoopClusterName() );
+
+        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+        nodes.removeAll( oozieClusterConfig.getAllNodes() );
+        if ( !nodes.isEmpty() )
+        {
+            Set<EnvironmentContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                          .getContainerHostsByIds( nodes );
+
+                for ( final EnvironmentContainerHost host : hosts )
+                {
+                    hostsName.add( host.getHostname() );
+                }
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+//            return Response.status( Response.Status.NOT_FOUND ).build();
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( PrestoClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Running as" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else if ( po.getLog().contains( "Not running" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
+    }
+
+
     @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
@@ -304,5 +444,17 @@ public class RestServiceImpl implements RestService
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }
