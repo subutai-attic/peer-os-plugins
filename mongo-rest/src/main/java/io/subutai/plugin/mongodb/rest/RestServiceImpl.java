@@ -3,12 +3,18 @@ package io.subutai.plugin.mongodb.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -18,6 +24,8 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
+import io.subutai.plugin.mongodb.rest.pojo.ContainerPojo;
+import io.subutai.plugin.mongodb.rest.pojo.MongoPojo;
 
 
 /**
@@ -61,7 +69,7 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found " ).build();
         }
-        String cluster = JsonUtil.toJson( mongo.getCluster( clusterName ) );
+        String cluster = JsonUtil.toJson( updateConfig( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -287,6 +295,96 @@ public class RestServiceImpl implements RestService
         UUID uuid = mongo.addNode( clusterName, type );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    private MongoPojo updateConfig( MongoClusterConfig config )
+    {
+        MongoPojo pojo = new MongoPojo();
+        Set<ContainerPojo> configHosts = Sets.newHashSet();
+        Set<ContainerPojo> routerHosts = Sets.newHashSet();
+        Set<ContainerPojo> dataHosts = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getConfigHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.CONFIG_NODE );
+                configHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setConfigHosts( configHosts );
+
+            for ( final String uuid : config.getRouterHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.ROUTER_NODE );
+                routerHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setRouterHosts( routerHosts );
+
+            for ( final String uuid : config.getDataHosts() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.DATA_NODE );
+                dataHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setDataHosts( dataHosts );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "service is NOT running on node" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    else if ( po.getLog().contains( "service is running on node" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 
 
