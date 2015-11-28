@@ -34,6 +34,11 @@
 
   <dependencyManagement>
     <dependencies>
+	  <dependency>
+		<groupId>org.json</groupId>
+		<artifactId>json</artifactId>
+		<version>20151123</version>
+	  </dependency>
 
 
 	  <dependency>
@@ -144,7 +149,6 @@
         <artifactId>karaf-maven-plugin</artifactId>
         <version>${karaf.version}</version>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 

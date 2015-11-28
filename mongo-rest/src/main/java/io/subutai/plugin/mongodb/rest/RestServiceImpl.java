@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -22,6 +23,8 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 /**
@@ -272,19 +275,41 @@ public class RestServiceImpl implements RestService
 	{
 		Preconditions.checkNotNull( clusterName );
 		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<>();
+		List <String> types = new ArrayList<>();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+			String type = obj.getString ("type");
+			types.add (type);
+		}
 
-		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>> (){}.getType() );
-
-		if( hosts == null || hosts.isEmpty() )
+		if( names == null || names.isEmpty() )
 		{
 			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
 		}
 
 		int errors = 0;
 
-		for( String host : hosts )
+		for( int i = 0; i < names.size(); ++i )
 		{
-			UUID uuid = mongo.startService( clusterName, host );
+			NodeType type = null;
+			if ( types.get(i).contains( "config" ) )
+			{
+				type = NodeType.CONFIG_NODE;
+			}
+			else if ( types.get(i).contains( "data" ) )
+			{
+				type = NodeType.DATA_NODE;
+			}
+			else if ( types.get(i).contains( "router" ) )
+			{
+				type = NodeType.ROUTER_NODE;
+			}
+			UUID uuid = mongo.startNode ( clusterName, names.get (i), type );
 			OperationState state = waitUntilOperationFinish( uuid );
 			Response response =createResponse( uuid, state );
 
