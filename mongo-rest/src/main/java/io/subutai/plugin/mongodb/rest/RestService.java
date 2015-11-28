@@ -48,7 +48,7 @@ public interface RestService
 	@Path("clusters/nodes/start")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response startNodes( @FormParam("clusterName") String clusterName,
-								@FormParam("lxcHosts") String lxcHosts );
+								@FormParam("lxcHostNames") String lxcHosts );
 
     //stop node
     @PUT
@@ -64,7 +64,7 @@ public interface RestService
 	@Path("clusters/nodes/stop")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response stopNodes( @FormParam("clusterName") String clusterName,
-							   @FormParam("lxcHosts") String lxcHosts );
+							   @FormParam("lxcHostNames") String lxcHosts );
 
     //start cluster
     @PUT

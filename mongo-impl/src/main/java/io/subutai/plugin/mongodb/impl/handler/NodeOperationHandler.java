@@ -87,7 +87,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         EnvironmentContainerHost host = null;
         try
         {
-            host = environment.getContainerHostById ( hostname );
+            host = environment.getContainerHostByHostname ( hostname );
         }
         catch ( ContainerHostNotFoundException e )
         {

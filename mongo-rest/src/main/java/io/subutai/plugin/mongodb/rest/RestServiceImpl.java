@@ -251,22 +251,41 @@ public class RestServiceImpl implements RestService
 	{
 		Preconditions.checkNotNull( clusterName );
 		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<>();
+		List <String> types = new ArrayList<>();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+			String type = obj.getString ("type");
+			types.add (type);
+		}
 
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-
-		List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>(){}.getType() );
-
-		if( hosts == null || hosts.isEmpty() )
+		if( names == null || names.isEmpty() )
 		{
 			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
 		}
 
 		int errors = 0;
 
-		for( String host : hosts )
+		for( int i = 0; i < names.size(); ++i )
 		{
-			UUID uuid = mongo.stopService( clusterName, host );
+			NodeType type = null;
+			if ( types.get(i).contains( "config" ) )
+			{
+				type = NodeType.CONFIG_NODE;
+			}
+			else if ( types.get(i).contains( "data" ) )
+			{
+				type = NodeType.DATA_NODE;
+			}
+			else if ( types.get(i).contains( "router" ) )
+			{
+				type = NodeType.ROUTER_NODE;
+			}
+			UUID uuid = mongo.stopNode ( clusterName, names.get (i), type );
 			OperationState state = waitUntilOperationFinish( uuid );
 			Response response =createResponse( uuid, state );
 
@@ -420,7 +439,7 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getConfigHosts() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.CONFIG_NODE );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname (), NodeType.CONFIG_NODE );
                 configHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
                         checkStatus( tracker, uuidStatus ) ) );
             }
