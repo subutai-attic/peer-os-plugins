@@ -28,7 +28,7 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                     @FormParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @FormParam( "server" ) String server, @QueryParam( "clients" ) String clients );
+                                    @FormParam( "server" ) String server, @FormParam( "clients" ) String clients );
 
     // remove cluster
     @DELETE
