@@ -31,17 +31,19 @@
     <module>nutch-cli</module>
     <module>nutch-rest</module>
     <module>nutch-kar</module>
+    <module>nutch-webui</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
 
-	  <dependency>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>webui</artifactId>
-		<classifier>classes</classifier>
-		<version>${subutai.mgmt.parent.version}</version>
-	  </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>webui</artifactId>
+        <classifier>classes</classifier>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
