@@ -37,13 +37,22 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     @Argument( index = 2, name = "list", description = "The list of nodes", required = true,
             multiValued = false )
-    String allNodes[] = null;
+    String allNodes = null;
 
 
     private Elasticsearch elasticsearchManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger( DescribeClusterCommand.class.getName() );
+
+
+    public InstallClusterCommand( final Elasticsearch elasticsearchManager, final Tracker tracker,
+                                  final EnvironmentManager environmentManager )
+    {
+        this.elasticsearchManager = elasticsearchManager;
+        this.tracker = tracker;
+        this.environmentManager = environmentManager;
+    }
 
 
     protected Object doExecute() throws IOException
@@ -54,8 +63,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
             Environment environment = environmentManager.loadEnvironment( environmentId );
             config.setEnvironmentId( environmentId );
             config.setClusterName( clusterName );
+            String[] configNodes = allNodes.replaceAll( "\\s+", "" ).split( "," );
             Set<String> nodes = new HashSet<>();
-            for ( String slave : allNodes )
+            for ( String slave : configNodes )
             {
                 if ( checkGivenUUID( environment, slave ) )
                 {
@@ -71,7 +81,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
             UUID uuid = elasticsearchManager.installCluster( config );
             System.out.println(
-                    "Install operation is " + StartAllNodesCommand.waitUntilOperationFinish( tracker, uuid ) );
+                    "Install operation is " + TrackerReader.waitUntilOperationFinish( tracker, uuid ) );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -93,35 +103,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
             }
         }
         return false;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public Elasticsearch getElasticsearchManager()
-    {
-        return elasticsearchManager;
-    }
-
-
-    public void setElasticsearchManager( final Elasticsearch elasticsearchManager )
-    {
-        this.elasticsearchManager = elasticsearchManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

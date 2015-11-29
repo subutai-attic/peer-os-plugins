@@ -29,6 +29,14 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     String clusterName = null;
 
 
+    public DescribeClusterCommand( final Elasticsearch elasticsearchManager,
+                                   final EnvironmentManager environmentManager )
+    {
+        this.elasticsearchManager = elasticsearchManager;
+        this.environmentManager = environmentManager;
+    }
+
+
     public Object doExecute()
     {
         try
@@ -59,23 +67,5 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             e.printStackTrace();
         }
         return null;
-    }
-
-
-    public Elasticsearch getElasticsearchManager()
-    {
-        return elasticsearchManager;
-    }
-
-
-    public void setElasticsearchManager( final Elasticsearch elasticsearchManager )
-    {
-        this.elasticsearchManager = elasticsearchManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }
