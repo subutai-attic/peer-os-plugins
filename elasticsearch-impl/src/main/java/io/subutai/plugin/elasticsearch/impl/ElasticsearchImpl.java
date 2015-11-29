@@ -245,10 +245,10 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
 
 
     @Override
-    public UUID checkNode( final String clusterName, final String hostname )
+    public UUID checkNode( final String clusterName, final String hostID )
     {
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.STATUS );
+                new NodeOperationHandler( this, clusterName, hostID, NodeOperationType.STATUS );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
