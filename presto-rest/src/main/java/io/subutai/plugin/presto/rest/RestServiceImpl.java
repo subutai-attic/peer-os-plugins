@@ -1,10 +1,7 @@
 package io.subutai.plugin.presto.rest;
 
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.ws.rs.core.Response;
 
@@ -32,7 +29,8 @@ import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.rest.pojo.ContainerPojo;
 import io.subutai.plugin.presto.rest.pojo.PrestoPojo;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class RestServiceImpl implements RestService
 {
@@ -169,6 +167,49 @@ public class RestServiceImpl implements RestService
     }
 
 
+	@Override
+	public Response startNodes (String clusterName, String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<> ();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+		}
+
+		if( names == null || names.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( int i = 0; i < names.size(); ++i )
+		{
+			UUID uuid = prestoManager.startNode ( clusterName, names.get (i));
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
+
     @Override
     public Response stopNode( final String clusterName, final String lxcHostName )
     {
@@ -183,6 +224,50 @@ public class RestServiceImpl implements RestService
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
+
+
+	@Override
+	public Response stopNodes (String clusterName, String lxcHosts)
+	{
+		Preconditions.checkNotNull( clusterName );
+		Preconditions.checkNotNull( lxcHosts );
+		JSONArray arr = new JSONArray (lxcHosts);
+		List <String> names = new ArrayList<>();
+		for (int i = 0; i < arr.length (); ++i)
+		{
+			JSONObject obj = arr.getJSONObject (i);
+			String name = obj.getString ("name");
+			names.add (name);
+		}
+
+		if( names == null || names.isEmpty() )
+		{
+			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+		}
+
+		int errors = 0;
+
+		for( int i = 0; i < names.size(); ++i )
+		{
+			UUID uuid = prestoManager.stopNode ( clusterName, names.get (i) );
+			OperationState state = waitUntilOperationFinish( uuid );
+			Response response =createResponse( uuid, state );
+
+			if( response.getStatus() != 200 )
+			{
+				errors++;
+			}
+		}
+
+		if( errors > 0 )
+		{
+			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
+		}
+
+		return Response.ok().build();
+	}
+
+
 
 
     @Override
@@ -396,15 +481,15 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( PrestoClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.OK ).build();
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 

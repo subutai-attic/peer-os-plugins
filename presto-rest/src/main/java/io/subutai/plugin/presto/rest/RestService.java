@@ -70,12 +70,29 @@ public interface RestService
                                @PathParam( "lxcHostName" ) String lxcHostName );
 
 
+	//start nodes
+	@POST
+	@Path("clusters/nodes/start")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response startNodes( @FormParam("clusterName") String clusterName,
+								@FormParam("lxcHostNames") String lxcHosts );
+
+
+
     //stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
                               @PathParam( "lxcHostName" ) String lxcHostName );
+
+
+	//stop nodes
+	@POST
+	@Path("clusters/nodes/stop")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response stopNodes( @FormParam("clusterName") String clusterName,
+							   @FormParam("lxcHostNames") String lxcHosts );
 
 
     //check node

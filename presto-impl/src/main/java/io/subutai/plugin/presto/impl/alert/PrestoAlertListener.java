@@ -110,7 +110,7 @@ public class PrestoAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        //MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out process pid
         int prestoPID = 0;
@@ -157,7 +157,7 @@ public class PrestoAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            if ( isRamStressed )
+            /*if ( isRamStressed )
             {
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
@@ -195,7 +195,7 @@ public class PrestoAlertListener implements AlertListener
 
                     quotaIncreased = true;
                 }
-            }
+            }*/
 
             //quota increase is made, return
             if ( quotaIncreased )
