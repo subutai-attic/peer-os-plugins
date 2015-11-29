@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -85,11 +87,7 @@ public class RestServiceImpl implements RestService
         config.setHadoopClusterName( hadoopClusterName );
         config.setMasterNodeId( master );
 
-        String[] arr = workers.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
-        {
-            config.getSlaveIds().add( node );
-        }
+        config.setSlavesId( (Set<String>)JsonUtil.fromJson( workers, new TypeToken<Set<String>>() { }.getType() ) );
 
         UUID uuid = sparkManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -256,6 +254,76 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
+
+    @Override
+    public Response startNodes( final String clusterName,
+                                final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, true );
+    }
+
+
+    @Override
+    public Response stopNodes( final String clusterName,
+                               final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, false );
+    }
+
+    private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        List<String> hosts;
+
+
+        if ( sparkManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+
+        try
+        {
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>() {}.getType() );
+        }
+        catch ( Exception e )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) ).build();
+        }
+
+        int errors = 0;
+
+        for( String host : hosts )
+        {
+            UUID uuid;
+            if( startNode )
+            {
+                uuid = sparkManager.startNode( clusterName, host, false );
+            }
+            else
+            {
+                uuid = sparkManager.stopNode( clusterName, host, false );
+            }
+
+            OperationState state = waitUntilOperationFinish( uuid );
+
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
 
     private Response createResponse( UUID uuid, OperationState state )
     {
