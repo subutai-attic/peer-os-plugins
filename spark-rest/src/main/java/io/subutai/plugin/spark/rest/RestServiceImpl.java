@@ -6,20 +6,26 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.rest.pojo.NodePojo;
@@ -28,8 +34,9 @@ import io.subutai.plugin.spark.rest.pojo.SparkPojo;
 
 public class RestServiceImpl implements RestService
 {
-
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Spark sparkManager;
+    private Hadoop hadoopManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
@@ -87,7 +94,9 @@ public class RestServiceImpl implements RestService
         config.setHadoopClusterName( hadoopClusterName );
         config.setMasterNodeId( master );
 
-        config.setSlavesId( (Set<String>)JsonUtil.fromJson( workers, new TypeToken<Set<String>>() { }.getType() ) );
+        config.setSlavesId( ( Set<String> ) JsonUtil.fromJson( workers, new TypeToken<Set<String>>()
+        {
+        }.getType() ) );
 
         UUID uuid = sparkManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -256,19 +265,18 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNodes( final String clusterName,
-                                final String lxcHosts )
+    public Response startNodes( final String clusterName, final String lxcHosts )
     {
         return nodeOperation( clusterName, lxcHosts, true );
     }
 
 
     @Override
-    public Response stopNodes( final String clusterName,
-                               final String lxcHosts )
+    public Response stopNodes( final String clusterName, final String lxcHosts )
     {
         return nodeOperation( clusterName, lxcHosts, false );
     }
+
 
     private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
     {
@@ -285,19 +293,22 @@ public class RestServiceImpl implements RestService
 
         try
         {
-            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>() {}.getType() );
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+            {
+            }.getType() );
         }
         catch ( Exception e )
         {
-            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) ).build();
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) )
+                           .build();
         }
 
         int errors = 0;
 
-        for( String host : hosts )
+        for ( String host : hosts )
         {
             UUID uuid;
-            if( startNode )
+            if ( startNode )
             {
                 uuid = sparkManager.startNode( clusterName, host, false );
             }
@@ -324,6 +335,45 @@ public class RestServiceImpl implements RestService
 
         return Response.ok().build();
     }
+
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        SparkClusterConfig sparkClusterConfig = sparkManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( sparkClusterConfig.getHadoopClusterName() );
+
+        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+        nodes.removeAll( sparkClusterConfig.getAllNodesIds() );
+        if ( !nodes.isEmpty() )
+        {
+            Set<EnvironmentContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                          .getContainerHostsByIds( nodes );
+
+                for ( final EnvironmentContainerHost host : hosts )
+                {
+                    hostsName.add( host.getHostname() );
+                }
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
+    }
+
 
     private Response createResponse( UUID uuid, OperationState state )
     {
@@ -449,5 +499,11 @@ public class RestServiceImpl implements RestService
         }
 
         return state;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }

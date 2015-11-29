@@ -25,11 +25,14 @@
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
 
   <bean id="sparkRestService" class="io.subutai.plugin.spark.rest.RestServiceImpl">
     <argument ref="sparkManager" />
     <argument ref="tracker" />
     <argument ref="environmentManager" />
+    <property name="hadoopManager" ref="hadoopManager" />
   </bean>
 
 </blueprint>
