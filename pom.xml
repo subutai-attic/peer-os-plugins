@@ -5,14 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>storm-plugin-parent</artifactId>
-  <version>4.0.0-RC3</version>
+  <version>4.0.0-RC4</version>
 
   <name>Subutai Storm Parent</name>
   <description>Subutai Storm Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC3</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC4</subutai.mgmt.parent.version>
     <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
     <zookeeper.version>${subutai.mgmt.parent.version}</zookeeper.version>
     <karaf.version>3.0.2</karaf.version>
@@ -29,7 +29,6 @@
   <modules>
     <module>storm-api</module>
     <module>storm-impl</module>
-    <module>storm-ui</module>
     <module>storm-cli</module>
     <module>storm-rest</module>
     <module>storm-kar</module>
@@ -37,7 +36,12 @@
 
   <dependencyManagement>
     <dependencies>
-
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>webui</artifactId>
+			<classifier>classes</classifier>
+			<version>${subutai.mgmt.parent.version}</version>
+		</dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
@@ -59,12 +63,6 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
 

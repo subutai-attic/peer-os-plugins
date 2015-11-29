@@ -145,7 +145,7 @@ public class StormAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        /*MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //auto-scaling is enabled -> scale cluster
         if ( targetCluster.isAutoScaling() )
@@ -206,7 +206,7 @@ public class StormAlertListener implements AlertListener
         else
         {
             notifyUser();
-        }
+        }*/
     }
 
 

@@ -6,7 +6,7 @@
   <parent>
     <artifactId>storm-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>storm-plugin-impl</artifactId>
@@ -20,6 +20,11 @@
       <artifactId>json</artifactId>
       <version>20151123</version>
     </dependency>
+	  <dependency>
+		  <groupId>${project.groupId}</groupId>
+		  <artifactId>webui</artifactId>
+		  <classifier>classes</classifier>
+	  </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>
