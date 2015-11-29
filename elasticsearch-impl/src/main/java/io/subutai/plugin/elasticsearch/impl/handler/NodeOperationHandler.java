@@ -16,6 +16,7 @@ import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
+import io.subutai.plugin.elasticsearch.impl.Commands;
 import io.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
 
 
@@ -73,19 +74,25 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
             return;
         }
 
+        if ( !host.isConnected() )
+        {
+            trackerOperation.addLogFailed( String.format( "Container %s is not connected", hostId ) );
+            return;
+        }
+
         try
         {
             CommandResult result = null;
             switch ( operationType )
             {
                 case START:
-                    result = commandUtil.execute( manager.getCommands().getStartCommand(), host );
+                    result = host.execute( Commands.getStartCommand() );
                     break;
                 case STOP:
-                    result = commandUtil.execute( manager.getCommands().getStopCommand(), host );
+                    result = host.execute( Commands.getStopCommand() );
                     break;
                 case STATUS:
-                    result = commandUtil.execute( manager.getCommands().getStatusCommand(), host );
+                    result = host.execute( Commands.getStatusCommand() );
                     break;
                 case UNINSTALL:
                     removeNode( host );
@@ -95,7 +102,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
         }
         catch ( ClusterException | CommandException e )
         {
+            trackerOperation.addLogFailed( "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" );
             trackerOperation.addLogFailed( String.format( "Operation failed, %s", e.getMessage() ) );
+            trackerOperation.addLogFailed( "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" );
         }
     }
 
