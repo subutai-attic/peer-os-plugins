@@ -1,18 +1,21 @@
 package io.subutai.plugin.flume.rest;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -23,6 +26,8 @@ import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.rest.dto.ClusterDto;
 import io.subutai.plugin.flume.rest.dto.ContainerDto;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public class RestServiceImpl implements RestService
@@ -30,11 +35,16 @@ public class RestServiceImpl implements RestService
     private Flume flumeManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-
+    private Hadoop hadoopManager;
 
     public RestServiceImpl( final Flume flumeManager )
     {
         this.flumeManager = flumeManager;
+    }
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 
 
@@ -81,7 +91,7 @@ public class RestServiceImpl implements RestService
                 containerDto.setId( node );
                 containerDto.setHostname( containerHost.getHostname() );
 
-                UUID uuid = flumeManager.checkNode( clusterName, node );
+                UUID uuid = flumeManager.checkNode( clusterName, containerHost.getHostname() );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
                 if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
@@ -348,5 +358,38 @@ public class RestServiceImpl implements RestService
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        FlumeConfig flumeConfig = flumeManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( flumeConfig.getHadoopClusterName() );
+
+        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+        nodes.removeAll( flumeConfig.getNodes() );
+        if ( !nodes.isEmpty() )
+        {
+            Set<EnvironmentContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                          .getContainerHostsByIds( nodes );
+
+                for ( final EnvironmentContainerHost host : hosts )
+                {
+                    hostsName.add( host.getHostname() );
+                }
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+
+            }
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
     }
 }

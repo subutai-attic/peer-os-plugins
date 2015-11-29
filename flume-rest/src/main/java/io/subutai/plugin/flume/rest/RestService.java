@@ -86,4 +86,9 @@ public interface RestService
     @Path( "clusters/nodes/stop" )
     @Produces( { MediaType.TEXT_PLAIN } )
     Response stopNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHosts" ) String lxcHosts );
+
+    @GET
+    @Path( "clusters/{clusterName}/available/nodes" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 }

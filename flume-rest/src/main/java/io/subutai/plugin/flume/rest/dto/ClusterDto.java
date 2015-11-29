@@ -7,13 +7,13 @@ import java.util.List;
 
 public class ClusterDto
 {
-    private String name;
+    private String clusterName;
     private List<ContainerDto> containers;
 
 
-    public ClusterDto( final String name )
+    public ClusterDto( final String clusterName )
     {
-        this.name = name;
+        this.clusterName = clusterName;
         this.containers = new ArrayList<>(  );
     }
 
@@ -23,15 +23,15 @@ public class ClusterDto
     }
 
 
-    public String getName()
+    public String getClusterName()
     {
-        return name;
+        return clusterName;
     }
 
 
-    public void setName( final String name )
+    public void setClusterName( final String clusterName )
     {
-        this.name = name;
+        this.clusterName = clusterName;
     }
 
 
