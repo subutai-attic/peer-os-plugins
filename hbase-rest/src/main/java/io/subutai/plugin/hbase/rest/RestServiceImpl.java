@@ -9,21 +9,39 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
+import io.subutai.plugin.hbase.rest.pojo.ContainerPojo;
+import io.subutai.plugin.hbase.rest.pojo.HbasePojo;
 
 
 public class RestServiceImpl implements RestService
 {
-
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private HBase hbaseManager;
     private Tracker tracker;
+    private Hadoop hadoopManager;
+    private EnvironmentManager environmentManager;
 
 
     @Override
@@ -44,7 +62,7 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String source )
     {
         HBaseConfig cluster = hbaseManager.getCluster( source );
-        String clusterName = JsonUtil.toJson( cluster );
+        String clusterName = JsonUtil.toJson( updateConfig( cluster ) );
         return Response.status( Response.Status.OK ).entity( clusterName ).build();
     }
 
@@ -186,6 +204,159 @@ public class RestServiceImpl implements RestService
     }
 
 
+    private HbasePojo updateConfig( HBaseConfig config )
+    {
+        HbasePojo pojo = new HbasePojo();
+        Set<ContainerPojo> regionServers = Sets.newHashSet();
+        Set<ContainerPojo> quorumPeers = Sets.newHashSet();
+        Set<ContainerPojo> backupMasters = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setHadoopClusterName( config.getHadoopClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setAutoScaling( config.isAutoScaling() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getRegionServers() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
+                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setRegionServers( regionServers );
+
+            for ( final String uuid : config.getQuorumPeers() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
+                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setQuorumPeers( quorumPeers );
+
+            for ( final String uuid : config.getBackupMasters() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
+                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+            pojo.setBackupMasters( backupMasters );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HBaseConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "HQuorumPeer is running" ) || po.getLog().contains( "HRegionServer is running" ) || po.getLog().contains( "HMaster is running" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else if ( po.getLog().contains( "HQuorumPeer is NOT running" ) || ( po.getLog().contains( "HRegionServer is NOT running" ) ) || ( po.getLog().contains( "HMaster is NOT running" ) ))
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
+    }
+
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        HBaseConfig hBaseConfig = hbaseManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( hBaseConfig.getHadoopClusterName() );
+
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager
+                    .loadEnvironment( hadoopConfig.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Error getting environment: " , e );
+        }
+
+        Set<EnvironmentContainerHost> set = null;
+
+        String hn = hBaseConfig.getHadoopClusterName();
+        if ( !Strings.isNullOrEmpty( hn ) )
+        {
+            try
+            {
+                set = environment.getContainerHostsByIds( Sets.newHashSet( hadoopConfig.getAllNodes() ) );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container hosts not found by ids: " + hadoopConfig.getAllNodes().toString(), e );
+            }
+        }
+
+        try
+        {
+            set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( hBaseConfig.getRegionServers() ) ) );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container hosts not found by ids: " + hBaseConfig.getAllNodes().toString(), e );
+        }
+
+        Set<ContainerHost> chs = Sets.newHashSet();
+
+        for ( EnvironmentContainerHost environmentContainerHost : set )
+        {
+            chs.add( environmentContainerHost );
+        }
+
+        for ( final ContainerHost ch : chs )
+        {
+            hostsName.add( ch.getHostname() );
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
+    }
+
+
+
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( HBaseConfig.PRODUCT_NAME, uuid );
@@ -251,5 +422,17 @@ public class RestServiceImpl implements RestService
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 }

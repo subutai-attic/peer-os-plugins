@@ -16,6 +16,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>hadoop-plugin-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>
     </dependency>
