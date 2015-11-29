@@ -29,7 +29,7 @@ public class Commands
 
     public RequestBuilder getConfigureCommand( String clusterName )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && es-conf.sh cluster.name %s", clusterName ) );
+        return new RequestBuilder( String.format( "es-conf.sh cluster.name %s", clusterName ) );
     }
 
 
