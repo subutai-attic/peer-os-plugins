@@ -126,7 +126,7 @@ public class RestServiceImpl implements RestService
             config.getNodes().add( node );
         }
 
-        UUID uuid = zookeeperManager.installCluster( config );
+        UUID uuid = zookeeperManager.configureEnvironmentCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
