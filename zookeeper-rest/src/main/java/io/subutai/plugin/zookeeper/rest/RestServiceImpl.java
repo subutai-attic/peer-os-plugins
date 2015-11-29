@@ -2,7 +2,6 @@ package io.subutai.plugin.zookeeper.rest;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,19 +9,34 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Preconditions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.plugin.zookeeper.rest.pojo.ContainerPojo;
+import io.subutai.plugin.zookeeper.rest.pojo.ZookeeperPojo;
 
 
 /**
@@ -31,10 +45,11 @@ import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 public class RestServiceImpl implements RestService
 {
-
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Zookeeper zookeeperManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private Hadoop hadoopManager;
 
 
     public RestServiceImpl( final Zookeeper zookeeperManager )
@@ -65,7 +80,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getCluster( final String source )
     {
-        String clusters = JsonUtil.toJson( zookeeperManager.getCluster( source ) );
+        String clusters = JsonUtil.toJson( updateConfig( zookeeperManager.getCluster( source ) ) );
         return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
@@ -76,6 +91,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( environmentId );
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( nodes );
+
         Environment environment = null;
         try
         {
@@ -95,14 +111,21 @@ public class RestServiceImpl implements RestService
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( "There is already a cluster with same name!" ).build();
         }
+
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setEnvironmentId( environmentId );
         config.setClusterName( clusterName );
-        Set<String> allNodes = new HashSet<>();
-        String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
-        Collections.addAll( allNodes, configNodes );
-        config.getNodes().addAll( allNodes );
         config.setSetupType( SetupType.OVER_ENVIRONMENT );
+
+        List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()
+        {
+        }.getType() );
+
+        for ( String node : hosts )
+        {
+            config.getNodes().add( node );
+        }
+
         UUID uuid = zookeeperManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
@@ -116,15 +139,22 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
         Preconditions.checkNotNull( nodes );
+
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( environmentId );
-        Set<String> allNodes = new HashSet<>();
-        String[] configNodes = nodes.replaceAll( "//s+", "" ).split( "," );
-        Collections.addAll( allNodes, configNodes );
-        config.getNodes().addAll( allNodes );
         config.setSetupType( SetupType.OVER_HADOOP );
+
+        List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()
+        {
+        }.getType() );
+
+        for ( String node : hosts )
+        {
+            config.getNodes().add( node );
+        }
+
         UUID uuid = zookeeperManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
@@ -224,6 +254,107 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response startNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+
+        try
+        {
+            JSONArray arr = new JSONArray( lxcHosts );
+            List<String> names = new ArrayList<>();
+            for ( int i = 0; i < arr.length(); ++i )
+            {
+                JSONObject obj = arr.getJSONObject( i );
+                String name = obj.getString( "name" );
+                names.add( name );
+            }
+
+            if ( names == null || names.isEmpty() )
+            {
+                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+            }
+
+            int errors = 0;
+
+            for ( int i = 0; i < names.size(); ++i )
+            {
+                UUID uuid = zookeeperManager.startNode( clusterName, names.get( i ) );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+
+                if ( response.getStatus() != 200 )
+                {
+                    errors++;
+                }
+            }
+
+            if ( errors > 0 )
+            {
+                return Response.status( Response.Status.EXPECTATION_FAILED )
+                               .entity( errors + " nodes are failed to execute" ).build();
+            }
+        }
+        catch ( JSONException e )
+        {
+            e.printStackTrace();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
+    public Response stopNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        try
+        {
+            JSONArray arr = new JSONArray( lxcHosts );
+            List<String> names = new ArrayList<>();
+            for ( int i = 0; i < arr.length(); ++i )
+            {
+                JSONObject obj = arr.getJSONObject( i );
+                String name = obj.getString( "name" );
+                names.add( name );
+            }
+
+            if ( names == null || names.isEmpty() )
+            {
+                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+            }
+
+            int errors = 0;
+
+            for ( int i = 0; i < names.size(); ++i )
+            {
+                UUID uuid = zookeeperManager.stopNode( clusterName, names.get( i ) );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+
+                if ( response.getStatus() != 200 )
+                {
+                    errors++;
+                }
+            }
+
+            if ( errors > 0 )
+            {
+                return Response.status( Response.Status.EXPECTATION_FAILED )
+                               .entity( errors + " nodes are failed to execute" ).build();
+            }
+        }
+        catch ( JSONException e )
+        {
+            e.printStackTrace();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
     public Response destroyNode( final String clusterName, final String lxcHostname )
     {
         Preconditions.checkNotNull( clusterName );
@@ -309,6 +440,154 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        String hostsJson = null;
+        Set<String> hostsName = Sets.newHashSet();
+        ZookeeperClusterConfig zookeeperClusterConfig = zookeeperManager.getCluster( clusterName );
+
+        switch ( zookeeperClusterConfig.getSetupType() )
+        {
+            case OVER_HADOOP:
+                HadoopClusterConfig hadoopConfig =
+                        hadoopManager.getCluster( zookeeperClusterConfig.getHadoopClusterName() );
+                Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+                nodes.removeAll( zookeeperClusterConfig.getNodes() );
+                if ( !nodes.isEmpty() )
+                {
+                    Set<EnvironmentContainerHost> hosts;
+                    try
+                    {
+                        hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                                  .getContainerHostsByIds( nodes );
+
+                        for ( final EnvironmentContainerHost host : hosts )
+                        {
+                            hostsName.add( host.getHostname() );
+                        }
+                    }
+                    catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                else
+                {
+                    LOG.info( "All nodes in corresponding Hadoop cluster have Zookeeper installed" );
+                }
+
+                hostsJson = JsonUtil.GSON.toJson( hostsName );
+                return Response.status( Response.Status.OK ).entity( hostsJson ).build();
+            case OVER_ENVIRONMENT:
+
+                Environment environment = null;
+                try
+                {
+                    environment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+                }
+                catch ( EnvironmentNotFoundException e )
+                {
+                    LOG.error( String.format( "Couldn't get environment with id: %s",
+                            zookeeperClusterConfig.getEnvironmentId() ), e );
+                }
+                Set<EnvironmentContainerHost> environmentHosts = environment.getContainerHosts();
+                Set<EnvironmentContainerHost> zookeeperHosts = new HashSet<>();
+                try
+                {
+                    zookeeperHosts.addAll( environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() ) );
+                }
+                catch ( ContainerHostNotFoundException e )
+                {
+                    LOG.error( String.format( "Couldn't get some container hosts with ids: %s",
+                            zookeeperClusterConfig.getNodes().toString() ), e );
+                }
+                environmentHosts.removeAll( zookeeperHosts );
+
+                for ( final EnvironmentContainerHost environmentHost : environmentHosts )
+                {
+                    hostsName.add( environmentHost.getHostname() );
+                }
+
+                hostsJson = JsonUtil.GSON.toJson( hostsName );
+                return Response.status( Response.Status.OK ).entity( hostsJson ).build();
+        }
+
+        return null;
+    }
+
+
+    private ZookeeperPojo updateConfig( ZookeeperClusterConfig config )
+    {
+        ZookeeperPojo pojo = new ZookeeperPojo();
+        Set<ContainerPojo> containerPojoSet = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setAutoScaling( config.isAutoScaling() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getNodes() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = zookeeperManager.checkNode( config.getClusterName(), ch.getHostname() );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+
+            pojo.setNodes( containerPojoSet );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( ZookeeperClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Zookeeper Server is running" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else if ( po.getLog().contains( "Zookeeper Server is not running" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
+    }
+
+
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( ZookeeperClusterConfig.PRODUCT_KEY, uuid );
@@ -368,5 +647,11 @@ public class RestServiceImpl implements RestService
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
+    }
+
+
+    public void setHadoopManager( final Hadoop hadoopManager )
+    {
+        this.hadoopManager = hadoopManager;
     }
 }
