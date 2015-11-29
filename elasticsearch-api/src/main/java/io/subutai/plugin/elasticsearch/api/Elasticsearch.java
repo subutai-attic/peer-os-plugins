@@ -13,41 +13,41 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
     /**
      * Checks nodes if Elasticsearch is running or not.
      * @param clusterName cluster name
-     * @param lxcHostname container hostname
+     * @param hostID container id
      * @return
      */
-    public UUID checkNode( String clusterName, String lxcHostname );
+    UUID checkNode( String clusterName, String hostID );
 
     /**
      * Starts Elasticsearch on given container.
      * @param clusterName cluster name
-     * @param lxcHostname container hostname
+     * @param hostID container id
      * @return
      */
-    public UUID startNode( String clusterName, String lxcHostname );
+    UUID startNode( String clusterName, String hostID );
 
     /**
      * Stops Elasticsearch on given container.
      * @param clusterName cluster name
-     * @param lxcHostname container hostname
+     * @param hostID container id
      * @return
      */
-    public UUID stopNode( String clusterName, String lxcHostname );
+    UUID stopNode( String clusterName, String hostID );
 
     /**
      * Destroys container.
      * @param clusterName cluster name
-     * @param lxcHostname container hostname
+     * @param hostID container id
      * @return
      */
-    public UUID destroyNode( String clusterName, String lxcHostname );
+    UUID destroyNode( String clusterName, String hostID );
 
     /**
      * Removes cluster config object from database.
      * @param clusterName cluster name
      * @return uuid
      */
-    public UUID removeCluster( String clusterName );
+    UUID removeCluster( String clusterName );
 
 
     /**
@@ -55,7 +55,7 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @param clusterName cluster name
      * @return
      */
-    public UUID startCluster( String clusterName );
+    UUID startCluster( String clusterName );
 
 
     /**
@@ -63,7 +63,7 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @param clusterName cluster name
      * @return
      */
-    public UUID stopCluster( String clusterName );
+    UUID stopCluster( String clusterName );
 
 
     /**
@@ -71,7 +71,7 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @param clusterName cluster name
      * @return
      */
-    public UUID checkCluster( String clusterName );
+    UUID checkCluster( String clusterName );
 
 
 
@@ -80,7 +80,7 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      *
      * @param config - config to update
      */
-    public void saveConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
+    void saveConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
 
     /**
      * Deletes cluster config in database
@@ -88,5 +88,5 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @param config config to be deleted
      * @throws ClusterException
      */
-    public void deleteConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
+    void deleteConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
 }
