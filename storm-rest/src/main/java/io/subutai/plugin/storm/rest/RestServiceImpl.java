@@ -2,23 +2,27 @@ package io.subutai.plugin.storm.rest;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -27,14 +31,14 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.storm.rest.pojo.ContainerPojo;
+import io.subutai.plugin.storm.rest.pojo.StormPojo;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 public class RestServiceImpl implements RestService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( RestServiceImpl.class );
-    private String nimbusID;
     private Storm stormManager;
     private Zookeeper zookeeperManager;
     private Tracker tracker;
@@ -93,60 +97,31 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Response installCluster( String clusterName, String environmentId, boolean externalZookeeper,
-                                    String zookeeperClusterName, String nimbus, String supervisors )
+    public Response installCluster( String clusterName, String environmentId, String nimbus, String supervisors )
     {
-        Set<String> uuidSet = new HashSet<>();
         StormClusterConfiguration config = new StormClusterConfiguration();
         config.setClusterName( clusterName );
-        config.setExternalZookeeper( externalZookeeper );
-        config.setZookeeperClusterName( zookeeperClusterName );
         config.setEnvironmentId( environmentId );
+        config.setNimbus( nimbus );
 
-        if ( externalZookeeper )
+        try
         {
-            ZookeeperClusterConfig zookeeperClusterConfig =
-                    zookeeperManager.getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment;
-            try
-            {
-                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOGGER.error( "Environment with id not found.", e );
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
-            }
-            try
-            {
-                nimbusID = zookeeperEnvironment.getContainerHostByHostname( nimbus ).getId();
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-            config.setNimbus( nimbusID );
+            environmentManager.loadEnvironment( config.getEnvironmentId() );
         }
-        else
+        catch ( EnvironmentNotFoundException e )
         {
-
-            try
-            {
-                environmentManager.loadEnvironment( config.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOGGER.error( "Environment with id not found.", e );
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
-            }
-            nimbusID = nimbus;
-            config.setNimbus( nimbusID );
+            LOGGER.error( "Environment with id not found.", e );
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "" ).build();
         }
 
-        String[] arr = supervisors.replaceAll( "\\s+", "" ).split( "," );
-        Collections.addAll( uuidSet, arr );
+        List<String> hosts = JsonUtil.fromJson( supervisors, new TypeToken<List<String>>()
+        {
+        }.getType() );
 
-        config.setSupervisors( uuidSet );
+        for ( String node : hosts )
+        {
+            config.getSupervisors().add( node );
+        }
 
         UUID uuid = stormManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -178,7 +153,7 @@ public class RestServiceImpl implements RestService
                            .build();
         }
 
-        String clusterInfo = JsonUtil.GSON.toJson( config );
+        String clusterInfo = JsonUtil.GSON.toJson( updateConfig( config ) );
         return Response.status( Response.Status.OK ).entity( clusterInfo ).build();
     }
 
@@ -309,6 +284,107 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response startNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+
+        try
+        {
+            JSONArray arr = new JSONArray( lxcHosts );
+            List<String> names = new ArrayList<>();
+            for ( int i = 0; i < arr.length(); ++i )
+            {
+                JSONObject obj = arr.getJSONObject( i );
+                String name = obj.getString( "name" );
+                names.add( name );
+            }
+
+            if ( names == null || names.isEmpty() )
+            {
+                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+            }
+
+            int errors = 0;
+
+            for ( int i = 0; i < names.size(); ++i )
+            {
+                UUID uuid = stormManager.startNode( clusterName, names.get( i ) );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+
+                if ( response.getStatus() != 200 )
+                {
+                    errors++;
+                }
+            }
+
+            if ( errors > 0 )
+            {
+                return Response.status( Response.Status.EXPECTATION_FAILED )
+                               .entity( errors + " nodes are failed to execute" ).build();
+            }
+        }
+        catch ( JSONException e )
+        {
+            e.printStackTrace();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
+    public Response stopNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        try
+        {
+            JSONArray arr = new JSONArray( lxcHosts );
+            List<String> names = new ArrayList<>();
+            for ( int i = 0; i < arr.length(); ++i )
+            {
+                JSONObject obj = arr.getJSONObject( i );
+                String name = obj.getString( "name" );
+                names.add( name );
+            }
+
+            if ( names == null || names.isEmpty() )
+            {
+                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+            }
+
+            int errors = 0;
+
+            for ( int i = 0; i < names.size(); ++i )
+            {
+                UUID uuid = stormManager.stopNode( clusterName, names.get( i ) );
+                OperationState state = waitUntilOperationFinish( uuid );
+                Response response = createResponse( uuid, state );
+
+                if ( response.getStatus() != 200 )
+                {
+                    errors++;
+                }
+            }
+
+            if ( errors > 0 )
+            {
+                return Response.status( Response.Status.EXPECTATION_FAILED )
+                               .entity( errors + " nodes are failed to execute" ).build();
+            }
+        }
+        catch ( JSONException e )
+        {
+            e.printStackTrace();
+        }
+
+        return Response.ok().build();
+    }
+
+
+    @Override
     public Response autoScaleCluster( final String clusterName, final boolean scale )
     {
         String message = "enabled";
@@ -328,6 +404,85 @@ public class RestServiceImpl implements RestService
         }
 
         return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
+    }
+
+
+    private StormPojo updateConfig( StormClusterConfiguration config )
+    {
+        StormPojo pojo = new StormPojo();
+        Set<ContainerPojo> containerPojoSet = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+            pojo.setAutoScaling( config.isAutoScaling() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getSupervisors() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID uuidStatus = stormManager.checkNode( config.getClusterName(), ch.getHostname() );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                        checkStatus( tracker, uuidStatus ) ) );
+            }
+
+            pojo.setSupervisors( containerPojoSet );
+
+            ContainerHost ch = environment.getContainerHostById( config.getNimbus() );
+            UUID uuid = stormManager.checkNode( config.getClusterName(), ch.getHostname() );
+            pojo.setNimbus( new ContainerPojo( ch.getHostname(), config.getNimbus(), ch.getIpByInterfaceName( "eth0" ),
+                    checkStatus( tracker, uuid ) ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( StormClusterConfiguration.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Storm Nimbus is running" ) || po.getLog().contains(
+                            "Storm Supervisor is running" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else if ( po.getLog().contains( "Storm Supervisor is not running" ) || po.getLog().contains(
+                            "Storm Nimbus is not running" ) )
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 
 

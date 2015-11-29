@@ -15,7 +15,11 @@
   <description>Subutai Storm Impl</description>
 
   <dependencies>
-
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20151123</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>
