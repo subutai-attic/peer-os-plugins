@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class ClusterConfJson
+public class ClusterDto
 {
     private String name;
     private String domainName;
@@ -15,7 +15,7 @@ public class ClusterConfJson
     private Set<String> seeds;
     private String environmentId;
     private boolean scaling;
-    private Map< String, ContainerInfoJson > containersStatuses;
+    private Map< String, ContainerDto> containersStatuses;
 
 
 
@@ -127,13 +127,13 @@ public class ClusterConfJson
     }
 
 
-    public Map<String, ContainerInfoJson> getContainersStatuses()
+    public Map<String, ContainerDto> getContainersStatuses()
     {
         return containersStatuses;
     }
 
 
-    public void setContainersStatuses( final Map<String, ContainerInfoJson> containersStatuses )
+    public void setContainersStatuses( final Map<String, ContainerDto> containersStatuses )
     {
         this.containersStatuses = containersStatuses;
     }

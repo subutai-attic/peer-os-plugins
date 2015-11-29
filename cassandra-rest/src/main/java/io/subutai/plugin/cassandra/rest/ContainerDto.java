@@ -1,13 +1,13 @@
 package io.subutai.plugin.cassandra.rest;
 
 
-public class ContainerInfoJson
+public class ContainerDto
 {
     private String ip;
     private String status;
 
 
-    public ContainerInfoJson()
+    public ContainerDto()
     {
         ip = "";
         status = "";

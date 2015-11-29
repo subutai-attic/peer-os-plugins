@@ -31,21 +31,25 @@ public class CassandraWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return "{"
-                + "url: '/plugins/cassandra',"
-                + "templateUrl: 'plugins/cassandra/partials/view.html',"
-                + "resolve: {"
-                    + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-                    + "{"
-                        + "name: 'subutai.plugins.cassandra',"
-                        + "files: ["
-                            + "'plugins/cassandra/cassandra.js',"
-                            + "'plugins/cassandra/controller.js',"
-                            + "'plugins/cassandra/service.js'"
-                        + "]"
-                    + "}"
-                    + "]);"
-                + "}]"
-                + "}";
+        return ".state('cassandra', {"
+                + "    url: '/plugins/cassandra',"
+                + "    templateUrl: 'plugins/cassandra/partials/view.html',"
+                + "    resolve: {"
+                + "    loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {"
+                + "        return $ocLazyLoad.load(["
+                + "                {"
+                + "                        name: 'subutai.plugins.cassandra',"
+                + "                files: ["
+                + "        'plugins/cassandra/cassandra.js',"
+                + "                'plugins/cassandra/controller.js',"
+                + "                'plugins/cassandra/service.js',"
+                + "                'subutai-app/environment/service.js',"
+                + "                'subutai-app/peerRegistration/service.js'"
+                + "        ]"
+                + "        }"
+                + "        ]);"
+                + "    }]"
+                + "    }"
+                + "})";
     }
 }

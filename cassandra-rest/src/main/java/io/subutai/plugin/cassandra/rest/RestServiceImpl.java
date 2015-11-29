@@ -44,8 +44,8 @@ public class RestServiceImpl implements RestService
         {
             clusterNames.add( config.getClusterName() );
         }
-        String clusters = JsonUtil.toJson( clusterNames );
-        return Response.status( Response.Status.OK ).entity( clusters ).build();
+
+        return Response.ok( JsonUtil.toJson( clusterNames ) ).build();
     }
 
 
@@ -61,42 +61,42 @@ public class RestServiceImpl implements RestService
         }
 
 
-        Map<String, ContainerInfoJson> map = new HashMap<>();
+        Map<String, ContainerDto> map = new HashMap<>();
 
         for ( String node : config.getNodes() )
         {
             try
             {
-                ContainerInfoJson containerInfoJson = new ContainerInfoJson();
+                ContainerDto containerDto = new ContainerDto();
 
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
 
                 String ip = containerHost.getIpByInterfaceName( "eth0" );
-                containerInfoJson.setIp( ip );
+                containerDto.setIp( ip );
 
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
                 if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
                 {
-                    containerInfoJson.setStatus( "RUNNING" );
+                    containerDto.setStatus( "RUNNING" );
                 }
                 else
                 {
-                    containerInfoJson.setStatus( "STOPPED" );
+                    containerDto.setStatus( "STOPPED" );
                 }
 
-                map.put( node, containerInfoJson );
+                map.put( node, containerDto );
             }
             catch ( Exception e )
             {
-                map.put( node, new ContainerInfoJson() );
+                map.put( node, new ContainerDto() );
                 thrownException = true;
             }
         }
 
-        ClusterConfJson result = new ClusterConfJson();
+        ClusterDto result = new ClusterDto();
         result.setSeeds( config.getSeedNodes() );
         result.setContainers( config.getNodes() );
         result.setContainersStatuses( map );
@@ -430,7 +430,8 @@ public class RestServiceImpl implements RestService
 
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( po.getLog() ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity(  JsonUtil.toJson( po.getLog() ) )
+                           .build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
@@ -439,7 +440,8 @@ public class RestServiceImpl implements RestService
         }
         else
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "Timeout" ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( "Timeout" ) )
+                           .build();
         }
     }
 
@@ -508,21 +510,21 @@ public class RestServiceImpl implements RestService
 
     public Response installCluster( String config )
     {
-        ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
+        ClusterDto clusterDto = JsonUtil.fromJson( config, ClusterDto.class );
 
         CassandraClusterConfig clusterConfig = new CassandraClusterConfig();
 
-        clusterConfig.setClusterName( clusterConfJson.getName() );
-        clusterConfig.setDomainName( clusterConfJson.getDomainName() );
-        clusterConfig.setDataDirectory( clusterConfJson.getDataDir() );
-        clusterConfig.setCommitLogDirectory( clusterConfJson.getCommitDir() );
-        clusterConfig.setSavedCachesDirectory( clusterConfJson.getCacheDir() );
-        clusterConfig.setNodes( clusterConfJson.getContainers() );
-        clusterConfig.setSeedNodes( clusterConfJson.getSeeds() );
+        clusterConfig.setClusterName( clusterDto.getName() );
+        clusterConfig.setDomainName( clusterDto.getDomainName() );
+        clusterConfig.setDataDirectory( clusterDto.getDataDir() );
+        clusterConfig.setCommitLogDirectory( clusterDto.getCommitDir() );
+        clusterConfig.setSavedCachesDirectory( clusterDto.getCacheDir() );
+        clusterConfig.setNodes( clusterDto.getContainers() );
+        clusterConfig.setSeedNodes( clusterDto.getSeeds() );
 
-        clusterConfig.setNumberOfNodes( clusterConfJson.getContainers().size() );
-        clusterConfig.setNumberOfSeeds( clusterConfJson.getSeeds().size() );
-        clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
+        clusterConfig.setNumberOfNodes( clusterDto.getContainers().size() );
+        clusterConfig.setNumberOfSeeds( clusterDto.getSeeds().size() );
+        clusterConfig.setEnvironmentId( clusterDto.getEnvironmentId() );
 
         cassandraManager.installCluster( clusterConfig );
         return Response.ok().build();
