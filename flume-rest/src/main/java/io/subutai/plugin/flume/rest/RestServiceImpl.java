@@ -2,6 +2,7 @@ package io.subutai.plugin.flume.rest;
 
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.FormParam;
@@ -121,12 +122,8 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
-        String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
-        {
 
-            config.getNodes().add( node );
-        }
+        config.setNodes( (Set<String>)JsonUtil.fromJson( nodes, new TypeToken<Set<String>>(){}.getType() ));
 
         UUID uuid = flumeManager.installCluster( config );
         waitUntilOperationFinish( uuid );
