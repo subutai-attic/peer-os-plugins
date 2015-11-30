@@ -195,43 +195,43 @@ public class HBaseAlertListener implements AlertListener
             if ( isRAMStressedByHBase )
             {
                 //read current RAM quota
-                int ramQuota = sourceHost.getRamQuota();
-
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
-                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-                    // increase quota, otherwise scale horizontally
-                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
-                    {
-
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getRamQuota(), newRamQuota );
-                        //we can increase RAM quota
-                        sourceHost.setRamQuota( newRamQuota );
-
-                        quotaIncreased = true;
-                    }
-                }
+//                int ramQuota = sourceHost.getRamQuota();
+//
+//                if ( ramQuota < MAX_RAM_QUOTA_MB )
+//                {
+//                    // if available quota on resource host is greater than 10 % of calculated increase amount,
+//                    // increase quota, otherwise scale horizontally
+//                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+//                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+//                    {
+//
+//                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+//                                sourceHost.getRamQuota(), newRamQuota );
+//                        //we can increase RAM quota
+//                        sourceHost.setRamQuota( newRamQuota );
+//
+//                        quotaIncreased = true;
+//                    }
+//                }
             }
 
             if ( isCPUStressedByHBase )
             {
 
                 //read current CPU quota
-                int cpuQuota = sourceHost.getCpuQuota();
-
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-                {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
-                            newCpuQuota );
-
-                    //we can increase CPU quota
-                    sourceHost.setCpuQuota( newCpuQuota );
-
-                    quotaIncreased = true;
-                }
+//                int cpuQuota = sourceHost.getCpuQuota();
+//
+//                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+//                {
+//                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
+//                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
+//                            newCpuQuota );
+//
+//                    //we can increase CPU quota
+//                    sourceHost.setCpuQuota( newCpuQuota );
+//
+//                    quotaIncreased = true;
+//                }
             }
 
             //quota increase is made, return
