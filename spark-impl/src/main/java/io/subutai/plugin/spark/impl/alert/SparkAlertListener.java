@@ -105,7 +105,7 @@ public class SparkAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+        //MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Spark process pid
         int sparkPID;
@@ -146,7 +146,7 @@ public class SparkAlertListener implements AlertListener
         }
 
         //auto-scaling is enabled -> scale cluster
-        if ( targetCluster.isAutoScaling() )
+       /* if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
@@ -244,7 +244,7 @@ public class SparkAlertListener implements AlertListener
         else
         {
             notifyUser();
-        }
+        }*/
     }
 
 
