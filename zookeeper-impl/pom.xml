@@ -48,6 +48,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>environment-manager-api</artifactId>
     </dependency>
     <dependency>

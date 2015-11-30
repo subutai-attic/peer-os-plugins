@@ -32,10 +32,15 @@
     <argument ref="impl" />
   </bean>
 
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.zookeeper.impl.ZookeeperWebModule">
+  </bean>
+
   <!-- *********************************************************************************** -->
   <service ref="impl" interface="io.subutai.plugin.zookeeper.api.Zookeeper" />
   <service ref="impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
   <!-- *********************************************************************************** -->
 
 </blueprint>

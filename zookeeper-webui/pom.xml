@@ -4,16 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>zookeeper-plugin-parent</artifactId>
-     <groupId>io.subutai</groupId>
+    <groupId>io.subutai</groupId>
     <version>4.0.0-RC4</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>zookeeper-subutai-plugin</artifactId>
+  <artifactId>zookeeper-plugin-webui</artifactId>
 
   <packaging>war</packaging>
-  <name>Subutai Zookeeper Plugin Web UI</name>
-  <description>Subutai Zookeeper Web UI</description>
+  <name>Subutai HBase Plugin Web UI</name>
+  <description>Subutai HBase Web UI</description>
 
   <build>
     <plugins>
@@ -46,12 +46,12 @@
             <supportedProjectType>war</supportedProjectType>
           </supportedProjectTypes>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.zookeeper.webui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.hbase.webui</Bundle-SymbolicName>
 
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
 
-            <Web-ContextPath>/plugins/zookeeper</Web-ContextPath>
+            <Web-ContextPath>/plugins/hbase</Web-ContextPath>
           </instructions>
         </configuration>
         <executions>
