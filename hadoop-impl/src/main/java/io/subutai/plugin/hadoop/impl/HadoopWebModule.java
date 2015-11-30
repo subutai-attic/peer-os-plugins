@@ -9,10 +9,12 @@ public class HadoopWebModule implements WebuiModule
     public static String NAME = "Hadoop";
     public static String IMG = "plugins/hadoop/hadoop.png";
 
+
     public HadoopWebModule()
     {
 
     }
+
 
     @Override
     public String getName()
@@ -31,21 +33,17 @@ public class HadoopWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return "{"
-                + "url: '/plugins/hadoop',"
-                + "templateUrl: 'plugins/hadoop/partials/view.html',"
-                + "resolve: {"
-                    + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-                    + "{"
-                        + "name: 'subutai.plugins.cassandra',"
-                        + "files: ["
-                            + "'plugins/hadoop/cassandra.js',"
-                            + "'plugins/hadoop/controller.js',"
-                            + "'plugins/hadoop/service.js'"
-                        + "]"
-                    + "}"
-                    + "]);"
-                + "}]"
-                + "}";
+        return "        .state('hadoop', {\n" + "            url: '/plugins/hadoop',\n"
+                + "            templateUrl: 'plugins/hadoop/partials/view.html',\n" + "            resolve: {\n"
+                + "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                + "                    return $ocLazyLoad.load([\n" + "                        {\n"
+                + "                            name: 'subutai.plugins.hadoop',\n"
+                + "                            files: [\n"
+                + "                                'plugins/hadoop/hadoop.js',\n"
+                + "                                'plugins/hadoop/controller.js',\n"
+                + "                                'plugins/hadoop/service.js',\n"
+                + "                                'subutai-app/environment/service.js'\n"
+                + "                            ]\n" + "                        }\n" + "                    ]);\n"
+                + "                }]\n" + "            }\n" + "        })";
     }
 }
