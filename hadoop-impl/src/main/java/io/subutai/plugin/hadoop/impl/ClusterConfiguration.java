@@ -25,10 +25,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private HadoopImpl hadoopManager;
 
 
-    public ClusterConfiguration( final TrackerOperation operation, final HadoopImpl cassandraManager )
+    public ClusterConfiguration( final TrackerOperation operation, final HadoopImpl hadoop )
     {
         this.po = operation;
-        this.hadoopManager = cassandraManager;
+        this.hadoopManager = hadoop;
     }
 
 
