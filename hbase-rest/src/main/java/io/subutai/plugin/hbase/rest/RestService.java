@@ -33,35 +33,35 @@ public interface RestService
     //create cluster
     @POST
     @Path( "clusters" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response configureCluster( @FormParam( "config" ) String config );
 
 
     //destroy cluster
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //start cluster
     @PUT
     @Path( "clusters/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //stop cluster
     @PUT
     @Path( "clusters/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
 
 
     //add node
     @POST
     @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName,
                              @PathParam( "lxcHostName" ) String lxcHostName );
 
@@ -69,7 +69,7 @@ public interface RestService
     //destroy node
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostName" ) String lxcHostName );
 
@@ -84,7 +84,7 @@ public interface RestService
     //auto-scale cluster
     @POST
     @Path( "clusters/{clusterName}/auto_scale/{scale}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response autoScaleCluster( @PathParam( "clusterName" ) String clusterName,
                                       @PathParam( "scale" ) boolean scale );
 
