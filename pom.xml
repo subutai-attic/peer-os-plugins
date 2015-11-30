@@ -32,6 +32,7 @@
     <module>storm-cli</module>
     <module>storm-rest</module>
     <module>storm-kar</module>
+    <module>storm-webui</module>
   </modules>
 
   <dependencyManagement>
