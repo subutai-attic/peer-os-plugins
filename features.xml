@@ -2,7 +2,6 @@
   <feature name="hbase-plugin" version="4.0.0-RC4">
     <bundle>mvn:io.subutai/hbase-plugin-api/4.0.0-RC4</bundle>
     <bundle>mvn:io.subutai/hbase-plugin-impl/4.0.0-RC4</bundle>
-    <!--<bundle>mvn:io.subutai/hbase-plugin-ui/4.0.0-RC4</bundle>-->
     <bundle>mvn:io.subutai/hbase-plugin-cli/4.0.0-RC4</bundle>
     <bundle>mvn:io.subutai/hbase-plugin-rest/4.0.0-RC4</bundle>
   </feature>
