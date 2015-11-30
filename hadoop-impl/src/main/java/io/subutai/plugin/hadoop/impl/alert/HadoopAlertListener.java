@@ -16,10 +16,12 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
+import io.subutai.common.resource.MeasureUnit;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -34,6 +36,7 @@ public class HadoopAlertListener implements AlertListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( HadoopAlertListener.class.getName() );
     public static final String HADOOP_ALERT_LISTENER = "HADOOP_ALERT_LISTENER";
+    public static final String HADOOP_TEMPLATE_NAME = "hadoop";
     private HadoopImpl hadoop;
     private CommandUtil commandUtil = new CommandUtil();
     public static final int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
@@ -56,7 +59,14 @@ public class HadoopAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric metric ) throws Exception
+    public String getTemplateName()
+    {
+        return HADOOP_TEMPLATE_NAME;
+    }
+
+
+    @Override
+    public void onAlert( final AlertPack alertPack ) throws Exception
     {
         //find hadoop cluster by environment id
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
@@ -64,7 +74,7 @@ public class HadoopAlertListener implements AlertListener
         HadoopClusterConfig targetCluster = null;
         for ( HadoopClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( metric.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( alertPack.getEnvironmentId() ) )
             {
                 targetCluster = cluster;
                 break;
@@ -73,7 +83,7 @@ public class HadoopAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
+            throwAlertException( String.format( "Cluster not found by environment id %s", alertPack.getEnvironmentId() ),
                     null );
             return;
         }
@@ -83,7 +93,7 @@ public class HadoopAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost;
         try
         {
-            environment = hadoop.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
+            environment = hadoop.getEnvironmentManager().loadEnvironment( alertPack.getEnvironmentId() );
 
             //get environment containers and find alert's source host
             Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
@@ -91,7 +101,7 @@ public class HadoopAlertListener implements AlertListener
             sourceHost = null;
             for ( EnvironmentContainerHost containerHost : containers )
             {
-                if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
+                if ( containerHost.getHostname().equalsIgnoreCase( alertPack.getContainerId() ) )
                 {
                     sourceHost = containerHost;
                     break;
@@ -108,7 +118,7 @@ public class HadoopAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+            throwAlertException( String.format( "Alert source host %s not found in environment", alertPack.getContainerId() ),
                     null );
             return;
         }
@@ -116,7 +126,7 @@ public class HadoopAlertListener implements AlertListener
         //check if source host belongs to found hadoop cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to Hadoop cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Hadoop cluster", alertPack.getContainerId() ) );
             return;
         }
 
@@ -133,7 +143,10 @@ public class HadoopAlertListener implements AlertListener
 
         // confirm that Hadoop is causing the stress, otherwise no-op
         MonitoringSettings thresholds = hadoop.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
+        //TODO: check total ram usage
+        final QuotaAlertResource alertResource = ( QuotaAlertResource ) alertPack.getResource().getValue();
+        final double currentRam = alertResource.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue();
+        double ramLimit = currentRam * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
         HashMap<NodeType, Double> ramConsumption = new HashMap<>();
         HashMap<NodeType, Double> cpuConsumption = new HashMap<>();
 
@@ -405,10 +418,10 @@ public class HadoopAlertListener implements AlertListener
     }
 
 
-    @Override
-    public String getSubscriberId()
-    {
-        return HADOOP_ALERT_LISTENER;
-    }
+//    @Override
+//    public String getSubscriberId()
+//    {
+//        return HADOOP_ALERT_LISTENER;
+//    }
 }
 

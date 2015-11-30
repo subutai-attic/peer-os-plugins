@@ -411,15 +411,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             trackerOperation.addLogFailed( "Environment not found" );
             return;
         }
-
-        try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
+//
+//        try
+//        {
+//            manager.unsubscribeFromAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+//        }
 
         if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
         {

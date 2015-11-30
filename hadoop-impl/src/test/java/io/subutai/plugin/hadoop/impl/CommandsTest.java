@@ -72,7 +72,7 @@ public class CommandsTest
     @Test
     public void testGetClearMastersCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh masters clear",
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh masters clear",
                 Commands.getClearMastersCommand() );
         assertNotNull( Commands.getClearMastersCommand() );
     }
@@ -80,35 +80,35 @@ public class CommandsTest
     @Test
     public void testGetClearSlavesCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves clear", Commands.getClearSlavesCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear", Commands.getClearSlavesCommand() );
         assertNotNull( Commands.getClearSlavesCommand() );
     }
 
     @Test
     public void testGetRefreshJobTrackerCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop mradmin -refreshNodes", Commands.getRefreshJobTrackerCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop mradmin -refreshNodes", Commands.getRefreshJobTrackerCommand() );
         assertNotNull( Commands.getRefreshJobTrackerCommand() );
     }
 
     @Test
     public void testGetStartDataNodeCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-daemon.sh start datanode", Commands.getStartDataNodeCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop-daemon.sh start datanode", Commands.getStartDataNodeCommand() );
         assertNotNull( Commands.getStartDataNodeCommand() );
     }
 
     @Test
     public void testGetStopDataNodeCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-daemon.sh stop datanode", Commands.getStopDataNodeCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop-daemon.sh stop datanode", Commands.getStopDataNodeCommand() );
         assertNotNull( Commands.getStopDataNodeCommand() );
     }
 
     @Test
     public void testGetStartTaskTrackerCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-daemon.sh start tasktracker", Commands
+        assertEquals( "/opt/hadoop*/bin/hadoop-daemon.sh start tasktracker", Commands
                 .getStartTaskTrackerCommand());
         assertNotNull( Commands.getStartTaskTrackerCommand() );
     }
@@ -116,7 +116,7 @@ public class CommandsTest
     @Test
     public void testGetStopTaskTrackerCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop-daemon.sh stop tasktracker",
+        assertEquals( "/opt/hadoop*/bin/hadoop-daemon.sh stop tasktracker",
                 Commands.getStopTaskTrackerCommand() );
         assertNotNull( Commands.getStopTaskTrackerCommand() );
     }
@@ -131,21 +131,21 @@ public class CommandsTest
     @Test
     public void testGetFormatNameNodeCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop namenode -format", Commands.getFormatNameNodeCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop namenode -format", Commands.getFormatNameNodeCommand() );
         assertNotNull( Commands.getFormatNameNodeCommand() );
     }
 
     @Test
     public void testGetReportHadoopCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop dfsadmin -report", Commands.getReportHadoopCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop dfsadmin -report", Commands.getReportHadoopCommand() );
         assertNotNull( Commands.getReportHadoopCommand() );
     }
 
     @Test
     public void testGetRefreshNameNodeCommand()
     {
-        assertEquals( ". /etc/profile && " + "hadoop dfsadmin -refreshNodes", Commands.getRefreshNameNodeCommand() );
+        assertEquals( "/opt/hadoop*/bin/hadoop dfsadmin -refreshNodes", Commands.getRefreshNameNodeCommand() );
         assertNotNull( Commands.getRefreshNameNodeCommand() );
     }
 
@@ -153,7 +153,7 @@ public class CommandsTest
     public void testGetSetDataNodeCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname,
                 Commands.getSetDataNodeCommand( hostname ) );
         assertNotNull( Commands.getSetDataNodeCommand( hostname ) );
     }
@@ -162,7 +162,7 @@ public class CommandsTest
     public void testGetExcludeDataNodeCommand()
     {
         String ip = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude clear " + ip,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude clear " + ip,
                 Commands.getExcludeDataNodeCommand( ip ) );
         assertNotNull( Commands.getExcludeDataNodeCommand( ip ) );
     }
@@ -171,7 +171,7 @@ public class CommandsTest
     public void testGetSetTaskTrackerCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname,
                 Commands.getSetTaskTrackerCommand( hostname ) );
         assertNotNull( Commands.getSetTaskTrackerCommand( hostname ) );
     }
@@ -180,7 +180,7 @@ public class CommandsTest
     public void testGetExcludeTaskTrackerCommand()
     {
         String ip = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude clear " + ip,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude clear " + ip,
                 Commands.getExcludeTaskTrackerCommand( ip ) );
         assertNotNull( Commands.getExcludeTaskTrackerCommand( ip ) );
     }
@@ -189,7 +189,7 @@ public class CommandsTest
     public void testGetRemoveTaskTrackerCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves clear " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname,
                 Commands.getRemoveTaskTrackerCommand( hostname ) );
         assertNotNull( Commands.getRemoveTaskTrackerCommand( hostname ) );
     }
@@ -198,7 +198,7 @@ public class CommandsTest
     public void testGetIncludeTaskTrackerCommand()
     {
         String ip = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh mapred.exclude " + ip,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude " + ip,
                 Commands.getIncludeTaskTrackerCommand( ip ) );
         assertNotNull( Commands.getIncludeTaskTrackerCommand( ip ) );
     }
@@ -207,7 +207,7 @@ public class CommandsTest
     public void testGetRemoveDataNodeCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves clear " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname,
                 Commands.getRemoveDataNodeCommand( hostname ) );
         assertNotNull( Commands.getRemoveDataNodeCommand( hostname ) );
     }
@@ -216,7 +216,7 @@ public class CommandsTest
     public void testGetIncludeDataNodeCommand()
     {
         String ip = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh dfs.exclude " + ip,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude " + ip,
                 Commands.getIncludeDataNodeCommand( ip ) );
         assertNotNull( Commands.getIncludeDataNodeCommand( ip ) );
     }
@@ -225,7 +225,7 @@ public class CommandsTest
     public void testGetConfigureJobTrackerCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname,
                 Commands.getConfigureJobTrackerCommand( hostname ) );
         assertNotNull( Commands.getConfigureJobTrackerCommand( hostname ) );
     }
@@ -234,7 +234,7 @@ public class CommandsTest
     public void testGetConfigureSecondaryNameNodeCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh masters " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh masters " + hostname,
                 Commands.getConfigureSecondaryNameNodeCommand( hostname ) );
         assertNotNull( Commands.getConfigureSecondaryNameNodeCommand( hostname ) );
     }
@@ -243,7 +243,7 @@ public class CommandsTest
     public void testGetConfigureDataNodesCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname,
                 Commands.getConfigureSlaveNodes( hostname ) );
         assertNotNull( Commands.getConfigureSlaveNodes( hostname ) );
     }
@@ -252,7 +252,7 @@ public class CommandsTest
     public void testGetConfigureTaskTrackersCommand()
     {
         String hostname = "test";
-        assertEquals( ". /etc/profile && " + "hadoop-master-slave.sh slaves " + hostname,
+        assertEquals( "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname,
                 Commands.getConfigureTaskTrackersCommand( hostname ) );
         assertNotNull( Commands.getConfigureTaskTrackersCommand( hostname ) );
     }
@@ -262,7 +262,7 @@ public class CommandsTest
     {
         String namenode = "test";
         String jobtracker = "test2";
-        assertEquals(". /etc/profile && " + "hadoop-configure.sh " +
+        assertEquals("/opt/hadoop*/bin/hadoop-configure.sh " +
                 namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
                 jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
                 hadoopClusterConfig.getReplicationFactor(), commands.getSetMastersCommand(namenode, jobtracker));

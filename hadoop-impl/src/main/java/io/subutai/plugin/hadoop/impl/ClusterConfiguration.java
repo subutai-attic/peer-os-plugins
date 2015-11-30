@@ -138,14 +138,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         po.addLogDone( "Hadoop cluster data saved into database" );
 
         //subscribe to alerts
-        try
-        {
-            hadoopManager.subscribeToAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterConfigurationException( e );
-        }
+//        try
+//        {
+//            hadoopManager.subscribeToAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            throw new ClusterConfigurationException( e );
+//        }
     }
 
 
