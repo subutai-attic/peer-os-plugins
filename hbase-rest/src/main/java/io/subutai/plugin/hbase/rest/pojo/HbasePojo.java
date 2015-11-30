@@ -13,6 +13,7 @@ public class HbasePojo
     private Set<ContainerPojo> regionServers;
     private Set<ContainerPojo> quorumPeers;
     private Set<ContainerPojo> backupMasters;
+    private ContainerPojo hbaseMaster;
 
 
     public String getClusterName()
@@ -96,5 +97,17 @@ public class HbasePojo
     public void setBackupMasters( final Set<ContainerPojo> backupMasters )
     {
         this.backupMasters = backupMasters;
+    }
+
+
+    public ContainerPojo getHbaseMaster()
+    {
+        return hbaseMaster;
+    }
+
+
+    public void setHbaseMaster( final ContainerPojo hbaseMaster )
+    {
+        this.hbaseMaster = hbaseMaster;
     }
 }

@@ -159,7 +159,7 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response destroyNode( final String clusterName, final String containerId, final String nodeType )
+    public Response destroyNode( final String clusterName, final String containerId )
     {
         UUID uuid = hbaseManager.destroyNode( clusterName, containerId );
 
@@ -246,6 +246,11 @@ public class RestServiceImpl implements RestService
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setBackupMasters( backupMasters );
+
+            ContainerHost containerHost = environment.getContainerHostById( config.getHbaseMaster() );
+            UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), containerHost.getHostname() );
+            pojo.setHbaseMaster( new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(),
+                    containerHost.getIpByInterfaceName( "eth0" ), checkStatus( tracker, uuidStatus ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
@@ -267,11 +272,14 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "HQuorumPeer is running" ) || po.getLog().contains( "HRegionServer is running" ) || po.getLog().contains( "HMaster is running" ) )
+                    if ( po.getLog().contains( "HQuorumPeer is running" ) || po.getLog()
+                                                                               .contains( "HRegionServer is running" )
+                            || po.getLog().contains( "HMaster is running" ) )
                     {
                         state = "RUNNING";
                     }
-                    else if ( po.getLog().contains( "HQuorumPeer is NOT running" ) || ( po.getLog().contains( "HRegionServer is NOT running" ) ) || ( po.getLog().contains( "HMaster is NOT running" ) ))
+                    else if ( po.getLog().contains( "HQuorumPeer is NOT running" ) || ( po.getLog().contains(
+                            "HRegionServer is NOT running" ) ) || ( po.getLog().contains( "HMaster is NOT running" ) ) )
                     {
                         state = "STOPPED";
                     }
@@ -307,12 +315,11 @@ public class RestServiceImpl implements RestService
         Environment environment = null;
         try
         {
-            environment = environmentManager
-                    .loadEnvironment( hadoopConfig.getEnvironmentId() );
+            environment = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error( "Error getting environment: " , e );
+            LOG.error( "Error getting environment: ", e );
         }
 
         Set<EnvironmentContainerHost> set = null;
@@ -354,7 +361,6 @@ public class RestServiceImpl implements RestService
         String hosts = JsonUtil.GSON.toJson( hostsName );
         return Response.status( Response.Status.OK ).entity( hosts ).build();
     }
-
 
 
     private Response createResponse( UUID uuid, OperationState state )
