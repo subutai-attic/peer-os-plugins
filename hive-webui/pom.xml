@@ -12,8 +12,8 @@
   <artifactId>hive-plugin-webui</artifactId>
 
   <packaging>war</packaging>
-  <name>Subutai Hipi Plugin Web UI</name>
-  <description>Subutai Hipi Web UI</description>
+  <name>Subutai Hive Plugin Web UI</name>
+  <description>Subutai Hive Web UI</description>
 
   <build>
     <plugins>
