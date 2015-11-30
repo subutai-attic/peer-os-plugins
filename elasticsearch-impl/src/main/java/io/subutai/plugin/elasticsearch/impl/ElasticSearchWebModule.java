@@ -23,11 +23,17 @@ public class ElasticSearchWebModule implements WebuiModule
 
     @Override
     public String getAngularDependecyList() {
-        return String.format("{" +
-                "name: 'subutai.blueprints', files: ["
-                + "'subutai-app/blueprints/blueprints.js',"
-                + "'subutai-app/blueprints/controller.js',"
-                + "'subutai-app/environment/service.js'"
-                + "]}");
+        return ".state('elasticsearch', {" + "url: '/plugins/elasticsearch',\n"
+                + "templateUrl: 'plugins/elasticsearch/partials/view.html',\n"
+                + "resolve: {\n"
+                    + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                        + "return $ocLazyLoad.load([{\n"
+                            + "name: 'subutai.plugins.elastic-search',\n" + "files: [\n"
+                                + "'plugins/elasticsearch/elastic-search.js',\n"
+                                + "'plugins/elasticsearch/controller.js',\n"
+                                + "'plugins/elasticsearch/service.js',\n"
+                                + "'subutai-app/environment/service.js'\n"
+                            + "]}\n"
+                    + "]);}]}})";
     }
 }
