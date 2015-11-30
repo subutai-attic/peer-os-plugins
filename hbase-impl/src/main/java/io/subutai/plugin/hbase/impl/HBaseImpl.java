@@ -30,7 +30,6 @@ import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
-import io.subutai.plugin.hbase.impl.alert.HBaseAlertListener;
 import io.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hbase.impl.handler.NodeOperationHandler;
 
@@ -63,7 +62,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-        getMonitor().startMonitoring( HBaseAlertListener.HBASE_ALERT_LISTENER, environment, alertSettings );
+//        getMonitor().startMonitoring( HBaseAlertListener.HBASE_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -81,7 +80,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
     public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
-        getMonitor().activateMonitoring( host, alertSettings );
+//        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
