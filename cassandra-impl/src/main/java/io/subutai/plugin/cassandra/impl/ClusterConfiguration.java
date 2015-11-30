@@ -119,7 +119,7 @@ public class ClusterConfiguration
             }
             catch ( ContainerHostNotFoundException | CommandException e )
             {
-                po.addLogFailed( String.format( "Installation failed" ) );
+                po.addLogFailed( "Installation failed" );
                 throw new ClusterConfigurationException( e.getMessage() );
             }
         }
@@ -136,15 +136,5 @@ public class ClusterConfiguration
         }
 
         po.addLogDone( "Cassandra cluster data saved into database" );
-
-        //subscribe to alerts
-        //        try
-        //        {
-        //            cassandraManager.subscribeToAlerts( environment );
-        //        }
-        //        catch ( MonitorException e )
-        //        {
-        //            throw new ClusterConfigurationException( e );
-        //        }
     }
 }
