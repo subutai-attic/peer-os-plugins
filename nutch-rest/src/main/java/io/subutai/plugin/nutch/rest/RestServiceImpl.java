@@ -8,12 +8,12 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -178,7 +178,6 @@ public class RestServiceImpl implements RestService
         else
         {
             LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
-            return Response.status( Response.Status.NOT_FOUND ).build();
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );
