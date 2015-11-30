@@ -24,21 +24,14 @@ public class SparkWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return "{"
-                + "url: '/plugins/oozie',"
-                + "templateUrl: 'plugins/oozie/partials/view.html',"
-                + "resolve: {"
-                + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-                + "{"
-                + "name: 'subutai.plugins.oozie',"
-                + "files: ["
-                + "'plugins/oozie/oozie.js',"
-                + "'plugins/oozie/controller.js',"
-                + "'plugins/oozie/service.js'"
-                + "]"
-                + "}"
-                + "]);"
-                + "}]"
-                + "}";
+        return ".state('spark', {\n" + "url: '/plugins/spark',\n"
+                + "templateUrl: 'plugins/spark/partials/view.html',\n" + "resolve: {\n"
+                + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                + "return $ocLazyLoad.load([\n" + "{\n"
+                + "name: 'subutai.plugins.spark',\n" + "files: [\n"
+                + "'plugins/spark/spark.js',\n" + "'plugins/spark/controller.js',\n"
+                + "'plugins/spark/service.js',\n" + "'plugins/hadoop/service.js',\n"
+                + "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
+                + "]);\n" + "}]\n" + "}\n" + "})";
     }
 }
