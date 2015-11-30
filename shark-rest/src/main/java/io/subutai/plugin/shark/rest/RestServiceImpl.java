@@ -157,7 +157,7 @@ public class RestServiceImpl implements RestService
         Set<String> hostsName = Sets.newHashSet();
 
         SharkClusterConfig config = sharkManager.getCluster( clusterName );
-        SparkClusterConfig sparkInfo = sparkManager.getCluster( config.getClusterName() );
+        SparkClusterConfig sparkInfo = sparkManager.getCluster( config.getSparkClusterName () );
         Environment environment = null;
         try
         {
