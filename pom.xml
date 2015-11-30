@@ -32,6 +32,7 @@
     <module>hive-cli</module>
     <module>hive-rest</module>
     <module>hive-kar</module>
+    <module>hive-webui</module>
   </modules>
 
   <dependencyManagement>
