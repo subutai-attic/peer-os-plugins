@@ -154,7 +154,7 @@ public class ClusterOperationHandlerTest
         verify( containerHost ).execute( new RequestBuilder( "service hadoop-dfs start" ) );
         verify( containerHost ).execute( new RequestBuilder( "service hadoop-dfs stop" ) );
         verify( containerHost ).execute( new RequestBuilder( "service hadoop-dfs status" ) );
-        verify( containerHost ).execute( new RequestBuilder( ". /etc/profile && " + "hadoop dfsadmin -report" ) );
+        verify( containerHost ).execute( new RequestBuilder( "/opt/hadoop*/bin/hadoop dfsadmin -report" ) );
 
         // tests for NodeType.JOBTRACKER
         verify( containerHost ).execute( new RequestBuilder( "service hadoop-mapred start" ) );
