@@ -71,8 +71,7 @@ public interface RestService
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "lxcHostName" ) String lxcHostName,
-                                 @PathParam( "nodeType" ) String nodeType );
+                                 @PathParam( "lxcHostName" ) String lxcHostName );
 
 
     //check node status
