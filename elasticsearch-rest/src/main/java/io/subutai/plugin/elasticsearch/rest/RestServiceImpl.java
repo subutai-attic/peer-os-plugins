@@ -391,7 +391,7 @@ public class RestServiceImpl implements RestService
     @Override
     public Response stopNodes( final String clusterName, final String lxcHosts )
     {
-        return nodeOperation(clusterName, lxcHosts, true);
+        return nodeOperation(clusterName, lxcHosts, false);
     }
 
     private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
