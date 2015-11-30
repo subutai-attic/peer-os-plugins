@@ -1,9 +1,9 @@
-<features name="zookeeper-plugin" version="4.0.0-RC3">
-  <feature name="zookeeper-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/zookeeper-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/zookeeper-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/zookeeper-plugin-ui/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/zookeeper-plugin-cli/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/zookeeper-plugin-rest/4.0.0-RC3</bundle>
+<features name="zookeeper-plugin" version="4.0.0-RC4">
+  <feature name="zookeeper-plugin" version="4.0.0-RC4">
+    <bundle>mvn:io.subutai/zookeeper-plugin-api/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/zookeeper-plugin-impl/4.0.0-RC4</bundle>
+    <!--<bundle>mvn:io.subutai/zookeeper-plugin-ui/4.0.0-RC4</bundle>-->
+    <bundle>mvn:io.subutai/zookeeper-plugin-cli/4.0.0-RC4</bundle>
+    <bundle>mvn:io.subutai/zookeeper-plugin-rest/4.0.0-RC4</bundle>
   </feature>
 </features>

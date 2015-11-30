@@ -31,7 +31,7 @@ public interface RestService
     //configure cluster
     @POST
     @Path( "configure_environment" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response configureCluster( @FormParam( "environmentId" ) String environmentId,
                                       @FormParam( "clusterName" ) String clusterName,
                                       @FormParam( "nodes" ) String nodes );
@@ -40,7 +40,7 @@ public interface RestService
     //install cluster over hadoop
     @POST
     @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                     @FormParam( "hadoopClusterName" ) String hadoopClusterName,
                                     @FormParam( "environmentId" ) String environmentId,
@@ -49,32 +49,32 @@ public interface RestService
     //destroy cluster
     @DELETE
     @Path( "clusters/destroy/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyCluster( @PathParam( "clusterName" ) String clusterName );
 
     //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName,
                                @PathParam( "lxcHostname" ) String lxcHostname );
 
     //start all nodes
     @PUT
     @Path( "clusters/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startAllNodes( @PathParam( "clusterName" ) String clusterName );
 
     //check all nodes
     @GET
     @Path( "clusters/{clusterName}/check" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response checkAllNodes( @PathParam( "clusterName" ) String clusterName );
 
     //stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
                               @PathParam( "lxcHostname" ) String lxcHostname );
 
@@ -82,21 +82,21 @@ public interface RestService
     //stop all nodes
     @PUT
     @Path( "clusters/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopAllNodes( @PathParam( "clusterName" ) String clusterName );
 
 
     //start nodes
     @POST
     @Path( "clusters/nodes/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response startNodes( @FormParam( "clusterName" ) String clusterName,
                                 @FormParam( "lxcHostNames" ) String lxcHosts );
 
     //stop nodes
     @POST
     @Path( "clusters/nodes/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response stopNodes( @FormParam( "clusterName" ) String clusterName,
                                @FormParam( "lxcHostNames" ) String lxcHosts );
 
@@ -104,28 +104,28 @@ public interface RestService
     //destroy node
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostname" ) String lxcHostname );
 
     //check node status
     @GET
     @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response checkNode( @PathParam( "clusterName" ) String clusterName,
                                @PathParam( "lxcHostname" ) String lxcHostname );
 
     //add node over existing node
     @POST
     @Path( "clusters/{clusterName}/add/node/{lxcHostname}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response addNode( @PathParam( "clusterName" ) String clusterName,
                              @PathParam( "lxcHostname" ) String lxcHostname );
 
     //add node standalone
     @POST
     @Path( "clusters/{clusterName}/add/node" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response addNodeStandalone( @PathParam( "clusterName" ) String clusterName );
 
     //auto-scale cluster
@@ -138,6 +138,6 @@ public interface RestService
     //get available nodes for adding
     @GET
     @Path( "clusters/{clusterName}/available/nodes" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 }

@@ -105,7 +105,7 @@ public class ZookeeperAlertListener implements AlertListener
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
+//        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Zookeeper process pid
         int zookeeperPid;
@@ -155,9 +155,10 @@ public class ZookeeperAlertListener implements AlertListener
             if ( isRamStressedByZookeeper )
             {
                 //read current RAM quota
-                int ramQuota = zookeeper.getQuotaManager().getRamQuota( sourceHost.getId() );
+//                int ramQuota = zookeeper.getQuotaManager().getRamQuota( sourceHost.getId() );
 
 
+/*
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     // if available quota on resource host is greater than 10 % of calculated increase amount,
@@ -173,11 +174,13 @@ public class ZookeeperAlertListener implements AlertListener
                         quotaIncreased = true;
                     }
                 }
+*/
             }
             if ( isCpuStressedByZookeeper )
             {
 
                 //read current CPU quota
+/*
                 int cpuQuota = sourceHost.getCpuQuota();
 
                 if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
@@ -190,6 +193,7 @@ public class ZookeeperAlertListener implements AlertListener
 
                     quotaIncreased = true;
                 }
+*/
             }
 
             //quota increase is made, return

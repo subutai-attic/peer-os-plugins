@@ -9,9 +9,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -259,46 +256,35 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
 
-        try
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
         {
-            JSONArray arr = new JSONArray( lxcHosts );
-            List<String> names = new ArrayList<>();
-            for ( int i = 0; i < arr.length(); ++i )
+        }.getType() );
+
+        if ( hosts == null || hosts.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
+
+        int errors = 0;
+
+        for ( String host : hosts )
+        {
+            UUID uuid = zookeeperManager.startNode( clusterName, host );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
             {
-                JSONObject obj = arr.getJSONObject( i );
-                String name = obj.getString( "name" );
-                names.add( name );
-            }
-
-            if ( names == null || names.isEmpty() )
-            {
-                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-            }
-
-            int errors = 0;
-
-            for ( int i = 0; i < names.size(); ++i )
-            {
-                UUID uuid = zookeeperManager.startNode( clusterName, names.get( i ) );
-                OperationState state = waitUntilOperationFinish( uuid );
-                Response response = createResponse( uuid, state );
-
-                if ( response.getStatus() != 200 )
-                {
-                    errors++;
-                }
-            }
-
-            if ( errors > 0 )
-            {
-                return Response.status( Response.Status.EXPECTATION_FAILED )
-                               .entity( errors + " nodes are failed to execute" ).build();
+                errors++;
             }
         }
-        catch ( JSONException e )
+
+        if ( errors > 0 )
         {
-            e.printStackTrace();
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
         }
+
 
         return Response.ok().build();
     }
@@ -309,45 +295,35 @@ public class RestServiceImpl implements RestService
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( lxcHosts );
-        try
+
+
+        List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
         {
-            JSONArray arr = new JSONArray( lxcHosts );
-            List<String> names = new ArrayList<>();
-            for ( int i = 0; i < arr.length(); ++i )
+        }.getType() );
+
+        if ( hosts == null || hosts.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
+
+        int errors = 0;
+
+        for ( String host : hosts )
+        {
+            UUID uuid = zookeeperManager.stopNode( clusterName, host );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
             {
-                JSONObject obj = arr.getJSONObject( i );
-                String name = obj.getString( "name" );
-                names.add( name );
-            }
-
-            if ( names == null || names.isEmpty() )
-            {
-                return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-            }
-
-            int errors = 0;
-
-            for ( int i = 0; i < names.size(); ++i )
-            {
-                UUID uuid = zookeeperManager.stopNode( clusterName, names.get( i ) );
-                OperationState state = waitUntilOperationFinish( uuid );
-                Response response = createResponse( uuid, state );
-
-                if ( response.getStatus() != 200 )
-                {
-                    errors++;
-                }
-            }
-
-            if ( errors > 0 )
-            {
-                return Response.status( Response.Status.EXPECTATION_FAILED )
-                               .entity( errors + " nodes are failed to execute" ).build();
+                errors++;
             }
         }
-        catch ( JSONException e )
+
+        if ( errors > 0 )
         {
-            e.printStackTrace();
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
         }
 
         return Response.ok().build();
