@@ -172,7 +172,6 @@ public class RestServiceImpl implements RestService
         else
         {
             LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
-            return Response.status( Response.Status.NOT_FOUND ).build();
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );
