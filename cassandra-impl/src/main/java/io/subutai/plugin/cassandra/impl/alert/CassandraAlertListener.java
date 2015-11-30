@@ -36,10 +36,9 @@ import io.subutai.plugin.cassandra.impl.Commands;
 public class CassandraAlertListener implements AlertListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( CassandraAlertListener.class.getName() );
-    public static final String CASSANDRA_ALERT_LISTENER = "CASSANDRA_ALERT_LISTENER";
-    public static final String CASSANDRA_TEMPLATE_NAME = "cassandra";
     private CassandraImpl cassandra;
     private CommandUtil commandUtil = new CommandUtil();
+
     private static double MAX_RAM_QUOTA_MB;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 100;
@@ -62,7 +61,7 @@ public class CassandraAlertListener implements AlertListener
     @Override
     public String getTemplateName()
     {
-        return CASSANDRA_TEMPLATE_NAME;
+        return CassandraClusterConfig.TEMPLATE_NAME;
     }
 
 
@@ -266,11 +265,4 @@ public class CassandraAlertListener implements AlertListener
     {
         //TODO implement me when user identity management is complete and we can figure out user email
     }
-
-
-  /*  @Override
-    public String getSubscriberId()
-    {
-        return CASSANDRA_ALERT_LISTENER;
-    }*/
 }
