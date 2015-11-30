@@ -20,13 +20,11 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.impl.alert.CassandraAlertListener;
 import io.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -62,23 +60,23 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
         return alertSettings;
     }
 
-
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment );
-    }
+//
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        getMonitor().startMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment, alertSettings );
+//    }
+//
+//
+//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+//    {
+//        getMonitor().activateMonitoring( host, alertSettings );
+//    }
+//
+//
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        getMonitor().stopMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment );
+//    }
 
 
     public Monitor getMonitor()

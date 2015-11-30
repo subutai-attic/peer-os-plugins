@@ -16,13 +16,14 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.resource.MeasureUnit;
 import io.subutai.common.resource.ResourceType;
 import io.subutai.common.resource.ResourceValue;
-import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -36,6 +37,7 @@ public class CassandraAlertListener implements AlertListener
 {
     private static final Logger LOG = LoggerFactory.getLogger( CassandraAlertListener.class.getName() );
     public static final String CASSANDRA_ALERT_LISTENER = "CASSANDRA_ALERT_LISTENER";
+    public static final String CASSANDRA_TEMPLATE_NAME = "cassandra";
     private CassandraImpl cassandra;
     private CommandUtil commandUtil = new CommandUtil();
     private static double MAX_RAM_QUOTA_MB;
@@ -58,7 +60,14 @@ public class CassandraAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric metric ) throws Exception
+    public String getTemplateName()
+    {
+        return CASSANDRA_TEMPLATE_NAME;
+    }
+
+
+    @Override
+    public void onAlert( final AlertPack alert ) throws Exception
     {
         //find cluster by environment id
         List<CassandraClusterConfig> clusters = cassandra.getClusters();
@@ -66,7 +75,7 @@ public class CassandraAlertListener implements AlertListener
         CassandraClusterConfig targetCluster = null;
         for ( CassandraClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( metric.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( alert.getEnvironmentId() ) )
             {
                 targetCluster = cluster;
                 break;
@@ -75,7 +84,7 @@ public class CassandraAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", metric.getEnvironmentId() ),
+            throwAlertException( String.format( "Cluster not found by environment id %s", alert.getEnvironmentId() ),
                     null );
         }
 
@@ -83,12 +92,12 @@ public class CassandraAlertListener implements AlertListener
         Environment environment = null;
         try
         {
-            environment = cassandra.getEnvironmentManager().loadEnvironment( metric.getEnvironmentId() );
+            environment = cassandra.getEnvironmentManager().loadEnvironment( alert.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
 
-            throwAlertException( String.format( "Environment not found by id %s", metric.getEnvironmentId() ), null );
+            throwAlertException( String.format( "Environment not found by id %s", alert.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert's source host
@@ -97,7 +106,7 @@ public class CassandraAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( metric.getHostId() ) )
+            if ( containerHost.getId().equals( alert.getContainerId() ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -106,20 +115,22 @@ public class CassandraAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
-                    null );
+            throwAlertException(
+                    String.format( "Alert source host %s not found in environment", alert.getContainerId() ), null );
         }
 
         //check if source host belongs to found cluster
         if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to Cassandra cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Cassandra cluster",
+                    alert.getContainerId() ) );
             return;
         }
 
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB = sourceHost.getAvailableQuota(ResourceType.RAM).getValue( MeasureUnit.MB ).doubleValue() * 0.5;
+        MAX_RAM_QUOTA_MB =
+                sourceHost.getAvailableQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue() * 0.5;
 
 
         //figure out process pid
@@ -139,7 +150,11 @@ public class CassandraAlertListener implements AlertListener
 
         //confirm that Cassandra is causing the stress, otherwise no-op
         MonitoringSettings thresholds = cassandra.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * thresholds.getRamAlertThreshold() / 100; // 0.8
+        QuotaAlertResource quotaAlertResource = ( QuotaAlertResource ) alert.getResource().getValue();
+
+        double ramLimit =
+                quotaAlertResource.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue() * thresholds
+                        .getRamAlertThreshold() / 100; // 0.8
         double redLine = 0.7;
         boolean isCpuStressed = false;
         boolean isRamStressed = false;
@@ -253,9 +268,9 @@ public class CassandraAlertListener implements AlertListener
     }
 
 
-    @Override
+  /*  @Override
     public String getSubscriberId()
     {
         return CASSANDRA_ALERT_LISTENER;
-    }
+    }*/
 }

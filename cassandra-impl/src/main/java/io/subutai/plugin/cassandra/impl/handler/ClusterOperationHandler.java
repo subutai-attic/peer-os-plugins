@@ -195,14 +195,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             }
 
             //subscribe to alerts
-            try
-            {
-                manager.subscribeToAlerts( newNode );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
+//            try
+//            {
+//                manager.subscribeToAlerts( newNode );
+//            }
+//            catch ( MonitorException e )
+//            {
+//                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+//            }
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -330,14 +330,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
-        try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
+//        try
+//        {
+//            manager.unsubscribeFromAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+//        }
         try
         {
             manager.deleteConfig( config );

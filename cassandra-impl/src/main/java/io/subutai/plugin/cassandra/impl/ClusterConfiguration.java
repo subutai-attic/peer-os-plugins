@@ -140,13 +140,13 @@ public class ClusterConfiguration
         po.addLogDone( "Cassandra cluster data saved into database" );
 
         //subscribe to alerts
-        try
-        {
-            cassandraManager.subscribeToAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterConfigurationException( e );
-        }
+//        try
+//        {
+//            cassandraManager.subscribeToAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            throw new ClusterConfigurationException( e );
+//        }
     }
 }
