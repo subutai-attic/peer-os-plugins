@@ -10,6 +10,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -137,14 +138,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         po.addLogDone( "Hadoop cluster data saved into database" );
 
         //subscribe to alerts
-//        try
-//        {
-//            hadoopManager.subscribeToAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            throw new ClusterConfigurationException( e );
-//        }
+        try
+        {
+            hadoopManager.subscribeToAlerts( environment );
+        }
+        catch ( MonitorException e )
+        {
+            throw new ClusterConfigurationException( e );
+        }
     }
 
 
