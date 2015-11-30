@@ -27,7 +27,7 @@
   <!-- ************************************************************************************************** -->
   <service ref="cassandra-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <service ref="cassandra-impl" interface="io.subutai.plugin.cassandra.api.Cassandra" />
-  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertListener" />
   <!-- ************************************************************************************************** -->
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
