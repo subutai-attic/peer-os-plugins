@@ -24,21 +24,21 @@ public class PrestoWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/presto',"
-				+ "templateUrl: 'plugins/presto/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.presto',"
-				+ "files: ["
-				+ "'plugins/presto/presto.js',"
-				+ "'plugins/presto/controller.js',"
-				+ "'plugins/presto/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('presto', {\n"
+				+ "url: '/plugins/presto',\n"
+				+ "templateUrl: 'plugins/presto/partials/view.html',\n"
+				+ "resolve: {\n"
+					+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+						+ "return $ocLazyLoad.load([\n" + "{\n"
+							+ "name: 'subutai.plugins.presto',\n" + "files: [\n"
+							+ "'plugins/presto/presto.js',\n" + "'plugins/presto/controller.js',\n"
+							+ "'plugins/presto/service.js',\n" + "'plugins/hadoop/service.js',\n"
+							+ "'subutai-app/environment/service.js'\n"
+						+ "]\n"
+					+ "}\n"
+					+ "]);\n"
+					+ "}]\n"
+					+ "}\n"
+				+ "})";
 	}
 }

@@ -31,6 +31,7 @@
     <module>presto-cli</module>
     <module>presto-rest</module>
     <module>presto-kar</module>
+    <module>presto-webui</module>
   </modules>
 
   <dependencyManagement>
