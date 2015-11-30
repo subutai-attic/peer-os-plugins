@@ -8,7 +8,6 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -34,8 +33,8 @@ public class ClusterConfiguration
     {
 
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
-        String script = ". /etc/profile && $CASSANDRA_HOME/bin/cassandra-conf.sh %s";
-        String permissionParam = "sudo chmod 750 $CASSANDRA_HOME";
+        String script = "/opt/cassandra*/bin/cassandra-conf.sh %s";
+        String permissionParam = "sudo chmod 750 /opt/cassandra*";
         String clusterNameParam = "cluster_name " + config.getClusterName();
         String dataDirParam = "data_dir " + config.getDataDirectory();
         String commitLogDirParam = "commitlog_dir " + config.getCommitLogDirectory();
@@ -49,7 +48,7 @@ public class ClusterConfiguration
             try
             {
                 containerHost = environment.getContainerHostById( id );
-                sb.append( containerHost.getIpByInterfaceName( "eth0" ) ).append( "," );
+                sb.append( containerHost.getInterfaceByName( "eth0" ).getIp() ).append( "," );
             }
             catch ( ContainerHostNotFoundException e )
             {
@@ -103,15 +102,14 @@ public class ClusterConfiguration
                 po.addLog( commandResult.getStdOut() );
 
                 // Set RPC address
-                String rpcAddress =
-                        String.format( ". /etc/profile && $CASSANDRA_HOME/bin/cassandra-conf.sh %s %s", "rpc_address",
-                                containerHost.getIpByInterfaceName( "eth0" ) );
+                String rpcAddress = String.format( "/opt/cassandra*/bin/cassandra-conf.sh %s %s", "rpc_address",
+                        containerHost.getInterfaceByName( "eth0" ).getIp() );
                 commandResult = containerHost.execute( new RequestBuilder( rpcAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
                 // Set listen address
-                String listenAddress = String.format( ". /etc/profile && $CASSANDRA_HOME/bin/cassandra-conf.sh %s %s",
-                        "listen_address", containerHost.getIpByInterfaceName( "eth0" ) );
+                String listenAddress = String.format( "/opt/cassandra*/cassandra-conf.sh %s %s", "listen_address",
+                        containerHost.getInterfaceByName( "eth0" ).getIp() );
                 commandResult = containerHost.execute( new RequestBuilder( listenAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
@@ -140,13 +138,13 @@ public class ClusterConfiguration
         po.addLogDone( "Cassandra cluster data saved into database" );
 
         //subscribe to alerts
-//        try
-//        {
-//            cassandraManager.subscribeToAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            throw new ClusterConfigurationException( e );
-//        }
+        //        try
+        //        {
+        //            cassandraManager.subscribeToAlerts( environment );
+        //        }
+        //        catch ( MonitorException e )
+        //        {
+        //            throw new ClusterConfigurationException( e );
+        //        }
     }
 }
