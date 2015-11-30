@@ -14,14 +14,17 @@
              interface="io.subutai.plugin.shark.api.Shark" />
   <reference id="sparkManager" availability="mandatory"
              interface="io.subutai.plugin.spark.api.Spark" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
   <bean id="sharkRestServiceImpl" class="io.subutai.plugin.shark.rest.RestServiceImpl">
     <argument ref="sharkManager" />
-    <property name="sparkManager" ref="sparkManager"/>
+    <property name="sparkManager" ref="sparkManager" />
     <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
   </bean>
 
-  <reference id="tracker"  availability="mandatory"
+  <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/shark" id="sharkRestServiceInterface">

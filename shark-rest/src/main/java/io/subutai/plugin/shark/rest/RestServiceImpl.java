@@ -1,6 +1,7 @@
 package io.subutai.plugin.shark.rest;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -10,12 +11,20 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.shark.api.Shark;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
+import io.subutai.plugin.shark.rest.pojo.ContainerPojo;
+import io.subutai.plugin.shark.rest.pojo.SharkPojo;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
@@ -26,6 +35,7 @@ public class RestServiceImpl implements RestService
     private Shark sharkManager;
     private Spark sparkManager;
     private Tracker tracker;
+    private EnvironmentManager environmentManager;
 
 
     public RestServiceImpl( final Shark sharkManager )
@@ -74,7 +84,7 @@ public class RestServiceImpl implements RestService
     {
         SharkClusterConfig config = sharkManager.getCluster( clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( config );
+        String cluster = JsonUtil.GSON.toJson( updateConfig( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -141,6 +151,67 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        SharkClusterConfig config = sharkManager.getCluster( clusterName );
+        SparkClusterConfig sparkInfo = sparkManager.getCluster( config.getClusterName() );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.loadEnvironment( sparkInfo.getEnvironmentId() );
+            Set<String> nodeIds = new HashSet<>( sparkInfo.getAllNodesIds() );
+            nodeIds.removeAll( config.getNodeIds() );
+
+            Set<EnvironmentContainerHost> availableNodes = Sets.newHashSet();
+            availableNodes.addAll( environment.getContainerHostsByIds( nodeIds ) );
+
+            for ( final EnvironmentContainerHost availableNode : availableNodes )
+            {
+                hostsName.add( availableNode.getHostname() );
+            }
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
+    }
+
+
+    private SharkPojo updateConfig( SharkClusterConfig config )
+    {
+        SharkPojo pojo = new SharkPojo();
+        Set<ContainerPojo> nodes = Sets.newHashSet();
+
+        try
+        {
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setSparkClusterName( config.getSparkClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            for ( final String uuid : config.getNodeIds() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                nodes.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ) ) );
+            }
+            pojo.setNodes( nodes );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
+    }
+
+
     private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( SharkClusterConfig.PRODUCT_KEY, uuid );
@@ -200,5 +271,11 @@ public class RestServiceImpl implements RestService
     public void setSparkManager( final Spark sparkManager )
     {
         this.sparkManager = sparkManager;
+    }
+
+
+    public void setEnvironmentManager( final EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
     }
 }
