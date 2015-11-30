@@ -20,7 +20,6 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -412,14 +411,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             return;
         }
 
-        try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
+//        try
+//        {
+//            manager.unsubscribeFromAlerts( environment );
+//        }
+//        catch ( MonitorException e )
+//        {
+//            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
+//        }
 
         if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
         {

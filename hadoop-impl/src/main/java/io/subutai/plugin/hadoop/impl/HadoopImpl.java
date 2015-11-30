@@ -24,7 +24,6 @@ import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
@@ -38,7 +37,6 @@ import io.subutai.plugin.common.api.NodeType;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
-import io.subutai.plugin.hadoop.impl.alert.HadoopAlertListener;
 import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import io.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
@@ -68,22 +66,22 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment );
-    }
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        getMonitor().startMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment, alertSettings );
+//    }
+//
+//
+//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+//    {
+//        getMonitor().activateMonitoring( host, alertSettings );
+//    }
+//
+//
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        getMonitor().stopMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment );
+//    }
 
 
     public MonitoringSettings getAlertSettings()
