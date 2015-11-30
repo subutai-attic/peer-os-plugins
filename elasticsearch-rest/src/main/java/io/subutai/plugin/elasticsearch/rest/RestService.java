@@ -24,6 +24,7 @@ public interface RestService
     //configure cluster
     @POST
     @Path( "clusters/install" )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response configureCluster( @FormParam( "environmentId" ) String environmentId,
                                       @FormParam( "clusterName" ) String clusterName,
                                       @FormParam( "nodes" ) String nodes );
