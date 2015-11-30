@@ -24,21 +24,25 @@ public class SharkWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/shark',"
-				+ "templateUrl: 'plugins/shark/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.shark',"
-				+ "files: ["
-				+ "'plugins/shark/shark.js',"
-				+ "'plugins/shark/controller.js',"
-				+ "'plugins/shark/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('shark', {\n"
+				+ "url: '/plugins/shark',\n"
+				+ "templateUrl: 'plugins/shark/partials/view.html',\n"
+				+ "resolve: {\n"
+					+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+						+ "return $ocLazyLoad.load([\n" + "{\n"
+							+ "name: 'subutai.plugins.shark',\n"
+						+ "files: [\n"
+							+ "'plugins/shark/shark.js',\n"
+							+ "'plugins/shark/controller.js',\n"
+							+ "'plugins/shark/service.js',\n"
+							+ "'plugins/hadoop/service.js',\n"
+							+ "'plugins/spark/service.js',\n"
+							+ "'subutai-app/environment/service.js'\n"
+						+ "]\n"
+					+ "}\n"
+				+ "]);\n"
+				+ "}]\n"
+				+ "}\n"
+				+ "})";
 	}
 }

@@ -32,6 +32,7 @@
     <module>shark-cli</module>
     <module>shark-rest</module>
     <module>shark-kar</module>
+    <module>shark-webui</module>
   </modules>
 
   <dependencyManagement>
