@@ -16,14 +16,11 @@
   </jaxrs:server>
   <bean id="genericRestServiceImpl" class="io.subutai.plugin.generic.rest.RestServiceImpl">
     <property name="genericPlugin" ref="genericPlugin" />
-    <!--<property name="tracker" ref="tracker" />-->
-    <!--<property name="environmentManager" ref="environmentManager" />-->
+    <property name="environmentManager" ref="environmentManager" />
   </bean>
   <reference id="genericPlugin" availability="mandatory"
              interface="io.subutai.plugin.generic.api.GenericPlugin" />
-  <!--<reference id="tracker"  availability="mandatory"-->
-             <!--interface="io.subutai.core.tracker.api.Tracker" />-->
-  <!--<reference id="environmentManager" availability="mandatory"-->
-             <!--interface="io.subutai.core.environment.api.EnvironmentManager" />-->
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
 
 </blueprint>

@@ -82,13 +82,14 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
 
     @Override
-    public void saveOperation( final Long profileId, final String operationName, final String commandName,
+    public void saveOperation( final String profileName, final String operationName, final String commandName,
                                final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
-        byte[] encodedBytes = Base64.encodeBase64( commandName.getBytes() );
+        String parsedString = commandName.replaceAll( "\r", "" );
+        byte[] encodedBytes = Base64.encodeBase64( parsedString.getBytes() );
 
         Operation operation = new OperationEntity();
-        operation.setProfileId( profileId );
+        operation.setProfileName( profileName );
         operation.setOperationName( operationName );
         operation.setCommandName( new String( encodedBytes ) );
         operation.setCwd( cwd );
@@ -113,6 +114,31 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.closeEntityManager( em );
         }
+    }
+
+
+    @Override
+    public List<Operation> getOperations( final String profileName )
+    {
+        List<Operation> result = Lists.newArrayList();
+
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        Query query;
+        try
+        {
+            query = em.createQuery( "select h from OperationEntity h where h.profileName = :profileName" );
+            query.setParameter( "profileName", profileName );
+            result = ( List<Operation> ) query.getResultList();
+        }
+        catch ( Exception e )
+        {
+            LOG.error( e.toString(), e );
+        }
+        finally
+        {
+            daoManager.closeEntityManager( em );
+        }
+        return result;
     }
 
 
@@ -142,20 +168,6 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
 
     @Override
-    public boolean isOperationRegistered( final String operationName )
-    {
-        if ( getOperationByName( operationName ) == null )
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-
-    @Override
     public Operation getOperationByName( final String operationName )
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
@@ -175,8 +187,46 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
 
     @Override
+    public Operation getOperationById( final Long operationId )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        try
+        {
+            daoManager.startTransaction( em );
+            OperationEntity entity = em.find( OperationEntity.class, operationId );
+            return entity;
+        }
+        catch ( Exception e )
+        {
+            daoManager.closeEntityManager( em );
+            return null;
+        }
+    }
+
+
+    @Override
+    public Operation getOperationByCommand( final String commandName )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        Query query;
+        try
+        {
+            query = em.createQuery( "select e from OperationEntity e where e.commandName = :commandName" );
+            query.setParameter( "commandName", commandName );
+            return ( Operation ) query.getSingleResult();
+        }
+        catch ( Exception e )
+        {
+            daoManager.closeEntityManager( em );
+            return null;
+        }
+    }
+
+
+    @Override
     public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile,
+                                 final String operationName )
     {
         EntityManager em = daoManager.getEntityManagerFromFactory();
 
@@ -217,6 +267,34 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.startTransaction( em );
             OperationEntity entity = em.find( OperationEntity.class, operationId );
+            em.remove( entity );
+            em.flush();
+            daoManager.commitTransaction( em );
+        }
+        catch ( Exception ex )
+        {
+            daoManager.rollBackTransaction( em );
+            LOG.error( "ConfigDataService deleteOperation:" + ex.toString() );
+        }
+        finally
+        {
+            daoManager.closeEntityManager( em );
+        }
+    }
+
+
+    @Override
+    public void deleteProfile( final String profileName )
+    {
+        EntityManager em = daoManager.getEntityManagerFromFactory();
+        Query query;
+        try
+        {
+            daoManager.startTransaction( em );
+            query = em.createQuery( "select e from ProfileEntity e where e.name = :profileName" );
+            query.setParameter( "profileName", profileName );
+            Profile profile = ( Profile ) query.getSingleResult();
+            ProfileEntity entity = em.find( ProfileEntity.class, profile.getId() );
             em.remove( entity );
             em.flush();
             daoManager.commitTransaction( em );
@@ -275,6 +353,5 @@ public class ConfigDataServiceImpl implements ConfigDataService
         {
             daoManager.closeEntityManager( em );
         }
-
     }
 }
