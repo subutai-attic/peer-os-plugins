@@ -65,24 +65,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
         this.pluginDAO = pluginDAO;
     }
 
-//
-//    public void subscribeToAlerts( Environment environment ) throws MonitorException
-//    {
-//        getMonitor().startMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment, alertSettings );
-//    }
-//
-//
-//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-//    {
-//        getMonitor().activateMonitoring( host, alertSettings );
-//    }
-//
-//
-//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-//    {
-//        getMonitor().stopMonitoring( HadoopAlertListener.HADOOP_ALERT_LISTENER, environment );
-//    }
-
 
     public MonitoringSettings getAlertSettings()
     {
