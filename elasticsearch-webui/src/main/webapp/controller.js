@@ -25,6 +25,7 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 	vm.deleteNode = deleteNode;
 	vm.addNode = addNode;
 	vm.pushNode = pushNode;
+	vm.pushAll = pushAll;
 	vm.deleteCluster = deleteCluster;
 	vm.showContainers = showContainers;
 	vm.changeClusterScaling = changeClusterScaling;
@@ -60,7 +61,7 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 
 	vm.dtOptions = DTOptionsBuilder
 		.newOptions()
-		.withOption('order', [[0, "asc" ]])
+		.withOption('order', [[2, "asc" ]])
 		.withOption('stateSave', true)
 		.withPaginationType('full_numbers');
 
@@ -74,11 +75,12 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 
 	function getClustersInfo(selectedCluster) {
 		LOADING_SCREEN();
+		vm.nodes2Action = [];
 		elasticSearchSrv.getClusters(selectedCluster).success(function (data) {
 			vm.currentCluster = data;
 			LOADING_SCREEN('none');
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Cluster get info error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Cluster getting info error: ' + error.replace(/\\n/g, ' '), "error");
 			LOADING_SCREEN('none');
 		});
 	}
@@ -93,22 +95,34 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 	function startNodes() {
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		SweetAlert.swal({
+			title : 'Success!',
+			text : 'Your request is in progress. You will be notified shortly.',
+			timer: VARS_TOOLTIP_TIMEOUT,
+			showConfirmButton: false
+		});
 		elasticSearchSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
-			SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
+			SweetAlert.swal("Success!", "Your cluster nodes have been started successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Cluster starting error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
 
 	function stopNodes() {
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		SweetAlert.swal({
+			title : 'Success!',
+			text : 'Your request is in progress. You will be notified shortly.',
+			timer: VARS_TOOLTIP_TIMEOUT,
+			showConfirmButton: false
+		});
 		elasticSearchSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
-			SweetAlert.swal("Success!", "Your cluster nodes stoped successfully.", "success");
+			SweetAlert.swal("Success!", "Your cluster nodes have been stopped successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
 
@@ -120,14 +134,25 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 		}
 	}
 
+	function pushAll() {
+		vm.nodes2Action = [];
+		if (vm.currentCluster.containers !== undefined) {
+			if (vm.nodes2Action.length < vm.currentCluster.containers.length) {
+				for (var i = 0; i < vm.currentCluster.containers.length; ++i) {
+					vm.nodes2Action.push(vm.currentCluster.containers[i].id);
+				}
+			}
+		}
+	}
+
 	function addNode() {
 		if(vm.currentCluster.clusterName === undefined) return;
-		SweetAlert.swal("Success!", "Adding node action started.", "success");
+		SweetAlert.swal("Success!", "Node is being added.", "success");
 		ngDialog.closeAll();
 		elasticSearchSrv.addNode(vm.currentCluster.clusterName).success(function (data) {
 			SweetAlert.swal(
 				"Success!",
-				"Node has been added on cluster " + vm.currentCluster.clusterName + ".",
+				"Node has been added to cluster " + vm.currentCluster.clusterName + ".",
 				"success"
 			);
 			getClustersInfo(vm.currentCluster.clusterName);
@@ -138,12 +163,12 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 		if(vm.elasticSearchInstall.clusterName === undefined || vm.elasticSearchInstall.clusterName.length == 0) return;
 		if(vm.elasticSearchInstall.environmentId === undefined) return;
 
-		SweetAlert.swal("Success!", "Elastic Search cluster start creating.", "success");
+		SweetAlert.swal("Success!", "Elastic Search cluster is being created.", "success");
 		elasticSearchSrv.createElasticSearch(vm.elasticSearchInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Elastic Search cluster created.", "success");
+			SweetAlert.swal("Success!", "Your Elastic Search cluster has been created.", "success");
 			getClusters();
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Elastic Search cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Elastic Search cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
 			getClusters();
 		});
 		setDefaultValues();
@@ -171,7 +196,7 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 					vm.currentCluster = {};
 					getClusters();
 				}).error(function(error){
-					SweetAlert.swal("ERROR!", 'Delete cluster error: ' + error.replace(/\\n/g, ' '), "error");
+					SweetAlert.swal("ERROR!", 'Failed to delete cluster error: ' + error.replace(/\\n/g, ' '), "error");
 					vm.currentCluster = {};
 					getClusters();
 				});
@@ -198,6 +223,8 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 				elasticSearchSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
 					SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
 					getClustersInfo(vm.currentCluster.clusterName);
+				})error(function(error){
+					SweetAlert.swal("ERROR!", 'Delete cluster node error: ' + error.replace(/\\n/g, ' '), "error");
 				});
 			}
 		});

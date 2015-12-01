@@ -53,7 +53,9 @@
 			class="row-border hover">
 			<thead>
 				<tr>
-					<th><input type="checkbox"></th>
+					<th>
+						<input type="checkbox" onClick="toggle(this, 'elasticsearchChk')" ng-click = "elasticSearchCtrl.pushAll()">
+					</th>
 					<th>Host</th>
 					<th>IP List</th>
 					<th>Status</th>
@@ -63,7 +65,7 @@
 			<tbody>
 				<tr ng-repeat="clusterNode in elasticSearchCtrl.currentCluster.containers">
 					<td class="b-main-table__edit-icon">
-						<input type="checkbox" ng-click="elasticSearchCtrl.pushNode(clusterNode.id)">
+						<input type="checkbox" ng-click="elasticSearchCtrl.pushNode(clusterNode.id)" name="elasticsearchChk">
 					</td>
 					<td>{{ clusterNode.hostname }}</td>
 					<td>{{ clusterNode.ip }}</td>
