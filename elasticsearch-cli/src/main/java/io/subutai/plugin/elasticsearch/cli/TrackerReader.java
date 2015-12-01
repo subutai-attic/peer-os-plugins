@@ -27,11 +27,11 @@ public class TrackerReader
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
+                    if ( po.getLog().toLowerCase().contains( "is not running" ) )
                     {
                         state = NodeState.STOPPED;
                     }
-                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
+                    else if ( po.getLog().toLowerCase().contains( "is running" ) )
                     {
                         state = NodeState.RUNNING;
                     }
