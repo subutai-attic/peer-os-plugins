@@ -108,7 +108,7 @@ public class ClusterConfiguration
                 po.addLog( commandResult.getStdOut() );
 
                 // Set listen address
-                String listenAddress = String.format( "/opt/cassandra*/cassandra-conf.sh %s %s", "listen_address",
+                String listenAddress = String.format( "/opt/cassandra*/bin/cassandra-conf.sh %s %s", "listen_address",
                         containerHost.getInterfaceByName( "eth0" ).getIp() );
                 commandResult = containerHost.execute( new RequestBuilder( listenAddress ) );
                 po.addLog( commandResult.getStdOut() );
