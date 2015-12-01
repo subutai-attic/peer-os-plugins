@@ -12,8 +12,8 @@
   <artifactId>zookeeper-plugin-webui</artifactId>
 
   <packaging>war</packaging>
-  <name>Subutai HBase Plugin Web UI</name>
-  <description>Subutai HBase Web UI</description>
+  <name>Subutai Zookeeper Plugin Web UI</name>
+  <description>Subutai Zookeeper Web UI</description>
 
   <build>
     <plugins>
@@ -46,12 +46,12 @@
             <supportedProjectType>war</supportedProjectType>
           </supportedProjectTypes>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.hbase.webui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.zookeeper.webui</Bundle-SymbolicName>
 
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
 
-            <Web-ContextPath>/plugins/hbase</Web-ContextPath>
+            <Web-ContextPath>/plugins/zookeeper</Web-ContextPath>
           </instructions>
         </configuration>
         <executions>
