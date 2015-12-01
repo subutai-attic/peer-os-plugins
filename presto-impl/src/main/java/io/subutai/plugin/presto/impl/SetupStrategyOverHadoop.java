@@ -194,9 +194,9 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Installation succeeded" );
 
             //subscribe to alerts
-            manager.subscribeToAlerts( environment );
+            //manager.subscribeToAlerts( environment );
         }
-        catch ( CommandException | MonitorException e )
+        catch ( CommandException e )
         {
             throw new ClusterSetupException(
                     String.format( "Error while installing Presto on container %s; ", e.getMessage() ) );

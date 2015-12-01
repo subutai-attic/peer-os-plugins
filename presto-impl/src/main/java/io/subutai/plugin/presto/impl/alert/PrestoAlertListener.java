@@ -6,6 +6,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
+import io.subutai.common.resource.MeasureUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +20,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
@@ -53,7 +56,7 @@ public class PrestoAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric metric ) throws Exception
+	public void onAlert (AlertPack metric) throws Exception
     {
         //find cluster by environment id
         List<PrestoClusterConfig> clusters = presto.getClusters();
@@ -87,7 +90,7 @@ public class PrestoAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( metric.getHostId() ) )
+            if ( containerHost.getId().equals( metric.getContainerId () ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -96,14 +99,14 @@ public class PrestoAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getContainerId () ),
                     null );
         }
 
         //check if source host belongs to found cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to Presto cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Presto cluster", metric.getContainerId () ) );
             return;
         }
 
@@ -130,7 +133,8 @@ public class PrestoAlertListener implements AlertListener
 
         //confirm that Presto is causing the stress, otherwise no-op
         MonitoringSettings thresholds = presto.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+		QuotaAlertResource resource = (QuotaAlertResource) metric.getResource ();
+        double ramLimit = resource.getValue ().getCurrentValue ().getValue (MeasureUnit.MB).doubleValue () * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.7;
         boolean isCpuStressed = false;
         boolean isRamStressed = false;
@@ -152,12 +156,12 @@ public class PrestoAlertListener implements AlertListener
 
 
         //auto-scaling is enabled -> scale cluster
-        if ( targetCluster.isAutoScaling() )
+        /*if ( targetCluster.isAutoScaling() )
         {
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-            /*if ( isRamStressed )
+            if ( isRamStressed )
             {
                 //read current RAM quota
                 int ramQuota = sourceHost.getRamQuota();
@@ -195,7 +199,7 @@ public class PrestoAlertListener implements AlertListener
 
                     quotaIncreased = true;
                 }
-            }*/
+            }
 
             //quota increase is made, return
             if ( quotaIncreased )
@@ -251,7 +255,7 @@ public class PrestoAlertListener implements AlertListener
         else
         {
             notifyUser();
-        }
+        }*/
     }
 
 
@@ -279,9 +283,16 @@ public class PrestoAlertListener implements AlertListener
     }
 
 
-    @Override
+  /*  @Override
     public String getSubscriberId()
     {
         return PRESTO_ALERT_LISTENER;
-    }
+    }*/
+
+
+	@Override
+	public String getTemplateName ()
+	{
+		return "hadoop";
+	}
 }

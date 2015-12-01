@@ -68,7 +68,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    /*public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         monitor.startMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment, alertSettings );
     }
@@ -89,7 +89,7 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
         monitor.stopMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment );
-    }
+    }*/
 
 
     public void init()

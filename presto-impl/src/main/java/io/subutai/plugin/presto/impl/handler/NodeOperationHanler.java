@@ -226,14 +226,14 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
 
 
             //subscribe to alerts
-            try
+            /*try
             {
                 manager.subscribeToAlerts( host );
             }
             catch ( MonitorException e )
             {
                 throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
+            }*/
 
             trackerOperation.addLogDone( "Node configured" );
         }
