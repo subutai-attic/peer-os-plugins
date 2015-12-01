@@ -22,7 +22,6 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -163,7 +162,7 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
             }
         }
 
-        po.addLog( String.format( "Installing Zookeeper..." ) );
+        po.addLog( "Installing Zookeeper..." );
 
         //install
         Set<Host> hostSet = getHosts( zookeeperClusterConfig.getNodes(), environment );
@@ -187,10 +186,8 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
                            .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
                                    zookeeperClusterConfig );
                     po.addLog( "Cluster information saved to database" );
-
-                    manager.subscribeToAlerts( environment );
                 }
-                catch ( ClusterConfigurationException | MonitorException e )
+                catch ( ClusterConfigurationException e )
                 {
                     e.printStackTrace();
                 }

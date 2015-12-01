@@ -23,12 +23,10 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.NodeOperationType;
 import io.subutai.plugin.zookeeper.api.CommandType;
@@ -136,12 +134,11 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     break;
                 case DESTROY:
                     destroyNode( containerHost );
-                    getManager().unsubscribeFromAlerts( environment );
                     break;
             }
             logResults( trackerOperation, commandResultList );
         }
-        catch ( CommandException | MonitorException e )
+        catch ( CommandException e )
         {
             LOGGER.error( String.format( "Command failed for operationType: %s", operationType ), e );
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
@@ -284,9 +281,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             new ClusterConfiguration( manager, trackerOperation ).configureCluster( config, zookeeperEnvironment );
             trackerOperation.addLog( "Updating cluster information..." );
             manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-            manager.subscribeToAlerts( newNode );
         }
-        catch ( MonitorException | ClusterConfigurationException e )
+        catch ( ClusterConfigurationException e )
         {
             LOGGER.error( "Error adding node", e );
         }

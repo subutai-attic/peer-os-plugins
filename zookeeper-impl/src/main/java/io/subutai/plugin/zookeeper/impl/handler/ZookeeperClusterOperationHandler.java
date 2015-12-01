@@ -21,7 +21,6 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.core.environment.api.exception.EnvironmentDestructionException;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
 import io.subutai.plugin.common.api.ClusterOperationType;
@@ -173,7 +172,6 @@ public class ZookeeperClusterOperationHandler
                 clusterSetupStrategy.setup();
 
                 trackerOperation.addLogDone( String.format( "Cluster %s set up successfully", clusterName ) );
-                manager.subscribeToAlerts( env );
             }
             catch ( ClusterSetupException e )
             {
@@ -182,10 +180,6 @@ public class ZookeeperClusterOperationHandler
                                 clusterName, e.getMessage() ) );
                 LOG.error( String.format( "Failed to setup %s cluster %s : %s", zookeeperClusterConfig.getProductKey(),
                         clusterName, e.getMessage() ), e );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
             }
         }
         catch ( ClusterException e )
@@ -242,12 +236,9 @@ public class ZookeeperClusterOperationHandler
             }
 
             manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
-            manager.unsubscribeFromAlerts(
-                    manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ) );
             trackerOperation.addLogDone( "Cluster destroyed" );
         }
-        catch ( MonitorException |
-                EnvironmentDestructionException | EnvironmentNotFoundException e )
+        catch ( EnvironmentDestructionException | EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
             LOG.error( e.getMessage(), e );

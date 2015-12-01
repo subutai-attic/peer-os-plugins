@@ -1,6 +1,7 @@
 package io.subutai.plugin.zookeeper.impl.alert;
 
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -14,11 +15,15 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
+import io.subutai.common.resource.MeasureUnit;
+import io.subutai.common.resource.ResourceType;
+import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
@@ -29,8 +34,8 @@ public class ZookeeperAlertListener implements AlertListener
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperAlertListener.class );
     private ZookeeperImpl zookeeper;
-    public static final String ZOOKEEPER_ALERT_LISTENER = "ZOOKEEPER_ALERT_LISTENER";
     private CommandUtil commandUtil = new CommandUtil();
+
     private static double MAX_RAM_QUOTA_MB;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
     private static int MAX_CPU_QUOTA_PERCENT = 100;
@@ -44,7 +49,14 @@ public class ZookeeperAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
+    public String getTemplateName()
+    {
+        return ZookeeperClusterConfig.TEMPLATE_NAME;
+    }
+
+
+    @Override
+    public void onAlert( final AlertPack alertPack ) throws Exception
     {
         //find zookeeper cluster by environment id
         List<ZookeeperClusterConfig> clusters = zookeeper.getClusters();
@@ -52,7 +64,7 @@ public class ZookeeperAlertListener implements AlertListener
         ZookeeperClusterConfig targetCluster = null;
         for ( ZookeeperClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( containerHostMetric.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( alertPack.getEnvironmentId() ) )
             {
                 targetCluster = cluster;
                 break;
@@ -62,17 +74,15 @@ public class ZookeeperAlertListener implements AlertListener
         if ( targetCluster == null )
         {
             throw new Exception(
-                    String.format( "Cluster not found by environment id %s", containerHostMetric.getEnvironmentId() ),
-                    null );
+                    String.format( "Cluster not found by environment id %s", alertPack.getEnvironmentId() ), null );
         }
 
         //get cluster environment
-        Environment environment =
-                zookeeper.getEnvironmentManager().loadEnvironment( containerHostMetric.getEnvironmentId() );
+        Environment environment = zookeeper.getEnvironmentManager().loadEnvironment( alertPack.getEnvironmentId() );
         if ( environment == null )
         {
-            throw new Exception(
-                    String.format( "Environment not found by id %s", containerHostMetric.getEnvironmentId() ), null );
+            throw new Exception( String.format( "Environment not found by id %s", alertPack.getEnvironmentId() ),
+                    null );
         }
 
         //get environment containers and find alert source host
@@ -81,7 +91,7 @@ public class ZookeeperAlertListener implements AlertListener
         ContainerHost sourceHost = null;
         for ( ContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( containerHostMetric.getHostId() ) )
+            if ( containerHost.getId().equals( alertPack.getContainerId() ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -91,7 +101,7 @@ public class ZookeeperAlertListener implements AlertListener
         if ( sourceHost == null )
         {
             throw new Exception(
-                    String.format( "Alert source host %s not found in environment", containerHostMetric.getHost() ),
+                    String.format( "Alert source host %s not found in environment", alertPack.getContainerId() ),
                     null );
         }
 
@@ -99,13 +109,9 @@ public class ZookeeperAlertListener implements AlertListener
         if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
         {
             LOGGER.info( String.format( "Alert source host %s does not belong to Zookeeper cluster",
-                    containerHostMetric.getHost() ) );
+                    alertPack.getContainerId() ) );
             return;
         }
-
-        // Set 80 percent of the available ram capacity of the resource host
-        // to maximum ram quota limit assignable to the container
-//        MAX_RAM_QUOTA_MB = sourceHost.getAvailableRamQuota() * 0.8;
 
         //figure out Zookeeper process pid
         int zookeeperPid;
@@ -125,7 +131,10 @@ public class ZookeeperAlertListener implements AlertListener
 
         //confirm that Zookeeper is causing the stress, otherwise no-op
         MonitoringSettings thresholds = zookeeper.getAlertSettings();
-        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        final QuotaAlertResource alertResource = ( QuotaAlertResource ) alertPack.getResource().getValue();
+        final double currentRam = alertResource.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue();
+        double ramLimit = currentRam * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
+
         double redLine = 0.4;
         boolean isCpuStressedByZookeeper = false;
         boolean isRamStressedByZookeeper = false;
@@ -155,45 +164,44 @@ public class ZookeeperAlertListener implements AlertListener
             if ( isRamStressedByZookeeper )
             {
                 //read current RAM quota
-//                int ramQuota = zookeeper.getQuotaManager().getRamQuota( sourceHost.getId() );
+                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
 
 
-/*
                 if ( ramQuota < MAX_RAM_QUOTA_MB )
                 {
                     // if available quota on resource host is greater than 10 % of calculated increase amount,
                     // increase quota, otherwise scale horizontally
-                    int newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
                     if ( MAX_RAM_QUOTA_MB > newRamQuota )
                     {
                         LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getRamQuota(), newRamQuota );
-
+                                sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
+                                newRamQuota );
                         //we can increase RAM quota
-                        sourceHost.setRamQuota( newRamQuota );
+                        ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
+                        sourceHost.setQuota( ResourceType.RAM, quota );
+
                         quotaIncreased = true;
                     }
                 }
-*/
             }
             if ( isCpuStressedByZookeeper )
             {
 
                 //read current CPU quota
-/*
-                int cpuQuota = sourceHost.getCpuQuota();
-
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+                ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
+                if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
                 {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(), cpuQuota,
-                            newCpuQuota );
+                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
+                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
+                    LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
                     //we can increase CPU quota
-                    sourceHost.setCpuQuota( newCpuQuota );
+                    ResourceValue newQuota = new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
+                    sourceHost.setQuota( ResourceType.CPU, newQuota );
 
                     quotaIncreased = true;
                 }
-*/
             }
 
             //quota increase is made, return
@@ -214,13 +222,6 @@ public class ZookeeperAlertListener implements AlertListener
         {
             notifyUser();
         }
-    }
-
-
-    @Override
-    public String getSubscriberId()
-    {
-        return ZOOKEEPER_ALERT_LISTENER;
     }
 
 

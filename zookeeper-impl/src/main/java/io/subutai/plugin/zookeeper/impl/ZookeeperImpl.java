@@ -112,24 +112,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( ZookeeperAlertListener.ZOOKEEPER_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( ZookeeperAlertListener.ZOOKEEPER_ALERT_LISTENER, environment );
-    }
-
-
     public void setExecutor( final ExecutorService executor )
     {
         this.executor = executor;

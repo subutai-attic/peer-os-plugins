@@ -20,7 +20,6 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterSetupException;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
@@ -165,13 +164,9 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             manager.getPluginDAO()
                    .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
                            zookeeperClusterConfig );
-            for ( final ContainerHost zookeeperNode : zookeeperNodes )
-            {
-                manager.subscribeToAlerts( zookeeperNode );
-            }
             po.addLog( "Cluster information saved to database" );
         }
-        catch ( MonitorException | ClusterConfigurationException e )
+        catch ( ClusterConfigurationException e )
         {
             throw new ClusterSetupException( e.getMessage() );
         }
