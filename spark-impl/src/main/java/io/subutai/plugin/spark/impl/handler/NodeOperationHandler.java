@@ -71,11 +71,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
             try
             {
-                node = environment.getContainerHostByHostname( hostname );
+                node = environment.getContainerHostById( hostname );
             }
             catch ( ContainerHostNotFoundException e )
             {
-                throw new ClusterException( String.format( "Node not found in environment by name %s", hostname ) );
+                throw new ClusterException( String.format( "Node not found in environment by id %s", hostname ) );
             }
 
 
