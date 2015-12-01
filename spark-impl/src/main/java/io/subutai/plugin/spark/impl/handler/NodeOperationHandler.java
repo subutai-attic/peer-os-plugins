@@ -17,7 +17,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.NodeType;
@@ -260,15 +259,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
         trackerOperation.addLog( "Updating db..." );
         manager.saveConfig( config );
-        //subscribe to alerts
-        try
-        {
-            manager.subscribeToAlerts( node );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-        }
     }
 
 

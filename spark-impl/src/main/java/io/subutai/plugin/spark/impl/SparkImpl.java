@@ -14,7 +14,6 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -27,7 +26,6 @@ import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-import io.subutai.plugin.spark.impl.alert.SparkAlertListener;
 import io.subutai.plugin.spark.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.spark.impl.handler.NodeOperationHandler;
 
@@ -48,24 +46,6 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
     public MonitoringSettings getAlertSettings()
     {
         return alertSettings;
-    }
-
-
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( SparkAlertListener.SPARK_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( SparkAlertListener.SPARK_ALERT_LISTENER, environment );
     }
 
 

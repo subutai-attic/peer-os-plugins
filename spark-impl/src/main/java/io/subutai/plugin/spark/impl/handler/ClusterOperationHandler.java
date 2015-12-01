@@ -13,7 +13,6 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -220,15 +219,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
             }
 
             trackerOperation.addLogDone( "Cluster uninstalled successfully" );
-
-            try
-            {
-                manager.unsubscribeFromAlerts( environment );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( e );
-            }
         }
         catch ( ClusterException e )
         {
@@ -269,17 +259,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
                 trackerOperation.addLog( "Setting up cluster..." );
                 s.setup();
                 trackerOperation.addLogDone( "Cluster setup completed" );
-
-                //subscribe to alerts
-                manager.subscribeToAlerts( env );
             }
             catch ( ClusterSetupException e )
             {
                 throw new ClusterException( "Failed to setup cluster: " + e.getMessage() );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
             }
         }
         catch ( ClusterException e )
