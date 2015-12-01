@@ -33,15 +33,15 @@ public interface RestService
 
     // get profile operations list
     @GET
-    @Path( "operations/{profileName}" )
+    @Path( "operations/{profileId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response listOperations( @PathParam( "profileName" ) String profileId );
+    public Response listOperations( @PathParam( "profileId" ) String profileId );
 
     // save operation
     @POST
     @Path( "operations/script/create" )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response saveOperation( @Multipart( "profileName" ) String profileName,
+    public Response saveOperation( @Multipart( "profileId" ) String profileId,
                                    @Multipart( "operationName" ) String operationName,
                                    @Multipart( value = "file" ) Attachment attr,
                                    @Multipart( "cwd" ) String cwd,
@@ -53,7 +53,7 @@ public interface RestService
     @POST
     @Path( "operations/create" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response saveOperation( @FormParam( "profileName" ) String profileName,
+    public Response saveOperation( @FormParam( "profileId" ) String profileId,
                                    @FormParam( "operationName" ) String operationName,
                                    @FormParam( "commandName" ) String commandName,
                                    @FormParam( "cwd" ) String cwd,

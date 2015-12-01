@@ -68,24 +68,27 @@ public class GenericPluginImpl implements GenericPlugin
 
 
     @Override
-    public void saveOperation( final String profileName, final String operationName, final String commandName,
+    public void saveOperation( final Long profileId, final String operationName, final String commandName,
                                final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
-        configDataService.saveOperation( profileName, operationName, commandName, cwd, timeout, daemon, fromFile );
+        configDataService.saveOperation( profileId, operationName, commandName, cwd, timeout, daemon, fromFile );
     }
 
 
     @Override
-    public List<Operation> getProfileOperations( final String profileName )
+    public List<Operation> getProfileOperations( final Long profileId )
     {
-        return configDataService.getOperations( profileName );
+        return configDataService.getOperations( profileId );
     }
+
 
     @Override
     public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName )
+                                 final String timeoutValue, final Boolean daemonValue, final Boolean fromFile,
+                                 final String operationName )
     {
-        configDataService.updateOperation( operationId, commandValue, cwdValue, timeoutValue, daemonValue, fromFile, operationName );
+        configDataService.updateOperation( operationId, commandValue, cwdValue, timeoutValue, daemonValue, fromFile,
+                operationName );
     }
 
 

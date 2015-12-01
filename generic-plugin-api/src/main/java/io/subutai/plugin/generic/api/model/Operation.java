@@ -32,11 +32,6 @@ public interface Operation
 
     void setDaemon( final Boolean daemon );
 
-    String getProfileName();
-
-
-    void setProfileName( final String profileName );
-
 
     Long getOperationId();
 
@@ -46,5 +41,10 @@ public interface Operation
 
     Boolean getScript();
 
+
     void setScript( final Boolean script );
+
+    public Long getProfileId();
+
+    public void setProfileId( final Long profileId );
 }
