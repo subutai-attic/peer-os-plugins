@@ -30,21 +30,25 @@ public class MongoWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/mongo',"
-				+ "templateUrl: 'plugins/mongo/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.mongo',"
-				+ "files: ["
-				+ "'plugins/mongo/mongo.js',"
-				+ "'plugins/mongo/controller.js',"
-				+ "'plugins/mongo/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('mongo', {\n" +
+				"url: '/plugins/mongo',\n" +
+				"templateUrl: 'plugins/mongo/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.mongo',\n" +
+				"files: [\n" +
+				"'plugins/mongo/mongo.js',\n" +
+				"'plugins/mongo/controller.js',\n" +
+				"'plugins/mongo/service.js',\n" +
+				"'plugins/hadoop/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }

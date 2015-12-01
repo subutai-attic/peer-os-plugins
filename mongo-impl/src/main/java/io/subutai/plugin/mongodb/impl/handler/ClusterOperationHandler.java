@@ -278,14 +278,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             }
 
             //subscribe to alerts
-            try
+           /* try
             {
                 manager.subscribeToAlerts( newNode );
             }
             catch ( MonitorException e )
             {
                 throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
+            }*/
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -355,11 +355,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             ClusterSetupStrategy clusterSetupStrategy =
                     manager.getClusterSetupStrategy( env, config, trackerOperation );
             clusterSetupStrategy.setup();
-            manager.subscribeToAlerts( env );
+            //manager.subscribeToAlerts( env );
 
             trackerOperation.addLogDone( String.format( "Cluster %s configured successfully", clusterName ) );
         }
-        catch ( MonitorException | ClusterSetupException | EnvironmentNotFoundException e )
+        catch ( ClusterSetupException | EnvironmentNotFoundException e )
         {
             LOG.error( String.format( "Failed to configure cluster %s", clusterName ), e );
             trackerOperation.addLogFailed( String.format( "Failed to configure cluster %s", clusterName ) );
@@ -399,13 +399,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             return;
         }
         trackerOperation.addLogDone( "Cluster removed from database" );
-        try
+       /* try
         {
             manager.unsubscribeFromAlerts( environment );
         }
         catch ( MonitorException e )
         {
             trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
+        }*/
     }
 }

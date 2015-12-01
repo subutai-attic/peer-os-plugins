@@ -272,7 +272,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    /*public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         getMonitor().startMonitoring( MongoAlertListener.MONGO_ALERT_LISTENER, environment, alertSettings );
     }
@@ -287,7 +287,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
         getMonitor().stopMonitoring( MongoAlertListener.MONGO_ALERT_LISTENER, environment );
-    }
+    }*/
 
 
     @Override

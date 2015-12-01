@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Set;
 
 //import io.subutai.common.quota.CpuQuota;
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
+import io.subutai.common.resource.MeasureUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +19,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
@@ -44,7 +47,7 @@ public class MongoAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric containerHostMetric ) throws Exception
+	public void onAlert (AlertPack containerHostMetric) throws Exception
     {
         //find mongo cluster by environment id
         List<MongoClusterConfig> clusters = mongo.getClusters();
@@ -81,7 +84,7 @@ public class MongoAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( containerHostMetric.getHostId() ) )
+            if ( containerHost.getId().equals( containerHostMetric.getContainerId () ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -91,7 +94,7 @@ public class MongoAlertListener implements AlertListener
         if ( sourceHost == null )
         {
             throw new Exception(
-                    String.format( "Alert source host %s not found in environment", containerHostMetric.getHost() ),
+                    String.format( "Alert source host %s not found in environment", containerHostMetric.getContainerId () ),
                     null );
         }
 
@@ -99,7 +102,7 @@ public class MongoAlertListener implements AlertListener
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
             LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster",
-                    containerHostMetric.getHost() ) );
+                    containerHostMetric.getContainerId () ) );
             return;
         }
 
@@ -124,7 +127,8 @@ public class MongoAlertListener implements AlertListener
 
         //confirm that Mongo is causing the stress, otherwise no-op
         MonitoringSettings thresholds = mongo.getAlertSettings();
-        double ramLimit = containerHostMetric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+		QuotaAlertResource resource = (QuotaAlertResource) containerHostMetric.getResource ();
+        double ramLimit = resource.getValue ().getCurrentValue ().getValue (MeasureUnit.MB).doubleValue () * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.7;
         boolean cpuStressedByMongo = false;
         boolean ramStressedByMongo = false;
@@ -227,11 +231,11 @@ public class MongoAlertListener implements AlertListener
     }
 
 
-    @Override
+    /*@Override
     public String getSubscriberId()
     {
         return MONGO_ALERT_LISTENER;
-    }
+    }*/
 
 
     protected int parsePid( String output ) throws Exception
@@ -251,4 +255,10 @@ public class MongoAlertListener implements AlertListener
     {
         //TODO implement me when user identity management is complete and we can figure out user email
     }
+
+	@Override
+	public String getTemplateName ()
+	{
+		return null;
+	}
 }
