@@ -24,14 +24,25 @@ public class HiveWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return ".state('hive', {\n" + "url: '/plugins/hive',\n"
-				+ "templateUrl: 'plugins/hive/partials/view.html',\n" + "resolve: {\n"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-				+ "return $ocLazyLoad.load([\n" + "{\n"
-				+ "name: 'subutai.plugins.hive',\n" + "files: [\n"
-				+ "'plugins/hive/hive.js',\n" + "'plugins/hive/controller.js',\n"
-				+ "'plugins/hive/service.js',\n" + "'plugins/hadoop/service.js',\n"
-				+ "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
-				+ "]);\n" + "}]\n" + "}\n" + "})";
+		return ".state('hive', {\n" +
+				"url: '/plugins/hive',\n" +
+				"templateUrl: 'plugins/hive/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.hive',\n" +
+				"files: [\n" +
+				"'plugins/hive/hive.js',\n" +
+				"'plugins/hive/controller.js',\n" +
+				"'plugins/hive/service.js',\n" +
+				"'plugins/hadoop/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }
