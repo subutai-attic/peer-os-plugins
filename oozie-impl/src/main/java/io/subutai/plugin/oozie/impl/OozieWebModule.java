@@ -25,21 +25,25 @@ public class OozieWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/oozie',"
-				+ "templateUrl: 'plugins/oozie/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.oozie',"
-				+ "files: ["
-				+ "'plugins/oozie/oozie.js',"
-				+ "'plugins/oozie/controller.js',"
-				+ "'plugins/oozie/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('oozie', {\n" +
+				"url: '/plugins/oozie',\n" +
+				"templateUrl: 'plugins/oozie/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.oozie',\n" +
+				"files: [\n" +
+				"'plugins/oozie/oozie.js',\n" +
+				"'plugins/oozie/controller.js',\n" +
+				"'plugins/oozie/service.js',\n" +
+				"'plugins/hadoop/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }

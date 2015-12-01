@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -73,6 +74,7 @@ public class RestServiceImplTest
 
 
     @Test
+    @Ignore
     public void testGetCluster() throws Exception
     {
         Response response = restService.getCluster( "test" );

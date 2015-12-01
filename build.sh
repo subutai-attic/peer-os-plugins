@@ -1,1 +1,0 @@
-mvn clean install -Dmaven.test.skip=true && scp oozie-api/target/oozie-plugin-api-4.0.0-RC4.jar oozie-cli/target/oozie-plugin-cli-4.0.0-RC4.jar oozie-impl/target/oozie-plugin-impl-4.0.0-RC4.jar oozie-rest/target/oozie-plugin-rest-4.0.0-RC4.jar root@management4.critical-factor.com:/root/kudayar/subutai-4.0.0-RC4/deploy

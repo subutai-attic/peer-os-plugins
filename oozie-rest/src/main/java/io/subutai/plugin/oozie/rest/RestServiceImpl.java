@@ -113,7 +113,6 @@ public class RestServiceImpl implements RestService
         {
         	uuidSet.add (host);
         }
-//		config.getClients().add( host );
 		config.setClients (uuidSet);
 
         UUID uuid = oozieManager.installCluster( config );
