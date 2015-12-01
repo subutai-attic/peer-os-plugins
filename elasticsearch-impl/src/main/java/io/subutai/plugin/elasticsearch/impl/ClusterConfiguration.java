@@ -11,7 +11,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ClusterException;
@@ -87,16 +86,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             manager.saveConfig( clusterConfiguration );
         }
         catch ( ClusterException e )
-        {
-            throw new ClusterConfigurationException( e );
-        }
-
-        //subscribe to alerts
-        try
-        {
-            manager.subscribeToAlerts( environment );
-        }
-        catch ( MonitorException e )
         {
             throw new ClusterConfigurationException( e );
         }

@@ -23,7 +23,6 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -269,15 +268,6 @@ public class ClusterOperationHandler
                 LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
                 throw new ClusterException( e );
             }
-            //subscribe to alerts
-            try
-            {
-                manager.subscribeToAlerts( newNode );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -347,11 +337,10 @@ public class ClusterOperationHandler
         {
             // stop cluster before removing it
             manager.stopCluster( config.getClusterName() );
-            manager.unsubscribeFromAlerts( environment );
             manager.deleteConfig( config );
             trackerOperation.addLogDone( "Cluster removed from database" );
         }
-        catch ( ClusterException | MonitorException e )
+        catch ( ClusterException e )
         {
             e.printStackTrace();
         }
@@ -418,14 +407,6 @@ public class ClusterOperationHandler
         }
 
         manager.stopCluster( config.getClusterName() );
-        try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
 
         if ( manager.getPluginDAO()
                     .deleteInfo( ElasticsearchClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )

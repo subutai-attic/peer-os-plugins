@@ -18,7 +18,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
@@ -41,15 +41,15 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     protected ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
-    //    private Monitor monitor;
+    private Monitor monitor;
     private PeerManager peerManager;
 
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( /*final Monitor monitor,*/ PluginDAO pluginDAO )
+    public ElasticsearchImpl( final Monitor monitor, PluginDAO pluginDAO )
     {
-        //        this.monitor = monitor;
+        this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
@@ -78,27 +78,9 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     }
 
 
-    //    public Monitor getMonitor()
-    //    {
-    //        return monitor;
-    //    }
-
-
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    public Monitor getMonitor()
     {
-        //        getMonitor().startMonitoring( EsAlertListener.ES_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        //        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        //        getMonitor().stopMonitoring( EsAlertListener.ES_ALERT_LISTENER, environment );
+        return monitor;
     }
 
 
