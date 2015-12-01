@@ -15,12 +15,10 @@ public interface GenericPlugin
 
     List<Profile> getProfiles();
 
-    void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
+    void saveOperation( String profileName, String operationName, String commandName, String cwd, String timeout,
                         Boolean daemon, Boolean fromFile );
 
-    List<Operation> getProfileOperations( Long profileId );
-
-    boolean IsOperationRegistered( String operationName );
+    List<Operation> getProfileOperations( String profileName );
 
     void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
                           final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName );
@@ -31,7 +29,7 @@ public interface GenericPlugin
 
     ConfigDataService getConfigDataService();
 
-    void deleteProfile( Long profileId );
+    void deleteProfile( String profileName );
 
     void deleteOperations( Long profileId );
 }

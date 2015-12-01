@@ -25,9 +25,9 @@ public class GenericPluginImpl implements GenericPlugin
 
 
     @Override
-    public void deleteProfile( final Long profileId )
+    public void deleteProfile( final String profileName )
     {
-        configDataService.deleteProfile( profileId );
+        configDataService.deleteProfile( profileName );
     }
 
 
@@ -68,26 +68,18 @@ public class GenericPluginImpl implements GenericPlugin
 
 
     @Override
-    public void saveOperation( final Long profileId, final String operationName, final String commandName,
+    public void saveOperation( final String profileName, final String operationName, final String commandName,
                                final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
-        configDataService.saveOperation( profileId, operationName, commandName, cwd, timeout, daemon, fromFile );
+        configDataService.saveOperation( profileName, operationName, commandName, cwd, timeout, daemon, fromFile );
     }
 
 
     @Override
-    public List<Operation> getProfileOperations( final Long profileId )
+    public List<Operation> getProfileOperations( final String profileName )
     {
-        return configDataService.getOperations( profileId );
+        return configDataService.getOperations( profileName );
     }
-
-
-    @Override
-    public boolean IsOperationRegistered( final String operationName )
-    {
-        return configDataService.isOperationRegistered( operationName );
-    }
-
 
     @Override
     public void updateOperation( final Long operationId, final String commandValue, final String cwdValue,

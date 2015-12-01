@@ -32,10 +32,10 @@ public interface Operation
 
     void setDaemon( final Boolean daemon );
 
-    Long getProfileId();
+    String getProfileName();
 
 
-    void setProfileId( final Long profileId );
+    void setProfileName( final String profileName );
 
 
     Long getOperationId();

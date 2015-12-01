@@ -1,48 +1,15 @@
-package io.subutai.plugin.generic.impl.model;
+package io.subutai.plugin.generic.rest.pojo;
 
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-
-import io.subutai.plugin.generic.api.model.Operation;
-
-
-@Entity
-@Table( name = "plugin_operation" )
-@Access( AccessType.FIELD )
-public class OperationEntity implements Operation
+public class OperationPojo
 {
-    @Id
-    @Column( name = "operation_id" )
-    @GeneratedValue
     private Long operationId;
-
-    @Column( name = "profile_name" )
     private String profileName;
-
-    @Column( name = "operation_name" )
     private String operationName;
-
-    @Lob
-    @Column( name = "command_name" )
     private String commandName;
-
-    @Column( name = "cwd" )
     private String cwd;
-
-    @Column( name = "timeout" )
     private String timeout;
-
-    @Column( name = "daemon" )
     private Boolean daemon;
-
-    @Column( name = "script" )
     private Boolean script;
 
 

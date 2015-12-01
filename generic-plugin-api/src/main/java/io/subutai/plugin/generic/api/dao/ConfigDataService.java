@@ -13,19 +13,25 @@ public interface ConfigDataService
 
     List<Profile> getAllProfiles();
 
-    void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
+    void saveOperation( String profileName, String operationName, String commandName, String cwd, String timeout,
                         Boolean daemon, Boolean fromFile );
+
+    List<Operation> getOperations( String profileName );
 
     List<Operation> getOperations( Long profileId );
 
-    boolean isOperationRegistered( String operationName );
-
     Operation getOperationByName( String operationName );
+
+    Operation getOperationById( Long operationId );
+
+    Operation getOperationByCommand( String commandName );
 
     void updateOperation( Long operationId, String commandValue, String cwdValue, String timeoutValue,
                           Boolean daemonValue, Boolean fromFile, String operationName );
 
     void deleteOperation( Long operationId );
+
+    void deleteProfile( String profileName );
 
     void deleteProfile( Long profileId );
 
