@@ -6,6 +6,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
+import io.subutai.common.resource.MeasureUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +17,8 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
@@ -48,9 +50,14 @@ public class OozieAlertListener implements AlertListener
         throw new AlertException( context, e );
     }
 
+	@Override
+	public String getTemplateName ()
+	{
+		return "hadoop";
+	}
 
-    @Override
-    public void onAlert( ContainerHostMetric metric ) throws Exception
+	@Override
+    public void onAlert( AlertPack	 metric ) throws Exception
     {
         //find oozie cluster by environment id
         List<OozieClusterConfig> clusters = oozie.getClusters();
@@ -84,7 +91,7 @@ public class OozieAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( metric.getHostId() ) )
+            if ( containerHost.getId().equals( metric.getContainerId () ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -93,14 +100,14 @@ public class OozieAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getContainerId () ),
                     null );
         }
 
         //check if source host belongs to found oozie cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to Oozie cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Oozie cluster", metric.getContainerId () ) );
             return;
         }
 
@@ -121,7 +128,8 @@ public class OozieAlertListener implements AlertListener
 
         //confirm that oozie is causing the stress, otherwise no-op
         MonitoringSettings thresholds = oozie.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+		QuotaAlertResource resource = (QuotaAlertResource) metric.getResource ();
+		double ramLimit = resource.getValue ().getCurrentValue ().getValue (MeasureUnit.MB).doubleValue () * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
         boolean isCpuStressedByOozie = false;
         boolean isRamStressedByOozie = false;
@@ -148,36 +156,36 @@ public class OozieAlertListener implements AlertListener
             // check if a quota limit increase does it
             boolean quotaIncreased = false;
 
-           /* if ( isRamStressedByOozie )
-            {
-                //read current RAM quota
-                int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
-
-
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
-                {
-                    //we can increase RAM quota
-                    oozie.getQuotaManager().setRamQuota( sourceHost.getId(),
-                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
-
-                    quotaIncreased = true;
-                }
-            }
-            if ( isCpuStressedByOozie )
-            {
-
-                //read current CPU quota
-                int cpuQuota = oozie.getQuotaManager().getCpuQuota( sourceHost.getId() );
-
-                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
-                {
-                    //we can increase CPU quota
-                    oozie.getQuotaManager().setCpuQuota( sourceHost.getId(),
-                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
-
-                    quotaIncreased = true;
-                }
-            }*/
+//            if ( isRamStressedByOozie )
+//            {
+//                //read current RAM quota
+//                int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
+//
+//
+//                if ( ramQuota < MAX_RAM_QUOTA_MB )
+//                {
+//                    //we can increase RAM quota
+//                    oozie.getQuotaManager().setRamQuota( sourceHost.getId(),
+//                            Math.min( MAX_RAM_QUOTA_MB, ramQuota + RAM_QUOTA_INCREMENT_MB ) );
+//
+//                    quotaIncreased = true;
+//                }
+//            }
+//            if ( isCpuStressedByOozie )
+//            {
+//
+//                //read current CPU quota
+//                int cpuQuota = oozie.getQuotaManager().getCpuQuota( sourceHost.getId() );
+//
+//                if ( cpuQuota < MAX_CPU_QUOTA_PERCENT )
+//                {
+//                    //we can increase CPU quota
+//                    oozie.getQuotaManager().setCpuQuota( sourceHost.getId(),
+//                            Math.min( MAX_CPU_QUOTA_PERCENT, cpuQuota + CPU_QUOTA_INCREMENT_PERCENT ) );
+//
+//                    quotaIncreased = true;
+//                }
+//            }
 
             //quota increase is made, return
             if ( quotaIncreased )
@@ -234,11 +242,11 @@ public class OozieAlertListener implements AlertListener
     }
 
 
-    @Override
+    /*@Override
     public String getSubscriberId()
     {
         return OOZIE_ALERT_LISTENER;
-    }
+    }*/
 
 
     protected int parsePid( String output ) throws Exception

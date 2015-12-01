@@ -25,7 +25,7 @@ public interface RestService
     // install cluster
     @POST
     @Path( "clusters/install" )
-    @Produces( { MediaType.APPLICATION_JSON } )
+    @Produces( { MediaType.TEXT_PLAIN } )
     public Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                     @FormParam( "hadoopClusterName" ) String hadoopClusterName,
                                     @FormParam( "server" ) String server, @FormParam( "clients" ) String clients );

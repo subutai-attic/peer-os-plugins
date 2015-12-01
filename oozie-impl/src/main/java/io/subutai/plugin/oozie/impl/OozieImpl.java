@@ -280,22 +280,22 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment, alertSettings );
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment );
-    }
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        getMonitor().startMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment, alertSettings );
+//    }
+//
+//
+//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+//    {
+//        getMonitor().activateMonitoring( host, alertSettings );
+//    }
+//
+//
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        getMonitor().stopMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment );
+//    }
 
 
     @Override

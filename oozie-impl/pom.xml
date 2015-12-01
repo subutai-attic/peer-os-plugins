@@ -11,8 +11,8 @@
 
   <artifactId>oozie-plugin-impl</artifactId>
   <packaging>bundle</packaging>
-  <name>Subutai Oozie Plugin</name>
-  <description>Subutai Oozie Plugin</description>
+  <name>Subutai Oozie Plugin Impl</name>
+  <description>Subutai Oozie Plugin Impl</description>
 
   <dependencies>
 	<dependency>

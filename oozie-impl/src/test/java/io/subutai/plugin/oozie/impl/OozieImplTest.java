@@ -309,25 +309,25 @@ public class OozieImplTest
     }
 
 
-    @Test
-    public void testSubscribeToAlerts() throws Exception
-    {
-        oozieImpl.subscribeToAlerts( containerHost );
-    }
-
-
-    @Test
-    public void testSubscribeToAlerts1() throws Exception
-    {
-        oozieImpl.subscribeToAlerts( environment );
-    }
-
-
-    @Test
-    public void testUnsubscribeFromAlerts() throws Exception
-    {
-        oozieImpl.unsubscribeFromAlerts( environment );
-    }
+//    @Test
+//    public void testSubscribeToAlerts() throws Exception
+//    {
+//        oozieImpl.subscribeToAlerts( containerHost );
+//    }
+//
+//
+//    @Test
+//    public void testSubscribeToAlerts1() throws Exception
+//    {
+//        oozieImpl.subscribeToAlerts( environment );
+//    }
+//
+//
+//    @Test
+//    public void testUnsubscribeFromAlerts() throws Exception
+//    {
+//        oozieImpl.unsubscribeFromAlerts( environment );
+//    }
 
 
     @Test
