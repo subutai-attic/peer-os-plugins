@@ -1,0 +1,46 @@
+<div class="b-popup">
+	<div class="b-popup__header">
+		View operation
+		<a href ng-click="closeThisDialog()"><img src="assets/elements/buttons/b-icon-close.svg" class="b-icon g-right"/></a>
+	</div>
+	<div class="b-popup__body">
+		<div class="b-form">
+			<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+				<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+					<label class="b-form-label b-form-label_fix-size-1 g-left">Operation name</label>
+
+					<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+						<input class="b-form-input b-form-input_full" type="text" value = "{{ genericCtrl.currentOperation.operationName }}" disabled style="background-color: white; color: black">
+					</div>
+					<div class="clear"></div>
+				</div>
+				<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+					<label class="b-form-label b-form-label_fix-size-1 g-left">CWD</label>
+
+					<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+						<input class="b-form-input b-form-input_full" type="text" value = "{{ genericCtrl.currentOperation.cwd }}" disabled style="background-color: white; color: black">
+					</div>
+					<div class="clear"></div>
+				</div>
+				<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+					<label class="b-form-label b-form-label_fix-size-1 g-left">Timeout</label>
+
+					<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+						<input class="b-form-input b-form-input_full" type="text" value = "{{ genericCtrl.currentOperation.timeout }}" disabled style="background-color: white; color: black">
+					</div>
+					<input type="checkbox" disabled> <label class="b-form-label b-form-label_margin_r">Daemon</label>
+				</div>
+				<div class="clear"></div>
+			</div>
+
+			<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+				<label class="b-form-label b-form-label_fix-size-1 g-left">Command</label>
+
+				<div class="b-form-wrapper b-form-wrapper_margin-size-1 b-workspace-content__row_margin-b">
+				<textarea class="b-form-input b-form-input_full b-form-input_textarea" disabled style="background-color: white; color: black">{{ genericCtrl.currentOperation.commandName }}</textarea>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+	</div>
+</div>

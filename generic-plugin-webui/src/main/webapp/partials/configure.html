@@ -1,0 +1,49 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace__content">
+		<div class="b-workspace-content b-workspace-content_border">
+			<div class="b-workspace-content__row">
+				<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+					<div class="b-form">
+						<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+							<label class="b-form-label b-form-label_fix-size-1 g-left">Profile</label>
+
+							<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentProfile" ng-change="genericCtrl.getOperations()" style = "color: black">
+									<option ng-selected = "genericCtrl.currentProfile.name === profile.name" value="{{ profile }}" ng-repeat = "profile in genericCtrl.profiles">{{ profile.name }}</option>
+								</select>
+							</div>
+							<div class="clear"></div>
+						</div>
+					</div>
+				</div>
+				<div class="b-workspace-content-row_col-2 g-right">
+					<a href class="b-btn b-btn_green" ng-click = "genericCtrl.addOperationWindow()">Add operation</a>
+				</div>
+				<div class="clear"></div>
+			</div>
+			<div class="b-workspace-content__row">
+				<h2 class="b-workspace-content-row-h2">
+					Operations
+				</h2>
+
+				<div class="b-main-table-border">
+					<table class="b-main-table b-main-table_with-header">
+						<tr>
+							<th>Operation name</th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</tr>
+						<tr ng-repeat = "operation in genericCtrl.operations">
+							<td>{{ operation.operationName }}</td>
+							<td class="b-main-table__controls"><a href class="b-btn b-btn_blue" ng-click="genericCtrl.operationInfo (operation)">View</a></td>
+							<td class="b-main-table__container-status"><a href class="b-icon b-icon_edit" ng-click="genericCtrl.editOperation (operation)"></a></td>
+							<td class="b-main-table__container-status"><a href class="b-icon b-icon_remove" ng-click="genericCtrl.deleteOperation (operation.operationId)"></a>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

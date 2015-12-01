@@ -24,21 +24,27 @@ public class GenericWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/generic',"
-				+ "templateUrl: 'plugins/generic/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.generic',"
-				+ "files: ["
-				+ "'plugins/generic/generic.js',"
-				+ "'plugins/generic/controller.js',"
-				+ "'plugins/generic/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('generic', {\n" +
+				"url: '/plugins/generic',\n" +
+				"templateUrl: 'plugins/generic/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'vtortola.ng-terminal'\n" +
+				"},\n" +
+				"{\n" +
+				"name: 'subutai.plugins.generic',\n" +
+				"files: [\n" +
+				"'plugins/generic/generic.js',\n" +
+				"'plugins/generic/controller.js',\n" +
+				"'plugins/generic/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }

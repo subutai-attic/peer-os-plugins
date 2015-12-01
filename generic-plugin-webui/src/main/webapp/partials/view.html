@@ -1,0 +1,44 @@
+<div ng-controller="GenericCtrl as genericCtrl">
+
+	<div class="b-workspace__header">
+		<h1 class="b-title">Plugins/<span class="b-title_breadcrumbs">generic</span></h1>
+	</div>
+
+	<div class="b-workspace__content">
+		<div class="b-tabs-menu">
+			<ul>
+				<li class="b-tabs-menu__item" 
+				ng-click="genericCtrl.activeTab = 'create'"
+				ng-class="genericCtrl.activeTab == 'create' ? 'b-tabs-menu__item_active' : ''">
+					Create
+				</li>
+				<li class="b-tabs-menu__item" 
+				ng-click="genericCtrl.activeTab = 'configure'"
+				ng-class="genericCtrl.activeTab == 'configure' ? 'b-tabs-menu__item_active' : ''">
+					Configure
+				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="genericCtrl.activeTab = 'manage'"
+					ng-class="genericCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
+					Manage
+				</li>
+			</ul>
+		</div>
+		<div 
+			ng-if="genericCtrl.activeTab == 'create'"
+			ng-include="'plugins/generic/partials/create.html'">
+		</div>
+
+		<div
+			ng-if="genericCtrl.activeTab == 'configure'"
+			ng-include="'plugins/generic/partials/configure.html'">
+		</div>
+
+		<div
+			ng-if="genericCtrl.activeTab == 'manage'"
+			ng-include="'plugins/generic/partials/manage.html'">
+		</div>
+
+	</div>
+
+</div>

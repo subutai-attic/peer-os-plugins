@@ -1,0 +1,42 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace__content">
+		<div class="b-workspace-content b-workspace-content_border">
+			<div class="b-workspace-content__row">
+				<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+					<div class="b-form">
+						<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+							<label class="b-form-label b-form-label_margin_r">Profile</label>
+							<input class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r" ng-model="genericCtrl.newProfile" required>
+							<a href class="b-btn b-btn_green" ng-click = "genericCtrl.createProfile()">Create</a> <!-- TODO: createProfile() -->
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="b-workspace-content__row">
+				<h2 class="b-workspace-content-row-h2">
+					Profiles
+				</h2>
+
+				<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+					<div class="b-main-table-border">
+						<table class="b-main-table b-main-table_with-header">
+							<tr>
+								<th>Profile name</th>
+								<th></th>
+								<th></th>
+							</tr>
+							<tr ng-repeat="profile in genericCtrl.profiles">
+								<td>{{ profile.name }}</td>
+								<td><a href class="b-btn b-btn_blue" ng-click="genericCtrl.changeToConfigure(profile)">Configure operations</a></td>
+								<td>
+									<a href class="b-icon b-icon_remove" ng-click = "genericCtrl.deleteProfile (profile)">
+									</a>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
