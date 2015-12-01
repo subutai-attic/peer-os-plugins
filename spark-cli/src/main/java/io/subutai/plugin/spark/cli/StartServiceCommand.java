@@ -27,8 +27,17 @@ public class StartServiceCommand extends OsgiCommandSupport
     @Argument( index = 1, name = "hostname", description = "UUID of the agent.", required = true, multiValued = false )
     String hostname = null;
     private Spark sparkManager;
-    private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private Tracker tracker;
+
+
+    public StartServiceCommand( final Spark sparkManager, final EnvironmentManager environmentManager,
+                                final Tracker tracker )
+    {
+        this.sparkManager = sparkManager;
+        this.environmentManager = environmentManager;
+        this.tracker = tracker;
+    }
 
 
     protected Object doExecute() throws IOException
@@ -38,35 +47,5 @@ public class StartServiceCommand extends OsgiCommandSupport
                 CheckAllNodesCommand.isMaster( config, hostname, environmentManager ) );
         tracker.printOperationLog( SparkClusterConfig.PRODUCT_KEY, uuid, 30000 );
         return null;
-    }
-
-
-    public Spark getSparkManager()
-    {
-        return sparkManager;
-    }
-
-
-    public void setSparkManager( final Spark sparkManager )
-    {
-        this.sparkManager = sparkManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

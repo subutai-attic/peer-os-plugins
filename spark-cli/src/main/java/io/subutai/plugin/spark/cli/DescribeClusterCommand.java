@@ -31,6 +31,13 @@ public class DescribeClusterCommand extends OsgiCommandSupport
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
 
 
+    public DescribeClusterCommand( final Spark sparkManager, final EnvironmentManager environmentManager )
+    {
+        this.sparkManager = sparkManager;
+        this.environmentManager = environmentManager;
+    }
+
+
     protected Object doExecute()
     {
         SparkClusterConfig config = sparkManager.getCluster( clusterName );
@@ -88,23 +95,5 @@ public class DescribeClusterCommand extends OsgiCommandSupport
         }
 
         return null;
-    }
-
-
-    public Spark getSparkManager()
-    {
-        return sparkManager;
-    }
-
-
-    public void setSparkManager( final Spark sparkManager )
-    {
-        this.sparkManager = sparkManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

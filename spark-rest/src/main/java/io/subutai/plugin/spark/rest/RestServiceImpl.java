@@ -36,21 +36,18 @@ public class RestServiceImpl implements RestService
 {
     private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Spark sparkManager;
-    private Hadoop hadoopManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private Hadoop hadoopManager;
 
 
     public RestServiceImpl( final Spark sparkManager, final Tracker tracker,
-                            final EnvironmentManager environmentManager )
+                            final EnvironmentManager environmentManager, final Hadoop hadoopManager )
     {
-        Preconditions.checkNotNull( sparkManager );
-        Preconditions.checkNotNull( tracker );
-        Preconditions.checkNotNull( environmentManager );
-
         this.sparkManager = sparkManager;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
+        this.hadoopManager = hadoopManager;
     }
 
 

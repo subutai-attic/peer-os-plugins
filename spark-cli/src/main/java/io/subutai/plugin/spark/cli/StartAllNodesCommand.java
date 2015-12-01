@@ -31,9 +31,19 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             multiValued = false )
     String clusterName = null;
     private Spark sparkManager;
-    private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private Tracker tracker;
+
     private static final Logger LOG = LoggerFactory.getLogger( InstallClusterCommand.class.getName() );
+
+
+    public StartAllNodesCommand( final Spark sparkManager, final EnvironmentManager environmentManager,
+                                 final Tracker tracker )
+    {
+        this.sparkManager = sparkManager;
+        this.environmentManager = environmentManager;
+        this.tracker = tracker;
+    }
 
 
     protected Object doExecute() throws IOException
@@ -64,35 +74,5 @@ public class StartAllNodesCommand extends OsgiCommandSupport
             e.printStackTrace();
         }
         return null;
-    }
-
-
-    public Spark getSparkManager()
-    {
-        return sparkManager;
-    }
-
-
-    public void setSparkManager( final Spark sparkManager )
-    {
-        this.sparkManager = sparkManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

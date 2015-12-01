@@ -54,6 +54,16 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private Tracker tracker;
 
 
+    public InstallClusterCommand( final Spark sparkManager, final Hadoop hadoopManager,
+                                  final EnvironmentManager environmentManager, final Tracker tracker )
+    {
+        this.sparkManager = sparkManager;
+        this.hadoopManager = hadoopManager;
+        this.environmentManager = environmentManager;
+        this.tracker = tracker;
+    }
+
+
     protected Object doExecute() throws IOException
     {
         try
@@ -93,41 +103,5 @@ public class InstallClusterCommand extends OsgiCommandSupport
         }
 
         return null;
-    }
-
-
-    public Spark getSparkManager()
-    {
-        return sparkManager;
-    }
-
-
-    public void setSparkManager( final Spark sparkManager )
-    {
-        this.sparkManager = sparkManager;
-    }
-
-
-    public Tracker getTracker()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker( final Tracker tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public void setHadoopManager( final Hadoop hadoopManager )
-    {
-        this.hadoopManager = hadoopManager;
-    }
-
-
-    public void setEnvironmentManager( final EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 }

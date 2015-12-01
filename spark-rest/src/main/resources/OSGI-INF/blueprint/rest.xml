@@ -32,7 +32,7 @@
     <argument ref="sparkManager" />
     <argument ref="tracker" />
     <argument ref="environmentManager" />
-    <property name="hadoopManager" ref="hadoopManager" />
+    <argument ref="hadoopManager" />
   </bean>
 
 </blueprint>
