@@ -30,21 +30,25 @@ public class NutchWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return "{"
-				+ "url: '/plugins/nutch',"
-				+ "templateUrl: 'plugins/nutch/partials/view.html',"
-				+ "resolve: {"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {" + "return $ocLazyLoad.load(["
-				+ "{"
-				+ "name: 'subutai.plugins.nutch',"
-				+ "files: ["
-				+ "'plugins/nutch/nutch.js',"
-				+ "'plugins/nutch/controller.js',"
-				+ "'plugins/nutch/service.js'"
-				+ "]"
-				+ "}"
-				+ "]);"
-				+ "}]"
-				+ "}";
+		return ".state('nutch', {\n" +
+				"url: '/plugins/nutch',\n" +
+				"templateUrl: 'plugins/nutch/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.nutch',\n" +
+				"files: [\n" +
+				"'plugins/nutch/nutch.js',\n" +
+				"'plugins/nutch/controller.js',\n" +
+				"'plugins/nutch/service.js',\n" +
+				"'plugins/hadoop/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }
