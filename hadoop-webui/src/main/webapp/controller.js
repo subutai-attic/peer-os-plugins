@@ -2,7 +2,7 @@
 
 angular.module('subutai.plugins.hadoop.controller', [])
     .controller('HadoopCtrl', HadoopCtrl)
-    .directive('colSelectContainers', colSelectContainers)
+    .directive('colSelectHadoopContainers', colSelectHadoopContainers)
     .directive('checkboxListDropdown', checkboxListDropdown);
 
 HadoopCtrl.$inject = ['hadoopSrv', 'SweetAlert', 'DTOptionsBuilder', 'DTColumnDefBuilder'];
@@ -62,11 +62,11 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
 
     function addNode() {
         if (vm.currentCluster.clusterName === undefined) return;
-        SweetAlert.swal("Success!", "Adding node action started.", "success");
+        SweetAlert.swal("Success!", "Node adding is in progress.", "success");
         hadoopSrv.addNode(vm.currentCluster.clusterName).success(function (data) {
             SweetAlert.swal(
                 "Success!",
-                "Node has been added on cluster " + vm.currentCluster.clusterName + ".",
+                "Node has been added to cluster " + vm.currentCluster.clusterName + ".",
                 "success"
             );
             getClustersInfo(vm.currentCluster.clusterName);
@@ -77,11 +77,11 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STARTING';
         hadoopSrv.startNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes started successfully. LOG: " + data, "success");
+            SweetAlert.swal("Success!", "Your cluster nodes have been started successfully. LOG: " + data.replace(/\\n/g, ' '), "success");
             node.status = 'RUNNING';
             //getClustersInfo(vm.currentCluster.name);
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Cluster start error: ' + error, "error");
+            SweetAlert.swal("ERROR!", 'Failed to start cluster error: ' + error.replace(/\\n/g, ' '), "error");
             node.status = 'ERROR';
         });
     }
@@ -90,11 +90,11 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STOPPING';
         hadoopSrv.stopNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes stoped successfully. LOG: " + data, "success");
+            SweetAlert.swal("Success!", "Your cluster nodes have stopped successfully. LOG: " + data.replace(/\\n/g, ' '), "success");
             //getClustersInfo(vm.currentCluster.name);
             node.status = 'STOPPED';
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error, "error");
+            SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.replace(/\\n/g, ' '), "error");
             node.status = 'ERROR';
         });
     }
@@ -125,13 +125,14 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     }
 
     function createHadoop() {
-        SweetAlert.swal("Success!", "Hadoop cluster start creating.", "success");
+        SweetAlert.swal("Success!", "Hadoop cluster is being created.", "success");
+        vm.activeTab = 'manage';
         hadoopSrv.createHadoop(JSON.stringify(vm.hadoopInstall)).success(function (data) {
+            SweetAlert.swal("Success!", "Hadoop cluster creation message:" + data.replace(/\\n/g, ' '), "success");
             getClusters();
-            vm.activeTab = 'manage';
-            SweetAlert.swal("Success!", "Hadoop cluster create message:" + data, "success");
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Hadoop cluster create error: ' + error, "error");
+            SweetAlert.swal("ERROR!", 'Hadoop cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+            getClusters();
         });
         setDefaultValues();
     }
@@ -174,12 +175,13 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function setDefaultValues() {
         vm.hadoopInstall = {};
         vm.hadoopInstall.domainName = 'intra.lan';
+        vm.hadoopInstall.replicationFactor = 1;
         vm.hadoopInstall.slaves = [];
     }
 
 }
 
-function colSelectContainers() {
+function colSelectHadoopContainers() {
     return {
         restrict: 'E',
         templateUrl: 'plugins/hadoop/directives/col-select/col-select-containers.html'
