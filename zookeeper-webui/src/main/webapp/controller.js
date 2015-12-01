@@ -276,6 +276,12 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
     function startNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        SweetAlert.swal({
+            title: 'Success!',
+            text: 'Your request is in progress. You will be notified shortly.',
+            timer: VARS_TOOLTIP_TIMEOUT,
+            showConfirmButton: false
+        });
         zookeeperSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Nodes started successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
@@ -287,6 +293,12 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
     function stopNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        SweetAlert.swal({
+            title: 'Success!',
+            text: 'Your request is in progress. You will be notified shortly.',
+            timer: VARS_TOOLTIP_TIMEOUT,
+            showConfirmButton: false
+        });
         zookeeperSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Nodes stoped successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
