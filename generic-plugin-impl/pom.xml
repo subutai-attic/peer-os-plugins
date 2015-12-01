@@ -16,6 +16,12 @@
 
   <dependencies>
 
+	  <dependency>
+		  <groupId>${project.groupId}</groupId>
+		  <artifactId>webui</artifactId>
+		  <classifier>classes</classifier>
+	  </dependency>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>subutai-common</artifactId>

@@ -15,4 +15,11 @@
         scope="singleton" activation="eager">
     <argument ref="daoManagerPlugin" />
   </bean>
+
+
+	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+
+	<bean id="module" scope="singleton" class="io.subutai.plugin.generic.impl.GenericWebModule">
+	</bean>
 </blueprint>
