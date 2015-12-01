@@ -435,14 +435,14 @@ public class RestServiceImpl implements RestService
             pojo.setEnvironmentId( config.getEnvironmentId() );
             pojo.setHadoopClusterName( config.getHadoopClusterName() );
             pojo.setServer( new NodePojo( config.getMasterNodeId(), env ) );
-            UUID uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getHostname(), true );
+            UUID uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getUuid(), true );
             pojo.getServer().setStatus( checkStatus( tracker, uuid ) );
 
             Set<NodePojo> clients = new HashSet<>();
             for ( String slave : config.getSlaveIds() )
             {
                 NodePojo node = new NodePojo( slave, env );
-                uuid = sparkManager.checkNode( config.getClusterName(), node.getHostname(), false );
+                uuid = sparkManager.checkNode( config.getClusterName(), node.getUuid(), false );
                 node.setStatus( checkStatus( tracker, uuid ) );
 
                 clients.add( node );
