@@ -13,7 +13,7 @@ public interface ConfigDataService
 
     List<Profile> getAllProfiles();
 
-    void saveOperation( String profileName, String operationName, String commandName, String cwd, String timeout,
+    void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
                         Boolean daemon, Boolean fromFile );
 
     List<Operation> getOperations( String profileName );

@@ -58,16 +58,16 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response listOperations( final String profileName )
+    public Response listOperations( final String profileId )
     {
-        List<Operation> operationList = genericPlugin.getProfileOperations( profileName );
+        List<Operation> operationList = genericPlugin.getProfileOperations( Long.parseLong( profileId ) );
         String operations = JsonUtil.GSON.toJson( operationList );
         return Response.status( Response.Status.OK ).entity( operations ).build();
     }
 
 
     @Override
-    public Response saveOperation( final String profileName, final String operationName, Attachment attr,
+    public Response saveOperation( final String profileId, final String operationName, Attachment attr,
                                    final String cwd, final String timeout, final Boolean daemon, final Boolean script )
     {
         ConfigDataService configDataService = genericPlugin.getConfigDataService();
@@ -86,7 +86,9 @@ public class RestServiceImpl implements RestService
 
         try
         {
-            configDataService.saveOperation( profileName, operationName, commandName, cwd, timeout, daemon, script );
+            configDataService
+                    .saveOperation( Long.parseLong( profileId ), operationName, commandName, cwd, timeout, daemon,
+                            script );
         }
         catch ( Exception e )
         {
@@ -99,13 +101,15 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response saveOperation( final String profileName, final String operationName, final String commandName,
+    public Response saveOperation( final String profileId, final String operationName, final String commandName,
                                    final String cwd, final String timeout, final Boolean daemon, final Boolean script )
     {
         ConfigDataService configDataService = genericPlugin.getConfigDataService();
         try
         {
-            configDataService.saveOperation( profileName, operationName, commandName, cwd, timeout, daemon, script );
+            configDataService
+                    .saveOperation( Long.parseLong( profileId ), operationName, commandName, cwd, timeout, daemon,
+                            script );
         }
         catch ( Exception e )
         {

@@ -15,13 +15,14 @@ public interface GenericPlugin
 
     List<Profile> getProfiles();
 
-    void saveOperation( String profileName, String operationName, String commandName, String cwd, String timeout,
+    void saveOperation( Long profileId, String operationName, String commandName, String cwd, String timeout,
                         Boolean daemon, Boolean fromFile );
 
-    List<Operation> getProfileOperations( String profileName );
+    List<Operation> getProfileOperations( Long profileId );
 
     void updateOperation( final Long operationId, final String commandValue, final String cwdValue,
-                          final String timeoutValue, final Boolean daemonValue, final Boolean fromFile, final String operationName );
+                          final String timeoutValue, final Boolean daemonValue, final Boolean fromFile,
+                          final String operationName );
 
     void deleteOperation( Long operationId );
 

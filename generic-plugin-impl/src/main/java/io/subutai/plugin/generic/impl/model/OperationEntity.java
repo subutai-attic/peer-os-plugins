@@ -23,8 +23,8 @@ public class OperationEntity implements Operation
     @GeneratedValue
     private Long operationId;
 
-    @Column( name = "profile_name" )
-    private String profileName;
+    @Column( name = "profile_id" )
+    private Long profileId;
 
     @Column( name = "operation_name" )
     private String operationName;
@@ -130,14 +130,15 @@ public class OperationEntity implements Operation
     }
 
 
-    public String getProfileName()
+    @Override
+    public Long getProfileId()
     {
-        return profileName;
+        return profileId;
     }
 
 
-    public void setProfileName( final String profileName )
+    public void setProfileId( final Long profileId )
     {
-        this.profileName = profileName;
+        this.profileId = profileId;
     }
 }

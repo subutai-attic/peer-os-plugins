@@ -82,14 +82,14 @@ public class ConfigDataServiceImpl implements ConfigDataService
 
 
     @Override
-    public void saveOperation( final String profileName, final String operationName, final String commandName,
+    public void saveOperation( final Long profileId, final String operationName, final String commandName,
                                final String cwd, final String timeout, final Boolean daemon, final Boolean fromFile )
     {
         String parsedString = commandName.replaceAll( "\r", "" );
         byte[] encodedBytes = Base64.encodeBase64( parsedString.getBytes() );
 
         Operation operation = new OperationEntity();
-        operation.setProfileName( profileName );
+        operation.setProfileId( profileId );
         operation.setOperationName( operationName );
         operation.setCommandName( new String( encodedBytes ) );
         operation.setCwd( cwd );
