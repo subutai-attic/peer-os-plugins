@@ -181,7 +181,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         stormManager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_NAME, config.getClusterName(), config );
         po.addLogDone( "Cluster info successfully saved" );
 
-        try
+        /*try
         {
             stormManager.subscribeToAlerts( environment );
         }
@@ -189,7 +189,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error( "Error while subscribing to alerts", e );
             e.printStackTrace();
-        }
+        }*/
     }
 
 

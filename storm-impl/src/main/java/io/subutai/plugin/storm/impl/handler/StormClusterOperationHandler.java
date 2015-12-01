@@ -275,7 +275,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             trackerOperation.addLogDone( "Finished." );
 
             // subscribe to alerts
-            try
+            /*try
             {
                 manager.subscribeToAlerts( newNode );
             }
@@ -283,7 +283,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             {
                 LOG.error( newNode.getHostname() + " could not get subscribed to alerts.", e );
                 e.printStackTrace();
-            }
+            }*/
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -547,14 +547,14 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
         }
 
-        try
+        /*try
         {
             manager.unsubscribeFromAlerts( environment );
         }
         catch ( MonitorException e )
         {
             trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }
+        }*/
     }
 
 

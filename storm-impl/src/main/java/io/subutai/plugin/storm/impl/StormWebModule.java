@@ -24,14 +24,24 @@ public class StormWebModule implements WebuiModule
 	@Override
 	public String getAngularDependecyList()
 	{
-		return ".state('storm', {\n" + "url: '/plugins/storm',\n"
-				+ "templateUrl: 'plugins/storm/partials/view.html',\n" + "resolve: {\n"
-				+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-				+ "return $ocLazyLoad.load([\n" + "{\n"
-				+ "name: 'subutai.plugins.storm',\n" + "files: [\n"
-				+ "'plugins/storm/storm.js',\n" + "'plugins/storm/controller.js',\n"
-				+ "'plugins/storm/service.js',\n"
-				+ "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
-				+ "]);\n" + "}]\n" + "}\n" + "})";
+		return ".state('storm', {\n" +
+				"url: '/plugins/storm',\n" +
+				"templateUrl: 'plugins/storm/partials/view.html',\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.storm',\n" +
+				"files: [\n" +
+				"'plugins/storm/storm.js',\n" +
+				"'plugins/storm/controller.js',\n" +
+				"'plugins/storm/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
 	}
 }

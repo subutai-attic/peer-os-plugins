@@ -48,10 +48,10 @@ public abstract class StormBase implements Storm
     }
 
 
-    public void subscribeToAlerts( ContainerHost host ) throws MonitorException
+   /* public void subscribeToAlerts( ContainerHost host ) throws MonitorException
     {
         getMonitor().activateMonitoring( host, alertSettings );
-    }
+    }*/
 
 
     public Monitor getMonitor()
@@ -66,7 +66,7 @@ public abstract class StormBase implements Storm
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    /*public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
         getMonitor().startMonitoring( StormAlertListener.STORM_ALERT_LISTENER, environment, alertSettings );
     }
@@ -75,7 +75,7 @@ public abstract class StormBase implements Storm
     public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
     {
         getMonitor().stopMonitoring( StormAlertListener.STORM_ALERT_LISTENER, environment );
-    }
+    }*/
 
 
     public StormAlertListener getStormAlertListener()

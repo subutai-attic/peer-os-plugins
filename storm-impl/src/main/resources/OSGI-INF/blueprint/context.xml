@@ -31,7 +31,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="storm-impl" interface="io.subutai.plugin.storm.api.Storm" />
-  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertListener" />
   <!-- *********************************************************************************** -->
 
 

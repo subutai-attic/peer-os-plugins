@@ -13,8 +13,11 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.metric.QuotaAlertResource;
+import io.subutai.common.peer.AlertListener;
+import io.subutai.common.peer.AlertPack;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.AlertListener;
+import io.subutai.common.resource.MeasureUnit;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
@@ -47,7 +50,7 @@ public class StormAlertListener implements AlertListener
 
 
     @Override
-    public void onAlert( final ContainerHostMetric metric ) throws Exception
+	public void onAlert (AlertPack metric) throws Exception
     {
         //find storm cluster by environment id
         List<StormClusterConfiguration> clusters = storm.getClusters();
@@ -81,7 +84,7 @@ public class StormAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getHostname().equalsIgnoreCase( metric.getHost() ) )
+            if ( containerHost.getHostname().equalsIgnoreCase( metric.getContainerId () ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -90,14 +93,14 @@ public class StormAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getHost() ),
+            throwAlertException( String.format( "Alert source host %s not found in environment", metric.getContainerId () ),
                     null );
         }
 
         //check if source host belongs to found storm cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to Storm cluster", metric.getHost() ) );
+            LOG.info( String.format( "Alert source host %s does not belong to Storm cluster", metric.getContainerId () ) );
             return;
         }
 
@@ -123,7 +126,8 @@ public class StormAlertListener implements AlertListener
 
         //confirm that Storm is causing the stress, otherwise no-op
         MonitoringSettings thresholds = storm.getAlertSettings();
-        double ramLimit = metric.getTotalRam() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+		QuotaAlertResource resource = (QuotaAlertResource) metric.getResource ();
+        double ramLimit = resource.getValue ().getCurrentValue ().getValue (MeasureUnit.MB).doubleValue () * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.9;
         boolean isCpuStressedByStorm = false;
         boolean isRamStressedByStorm = false;
@@ -241,11 +245,11 @@ public class StormAlertListener implements AlertListener
     }
 
 
-    @Override
+    /*@Override
     public String getSubscriberId()
     {
         return STORM_ALERT_LISTENER;
-    }
+    }*/
 
 
     protected String parseService( String output, String target ) throws AlertException
@@ -264,5 +268,12 @@ public class StormAlertListener implements AlertListener
         }
         return null;
     }
+
+
+	@Override
+	public String getTemplateName ()
+	{
+		return "storm";
+	}
 }
 
