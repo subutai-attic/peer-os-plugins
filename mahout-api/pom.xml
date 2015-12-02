@@ -6,13 +6,13 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>mahout-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>mahout-plugin-api</artifactId>
   <packaging>bundle</packaging>
-  <name>Subutai Mahout Plugin Api</name>
-  <description>Subutai Mahout Plugin Api</description>
+  <name>Subutai Mahout Plugin API</name>
+  <description>Subutai Mahout Plugin API</description>
 
   <dependencies>
     <dependency>

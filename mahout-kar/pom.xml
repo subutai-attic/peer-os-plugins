@@ -5,11 +5,14 @@
   <parent>
     <artifactId>mahout-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>mahout-subutai-plugin</artifactId>
+
+  <name>Subutai Mahout Plugin KAR</name>
+  <description>Subutai Mahout Plugin KAR</description>
 
   <build>
     <plugins>

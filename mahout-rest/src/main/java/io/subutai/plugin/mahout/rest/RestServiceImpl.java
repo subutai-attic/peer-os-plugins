@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -105,11 +106,8 @@ public class RestServiceImpl implements RestService
         MahoutClusterConfig mahoutConfig = new MahoutClusterConfig();
         mahoutConfig.setClusterName( clusterName );
         mahoutConfig.setHadoopClusterName( hadoopClusterName );
-        String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
-        {
-            mahoutConfig.getNodes().add( node );
-        }
+
+        mahoutConfig.setNodes( (Set<String>)JsonUtil.fromJson( nodes, new TypeToken<Set<String>>(){}.getType() ) );
 
         UUID uuid = mahoutManager.installCluster( mahoutConfig );
         OperationState state = waitUntilOperationFinish( uuid );

@@ -6,15 +6,20 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>mahout-plugin-parent</artifactId>
-    <version>4.0.0-RC3</version>
+    <version>4.0.0-RC4</version>
   </parent>
 
   <artifactId>mahout-plugin-impl</artifactId>
   <packaging>bundle</packaging>
-  <name>Subutai Mahout Plugin</name>
-  <description>Subutai Mahout Plugin</description>
+  <name>Subutai Mahout Plugin IMPL</name>
+  <description>Subutai Mahout Plugin IMPL</description>
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
+    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>

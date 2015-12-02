@@ -23,4 +23,9 @@
   <service ref="mahout-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
   <!-- *********************************************************************************** -->
 
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.mahout.impl.MahoutWebModule">
+  </bean>
+
 </blueprint>
