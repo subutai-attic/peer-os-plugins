@@ -37,7 +37,7 @@ public class Commands
     public RequestBuilder getSetMasterIPCommand( ContainerHost master )
     {
         return new RequestBuilder(
-                String.format( ". /etc/profile && sharkConf.sh clear master ; sharkConf.sh master %s",
+                String.format( "/opt/shark*/bin/sharkConf.sh clear master ; /opt/shark*/bin/sharkConf.sh master %s",
                         master.getHostname() ) ).withTimeout( 60 );
     }
 

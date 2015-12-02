@@ -19,7 +19,6 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -71,12 +70,6 @@ public class SharkImpl implements Shark, EnvironmentEventListener
     public MonitoringSettings getAlertSettings()
     {
         return alertSettings;
-    }
-
-
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 

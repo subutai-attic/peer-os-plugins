@@ -16,7 +16,6 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.OperationType;
@@ -202,16 +201,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
         manager.saveConfig( config );
         trackerOperation.addLogDone(
                 SharkClusterConfig.PRODUCT_KEY + " is installed on node " + node.getHostname() + " successfully." );
-
-        //subscribe to alerts
-        try
-        {
-            manager.subscribeToAlerts( node );
-        }
-        catch ( MonitorException e )
-        {
-            throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-        }
     }
 
 
