@@ -8,18 +8,18 @@ import java.util.List;
 public class ClusterDto
 {
     private String name;
-    private List<ContainerDto> containerDtos;
+    private List<ContainerDto> containers;
 
 
     public ClusterDto( final String name )
     {
         this.name = name;
-        this.containerDtos = new ArrayList<>(  );
+        this.containers = new ArrayList<>(  );
     }
 
     public void addContainerDto( ContainerDto containerDto )
     {
-        containerDtos.add( containerDto );
+        containers.add( containerDto );
     }
 
 
@@ -35,14 +35,14 @@ public class ClusterDto
     }
 
 
-    public List<ContainerDto> getContainerDtos()
+    public List<ContainerDto> getContainers()
     {
-        return containerDtos;
+        return containers;
     }
 
 
-    public void setContainerDtos( final List<ContainerDto> containerDtos )
+    public void setContainers( final List<ContainerDto> containers )
     {
-        this.containerDtos = containerDtos;
+        this.containers = containers;
     }
 }
