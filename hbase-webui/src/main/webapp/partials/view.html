@@ -1,0 +1,34 @@
+<div ng-controller="HbaseCtrl as hbaseCtrl">
+
+	<div class="b-workspace__header">
+		<h1 class="b-title">Plugins/<span class="b-title_breadcrumbs">Hbase</span></h1>
+	</div>
+
+	<div class="b-workspace__content">
+		<div class="b-tabs-menu">
+			<ul>
+				<li class="b-tabs-menu__item" 
+				ng-click="hbaseCtrl.activeTab = 'install'" 
+				ng-class="hbaseCtrl.activeTab == 'install' ? 'b-tabs-menu__item_active' : ''">
+					Install
+				</li>
+				<li class="b-tabs-menu__item" 
+				ng-click="hbaseCtrl.activeTab = 'manage'" 
+				ng-class="hbaseCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
+					Manage
+				</li>
+			</ul>
+		</div>
+		<div 
+			ng-if="hbaseCtrl.activeTab == 'install'" 
+			ng-include="'plugins/hbase/partials/install.html'">
+		</div>
+
+		<div 
+			ng-if="hbaseCtrl.activeTab == 'manage'" 
+			ng-include="'plugins/hbase/partials/manage.html'">
+		</div>
+
+	</div>
+
+</div>

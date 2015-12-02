@@ -338,7 +338,9 @@ public class RestServiceImpl implements RestService
 
         try
         {
-            set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( hBaseConfig.getRegionServers() ) ) );
+            set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( hBaseConfig.getBackupMasters() ) ) );
+            set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( hBaseConfig.getHbaseMaster() ) ) );
+            set.removeAll( environment.getContainerHostsByIds( Sets.newHashSet( hBaseConfig.getQuorumPeers() ) ) );
         }
         catch ( ContainerHostNotFoundException e )
         {

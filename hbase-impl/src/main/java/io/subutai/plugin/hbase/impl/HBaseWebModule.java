@@ -24,24 +24,14 @@ public class HBaseWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return ".state('hbase', {\n"
-                +"    url: '/plugins/hbase',\n"
-                +"            templateUrl: 'plugins/hbase/partials/view.html',\n"
-                +"            resolve: {\n"
-                +"        loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-                +"            return $ocLazyLoad.load([\n"
-                +"                    {\n"
-                +"                            name: 'subutai.plugins.hbase',\n"
-                +"                    files: [\n"
-                +"            'plugins/hbase/hbase.js',\n"
-                +"                    'plugins/hbase/controller.js',\n"
-                +"                    'plugins/hbase/service.js',\n"
-                +"                    'plugins/hadoop/service.js',\n"
-                +"                    'subutai-app/environment/service.js'\n"
-                +"            ]\n"
-                +"            }\n"
-                +"            ]);\n"
-                +"        }]}\n"
-                +"    })";
+        return ".state('hbase', {\n" + "url: '/plugins/hbase',\n"
+                + "templateUrl: 'plugins/hbase/partials/view.html',\n" + "resolve: {\n"
+                + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                + "return $ocLazyLoad.load([\n" + "{\n"
+                + "name: 'subutai.plugins.hbase',\n" + "files: [\n"
+                + "'plugins/hbase/hbase.js',\n" + "'plugins/hbase/controller.js',\n"
+                + "'plugins/hbase/service.js',\n" + "'plugins/hadoop/service.js',\n"
+                + "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
+                + "]);\n" + "}]\n" + "}\n" + "})";
     }
 }
