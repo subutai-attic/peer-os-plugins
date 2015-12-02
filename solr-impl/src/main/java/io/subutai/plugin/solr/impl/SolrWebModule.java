@@ -9,23 +9,37 @@ public class SolrWebModule implements WebuiModule
     public static String NAME = "Solr";
     public static String IMG = "plugins/solr/solr.png";
 
-    @Override
+
     public String getName()
     {
         return NAME;
     }
 
 
-    @Override
     public String getModuleInfo()
     {
-        return String.format("{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME);
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
     }
 
 
-    @Override
     public String getAngularDependecyList()
     {
-        return null;
+        return ".state('solr', {\n" + "url: '/plugins/solr',\n"
+                + "templateUrl: 'plugins/solr/partials/view.html',\n"
+                + "resolve: {\n"
+                + "        loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                + "                return $ocLazyLoad.load([\n"
+                + "{\n"
+                + "        name: 'subutai.plugins.solr',\n"
+                + "        files: [\n"
+                + "                'plugins/solr/solr.js',\n"
+                + "                'plugins/solr/controller.js',\n"
+                + "                'plugins/solr/service.js',\n"
+                + "                'subutai-app/environment/service"
+                + ".js'\n"
+                + "        ]\n"
+                + "}\n"
+                + "                ]);\n" + "        }]\n"
+                + "}\n" + "                })";
     }
 }

@@ -1,11 +1,11 @@
 <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right g-left">
-  <span class="b-form-label b-form-label_block">Available nodes</span>
+  <span class="b-form-label b-form-label_block">Available seeds</span>
   <ul class="b-form-list b-form-list_table">
     <li class="b-form-list-table__link"
-        ng-repeat="container in solrCtrl.containers"
-        ng-if="solrCtrl.solrInstall.containers.indexOf(container.id) == -1"
-        ng-click="solrCtrl.addContainer(container.id)">
-      {{ container.id }}
+        ng-repeat="seed in solrCtrl.seeds"
+        ng-if="solrCtrl.solrInstall.seeds.indexOf(seed) == -1"
+        ng-click="solrCtrl.addSeed(seed)">
+      {{ seed }}
     </li>
   </ul>
 </div>
@@ -16,13 +16,13 @@
       class="fa fa-angle-double-right"></i></a>
 </div>
 <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-left g-right">
-  <span class="b-form-label b-form-label_block">Selected nodes</span>
+  <span class="b-form-label b-form-label_block">Selected seeds</span>
   <ul class="b-form-list b-form-list_table">
     <li class="b-form-list-table__link"
-        ng-repeat="container in solrCtrl.containers"
-        ng-if="solrCtrl.solrInstall.containers.indexOf(container.id) > -1"
-        ng-click="solrCtrl.addContainer(container.id)">
-      {{ container.id }}
+        ng-repeat="seed in solrCtrl.seeds"
+        ng-if="solrCtrl.solrInstall.seeds.indexOf(seed) > -1"
+        ng-click="solrCtrl.addSeed(seed)">
+      {{ seed }}
     </li>
   </ul>
 </div>
