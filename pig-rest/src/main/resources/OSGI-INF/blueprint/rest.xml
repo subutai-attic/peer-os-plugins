@@ -25,7 +25,7 @@
 
   </bean>
 
-  <reference id="tracker"  availability="mandatory"
+  <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
 
   <jaxrs:server address="/pig" id="pigRestService">
