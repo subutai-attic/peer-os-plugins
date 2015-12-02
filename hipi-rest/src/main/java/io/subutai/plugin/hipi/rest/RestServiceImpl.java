@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -68,7 +69,7 @@ public class RestServiceImpl implements RestService
     {
         HipiConfig config = hipiManager.getCluster( clusterName );
 
-        String cluster = JsonUtil.GSON.toJson( updateConfig( config ) );
+        String cluster = JsonUtil.toJson( updateConfig( config ) );
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
@@ -83,12 +84,9 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
 
-        String[] arr = nodeIds.replaceAll( "\\s+", "" ).split( "," );
-        for ( String node : arr )
+        config.setNodes( ( Set<String> ) JsonUtil.fromJson( nodeIds, new TypeToken<Set<String>>()
         {
-
-            config.getNodes().add( node );
-        }
+        }.getType() ) );
 
         UUID uuid = hipiManager.installCluster( config );
         waitUntilOperationFinish( uuid );
@@ -172,6 +170,7 @@ public class RestServiceImpl implements RestService
         else
         {
             LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+            return Response.status( Response.Status.NOT_FOUND ).build();
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );
@@ -195,7 +194,7 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodes() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ) ) );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ), uuid ) );
             }
 
             pojo.setNodes( containerPojoSet );

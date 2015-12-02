@@ -10,16 +10,32 @@ public class ContainerPojo
     private String ip;
 
 
+    public String getId()
+    {
+        return id;
+    }
+
+
+    public void setId( final String id )
+    {
+        this.id = id;
+    }
+
+
+    private String id;
+
+
     public ContainerPojo()
     {
         hostname = "";
     }
 
 
-    public ContainerPojo( final String hostname, final String ip )
+    public ContainerPojo( final String hostname, final String ip, final String id )
     {
         this.hostname = hostname;
         this.ip = ip;
+        this.id = id;
     }
 
 
