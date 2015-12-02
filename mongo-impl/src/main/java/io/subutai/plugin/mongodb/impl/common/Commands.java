@@ -129,10 +129,11 @@ public class Commands
     public static CommandDef getStartDataNodeCommandLine( int dataNodePort )
     {
         return new CommandDef( "Start data node", String.format(
-                "export LANGUAGE=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
-                        + "export LC_ALL=en_US.UTF-8 && mongod --config %s --port %s --fork --logpath %s/mongodb.log",
-                Constants.DATA_NODE_CONF_FILE, dataNodePort, Constants.LOG_DIR ),
-                Timeouts.START_DATE_NODE_TIMEOUT_SEC );
+                //TODO add after solving problem with utf encoding
+                //export LANGUAGE=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
+                //+ "export LC_ALL=en_US.UTF-8 &&
+                "mongod --config %s --port %s --fork --logpath %s/mongodb.log", Constants.DATA_NODE_CONF_FILE,
+                dataNodePort, Constants.LOG_DIR ), Timeouts.START_DATE_NODE_TIMEOUT_SEC );
     }
 
 
