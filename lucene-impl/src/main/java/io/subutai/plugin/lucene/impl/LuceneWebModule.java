@@ -23,11 +23,14 @@ public class LuceneWebModule implements WebuiModule
 
     @Override
     public String getAngularDependecyList() {
-        return String.format("{" +
-                "name: 'subutai.blueprints', files: ["
-                + "'subutai-app/blueprints/blueprints.js',"
-                + "'subutai-app/blueprints/controller.js',"
-                + "'subutai-app/environment/service.js'"
-                + "]}");
+        return ".state('lucene', {\n" + "url: '/plugins/lucene',\n"
+                + "templateUrl: 'plugins/lucene/partials/view.html',\n" + "resolve: {\n"
+                + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
+                + "return $ocLazyLoad.load([\n" + "{\n"
+                + "name: 'subutai.plugins.lucene',\n" + "files: [\n"
+                + "'plugins/lucene/lucene.js',\n" + "'plugins/lucene/controller.js',\n"
+                + "'plugins/lucene/service.js',\n" + "'plugins/hadoop/service.js',\n"
+                + "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
+                + "]);\n" + "}]\n" + "}\n" + "})";
     }
 }

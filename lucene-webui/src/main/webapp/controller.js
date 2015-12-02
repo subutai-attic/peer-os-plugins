@@ -2,7 +2,7 @@
 
 angular.module('subutai.plugins.lucene.controller', [])
     .controller('LuceneCtrl', LuceneCtrl)
-	.directive('colSelectContainers', colSelectContainers);
+	.directive('colSelectLuceneNodes', colSelectLuceneNodes);
 
 LuceneCtrl.$inject = ['$scope', 'luceneSrv', 'SweetAlert', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'ngDialog'];
 
@@ -32,8 +32,8 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.hadoopClusters.length == 0) {
 			SweetAlert.swal("ERROR!", 'No Hadoop clusters was found! Create Hadoop cluster first.', "error");
 		}
-	}).error(function(data){
-		SweetAlert.swal("ERROR!", 'No Hadoop clusters was found! ERROR: ' + data, "error");
+	}).error(function(error){
+		SweetAlert.swal("ERROR!", 'No Hadoop clusters was found! ERROR: ' + error.replace(/\\n/g, ' '), "error");
 	});
 	setDefaultValues();
 
@@ -95,6 +95,7 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		LOADING_SCREEN();
 		luceneSrv.getHadoopClusters(selectedCluster).success(function (data) {
 			vm.currentClusterNodes = data.dataNodes;
+			var tempArray = [];
 
 			var nameNodeFound = false;
 			var jobTrackerFound = false;
@@ -105,16 +106,26 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 				if(node.hostname === data.jobTracker.hostname) jobTrackerFound = true;
 				if(node.hostname === data.secondaryNameNode.hostname) secondaryNameNodeFound = true;
 			}
-
 			if(!nameNodeFound) {
-				vm.currentClusterNodes.push(data.nameNode);
+				tempArray.push(data.nameNode);
 			}
 			if(!jobTrackerFound) {
-				vm.currentClusterNodes.push(data.jobTracker);
+				if(tempArray[0].hostname != data.jobTracker.hostname) {
+					tempArray.push(data.jobTracker);
+				}
 			}
 			if(!secondaryNameNodeFound) {
-				vm.currentClusterNodes.push(data.secondaryNameNode);
+				var checker = 0;
+				for(var i = 0; i < tempArray.length; i++) {
+					if(tempArray[i].hostname != data.secondaryNameNode.hostname) {
+						checker++;
+					}
+				}
+				if(checker == tempArray.length) {
+					tempArray.push(data.secondaryNameNode);
+				}
 			}
+			vm.currentClusterNodes = vm.currentClusterNodes.concat(tempArray);
 
 			LOADING_SCREEN('none');
 			console.log(vm.currentClusterNodes);
@@ -125,12 +136,19 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.luceneInstall.clusterName === undefined || vm.luceneInstall.clusterName.length == 0) return;
 		if(vm.luceneInstall.hadoopClusterName === undefined || vm.luceneInstall.hadoopClusterName.length == 0) return;
 
-		SweetAlert.swal("Success!", "Lucene cluster start creating.", "success");
+		SweetAlert.swal(
+			{
+				title : 'In progress',
+				text : 'Your Lucene cluster creation is started!',
+				timer: VARS_TOOLTIP_TIMEOUT,
+				showConfirmButton: false
+			}
+		);
 		luceneSrv.createLucene(vm.luceneInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Lucene cluster start creating.", "success");
+			SweetAlert.swal("Success!", "Your Lucene cluster has been created.", "success");
 			getClusters();
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Lucene cluster create error: ' + error, "error");
+			SweetAlert.swal("ERROR!", 'Lucene cluster create error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';
@@ -156,8 +174,8 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 					SweetAlert.swal("Deleted!", "Cluster has been deleted.", "success");
 					vm.currentCluster = {};
 					getClusters();
-				}).error(function(data){
-					SweetAlert.swal("ERROR!", 'Delete cluster error: ' + data, "error");
+				}).error(function(error){
+					SweetAlert.swal("ERROR!", 'Delete cluster error: ' + error.replace(/\\n/g, ' '), "error");
 				});
 			}
 		});
@@ -181,7 +199,7 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 			if (isConfirm) {
 				luceneSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
 					SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
-					vm.currentCluster = {};
+					getClustersInfo(vm.currentCluster.clusterName);
 				});
 			}
 		});
@@ -202,7 +220,7 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 
 }
 
-function colSelectContainers() {
+function colSelectLuceneNodes() {
 	return {
 		restrict: 'E',
 		templateUrl: 'plugins/lucene/directives/col-select/col-select-containers.html'

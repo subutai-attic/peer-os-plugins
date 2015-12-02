@@ -56,7 +56,7 @@ function luceneSrv($http, hadoopSrv) {
 		console.log(luceneObj);
 		var postData = 'clusterName=' + luceneObj.clusterName + '&hadoopClusterName=' + luceneObj.hadoopClusterName + '&nodes=' + JSON.stringify(luceneObj.nodes);
 		return $http.post(
-			CLUSTER_URL + 'install',
+			BASE_URL,
 			postData, 
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
