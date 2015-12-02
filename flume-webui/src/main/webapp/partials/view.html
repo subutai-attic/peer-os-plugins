@@ -1,0 +1,35 @@
+<div ng-controller="FlumeCtrl as flumeCtrl">
+
+	<div class="b-workspace__header">
+		<h1 class="b-title">Plugins/<span class="b-title_breadcrumbs">Flume</span></h1>
+	</div>
+
+	<div class="b-workspace__content">
+		<div class="b-tabs-menu">
+			<ul>
+				<li class="b-tabs-menu__item" 
+				ng-click="flumeCtrl.activeTab = 'install'" 
+				ng-class="flumeCtrl.activeTab == 'install' ? 'b-tabs-menu__item_active' : ''">
+					Install
+				</li>
+				<li class="b-tabs-menu__item" 
+				ng-click="flumeCtrl.activeTab = 'manage'" 
+				ng-class="flumeCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
+					Manage
+				</li>
+			</ul>
+		</div>
+
+		<div 
+			ng-if="flumeCtrl.activeTab == 'install'" 
+			ng-include="'plugins/flume/partials/install.html'">
+		</div>
+
+		<div 
+			ng-if="flumeCtrl.activeTab == 'manage'" 
+			ng-include="'plugins/flume/partials/manage.html'">
+		</div>
+
+	</div>
+
+</div>
