@@ -352,6 +352,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
         catch ( Exception e )
         {
             daoManager.closeEntityManager( em );
+
         }
     }
 }

@@ -45,7 +45,11 @@ function genericSrv($http, environmentService) {
 	// Manage
 
 	function listOperations (profile) {
-		return $http.get (BASE_URL + "operations/" + profile.id);
+        var profieId = "";
+        if (profile !== undefined) {
+            profieId = profile.id;
+        }
+		return $http.get (BASE_URL + "operations/" + profieId);
 	}
 
 

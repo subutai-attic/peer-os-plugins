@@ -66,7 +66,10 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 	function updateProfiles() {
 		genericSrv.listProfiles().success (function (data) {
 			vm.profiles = data;
-			vm.currentProfile = vm.profiles[0];
+            if (vm.profiles.length == 0) {
+                vm.operations = [];
+            }
+            vm.currentProfile = vm.profiles[0];
 			genericSrv.listOperations (vm.currentProfile).success (function (data) {
 				vm.operations = data;
 				console.log (vm.operations);
@@ -146,9 +149,6 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 				genericSrv.deleteProfile (profile).success (function (data) {
 					SweetAlert.swal ("Success!", "Your profile was deleted.", "success");
 					vm.updateProfiles();
-					if (vm.profiles.length === 0) {
-						vm.operations = [];
-					}
 				}).error (function (error) {
 					SweetAlert.swal ("ERROR!", "Profile delete error: " + error.replace(/\\n/g, " "), "error");
 				});
