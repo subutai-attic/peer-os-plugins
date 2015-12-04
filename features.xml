@@ -1,8 +1,8 @@
-<features name="hipi-plugin" version="4.0.0-RC4">
-  <feature name="hipi-plugin" version="4.0.0-RC4">
-    <bundle>mvn:io.subutai/hipi-plugin-api/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/hipi-plugin-impl/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/hipi-plugin-cli/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/hipi-plugin-rest/4.0.0-RC4</bundle>
+<features name="hipi-plugin" version="4.0.0-RC5">
+  <feature name="hipi-plugin" version="4.0.0-RC5">
+    <bundle>mvn:io.subutai/hipi-plugin-api/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/hipi-plugin-impl/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/hipi-plugin-cli/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/hipi-plugin-rest/4.0.0-RC5</bundle>
   </feature>
 </features>
