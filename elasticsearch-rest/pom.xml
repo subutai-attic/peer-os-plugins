@@ -7,7 +7,7 @@
   <parent>
      <groupId>io.subutai</groupId>
     <artifactId>elasticsearch-plugin-parent</artifactId>
-    <version>4.0.0-RC4</version>
+    <version>4.0.0-RC5</version>
   </parent>
 
   <artifactId>elasticsearch-plugin-rest</artifactId>
