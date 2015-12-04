@@ -1,8 +1,8 @@
-<features name="pig-plugin" version="4.0.0-RC4">
-  <feature name="pig-plugin" version="4.0.0-RC4">
-    <bundle>mvn:io.subutai/pig-plugin-api/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/pig-plugin-impl/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/pig-plugin-cli/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/pig-plugin-rest/4.0.0-RC4</bundle>
+<features name="pig-plugin" version="4.0.0-RC5">
+  <feature name="pig-plugin" version="4.0.0-RC5">
+    <bundle>mvn:io.subutai/pig-plugin-api/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-impl/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-cli/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-rest/4.0.0-RC5</bundle>
   </feature>
 </features>
