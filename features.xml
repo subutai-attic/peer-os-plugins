@@ -1,6 +1,6 @@
-<features name="generic-plugin" version="4.0.0-RC4">
-  <feature name="generic-plugin" version="4.0.0-RC4">
-    <bundle>mvn:io.subutai/generic-plugin-api/4.0.0-RC4</bundle>
-    <bundle>mvn:io.subutai/generic-plugin-impl/4.0.0-RC4</bundle>
+<features name="generic-plugin" version="4.0.0-RC5">
+  <feature name="generic-plugin" version="4.0.0-RC5">
+    <bundle>mvn:io.subutai/generic-plugin-api/4.0.0-RC5</bundle>
+    <bundle>mvn:io.subutai/generic-plugin-impl/4.0.0-RC5</bundle>
   </feature>
 </features>
