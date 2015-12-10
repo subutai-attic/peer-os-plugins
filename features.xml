@@ -5,4 +5,7 @@
     <bundle> mvn:io.subutai/hadoop-plugin-cli/4.0.0-RC5</bundle>
     <bundle> mvn:io.subutai/hadoop-plugin-rest/4.0.0-RC5</bundle>
   </feature>
+  <feature name="hadoop-plugin-war" version="4.0.0-RC5">
+    <bundle> war:mvn:io.subutai/hadoop-plugin-webui/4.0.0-RC5/war?Webapp-Context=hadoop-plugin-war</bundle>
+  </feature>
 </features>

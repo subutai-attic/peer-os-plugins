@@ -32,8 +32,8 @@
     <module>hadoop-impl</module>
     <module>hadoop-cli</module>
     <module>hadoop-rest</module>
-    <module>hadoop-kar</module>
     <module>hadoop-webui</module>
+    <module>hadoop-kar</module>
   </modules>
 
   <dependencyManagement>
