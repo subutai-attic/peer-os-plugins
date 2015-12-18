@@ -27,7 +27,7 @@
 
   <!-- *********************************************************************************** -->
   <service ref="mongo-impl" interface="io.subutai.plugin.mongodb.api.Mongo" />
-  <service ref="alertListener" interface="io.subutai.common.peer.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertHandler" />
   <!-- *********************************************************************************** -->
 
 	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
