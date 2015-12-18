@@ -14,7 +14,7 @@
       <property name="openjpa.Log" value="DefaultLevel=WARN, Runtime=TRACE, Tool=INFO, SQL=TRACE" />
       <property name="openjpa.ConnectionFactoryProperties" value="PrintParameters=true" />
       <property name="openjpa.RuntimeUnenhancedClasses" value="supported" />
-      <property name="openjpa.jdbc.DBDictionary" value="h2" />
+      <property name="openjpa.jdbc.DBDictionary" value="derby" />
       <property name="openjpa.MetaDataRepository" value="Preload=true" />
     </properties>
   </persistence-unit>
