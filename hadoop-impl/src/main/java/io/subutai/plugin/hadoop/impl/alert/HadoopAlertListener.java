@@ -39,7 +39,7 @@ import io.subutai.plugin.hadoop.impl.HadoopImpl;
 public class HadoopAlertListener extends ExceededQuotaAlertHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger( HadoopAlertListener.class );
-    private static final String HANDLER_ID = "DEFAULT_QUOTA_EXCEEDED_ALERT_HANDLER";
+    private static final String HANDLER_ID = "DEFAULT_HADOOP_QUOTA_EXCEEDED_ALERT_HANDLER";
     private HadoopImpl hadoop;
     private CommandUtil commandUtil = new CommandUtil();
 
