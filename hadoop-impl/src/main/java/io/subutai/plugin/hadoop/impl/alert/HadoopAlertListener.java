@@ -38,7 +38,8 @@ import io.subutai.plugin.hadoop.impl.HadoopImpl;
  */
 public class HadoopAlertListener extends ExceededQuotaAlertHandler
 {
-    private static final Logger LOG = LoggerFactory.getLogger( HadoopAlertListener.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( HadoopAlertListener.class );
+    private static final String HANDLER_ID = "DEFAULT_QUOTA_EXCEEDED_ALERT_HANDLER";
     private HadoopImpl hadoop;
     private CommandUtil commandUtil = new CommandUtil();
 
@@ -67,14 +68,14 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
     @Override
     public String getId()
     {
-        return null;
+        return HANDLER_ID;
     }
 
 
     @Override
     public String getDescription()
     {
-        return null;
+        return "Node resource threshold excess default alert handler for hadoop.";
     }
 
 
@@ -103,7 +104,7 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
             return;
         }
 
-        EnvironmentContainerHost sourceHost=null;
+        EnvironmentContainerHost sourceHost = null;
 
         //get environment containers and find alert's source host
         Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
