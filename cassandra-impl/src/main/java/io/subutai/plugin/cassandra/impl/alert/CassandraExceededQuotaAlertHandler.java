@@ -33,9 +33,10 @@ import io.subutai.plugin.cassandra.impl.Commands;
 /**
  * Node resource threshold excess alert listener
  */
-public class CassandraAlertListener extends ExceededQuotaAlertHandler
+public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandler
 {
-    private static final Logger LOG = LoggerFactory.getLogger( CassandraAlertListener.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger( CassandraExceededQuotaAlertHandler.class );
+    private static final String HANDLER_ID = "DEFAULT_CASSANDRA_EXCEEDED_QUOTA_ALERT_HANDLER";
     private CassandraImpl cassandra;
     private CommandUtil commandUtil = new CommandUtil();
 
@@ -45,7 +46,7 @@ public class CassandraAlertListener extends ExceededQuotaAlertHandler
     private static int CPU_QUOTA_INCREMENT_PERCENT = 15;
 
 
-    public CassandraAlertListener( final CassandraImpl cassandra )
+    public CassandraExceededQuotaAlertHandler( final CassandraImpl cassandra )
     {
         this.cassandra = cassandra;
     }
@@ -61,7 +62,7 @@ public class CassandraAlertListener extends ExceededQuotaAlertHandler
     @Override
     public String getId()
     {
-        return CassandraClusterConfig.PRODUCT_KEY;
+        return HANDLER_ID;
     }
 
 
