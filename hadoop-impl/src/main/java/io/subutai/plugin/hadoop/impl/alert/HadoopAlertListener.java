@@ -12,16 +12,17 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.metric.QuotaAlertResource;
-import io.subutai.common.peer.AlertListener;
-import io.subutai.common.peer.AlertPack;
+import io.subutai.common.metric.QuotaAlertValue;
+import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.ExceededQuotaAlertHandler;
+import io.subutai.common.peer.PeerException;
 import io.subutai.common.resource.MeasureUnit;
 import io.subutai.common.resource.ResourceType;
 import io.subutai.common.resource.ResourceValue;
@@ -35,7 +36,7 @@ import io.subutai.plugin.hadoop.impl.HadoopImpl;
 /**
  * Node resource threshold excess alert listener
  */
-public class HadoopAlertListener implements AlertListener
+public class HadoopAlertListener extends ExceededQuotaAlertHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger( HadoopAlertListener.class.getName() );
     private HadoopImpl hadoop;
@@ -56,30 +57,40 @@ public class HadoopAlertListener implements AlertListener
     }
 
 
-    private void throwAlertException( String context, Exception e ) throws AlertException
+    private void throwAlertException( String context, Exception e ) throws AlertHandlerException
     {
         LOG.error( context, e );
-        throw new AlertException( context, e );
+        throw new AlertHandlerException( context, e );
     }
 
 
     @Override
-    public String getTemplateName()
+    public String getId()
     {
-        return HadoopClusterConfig.TEMPLATE_NAME;
+        return null;
     }
 
 
     @Override
-    public void onAlert( final AlertPack alertPack ) throws Exception
+    public String getDescription()
+    {
+        return null;
+    }
+
+
+    @Override
+    public void process( final Environment environment, final QuotaAlertValue alertValue ) throws AlertHandlerException
     {
         //find hadoop cluster by environment id
         List<HadoopClusterConfig> clusters = hadoop.getClusters();
 
+        String environmentId = environment.getId();
+        String sourceHostId = alertValue.getValue().getHostId().getId();
+
         HadoopClusterConfig targetCluster = null;
         for ( HadoopClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( alertPack.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( environmentId ) )
             {
                 targetCluster = cluster;
                 break;
@@ -88,44 +99,29 @@ public class HadoopAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException(
-                    String.format( "Cluster not found by environment id %s", alertPack.getEnvironmentId() ), null );
+            throwAlertException( String.format( "Cluster not found by environment id %s", environmentId ), null );
             return;
         }
 
-        //get cluster environment
-        Environment environment;
-        EnvironmentContainerHost sourceHost;
-        try
+        EnvironmentContainerHost sourceHost=null;
+
+        //get environment containers and find alert's source host
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
+
+        for ( EnvironmentContainerHost containerHost : containers )
         {
-            environment = hadoop.getEnvironmentManager().loadEnvironment( alertPack.getEnvironmentId() );
-
-            //get environment containers and find alert's source host
-            Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
-
-            sourceHost = null;
-            for ( EnvironmentContainerHost containerHost : containers )
+            if ( containerHost.getId().equalsIgnoreCase( sourceHostId ) )
             {
-                if ( containerHost.getHostname().equalsIgnoreCase( alertPack.getContainerId() ) )
-                {
-                    sourceHost = containerHost;
-                    break;
-                }
+                sourceHost = containerHost;
+                break;
             }
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-            LOG.error( "Could not find environment.", e );
-            e.printStackTrace();
-            return;
         }
 
 
         if ( sourceHost == null )
         {
-            throwAlertException(
-                    String.format( "Alert source host %s not found in environment", alertPack.getContainerId() ),
-                    null );
+            throwAlertException( String.format( "Alert source host %s not found in environment",
+                    alertValue.getValue().getHostId().getId() ), null );
             return;
         }
 
@@ -133,7 +129,7 @@ public class HadoopAlertListener implements AlertListener
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
             LOG.info( String.format( "Alert source host %s does not belong to Hadoop cluster",
-                    alertPack.getContainerId() ) );
+                    alertValue.getValue().getHostId() ) );
             return;
         }
 
@@ -152,205 +148,212 @@ public class HadoopAlertListener implements AlertListener
         // confirm that Hadoop is causing the stress, otherwise no-op
         MonitoringSettings thresholds = hadoop.getAlertSettings();
         //TODO: check total ram usage
-        final QuotaAlertResource alertResource = ( QuotaAlertResource ) alertPack.getResource().getValue();
-        final double currentRam = alertResource.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue();
+        final double currentRam = alertValue.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue();
         double ramLimit = currentRam * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
         HashMap<NodeType, Double> ramConsumption = new HashMap<>();
         HashMap<NodeType, Double> cpuConsumption = new HashMap<>();
-
-        for ( NodeType nodeType : nodeRoles )
+        try
         {
-            int pid;
-            switch ( nodeType )
+            for ( NodeType nodeType : nodeRoles )
             {
-                case NAMENODE:
-                    CommandResult result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
-                                    sourceHost );
-                    String output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                    if ( !output.toLowerCase().contains( PID_STRING ) )
-                    {
-                        break;
-                    }
-                    pid = parsePid( output );
-                    ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                    ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
-                    cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
-                    break;
-                case SECONDARY_NAMENODE:
-                    result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
-                                    sourceHost );
-                    output = parseService( result.getStdOut(), "secondarynamenode" );
-                    if ( !output.toLowerCase().contains( PID_STRING ) )
-                    {
-                        break;
-                    }
-                    pid = parsePid( output );
-                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                    ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
-                    cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
-                    break;
-                case JOBTRACKER:
-                    result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).withTimeout( 60 ),
-                                    sourceHost );
-                    output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                    if ( !output.toLowerCase().contains( PID_STRING ) )
-                    {
-                        break;
-                    }
-                    pid = parsePid( output );
-                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                    ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
-                    cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
-                    break;
-                case DATANODE:
-                    result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ).withTimeout( 60 ),
-                                    sourceHost );
-                    output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                    if ( !output.toLowerCase().contains( PID_STRING ) )
-                    {
-                        break;
-                    }
-                    pid = parsePid( output );
-                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                    ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
-                    cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
-                    break;
-                case TASKTRACKER:
-                    result = commandUtil
-                            .execute( new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ),
-                                    sourceHost );
-                    output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                    if ( !output.toLowerCase().contains( PID_STRING ) )
-                    {
-                        break;
-                    }
-                    pid = parsePid( output );
-                    processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                    ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
-                    cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
-                    break;
-            }
-        }
-
-        for ( NodeType nodeType : nodeRoles )
-        {
-            if ( ramConsumption.get( nodeType ) != null )
-            {
-                totalRamUsage += ramConsumption.get( nodeType );
-            }
-            if ( cpuConsumption.get( nodeType ) != null )
-            {
-                totalCpuUsage += cpuConsumption.get( nodeType );
-            }
-        }
-
-
-        boolean isCPUStressedByHadoop = false;
-        boolean isRAMStressedByHadoop = false;
-
-        if ( totalRamUsage >= ramLimit * redLine )
-        {
-            isRAMStressedByHadoop = true;
-        }
-
-        if ( totalCpuUsage >= thresholds.getCpuAlertThreshold() * redLine )
-        {
-            isCPUStressedByHadoop = true;
-        }
-
-        if ( !( isRAMStressedByHadoop || isCPUStressedByHadoop ) )
-        {
-            LOG.info( "Hadoop cluster ok" );
-            return;
-        }
-
-        /**
-         * after this point, we found out source node is under stress, we need to either
-         * scale vertically ( increase available sources) or scale horizontally ( add new nodes to cluster)
-         *
-         * Since in hadoop master nodes cannot be scaled horizontally ( Hadoop can just have one NameNode, one
-         * JobTracker, one SecondaryNameNode ), we should scale master nodes vertically. However we can scale
-         * out slave nodes (DataNode and TaskTracker) horizontally.
-         *
-         * Vertical scaling have more priority to Horizontal scaling.
-         */
-
-        //auto-scaling is enabled -> scale cluster
-        if ( targetCluster.isAutoScaling() )
-        {
-            // check if a quota limit increase does it
-            boolean quotaIncreased = false;
-
-            //            @todo quota exception
-            if ( isRAMStressedByHadoop )
-            {
-                //read current RAM quota
-                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
-
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
+                int pid;
+                switch ( nodeType )
                 {
-
-                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-                    // increase quota, otherwise scale horizontally
-                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
-                    {
-
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
-                                newRamQuota );
-                        //we can increase RAM quota
-                        ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
-                        sourceHost.setQuota( ResourceType.RAM, quota );
-
-                        quotaIncreased = true;
-                    }
+                    case NAMENODE:
+                        CommandResult result = commandUtil
+                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
+                                        sourceHost );
+                        String output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+                        if ( !output.toLowerCase().contains( PID_STRING ) )
+                        {
+                            break;
+                        }
+                        pid = parsePid( output );
+                        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                        ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
+                        cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
+                        break;
+                    case SECONDARY_NAMENODE:
+                        result = commandUtil
+                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
+                                        sourceHost );
+                        output = parseService( result.getStdOut(), "secondarynamenode" );
+                        if ( !output.toLowerCase().contains( PID_STRING ) )
+                        {
+                            break;
+                        }
+                        pid = parsePid( output );
+                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                        ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
+                        cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
+                        break;
+                    case JOBTRACKER:
+                        result = commandUtil
+                                .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).withTimeout( 60 ),
+                                        sourceHost );
+                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+                        if ( !output.toLowerCase().contains( PID_STRING ) )
+                        {
+                            break;
+                        }
+                        pid = parsePid( output );
+                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                        ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
+                        cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
+                        break;
+                    case DATANODE:
+                        result = commandUtil
+                                .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ).withTimeout( 60 ),
+                                        sourceHost );
+                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+                        if ( !output.toLowerCase().contains( PID_STRING ) )
+                        {
+                            break;
+                        }
+                        pid = parsePid( output );
+                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                        ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
+                        cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
+                        break;
+                    case TASKTRACKER:
+                        result = commandUtil.execute(
+                                new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ),
+                                sourceHost );
+                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+                        if ( !output.toLowerCase().contains( PID_STRING ) )
+                        {
+                            break;
+                        }
+                        pid = parsePid( output );
+                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+                        ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
+                        cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
+                        break;
                 }
             }
 
-            if ( isCPUStressedByHadoop )
-            {
-                //read current CPU quota
-                ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
-                if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
-                {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
-                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
-                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
-                    //we can increase CPU quota
-                    ResourceValue newQuota = new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
-                    sourceHost.setQuota( ResourceType.CPU, newQuota );
 
-                    quotaIncreased = true;
+            for ( NodeType nodeType : nodeRoles )
+            {
+                if ( ramConsumption.get( nodeType ) != null )
+                {
+                    totalRamUsage += ramConsumption.get( nodeType );
+                }
+                if ( cpuConsumption.get( nodeType ) != null )
+                {
+                    totalCpuUsage += cpuConsumption.get( nodeType );
                 }
             }
 
-            //quota increase is made, return
-            if ( quotaIncreased )
+
+            boolean isCPUStressedByHadoop = false;
+            boolean isRAMStressedByHadoop = false;
+
+            if ( totalRamUsage >= ramLimit * redLine )
             {
-                // TODO remove the following line when testing is finished
-                hadoop.addNode( targetCluster.getClusterName() );
+                isRAMStressedByHadoop = true;
+            }
+
+            if ( totalCpuUsage >= thresholds.getCpuAlertThreshold() * redLine )
+            {
+                isCPUStressedByHadoop = true;
+            }
+
+            if ( !( isRAMStressedByHadoop || isCPUStressedByHadoop ) )
+            {
+                LOG.info( "Hadoop cluster ok" );
                 return;
             }
 
             /**
-             * If one of slave nodes uses consume most resources on machines,
-             * we can scale horizontally, otherwise do nothing.
+             * after this point, we found out source node is under stress, we need to either
+             * scale vertically ( increase available sources) or scale horizontally ( add new nodes to cluster)
+             *
+             * Since in hadoop master nodes cannot be scaled horizontally ( Hadoop can just have one NameNode, one
+             * JobTracker, one SecondaryNameNode ), we should scale master nodes vertically. However we can scale
+             * out slave nodes (DataNode and TaskTracker) horizontally.
+             *
+             * Vertical scaling have more priority to Horizontal scaling.
              */
-            if ( isSourceNodeUnderStressBySlaveNodes( ramConsumption, cpuConsumption, targetCluster ) )
+
+            //auto-scaling is enabled -> scale cluster
+            if ( targetCluster.isAutoScaling() )
             {
-                // add new nodes to hadoop cluster (horizontal scaling)
-                hadoop.addNode( targetCluster.getClusterName() );
+                // check if a quota limit increase does it
+                boolean quotaIncreased = false;
+
+                //            @todo quota exception
+                if ( isRAMStressedByHadoop )
+                {
+                    //read current RAM quota
+                    double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
+
+                    if ( ramQuota < MAX_RAM_QUOTA_MB )
+                    {
+
+                        // if available quota on resource host is greater than 10 % of calculated increase amount,
+                        // increase quota, otherwise scale horizontally
+                        double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                        if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                        {
+
+                            LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                    sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
+                                    newRamQuota );
+                            //we can increase RAM quota
+                            ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
+                            sourceHost.setQuota( ResourceType.RAM, quota );
+
+                            quotaIncreased = true;
+                        }
+                    }
+                }
+
+                if ( isCPUStressedByHadoop )
+                {
+                    //read current CPU quota
+                    ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
+                    if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
+                    {
+                        int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
+                                cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
+                        LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+                                cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
+                        //we can increase CPU quota
+                        ResourceValue newQuota =
+                                new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
+                        sourceHost.setQuota( ResourceType.CPU, newQuota );
+
+                        quotaIncreased = true;
+                    }
+                }
+
+                //quota increase is made, return
+                if ( quotaIncreased )
+                {
+                    // TODO remove the following line when testing is finished
+                    hadoop.addNode( targetCluster.getClusterName() );
+                    return;
+                }
+
+                /**
+                 * If one of slave nodes uses consume most resources on machines,
+                 * we can scale horizontally, otherwise do nothing.
+                 */
+                if ( isSourceNodeUnderStressBySlaveNodes( ramConsumption, cpuConsumption, targetCluster ) )
+                {
+                    // add new nodes to hadoop cluster (horizontal scaling)
+                    hadoop.addNode( targetCluster.getClusterName() );
+                }
+            }
+            else
+            {
+                notifyUser();
             }
         }
-        else
+        catch ( CommandException | PeerException e )
         {
-            notifyUser();
+            throwAlertException( e.getMessage(), e );
         }
     }
 
@@ -402,7 +405,7 @@ public class HadoopAlertListener implements AlertListener
     }
 
 
-    protected int parsePid( String output ) throws AlertException
+    protected int parsePid( String output ) throws AlertHandlerException
     {
         Pattern p = Pattern.compile( "pid\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
 
