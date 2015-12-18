@@ -15,12 +15,12 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.metric.ProcessResourceUsage;
-import io.subutai.common.metric.QuotaAlertResource;
-import io.subutai.common.peer.AlertListener;
-import io.subutai.common.peer.AlertPack;
+import io.subutai.common.metric.QuotaAlertValue;
+import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.ExceededQuotaAlertHandler;
+import io.subutai.common.peer.PeerException;
 import io.subutai.common.resource.MeasureUnit;
 import io.subutai.common.resource.ResourceType;
 import io.subutai.common.resource.ResourceValue;
@@ -33,7 +33,7 @@ import io.subutai.plugin.cassandra.impl.Commands;
 /**
  * Node resource threshold excess alert listener
  */
-public class CassandraAlertListener implements AlertListener
+public class CassandraAlertListener extends ExceededQuotaAlertHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger( CassandraAlertListener.class.getName() );
     private CassandraImpl cassandra;
@@ -51,22 +51,29 @@ public class CassandraAlertListener implements AlertListener
     }
 
 
-    private void throwAlertException( String context, Exception e ) throws AlertException
+    private void throwAlertException( String context, Exception e ) throws AlertHandlerException
     {
         LOG.error( context, e );
-        throw new AlertException( context, e );
+        throw new AlertHandlerException( context, e );
     }
 
 
     @Override
-    public String getTemplateName()
+    public String getId()
     {
-        return CassandraClusterConfig.TEMPLATE_NAME;
+        return CassandraClusterConfig.PRODUCT_KEY;
     }
 
 
     @Override
-    public void onAlert( final AlertPack alert ) throws Exception
+    public String getDescription()
+    {
+        return "Node resource threshold excess alert handler for cassandra cluster.";
+    }
+
+
+    @Override
+    public void process( final Environment environment, final QuotaAlertValue alert ) throws AlertHandlerException
     {
         //find cluster by environment id
         List<CassandraClusterConfig> clusters = cassandra.getClusters();
@@ -74,7 +81,7 @@ public class CassandraAlertListener implements AlertListener
         CassandraClusterConfig targetCluster = null;
         for ( CassandraClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( alert.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( environment.getEnvironmentId() ) )
             {
                 targetCluster = cluster;
                 break;
@@ -83,20 +90,8 @@ public class CassandraAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", alert.getEnvironmentId() ),
-                    null );
-        }
-
-        //get cluster environment
-        Environment environment = null;
-        try
-        {
-            environment = cassandra.getEnvironmentManager().loadEnvironment( alert.getEnvironmentId() );
-        }
-        catch ( EnvironmentNotFoundException e )
-        {
-
-            throwAlertException( String.format( "Environment not found by id %s", alert.getEnvironmentId() ), null );
+            throwAlertException(
+                    String.format( "Cluster not found by environment id %s", environment.getEnvironmentId() ), null );
         }
 
         //get environment containers and find alert's source host
@@ -105,7 +100,7 @@ public class CassandraAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( alert.getContainerId() ) )
+            if ( containerHost.getId().equals( alert.getValue().getHostId() ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -115,135 +110,142 @@ public class CassandraAlertListener implements AlertListener
         if ( sourceHost == null )
         {
             throwAlertException(
-                    String.format( "Alert source host %s not found in environment", alert.getContainerId() ), null );
+                    String.format( "Alert source host %s not found in environment", alert.getValue().getHostId() ),
+                    null );
         }
 
         //check if source host belongs to found cluster
         if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
         {
             LOG.info( String.format( "Alert source host %s does not belong to Cassandra cluster",
-                    alert.getContainerId() ) );
+                    alert.getValue().getHostId() ) );
             return;
         }
 
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-        MAX_RAM_QUOTA_MB =
-                sourceHost.getAvailableQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue() * 0.5;
-
-
-        //figure out process pid
-        int processPID = 0;
         try
         {
-            CommandResult result = commandUtil.execute( new RequestBuilder( Commands.statusCommand ), sourceHost );
-            processPID = parsePid( result.getStdOut() );
-        }
-        catch ( NumberFormatException | CommandException e )
-        {
-            throwAlertException( "Error obtaining process PID", e );
-        }
-
-        //get process resource usage by pid
-        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( processPID );
-
-        //confirm that Cassandra is causing the stress, otherwise no-op
-        MonitoringSettings thresholds = cassandra.getAlertSettings();
-        QuotaAlertResource quotaAlertResource = ( QuotaAlertResource ) alert.getResource().getValue();
-
-        double ramLimit =
-                quotaAlertResource.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue() * thresholds
-                        .getRamAlertThreshold() / 100; // 0.8
-        double redLine = 0.7;
-        boolean isCpuStressed = false;
-        boolean isRamStressed = false;
-
-        if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
-        {
-            isRamStressed = true;
-        }
-
-        if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
-        {
-            isCpuStressed = true;
-        }
-
-        if ( !( isRamStressed || isCpuStressed ) )
-        {
-            LOG.info( "Cassandra cluster is not stressed, returning." );
-            return;
-        }
+            MAX_RAM_QUOTA_MB =
+                    sourceHost.getAvailableQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue() * 0.5;
 
 
-        //auto-scaling is enabled -> scale cluster
-        if ( targetCluster.isAutoScaling() )
-        {
-            // check if a quota limit increase does it
-            boolean quotaIncreased = false;
-
-            if ( isRamStressed )
+            //figure out process pid
+            int processPID = 0;
+            try
             {
-                //read current RAM quota
-                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
+                CommandResult result = commandUtil.execute( new RequestBuilder( Commands.statusCommand ), sourceHost );
+                processPID = parsePid( result.getStdOut() );
+            }
+            catch ( NumberFormatException | CommandException e )
+            {
+                throwAlertException( "Error obtaining process PID", e );
+            }
 
-                if ( ramQuota < MAX_RAM_QUOTA_MB )
+            //get process resource usage by pid
+            ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( processPID );
+
+            //confirm that Cassandra is causing the stress, otherwise no-op
+            MonitoringSettings thresholds = cassandra.getAlertSettings();
+
+            double ramLimit = alert.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue() * thresholds
+                    .getRamAlertThreshold() / 100; // 0.8
+            double redLine = 0.7;
+            boolean isCpuStressed = false;
+            boolean isRamStressed = false;
+
+            if ( processResourceUsage.getUsedRam() >= ramLimit * redLine )
+            {
+                isRamStressed = true;
+            }
+
+            if ( processResourceUsage.getUsedCpu() >= thresholds.getCpuAlertThreshold() * redLine )
+            {
+                isCpuStressed = true;
+            }
+
+            if ( !( isRamStressed || isCpuStressed ) )
+            {
+                LOG.info( "Cassandra cluster is not stressed, returning." );
+                return;
+            }
+
+
+            //auto-scaling is enabled -> scale cluster
+            if ( targetCluster.isAutoScaling() )
+            {
+                // check if a quota limit increase does it
+                boolean quotaIncreased = false;
+
+                if ( isRamStressed )
                 {
+                    //read current RAM quota
+                    double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue();
 
-                    // if available quota on resource host is greater than 10 % of calculated increase amount,
-                    // increase quota, otherwise scale horizontally
-                    double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
-                    if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                    if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
 
-                        LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
-                                newRamQuota );
-                        //we can increase RAM quota
-                        ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
-                        sourceHost.setQuota( ResourceType.RAM, quota );
+                        // if available quota on resource host is greater than 10 % of calculated increase amount,
+                        // increase quota, otherwise scale horizontally
+                        double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_PERCENTAGE ) / 100;
+                        if ( MAX_RAM_QUOTA_MB > newRamQuota )
+                        {
+
+                            LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
+                                    sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit.MB ).doubleValue(),
+                                    newRamQuota );
+                            //we can increase RAM quota
+                            ResourceValue quota = new ResourceValue( new BigDecimal( newRamQuota ), MeasureUnit.MB );
+                            sourceHost.setQuota( ResourceType.RAM, quota );
+
+                            quotaIncreased = true;
+                        }
+                    }
+                }
+
+                if ( isCpuStressed )
+                {
+
+                    //read current CPU quota
+                    ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
+                    if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
+                    {
+                        int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
+                                cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
+                        LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
+                                cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
+                        //we can increase CPU quota
+                        ResourceValue newQuota =
+                                new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
+                        sourceHost.setQuota( ResourceType.CPU, newQuota );
 
                         quotaIncreased = true;
                     }
                 }
-            }
 
-            if ( isCpuStressed )
-            {
-
-                //read current CPU quota
-                ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
-                if ( cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() < MAX_CPU_QUOTA_PERCENT )
+                //quota increase is made, return
+                if ( quotaIncreased )
                 {
-                    int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
-                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue() + CPU_QUOTA_INCREMENT_PERCENT );
-                    LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
-                            cpuQuota.getValue( MeasureUnit.PERCENT ).intValue(), newCpuQuota );
-                    //we can increase CPU quota
-                    ResourceValue newQuota = new ResourceValue( new BigDecimal( newCpuQuota ), MeasureUnit.PERCENT );
-                    sourceHost.setQuota( ResourceType.CPU, newQuota );
-
-                    quotaIncreased = true;
+                    return;
                 }
-            }
 
-            //quota increase is made, return
-            if ( quotaIncreased )
+                //launch node addition process
+                LOG.info( "Adding new node to {} cassandra cluster", targetCluster.getClusterName() );
+                cassandra.addNode( targetCluster.getClusterName() );
+            }
+            else
             {
-                return;
+                notifyUser();
             }
-
-            //launch node addition process
-            LOG.info( "Adding new node to {} cassandra cluster", targetCluster.getClusterName() );
-            cassandra.addNode( targetCluster.getClusterName() );
         }
-        else
+        catch ( PeerException e )
         {
-            notifyUser();
+            throwAlertException( "Error obtaining quota of " + sourceHost.getId(), null );
         }
     }
 
 
-    protected int parsePid( String output ) throws AlertException
+    protected int parsePid( String output ) throws AlertHandlerException
     {
         Pattern p = Pattern.compile( "pid\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE );
 
