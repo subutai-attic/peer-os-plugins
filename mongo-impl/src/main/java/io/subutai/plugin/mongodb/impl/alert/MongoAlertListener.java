@@ -4,11 +4,6 @@ package io.subutai.plugin.mongodb.impl.alert;
 import java.util.List;
 import java.util.Set;
 
-//import io.subutai.common.quota.CpuQuota;
-import io.subutai.common.metric.QuotaAlertResource;
-import io.subutai.common.peer.AlertListener;
-import io.subutai.common.peer.AlertPack;
-import io.subutai.common.resource.MeasureUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +11,13 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.metric.QuotaAlertValue;
+import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.ExceededQuotaAlertHandler;
+import io.subutai.common.resource.MeasureUnit;
+import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
@@ -26,10 +25,10 @@ import io.subutai.plugin.mongodb.impl.MongoImpl;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
-public class MongoAlertListener implements AlertListener
+public class MongoAlertListener extends ExceededQuotaAlertHandler
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( MongoAlertListener.class );
-    public static final String MONGO_ALERT_LISTENER = "MONGO_ALERT_LISTENER";
+    private static final String HANDLER_ID = "DEFAULT_MONGO_EXCEEDED_QUOTA_ALERT_HANDLER";
 
     private static double MAX_RAM_QUOTA_MB;
     private static int RAM_QUOTA_INCREMENT_PERCENTAGE = 25;
@@ -47,15 +46,32 @@ public class MongoAlertListener implements AlertListener
 
 
     @Override
-	public void onAlert (AlertPack containerHostMetric) throws Exception
+    public String getId()
     {
+        return HANDLER_ID;
+    }
+
+
+    @Override
+    public String getDescription()
+    {
+        return "Default mongo node quota exceed alert handler.";
+    }
+
+
+    @Override
+    public void process( final Environment environment, final QuotaAlertValue alert ) throws AlertHandlerException
+    {
+        String environmentId = environment.getId();
+        String containerId = alert.getValue().getHostId().getId();
+
         //find mongo cluster by environment id
         List<MongoClusterConfig> clusters = mongo.getClusters();
 
         MongoClusterConfig targetCluster = null;
         for ( MongoClusterConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId().equals( containerHostMetric.getEnvironmentId() ) )
+            if ( cluster.getEnvironmentId().equals( environmentId ) )
             {
                 targetCluster = cluster;
                 break;
@@ -64,18 +80,7 @@ public class MongoAlertListener implements AlertListener
 
         if ( targetCluster == null )
         {
-            throw new Exception(
-                    String.format( "Cluster not found by environment id %s", containerHostMetric.getEnvironmentId() ),
-                    null );
-        }
-
-        //get cluster environment
-        Environment environment =
-                mongo.getEnvironmentManager().loadEnvironment( containerHostMetric.getEnvironmentId() );
-        if ( environment == null )
-        {
-            throw new Exception(
-                    String.format( "Environment not found by id %s", containerHostMetric.getEnvironmentId() ), null );
+            throw new AlertHandlerException( String.format( "Cluster not found by environment id %s", environmentId ) );
         }
 
         //get environment containers and find alert source host
@@ -84,7 +89,7 @@ public class MongoAlertListener implements AlertListener
         EnvironmentContainerHost sourceHost = null;
         for ( EnvironmentContainerHost containerHost : containers )
         {
-            if ( containerHost.getId().equals( containerHostMetric.getContainerId () ) )
+            if ( containerHost.getId().equals( containerId ) )
             {
                 sourceHost = containerHost;
                 break;
@@ -93,22 +98,20 @@ public class MongoAlertListener implements AlertListener
 
         if ( sourceHost == null )
         {
-            throw new Exception(
-                    String.format( "Alert source host %s not found in environment", containerHostMetric.getContainerId () ),
-                    null );
+            throw new AlertHandlerException(
+                    String.format( "Alert source host %s not found in environment", containerId ) );
         }
 
         //check if source host belongs to found mongo cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster",
-                    containerHostMetric.getContainerId () ) );
+            LOGGER.info( String.format( "Alert source host %s does not belong to Mongo cluster", containerId ) );
             return;
         }
 
         // Set 80 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
-//        MAX_RAM_QUOTA_MB = Float.parseFloat (sourceHost.getAvailableRamQuota().getValue()) * 0.8;
+        //        MAX_RAM_QUOTA_MB = Float.parseFloat (sourceHost.getAvailableRamQuota().getValue()) * 0.8;
 
         //figure out Mongo  process pid
         int mongoPid;
@@ -119,16 +122,24 @@ public class MongoAlertListener implements AlertListener
         }
         catch ( NumberFormatException | CommandException e )
         {
-            throw new Exception( "Error obtaining Mongo process PID", e );
+            throw new AlertHandlerException( "Error obtaining Mongo process PID", e );
         }
 
         //get Zookeeper process resource usage by Mongo pid
-        ProcessResourceUsage processResourceUsage = mongo.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), mongoPid );
+        ProcessResourceUsage processResourceUsage;
+        try
+        {
+            processResourceUsage = mongo.getMonitor().getProcessResourceUsage( sourceHost.getContainerId(), mongoPid );
+        }
+        catch ( MonitorException e )
+        {
+            throw new AlertHandlerException( "Error obtaining Mongo process usage", e );
+        }
 
         //confirm that Mongo is causing the stress, otherwise no-op
         MonitoringSettings thresholds = mongo.getAlertSettings();
-		QuotaAlertResource resource = (QuotaAlertResource) containerHostMetric.getResource ();
-        double ramLimit = resource.getValue ().getCurrentValue ().getValue (MeasureUnit.MB).doubleValue () * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+        double ramLimit = alert.getValue().getCurrentValue().getValue( MeasureUnit.MB ).doubleValue() * (
+                thresholds.getRamAlertThreshold() / 100 ); // 0.8
         double redLine = 0.7;
         boolean cpuStressedByMongo = false;
         boolean ramStressedByMongo = false;
@@ -205,8 +216,8 @@ public class MongoAlertListener implements AlertListener
             MongoClusterConfig mongoClusterConfig = mongo.getCluster( targetCluster.getClusterName() );
             if ( mongoClusterConfig == null )
             {
-                throw new Exception( String.format( "Mongo cluster %s not found", targetCluster.getClusterName() ),
-                        null );
+                throw new AlertHandlerException(
+                        String.format( "Mongo cluster %s not found", targetCluster.getClusterName() ) );
             }
 
             boolean isDataNode = mongoClusterConfig.getDataHosts().contains( sourceHost.getId() );
@@ -238,14 +249,14 @@ public class MongoAlertListener implements AlertListener
     }*/
 
 
-    protected int parsePid( String output ) throws Exception
+    protected int parsePid( String output ) throws AlertHandlerException
     {
         int pid;
         output = output.replaceAll( "\n", "" );
         pid = Integer.parseInt( output );
         if ( pid == 0 )
         {
-            throw new CommandException( "Couldn't parse pid" );
+            throw new AlertHandlerException( "Couldn't parse pid" );
         }
         return pid;
     }
@@ -255,10 +266,4 @@ public class MongoAlertListener implements AlertListener
     {
         //TODO implement me when user identity management is complete and we can figure out user email
     }
-
-	@Override
-	public String getTemplateName ()
-	{
-		return null;
-	}
 }
