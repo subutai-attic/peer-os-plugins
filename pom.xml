@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>io.subutai</groupId>
+    <artifactId>AppScale</artifactId>
+    <version>4.0.0.RC4</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>plugin-appscale-api</module>
+        <module>plugin-appscale-cli</module>
+        <module>plugin-appscale-impl</module>
+        <module>plugin-appscale-kar</module>
+        <module>plugin-appscale-rest</module>
+        <module>plugin-appscale-webui</module>
+    </modules>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>
