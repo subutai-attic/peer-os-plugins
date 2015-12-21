@@ -6,8 +6,17 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
 import io.subutai.plugin.common.api.ConfigBase;
@@ -23,6 +32,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
 
     private TrackerOperation trackerOperation;
     private AppScaleImpl appScaleImpl;
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
 
     public ClusterConfiguration( TrackerOperation trackerOperation, AppScaleImpl appScaleImpl )
@@ -46,7 +56,50 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
     @Override
     public void configureCluster( ConfigBase t, Environment e ) throws ClusterConfigurationException
     {
+        AppScaleConfig appScaleConfig = ( AppScaleConfig ) t;
+        EnvironmentContainerHost containerHostById;
+        CommandResult result;
+        try
+        {
+            containerHostById = e.getContainerHostById( appScaleConfig.getClusterName() );
+            result = containerHostById.execute( new RequestBuilder( Commands.getAddUbuntuUser() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getAddUserToRoot() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getCreateSshFolder() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getCreateAppscaleFolder() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getInstallGit() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getGitAppscale() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getGitAppscaleTools() ) );
+            resultCheck( result );
+        }
+        catch ( ContainerHostNotFoundException ex )
+        {
+            LOG.error( "No environment found..." );
+            trackerOperation.addLog( "error getting environment for container...." );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error( ex.getLocalizedMessage() );
+        }
 
+    }
+
+
+    private void resultCheck( CommandResult result )
+    {
+        if ( result.hasCompleted() )
+        {
+            trackerOperation.addLogDone( result.getStdOut() );
+        }
+        else
+        {
+            trackerOperation.addLogFailed( result.getStdErr() );
+        }
     }
 
 }

@@ -6,16 +6,22 @@
 package io.subutai.plugin.appscale.impl.handler;
 
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.AppScaleImpl;
 import io.subutai.plugin.appscale.impl.ClusterConfiguration;
+import io.subutai.plugin.appscale.impl.Commands;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -32,6 +38,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     private ClusterOperationType clusterOperationType;
     private AppScaleConfig appScaleConfig;
     private AppScaleImpl appScaleImpl;
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
 
     public ClusterOperationHandler( AppScaleImpl appScaleImpl, AppScaleConfig appScaleConfig,
@@ -81,12 +88,55 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
      *
      * @param cot
      *
-     * run operations in containers... like changing the ip values in AppScalefile
+     * run operations in containers... like starting up container etc.
      */
     @Override
     public void runOperationOnContainers( ClusterOperationType cot )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        try
+        {
+            Environment environment = appScaleImpl.getEnvironmentManager().loadEnvironment(
+                    appScaleConfig.getClusterName() );
+            EnvironmentContainerHost environmentContainerHost;
+            EnvironmentContainerHost containerHostById = environment.getContainerHostById(
+                    appScaleConfig.getClusterName() );
+            CommandResult res;
+            switch ( cot )
+            {
+                case START_ALL:
+                {
+                    res = containerHostById.execute( new RequestBuilder( Commands.getAppScaleStartCommand() ) );
+                    if ( res.hasSucceeded() )
+                    {
+                        trackerOperation.addLogDone( res.getStdOut() );
+                    }
+                    else
+                    {
+                        trackerOperation.addLogFailed( res.getStdErr() );
+                    }
+                    break;
+                }
+                case STOP_ALL:
+                {
+                    res = containerHostById.execute( new RequestBuilder( Commands.getAppScaleStopCommand() ) );
+                    if ( res.hasSucceeded() )
+                    {
+                        trackerOperation.addLogDone( res.getStdOut() );
+                    }
+                    else
+                    {
+                        trackerOperation.addLogFailed( res.getStdErr() );
+                    }
+                    break;
+                }
+            }
+
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException ex )
+        {
+            LOG.error( ex.getLocalizedMessage() );
+        }
+
     }
 
 
@@ -107,7 +157,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         }
         catch ( EnvironmentNotFoundException | ClusterConfigurationException ex )
         {
-            Logger.getLogger( ClusterOperationHandler.class.getName() ).log( Level.SEVERE, null, ex );
+            LOG.error( ex.getLocalizedMessage() );
         }
     }
 
