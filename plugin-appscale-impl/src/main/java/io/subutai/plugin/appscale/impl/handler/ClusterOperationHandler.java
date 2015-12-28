@@ -80,6 +80,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                 runOperationOnContainers( clusterOperationType );
                 break;
             }
+
+
         }
     }
 

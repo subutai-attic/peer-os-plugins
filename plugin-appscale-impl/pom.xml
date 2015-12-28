@@ -20,6 +20,12 @@
             <version>4.0.0-RC4</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>webui</artifactId>
+            <classifier>classes</classifier>
+            <version>4.0.0-RC4</version>
+        </dependency>
     </dependencies>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

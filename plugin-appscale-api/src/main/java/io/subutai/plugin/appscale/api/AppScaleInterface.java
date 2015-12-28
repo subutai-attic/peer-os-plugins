@@ -16,6 +16,9 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
     UUID installCluster( AppScaleConfig appScaleConfig );
 
 
+    UUID uninstallCluster( AppScaleConfig appScaleConfig );
+
+
     UUID startCluster( String clusterName );
 
 

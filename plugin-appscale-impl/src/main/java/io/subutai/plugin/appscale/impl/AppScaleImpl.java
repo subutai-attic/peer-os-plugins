@@ -14,6 +14,9 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -24,6 +27,9 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
+import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
+import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.plugin.common.api.ClusterOperationType;
 import io.subutai.plugin.common.api.ClusterSetupStrategy;
 import io.subutai.plugin.common.api.PluginDAO;
 
@@ -57,10 +63,43 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
+    /**
+     *
+     * @param appScaleConfig
+     * @return
+     *
+     * setup -> install
+     *
+     */
     @Override
     public UUID installCluster( AppScaleConfig appScaleConfig )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ),
+                                     "Clustername is empty or null" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler( this, appScaleConfig,
+                                                                                         ClusterOperationType.INSTALL );
+        executor.execute( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID uninstallCluster( AppScaleConfig appScaleConfig )
+    {
+        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ), "Clustername is empty" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler( this, appScaleConfig,
+                                                                                         ClusterOperationType.UNINSTALL );
+        executor.execute( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID uninstallCluster( String string )
+    {
+        return uninstallCluster( getConfig( string ) );
     }
 
 
@@ -157,13 +196,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
     @Override
     public AppScaleConfig getConfig( String clusterName )
-    {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public UUID uninstallCluster( String string )
     {
         throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
@@ -282,8 +314,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         return tracker;
     }
-    
-    
-    
+
+
 }
 

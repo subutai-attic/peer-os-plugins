@@ -6,6 +6,8 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +32,8 @@ import io.subutai.plugin.common.api.ConfigBase;
 public class ClusterConfiguration implements ClusterConfigurationInterface<ConfigBase>
 {
 
-    private TrackerOperation trackerOperation;
-    private AppScaleImpl appScaleImpl;
+    private final TrackerOperation trackerOperation;
+    private final AppScaleImpl appScaleImpl;
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
 
@@ -44,8 +46,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
 
     /**
      *
-     * @param t
-     * @param e
+     * @param configBase
+     * @param environment
      * @throws ClusterConfigurationException
      *
      * configure cluster with appscale pre - requirements
@@ -54,14 +56,22 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
      *
      */
     @Override
-    public void configureCluster( ConfigBase t, Environment e ) throws ClusterConfigurationException
+    public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-        AppScaleConfig appScaleConfig = ( AppScaleConfig ) t;
+        AppScaleConfig appScaleConfig = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHostById;
         CommandResult result;
         try
         {
-            containerHostById = e.getContainerHostById( appScaleConfig.getClusterName() );
+            containerHostById = environment.getContainerHostById( appScaleConfig.getClusterName() );
+            result = containerHostById.execute( new RequestBuilder( Commands.getExportHome() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getFixLocale() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getChangeRootPasswd() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getEditSSHD() ) );
+            resultCheck( result );
             result = containerHostById.execute( new RequestBuilder( Commands.getAddUbuntuUser() ) );
             resultCheck( result );
             result = containerHostById.execute( new RequestBuilder( Commands.getAddUserToRoot() ) );
@@ -76,6 +86,37 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
             resultCheck( result );
             result = containerHostById.execute( new RequestBuilder( Commands.getGitAppscaleTools() ) );
             resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getInstallZookeeper() ) );
+            resultCheck( result );
+
+            List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable();
+            for ( String z : zookeeperStopAndDisable )
+            {
+                result = containerHostById.execute( new RequestBuilder( z ) );
+                resultCheck( result );
+            }
+            result = containerHostById.execute( new RequestBuilder( Commands.getEditZookeeperConf() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getEditAppscaleInstallSH() ) );
+            resultCheck( result );
+
+
+            // last commands if all went good.
+            result = containerHostById.execute( new RequestBuilder( Commands.getAppscaleBuild() ) );
+            resultCheck( result );
+            result = containerHostById.execute( new RequestBuilder( Commands.getAppscaleToolsBuild() ) );
+            resultCheck( result );
+            // now it is time to make ip changes and init the appscale
+
+
+            // check: tide up all and save to db
+            trackerOperation.addLog( "Configuration is finished" );
+            appScaleConfig.setEnvironmentId( environment.getId() );
+            appScaleImpl.getPluginDAO().saveInfo( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName(),
+                                                  configBase );
+            trackerOperation.addLogDone( "Appscale is saved to database" );
+
+
         }
         catch ( ContainerHostNotFoundException ex )
         {
