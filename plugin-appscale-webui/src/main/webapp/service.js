@@ -11,10 +11,10 @@ angular.module('subutai.plugins.appscale.service', [])
 
 appscaleSrv.$inject = ['$http', 'environmentService'];
 
-function appscaleSrv ($http, $environmentService) {
+function appscaleSrv ($http, environmentService) {
     var BASE_URL = SERVER_URL + 'rest/appscale/';
     var CLUSTER_URL = BASE_URL + 'clusters/';
-    var HADOOP_CREATE_URL = BASE_URL + 'configure_environment';
+    var APPSCALE_CREATE_URL = BASE_URL + 'configure_environment';
     
     var appscaleSrv = {
         getCluster : getCluster,
@@ -25,18 +25,27 @@ function appscaleSrv ($http, $environmentService) {
     return appscaleSrv;
     
     function getCluster (clusterName) {
-        
+        if ( clusterName === undefined || clusterName === null ) clusterName = '';
+        return $http.get (
+                CLUSTER_URL + clusterName, {
+                    withCredentials: true, headers: {'Content-Type:' : 'application/json'}}
+                );
     }
     
-    function configureCluster () {
-        
+    function configureCluster (appscaleJson) {
+        var postData = 'config=' + appscaleJson;
+        return $http.post(
+            APPSCALE_CREATE_URL,
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
     }
     function uninstallCluster () {
         
     }
     
     function getEnvironments () {
-        
+        return environmentService.getEnvironments();
     }
     
 }
