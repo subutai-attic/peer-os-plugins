@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.subutai</groupId>
         <artifactId>AppScale</artifactId>
-        <version>4.0.0.RC4</version>
+        <version>4.0.0.RC5</version>
     </parent>
     <artifactId>plugin-appscale-cli</artifactId>
     <packaging>jar</packaging>
@@ -19,6 +19,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>plugin-appscale-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>tracker-api</artifactId>
+            <version>4.0.0-RC4</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     <properties>

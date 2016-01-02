@@ -4,12 +4,12 @@
     <parent>
         <artifactId>AppScale</artifactId>
         <groupId>io.subutai</groupId>
-        <version>4.0.0.RC4</version>
+        <version>4.0.0.RC5</version>
     </parent>
 
     <groupId>io.subutai</groupId>
     <artifactId>plugin-appscale-webui</artifactId>
-    <version>4.0.0.RC4</version>
+    <version>4.0.0.RC5</version>
     <packaging>war</packaging>
 
     <name>plugin-appscale-webui</name>
@@ -48,8 +48,8 @@
                     <archive>
                         <manifestFile>META-INF/MANIFEST.MF</manifestFile>
                     </archive>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArguments>
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
