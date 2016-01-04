@@ -7,6 +7,7 @@
         <version>4.0.0.RC5</version>
     </parent>
     <artifactId>plugin-appscale-api</artifactId>
+    <name>Subutai Appscale Plugin API</name>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>

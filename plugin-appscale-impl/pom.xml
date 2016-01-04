@@ -8,6 +8,7 @@
     </parent>
     <artifactId>plugin-appscale-impl</artifactId>
     <packaging>jar</packaging>
+    <name>Subutai Appscale Plugin IMPL</name>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

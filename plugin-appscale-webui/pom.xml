@@ -11,8 +11,8 @@
     <artifactId>plugin-appscale-webui</artifactId>
     <version>4.0.0.RC5</version>
     <packaging>war</packaging>
+    <name>Subutai Appscale Plugin WEBUI</name>
 
-    <name>plugin-appscale-webui</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>

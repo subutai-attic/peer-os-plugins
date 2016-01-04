@@ -8,6 +8,7 @@
     </parent>
     <artifactId>plugin-appscale-rest</artifactId>
     <packaging>jar</packaging>
+    <name>Subutai Appscale Plugin REST</name>
     <dependencies>
         <dependency>
             <groupId>javax.ws.rs</groupId>

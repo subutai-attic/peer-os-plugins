@@ -34,10 +34,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
 
     private final TrackerOperation trackerOperation;
     private final AppScaleImpl appScaleImpl;
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
-    public ClusterConfiguration( TrackerOperation trackerOperation, AppScaleImpl appScaleImpl )
+    public ClusterConfiguration ( TrackerOperation trackerOperation, AppScaleImpl appScaleImpl )
     {
         this.trackerOperation = trackerOperation;
         this.appScaleImpl = appScaleImpl;
@@ -56,90 +56,90 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
      *
      */
     @Override
-    public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
+    public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
         AppScaleConfig appScaleConfig = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHostById;
         CommandResult result;
         try
         {
-            containerHostById = environment.getContainerHostById( appScaleConfig.getClusterName() );
-            result = containerHostById.execute( new RequestBuilder( Commands.getExportHome() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getFixLocale() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getChangeRootPasswd() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getEditSSHD() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getAddUbuntuUser() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getAddUserToRoot() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getCreateSshFolder() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getCreateAppscaleFolder() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getInstallGit() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getGitAppscale() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getGitAppscaleTools() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getInstallZookeeper() ) );
-            resultCheck( result );
+            containerHostById = environment.getContainerHostById ( appScaleConfig.getClusterName () );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getExportHome () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getFixLocale () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getChangeRootPasswd () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditSSHD () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getAddUbuntuUser () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getAddUserToRoot () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getCreateSshFolder () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getCreateAppscaleFolder () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getInstallGit () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getGitAppscale () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getGitAppscaleTools () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getInstallZookeeper () ) );
+            resultCheck ( result );
 
-            List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable();
+            List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable ();
             for ( String z : zookeeperStopAndDisable )
             {
-                result = containerHostById.execute( new RequestBuilder( z ) );
-                resultCheck( result );
+                result = containerHostById.execute ( new RequestBuilder ( z ) );
+                resultCheck ( result );
             }
-            result = containerHostById.execute( new RequestBuilder( Commands.getEditZookeeperConf() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getEditAppscaleInstallSH() ) );
-            resultCheck( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditZookeeperConf () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditAppscaleInstallSH () ) );
+            resultCheck ( result );
 
 
             // last commands if all went good.
-            result = containerHostById.execute( new RequestBuilder( Commands.getAppscaleBuild() ) );
-            resultCheck( result );
-            result = containerHostById.execute( new RequestBuilder( Commands.getAppscaleToolsBuild() ) );
-            resultCheck( result );
-            // now it is time to make ip changes and init the appscale
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getAppscaleBuild () ) );
+            resultCheck ( result );
+            result = containerHostById.execute ( new RequestBuilder ( Commands.getAppscaleToolsBuild () ) );
+            resultCheck ( result );
 
 
             // check: tide up all and save to db
-            trackerOperation.addLog( "Configuration is finished" );
-            appScaleConfig.setEnvironmentId( environment.getId() );
-            appScaleImpl.getPluginDAO().saveInfo( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName(),
-                                                  configBase );
-            trackerOperation.addLogDone( "Appscale is saved to database" );
+            trackerOperation.addLog ( "Configuration is finished" );
+            appScaleConfig.setEnvironmentId ( environment.getId () );
+            appScaleImpl.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
+                                                    configBase );
+            trackerOperation.addLogDone ( "Appscale is saved to database" );
 
+            // now it is time to make ip changes and init the appscale
 
         }
         catch ( ContainerHostNotFoundException ex )
         {
-            LOG.error( "No environment found..." );
-            trackerOperation.addLog( "error getting environment for container...." );
+            LOG.error ( "No environment found..." + ex.getLocalizedMessage () );
+            trackerOperation.addLog ( "error getting environment for container...." );
         }
         catch ( CommandException ex )
         {
-            LOG.error( ex.getLocalizedMessage() );
+            LOG.error ( ex.getLocalizedMessage () );
         }
 
     }
 
 
-    private void resultCheck( CommandResult result )
+    private void resultCheck ( CommandResult result )
     {
-        if ( result.hasCompleted() )
+        if ( result.hasCompleted () )
         {
-            trackerOperation.addLogDone( result.getStdOut() );
+            trackerOperation.addLogDone ( result.getStdOut () );
         }
         else
         {
-            trackerOperation.addLogFailed( result.getStdErr() );
+            trackerOperation.addLogFailed ( result.getStdErr () );
         }
     }
 

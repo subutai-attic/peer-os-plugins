@@ -8,6 +8,7 @@
     </parent>
     <artifactId>plugin-appscale-cli</artifactId>
     <packaging>jar</packaging>
+    <name>Subutai Appscale Plugin CLI</name>
     <dependencies>
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>

@@ -18,7 +18,8 @@ public class AppScaleConfig implements ConfigBase
     public static final String PRODUCT_KEY = "Appscale";
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
 
-    private static final String TEMPLATE_NAME = "Appscale";
+    // private static final String TEMPLATE_NAME = "Appscale";
+    private static final String TEMPLATE_NAME = "master"; // we will be using master template
     private String clusterName = "";
     private final String domainName = Common.DEFAULT_DOMAIN_NAME;
     private List<String> nodes;

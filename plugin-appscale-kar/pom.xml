@@ -8,7 +8,7 @@
     </parent>
     <artifactId>plugin-appscale-kar</artifactId>
     
-    
+    <name>Subutai Appscale Plugin KAR</name>
     
     <!--
     <build>

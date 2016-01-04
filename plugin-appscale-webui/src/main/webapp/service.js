@@ -11,6 +11,9 @@ angular.module('subutai.plugins.appscale.service', [])
 
 appscaleSrv.$inject = ['$http', 'environmentService'];
 
+/*
+ * SERVER_URL -> undefined?
+ */
 function appscaleSrv ($http, environmentService) {
     var BASE_URL = SERVER_URL + 'rest/appscale/';
     var CLUSTER_URL = BASE_URL + 'clusters/';
