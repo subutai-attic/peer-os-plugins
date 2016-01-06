@@ -6,8 +6,8 @@
         <artifactId>AppScale</artifactId>
         <version>4.0.0.RC5</version>
     </parent>
-    <artifactId>plugin-appscale-cli</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>appscale-plugin-cli</artifactId>
+    <packaging>bundle</packaging>
     <name>Subutai Appscale Plugin CLI</name>
     <dependencies>
         <dependency>
@@ -18,13 +18,13 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>plugin-appscale-api</artifactId>
+            <artifactId>appscale-plugin-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>tracker-api</artifactId>
-            <version>4.0.0-RC4</version>
+            <version>4.0.0-RC5</version>
             <type>jar</type>
         </dependency>
     </dependencies>

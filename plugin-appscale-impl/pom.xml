@@ -6,13 +6,13 @@
         <artifactId>AppScale</artifactId>
         <version>4.0.0.RC5</version>
     </parent>
-    <artifactId>plugin-appscale-impl</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>appscale-plugin-impl</artifactId>
+    <packaging>bundle</packaging>
     <name>Subutai Appscale Plugin IMPL</name>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>plugin-appscale-api</artifactId>
+            <artifactId>appscale-plugin-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -30,7 +30,13 @@
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>environment-manager-api</artifactId>
-            <version>4.0.0-RC4</version>
+            <version>4.0.0-RC5</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>network-manager-api</artifactId>
+            <version>4.0.0-RC5</version>
             <type>jar</type>
         </dependency>
     </dependencies>

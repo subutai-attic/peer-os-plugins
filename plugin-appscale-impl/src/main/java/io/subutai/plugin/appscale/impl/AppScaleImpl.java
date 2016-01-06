@@ -24,6 +24,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
+import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -42,24 +43,25 @@ import io.subutai.plugin.common.api.PluginDAO;
 public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger( AppScaleImpl.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger ( AppScaleImpl.class.getName () );
     private ExecutorService executor;
     private Monitor monitor;
     private PluginDAO pluginDAO;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private NetworkManager networkManager;
 
 
-    public AppScaleImpl( Monitor monitor, PluginDAO pluginDAO )
+    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
 
-    public void init()
+    public void init ()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool ();
     }
 
 
@@ -72,249 +74,262 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
      *
      */
     @Override
-    public UUID installCluster( AppScaleConfig appScaleConfig )
+    public UUID installCluster ( AppScaleConfig appScaleConfig )
     {
-        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ),
-                                     "Clustername is empty or null" );
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler( this, appScaleConfig,
-                                                                                         ClusterOperationType.INSTALL );
-        executor.execute( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId();
+        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
+                                      "Clustername is empty or null" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
+                                                                                          ClusterOperationType.INSTALL );
+        executor.execute ( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId ();
     }
 
 
     @Override
-    public UUID uninstallCluster( AppScaleConfig appScaleConfig )
+    public UUID uninstallCluster ( AppScaleConfig appScaleConfig )
     {
-        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ), "Clustername is empty" );
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler( this, appScaleConfig,
-                                                                                         ClusterOperationType.UNINSTALL );
-        executor.execute( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId();
+        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
+                                      "Clustername is empty" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
+                                                                                          ClusterOperationType.UNINSTALL );
+        executor.execute ( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId ();
     }
 
 
     @Override
-    public UUID uninstallCluster( String string )
+    public UUID uninstallCluster ( String string )
     {
-        return uninstallCluster( getConfig( string ) );
+        return uninstallCluster ( getConfig ( string ) );
     }
 
 
     @Override
-    public UUID startCluster( String clusterName )
+    public UUID startCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID stopCluster( String clusterName )
+    public UUID stopCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID restartCluster( String clusterName )
+    public UUID restartCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID statusCluster( String clusterName )
+    public UUID statusCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID startService( String clusterName, String hostName )
+    public UUID startService ( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID stopService( String clusterName, String hostName )
+    public UUID stopService ( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID statusService( String clusterName, String hostName )
+    public UUID statusService ( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID addNode( String clusterName )
+    public UUID addNode ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID destroyNode( String clusterName, String hostName )
+    public UUID destroyNode ( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID removeCluster( String clusterName )
+    public UUID removeCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public ClusterSetupStrategy getClusterSetupStrategy( Environment e, TrackerOperation t, AppScaleConfig ac )
+    public ClusterSetupStrategy getClusterSetupStrategy ( Environment e, TrackerOperation t, AppScaleConfig ac )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void saveCongig( AppScaleConfig ac )
+    public void saveCongig ( AppScaleConfig ac )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void deleteConfig( AppScaleConfig ac )
+    public void deleteConfig ( AppScaleConfig ac )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public AppScaleConfig getConfig( String clusterName )
+    public AppScaleConfig getConfig ( String clusterName )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public List<AppScaleConfig> getClusters()
+    public List<AppScaleConfig> getClusters ()
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public AppScaleConfig getCluster( String string )
+    public AppScaleConfig getCluster ( String string )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID addNode( String string, String string1 )
+    public UUID addNode ( String string, String string1 )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void onEnvironmentCreated( Environment e )
+    public void onEnvironmentCreated ( Environment e )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void onEnvironmentGrown( Environment e, Set<EnvironmentContainerHost> set )
+    public void onEnvironmentGrown ( Environment e, Set<EnvironmentContainerHost> set )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void onContainerDestroyed( Environment e, String string )
+    public void onContainerDestroyed ( Environment e, String string )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void onEnvironmentDestroyed( String string )
+    public void onEnvironmentDestroyed ( String string )
     {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
-    public void setExecutor( ExecutorService executor )
+    public void setExecutor ( ExecutorService executor )
     {
         this.executor = executor;
     }
 
 
-    public ExecutorService getExecutor()
+    public ExecutorService getExecutor ()
     {
         return executor;
     }
 
 
-    public void setMonitor( Monitor monitor )
+    public void setMonitor ( Monitor monitor )
     {
         this.monitor = monitor;
     }
 
 
-    public Monitor getMonitor()
+    public Monitor getMonitor ()
     {
         return monitor;
     }
 
 
-    public void setPluginDAO( PluginDAO pluginDAO )
+    public void setPluginDAO ( PluginDAO pluginDAO )
     {
         this.pluginDAO = pluginDAO;
     }
 
 
-    public PluginDAO getPluginDAO()
+    public PluginDAO getPluginDAO ()
     {
         return pluginDAO;
     }
 
 
-    public void setTracker( Tracker tracker )
+    public void setTracker ( Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
-    public EnvironmentManager getEnvironmentManager()
+    public EnvironmentManager getEnvironmentManager ()
     {
         return environmentManager;
     }
 
 
-    public void setEnvironmentManager( EnvironmentManager environmentManager )
+    public void setEnvironmentManager ( EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
 
 
-    public static Logger getLOG()
+    public NetworkManager getNetworkManager ()
+    {
+        return networkManager;
+    }
+
+
+    public void setNetworkManager ( NetworkManager networkManager )
+    {
+        this.networkManager = networkManager;
+    }
+
+
+    public static Logger getLOG ()
     {
         return LOG;
     }
 
 
-    public Tracker getTracker()
+    public Tracker getTracker ()
     {
         return tracker;
     }
-
-
+    
+    
 }
 

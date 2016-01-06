@@ -6,9 +6,10 @@
     <version>4.0.0.RC5</version>
     <packaging>pom</packaging>
     <modules>
-        <module>plugin-appscale-api</module>
+        
         <module>plugin-appscale-cli</module>
         <module>plugin-appscale-impl</module>
+        <module>plugin-appscale-api</module>
         <module>plugin-appscale-kar</module>
         <module>plugin-appscale-rest</module>
         <module>plugin-appscale-webui</module>

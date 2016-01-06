@@ -6,7 +6,8 @@
         <artifactId>AppScale</artifactId>
         <version>4.0.0.RC5</version>
     </parent>
-    <artifactId>plugin-appscale-kar</artifactId>
+    <!-- <artifactId>appscale-plugin-kar</artifactId> -->
+    <artifactId>appscale-subutai-plugin</artifactId>
     
     <name>Subutai Appscale Plugin KAR</name>
     
@@ -64,8 +65,8 @@
             </plugin>
         </plugins>
     </build>
-    
     -->
+    
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
