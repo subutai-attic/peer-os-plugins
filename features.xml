@@ -1,0 +1,7 @@
+<features name="ceph-plugin" version="4.0.0-RC5">
+  <feature name="ceph-plugin" version="4.0.0-RC5">
+    <bundle> mvn:io.subutai/ceph-plugin-api/4.0.0-RC5</bundle>
+    <bundle> mvn:io.subutai/ceph-plugin-impl/4.0.0-RC5</bundle>
+    <bundle> mvn:io.subutai/ceph-plugin-rest/4.0.0-RC5</bundle>
+  </feature>
+</features>
