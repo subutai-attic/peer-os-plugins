@@ -14,7 +14,8 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>subutai-common</artifactId>
-            <version>${subutai.mgmt.parent.version}</version>
+            <version>4.0.0-RC4</version>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -24,7 +25,14 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>plugin-common</artifactId>
-            <version>${subutai.mgmt.parent.version}</version>
+            <version>4.0.0-RC4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>tracker-api</artifactId>
+            <version>4.0.0-RC4</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     <properties>

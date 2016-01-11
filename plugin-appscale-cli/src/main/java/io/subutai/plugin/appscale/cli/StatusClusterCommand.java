@@ -24,25 +24,45 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-@Command( scope = "appscale", name = "check-cluster", description = "Returns the current state of cluster" )
+@Command ( scope = "appscale", name = "check-cluster", description = "Returns the current state of cluster" )
 public class StatusClusterCommand extends OsgiCommandSupport
 {
-    @Argument( index = 0, name = "clusterName", description = "Name of Cluster", required = true, multiValued = false )
-    String clusterName;
-    private AppScaleInterface appscale;
+    @Argument ( index = 0, name = "clusterName", description = "Name of Cluster", required = true, multiValued = false )
+    String clusterName = null;
+
+    private AppScaleInterface appScaleInterface;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
 
     @Override
-    protected Object doExecute() throws Exception
+    protected Object doExecute () throws Exception
     {
-        AppScaleConfig appScaleConfig = appscale.getConfig( clusterName );
-        UUID uuid = appscale.statusCluster( clusterName );
-        TrackerOperationView trackerOperation = tracker.getTrackerOperation( AppScaleConfig.getPRODUCT_NAME(), uuid );
-        System.out.println( "Status: " + trackerOperation.getState().name().toLowerCase() );
+        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        UUID uuid = appScaleInterface.statusCluster ( clusterName );
+        TrackerOperationView trackerOperation = tracker.getTrackerOperation ( AppScaleConfig.getPRODUCT_NAME (), uuid );
+        System.out.println ( "Status: " + trackerOperation.getState ().name ().toLowerCase () );
         return null;
     }
+
+
+    public void setClusterName ( String clusterName )
+    {
+        this.clusterName = clusterName;
+    }
+
+
+    public void setTracker ( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public void setEnvironmentManager ( EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
 
 }
 

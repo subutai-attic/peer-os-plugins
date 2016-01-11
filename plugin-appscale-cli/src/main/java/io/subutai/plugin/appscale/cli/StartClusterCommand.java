@@ -24,60 +24,61 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-@Command( scope = "appscale", name = "start-cluster", description = "Command to start AppScale cluster" )
+@Command ( scope = "appscale", name = "start-cluster", description = "Command to start AppScale cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {
-    @Argument( index = 0, name = "clusterName", description = "The name of the cluster.", required = true, multiValued = false )
-    private String clusterName = null;
-    private AppScaleInterface appscale;
+    @Argument ( index = 0, name = "clusterName", description = "The name of the cluster.", required = true, multiValued = false )
+    String clusterName = null;
+
+    private AppScaleInterface appScaleInterface;
     private Tracker tracker;
 
 
-    public void setClusterName( String clusterName )
+    public void setClusterName ( String clusterName )
     {
         this.clusterName = clusterName;
     }
 
 
-    public void setTracker( Tracker tracker )
+    public void setTracker ( Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
-    public void setAppscale( AppScaleInterface appscale )
+    public void setAppscale ( AppScaleInterface appscale )
     {
-        this.appscale = appscale;
+        this.appScaleInterface = appscale;
     }
 
 
     @Override
-    protected Object doExecute() throws Exception
+    protected Object doExecute () throws Exception
     {
-        // AppScaleConfig appScaleConfig = appscale.getConfig( clusterName );
-        System.out.println( "Starting Cluster ... " );
-        UUID uuid = appscale.startCluster( clusterName );
-        System.out.println( "Starting cluster " + operationState( tracker, uuid ) );
+        // AppScaleConfig appScaleConfig = appscaleInterface.getConfig( clusterName );
+        System.out.println ( "Starting Cluster ... " );
+        UUID uuid = appScaleInterface.startCluster ( clusterName );
+        System.out.println ( "Starting cluster " + operationState ( tracker, uuid ) );
         return null;
     }
 
 
-    protected static OperationState operationState( Tracker tracker, UUID uuid )
+    protected static OperationState operationState ( Tracker tracker, UUID uuid )
     {
         OperationState os = null;
 
-        while ( !Thread.interrupted() )
+        while ( !Thread.interrupted () )
         {
-            TrackerOperationView trackerOperationView = tracker.getTrackerOperation( AppScaleConfig.getPRODUCT_NAME(),
-                                                                                     uuid );
+            TrackerOperationView trackerOperationView = tracker.getTrackerOperation ( AppScaleConfig.getPRODUCT_NAME (),
+                                                                                      uuid );
             if ( trackerOperationView != null )
             {
-                os = trackerOperationView.getState();
+                os = trackerOperationView.getState ();
                 break;
             }
             try
             {
-                Thread.sleep( 1000 );
+                Thread.sleep ( 1000 );
             }
             catch ( InterruptedException ex )
             {

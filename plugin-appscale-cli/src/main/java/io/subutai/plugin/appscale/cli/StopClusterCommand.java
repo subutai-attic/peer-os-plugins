@@ -21,40 +21,41 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-@Command( scope = "appscale", name = "stop-cluster", description = "Command to stop cluster" )
+@Command ( scope = "appscale", name = "stop-cluster", description = "Command to stop cluster" )
 public class StopClusterCommand extends OsgiCommandSupport
 {
-    @Argument( index = 0, name = "clusterName", description = "Name of the cluster", required = true, multiValued = false )
-    private String clusterName = null;
+    @Argument ( index = 0, name = "clusterName", description = "Name of the cluster", required = true, multiValued = false )
+    String clusterName = null;
+
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
 
 
-    public void setClusterName( String clusterName )
+    public void setClusterName ( String clusterName )
     {
         this.clusterName = clusterName;
     }
 
 
-    public void setAppScaleInterface( AppScaleInterface appScaleInterface )
+    public void setAppScaleInterface ( AppScaleInterface appScaleInterface )
     {
         this.appScaleInterface = appScaleInterface;
     }
 
 
-    public void setTracker( Tracker tracker )
+    public void setTracker ( Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
     @Override
-    protected Object doExecute() throws Exception
+    protected Object doExecute () throws Exception
     {
 
-        System.out.println( "Stopping cluster" );
-        UUID uuid = appScaleInterface.stopCluster( clusterName );
-        System.out.println( "Stopping cluster " + StartClusterCommand.operationState( tracker, uuid ) );
+        System.out.println ( "Stopping cluster" );
+        UUID uuid = appScaleInterface.stopCluster ( clusterName );
+        System.out.println ( "Stopping cluster " + StartClusterCommand.operationState ( tracker, uuid ) );
         return null;
     }
 
