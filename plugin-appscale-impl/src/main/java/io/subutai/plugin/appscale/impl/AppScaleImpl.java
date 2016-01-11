@@ -65,6 +65,12 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
+    public void destroy ()
+    {
+
+    }
+
+
     /**
      *
      * @param appScaleConfig
@@ -329,7 +335,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         return tracker;
     }
-    
-    
+
+
 }
 

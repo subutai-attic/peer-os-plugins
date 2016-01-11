@@ -21,7 +21,7 @@ public class AppScaleConfig implements ConfigBase
     // private static final String TEMPLATE_NAME = "Appscale";
     private static final String TEMPLATE_NAME = "master"; // we will be using master template
     private String clusterName = "";
-    private final String domainName = Common.DEFAULT_DOMAIN_NAME;
+    private String domainName;
     private List<String> nodes;
     private String environmentId;
     private String containerType;
@@ -136,6 +136,12 @@ public class AppScaleConfig implements ConfigBase
     public String getDomainName ()
     {
         return domainName;
+    }
+
+
+    public void setDomainName ( String domainName )
+    {
+        this.domainName = domainName;
     }
 
 

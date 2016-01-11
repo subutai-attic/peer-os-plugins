@@ -127,6 +127,42 @@ public class RestServiceImpl implements RestService
     }
 
 
+    public AppScaleInterface getAppScaleInterface ()
+    {
+        return appScaleInterface;
+    }
+
+
+    public void setAppScaleInterface ( AppScaleInterface appScaleInterface )
+    {
+        this.appScaleInterface = appScaleInterface;
+    }
+
+
+    public Tracker getTracker ()
+    {
+        return tracker;
+    }
+
+
+    public void setTracker ( Tracker tracker )
+    {
+        this.tracker = tracker;
+    }
+
+
+    public EnvironmentManager getEnvironmentManager ()
+    {
+        return environmentManager;
+    }
+
+
+    public void setEnvironmentManager ( EnvironmentManager environmentManager )
+    {
+        this.environmentManager = environmentManager;
+    }
+
+
     private OperationState waitUntilOperationFinish ( UUID uuid )
     {
         OperationState state = null;
@@ -158,5 +194,8 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
+    
+    
+    
 }
 
