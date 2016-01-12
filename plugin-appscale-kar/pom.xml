@@ -11,7 +11,7 @@
     
     <name>Subutai Appscale Plugin KAR</name>
     
-    <!--
+    
     <build>
         <plugins>
             <plugin>
@@ -65,10 +65,7 @@
             </plugin>
         </plugins>
     </build>
-    -->
     
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+   
+    
 </project>
