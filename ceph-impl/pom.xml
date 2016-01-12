@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>ceph-plugin-api</artifactId>
       <version>4.0.0-RC5</version>
     </dependency>

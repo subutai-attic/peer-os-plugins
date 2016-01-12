@@ -21,9 +21,9 @@
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
 
-  <!--<service ref="module" interface="io.subutai.webui.api.WebuiModule" />-->
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-  <!--<bean id="module" scope="singleton" class="io.subutai.plugin.generic.impl.GenericWebModule">-->
-  <!--</bean>-->
+  <bean id="module" scope="singleton" class="io.subutai.plugin.ceph.impl.CephWebModule">
+  </bean>
 </blueprint>

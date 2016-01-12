@@ -1,0 +1,58 @@
+<div ng-controller="CephCtrl as cephCtrl">
+
+	<div class="b-workspace__header">
+		<h1 class="b-title">Plugins/<span class="b-title_breadcrumbs">ceph</span></h1>
+	</div>
+
+	<div class="b-workspace__content">
+		<form ng-submit="cephCtrl.createEnvironment()">
+			<div class="b-workspace-content b-workspace-content_border">
+				<div class="b-workspace-content__row">
+					<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+						<div class="b-form">
+							<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+								<label class="b-form-label b-form-label_fix-size-1 g-left">Enter cluster name</label>
+
+								<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+									<input class="b-form-input b-form-input_full" type="text"
+										   placeholder="Enter cluster name"
+										   ng-model="cephCtrl.clusterName"
+										   required>
+								</div>
+								<div class="clear"></div>
+							</div>
+							<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+								<label class="b-form-label b-form-label_fix-size-1 g-left">Choose environment</label>
+
+								<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+									<select class="b-form-input b-form-input_full"
+											ng-model="cephCtrl.currentEnvironment"
+											ng-change="cephCtrl.changeNodes()" ng-options = "environment.name for environment in cephCtrl.environments">
+									</select>
+								</div>
+								<div class="clear"></div>
+							</div>
+							<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+								<label class="b-form-label b-form-label_fix-size-1 g-left">RadosGW</label>
+
+								<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+									<select class="b-form-input b-form-input_full"
+											ng-model="cephCtrl.radosGWNode" ng-options = "node.hostname for node in cephCtrl.nodes">
+									</select>
+								</div>
+								<div class="clear"></div>
+							</div>
+							<div>
+								<img src = "plugins/ceph/loading.gif" ng-show = "cephCtrl.loading">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="b-workspace__button-group b-workspace__button-group_right">
+				<button type="submit" class="b-btn b-btn_green g-right">Create</button>
+			</div>
+		</form>
+	</div>
+</div>
