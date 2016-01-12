@@ -1,67 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>io.subutai</groupId>
-        <artifactId>AppScale</artifactId>
-        <version>4.0.0.RC5</version>
-    </parent>
-    <artifactId>appscale-plugin-rest</artifactId>
-    <packaging>bundle</packaging>
-    <name>Subutai Appscale Plugin REST</name>
-    <dependencies>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.0-m10</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>appscale-plugin-api</artifactId>
-            <version>4.0.0.RC5</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>subutai-common</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>environment-manager-api</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>tracker-api</artifactId>
-            <type>jar</type>
-        </dependency>
-        
-        
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-        </dependency>
-    
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        
-        
-        
-    </dependencies>
-    
-    
-    <build>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.subutai</groupId>
+    <artifactId>AppScale</artifactId>
+    <version>4.0.0.RC5</version>
+  </parent>
+  <artifactId>appscale-plugin-rest</artifactId>
+  <packaging>bundle</packaging>
+  <name>Subutai Appscale Plugin REST</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>appscale-plugin-api</artifactId>
+      <version>4.0.0.RC5</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>environment-manager-api</artifactId>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>tracker-api</artifactId>
+      <type>jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.servicemix.bundles</groupId>
+      <artifactId>org.apache.servicemix.bundles.junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--CXF-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+    </dependency>
+
+
+  </dependencies>
+
+  <build>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}plugin.appscale.rest</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.appscale.rest</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>
@@ -70,9 +68,4 @@
       </plugin>
     </plugins>
   </build>
-    
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 </project>
