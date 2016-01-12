@@ -9,3 +9,4 @@
     <bundle> war:mvn:io.subutai/appscale-plugin-webui/4.0.0-RC5/war?Webapp-Context=appscale-plugin-war</bundle>
   </feature>
 </features>
+<!-- gitignore  -->
