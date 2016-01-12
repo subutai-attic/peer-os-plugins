@@ -15,10 +15,9 @@
   <properties>
     <subutai.mgmt.parent.version>4.0.0-RC5</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
-    <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
-    <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
+    <openjpa.version>2.3.0</openjpa.version>
     <jaxrs.version>2.7.12</jaxrs.version>
-    <hadoop.version>2.0.4</hadoop.version>
+    <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
   </properties>
 
   <modules>
@@ -27,6 +26,53 @@
     <module>ceph-rest</module>
     <module>ceph-kar</module>
   </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>environment-manager-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>webui</artifactId>
+        <classifier>classes</classifier>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa-all</artifactId>
+        <version>${openjpa.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa</artifactId>
+        <version>${openjpa.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>subutai-common</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+        <version>${jaxrs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.servicemix.bundles</groupId>
+        <artifactId>org.apache.servicemix.bundles.junit</artifactId>
+        <version>${servicemix.bundles.junit.version}</version>
+      </dependency>
+    </dependencies>
+
+  </dependencyManagement>
 
   <build>
     <plugins>

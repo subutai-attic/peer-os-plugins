@@ -14,6 +14,27 @@
   <name>Subutai Ceph Impl</name>
   <description>Subutai Ceph Impl</description>
 
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>ceph-plugin-api</artifactId>
+      <version>4.0.0-RC5</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>environment-manager-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
