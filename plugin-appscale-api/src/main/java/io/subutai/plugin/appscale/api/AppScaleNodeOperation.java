@@ -33,12 +33,12 @@ public class AppScaleNodeOperation extends AbstractNodeOperationTask implements 
     private NodeType nodeType;
 
 
-    public AppScaleNodeOperation( String clusterName, EnvironmentContainerHost environmentContainerHost,
-                                  AppScaleInterface appscale, NodeOperationType nodeOperationType, NodeType nodeType,
-                                  Tracker tracker, ConfigBase clusterConfig, CompleteEvent completeEvent, UUID trackID,
-                                  ContainerHost containerHost )
+    public AppScaleNodeOperation ( String clusterName, EnvironmentContainerHost environmentContainerHost,
+                                   AppScaleInterface appscale, NodeOperationType nodeOperationType, NodeType nodeType,
+                                   Tracker tracker, ConfigBase clusterConfig, CompleteEvent completeEvent, UUID trackID,
+                                   ContainerHost containerHost )
     {
-        super( tracker, clusterConfig, completeEvent, trackID, containerHost );
+        super ( tracker, clusterConfig, completeEvent, trackID, containerHost );
         this.clusterName = clusterName;
         this.environmentContainerHost = environmentContainerHost;
         this.appscale = appscale;
@@ -48,7 +48,7 @@ public class AppScaleNodeOperation extends AbstractNodeOperationTask implements 
 
 
     @Override
-    public UUID runTask()
+    public UUID runTask ()
     {
         UUID returnID = null;
 
@@ -56,17 +56,17 @@ public class AppScaleNodeOperation extends AbstractNodeOperationTask implements 
         {
             case START:
             {
-                returnID = appscale.startCluster( clusterName );
+                returnID = appscale.startCluster ( clusterName );
                 break;
             }
             case STOP:
             {
-                returnID = appscale.stopCluster( clusterName );
+                returnID = appscale.stopCluster ( clusterName );
                 break;
             }
             case STATUS:
             {
-                returnID = appscale.startCluster( clusterName );
+                returnID = appscale.statusCluster ( clusterName );
                 break;
             }
         }
@@ -76,16 +76,16 @@ public class AppScaleNodeOperation extends AbstractNodeOperationTask implements 
 
 
     @Override
-    public String getProductStoppedIdentifier()
+    public String getProductStoppedIdentifier ()
     {
-        return NodeState.STOPPED.name();
+        return NodeState.STOPPED.name ();
     }
 
 
     @Override
-    public String getProductRunningIdentifier()
+    public String getProductRunningIdentifier ()
     {
-        return NodeState.RUNNING.name();
+        return NodeState.RUNNING.name ();
     }
 
 }

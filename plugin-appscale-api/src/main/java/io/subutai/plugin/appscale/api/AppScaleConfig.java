@@ -14,8 +14,8 @@ import io.subutai.plugin.common.api.ConfigBase;
  */
 public class AppScaleConfig implements ConfigBase
 {
-    public static final String PRODUCT_NAME = "Appscale";
-    public static final String PRODUCT_KEY = "Appscale";
+    public static final String PRODUCT_NAME = "AppScale";
+    public static final String PRODUCT_KEY = "AppScale";
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
 
     // private static final String TEMPLATE_NAME = "Appscale";

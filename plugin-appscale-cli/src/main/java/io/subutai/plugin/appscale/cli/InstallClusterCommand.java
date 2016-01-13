@@ -8,6 +8,9 @@ package io.subutai.plugin.appscale.cli;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -30,30 +33,57 @@ public class InstallClusterCommand extends OsgiCommandSupport
 {
 
     @Argument ( index = 0, name = "clusterName", description = "name of cluster", required = true, multiValued = false )
-    String clusterName = null;
+    private String clusterName = null;
     @Argument ( index = 1, name = "domainName", description = "name of domain", required = true, multiValued = false )
-    String domainName = null;
+    private String domainName = null;
     @Argument ( index = 2, name = "environmentId", description = "environment id", required = true, multiValued = false )
-    String environmentId;
+    private String environmentId;
 
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
+    private static final Logger LOG = LoggerFactory.getLogger ( InstallClusterCommand.class.getName () );
 
 
-    @Override
-    protected Object doExecute () throws Exception
+    public String getClusterName ()
     {
-        AppScaleConfig appScaleConfig = new AppScaleConfig ();
-        appScaleConfig.setEnvironmentId ( environmentId );
-        appScaleConfig.setClusterName ( clusterName );
-        appScaleConfig.setDomainName ( domainName );
-        appScaleConfig.setTracker ( clusterName );
-        UUID installCluster = appScaleInterface.installCluster ( appScaleConfig );
-        System.out.println ( "Installing ..." + StartClusterCommand.operationState ( tracker, installCluster ) );
-        UUID startCluster = appScaleInterface.startCluster ( clusterName );
-        System.out.println ( "Starting ..." + StartClusterCommand.operationState ( tracker, startCluster ) );
-        return null;
+        return clusterName;
+    }
+
+
+    public void setClusterName ( String clusterName )
+    {
+        this.clusterName = clusterName;
+    }
+
+
+    public String getDomainName ()
+    {
+        return domainName;
+    }
+
+
+    public void setDomainName ( String domainName )
+    {
+        this.domainName = domainName;
+    }
+
+
+    public String getEnvironmentId ()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId ( String environmentId )
+    {
+        this.environmentId = environmentId;
+    }
+
+
+    public AppScaleInterface getAppScaleInterface ()
+    {
+        return appScaleInterface;
     }
 
 
@@ -63,9 +93,39 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
+    public Tracker getTracker ()
+    {
+        return tracker;
+    }
+
+
     public void setTracker ( Tracker tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    @Override
+    protected Object doExecute () throws Exception
+    {
+        LOG.info ( "info: " + "INSTALLING !" );
+        AppScaleConfig appScaleConfig = new AppScaleConfig ();
+        appScaleConfig.setEnvironmentId ( environmentId );
+        appScaleConfig.setClusterName ( clusterName );
+        appScaleConfig.setDomainName ( domainName );
+        appScaleConfig.setTracker ( clusterName );
+        LOG.info ( "installing arguments: "
+                + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomainName ()
+                + " " + appScaleConfig.getEnvironmentId () + " " + appScaleConfig.getTracker () );
+        UUID installCluster = appScaleInterface.installCluster ( appScaleConfig );
+        waitUntilOperationFinish ( tracker, installCluster );
+        LOG.info ( " uuid " + installCluster );
+        /*
+         * System.out.println ( "Installing ..." + StartClusterCommand.operationState ( tracker, installCluster ) );
+         * UUID startCluster = appScaleInterface.startCluster ( clusterName ); System.out.println ( "Starting ..." +
+         * StartClusterCommand.operationState ( tracker, startCluster ) );
+         */
+        return null;
     }
 
 

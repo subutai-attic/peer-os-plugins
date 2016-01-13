@@ -45,8 +45,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
     private static final Logger LOG = LoggerFactory.getLogger ( AppScaleImpl.class.getName () );
     private ExecutorService executor;
-    private Monitor monitor;
-    private PluginDAO pluginDAO;
+    private final Monitor monitor;
+    private final PluginDAO pluginDAO;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private NetworkManager networkManager;
@@ -82,13 +82,19 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID installCluster ( AppScaleConfig appScaleConfig )
     {
-        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
-                                      "Clustername is empty or null" );
+        LOG.info ( " install cluster started" );
+        /*
+         * Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" ); Preconditions.checkArgument (
+         * !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
+         */
+
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.INSTALL );
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
+        LOG.info ( "install cluster " + abstractOperationHandler );
+        executor.execute ( abstractOperationHandler ); // here crashes
+        // LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
+        // return abstractOperationHandler.getTrackerId ();
+        return UUID.randomUUID (); // temporarily...
     }
 
 
@@ -259,21 +265,15 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    public void setExecutor ( ExecutorService executor )
-    {
-        this.executor = executor;
-    }
-
-
     public ExecutorService getExecutor ()
     {
         return executor;
     }
 
 
-    public void setMonitor ( Monitor monitor )
+    public void setExecutor ( ExecutorService executor )
     {
-        this.monitor = monitor;
+        this.executor = executor;
     }
 
 
@@ -283,21 +283,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    public void setPluginDAO ( PluginDAO pluginDAO )
-    {
-        this.pluginDAO = pluginDAO;
-    }
-
-
     public PluginDAO getPluginDAO ()
     {
         return pluginDAO;
-    }
-
-
-    public void setTracker ( Tracker tracker )
-    {
-        this.tracker = tracker;
     }
 
 
@@ -334,6 +322,12 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public Tracker getTracker ()
     {
         return tracker;
+    }
+
+
+    public void setTracker ( Tracker tracker )
+    {
+        this.tracker = tracker;
     }
 
 

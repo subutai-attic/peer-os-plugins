@@ -31,8 +31,6 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
-      <version>4.0.0-RC5</version>
-      <type>jar</type>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>

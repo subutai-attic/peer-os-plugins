@@ -58,12 +58,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
+        LOG.info ( "configureCluster" );
+        LOG.info ( "ConfigBase : " + configBase + " environment " + environment );
         AppScaleConfig appScaleConfig = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHostById;
         CommandResult result;
+
         try
         {
             containerHostById = environment.getContainerHostById ( appScaleConfig.getClusterName () );
+            LOG.info ( "containerHostById: " + containerHostById );
             result = containerHostById.execute ( new RequestBuilder ( Commands.getExportHome () ) );
             resultCheck ( result );
             result = containerHostById.execute ( new RequestBuilder ( Commands.getFixLocale () ) );
@@ -136,11 +140,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
         if ( result.hasCompleted () )
         {
             trackerOperation.addLogDone ( result.getStdOut () );
+            System.out.println ( "result: " + result.getStdOut () );
+            LOG.info ( "bir " + result.getStdOut () );
         }
         else
         {
             trackerOperation.addLogFailed ( result.getStdErr () );
+            System.out.println ( "result: " + result.getStdErr () );
+            LOG.info ( "iki " + result.getStdErr () );
         }
+
     }
 
 }
