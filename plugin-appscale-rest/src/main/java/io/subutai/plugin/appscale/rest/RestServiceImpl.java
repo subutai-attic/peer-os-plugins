@@ -53,11 +53,12 @@ public class RestServiceImpl implements RestService
         List<AppScaleConfig> appscaleConfigList = appScaleInterface.getClusters ();
 
         ArrayList<String> cnStrings = new ArrayList<> ();
-        appscaleConfigList.stream ().forEach ( (asc)
-                ->
+
+        appscaleConfigList.stream ().forEach ( (asc) ->
                 {
                     cnStrings.add ( asc.getClusterName () );
         } );
+
         String clusters = JsonUtil.GSON.toJson ( cnStrings );
         return Response.status ( Response.Status.OK ).entity ( clusters ).build ();
 
@@ -194,8 +195,6 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-    
-    
-    
+
 }
 

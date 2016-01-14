@@ -25,16 +25,16 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
 public class Commands
 {
     AppScaleConfig appScaleConfig;
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
-    public Commands( AppScaleConfig appScaleConfig )
+    public Commands ( AppScaleConfig appScaleConfig )
     {
         this.appScaleConfig = appScaleConfig;
     }
 
 
-    public static String getInstallGit()
+    public static String getInstallGit ()
     {
         return ( "apt-get install -y git-core" );
     }
@@ -45,7 +45,7 @@ public class Commands
      *
      * @return
      */
-    public static String getGitAppscale()
+    public static String getGitAppscale ()
     {
         return ( "git clone git://github.com/AppScale/appscale.git" );
     }
@@ -56,7 +56,7 @@ public class Commands
      *
      * @return
      */
-    public static String getGitAppscaleTools()
+    public static String getGitAppscaleTools ()
     {
         return ( "git clone git://github.com/AppScale/appscale-tools.git" );
     }
@@ -67,153 +67,154 @@ public class Commands
      *
      * @return
      */
-    public static String getInstallZookeeper()
+    public static String getInstallZookeeper ()
     {
         return ( "apt-get install -y zookeeper zookeeperd zookeeper-bin" );
     }
 
 
-    public static String getAddUbuntuUser()
+    public static String getAddUbuntuUser ()
     {
         return ( "useradd -m -p (openssl passwd -1 a) ubuntu" );
     }
 
 
-    public static String getChangeRootPasswd()
+    public static String getChangeRootPasswd ()
     {
         return ( "usermod -p (openssl passwd -1 a) root" );
     }
 
 
-    public static String getEditSSHD()
+    public static String getEditSSHD ()
     {
         try
         {
-            List<String> lines = Files.readAllLines( Paths.get( "/etc/ssh/sshd_config" ) );
-            lines.stream().filter( (line) -> ( line.contains( "PermitRootLogin" )
-                    || line.contains( "PermitEmptyPassword" ) ) )
-                    .forEach( (line)
+            List<String> lines = Files.readAllLines ( Paths.get ( "/etc/ssh/sshd_config" ) );
+            lines.stream ().filter (
+                    (line) -> ( line.contains ( "PermitRootLogin" ) || line.contains ( "PermitEmptyPassword" ) ) ).forEach (
+                            (line)
                             ->
                             {
-                                if ( "PermitRootLogin".equals( line ) )
+                                if ( "PermitRootLogin".equals ( line ) )
                                 {
                                     line = "PermitRootLogin = yes";
                                 }
-                                if ( "PermitEmptyPassword".equals( line ) )
+                                if ( "PermitEmptyPassword".equals ( line ) )
                                 {
                                     line = "PermitEmptyPassword = yes";
 
                                 }
                     } );
-            Files.write( Paths.get( "/etc/ssh/sshd_config" ), lines );
+            Files.write ( Paths.get ( "/etc/ssh/sshd_config" ), lines );
             return "Completed";
         }
         catch ( IOException ex )
         {
-            LOG.error( ex.getLocalizedMessage() );
+            LOG.error ( ex.getLocalizedMessage () );
         }
+
         return null;
     }
 
 
-    public static String getAddUserToRoot()
+    public static String getAddUserToRoot ()
     {
         return ( "adduser ubuntu root" );
     }
 
 
-    public static String getCreateSshFolder()
+    public static String getCreateSshFolder ()
     {
         return ( "mkdir /home/ubuntu/.ssh" );
     }
 
 
-    public static String getCreateAppscaleFolder()
+    public static String getCreateAppscaleFolder ()
     {
         return ( "mkdir /home/ubuntu/.appscale" );
     }
 
 
-    public static String getExportHome()
+    public static String getExportHome ()
     {
         return ( "export HOME=/root" );
     }
 
 
-    public static String getFixLocale()
+    public static String getFixLocale ()
     {
         return ( "export LC_ALL=\"en_US.UTF-8\"" );
     }
 
 
-    public static String getEditAppScalefile()
+    public static String getEditAppScalefile ()
     {
         return null;
     }
 
 
-    public static String getEditZookeeperConf()
+    public static String getEditZookeeperConf ()
     {
         try
         {
-            List<String> lines = Files.readAllLines( Paths.get( "/etc/init/zookeeper.conf" ) );
-            lines.stream().filter( (line) -> ( line.contains( "limit" ) ) )
-                    .forEach( (line)
-                            ->
-                            {
-                                line = "#" + line;
-                    } );
-            Files.write( Paths.get( "/etc/init/zookeeper.conf" ), lines );
+            List<String> lines = Files.readAllLines ( Paths.get ( "/etc/init/zookeeper.conf" ) );
+            lines.stream ().filter ( (line) -> ( line.contains ( "limit" ) ) ).forEach ( (line)
+                    ->
+                    {
+                        line = "#" + line;
+            } );
+            Files.write ( Paths.get ( "/etc/init/zookeeper.conf" ), lines );
             return "Complated";
         }
         catch ( IOException ex )
         {
-            LOG.error( ex.getLocalizedMessage() );
+            LOG.error ( ex.getLocalizedMessage () );
         }
+
         return null;
     }
 
 
-    public static List<String> getZookeeperStopAndDisable()
+    public static List<String> getZookeeperStopAndDisable ()
     {
-        List<String> ret = new ArrayList<>();
-        ret.add( "service zookeeper stop" );
-        ret.add( "disableservice zookeeper" );
+        List<String> ret = new ArrayList<> ();
+        ret.add ( "service zookeeper stop" );
+        ret.add ( "disableservice zookeeper" );
         return ret;
     }
 
 
-    public static String getAppScaleStartCommand()
+    public static String getAppScaleStartCommand ()
     {
         return ( "/root/appscale-tools/appscale up" );
     }
 
 
-    public static String getAppScaleStopCommand()
+    public static String getAppScaleStopCommand ()
     {
         return ( "/root/appscale-tools/appscale down" );
     }
 
 
-    public static String getAppscaleInit()
+    public static String getAppscaleInit ()
     {
         return ( "/root/appscale-tools/appscale init" );
     }
 
 
-    public static String getAppscaleToolsBuild()
+    public static String getAppscaleToolsBuild ()
     {
         return ( "bash /root/appscale-tools/debian/appscale_build.sh" );
     }
 
 
-    public static String getAppscaleBuild()
+    public static String getAppscaleBuild ()
     {
         return ( "bash /root/appscale/debian/appscale_build.sh" );
     }
 
 
-    public static String getReinstallKernel()
+    public static String getReinstallKernel ()
     {
         return ( "apt-get install --reinstall 3.19.0.31.generic" );
     }
@@ -224,27 +225,31 @@ public class Commands
      *
      * @return
      */
-    public static String getEditAppscaleInstallSH()
+    public static String getEditAppscaleInstallSH ()
     {
         try
         { // really like this new way
-            List<String> lines = Files.readAllLines( Paths.get( "/root/appscale/debian/appscale_install.sh" ) );
-            lines.stream().filter(
-                    (String line) -> ( line.contains( "increaseconnection" )
-                    || line.contains( "installzookeer" )
-                    || line.contains( "postinstallzookeeper" ) ) )
-                    .forEach( (String line)
+            List<String> lines = Files.readAllLines ( Paths.get (
+                    "/root/appscale/debian/appscale_install.sh" ) );
+            lines.stream ().filter ( (String line) -> ( line.contains (
+                                                       "increaseconnection" ) || line.contains (
+                                                       "installzookeer" ) || line.contains (
+                                                       "postinstallzookeeper" ) ) )
+                    .forEach ( (String line)
                             ->
                             {
                                 line = "#" + line;
                     } );
-            Files.write( Paths.get( "/root/appscale/debian/appscale_install.sh" ), lines );
+            Files.write ( Paths.get (
+                    "/root/appscale/debian/appscale_install.sh" ), lines );
         }
         catch ( IOException ex )
         {
-            LOG.error( ex.getLocalizedMessage() );
+            LOG.error (
+                    ex.getLocalizedMessage () );
             return null;
         }
+
         return "Completed";
     }
 }

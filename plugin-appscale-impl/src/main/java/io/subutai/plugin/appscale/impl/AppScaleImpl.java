@@ -23,8 +23,10 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -50,6 +52,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private NetworkManager networkManager;
+    private QuotaManager quotaManager;
+    private PeerManager peerManager;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
@@ -82,7 +86,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID installCluster ( AppScaleConfig appScaleConfig )
     {
-        LOG.info ( " install cluster started" );
+        LOG.info ( "install cluster started" );
         /*
          * Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" ); Preconditions.checkArgument (
          * !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
@@ -310,6 +314,30 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setNetworkManager ( NetworkManager networkManager )
     {
         this.networkManager = networkManager;
+    }
+
+
+    public QuotaManager getQuotaManager ()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager ( QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
+    }
+
+
+    public PeerManager getPeerManager ()
+    {
+        return peerManager;
+    }
+
+
+    public void setPeerManager ( PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 
 

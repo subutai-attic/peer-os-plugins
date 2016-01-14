@@ -4,13 +4,13 @@
     <parent>
         <groupId>io.subutai</groupId>
         <artifactId>AppScale</artifactId>
-        <version>4.0.0.RC5</version>
+        <version>4.0.0-RC5</version>
     </parent>
     <!-- <artifactId>appscale-plugin-kar</artifactId> -->
     <artifactId>appscale-subutai-plugin</artifactId>
     
     <name>Subutai Appscale Plugin KAR</name>
-    
+    <packaging>kar</packaging>
     
     <build>
         <plugins>

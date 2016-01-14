@@ -1,12 +1,12 @@
 <features name="appscale-plugin" version="4.0.0-RC5">
   <feature name="appscale-plugin" version="4.0.0-RC5">
-    <bundle> mvn:io.subutai/appscale-plugin-api/4.0.0.RC5</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-impl/4.0.0.RC5</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-cli/4.0.0.RC5</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-rest/4.0.0.RC5</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-api/4.0.0-RC5</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-impl/4.0.0-RC5</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-cli/4.0.0-RC5</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-rest/4.0.0-RC5</bundle>
   </feature>
   <feature name="appscale-plugin-war" version="4.0.0-RC5">
-    <bundle> war:mvn:io.subutai/appscale-plugin-webui/4.0.0.RC5/war?Webapp-Context=appscale-plugin-war</bundle>
+    <bundle> war:mvn:io.subutai/appscale-plugin-webui/4.0.0-RC5/war?Webapp-Context=appscale-plugin-war</bundle>
   </feature>
 </features>
 <!-- gitignore  -->
