@@ -19,6 +19,7 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -88,9 +89,16 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             {
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
-                NodeGroup nodeGroup = new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME,
-                        nodeCount - numberOfContainersNotBeingUsed, 1, 1, new PlacementStrategy( "ROUND_ROBIN" ),
-                        manager.getPeerManager().getLocalPeer().getId() );
+                final int newNodes = nodeCount - numberOfContainersNotBeingUsed;
+                Set<NodeGroup> nodeGroups = new HashSet<>();
+                for ( int i = 0; i < newNodes; i++ )
+                {
+                    NodeGroup nodeGroup =
+                            new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME, ContainerSize.SMALL, 1, 1,
+                                    null, null );
+
+                    nodeGroups.add( nodeGroup );
+                }
 
 
                 if ( numberOfContainersNotBeingUsed > 0 )
@@ -103,8 +111,9 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                newlyCreatedContainers = environmentManager.growEnvironment( config.getEnvironmentId(),
-                        new Blueprint( nodeGroupName, null, Sets.newHashSet( nodeGroup ) ), false );
+                newlyCreatedContainers = environmentManager
+                        .growEnvironment( config.getEnvironmentId(), new Blueprint( nodeGroupName, nodeGroups ),
+                                false );
                 for ( EnvironmentContainerHost host : newlyCreatedContainers )
                 {
                     config.getDataNodes().add( host.getId() );
