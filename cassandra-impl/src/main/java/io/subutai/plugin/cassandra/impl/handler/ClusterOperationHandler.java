@@ -22,6 +22,7 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.protocol.PlacementStrategy;
@@ -125,10 +126,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
     public void addNode()
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(), 1, 0, 0,
-                new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
+        NodeGroup nodeGroup =
+                new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(), ContainerSize.SMALL, 0,
+                        0, null, null );
 
         try
         {
@@ -136,7 +137,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             try
             {
                 Blueprint blueprint =
-                        new Blueprint( CassandraClusterConfig.PRODUCT_NAME, null, Sets.newHashSet( nodeGroup ) );
+                        new Blueprint( CassandraClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );
                 newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), blueprint, false );
             }
             catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
@@ -195,14 +196,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             }
 
             //subscribe to alerts
-//            try
-//            {
-//                manager.subscribeToAlerts( newNode );
-//            }
-//            catch ( MonitorException e )
-//            {
-//                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-//            }
+            //            try
+            //            {
+            //                manager.subscribeToAlerts( newNode );
+            //            }
+            //            catch ( MonitorException e )
+            //            {
+            //                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
+            //            }
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -330,14 +331,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             return;
         }
 
-//        try
-//        {
-//            manager.unsubscribeFromAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-//        }
+        //        try
+        //        {
+        //            manager.unsubscribeFromAlerts( environment );
+        //        }
+        //        catch ( MonitorException e )
+        //        {
+        //            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage()
+        // ) );
+        //        }
         try
         {
             manager.deleteConfig( config );
