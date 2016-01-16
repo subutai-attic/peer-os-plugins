@@ -24,6 +24,7 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -185,9 +186,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 if ( envContainerHosts.isEmpty() )
                 {
                     NodeGroup nodeGroup =
-                            new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME, 1,
-                                    1, 1, new PlacementStrategy( "ROUND_ROBIN" ),
-                                    manager.getPeerManager().getLocalPeer().getId() );
+                            new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME,
+                                    ContainerSize.TINY, 1, 1, null, null );
                     Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );
 

@@ -75,7 +75,8 @@ public class ZookeeperWithHadoopSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                if ( containerHost.getTemplate().getProducts()
+                // TODO: check getProducts()
+                if ( containerHost.getTemplate().getConfigContents()/* getProducts()*/
                                   .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
                 {
                     zookeeperNodes.add( containerHost );

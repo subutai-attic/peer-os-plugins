@@ -82,7 +82,8 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                if ( containerHost.getTemplate().getProducts()
+                //TODO: check getProducts
+                if ( containerHost.getTemplate().getPackagesContents()/*getProducts()*/
                                   .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
                 {
                     zookeeperNodes.add( containerHost );
