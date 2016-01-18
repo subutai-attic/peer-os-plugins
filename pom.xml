@@ -30,8 +30,8 @@
     <module>zookeeper-impl</module>
     <module>zookeeper-cli</module>
     <module>zookeeper-rest</module>
-    <module>zookeeper-kar</module>
     <module>zookeeper-webui</module>
+    <module>zookeeper-kar</module>
   </modules>
 
   <dependencyManagement>
