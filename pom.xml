@@ -30,8 +30,8 @@
     <module>mahout-impl</module>
     <module>mahout-cli</module>
     <module>mahout-rest</module>
-    <module>mahout-kar</module>
     <module>mahout-webui</module>
+    <module>mahout-kar</module>
   </modules>
 
   <dependencyManagement>
