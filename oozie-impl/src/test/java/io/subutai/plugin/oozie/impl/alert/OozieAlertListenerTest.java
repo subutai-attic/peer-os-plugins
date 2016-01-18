@@ -1,10 +1,6 @@
 package io.subutai.plugin.oozie.impl.alert;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -19,6 +15,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
+import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -28,10 +25,6 @@ import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.Commands;
 import io.subutai.plugin.oozie.impl.OozieImpl;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 
 @RunWith( MockitoJUnitRunner.class )
@@ -86,7 +79,7 @@ public class OozieAlertListenerTest
 //    }
 
 
-    @Test( expected = AlertException.class )
+    @Test( expected = AlertHandlerException.class )
     public void testParsePid() throws Exception
     {
         oozieAlertListener.parsePid( "test" );
