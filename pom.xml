@@ -31,8 +31,8 @@
     <!--<module>shark-ui</module>-->
     <module>shark-cli</module>
     <module>shark-rest</module>
-    <module>shark-kar</module>
     <module>shark-webui</module>
+    <module>shark-kar</module>
   </modules>
 
   <dependencyManagement>
