@@ -24,9 +24,9 @@
   <modules>
     <module>generic-plugin-api</module>
     <module>generic-plugin-impl</module>
-    <module>generic-plugin-kar</module>
     <module>generic-plugin-rest</module>
     <module>generic-plugin-webui</module>
+    <module>generic-plugin-kar</module>
   </modules>
 
   <dependencyManagement>
