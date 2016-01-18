@@ -27,7 +27,7 @@
 
   <service ref="elasticsearch-impl" interface="io.subutai.plugin.elasticsearch.api.Elasticsearch" />
   <service ref="elasticsearch-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
-  <service ref="alertListener" interface="io.subutai.common.peer.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertHandler" />
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
