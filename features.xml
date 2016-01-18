@@ -5,4 +5,7 @@
     <bundle>mvn:io.subutai/hive-plugin-cli/4.0.0-RC6</bundle>
     <bundle>mvn:io.subutai/hive-plugin-rest/4.0.0-RC6</bundle>
   </feature>
+    <feature name="hive-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/hive-plugin-webui/4.0.0-RC6/war?Webapp-Context=hive-plugin-war</bundle>
+    </feature>
 </features>
