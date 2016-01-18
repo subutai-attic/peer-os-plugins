@@ -25,7 +25,12 @@ public class FlumeWebModule implements WebuiModule
     public String getAngularDependecyList()
     {
         return ".state('flume', {\n" + "url: '/plugins/flume',\n"
-                + "templateUrl: 'plugins/flume/partials/view.html',\n" + "resolve: {\n"
+                + "templateUrl: 'plugins/flume/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
+				"resolve: {\n"
                 + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
                 + "return $ocLazyLoad.load([\n" + "{\n"
                 + "name: 'subutai.plugins.flume',\n" + "files: [\n"
