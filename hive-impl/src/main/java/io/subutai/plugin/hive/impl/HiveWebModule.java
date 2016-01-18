@@ -27,6 +27,10 @@ public class HiveWebModule implements WebuiModule
 		return ".state('hive', {\n" +
 				"url: '/plugins/hive',\n" +
 				"templateUrl: 'plugins/hive/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
 				"resolve: {\n" +
 				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
 				"return $ocLazyLoad.load([\n" +
