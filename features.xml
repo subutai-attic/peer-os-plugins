@@ -1,8 +1,11 @@
-<features name="lucene-plugin" version="4.0.0-RC5">
-  <feature name="lucene-plugin" version="4.0.0-RC5">
-    <bundle>mvn:io.subutai/lucene-plugin-api/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-impl/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-cli/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/lucene-plugin-rest/4.0.0-RC5</bundle>
+<features name="lucene-plugin" version="4.0.0-RC6">
+  <feature name="lucene-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/lucene-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/lucene-plugin-rest/4.0.0-RC6</bundle>
   </feature>
+    <feature name="lucene-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/lucene-plugin-webui/4.0.0-RC6/war?Webapp-Context=lucene-plugin-war</bundle>
+    </feature>
 </features>
