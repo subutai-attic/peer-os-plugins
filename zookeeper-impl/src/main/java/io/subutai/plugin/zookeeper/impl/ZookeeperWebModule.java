@@ -28,9 +28,15 @@ public class ZookeeperWebModule implements WebuiModule
     public String getAngularDependecyList()
     {
         return ".state('zookeeper', {\n" + "            url: '/plugins/zookeeper',\n"
-                + "            templateUrl: 'plugins/zookeeper/partials/view.html',\n" + "            resolve: {\n"
+                + "            templateUrl: 'plugins/zookeeper/partials/view.html',\n"
+                + "            data: {\n"
+                + "                bodyClass: '',\n"
+                + "                layout: 'default'\n"
+                + "            },\n"
+                + "            resolve: {\n"
                 + "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-                + "                    return $ocLazyLoad.load([\n" + "                        {\n"
+                + "                    return $ocLazyLoad.load([\n"
+                + "                        {\n"
                 + "                            name: 'subutai.plugins.zookeeper',\n"
                 + "                            files: [\n"
                 + "                                'plugins/zookeeper/zookeeper.js',\n"
@@ -38,7 +44,11 @@ public class ZookeeperWebModule implements WebuiModule
                 + "                                'plugins/zookeeper/service.js',\n"
                 + "                                'plugins/hadoop/service.js',\n"
                 + "                                'subutai-app/environment/service.js'\n"
-                + "                            ]\n" + "                        }\n" + "                    ]);\n"
-                + "                }]\n" + "            }\n" + "        })";
+                + "                            ]\n"
+                + "                        }\n"
+                + "                    ]);\n"
+                + "                }]\n"
+                + "            }\n"
+                + "        })";
     }
 }
