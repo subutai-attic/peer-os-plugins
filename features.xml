@@ -1,8 +1,8 @@
-<features name="hive-plugin" version="4.0.0-RC5">
-  <feature name="hive-plugin" version="4.0.0-RC5">
-    <bundle>mvn:io.subutai/hive-plugin-api/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-impl/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-cli/4.0.0-RC5</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-rest/4.0.0-RC5</bundle>
+<features name="hive-plugin" version="4.0.0-RC6">
+  <feature name="hive-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/hive-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-rest/4.0.0-RC6</bundle>
   </feature>
 </features>
