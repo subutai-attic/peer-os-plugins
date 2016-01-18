@@ -24,7 +24,12 @@ public class PigWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList() {
         return ".state('pig', {\n" + "url: '/plugins/pig',\n"
-                + "templateUrl: 'plugins/pig/partials/view.html',\n" + "resolve: {\n"
+                + "templateUrl: 'plugins/pig/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
+				"resolve: {\n"
                 + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
                 + "return $ocLazyLoad.load([\n" + "{\n"
                 + "name: 'subutai.plugins.pig',\n" + "files: [\n"
