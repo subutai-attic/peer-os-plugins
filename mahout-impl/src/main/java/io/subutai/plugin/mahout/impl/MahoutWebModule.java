@@ -32,7 +32,12 @@ public class MahoutWebModule implements WebuiModule
 	public String getAngularDependecyList()
 	{
 		return ".state('mahout', {\n" + "url: '/plugins/mahout',\n"
-                + "templateUrl: 'plugins/mahout/partials/view.html',\n" + "resolve: {\n"
+                + "templateUrl: 'plugins/mahout/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
+				"resolve: {\n"
                 + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
                 + "return $ocLazyLoad.load([\n" + "{\n"
                 + "name: 'subutai.plugins.mahout',\n" + "files: [\n"
