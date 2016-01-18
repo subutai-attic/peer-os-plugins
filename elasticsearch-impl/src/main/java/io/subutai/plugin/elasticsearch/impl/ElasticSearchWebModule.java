@@ -25,6 +25,10 @@ public class ElasticSearchWebModule implements WebuiModule
     public String getAngularDependecyList() {
         return ".state('elasticsearch', {" + "url: '/plugins/elasticsearch',\n"
                 + "templateUrl: 'plugins/elasticsearch/partials/view.html',\n"
+                + "data: {\n"
+                + "     bodyClass: '',\n"
+                + "     layout: 'default'\n"
+                + "},\n"
                 + "resolve: {\n"
                     + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
                         + "return $ocLazyLoad.load([{\n"
