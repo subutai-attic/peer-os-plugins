@@ -28,6 +28,10 @@ public class OozieWebModule implements WebuiModule
 		return ".state('oozie', {\n" +
 				"url: '/plugins/oozie',\n" +
 				"templateUrl: 'plugins/oozie/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
 				"resolve: {\n" +
 				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
 				"return $ocLazyLoad.load([\n" +
