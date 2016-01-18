@@ -33,17 +33,28 @@ public class HadoopWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return "        .state('hadoop', {\n" + "            url: '/plugins/hadoop',\n"
-                + "            templateUrl: 'plugins/hadoop/partials/view.html',\n" + "            resolve: {\n"
-                + "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-                + "                    return $ocLazyLoad.load([\n" + "                        {\n"
-                + "                            name: 'subutai.plugins.hadoop',\n"
-                + "                            files: [\n"
-                + "                                'plugins/hadoop/hadoop.js',\n"
-                + "                                'plugins/hadoop/controller.js',\n"
-                + "                                'plugins/hadoop/service.js',\n"
-                + "                                'subutai-app/environment/service.js'\n"
-                + "                            ]\n" + "                        }\n" + "                    ]);\n"
-                + "                }]\n" + "            }\n" + "        })";
+        return "        .state('hadoop', {\n" +
+                "           url: '/plugins/hadoop',\n" +
+                "           templateUrl: 'plugins/hadoop/partials/view.html',\n" +
+                "           data: {\n" +
+                "               bodyClass: '',\n" +
+                "               layout: 'default'\n" +
+                "           },\n" +
+                "            resolve: {\n" +
+                "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+                "                    return $ocLazyLoad.load([\n" +
+                "                        {\n" +
+                "                            name: 'subutai.plugins.hadoop',\n" +
+                "                            files: [\n" +
+                "                                'plugins/hadoop/hadoop.js',\n" +
+                "                                'plugins/hadoop/controller.js',\n" +
+                "                                'plugins/hadoop/service.js',\n" +
+                "                                'subutai-app/environment/service.js'\n" +
+                "                            ]\n" +
+                "                        }\n" +
+                "                    ]);\n" +
+                "                }]\n" +
+                "            }\n" +
+                "        })";
     }
 }
