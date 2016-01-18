@@ -30,8 +30,8 @@
     <module>pig-impl</module>
     <module>pig-cli</module>
     <module>pig-rest</module>
-    <module>pig-kar</module>
     <module>pig-webui</module>
+    <module>pig-kar</module>
   </modules>
   <dependencyManagement>
     <dependencies>
