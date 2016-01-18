@@ -31,8 +31,8 @@
     <module>hipi-impl</module>
     <module>hipi-cli</module>
     <module>hipi-rest</module>
-    <module>hipi-kar</module>
     <module>hipi-webui</module>
+    <module>hipi-kar</module>
   </modules>
 
   <dependencyManagement>
