@@ -30,8 +30,8 @@
     <module>lucene-impl</module>
     <module>lucene-cli</module>
     <module>lucene-rest</module>
-    <module>lucene-kar</module>
     <module>lucene-webui</module>
+    <module>lucene-kar</module>
   </modules>
 
   <dependencyManagement>
