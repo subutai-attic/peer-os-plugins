@@ -26,7 +26,11 @@ public class PrestoWebModule implements WebuiModule
 	{
 		return ".state('presto', {\n"
 				+ "url: '/plugins/presto',\n"
-				+ "templateUrl: 'plugins/presto/partials/view.html',\n"
+				+ "templateUrl: 'plugins/presto/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n"
 				+ "resolve: {\n"
 					+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
 						+ "return $ocLazyLoad.load([\n" + "{\n"
