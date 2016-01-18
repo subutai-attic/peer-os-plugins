@@ -19,7 +19,6 @@ import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
@@ -31,7 +30,6 @@ import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
-import io.subutai.plugin.presto.impl.alert.PrestoAlertListener;
 import io.subutai.plugin.presto.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.presto.impl.handler.NodeOperationHanler;
 
@@ -68,10 +66,10 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     }
 
 
-    /*public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        monitor.startMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment, alertSettings );
-    }
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        monitor.startMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment, alertSettings );
+//    }
 
 
     public Monitor getMonitor()
@@ -80,16 +78,16 @@ public class PrestoImpl implements Presto, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        monitor.activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        monitor.stopMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment );
-    }*/
+//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+//    {
+//        monitor.activateMonitoring( host, alertSettings );
+//    }
+//
+//
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        monitor.stopMonitoring( PrestoAlertListener.PRESTO_ALERT_LISTENER, environment );
+//    }
 
 
     public void init()

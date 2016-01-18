@@ -30,8 +30,8 @@
     <module>presto-impl</module>
     <module>presto-cli</module>
     <module>presto-rest</module>
-    <module>presto-kar</module>
     <module>presto-webui</module>
+    <module>presto-kar</module>
   </modules>
 
   <dependencyManagement>
