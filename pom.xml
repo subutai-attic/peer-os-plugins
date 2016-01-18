@@ -31,8 +31,8 @@
     <module>storm-impl</module>
     <module>storm-cli</module>
     <module>storm-rest</module>
-    <module>storm-kar</module>
     <module>storm-webui</module>
+    <module>storm-kar</module>
   </modules>
 
   <dependencyManagement>

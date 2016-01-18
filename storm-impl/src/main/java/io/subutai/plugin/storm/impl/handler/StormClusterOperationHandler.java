@@ -12,26 +12,19 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
@@ -224,9 +217,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup =
-                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, 1, 0, 0,
-                        new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
+//        NodeGroup nodeGroup =
+//                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, 1, 0, 0,
+//                        new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
 
         EnvironmentContainerHost newNode;
         try
@@ -241,21 +234,21 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             else
             {
                 Set<EnvironmentContainerHost> newNodeSet;
-                try
-                {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-                            new Blueprint( StormClusterConfiguration.PRODUCT_KEY, null, Sets.newHashSet( nodeGroup ) ),
-                            false );
-                }
-                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-                {
-                    LOG.error( "Could not add new node(s) to environment." );
-                    throw new ClusterException( e );
-                }
+//                try
+//                {
+//                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
+//                            new Blueprint( StormClusterConfiguration.PRODUCT_KEY, null, Sets.newHashSet( nodeGroup ) ),
+//                            false );
+//                }
+//                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+//                {
+//                    LOG.error( "Could not add new node(s) to environment." );
+//                    throw new ClusterException( e );
+//                }
 
-                newNode = newNodeSet.iterator().next();
+//                newNode = newNodeSet.iterator().next();
 
-                config.getSupervisors().add( newNode.getId() );
+//                config.getSupervisors().add( newNode.getId() );
             }
 
             manager.saveConfig( config );
@@ -270,7 +263,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 logException( String.format( "Couldn't find environment with id: %s", config.getEnvironmentId() ), e );
                 return;
             }
-            configureNStart( newNode, config, environment );
+//            configureNStart( newNode, config, environment );
 
             trackerOperation.addLogDone( "Finished." );
 
