@@ -180,17 +180,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, 1, 1, 1,
-                new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
+/*        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, 1, 1, 1,
+                new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );*/
 
         EnvironmentContainerHost newNode;
         try
         {
             EnvironmentContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
-            if ( unusedNodeInEnvironment != null )
-            {
+/*            if ( unusedNodeInEnvironment != null )
+            {*/
                 newNode = unusedNodeInEnvironment;
-            }
+ /*           }
             else
             {
                 Set<EnvironmentContainerHost> newNodeSet;
@@ -206,7 +206,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                     throw new ClusterException( e );
                 }
                 newNode = newNodeSet.iterator().next();
-            }
+            }*/
 
             if ( nodeType.equals( NodeType.ROUTER_NODE ) )
             {

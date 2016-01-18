@@ -29,8 +29,8 @@
     <module>mongo-impl</module>
     <module>mongo-cli</module>
     <module>mongo-rest</module>
-    <module>mongo-kar</module>
     <module>mongo-webui</module>
+    <module>mongo-kar</module>
   </modules>
 
   <dependencyManagement>
