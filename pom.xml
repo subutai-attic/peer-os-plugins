@@ -30,8 +30,8 @@
     <module>nutch-impl</module>
     <module>nutch-cli</module>
     <module>nutch-rest</module>
-    <module>nutch-kar</module>
     <module>nutch-webui</module>
+    <module>nutch-kar</module>
   </modules>
 
   <dependencyManagement>
