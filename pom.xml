@@ -6,14 +6,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>pig-plugin-parent</artifactId>
-  <version>4.0.0-RC5</version>
+  <version>4.0.0-RC6</version>
 
   <name>Subutai Pig Parent</name>
   <description>Subutai Pig Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC5</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC6</subutai.mgmt.parent.version>
     <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
     <karaf.version>3.0.2</karaf.version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
