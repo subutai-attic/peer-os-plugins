@@ -27,6 +27,10 @@ public class CephWebModule implements WebuiModule
 		return ".state('ceph', {\n" +
 				"url: '/plugins/ceph',\n" +
 				"templateUrl: 'plugins/ceph/partials/view.html',\n" +
+				"data: {" +
+				"bodyClass: ''," +
+				"layout: 'default'" +
+				"}," +
 				"resolve: {\n" +
 				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
 				"return $ocLazyLoad.load([\n" +
