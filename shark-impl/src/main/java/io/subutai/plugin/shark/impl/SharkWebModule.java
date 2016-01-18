@@ -26,7 +26,11 @@ public class SharkWebModule implements WebuiModule
 	{
 		return ".state('shark', {\n"
 				+ "url: '/plugins/shark',\n"
-				+ "templateUrl: 'plugins/shark/partials/view.html',\n"
+				+ "templateUrl: 'plugins/shark/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n"
 				+ "resolve: {\n"
 					+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
 						+ "return $ocLazyLoad.load([\n" + "{\n"
