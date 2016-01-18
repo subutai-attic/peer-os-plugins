@@ -19,9 +19,8 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
@@ -53,7 +52,8 @@ public class ClusterOperationHandler
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
-        trackerOperation = manager.getTracker().createTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation        ( ElasticsearchClusterConfiguration
+                .PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
 
@@ -188,11 +188,9 @@ public class ClusterOperationHandler
 
     private void addNode()
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY,
-                ElasticsearchClusterConfiguration.TEMPLATE_NAME, 1, 0, 0, new PlacementStrategy( "ROUND_ROBIN" ),
-                localPeer.getId() );
+                ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL, 0, 0, null, null );
 
         EnvironmentContainerHost newNode;
         try
@@ -209,9 +207,9 @@ public class ClusterOperationHandler
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-                            new Blueprint( ElasticsearchClusterConfiguration.PRODUCT_KEY, null,
-                                    Sets.newHashSet( nodeGroup ) ), false );
+                    Blueprint blueprint = new Blueprint( ElasticsearchClusterConfiguration.PRODUCT_KEY,
+                            Sets.<NodeGroup>newHashSet( nodeGroup ) );
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), blueprint, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
@@ -288,7 +286,7 @@ public class ClusterOperationHandler
             for ( EnvironmentContainerHost host : containerHostSet )
             {
                 if ( ( !config.getNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
-                        ElasticsearchClusterConfiguration.TEMPLATE_NAME ) )
+                        ElasticsearchClusterConfiguration.TEMPLATE_NAME                              ) )
                 {
                     unusedNode = host;
                     break;
@@ -368,7 +366,7 @@ public class ClusterOperationHandler
             }
             catch ( ClusterConfigurationException e )
             {
-                trackerOperation.addLogFailed(
+                trackerOperation.addLogFailed                                                                         (
                         String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
                 e.printStackTrace();
             }
@@ -386,7 +384,7 @@ public class ClusterOperationHandler
         ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
         if ( config == null )
         {
-            trackerOperation.addLogFailed(
+            trackerOperation.addLogFailed                                                                  (
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }
