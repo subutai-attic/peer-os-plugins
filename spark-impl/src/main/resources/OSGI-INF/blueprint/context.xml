@@ -29,7 +29,7 @@
   <!-- *********************************************************************************** -->
   <service ref="spark-impl" interface="io.subutai.plugin.spark.api.Spark" />
   <service ref="spark-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
-  <service ref="alertListener" interface="io.subutai.common.peer.AlertListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertHandler" />
   <!-- *********************************************************************************** -->
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
