@@ -30,8 +30,8 @@
     <module>flume-impl</module>
     <module>flume-cli</module>
     <module>flume-rest</module>
-    <module>flume-kar</module>
     <module>flume-webui</module>
+    <module>flume-kar</module>
   </modules>
   <dependencyManagement>
     <dependencies>
