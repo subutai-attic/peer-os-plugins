@@ -29,18 +29,18 @@ import io.subutai.plugin.common.api.ConfigBase;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-public class ClusterConfiguration implements ClusterConfigurationInterface<ConfigBase>
+public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
-    private final TrackerOperation trackerOperation;
-    private final AppScaleImpl appScaleImpl;
+    private final TrackerOperation po;
+    private final AppScaleImpl appscaleManager;
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
-    public ClusterConfiguration ( TrackerOperation trackerOperation, AppScaleImpl appScaleImpl )
+    public ClusterConfiguration ( final TrackerOperation operation, final AppScaleImpl appScaleImpl )
     {
-        this.trackerOperation = trackerOperation;
-        this.appScaleImpl = appScaleImpl;
+        this.po = operation;
+        this.appscaleManager = appScaleImpl;
     }
 
 
@@ -58,99 +58,102 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Confi
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-        LOG.info ( "configureCluster" );
-        LOG.info ( "ConfigBase : " + configBase + " environment " + environment );
-        AppScaleConfig appScaleConfig = ( AppScaleConfig ) configBase;
-        EnvironmentContainerHost containerHostById;
-        CommandResult result;
+        LOG.info ( "ClusterConfiguration :: configureCluster " );
+
+        AppScaleConfig config = ( AppScaleConfig ) configBase;
+        EnvironmentContainerHost containerHost = null;
+
 
         try
         {
-            containerHostById = environment.getContainerHostById ( appScaleConfig.getClusterName () );
-            LOG.info ( "containerHostById: " + containerHostById );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getExportHome () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getFixLocale () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getChangeRootPasswd () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditSSHD () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getAddUbuntuUser () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getAddUserToRoot () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getCreateSshFolder () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getCreateAppscaleFolder () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getInstallGit () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getGitAppscale () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getGitAppscaleTools () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getInstallZookeeper () ) );
-            resultCheck ( result );
-
-            List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable ();
-            for ( String z : zookeeperStopAndDisable )
-            {
-                result = containerHostById.execute ( new RequestBuilder ( z ) );
-                resultCheck ( result );
-            }
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditZookeeperConf () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getEditAppscaleInstallSH () ) );
-            resultCheck ( result );
-
-
-            // last commands if all went good.
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getAppscaleBuild () ) );
-            resultCheck ( result );
-            result = containerHostById.execute ( new RequestBuilder ( Commands.getAppscaleToolsBuild () ) );
-            resultCheck ( result );
-
-
-            // check: tide up all and save to db
-            trackerOperation.addLog ( "Configuration is finished" );
-            appScaleConfig.setEnvironmentId ( environment.getId () );
-            appScaleImpl.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
-                                                    configBase );
-            trackerOperation.addLogDone ( "Appscale is saved to database" );
-
-            // now it is time to make ip changes and init the appscale
-
+            containerHost = environment.getContainerHostByHostname ( config.getClusterName () );
         }
         catch ( ContainerHostNotFoundException ex )
         {
-            LOG.error ( "No environment found..." + ex.getLocalizedMessage () );
-            trackerOperation.addLog ( "error getting environment for container...." );
+            LOG.error ( "configureCluster " + ex );
+        }
+        LOG.info (
+                "Container Host Found: " + containerHost.getContainerId () + "\n"
+                + "\n" + containerHost.getHostname () + "\n" );
+
+        // start executing commands
+        // this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
+        this.commandExecute ( containerHost, Commands.getAddUbuntuUser () );
+        this.commandExecute ( containerHost, Commands.getAddUserToRoot () );
+        // this.commandExecute ( containerHost, Commands.getExportHome () );
+        this.commandExecute ( containerHost, Commands.getFixLocale () );
+        this.commandExecute ( containerHost, Commands.getCreateSshFolder () );
+        this.commandExecute ( containerHost, Commands.getCreateAppscaleFolder () );
+        this.commandExecute ( containerHost, Commands.getChangeRootPasswd () );
+
+        List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable ();
+        for ( String c : zookeeperStopAndDisable )
+        {
+            this.commandExecute ( containerHost, c );
+        }
+
+        this.appscaleInitCluster ( containerHost );
+
+        // end of executing commands
+        config.setEnvironmentId ( environment.getId () );
+        appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
+                                                   configBase );
+        po.addLogDone ( "Appscale is saved to database" );
+        this.commandExecute ( containerHost, Commands.getAppScaleStartCommand () );
+
+    }
+
+
+    private void commandExecute ( EnvironmentContainerHost containerHost, String command )
+    {
+        try
+        {
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ) );
+            po.addLogDone ( command + " executed with: " + responseFrom );
+        }
+        catch ( CommandException e )
+        {
+            LOG.error ( "Error while executing \"" + command + "\".\n" + e );
+        }
+    }
+
+
+    private void appscaleInitCluster ( EnvironmentContainerHost containerHost )
+    {
+        String ipaddr = getIPAddress ( containerHost );
+        String localCommand = "sudo bash /home/ubuntu/app.sh " + ipaddr;
+        try
+        {
+            CommandResult r = containerHost.execute ( new RequestBuilder ( localCommand ) );
+            LOG.info ( ipaddr + " : " + r.getStdOut () + " " + r.getStdErr () );
+        }
+        catch ( Exception ex )
+        {
+            LOG.error ( "File can not be created." + ex );
+        }
+
+    }
+
+
+    private String getIPAddress ( EnvironmentContainerHost ch )
+    {
+        String ipaddr = null;
+        try
+        {
+
+            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
+            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
+            ipaddr = resultAddr.getStdOut ();
+            LOG.info ( "Container IP: " + ipaddr );
         }
         catch ( CommandException ex )
         {
-            LOG.error ( ex.getLocalizedMessage () );
+            LOG.error ( "ip address command error : " + ex );
         }
+        return ipaddr;
 
     }
 
-
-    private void resultCheck ( CommandResult result )
-    {
-        if ( result.hasCompleted () )
-        {
-            trackerOperation.addLogDone ( result.getStdOut () );
-            System.out.println ( "result: " + result.getStdOut () );
-            LOG.info ( "bir " + result.getStdOut () );
-        }
-        else
-        {
-            trackerOperation.addLogFailed ( result.getStdErr () );
-            System.out.println ( "result: " + result.getStdErr () );
-            LOG.info ( "iki " + result.getStdErr () );
-        }
-
-    }
 
 }
 

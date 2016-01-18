@@ -87,18 +87,19 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public UUID installCluster ( AppScaleConfig appScaleConfig )
     {
         LOG.info ( "install cluster started" );
-        /*
-         * Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" ); Preconditions.checkArgument (
-         * !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
-         */
+
+        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument (
+                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
+
 
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.INSTALL );
         LOG.info ( "install cluster " + abstractOperationHandler );
         executor.execute ( abstractOperationHandler ); // here crashes
-        // LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
-        // return abstractOperationHandler.getTrackerId ();
-        return UUID.randomUUID (); // temporarily...
+        LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
+        return abstractOperationHandler.getTrackerId ();
+
     }
 
 

@@ -21,6 +21,7 @@ public class AppScaleConfig implements ConfigBase
     // private static final String TEMPLATE_NAME = "Appscale";
     private static final String TEMPLATE_NAME = "master"; // we will be using master template
     private String clusterName = "";
+
     private String domainName;
     private List<String> nodes;
     private String environmentId;

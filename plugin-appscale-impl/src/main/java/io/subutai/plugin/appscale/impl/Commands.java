@@ -24,19 +24,19 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
  */
 public class Commands
 {
-    AppScaleConfig appScaleConfig;
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
+    AppScaleConfig config;
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger ( Commands.class.getName () );
 
 
-    public Commands ( AppScaleConfig appScaleConfig )
+    public Commands ( AppScaleConfig config )
     {
-        this.appScaleConfig = appScaleConfig;
+        this.config = config;
     }
 
 
     public static String getInstallGit ()
     {
-        return ( "apt-get install -y git-core" );
+        return ( "sudo apt-get install -y git" );
     }
 
 
@@ -47,7 +47,7 @@ public class Commands
      */
     public static String getGitAppscale ()
     {
-        return ( "git clone git://github.com/AppScale/appscale.git" );
+        return ( "sudo git -C '/home/ubuntu' clone git://github.com/AppScale/appscale.git" );
     }
 
 
@@ -58,7 +58,7 @@ public class Commands
      */
     public static String getGitAppscaleTools ()
     {
-        return ( "git clone git://github.com/AppScale/appscale-tools.git" );
+        return ( "sudo git -C '/home/ubuntu' clone git://github.com/AppScale/appscale-tools.git" );
     }
 
 
@@ -69,19 +69,19 @@ public class Commands
      */
     public static String getInstallZookeeper ()
     {
-        return ( "apt-get install -y zookeeper zookeeperd zookeeper-bin" );
+        return ( "sudo apt-get install -y zookeeper zookeeperd zookeeper-bin" );
     }
 
 
     public static String getAddUbuntuUser ()
     {
-        return ( "useradd -m -p (openssl passwd -1 a) ubuntu" );
+        return ( "sudo useradd -m -p 'openssl passwd -1 a' ubuntu" );
     }
 
 
     public static String getChangeRootPasswd ()
     {
-        return ( "usermod -p (openssl passwd -1 a) root" );
+        return ( "sudo echo 'root:a' | sudo chpasswd" );
     }
 
 
@@ -119,19 +119,19 @@ public class Commands
 
     public static String getAddUserToRoot ()
     {
-        return ( "adduser ubuntu root" );
+        return ( "sudo adduser ubuntu root" );
     }
 
 
     public static String getCreateSshFolder ()
     {
-        return ( "mkdir /home/ubuntu/.ssh" );
+        return ( "sudo mkdir /home/ubuntu/.ssh" );
     }
 
 
     public static String getCreateAppscaleFolder ()
     {
-        return ( "mkdir /home/ubuntu/.appscale" );
+        return ( "sudo mkdir /home/ubuntu/.appscale" );
     }
 
 
@@ -178,45 +178,45 @@ public class Commands
     public static List<String> getZookeeperStopAndDisable ()
     {
         List<String> ret = new ArrayList<> ();
-        ret.add ( "service zookeeper stop" );
-        ret.add ( "disableservice zookeeper" );
+        ret.add ( "sudo /etc/init.d/zookeeper stop" );
+        ret.add ( "sudo disableservice zookeeper" );
         return ret;
     }
 
 
     public static String getAppScaleStartCommand ()
     {
-        return ( "/root/appscale-tools/appscale up" );
+        return ( "sudo /home/ubuntu/appscale-tools/bin/appscale up --yes" );
     }
 
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "/root/appscale-tools/appscale down" );
+        return ( "sudo /home/ubuntu/appscale-tools/bin/appscale down" );
     }
 
 
     public static String getAppscaleInit ()
     {
-        return ( "/root/appscale-tools/appscale init" );
+        return ( "sudo /home/ubuntu/appscale-tools/bin/appscale init cluster" );
     }
 
 
     public static String getAppscaleToolsBuild ()
     {
-        return ( "bash /root/appscale-tools/debian/appscale_build.sh" );
+        return ( "sudo bash /home/ubuntu/appscale-tools/debian/appscale_build.sh" );
     }
 
 
     public static String getAppscaleBuild ()
     {
-        return ( "bash /root/appscale/debian/appscale_build.sh" );
+        return ( "sudo bash /home/ubuntu/appscale/debian/appscale_build.sh" );
     }
 
 
     public static String getReinstallKernel ()
     {
-        return ( "apt-get install --reinstall 3.19.0.31.generic" );
+        return ( "sudo apt-get install --reinstall 3.19.0.31.generic" );
     }
 
 
@@ -230,7 +230,7 @@ public class Commands
         try
         { // really like this new way
             List<String> lines = Files.readAllLines ( Paths.get (
-                    "/root/appscale/debian/appscale_install.sh" ) );
+                    "home/ubuntu/appscale/debian", "appscale_install.sh" ) );
             lines.stream ().filter ( (String line) -> ( line.contains (
                                                        "increaseconnection" ) || line.contains (
                                                        "installzookeer" ) || line.contains (
@@ -241,16 +241,41 @@ public class Commands
                                 line = "#" + line;
                     } );
             Files.write ( Paths.get (
-                    "/root/appscale/debian/appscale_install.sh" ), lines );
+                    "home/ubuntu/appscale/debian", "appscale_install.sh" ), lines );
         }
         catch ( IOException ex )
         {
-            LOG.error (
-                    ex.getLocalizedMessage () );
-            return null;
+            LOG.error ( "error in edit appscale_install.sh " + ex );
+            return "ls";
         }
 
-        return "Completed";
+        return "cat home/ubuntu/appscale/debian/appscale_install.sh";
     }
+
+
+    public static String getInstallWget ()
+    {
+        return ( "sudo apt-get install -y wget" );
+    }
+
+
+    public static String getUpdateAptGet ()
+    {
+        return ( "sudo apt-get update" );
+    }
+
+
+    public static String getRemoveSubutaiList ()
+    {
+        return ( "sudo rm -f /etc/apt/sources.list.d/subutai-repo.list" );
+    }
+
+
+    public static String getDpkgUpdate ()
+    {
+        return ( "sudo dpkg --configure -a" );
+    }
+
+
 }
 

@@ -34,51 +34,60 @@ import io.subutai.plugin.common.api.ClusterOperationType;
 public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleImpl, AppScaleConfig>
         implements ClusterOperationHandlerInterface
 {
-    private final ClusterOperationType clusterOperationType;
-    private final AppScaleConfig appScaleConfig;
+    private final ClusterOperationType operationType;
+    private final AppScaleConfig config;
     private final String clstrName;
-    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
-    public ClusterOperationHandler( final AppScaleImpl manager, final AppScaleConfig appScaleConfig,
-                                    final ClusterOperationType clusterOperationType )
+    public ClusterOperationHandler ( final AppScaleImpl manager, final AppScaleConfig config,
+                                     final ClusterOperationType operationType )
     {
-        super( manager, appScaleConfig );
-        this.appScaleConfig = appScaleConfig;
-        clstrName = this.appScaleConfig.getClusterName();
-        this.clusterOperationType = clusterOperationType;
-        String msg = String.format( "Starting %s operation on %s(%s) cluster...", clusterOperationType, clstrName,
-                appScaleConfig.getProductKey() );
-        LOG.info( msg );
-        // appScaleImpl.getTracker ().createTrackerOperation ( AppScaleConfig.PRODUCT_KEY, msg );
+        super ( manager, config );
+        this.config = config;
+        clstrName = config.getClusterName ();
+        this.operationType = operationType;
+        String msg = String.format ( "Starting %s operation on %s(%s) cluster...", operationType, clstrName,
+                                     config.getProductKey () );
+        LOG.info ( msg );
+        trackerOperation = manager.getTracker ().createTrackerOperation ( AppScaleConfig.PRODUCT_KEY, msg );
+        if ( trackerOperation == null )
+        {
+            LOG.error ( "trackerOperation is null " );
+        }
+        else
+        {
+            LOG.info ( "trackerOperation: " + trackerOperation );
+        }
+
 
     }
 
 
     @Override
-    public void run()
+    public void run ()
     {
-        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
-        switch ( clusterOperationType )
+        Preconditions.checkNotNull ( config, "Configuration is null" );
+        switch ( operationType )
         {
             case INSTALL:
             {
-                setupCluster();
+                setupCluster ();
                 break;
             }
             case UNINSTALL:
             {
-                destroyCluster();
+                destroyCluster ();
                 break;
             }
             case REMOVE:
             {
-                removeCluster( clstrName );
+                removeCluster ( clstrName );
                 break;
             }
             case START_ALL:
             {
-                runOperationOnContainers( clusterOperationType );
+                runOperationOnContainers ( operationType );
                 break;
             }
         }
@@ -89,41 +98,40 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
      * @param cot run operations in containers... like starting up container etc.
      */
     @Override
-    public void runOperationOnContainers( ClusterOperationType cot )
+    public void runOperationOnContainers ( ClusterOperationType cot )
     {
         try
         {
-            Environment environment =
-                    manager.getEnvironmentManager().loadEnvironment( appScaleConfig.getClusterName() );
-            EnvironmentContainerHost environmentContainerHost;
-            EnvironmentContainerHost containerHostById =
-                    environment.getContainerHostById( appScaleConfig.getClusterName() );
+            Environment environment
+                    = manager.getEnvironmentManager ().loadEnvironment ( config.getClusterName () );
+            EnvironmentContainerHost containerHostById
+                    = environment.getContainerHostById ( config.getClusterName () );
             CommandResult res;
             switch ( cot )
             {
                 case START_ALL:
                 {
-                    res = containerHostById.execute( new RequestBuilder( Commands.getAppScaleStartCommand() ) );
-                    if ( res.hasSucceeded() )
+                    res = containerHostById.execute ( new RequestBuilder ( Commands.getAppScaleStartCommand () ) );
+                    if ( res.hasSucceeded () )
                     {
-                        trackerOperation.addLogDone( res.getStdOut() );
+                        trackerOperation.addLogDone ( res.getStdOut () );
                     }
                     else
                     {
-                        trackerOperation.addLogFailed( res.getStdErr() );
+                        trackerOperation.addLogFailed ( res.getStdErr () );
                     }
                     break;
                 }
                 case STOP_ALL:
                 {
-                    res = containerHostById.execute( new RequestBuilder( Commands.getAppScaleStopCommand() ) );
-                    if ( res.hasSucceeded() )
+                    res = containerHostById.execute ( new RequestBuilder ( Commands.getAppScaleStopCommand () ) );
+                    if ( res.hasSucceeded () )
                     {
-                        trackerOperation.addLogDone( res.getStdOut() );
+                        trackerOperation.addLogDone ( res.getStdOut () );
                     }
                     else
                     {
-                        trackerOperation.addLogFailed( res.getStdErr() );
+                        trackerOperation.addLogFailed ( res.getStdErr () );
                     }
                     break;
                 }
@@ -131,7 +139,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException ex )
         {
-            LOG.error( ex.getLocalizedMessage() );
+            LOG.error ( ex.getLocalizedMessage () );
         }
     }
 
@@ -140,30 +148,32 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
      * set up cluster appscale with pre - requirements in tutorial
      */
     @Override
-    public void setupCluster()
+    public void setupCluster ()
     {
-        LOG.info( "setupCluster started..." );
-        LOG.info( "env.id: " + appScaleConfig.getEnvironmentId() );
-
+        LOG.info ( "setupCluster started..." );
         Environment env = null;
         try
         {
-            env = manager.getEnvironmentManager().loadEnvironment( appScaleConfig.getEnvironmentId() );
+            env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            trackerOperation.addLog ( String.format (
+                    "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
+                    config.getClusterName (), config.getProductKey () ) );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error ( "EnvironmentNotFound: " + e );
         }
 
-        LOG.info( String.format( "Configuring %s environment for %s(%s) cluster", env.getName(),
-                appScaleConfig.getClusterName(), appScaleConfig.getProductKey() ) );
+        LOG.info ( String.format (
+                "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
+                config.getClusterName (), config.getProductKey () ) );
         try
         {
-            new ClusterConfiguration( trackerOperation, manager ).configureCluster( appScaleConfig, env );
+            new ClusterConfiguration ( trackerOperation, manager ).configureCluster ( config, env );
         }
         catch ( ClusterConfigurationException cce )
         {
-            LOG.error( "ClusterConfigurationException: " + cce.getLocalizedMessage() );
+            LOG.error ( "ClusterConfigurationException: " + cce );
         }
     }
 
@@ -172,9 +182,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
      * destroy cluster process... if needed..
      */
     @Override
-    public void destroyCluster()
+    public void destroyCluster ()
     {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedOperationException (
                 "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -182,9 +192,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     /**
      * @param clusterName remove cluster process... if needed...
      */
-    private void removeCluster( String clusterName )
+    private void removeCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedOperationException (
                 "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -24,25 +24,27 @@ import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-public class AppScaleNodeOperation extends AbstractNodeOperationTask implements Runnable
+public class AppScaleNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;
-    private final EnvironmentContainerHost environmentContainerHost;
+    private final EnvironmentContainerHost containerHost;
     private final AppScaleInterface appscale;
-    private NodeOperationType nodeOperationType;
+    private NodeOperationType operationType;
     private NodeType nodeType;
 
 
-    public AppScaleNodeOperation ( String clusterName, EnvironmentContainerHost environmentContainerHost,
-                                   AppScaleInterface appscale, NodeOperationType nodeOperationType, NodeType nodeType,
-                                   Tracker tracker, ConfigBase clusterConfig, CompleteEvent completeEvent, UUID trackID,
-                                   ContainerHost containerHost )
+    public AppScaleNodeOperationTask ( String clusterName, EnvironmentContainerHost environmentContainerHost,
+                                       AppScaleInterface appscale, NodeOperationType operationType,
+                                       NodeType nodeType,
+                                       Tracker tracker, ConfigBase clusterConfig, CompleteEvent completeEvent,
+                                       UUID trackID,
+                                       ContainerHost containerHost )
     {
-        super ( tracker, clusterConfig, completeEvent, trackID, containerHost );
+        super ( tracker, appscale.getCluster ( clusterName ), completeEvent, trackID, containerHost );
         this.clusterName = clusterName;
-        this.environmentContainerHost = environmentContainerHost;
+        this.containerHost = environmentContainerHost;
         this.appscale = appscale;
-        this.nodeOperationType = nodeOperationType;
+        this.operationType = operationType;
         this.nodeType = nodeType;
     }
 
@@ -52,7 +54,7 @@ public class AppScaleNodeOperation extends AbstractNodeOperationTask implements 
     {
         UUID returnID = null;
 
-        switch ( nodeOperationType )
+        switch ( operationType )
         {
             case START:
             {
