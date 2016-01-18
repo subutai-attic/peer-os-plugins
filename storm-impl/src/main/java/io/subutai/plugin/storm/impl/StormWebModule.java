@@ -27,6 +27,10 @@ public class StormWebModule implements WebuiModule
 		return ".state('storm', {\n" +
 				"url: '/plugins/storm',\n" +
 				"templateUrl: 'plugins/storm/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
 				"resolve: {\n" +
 				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
 				"return $ocLazyLoad.load([\n" +
