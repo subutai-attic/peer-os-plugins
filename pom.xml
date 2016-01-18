@@ -30,8 +30,8 @@
     <module>hbase-impl</module>
     <module>hbase-cli</module>
     <module>hbase-rest</module>
-    <module>hbase-kar</module>
     <module>hbase-webui</module>
+    <module>hbase-kar</module>
   </modules>
 
   <dependencyManagement>
