@@ -18,7 +18,6 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.Criteria;
 import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.TrackerOperation;
@@ -93,19 +92,19 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         // check installed packages
         for ( EnvironmentContainerHost n : environment.getContainerHosts() )
         {
-            try
-            {
-                if ( !n.getTemplate().getProducts().contains( Commands.PACKAGE_NAME ) )
-                {
-                    throw new ClusterSetupException(
-                            String.format( "Node %s does not have Storm installed", n.getHostname() ) );
-                }
-            }
-            catch ( PeerException e )
-            {
-                logException( String.format( "Couldn't get container template" ), e );
-                return null;
-            }
+//            try
+//            {
+//                if ( !n.getTemplate().getProducts().contains( Commands.PACKAGE_NAME ) )
+//                {
+//                    throw new ClusterSetupException(
+//                            String.format( "Node %s does not have Storm installed", n.getHostname() ) );
+//                }
+//            }
+//            catch ( PeerException e )
+//            {
+//                logException( String.format( "Couldn't get container template" ), e );
+//                return null;
+//            }
         }
 
         if ( manager.getCluster( config.getClusterName() ) != null )
