@@ -8,24 +8,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.protocol.PlacementStrategy;
+import io.subutai.common.peer.Peer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterException;
@@ -180,25 +181,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-/*        NodeGroup nodeGroup = new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, 1, 1, 1,
-                new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );*/
+
+        String hostId = getPreferredHost();
+        NodeGroup nodeGroup =
+                new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1,
+                        1, localPeer.getId(), hostId );
 
         EnvironmentContainerHost newNode;
         try
         {
             EnvironmentContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
-/*            if ( unusedNodeInEnvironment != null )
-            {*/
+            if ( unusedNodeInEnvironment != null )
+            {
                 newNode = unusedNodeInEnvironment;
- /*           }
+            }
             else
             {
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-                            new Blueprint( MongoClusterConfig.PRODUCT_NAME, null, Sets.newHashSet( nodeGroup ) ),
-                            false );
+                    Topology topology = new Topology( config.getClusterName(), 0, 0 );
+                    topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
@@ -206,7 +210,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                     throw new ClusterException( e );
                 }
                 newNode = newNodeSet.iterator().next();
-            }*/
+            }
 
             if ( nodeType.equals( NodeType.ROUTER_NODE ) )
             {
@@ -407,5 +411,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         {
             trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
         }*/
+    }
+
+
+    public String getPreferredHost()
+    {
+        final ResourceHost preferredHost = findFirstAvailableHost( manager.getPeerManager().getLocalPeer() );
+        return preferredHost.getId();
+    }
+
+
+    private ResourceHost findFirstAvailableHost( final LocalPeer peer )
+    {
+        //TODO: fix me: implement RH selection
+        return peer.getResourceHosts().iterator().next();
     }
 }
