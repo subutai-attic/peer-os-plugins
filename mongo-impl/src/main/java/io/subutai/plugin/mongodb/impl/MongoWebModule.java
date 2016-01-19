@@ -33,6 +33,10 @@ public class MongoWebModule implements WebuiModule
 		return ".state('mongo', {\n" +
 				"url: '/plugins/mongo',\n" +
 				"templateUrl: 'plugins/mongo/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
 				"resolve: {\n" +
 				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
 				"return $ocLazyLoad.load([\n" +

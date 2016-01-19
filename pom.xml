@@ -6,14 +6,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>mongo-plugin-parent</artifactId>
-  <version>4.0.0-RC5</version>
+  <version>4.0.0-RC6</version>
 
   <name>Subutai MongoDB Parent</name>
   <description>Subutai MongoDB Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC5</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC6</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
@@ -29,8 +29,8 @@
     <module>mongo-impl</module>
     <module>mongo-cli</module>
     <module>mongo-rest</module>
-    <module>mongo-kar</module>
     <module>mongo-webui</module>
+    <module>mongo-kar</module>
   </modules>
 
   <dependencyManagement>
