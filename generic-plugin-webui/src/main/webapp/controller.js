@@ -66,13 +66,9 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 	function updateProfiles() {
 		genericSrv.listProfiles().success (function (data) {
 			vm.profiles = data;
-            if (vm.profiles.length == 0) {
-                vm.operations = [];
-            }
-            vm.currentProfile = vm.profiles[0];
+			vm.currentProfile = vm.profiles[0];
 			genericSrv.listOperations (vm.currentProfile).success (function (data) {
 				vm.operations = data;
-				console.log (vm.operations);
 				for (var i = 0; i < vm.operations.length; ++i) {
 					vm.operations[i].commandName = window.atob (vm.operations[i].commandName);
 				}
@@ -80,13 +76,10 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 				genericSrv.getEnvironments().success (function (data) {
 					vm.environments = data;
 					vm.currentEnvironment = vm.environments[0];
-					console.log (vm.currentEnvironment);
-					if (vm.currentEnvironment !== undefined) {
-						for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-							vm.currentEnvironment.containers[i].operation = vm.operations[0];
-						}
-						getTemplates();
+					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+						vm.currentEnvironment.containers[i].operation = vm.operations[0];
 					}
+					getTemplates();
 					if (vm.environments.length === 0) {
 						SweetAlert.swal ("ERROR!", "Please create environment first", "error");
 					}
@@ -374,4 +367,9 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 		}
 		vm.getOperations();
 	}
+
+	vm.info = {};
+    genericSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
