@@ -10,6 +10,7 @@ function hbaseSrv($http, hadoopSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var hbaseSrv = {
+		getPluginInfo: getPluginInfo,
 		getHadoopClusters: getHadoopClusters,
 		createHbase: createHbase,
 		getClusters: getClusters,
@@ -75,4 +76,8 @@ function hbaseSrv($http, hadoopSrv) {
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }
