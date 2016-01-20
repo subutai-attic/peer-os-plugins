@@ -54,14 +54,16 @@ public interface RestService
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{lxcHostname}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
+                                 @PathParam( "lxcHostname" ) String node );
 
 
     //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response startNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String node );
 
 
     //stop node
@@ -75,7 +77,8 @@ public interface RestService
     @GET
     @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response checkNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response checkNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String node );
 
     @POST
     @Path( "clusters/nodes/start" )
@@ -91,4 +94,10 @@ public interface RestService
     @Path( "clusters/{clusterName}/available/nodes" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
+
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
