@@ -2,6 +2,7 @@ package io.subutai.plugin.ceph.rest;
 
 
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -17,5 +18,10 @@ public interface RestService
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response configureCluster( @FormParam( "environmentId" ) String environmentId,
                                       @FormParam( "lxcHostName" ) String lxcHostName,
-                                      @FormParam( "clusterName" ) String clusterName);
+                                      @FormParam( "clusterName" ) String clusterName );
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }

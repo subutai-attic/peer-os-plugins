@@ -10,6 +10,8 @@ function cephSrv($http, environmentService) {
 	var BASE_URL = SERVER_URL + 'rest/ceph/';
 
 	var cephSrv = {
+		getPluginInfo: getPluginInfo,
+	//	getFinishedEnvironments: getFinishedEnvironments,
 		getEnvironments: getEnvironments,
 		createEnvironment: createEnvironment
 	};
@@ -25,4 +27,12 @@ function cephSrv($http, environmentService) {
 		console.log (postData);
 		return $http.post (BASE_URL + "configure", postData, {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
 	}
+
+	// function getFinishedEnvironments() {
+	//	return $http.get (SERVER_URL + whatever, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+	// }
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }
