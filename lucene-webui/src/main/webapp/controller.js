@@ -218,6 +218,10 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		vm.luceneInstall.nodes = [];
 	}
 
+	vm.info = {};
+    luceneSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectLuceneNodes() {

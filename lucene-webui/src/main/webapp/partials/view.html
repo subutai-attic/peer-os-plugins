@@ -17,6 +17,11 @@
 				ng-class="luceneCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="luceneCtrl.activeTab = 'about'"
+					ng-class="luceneCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div 
@@ -29,6 +34,10 @@
 			ng-include="'plugins/lucene/partials/manage.html'">
 		</div>
 
+		<div
+				ng-if="luceneCtrl.activeTab == 'about'"
+				ng-include="'plugins/lucene/partials/about.html'">
+		</div>
 	</div>
 
 </div>

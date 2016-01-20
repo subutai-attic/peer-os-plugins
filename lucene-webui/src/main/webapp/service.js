@@ -10,6 +10,7 @@ function luceneSrv($http, hadoopSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var luceneSrv = {
+		getPluginInfo: getPluginInfo,
 		getHadoopClusters: getHadoopClusters,
 		createLucene: createLucene,
 		getClusters: getClusters,
@@ -61,4 +62,8 @@ function luceneSrv($http, hadoopSrv) {
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }
