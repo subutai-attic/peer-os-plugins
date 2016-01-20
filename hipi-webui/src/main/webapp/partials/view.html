@@ -17,6 +17,11 @@
 				ng-class="hipiCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="hipiCtrl.activeTab = 'about'"
+					ng-class="hipiCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div 
@@ -29,6 +34,10 @@
 			ng-include="'plugins/hipi/partials/manage.html'">
 		</div>
 
+		<div
+				ng-if="hipiCtrl.activeTab == 'about'"
+				ng-include="'plugins/hipi/partials/about.html'">
+		</div>
 	</div>
 
 </div>

@@ -215,6 +215,10 @@ function HipiCtrl($scope, hipiSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 		vm.hipiInstall.nodes = [];
 	}
 
+	vm.info = {};
+    hipiSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectHipiNodes() {
