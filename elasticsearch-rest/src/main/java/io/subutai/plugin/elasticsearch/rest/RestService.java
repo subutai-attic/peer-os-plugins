@@ -28,6 +28,7 @@ public interface RestService
     public Response configureCluster( @FormParam( "environmentId" ) String environmentId,
                                       @FormParam( "clusterName" ) String clusterName,
                                       @FormParam( "nodes" ) String nodes );
+
     //remove cluster
     @DELETE
     @Path( "clusters/remove/{clusterName}" )
@@ -63,13 +64,15 @@ public interface RestService
     @GET
     @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response checkNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response checkNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String node );
 
     //start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response startNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String node );
 
     //stop node
     @PUT
@@ -87,26 +90,32 @@ public interface RestService
     @DELETE
     @Path( "clusters/{clusterName}/remove/node/{lxcHostname}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostname" ) String node );
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
+                                 @PathParam( "lxcHostname" ) String node );
 
     //auto-scale cluster
     @POST
-    @Path("clusters/{clusterName}/auto_scale/{scale}")
-    @Produces({ MediaType.TEXT_PLAIN })
-    public Response autoScaleCluster( @PathParam("clusterName") String clusterName,
+    @Path( "clusters/{clusterName}/auto_scale/{scale}" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response autoScaleCluster( @PathParam( "clusterName" ) String clusterName,
                                       @PathParam( "scale" ) boolean scale );
 
     //start nodes
     @POST
-    @Path("clusters/nodes/start")
-    @Produces({ MediaType.TEXT_PLAIN })
-    public Response startNodes( @FormParam("clusterName") String clusterName,
-                                @FormParam("lxcHosts") String lxcHosts );
+    @Path( "clusters/nodes/start" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response startNodes( @FormParam( "clusterName" ) String clusterName,
+                                @FormParam( "lxcHosts" ) String lxcHosts );
 
     //stop nodes
     @POST
-    @Path("clusters/nodes/stop")
-    @Produces({ MediaType.TEXT_PLAIN })
-    public Response stopNodes( @FormParam("clusterName") String clusterName,
-                               @FormParam("lxcHosts") String lxcHosts );
+    @Path( "clusters/nodes/stop" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response stopNodes( @FormParam( "clusterName" ) String clusterName,
+                               @FormParam( "lxcHosts" ) String lxcHosts );
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
