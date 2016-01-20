@@ -301,6 +301,11 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.ERROR, "error");
 		});
 	}
+
+	vm.info = {};
+    stormSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectStormNodes() {
