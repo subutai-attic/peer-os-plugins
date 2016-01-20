@@ -248,6 +248,12 @@ function OozieCtrl($scope, oozieSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			vm.currentCluster.server.status = 'ERROR';
 		});
 	}
+
+
+	vm.info = {};
+    oozieSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectOozieNodes() {
