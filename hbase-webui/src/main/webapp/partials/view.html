@@ -17,6 +17,11 @@
 				ng-class="hbaseCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="hbaseCtrl.activeTab = 'about'"
+					ng-class="hbaseCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div 
@@ -29,6 +34,10 @@
 			ng-include="'plugins/hbase/partials/manage.html'">
 		</div>
 
+		<div
+			ng-if="hbaseCtrl.activeTab == 'about'"
+			ng-include="'plugins/hbase/partials/about.html'">
+		</div>
 	</div>
 
 </div>

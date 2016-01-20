@@ -280,6 +280,11 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.hadoopFullInfo = {};
 	}
 
+	vm.info = {};
+	hbaseSrv.getPluginInfo().success (function (data) {
+		vm.info = data;
+	});
+
 }
 
 function colSelectRegionHbaseNodes() {
