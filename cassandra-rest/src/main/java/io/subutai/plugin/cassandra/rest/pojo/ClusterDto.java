@@ -1,4 +1,4 @@
-package io.subutai.plugin.cassandra.rest;
+package io.subutai.plugin.cassandra.rest.pojo;
 
 import java.util.Map;
 import java.util.Set;
