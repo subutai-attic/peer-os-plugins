@@ -11,6 +11,7 @@ function prestoSrv($http, hadoopSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var prestoSrv = {
+		getPluginInfo: getPluginInfo,
 		getHadoopClusters: getHadoopClusters,
 		createPresto: createPresto,
 		getClusters: getClusters,
@@ -100,4 +101,8 @@ function prestoSrv($http, hadoopSrv) {
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }

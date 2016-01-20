@@ -342,6 +342,11 @@ function PrestoCtrl($scope, prestoSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
+
+	vm.info = {};
+    prestoSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectPrestoNodes() {
