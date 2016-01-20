@@ -17,6 +17,11 @@
 				ng-class="stormCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="stormCtrl.activeTab = 'about'"
+					ng-class="stormCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div 
@@ -28,7 +33,10 @@
 			ng-if="stormCtrl.activeTab == 'manage'" 
 			ng-include="'plugins/storm/partials/manage.html'">
 		</div>
-
+		<div
+				ng-if="stormCtrl.activeTab == 'about'"
+				ng-include="'plugins/storm/partials/about.html'">
+		</div>
 	</div>
 
 </div>

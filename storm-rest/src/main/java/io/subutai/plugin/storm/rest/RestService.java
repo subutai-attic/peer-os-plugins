@@ -116,4 +116,10 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response autoScaleCluster( @PathParam( "clusterName" ) String clusterName,
                                       @PathParam( "scale" ) boolean scale );
+
+
+	@GET
+	@Path( "about" )
+	@Produces( { MediaType.TEXT_PLAIN } )
+	public Response getPluginInfo();
 }
