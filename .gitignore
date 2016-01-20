@@ -9,6 +9,7 @@
 .classpath
 .settings
 .metadata
+git.properties
 target
 
 # Package Files #

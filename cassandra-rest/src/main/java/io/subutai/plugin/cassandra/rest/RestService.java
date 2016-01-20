@@ -135,4 +135,9 @@ public interface RestService
     @POST
     @Path( "clusters/create" )
     Response installCluster( @FormParam( "clusterConfJson" ) String config );
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
