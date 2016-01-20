@@ -212,6 +212,10 @@ function NutchCtrl($scope, nutchSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.nutchInstall.nodes = [];
 	}
 
+	vm.info = {};
+    nutchSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectNutchNodes() {
