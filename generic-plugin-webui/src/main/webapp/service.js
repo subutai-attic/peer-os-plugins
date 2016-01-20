@@ -10,6 +10,7 @@ function genericSrv($http, environmentService) {
 	var BASE_URL = SERVER_URL + 'rest/generic/';
 
 	var genericSrv = {
+		getPluginInfo: getPluginInfo,
 		listProfiles: listProfiles,
 		saveProfile: saveProfile,
 		deleteProfile: deleteProfile,
@@ -45,18 +46,13 @@ function genericSrv($http, environmentService) {
 	// Manage
 
 	function listOperations (profile) {
-        var profieId = "";
-        if (profile !== undefined) {
-            profieId = profile.id;
-        }
-		return $http.get (BASE_URL + "operations/" + profieId);
+		return $http.get (BASE_URL + "operations/" + profile.name);
 	}
 
 
 	function saveOperation (profile, operation) {
 		var fd = new FormData();
-		console.log (profile.id);
-		fd.append('profileId', profile.id);
+		fd.append('profileName', profile.name);
 		fd.append('operationName', operation.operationName);
 		fd.append('file', operation.commandName);
 		fd.append('cwd', operation.cwd);
@@ -100,4 +96,8 @@ function genericSrv($http, environmentService) {
 		console.log (putData);
 		return $http.put (BASE_URL + "execute", putData, {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }

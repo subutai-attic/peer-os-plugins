@@ -43,11 +43,9 @@ public interface RestService
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     public Response saveOperation( @Multipart( "profileId" ) String profileId,
                                    @Multipart( "operationName" ) String operationName,
-                                   @Multipart( value = "file" ) Attachment attr,
-                                   @Multipart( "cwd" ) String cwd,
-                                   @Multipart( "timeout" ) String timeout,
-                                   @Multipart( "daemon" ) Boolean daemon,
-                                   @Multipart( "script" ) Boolean script);
+                                   @Multipart( value = "file" ) Attachment attr, @Multipart( "cwd" ) String cwd,
+                                   @Multipart( "timeout" ) String timeout, @Multipart( "daemon" ) Boolean daemon,
+                                   @Multipart( "script" ) Boolean script );
 
     // save operation
     @POST
@@ -55,11 +53,9 @@ public interface RestService
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response saveOperation( @FormParam( "profileId" ) String profileId,
                                    @FormParam( "operationName" ) String operationName,
-                                   @FormParam( "commandName" ) String commandName,
-                                   @FormParam( "cwd" ) String cwd,
-                                   @FormParam( "timeout" ) String timeout,
-                                   @FormParam( "daemon" ) Boolean daemon,
-                                   @FormParam( "script" ) Boolean script);
+                                   @FormParam( "commandName" ) String commandName, @FormParam( "cwd" ) String cwd,
+                                   @FormParam( "timeout" ) String timeout, @FormParam( "daemon" ) Boolean daemon,
+                                   @FormParam( "script" ) Boolean script );
 
 
     // update operation
@@ -67,10 +63,8 @@ public interface RestService
     @Path( "operations/update" )
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response updateOperation( @FormParam( "operationId" ) String operationId,
-                                     @FormParam( "commandName" ) String commandName,
-                                     @FormParam( "cwd" ) String cwd,
-                                     @FormParam( "timeout" ) String timeout,
-                                     @FormParam( "daemon" ) Boolean daemon,
+                                     @FormParam( "commandName" ) String commandName, @FormParam( "cwd" ) String cwd,
+                                     @FormParam( "timeout" ) String timeout, @FormParam( "daemon" ) Boolean daemon,
                                      @FormParam( "script" ) Boolean script,
                                      @FormParam( "operationName" ) String operationName );
 
@@ -80,10 +74,8 @@ public interface RestService
     @Path( "operations/script/update" )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     public Response updateOperation( @Multipart( "operationId" ) String operationId,
-                                     @Multipart( value = "file" ) Attachment attr,
-                                     @Multipart( "cwd" ) String cwd,
-                                     @Multipart( "timeout" ) String timeout,
-                                     @Multipart( "daemon" ) Boolean daemon,
+                                     @Multipart( value = "file" ) Attachment attr, @Multipart( "cwd" ) String cwd,
+                                     @Multipart( "timeout" ) String timeout, @Multipart( "daemon" ) Boolean daemon,
                                      @Multipart( "script" ) Boolean script,
                                      @Multipart( "operationName" ) String operationName );
 
@@ -107,5 +99,11 @@ public interface RestService
     public Response executeCommand( @FormParam( "operationId" ) String operationId,
                                     @FormParam( "lxcHostName" ) String lxcHostName,
                                     @FormParam( "environmentId" ) String environmentId );
+
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
 

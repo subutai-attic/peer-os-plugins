@@ -22,6 +22,11 @@
 					ng-class="genericCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="genericCtrl.activeTab = 'about'"
+					ng-class="genericCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div 
@@ -39,6 +44,10 @@
 			ng-include="'plugins/generic/partials/manage.html'">
 		</div>
 
+		<div
+			ng-if="genericCtrl.activeTab == 'about'"
+			ng-include="'plugins/generic/partials/about.html'">
+		</div>
 	</div>
 
 </div>
