@@ -29,8 +29,8 @@
     <module>elasticsearch-impl</module>
     <module>elasticsearch-cli</module>
     <module>elasticsearch-rest</module>
-    <module>elasticsearch-kar</module>
     <module>elasticsearch-webui</module>
+    <module>elasticsearch-kar</module>
   </modules>
 
   <dependencyManagement>
