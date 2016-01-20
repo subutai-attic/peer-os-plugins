@@ -215,6 +215,10 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		vm.mahoutInstall.nodes = [];
 	}
 
+	vm.info = {};
+    mahoutSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectMahoutNodes() {
