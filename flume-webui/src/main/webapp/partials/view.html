@@ -17,6 +17,11 @@
 				ng-class="flumeCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="flumeCtrl.activeTab = 'about'"
+					ng-class="flumeCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 
@@ -30,6 +35,10 @@
 			ng-include="'plugins/flume/partials/manage.html'">
 		</div>
 
+		<div
+				ng-if="flumeCtrl.activeTab == 'about'"
+				ng-include="'plugins/flume/partials/about.html'">
+		</div>
 	</div>
 
 </div>

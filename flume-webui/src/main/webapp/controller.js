@@ -204,12 +204,12 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function createFlume() {
 		if(vm.flumeInstall.clusterName === undefined || vm.flumeInstall.clusterName.length == 0) return;
 
-		SweetAlert.swal("Success!", "Your Flume cluster start creating.", "success");
+		SweetAlert.swal("Success!", "Elastic Search cluster start creating.", "success");
 		flumeSrv.createFlume(vm.flumeInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Flume cluster created.", "success");
+			SweetAlert.swal("Success!", "Your Elastic Search cluster created.", "success");
 			getClusters();
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Flume cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Elastic Search cluster create error: ' + error.replace(/\\n/g, ' '), "error");
 			getClusters();
 		});
 		setDefaultValues();
@@ -282,6 +282,11 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.flumeInstall.nodes = [];
 	}
 
+
+	vm.info = {};
+	flumeSrv.getPluginInfo().success (function (data) {
+		vm.info = data;
+	});
 }
 
 function colSelectFlumeNodes() {

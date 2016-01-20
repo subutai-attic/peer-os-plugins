@@ -1,8 +1,11 @@
 package io.subutai.plugin.flume.rest;
 
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.rest.dto.ClusterDto;
 import io.subutai.plugin.flume.rest.dto.ContainerDto;
+import io.subutai.plugin.flume.rest.dto.VersionPojo;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -37,10 +41,12 @@ public class RestServiceImpl implements RestService
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
 
+
     public RestServiceImpl( final Flume flumeManager )
     {
         this.flumeManager = flumeManager;
     }
+
 
     public void setHadoopManager( final Hadoop hadoopManager )
     {
@@ -133,7 +139,9 @@ public class RestServiceImpl implements RestService
         config.setHadoopClusterName( hadoopClusterName );
 
 
-        config.setNodes( (Set<String>)JsonUtil.fromJson( nodes, new TypeToken<Set<String>>(){}.getType() ));
+        config.setNodes( ( Set<String> ) JsonUtil.fromJson( nodes, new TypeToken<Set<String>>()
+        {
+        }.getType() ) );
 
         UUID uuid = flumeManager.installCluster( config );
         waitUntilOperationFinish( uuid );
@@ -310,19 +318,22 @@ public class RestServiceImpl implements RestService
 
         try
         {
-            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>() {}.getType() );
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+            {
+            }.getType() );
         }
         catch ( Exception e )
         {
-            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) ).build();
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) )
+                           .build();
         }
 
         int errors = 0;
 
-        for( String host : hosts )
+        for ( String host : hosts )
         {
             UUID uuid;
-            if( startNode )
+            if ( startNode )
             {
                 uuid = flumeManager.startNode( clusterName, host );
             }
@@ -350,15 +361,18 @@ public class RestServiceImpl implements RestService
         return Response.ok().build();
     }
 
+
     public void setEnvironmentManager( EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
 
+
     public void setTracker( final Tracker tracker )
     {
         this.tracker = tracker;
     }
+
 
     @Override
     public Response getAvailableNodes( final String clusterName )
@@ -391,5 +405,58 @@ public class RestServiceImpl implements RestService
 
         String hosts = JsonUtil.GSON.toJson( hostsName );
         return Response.status( Response.Status.OK ).entity( hosts ).build();
+    }
+
+
+    @Override
+    public Response getPluginInfo()
+    {
+        Properties prop = new Properties();
+        VersionPojo pojo = new VersionPojo();
+        InputStream input = null;
+        try
+        {
+            input = getClass().getResourceAsStream( "/git.properties" );
+
+            prop.load( input );
+            pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
+            pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
+            pojo.setGitBranch( prop.getProperty( "git.branch" ) );
+            pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
+            pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
+            pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
+
+            pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
+            pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
+            pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
+            pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
+
+            pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
+            pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
+            pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
+            pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
+        }
+        catch ( IOException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            if ( input != null )
+            {
+                try
+                {
+                    input.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        String projectInfo = JsonUtil.GSON.toJson( pojo );
+
+        return Response.status( Response.Status.OK ).entity( projectInfo ).build();
     }
 }
