@@ -5,4 +5,7 @@
     <bundle>mvn:io.subutai/spark-plugin-cli/4.0.0-RC6</bundle>
     <bundle>mvn:io.subutai/spark-plugin-rest/4.0.0-RC6</bundle>
   </feature>
+    <feature name="spark-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/spark-plugin-webui/4.0.0-RC6/war?Webapp-Context=spark-plugin-war</bundle>
+    </feature>
 </features>
