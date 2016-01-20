@@ -11,6 +11,7 @@ function oozieSrv($http, hadoopSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var oozieSrv = {
+		getPluginInfo: getPluginInfo,
 		getHadoopClusters: getHadoopClusters,
 		createOozie: createOozie,
 		getClusters: getClusters,
@@ -74,4 +75,8 @@ function oozieSrv($http, hadoopSrv) {
 	function stopNode (clusterName, lxcHostName) {
 		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName);
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }

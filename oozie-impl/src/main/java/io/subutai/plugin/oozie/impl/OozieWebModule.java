@@ -24,32 +24,32 @@ public class OozieWebModule implements WebuiModule
     }
 
 
-    @Override
-    public String getAngularDependecyList()
-    {
-        return ".state('oozie', {\n" +
-                "url: '/plugins/oozie',\n" +
-                "templateUrl: 'plugins/oozie/partials/view.html',\n" +
-                "data: {\n" +
-                "bodyClass: '',\n" +
-                "layout: 'default'\n" +
-                "},\n" +
-                "resolve: {\n" +
-                "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
-                "return $ocLazyLoad.load([\n" +
-                "{\n" +
-                "name: 'subutai.plugins.oozie',\n" +
-                "files: [\n" +
-                "'plugins/oozie/oozie.js',\n" +
-                "'plugins/oozie/controller.js',\n" +
-                "'plugins/oozie/service.js',\n" +
-                "'plugins/hadoop/service.js',\n" +
-                "'subutai-app/environment/service.js'\n" +
-                "]\n" +
-                "}\n" +
-                "]);\n" +
-                "}]\n" +
-                "}\n" +
-                "})";
-    }
+	@Override
+	public String getAngularDependecyList()
+	{
+		return ".state('oozie', {\n" +
+				"url: '/plugins/oozie',\n" +
+				"templateUrl: 'plugins/oozie/partials/view.html',\n" +
+				"data: {\n" +
+				"bodyClass: '',\n" +
+				"layout: 'default'\n" +
+				"},\n" +
+				"resolve: {\n" +
+				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
+				"return $ocLazyLoad.load([\n" +
+				"{\n" +
+				"name: 'subutai.plugins.oozie',\n" +
+				"files: [\n" +
+				"'plugins/oozie/oozie.js',\n" +
+				"'plugins/oozie/controller.js',\n" +
+				"'plugins/oozie/service.js',\n" +
+				"'plugins/hadoop/service.js',\n" +
+				"'subutai-app/environment/service.js'\n" +
+				"]\n" +
+				"}\n" +
+				"]);\n" +
+				"}]\n" +
+				"}\n" +
+				"})";
+	}
 }
