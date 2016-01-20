@@ -11,6 +11,7 @@ function hiveSrv($http, hadoopSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var hiveSrv = {
+		getPluginInfo: getPluginInfo,
 		getHadoopClusters: getHadoopClusters,
 		createHive: createHive,
 		getClusters: getClusters,
@@ -77,4 +78,9 @@ function hiveSrv($http, hadoopSrv) {
 	function stopNode (clusterName, lxcHostName) {
 		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName);
 	}
+
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }

@@ -244,6 +244,11 @@ function HiveCtrl($scope, hiveSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 			vm.currentCluster.server.status = 'ERROR';
 		});
 	}
+
+	vm.info = {};
+    hiveSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectContainers() {
