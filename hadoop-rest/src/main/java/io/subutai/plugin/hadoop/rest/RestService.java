@@ -35,7 +35,7 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     Response configureCluster( @FormParam( "config" ) String config );
 
-    
+
     //uninstall cluster
     @DELETE
     @Path( "clusters/{clusterName}" ) //Maps for the `hello/John` in the URL
@@ -108,4 +108,10 @@ public interface RestService
     @Path( "clusters/{clusterName}/auto_scale/{scale}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     Response autoScaleCluster( @PathParam( "clusterName" ) String clusterName, @PathParam( "scale" ) boolean scale );
+
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
