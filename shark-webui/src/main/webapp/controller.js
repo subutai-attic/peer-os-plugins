@@ -203,6 +203,11 @@ function SharkCtrl($scope, sharkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			vm.currentCluster.server.status = 'ERROR';
 		});
 	}
+
+	vm.info = {};
+    sharkSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
 
 function colSelectContainers() {

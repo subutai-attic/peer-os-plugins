@@ -11,6 +11,7 @@ function sharkSrv($http, sparkSrv) {
 	var CLUSTER_URL = BASE_URL + 'clusters/';
 
 	var sharkSrv = {
+		getPluginInfo: getPluginInfo,
 		getSparkClusters: getSparkClusters,
 		createShark: createShark,
 		getClusters: getClusters,
@@ -75,4 +76,8 @@ function sharkSrv($http, sparkSrv) {
 	function stopNode (clusterName, lxcHostName) {
 		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName);
 	}
+
+	function getPluginInfo() {
+    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
 }

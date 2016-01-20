@@ -58,4 +58,10 @@ public interface RestService
     @Path( "clusters/{clusterName}/available/nodes" )
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
+
+
+	@GET
+	@Path( "about" )
+	@Produces( { MediaType.TEXT_PLAIN } )
+	public Response getPluginInfo();
 }
