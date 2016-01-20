@@ -3,23 +3,25 @@ package io.subutai.plugin.oozie.impl;
 
 import io.subutai.webui.api.WebuiModule;
 
+
 public class OozieWebModule implements WebuiModule
 {
-	public static String NAME = "Oozie";
-	public static String IMG = "plugins/oozie/oozie.png";
-
-	@Override
-	public String getName()
-	{
-		return NAME;
-	}
+    public static String NAME = "Oozie";
+    public static String IMG = "plugins/oozie/oozie.png";
 
 
-	@Override
-	public String getModuleInfo()
-	{
-		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
-	}
+    @Override
+    public String getName()
+    {
+        return NAME;
+    }
+
+
+    @Override
+    public String getModuleInfo()
+    {
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+    }
 
 
 	@Override
