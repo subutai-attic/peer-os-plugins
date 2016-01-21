@@ -23,6 +23,6 @@ function cephSrv($http, environmentService) {
 	function createEnvironment (clusterName, environmentId, hostname) {
 		var postData = "environmentId=" + environmentId + "&lxcHostName=" + hostname + "&clusterName=" + clusterName;
 		console.log (postData);
-		return $http.post (BASE_URL + "configure", postData, {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+		return $http.post (BASE_URL + "clusters/install", postData, {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
 	}
 }

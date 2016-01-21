@@ -14,10 +14,15 @@
       <ref component-id="cephRestServiceImpl" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
+
   <bean id="cephRestServiceImpl" class="io.subutai.plugin.ceph.rest.RestServiceImpl">
-    <property name="cephInterface" ref="cephInterface" />
+    <property name="ceph" ref="ceph" />
+    <property name="tracker" ref="tracker" />
   </bean>
-  <reference id="cephInterface" availability="mandatory"
-             interface="io.subutai.plugin.ceph.api.CephInterface" />
+
+  <reference id="ceph" availability="mandatory"
+             interface="io.subutai.plugin.ceph.api.Ceph" />
+  <reference id="tracker"  availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
 
 </blueprint>

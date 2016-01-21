@@ -7,13 +7,13 @@
   <groupId>io.subutai</groupId>
   <artifactId>ceph-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <version>4.0.0-RC5</version>
+  <version>4.0.0-RC6</version>
 
   <name>Subutai Ceph Parent</name>
   <description>Subutai Ceph Parent</description>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC5</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC6</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
     <openjpa.version>2.3.0</openjpa.version>
     <jaxrs.version>2.7.12</jaxrs.version>
@@ -24,16 +24,20 @@
     <module>ceph-api</module>
     <module>ceph-impl</module>
     <module>ceph-rest</module>
-    <module>ceph-kar</module>
     <module>ceph-webui</module>
+    <module>ceph-kar</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>webui</artifactId>
-        <classifier>classes</classifier>
+        <artifactId>tracker-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>plugin-common</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
       <dependency>
