@@ -1,6 +1,7 @@
 package io.subutai.plugin.hadoop.impl.handler;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,18 +13,27 @@ import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.protocol.PlacementStrategy;
+import io.subutai.common.peer.Peer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.resource.HostResources;
+import io.subutai.common.resource.PeerGroupResources;
+import io.subutai.common.resource.PeerResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.network.api.NetworkManagerException;
+import io.subutai.core.strategy.api.ContainerPlacementStrategy;
+import io.subutai.core.strategy.api.ExampleStrategy;
+import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.strategy.api.StrategyNotFoundException;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -85,17 +95,38 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 }
             }
 
+
             if ( ( !allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
             {
 
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
                 final int newNodes = nodeCount - numberOfContainersNotBeingUsed;
                 Set<NodeGroup> nodeGroups = new HashSet<>();
+                PeerGroupResources groupResources = new PeerGroupResources();
+                for ( Peer peer : environment.getPeers() )
+                {
+                    try
+                    {
+                        groupResources.addPeerResources(
+                                peer.getResourceLimits( manager.getPeerManager().getLocalPeer().getId() ) );
+                    }
+                    catch ( PeerException e )
+                    {
+                        //ignore
+                    }
+                }
+
                 for ( int i = 0; i < newNodes; i++ )
                 {
+                    //                    final ContainerPlacementStrategy strategy =
+                    //                            manager.getStrategyManager().findStrategyById( ExampleStrategy.ID );
+
+                    ResourceHost resourceHost =
+                            manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
+
                     NodeGroup nodeGroup =
                             new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME, ContainerSize.SMALL, 1, 1,
-                                    null, null );
+                                    resourceHost.getPeerId(), resourceHost.getId() );
 
                     nodeGroups.add( nodeGroup );
                 }
@@ -111,9 +142,14 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                newlyCreatedContainers = environmentManager
-                        .growEnvironment( config.getEnvironmentId(), new Blueprint( nodeGroupName, nodeGroups ),
-                                false );
+                Topology topology = new Topology( environment.getName(), 1, 1 );
+
+                for ( NodeGroup nodeGroup : nodeGroups )
+                {
+                    topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                }
+                newlyCreatedContainers =
+                        environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 for ( EnvironmentContainerHost host : newlyCreatedContainers )
                 {
                     config.getDataNodes().add( host.getId() );
@@ -146,20 +182,21 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             manager.saveConfig( config );
 
             // configure ssh keys
-            Set<EnvironmentContainerHost> allNodes = new HashSet<>();
-            allNodes.addAll( newlyCreatedContainers );
-            allNodes.addAll( environment.getContainerHosts() );
-            Set<ContainerHost> ch = Sets.newHashSet();
-            ch.addAll( allNodes );
-            try
-            {
-                manager.getNetworkManager().exchangeSshKeys( ch );
-            }
-            catch ( NetworkManagerException e )
-            {
-                logExceptionWithMessage( "Error exchanging with keys", e );
-                return;
-            }
+            //TODO: fix me below
+            //            Set<EnvironmentContainerHost> allNodes = new HashSet<>();
+            //            allNodes.addAll( newlyCreatedContainers );
+            //            allNodes.addAll( environment.getContainerHosts() );
+            //            Set<ContainerHost> ch = Sets.newHashSet();
+            //            ch.addAll( allNodes );
+            //            try
+            //            {
+            //                manager.getNetworkManager().exchangeSshKeys( ch );
+            //            }
+            //            catch ( NetworkManagerException e )
+            //            {
+            //                logExceptionWithMessage( "Error exchanging with keys", e );
+            //                return;
+            //            }
 
             // include newly created containers to existing hadoop cluster
             for ( EnvironmentContainerHost containerHost : newlyCreatedContainers )
@@ -170,7 +207,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             }
             trackerOperation.addLogDone( "Finished." );
         }
-        catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+        catch ( EnvironmentNotFoundException | EnvironmentModificationException | PeerException e )
         {
             logExceptionWithMessage( "Error executing operations with environment", e );
         }

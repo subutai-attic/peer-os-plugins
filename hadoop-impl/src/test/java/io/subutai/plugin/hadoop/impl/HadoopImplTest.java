@@ -20,6 +20,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.common.api.ClusterSetupException;
@@ -67,6 +68,9 @@ public class HadoopImplTest
     @Mock
     LocalPeer localPeer;
 
+    @Mock
+    private StrategyManager strategyManager;
+
 
     @Before
     public void setUp()
@@ -80,7 +84,7 @@ public class HadoopImplTest
 
         when( localPeer.getId() ).thenReturn( LOCAL_PEER_ID );
         when( peerManager.getLocalPeer() ).thenReturn( localPeer );
-        hadoopImpl = new HadoopImpl( monitor, pluginDAO );
+        hadoopImpl = new HadoopImpl( strategyManager, monitor, pluginDAO);
         //        hadoopImpl.init();
         hadoopImpl.setPeerManager( peerManager );
         hadoopImpl.setExecutor( executorService );
