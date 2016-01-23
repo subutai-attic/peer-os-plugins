@@ -31,6 +31,7 @@ import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.strategy.api.NodeSchema;
+import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.common.api.AbstractOperationHandler;
 import io.subutai.plugin.common.api.ClusterException;
@@ -58,15 +59,23 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private QuotaManager quotaManager;
     private PeerManager peerManager;
     private NetworkManager networkManager;
+    private StrategyManager strategyManager;
 
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public HadoopImpl( Monitor monitor, PluginDAO pluginDAO )
+    public HadoopImpl( StrategyManager strategyManager, Monitor monitor, PluginDAO pluginDAO )
     {
+        this.strategyManager = strategyManager;
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+    }
+
+
+    public StrategyManager getStrategyManager()
+    {
+        return strategyManager;
     }
 
 
