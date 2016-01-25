@@ -32,8 +32,12 @@
     <dependencies>
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>webui</artifactId>
-        <classifier>classes</classifier>
+        <artifactId>tracker-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>plugin-common</artifactId>
         <version>${subutai.mgmt.parent.version}</version>
       </dependency>
       <dependency>
