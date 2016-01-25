@@ -12,7 +12,12 @@ function CephCtrl($scope, cephSrv, SweetAlert, ngDialog) {
 	vm.currentEnvironment = {};
 	vm.radosGWNode = {};
 	vm.clusterName = "";
-
+	vm.activeTab = "install";
+	// vm.finishedEnvironments = [];
+	// cephSrv.getFinishedEnvironments().success (function (data) {
+	//	console.log (data);
+	//	vm.finishedEnvironments = data;
+	// });
 	vm.createEnvironment = createEnvironment;
 	vm.changeNodes = changeNodes;
 
@@ -59,4 +64,9 @@ function CephCtrl($scope, cephSrv, SweetAlert, ngDialog) {
 			SweetAlert.swal ("ERROR!", "Environment create error: " + error.replace(/\\n/g, " "), "error");
 		});
 	}
+
+	vm.info = {};
+    cephSrv.getPluginInfo().success (function (data) {
+    	vm.info = data;
+    });
 }
