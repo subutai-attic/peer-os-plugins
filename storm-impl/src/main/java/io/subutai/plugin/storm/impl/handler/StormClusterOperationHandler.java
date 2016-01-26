@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+import io.subutai.common.environment.*;
+import io.subutai.common.peer.ContainerSize;
+import io.subutai.common.protocol.PlacementStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +21,6 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.tracker.OperationState;
@@ -217,9 +218,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-//        NodeGroup nodeGroup =
-//                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, 1, 0, 0,
-//                        new PlacementStrategy( "ROUND_ROBIN" ), localPeer.getId() );
+        NodeGroup nodeGroup =
+                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL, 0, 0,
+                        localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
 
         EnvironmentContainerHost newNode;
         try
@@ -234,21 +235,21 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             else
             {
                 Set<EnvironmentContainerHost> newNodeSet;
-//                try
-//                {
-//                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-//                            new Blueprint( StormClusterConfiguration.PRODUCT_KEY, null, Sets.newHashSet( nodeGroup ) ),
-//                            false );
-//                }
-//                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
-//                {
-//                    LOG.error( "Could not add new node(s) to environment." );
-//                    throw new ClusterException( e );
-//                }
+                try
+                {
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
+                            new Topology (environment.getName (), 1, 1),
+                            false );
+                }
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+                {
+                    LOG.error( "Could not add new node(s) to environment." );
+                    throw new ClusterException( e );
+                }
 
-//                newNode = newNodeSet.iterator().next();
+                newNode = newNodeSet.iterator().next();
 
-//                config.getSupervisors().add( newNode.getId() );
+                config.getSupervisors().add( newNode.getId() );
             }
 
             manager.saveConfig( config );
