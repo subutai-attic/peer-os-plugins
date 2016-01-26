@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.subutai.common.environment.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +18,6 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -188,10 +183,11 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     NodeGroup nodeGroup =
                             new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME,
                                     ContainerSize.TINY, 1, 1, null, null );
-                    Blueprint blueprint =
-                            new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );
+					Topology topology = new Topology( environment.getName(), 1, 1 );
+                    /*Blueprint blueprint =
+                            new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
 
-                    johnnyRawSet.addAll( environment.growEnvironment( environment.getId(), blueprint, false ) );
+                    johnnyRawSet.addAll( environment.growEnvironment( environment.getId(), topology, false ) );
                 }
                 if ( johnnyRawSet.isEmpty() )
                 {
