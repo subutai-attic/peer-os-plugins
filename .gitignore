@@ -1,0 +1,26 @@
+*.class
+
+# IDE and Maven files and directories #
+*.iml
+*.ipr
+*.MF
+.idea
+.project
+.classpath
+.settings
+.metadata
+git.properties
+target
+
+# Package Files #
+*.jar
+*.war
+*.ear
+/server/server-karaf/nb-configuration.xml
+/server/core/broker/broker-impl/activemq-data
+server/core/broker/broker-impl/activemq-data
+*-subutai-plugin-debian-build/
+*.log
+*substvars
+files
+debian/hipi-subutai-plugin
