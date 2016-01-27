@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1453875188813
+Build-Jdk: 1.8.0_66
+Built-By: ermek
+Bundle-Description: Bazaar Plugin REST
+Bundle-ManifestVersion: 2
+Bundle-Name: Bazaar Plugin REST
+Bundle-SymbolicName: io.subutai.plugin.bazaar.rest
+Bundle-Version: 4.0.0.RC6
+Created-By: Apache Maven Bundle Plugin
+Tool: Bnd-2.1.0.20130426-122213

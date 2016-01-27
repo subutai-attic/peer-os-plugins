@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/bazaar-plugin.iml" filepath="$PROJECT_DIR$/bazaar-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bazaar-plugin-api/bazaar-plugin-api.iml" filepath="$PROJECT_DIR$/bazaar-plugin-api/bazaar-plugin-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bazaar-plugin-impl/bazaar-plugin-impl.iml" filepath="$PROJECT_DIR$/bazaar-plugin-impl/bazaar-plugin-impl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bazaar-plugin-rest/bazaar-plugin-rest.iml" filepath="$PROJECT_DIR$/bazaar-plugin-rest/bazaar-plugin-rest.iml" />
+    </modules>
+  </component>
+</project>
