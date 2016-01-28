@@ -13,11 +13,11 @@ function CephCtrl($scope, cephSrv, SweetAlert, ngDialog) {
 	vm.radosGWNode = {};
 	vm.clusterName = "";
 	vm.activeTab = "install";
-	// vm.finishedEnvironments = [];
-	// cephSrv.getFinishedEnvironments().success (function (data) {
-	//	console.log (data);
-	//	vm.finishedEnvironments = data;
-	// });
+	vm.finishedEnvironments = [];
+	cephSrv.getFinishedEnvironments().success (function (data) {
+		console.log (data);
+		vm.finishedEnvironments = data;
+	});
 	vm.createEnvironment = createEnvironment;
 	vm.changeNodes = changeNodes;
 

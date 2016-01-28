@@ -1,21 +1,17 @@
 package io.subutai.plugin.ceph.rest;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import io.subutai.common.util.JsonUtil;
-import io.subutai.plugin.ceph.api.CephInterface;
-import io.subutai.plugin.ceph.rest.pojo.VersionPojo;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -23,6 +19,7 @@ import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.ceph.api.Ceph;
 import io.subutai.plugin.ceph.api.CephClusterConfig;
+import io.subutai.plugin.ceph.rest.pojo.VersionPojo;
 
 
 public class RestServiceImpl implements RestService

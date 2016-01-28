@@ -11,7 +11,7 @@ function cephSrv($http, environmentService) {
 
 	var cephSrv = {
 		getPluginInfo: getPluginInfo,
-	//	getFinishedEnvironments: getFinishedEnvironments,
+		getFinishedEnvironments: getFinishedEnvironments,
 		getEnvironments: getEnvironments,
 		createEnvironment: createEnvironment
 	};
@@ -28,9 +28,9 @@ function cephSrv($http, environmentService) {
 		return $http.post (BASE_URL + "clusters/install", postData, {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
 	}
 
-	// function getFinishedEnvironments() {
-	//	return $http.get (SERVER_URL + whatever, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
-	// }
+	function getFinishedEnvironments() {
+		return $http.get (BASE_URL + "clusters", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+	}
 
 	function getPluginInfo() {
     	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});

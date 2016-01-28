@@ -39,4 +39,10 @@ public interface RestService
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getCluster( @PathParam( "clusterName" ) String clusterName );
+
+
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getPluginInfo();
 }

@@ -16,7 +16,7 @@
   </jaxrs:server>
 
   <bean id="cephRestServiceImpl" class="io.subutai.plugin.ceph.rest.RestServiceImpl">
-    <property name="ceph" ref="ceph" />
+    <property name="cephManager" ref="ceph" />
     <property name="tracker" ref="tracker" />
   </bean>
 
