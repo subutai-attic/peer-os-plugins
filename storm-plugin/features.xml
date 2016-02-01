@@ -1,0 +1,11 @@
+<features name="storm-plugin" version="4.0.0-RC6">
+  <feature name="storm-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/storm-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/storm-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/storm-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/storm-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+    <feature name="storm-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/storm-plugin-webui/4.0.0-RC6/war?Webapp-Context=storm-plugin-war</bundle>
+    </feature>
+</features>
