@@ -19,21 +19,20 @@ public class AppScaleConfig implements ConfigBase
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
 
     // private static final String TEMPLATE_NAME = "Appscale";
-    private static final String TEMPLATE_NAME = "master"; // we will be using master template
+    private static final String TEMPLATE_NAME = "appscale"; // we will be using master template
     private String clusterName = ""; // this will be login point => management
-    
+
     // if any means of other clusters.
     private String zookeeperName;
     private String cassandraName;
     private String openJreName;
-    
+
     private String domainName;
     private List<String> nodes;
     private String environmentId;
     private String containerType;
     private String tracker;
 
-    
 
     public AppScaleConfig ()
     {

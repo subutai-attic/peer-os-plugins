@@ -6,8 +6,6 @@
 package io.subutai.plugin.appscale.impl;
 
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,26 +73,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info (
                 "Container Host Found: " + containerHost.getContainerId () + "\n"
                 + "\n" + containerHost.getHostname () + "\n" );
-
-        // start executing commands
-        // this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
-        this.commandExecute ( containerHost, Commands.getAddUbuntuUser () );
-        this.commandExecute ( containerHost, Commands.getAddUserToRoot () );
-        // this.commandExecute ( containerHost, Commands.getExportHome () );
-        this.commandExecute ( containerHost, Commands.getFixLocale () );
-        this.commandExecute ( containerHost, Commands.getCreateSshFolder () );
-        this.commandExecute ( containerHost, Commands.getCreateAppscaleFolder () );
-        this.commandExecute ( containerHost, Commands.getChangeRootPasswd () );
-
-        List<String> zookeeperStopAndDisable = Commands.getZookeeperStopAndDisable ();
-        for ( String c : zookeeperStopAndDisable )
-        {
-            this.commandExecute ( containerHost, c );
-        }
-
-        this.appscaleInitCluster ( containerHost ); // requires app.sh in container that is creating AppScalefile
-
+        // start of commands
+        this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
+        LOG.info ( "installing appscale can take 30 min or longer..." );
+        po.addLog ( "installing appscale can take 30 min or longer..." );
+        this.commandExecute ( containerHost, Commands.getAppscaleBuild () );
+        LOG.info ( "installing appscale tools can take 30 min or longer..." );
+        po.addLog ( "installing appscale tools can take 30 min or longer..." );
+        this.commandExecute ( containerHost, Commands.getAppscaleToolsBuild () );
+        this.appscaleInitCluster ( containerHost, environment, config );
         // end of executing commands
+
         config.setEnvironmentId ( environment.getId () );
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
@@ -118,10 +107,66 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
+    /**
+     *
+     * @param containerHost
+     * @param config
+     *
+     * we will use bash commands to create AppScale file
+     */
+    private void appscaleInitCluster ( EnvironmentContainerHost containerHost, Environment environment,
+                                       AppScaleConfig config )
+    {
+        String ipaddr = getIPAddress ( containerHost );
+        this.commandExecute ( containerHost, "touch /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo ips_layout: >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo   master : " + ipaddr + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo   appengine : " + ipaddr + " >> /root/AppScalefile" );
+        if ( config.getZookeeperName () != null )
+        {
+            try
+            {
+                EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname (
+                        config.getZookeeperName () );
+                String zooip = getIPAddress ( zooContainerHost );
+                this.commandExecute ( containerHost, "echo   zookeeper : " + zooip + " >> /root/AppScalefile" );
+
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+
+            }
+        }
+        else
+        {
+            this.commandExecute ( containerHost, "echo   zookeeper : " + ipaddr + " >> /root/AppScalefile" );
+        }
+        if ( config.getCassandraName () != null )
+        {
+            try
+            {
+                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname (
+                        config.getCassandraName () );
+                String cassIP = getIPAddress ( cassContainerHost );
+                this.commandExecute ( containerHost, "echo   database : " + cassIP + " >> /root/AppScalefile" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "Environment can not be found..." + ex );
+            }
+        }
+        else
+        {
+            this.commandExecute ( containerHost, "echo   database : " + ipaddr + " >> /root/AppScalefile" );
+        }
+
+    }
+
+
     private void appscaleInitCluster ( EnvironmentContainerHost containerHost )
     {
         String ipaddr = getIPAddress ( containerHost );
-        String localCommand = "sudo bash /home/ubuntu/app.sh " + ipaddr;
+        String localCommand = "sudo bash /root/app.sh " + ipaddr;
         try
         {
             CommandResult r = containerHost.execute ( new RequestBuilder ( localCommand ) );

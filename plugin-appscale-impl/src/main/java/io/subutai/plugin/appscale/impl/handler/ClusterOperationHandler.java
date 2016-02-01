@@ -105,7 +105,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             Environment environment
                     = manager.getEnvironmentManager ().loadEnvironment ( config.getClusterName () );
             EnvironmentContainerHost containerHostById
-                    = environment.getContainerHostById ( config.getClusterName () );
+                    = environment.getContainerHostByHostname ( config.getClusterName () );
             CommandResult res;
             switch ( cot )
             {
