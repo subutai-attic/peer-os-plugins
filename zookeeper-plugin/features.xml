@@ -1,0 +1,11 @@
+<features name="zookeeper-plugin" version="4.0.0-RC6">
+  <feature name="zookeeper-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/zookeeper-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/zookeeper-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/zookeeper-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/zookeeper-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+    <feature name="zookeeper-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/zookeeper-plugin-webui/4.0.0-RC6/war?Webapp-Context=zookeeper-plugin-war</bundle>
+    </feature>
+</features>
