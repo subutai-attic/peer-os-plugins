@@ -92,7 +92,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             this.commandExecute ( containerHost, c );
         }
 
-        this.appscaleInitCluster ( containerHost );
+        this.appscaleInitCluster ( containerHost ); // requires app.sh in container that is creating AppScalefile
 
         // end of executing commands
         config.setEnvironmentId ( environment.getId () );

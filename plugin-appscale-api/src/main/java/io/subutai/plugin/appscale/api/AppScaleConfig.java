@@ -20,14 +20,20 @@ public class AppScaleConfig implements ConfigBase
 
     // private static final String TEMPLATE_NAME = "Appscale";
     private static final String TEMPLATE_NAME = "master"; // we will be using master template
-    private String clusterName = "";
-
+    private String clusterName = ""; // this will be login point => management
+    
+    // if any means of other clusters.
+    private String zookeeperName;
+    private String cassandraName;
+    private String openJreName;
+    
     private String domainName;
     private List<String> nodes;
     private String environmentId;
     private String containerType;
     private String tracker;
 
+    
 
     public AppScaleConfig ()
     {
@@ -107,6 +113,42 @@ public class AppScaleConfig implements ConfigBase
     public void setTracker ( String tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public String getZookeeperName ()
+    {
+        return zookeeperName;
+    }
+
+
+    public void setZookeeperName ( String zookeeperName )
+    {
+        this.zookeeperName = zookeeperName;
+    }
+
+
+    public String getCassandraName ()
+    {
+        return cassandraName;
+    }
+
+
+    public void setCassandraName ( String cassandraName )
+    {
+        this.cassandraName = cassandraName;
+    }
+
+
+    public String getOpenJreName ()
+    {
+        return openJreName;
+    }
+
+
+    public void setOpenJreName ( String openJreName )
+    {
+        this.openJreName = openJreName;
     }
 
 
