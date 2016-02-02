@@ -9,13 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
@@ -25,11 +23,9 @@ import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
@@ -126,19 +122,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
     public void addNode()
     {
+        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         NodeGroup nodeGroup =
-                new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(), ContainerSize.SMALL, 0,
-                        0, null, null );
+                new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),ContainerSize.SMALL, 0, 0,
+                        localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
 
         try
         {
             Set<EnvironmentContainerHost> newNodeSet;
             try
             {
-                Blueprint blueprint =
-                        new Blueprint( CassandraClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), blueprint, false );
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
+                        new Topology (manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName (), 1, 1),
+                        false );
             }
             catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
             {
