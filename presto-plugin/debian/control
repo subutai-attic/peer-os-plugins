@@ -1,0 +1,12 @@
+Source: presto-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Pre-Depends: plugin-common, hadoop-subutai-plugin
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+Version: [[project.version]]
+Package: presto-subutai-plugin
+Architecture: all
+Description: This package contains kar file of Subutai Presto plugin that runs  on subutai server application.
