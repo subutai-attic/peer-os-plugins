@@ -3,6 +3,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 624dbe2ef75e2d536e26cbb179864b2b477003fe
 =======
@@ -11,6 +12,8 @@
 >>>>>>> 2f6825f83314b615402f2e19e775adcaa453606e
 =======
 >>>>>>> e2fbf26a98eeb5cc71e647c1c9589c6f9e6a175f
+=======
+>>>>>>> 5930013db48e22bbc3aa3e85211de6e33cb43b9a
 *.class
 
 # IDE and Maven files and directories #
@@ -23,9 +26,13 @@
 .settings
 .metadata
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 git.properties
 >>>>>>> e2fbf26a98eeb5cc71e647c1c9589c6f9e6a175f
+=======
+git.properties
+>>>>>>> 5930013db48e22bbc3aa3e85211de6e33cb43b9a
 target
 
 # Package Files #
@@ -39,6 +46,7 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -114,3 +122,6 @@ debian/lucene-subutai-plugin
 =======
 debian/hive-subutai-plugin
 >>>>>>> e2fbf26a98eeb5cc71e647c1c9589c6f9e6a175f
+=======
+debian/hipi-subutai-plugin
+>>>>>>> 5930013db48e22bbc3aa3e85211de6e33cb43b9a
