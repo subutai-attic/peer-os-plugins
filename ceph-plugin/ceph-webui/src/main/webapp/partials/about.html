@@ -1,0 +1,41 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace-content__row">
+		<div class="b-main-table-border" style = "width: 500px">
+			<table class="b-main-table b-main-table_with-header" style = "width: 500px" align = "center">
+				<tr>
+					<th>Commit ID</th>
+					<td>{{ cephCtrl.info.gitCommitId }}</td>
+				</tr>
+				<tr>
+					<th>Branch</th>
+					<td>{{ cephCtrl.info.gitBranch }}</td>
+				</tr>
+				<tr>
+					<th>Committer name</th>
+					<td>{{ cephCtrl.info.gitCommitUserName }}</td>
+				</tr>
+				<tr>
+					<th>Committer e-mail</th>
+					<td>{{ cephCtrl.info.gitCommitUserEmail }}</td>
+				</tr>
+				<tr>
+				<tr>
+					<th>Builder name</th>
+					<td>{{ cephCtrl.info.gitBuildUserName }}</td>
+				</tr>
+				<tr>
+					<th>Builder e-mail</th>
+					<td>{{ cephCtrl.info.gitBuildUserEmail }}</td>
+				</tr>
+				<tr>
+					<th>Build Time</th>
+					<td>{{ cephCtrl.info.gitBuildTime }}</td>
+				</tr>
+				<tr>
+					<th>Version</th>
+					<td>{{ cephCtrl.info.projectVersion }}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

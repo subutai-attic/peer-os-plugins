@@ -1,0 +1,10 @@
+<features name="ceph-plugin" version="4.0.0-RC6">
+  <feature name="ceph-plugin" version="4.0.0-RC6">
+    <bundle> mvn:io.subutai/ceph-plugin-api/4.0.0-RC6</bundle>
+    <bundle> mvn:io.subutai/ceph-plugin-impl/4.0.0-RC6</bundle>
+    <bundle> mvn:io.subutai/ceph-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+  <feature name="ceph-plugin-war" version="4.0.0-RC6">
+    <bundle> war:mvn:io.subutai/ceph-webui/4.0.0-RC6/war?Webapp-Context=ceph-plugin-war</bundle>
+  </feature>
+</features>

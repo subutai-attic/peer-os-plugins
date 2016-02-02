@@ -12,6 +12,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 git.properties
 =======
 >>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
@@ -20,6 +21,9 @@ git.properties
 >>>>>>> 732100aeb940e2c03d54b69c48be8869a895c916
 =======
 >>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
+=======
+git.properties
+>>>>>>> 63fdafa074e06b8e898251cef9c09ce6d66b5ee3
 target
 
 # Package Files #
@@ -32,6 +36,7 @@ server/core/broker/broker-impl/activemq-data
 *-subutai-plugin-debian-build/
 *.log
 *substvars
+<<<<<<< HEAD
 <<<<<<< HEAD
 files
 <<<<<<< HEAD
@@ -92,3 +97,7 @@ debian/elasticsearch-subutai-plugin
 =======
 files
 >>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
+=======
+files
+debian/ceph-plugin-kar
+>>>>>>> 63fdafa074e06b8e898251cef9c09ce6d66b5ee3
