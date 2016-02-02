@@ -25,6 +25,7 @@ files
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 debian/zookeeper
 -subutai-plugin
 =======
@@ -37,3 +38,6 @@ debian/sqoop-subutai-plugin
 =======
 debian/spark-subutai-plugin
 >>>>>>> d5ea6d5575d7d7f975fe7a81753a4764c5ad6917
+=======
+debian/solr-subutai-plugin
+>>>>>>> 065076f6a476cea4bf3936cf67904a93baadd2e7
