@@ -14,6 +14,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 git.properties
 =======
 >>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
@@ -28,6 +29,9 @@ git.properties
 =======
 git.properties
 >>>>>>> d63a79d96c03c33a5090bc23f424244cf8fa7dd5
+=======
+git.properties
+>>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
 target
 
 # Package Files #
@@ -40,6 +44,7 @@ server/core/broker/broker-impl/activemq-data
 *-subutai-plugin-debian-build/
 *.log
 *substvars
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -110,3 +115,7 @@ debian/ceph-plugin-kar
 files
 debian/hadoop-subutai-plugin
 >>>>>>> d63a79d96c03c33a5090bc23f424244cf8fa7dd5
+=======
+files
+debian/hipi-subutai-plugin
+>>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
