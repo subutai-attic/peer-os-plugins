@@ -24,6 +24,7 @@ server/core/broker/broker-impl/activemq-data
 *substvars
 files
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 # Eclipse
 .classpath
@@ -58,3 +59,6 @@ debian/hipi-subutai-plugin
 debian/hbase-subutai-plugin
 >>>>>>> 8e4d7db38e48e131105292180f672b7a05d6a1c2
 
+=======
+debian/hadoop-subutai-plugin
+>>>>>>> e8e791f9d6dda5cdf0e6e28e197bd14b2e9b8e2d
