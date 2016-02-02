@@ -1,0 +1,11 @@
+Package: storm-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+Architecture: all
+Pre-Depends: subutai-repo-storm-subutai-template (= 2.1.2), zookeeper-subutai-plugin
+Version: [[project.version]]
+Description: This package contains kar file of Subutai Storm plugin that runs  on subutai server application.
