@@ -1,0 +1,11 @@
+<features name="mongo-plugin" version="4.0.0-RC6">
+  <feature name="mongo-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/mongo-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/mongo-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+    <feature name="mongo-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/mongo-plugin-webui/4.0.0-RC6/war?Webapp-Context=mongo-plugin-war</bundle>
+    </feature>
+</features>

@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 624dbe2ef75e2d536e26cbb179864b2b477003fe
 *.class
 
 # IDE and Maven files and directories #
@@ -23,6 +26,7 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -81,3 +85,7 @@ debian/nutch-subutai-plugin
 log/
 target/
 >>>>>>> db0a37d59f72e8d346d905305b3998e60afc5a20
+=======
+debian/mongo-subutai-plugin
+
+>>>>>>> 624dbe2ef75e2d536e26cbb179864b2b477003fe
