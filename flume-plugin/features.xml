@@ -1,0 +1,11 @@
+<features name="flume-plugin" version="4.0.0-RC6">
+  <feature name="flume-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/flume-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/flume-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+    <feature name="flume-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/flume-plugin-webui/4.0.0-RC6/war?Webapp-Context=flume-plugin-war</bundle>
+    </feature>
+</features>
