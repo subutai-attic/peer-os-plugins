@@ -1,0 +1,11 @@
+<features name="hbase-plugin" version="4.0.0-RC6">
+  <feature name="hbase-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/hbase-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hbase-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hbase-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/hbase-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+    <feature name="hbase-plugin-war" version="4.0.0-RC6">
+        <bundle> war:mvn:io.subutai/hbase-plugin-webui/4.0.0-RC6/war?Webapp-Context=hbase-plugin-war</bundle>
+    </feature>
+</features>

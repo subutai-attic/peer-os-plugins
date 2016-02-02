@@ -1,0 +1,91 @@
+
+<form ng-submit="hbaseCtrl.createHbase()">
+	<div class="b-workspace-content b-workspace-content_border">
+		<div class="b-workspace-content__row">
+			<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+				<div class="b-form">
+
+					<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+						<label class="b-form-label b-form-label_fix-size-1 g-left">Enter cluster name</label>
+
+						<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+							<input class="b-form-input b-form-input_full" type="text"
+							placeholder="Enter cluster name" 
+							ng-model="hbaseCtrl.hbaseInstall.clusterName" 
+							required>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+					<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+						<label class="b-form-label b-form-label_fix-size-1 g-left">Hadoop cluster</label>
+
+						<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+							<select class="b-form-input b-form-input_full" 
+								ng-model="hbaseCtrl.hbaseInstall.hadoopClusterName" 
+								ng-change="hbaseCtrl.getHadoopClusterNodes(hbaseCtrl.hbaseInstall.hadoopClusterName)">
+								<option value="">Select hadoop cluster</option>
+								<option ng-repeat="hadoopCluster in hbaseCtrl.hadoopClusters" value="{{ hadoopCluster }}">
+									{{ hadoopCluster }}
+								</option>
+							</select>						
+						</div>
+						<div class="clear"></div>
+					</div>
+
+					<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+						<label class="b-form-label b-form-label_fix-size-1 g-left">Master Node</label>
+
+						<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+							<select class="b-form-input b-form-input_full"
+								ng-model="hbaseCtrl.hbaseInstall.hmaster"
+								ng-change="hbaseCtrl.changeDirective(hbaseCtrl.hbaseInstall.hmaster)">
+								<option ng-repeat="node in hbaseCtrl.currentClusterNodes" value="{{ node.uuid }}">
+									{{ node.hostname }}
+								</option>
+							</select>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<div class="b-workspace-content__row">
+			<h2 class="b-workspace-content-row-h2">
+				Region Servers
+			</h2>
+
+			<col-select-region-hbase-nodes></col-select-region-hbase-nodes>
+
+			<div class="clear"></div>
+		</div>
+
+		<div class="b-workspace-content__row">
+			<h2 class="b-workspace-content-row-h2">
+				Quorum Peers
+			</h2>
+
+			<col-select-quorum-hbase-nodes></col-select-quorum-hbase-nodes>
+
+			<div class="clear"></div>
+		</div>
+
+		<div class="b-workspace-content__row">
+			<h2 class="b-workspace-content-row-h2">
+				Backup Masters
+			</h2>
+
+			<col-select-backup-hbase-nodes></col-select-backup-hbase-nodes>
+
+			<div class="clear"></div>
+		</div>		
+
+	</div>
+
+	<div class="b-workspace__button-group b-workspace__button-group_right">
+		<button type="submit" class="b-btn b-btn_green g-right">Create</button>
+	</div>
+</form>
+
