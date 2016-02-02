@@ -1,0 +1,5 @@
+** Control file can be found under "debian" folder.
+** To generate new debian package of plugin "mvn clean install" should be run under parent directory.
+** New debian is created under 'hive-kar/target' folder.
+** kar file is located under debian file of plugin.
+** kar file is deployed under deploy folder of management when the debian is installed.
