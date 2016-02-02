@@ -1,0 +1,11 @@
+<features name="cassandra-plugin" version="4.0.0-RC6">
+  <feature name="cassandra-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/cassandra-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-cli/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/cassandra-plugin-rest/4.0.0-RC6</bundle>
+  </feature>
+  <feature name="hadoop-plugin-war" version="4.0.0-RC6">
+    <bundle> war:mvn:io.subutai/cassandra-plugin-webui/4.0.0-RC6/war?Webapp-Context=cassandra-plugin-war</bundle>
+  </feature>
+</features>
