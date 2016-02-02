@@ -9,32 +9,7 @@
 .classpath
 .settings
 .metadata
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 git.properties
-=======
->>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
-=======
-git.properties
->>>>>>> 732100aeb940e2c03d54b69c48be8869a895c916
-=======
->>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
-=======
-git.properties
->>>>>>> 63fdafa074e06b8e898251cef9c09ce6d66b5ee3
-=======
-git.properties
->>>>>>> d63a79d96c03c33a5090bc23f424244cf8fa7dd5
-=======
-git.properties
->>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
-=======
->>>>>>> c332e980b253f726b2afad4c9fed62653796ffc6
 target
 
 # Package Files #
@@ -44,21 +19,10 @@ target
 /server/server-karaf/nb-configuration.xml
 /server/core/broker/broker-impl/activemq-data
 server/core/broker/broker-impl/activemq-data
-<<<<<<< HEAD
 *-subutai-plugin-debian-build/
 *.log
 *substvars
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 files
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 # Eclipse
 .classpath
@@ -88,46 +52,17 @@ debian/mahout-subutai-plugin
 debian/lucene-subutai-plugin
 debian/hive-subutai-plugin
 debian/hipi-subutai-plugin
-
-=======
 debian/hbase-subutai-plugin
->>>>>>> 8e4d7db38e48e131105292180f672b7a05d6a1c2
-
-=======
 debian/hadoop-subutai-plugin
->>>>>>> e8e791f9d6dda5cdf0e6e28e197bd14b2e9b8e2d
-=======
 debian/storm-subutai-plugin
-
->>>>>>> 390aa860b7ab6047dc934f327ffdd7d4efb66072
-=======
 debian/flume-subutai-plugin
->>>>>>> 478e0a3ad2cca55e400c482ed211a09377c9dce0
-=======
->>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
-=======
 debian/elasticsearch-subutai-plugin
->>>>>>> 732100aeb940e2c03d54b69c48be8869a895c916
-=======
-files
->>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
-=======
-files
 debian/ceph-plugin-kar
->>>>>>> 63fdafa074e06b8e898251cef9c09ce6d66b5ee3
-=======
-files
 debian/hadoop-subutai-plugin
->>>>>>> d63a79d96c03c33a5090bc23f424244cf8fa7dd5
-=======
-files
 debian/hipi-subutai-plugin
->>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
-=======
+debian/accumulo-subutai-plugin
 
 *-subutai-plugin-debian-build/
 *.log
 *substvars
 files
-debian/accumulo-subutai-plugin
->>>>>>> c332e980b253f726b2afad4c9fed62653796ffc6
