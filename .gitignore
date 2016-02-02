@@ -29,6 +29,7 @@ files
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 debian/zookeeper
 -subutai-plugin
 =======
@@ -53,3 +54,6 @@ debian/presto-subutai-plugin
 =======
 debian/pig-subutai-plugin
 >>>>>>> a41996f62f8261c093e0ea80012c985314daaca3
+=======
+debian/oozie-subutai-plugin
+>>>>>>> cf52cb19a8b16dcdd46cb601888f6a1814ea879d
