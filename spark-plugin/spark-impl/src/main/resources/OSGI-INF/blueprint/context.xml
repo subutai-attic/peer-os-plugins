@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <!-- *********************************************************************************** -->
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="monitor" availability="mandatory"
+             interface="io.subutai.core.metric.api.Monitor" />
+  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
+
+  <bean id="spark-impl" scope="singleton" class="io.subutai.plugin.spark.impl.SparkImpl"
+        init-method="init" destroy-method="destroy">
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+    <argument ref="hadoopManager" />
+    <argument ref="monitor" />
+    <argument ref="pluginDAO" />
+  </bean>
+
+  <bean id="alertListener" scope="singleton" class="io.subutai.plugin.spark.impl.alert.SparkAlertListener">
+    <argument ref="spark-impl" />
+  </bean>
+
+  <!-- *********************************************************************************** -->
+  <service ref="spark-impl" interface="io.subutai.plugin.spark.api.Spark" />
+  <service ref="spark-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
+  <service ref="alertListener" interface="io.subutai.common.peer.AlertHandler" />
+  <!-- *********************************************************************************** -->
+
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.spark.impl.SparkWebModule">
+  </bean>
+
+</blueprint>

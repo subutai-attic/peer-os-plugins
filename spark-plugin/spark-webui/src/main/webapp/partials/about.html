@@ -1,0 +1,41 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace-content__row">
+		<div class="b-main-table-border" style = "width: 500px">
+			<table class="b-main-table b-main-table_with-header" style = "width: 500px" align = "center">
+				<tr>
+					<th>Commit ID</th>
+					<td>{{ sparkCtrl.info.gitCommitId }}</td>
+				</tr>
+				<tr>
+					<th>Branch</th>
+					<td>{{ sparkCtrl.info.gitBranch }}</td>
+				</tr>
+				<tr>
+					<th>Committer name</th>
+					<td>{{ sparkCtrl.info.gitCommitUserName }}</td>
+				</tr>
+				<tr>
+					<th>Committer e-mail</th>
+					<td>{{ sparkCtrl.info.gitCommitUserEmail }}</td>
+				</tr>
+				<tr>
+				<tr>
+					<th>Builder name</th>
+					<td>{{ sparkCtrl.info.gitBuildUserName }}</td>
+				</tr>
+				<tr>
+					<th>Builder e-mail</th>
+					<td>{{ sparkCtrl.info.gitBuildUserEmail }}</td>
+				</tr>
+				<tr>
+					<th>Build Time</th>
+					<td>{{ sparkCtrl.info.gitBuildTime }}</td>
+				</tr>
+				<tr>
+					<th>Version</th>
+					<td>{{ sparkCtrl.info.projectVersion }}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
