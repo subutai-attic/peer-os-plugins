@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.class
 
 # IDE and Maven files and directories #
@@ -62,3 +63,21 @@ debian/oozie-subutai-plugin
 debian/nutch-subutai-plugin
 
 >>>>>>> 5d64874227dfdcf8804900a518334eb8053fa12b
+=======
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+>>>>>>> db0a37d59f72e8d346d905305b3998e60afc5a20
