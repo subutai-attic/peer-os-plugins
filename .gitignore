@@ -15,6 +15,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 git.properties
 =======
 >>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
@@ -32,6 +33,8 @@ git.properties
 =======
 git.properties
 >>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
+=======
+>>>>>>> c332e980b253f726b2afad4c9fed62653796ffc6
 target
 
 # Package Files #
@@ -41,6 +44,7 @@ target
 /server/server-karaf/nb-configuration.xml
 /server/core/broker/broker-impl/activemq-data
 server/core/broker/broker-impl/activemq-data
+<<<<<<< HEAD
 *-subutai-plugin-debian-build/
 *.log
 *substvars
@@ -119,3 +123,11 @@ debian/hadoop-subutai-plugin
 files
 debian/hipi-subutai-plugin
 >>>>>>> a5703c5168af54d440d82185cf28ececdff8684c
+=======
+
+*-subutai-plugin-debian-build/
+*.log
+*substvars
+files
+debian/accumulo-subutai-plugin
+>>>>>>> c332e980b253f726b2afad4c9fed62653796ffc6
