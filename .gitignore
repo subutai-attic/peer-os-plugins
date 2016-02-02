@@ -9,7 +9,10 @@
 .classpath
 .settings
 .metadata
+<<<<<<< HEAD
 git.properties
+=======
+>>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
 target
 
 # Package Files #
@@ -23,6 +26,7 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -71,3 +75,5 @@ debian/storm-subutai-plugin
 =======
 debian/flume-subutai-plugin
 >>>>>>> 478e0a3ad2cca55e400c482ed211a09377c9dce0
+=======
+>>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
