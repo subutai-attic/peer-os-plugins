@@ -1,10 +1,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 624dbe2ef75e2d536e26cbb179864b2b477003fe
 =======
 >>>>>>> 08a00bd451dc75b9ab2872eaa1217e813a99d74b
+=======
+>>>>>>> 2f6825f83314b615402f2e19e775adcaa453606e
 *.class
 
 # IDE and Maven files and directories #
@@ -29,6 +32,7 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -96,3 +100,6 @@ debian/mongo-subutai-plugin
 =======
 debian/mahout-subutai-plugin
 >>>>>>> 08a00bd451dc75b9ab2872eaa1217e813a99d74b
+=======
+debian/lucene-subutai-plugin
+>>>>>>> 2f6825f83314b615402f2e19e775adcaa453606e
