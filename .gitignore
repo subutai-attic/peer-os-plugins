@@ -23,9 +23,13 @@ server/core/broker/broker-impl/activemq-data
 *substvars
 files
 <<<<<<< HEAD
+<<<<<<< HEAD
 debian/zookeeper
 -subutai-plugin
 =======
 debian/storm-subutai-plugin
 >>>>>>> 9cfbc968836aa2292837b86c9f2698d8b3fde146
+=======
+debian/sqoop-subutai-plugin
+>>>>>>> 84926a212881c53692dd550b16508996e5f70485
 
