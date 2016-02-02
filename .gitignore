@@ -25,6 +25,7 @@ server/core/broker/broker-impl/activemq-data
 files
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 # Eclipse
 .classpath
@@ -62,3 +63,7 @@ debian/hbase-subutai-plugin
 =======
 debian/hadoop-subutai-plugin
 >>>>>>> e8e791f9d6dda5cdf0e6e28e197bd14b2e9b8e2d
+=======
+debian/storm-subutai-plugin
+
+>>>>>>> 390aa860b7ab6047dc934f327ffdd7d4efb66072
