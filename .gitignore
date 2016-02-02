@@ -11,12 +11,15 @@
 .metadata
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 git.properties
 =======
 >>>>>>> 418c16b4c0644e7721f2ed9e635b6ee4872d7347
 =======
 git.properties
 >>>>>>> 732100aeb940e2c03d54b69c48be8869a895c916
+=======
+>>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
 target
 
 # Package Files #
@@ -29,6 +32,7 @@ server/core/broker/broker-impl/activemq-data
 *-subutai-plugin-debian-build/
 *.log
 *substvars
+<<<<<<< HEAD
 files
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -85,3 +89,6 @@ debian/flume-subutai-plugin
 =======
 debian/elasticsearch-subutai-plugin
 >>>>>>> 732100aeb940e2c03d54b69c48be8869a895c916
+=======
+files
+>>>>>>> 0702aa62cd54572d4ea4cce97ee1c6ff30117c5f
