@@ -6,6 +6,9 @@
 package io.subutai.plugin.appscale.cli;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -19,18 +22,55 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
-@Command ( scope = "appscale", name = "uninstall-cluster", description = "Install Cluster" )
+@Command ( scope = "appscale", name = "uninstall-cluster", description = "Uninstall Cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {
     @Argument ( index = 0, name = "clusterName", description = "name of cluster", required = true, multiValued = false )
-    String clusterName = null;
+    private String clusterName = null;
     @Argument ( index = 1, name = "domainName", description = "name of domain", required = true, multiValued = false )
-    String domainName = null;
+    private String domainName = null;
     @Argument ( index = 2, name = "environmentId", description = "environment id", required = true, multiValued = false )
-    String environmentId;
+    private String environmentId;
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
+    private static final Logger LOG = LoggerFactory.getLogger ( UninstallClusterCommand.class.getName () );
+
+
+    public String getClusterName ()
+    {
+        return clusterName;
+    }
+
+
+    public void setClusterName ( String clusterName )
+    {
+        this.clusterName = clusterName;
+    }
+
+
+    public String getDomainName ()
+    {
+        return domainName;
+    }
+
+
+    public void setDomainName ( String domainName )
+    {
+        this.domainName = domainName;
+    }
+
+
+    public String getEnvironmentId ()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId ( String environmentId )
+    {
+        this.environmentId = environmentId;
+    }
 
 
     @Override

@@ -13,7 +13,6 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.tracker.TrackerOperationView;
-import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -32,7 +31,6 @@ public class StatusClusterCommand extends OsgiCommandSupport
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
-    private EnvironmentManager environmentManager;
 
 
     @Override
@@ -55,12 +53,6 @@ public class StatusClusterCommand extends OsgiCommandSupport
     public void setTracker ( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public void setEnvironmentManager ( EnvironmentManager environmentManager )
-    {
-        this.environmentManager = environmentManager;
     }
 
 

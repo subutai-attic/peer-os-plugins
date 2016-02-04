@@ -13,6 +13,7 @@
             <action class="io.subutai.plugin.appscale.cli.InstallClusterCommand">
                 <property name="appScaleInterface" ref="appScaleInterface" />
                 <property name="tracker" ref="tracker" />
+                
             </action>
         </command>
              
@@ -20,20 +21,19 @@
             <action class="io.subutai.plugin.appscale.cli.UninstallClusterCommand">
                 <property name="appScaleInterface" ref="appScaleInterface" />
                 <property name="tracker" ref="tracker" />
+                
             </action>
         </command>     
         
         <command name="appscale/start-clusters">
             <action class="io.subutai.plugin.appscale.cli.StartClusterCommand">
                 <property name="appScaleInterface" ref="appScaleInterface" />
-                
                 <property name="tracker" ref="tracker" />
             </action>
         </command>     
         <command name="appscale/stop-clusters">
             <action class="io.subutai.plugin.appscale.cli.StopClusterCommand">
                 <property name="appScaleInterface" ref="appScaleInterface" />
-                
                 <property name="tracker" ref="tracker" />
             </action>
         </command>     
@@ -41,7 +41,7 @@
             <action class="io.subutai.plugin.appscale.cli.StatusClusterCommand">
                 <property name="appScaleInterface" ref="appScaleInterface" />
                 <property name="tracker" ref="tracker" />
-                <property name="environmentManager" ref="environmentManager" />
+                
             </action>
         </command>     
     </command-bundle>

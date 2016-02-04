@@ -48,6 +48,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
+
     private static final Logger LOG = LoggerFactory.getLogger ( InstallClusterCommand.class.getName () );
 
 

@@ -17,12 +17,12 @@
       <artifactId>appscale-plugin-api</artifactId>
       <version>${subutai.mgmt.parent.version}</version>
     </dependency>
-    <!--
+    
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
     </dependency>
-    -->
+    
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
