@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>AppScale</artifactId>
-    <version>4.0.0-RC5</version>
+    <version>4.0.0-RC6</version>
   </parent>
   <artifactId>appscale-plugin-cli</artifactId>
   <packaging>bundle</packaging>
@@ -43,7 +43,8 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>plugin-common</artifactId>
-
+      <version>4.0.0-RC6</version>
+      <type>jar</type>
     </dependency>
   </dependencies>
 

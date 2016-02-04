@@ -32,8 +32,10 @@ public class AppScaleConfig implements ConfigBase
     private String environmentId;
     private String containerType;
     private String tracker;
+    private List<AppScaleConfig> clusters;
 
 
+    
     public AppScaleConfig ()
     {
         nodes = new ArrayList<> ();
@@ -148,6 +150,18 @@ public class AppScaleConfig implements ConfigBase
     public void setOpenJreName ( String openJreName )
     {
         this.openJreName = openJreName;
+    }
+
+
+    public List<AppScaleConfig> getClusters ()
+    {
+        return clusters;
+    }
+
+
+    public void setClusters ( List<AppScaleConfig> clusters )
+    {
+        this.clusters = clusters;
     }
 
 

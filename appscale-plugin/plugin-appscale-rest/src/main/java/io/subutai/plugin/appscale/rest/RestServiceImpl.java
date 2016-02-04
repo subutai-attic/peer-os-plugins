@@ -54,7 +54,8 @@ public class RestServiceImpl implements RestService
 
         ArrayList<String> cnStrings = new ArrayList<> ();
 
-        appscaleConfigList.stream ().forEach ( (asc) ->
+        appscaleConfigList.stream ().forEach ( (asc)
+                ->
                 {
                     cnStrings.add ( asc.getClusterName () );
         } );

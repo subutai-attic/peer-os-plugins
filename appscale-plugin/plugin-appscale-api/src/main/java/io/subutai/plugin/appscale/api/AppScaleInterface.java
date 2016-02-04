@@ -1,6 +1,7 @@
 package io.subutai.plugin.appscale.api;
 
 
+import java.util.List;
 import java.util.UUID;
 
 import io.subutai.common.environment.Environment;
@@ -11,6 +12,18 @@ import io.subutai.plugin.common.api.ClusterSetupStrategy;
 
 public interface AppScaleInterface extends ApiBase<AppScaleConfig>
 {
+    @Override
+    public List<AppScaleConfig> getClusters ();
+
+
+    @Override
+    public AppScaleConfig getCluster ( String clusterName );
+
+
+    @Override
+    public UUID installCluster ( AppScaleConfig appScaleConfig );
+
+
     UUID uninstallCluster ( AppScaleConfig appScaleConfig );
 
 

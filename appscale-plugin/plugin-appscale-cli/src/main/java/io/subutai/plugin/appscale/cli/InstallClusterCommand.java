@@ -39,13 +39,12 @@ public class InstallClusterCommand extends OsgiCommandSupport
     @Argument ( index = 2, name = "environmentId", description = "environment id", required = true, multiValued = false )
     private String environmentId;
 
-    @Argument ( index = 3, name = "zookeeperName", description = "name of zookeeper", required = false, multiValued = false )
-    private String zookeeperName = null;
-    @Argument ( index = 4, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
-    private String cassandraName = null;
-    @Argument ( index = 5, name = "openJreName", description = "name of openJreName", required = false, multiValued = false )
-    private String openJreName = null;
-
+//    @Argument ( index = 3, name = "zookeeperName", description = "name of zookeeper", required = false, multiValued = false )
+//    private String zookeeperName = null;
+//    @Argument ( index = 4, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
+//    private String cassandraName = null;
+//    @Argument ( index = 5, name = "openJreName", description = "name of openJreName", required = false, multiValued = false )
+//    private String openJreName = null;
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
@@ -112,42 +111,40 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public String getZookeeperName ()
-    {
-        return zookeeperName;
-    }
-
-
-    public void setZookeeperName ( String zookeeperName )
-    {
-        this.zookeeperName = zookeeperName;
-    }
-
-
-    public String getCassandraName ()
-    {
-        return cassandraName;
-    }
-
-
-    public void setCassandraName ( String cassandraName )
-    {
-        this.cassandraName = cassandraName;
-    }
-
-
-    public String getOpenJreName ()
-    {
-        return openJreName;
-    }
-
-
-    public void setOpenJreName ( String openJreName )
-    {
-        this.openJreName = openJreName;
-    }
-
-
+//    public String getZookeeperName ()
+//    {
+//        return zookeeperName;
+//    }
+//
+//
+//    public void setZookeeperName ( String zookeeperName )
+//    {
+//        this.zookeeperName = zookeeperName;
+//    }
+//
+//
+//    public String getCassandraName ()
+//    {
+//        return cassandraName;
+//    }
+//
+//
+//    public void setCassandraName ( String cassandraName )
+//    {
+//        this.cassandraName = cassandraName;
+//    }
+//
+//
+//    public String getOpenJreName ()
+//    {
+//        return openJreName;
+//    }
+//
+//
+//    public void setOpenJreName ( String openJreName )
+//    {
+//        this.openJreName = openJreName;
+//    }
     @Override
     protected Object doExecute () throws Exception
     {
@@ -158,18 +155,18 @@ public class InstallClusterCommand extends OsgiCommandSupport
         appScaleConfig.setDomainName ( domainName );
         appScaleConfig.setTracker ( clusterName );
 
-        if ( zookeeperName != null )
-        {
-            appScaleConfig.setZookeeperName ( zookeeperName );
-        }
-        if ( cassandraName != null )
-        {
-            appScaleConfig.setCassandraName ( cassandraName );
-        }
-        if ( openJreName != null )
-        {
-            appScaleConfig.setOpenJreName ( openJreName );
-        }
+//        if ( zookeeperName != null )
+//        {
+//            appScaleConfig.setZookeeperName ( zookeeperName );
+//        }
+//        if ( cassandraName != null )
+//        {
+//            appScaleConfig.setCassandraName ( cassandraName );
+//        }
+//        if ( openJreName != null )
+//        {
+//            appScaleConfig.setOpenJreName ( openJreName );
+//        }
 
         LOG.info ( "installing arguments: "
                 + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomainName ()

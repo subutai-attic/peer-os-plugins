@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>AppScale</artifactId>
-    <version>4.0.0-RC5</version>
+    <version>4.0.0-RC6</version>
   </parent>
   <artifactId>appscale-plugin-rest</artifactId>
   <packaging>bundle</packaging>
@@ -15,23 +15,23 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>appscale-plugin-api</artifactId>
-      <version>4.0.0-RC5</version>
-      <type>jar</type>
+      <version>${subutai.mgmt.parent.version}</version>
     </dependency>
+    <!--
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
-      <type>jar</type>
     </dependency>
+    -->
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
-      <type>jar</type>
+      
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>tracker-api</artifactId>
-      <type>jar</type>
+      
     </dependency>
 
     <dependency>
