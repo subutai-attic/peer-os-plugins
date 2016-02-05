@@ -122,10 +122,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "1" );
         this.commandExecute ( containerHost, "echo ips_layout: >> /root/AppScalefile" );
         LOG.info ( "2" );
-        String cmdmaster = "echo" + "\"  master : " + ipaddr + "\" >> /root/AppScalefile";
+        String cmdmaster = "echo '  master : " + ipaddr + "' >> /root/AppScalefile";
         this.commandExecute ( containerHost, cmdmaster );
         LOG.info ( "3" );
-        this.commandExecute ( containerHost, "echo" + "\"  appengine : " + ipaddr + "\" >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo '  appengine : " + ipaddr + "' >> /root/AppScalefile" );
         if ( config.getZookeeperName () != null )
         {
             try
@@ -134,7 +134,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         config.getZookeeperName () );
                 String zooip = getIPAddress ( zooContainerHost );
                 this.commandExecute ( containerHost,
-                                      "echo" + "\"  zookeeper : " + zooip + "\" >> /root/AppScalefile" );
+                                      "echo '  zookeeper : " + zooip + "' >> /root/AppScalefile" );
                 LOG.info ( "4" );
 
             }
@@ -145,7 +145,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            this.commandExecute ( containerHost, "echo" + "\"  zookeeper : " + ipaddr + "\" >> /root/AppScalefile" );
+            this.commandExecute ( containerHost, "echo '  zookeeper : " + ipaddr + "' >> /root/AppScalefile" );
             LOG.info ( "4" );
         }
         if ( config.getCassandraName () != null )
@@ -156,7 +156,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         config.getCassandraName () );
                 String cassIP = getIPAddress ( cassContainerHost );
                 this.commandExecute ( containerHost,
-                                      "echo" + "\"  database : " + cassIP + "\" >> /root/AppScalefile" );
+                                      "echo '  database : " + cassIP + "' >> /root/AppScalefile" );
                 LOG.info ( "4" );
             }
             catch ( ContainerHostNotFoundException ex )
@@ -166,7 +166,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            this.commandExecute ( containerHost, "echo" + "\"  database : " + ipaddr + "\" >> /root/AppScalefile" );
+            this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
             LOG.info ( "4" );
         }
 
