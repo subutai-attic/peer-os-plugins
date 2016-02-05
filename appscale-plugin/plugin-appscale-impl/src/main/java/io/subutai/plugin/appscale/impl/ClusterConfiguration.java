@@ -97,7 +97,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ) );
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 4000 ) );
             po.addLogDone ( command + " executed with: " + responseFrom );
         }
         catch ( CommandException e )
@@ -118,10 +118,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                        AppScaleConfig config )
     {
         String ipaddr = getIPAddress ( containerHost );
-        this.commandExecute ( containerHost, "touch /root/AppScalefile" );
+        this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
+        LOG.info ( "1" );
         this.commandExecute ( containerHost, "echo ips_layout: >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo   master : " + ipaddr + " >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo   appengine : " + ipaddr + " >> /root/AppScalefile" );
+        LOG.info ( "2" );
+        String cmdmaster = "echo" + 0x20 + "master : " + ipaddr + " >> /root/AppScalefile";
+        this.commandExecute ( containerHost, cmdmaster );
+        LOG.info ( "3" );
+        this.commandExecute ( containerHost, "echo" + 0x20 + "   appengine : " + ipaddr + " >> /root/AppScalefile" );
         if ( config.getZookeeperName () != null )
         {
             try
@@ -129,7 +133,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname (
                         config.getZookeeperName () );
                 String zooip = getIPAddress ( zooContainerHost );
-                this.commandExecute ( containerHost, "echo   zookeeper : " + zooip + " >> /root/AppScalefile" );
+                this.commandExecute ( containerHost,
+                                      "echo" + 0x20 + "   zookeeper : " + zooip + " >> /root/AppScalefile" );
+                LOG.info ( "4" );
 
             }
             catch ( ContainerHostNotFoundException ex )
@@ -139,7 +145,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            this.commandExecute ( containerHost, "echo   zookeeper : " + ipaddr + " >> /root/AppScalefile" );
+            this.commandExecute ( containerHost, "echo" + 0x20 + "   zookeeper : " + ipaddr + " >> /root/AppScalefile" );
+            LOG.info ( "4" );
         }
         if ( config.getCassandraName () != null )
         {
@@ -148,7 +155,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname (
                         config.getCassandraName () );
                 String cassIP = getIPAddress ( cassContainerHost );
-                this.commandExecute ( containerHost, "echo   database : " + cassIP + " >> /root/AppScalefile" );
+                this.commandExecute ( containerHost,
+                                      "echo" + 0x20 + "   database : " + cassIP + " >> /root/AppScalefile" );
+                LOG.info ( "4" );
             }
             catch ( ContainerHostNotFoundException ex )
             {
@@ -157,24 +166,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            this.commandExecute ( containerHost, "echo   database : " + ipaddr + " >> /root/AppScalefile" );
-        }
-
-    }
-
-
-    private void appscaleInitCluster ( EnvironmentContainerHost containerHost )
-    {
-        String ipaddr = getIPAddress ( containerHost );
-        String localCommand = "sudo bash /root/app.sh " + ipaddr;
-        try
-        {
-            CommandResult r = containerHost.execute ( new RequestBuilder ( localCommand ) );
-            LOG.info ( ipaddr + " : " + r.getStdOut () + " " + r.getStdErr () );
-        }
-        catch ( Exception ex )
-        {
-            LOG.error ( "File can not be created." + ex );
+            this.commandExecute ( containerHost, "echo" + 0x20 + "   database : " + ipaddr + " >> /root/AppScalefile" );
+            LOG.info ( "4" );
         }
 
     }
@@ -189,6 +182,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
             CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
             ipaddr = resultAddr.getStdOut ();
+            ipaddr = ipaddr.replace ( "\n", "" );
             LOG.info ( "Container IP: " + ipaddr );
         }
         catch ( CommandException ex )

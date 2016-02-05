@@ -34,12 +34,6 @@ public class Commands
     }
 
 
-    public static String getInstallGit ()
-    {
-        return ( "sudo apt-get install -y git" );
-    }
-
-
     /**
      * we have to install zookeeper manually and configure it.
      *
@@ -47,7 +41,7 @@ public class Commands
      */
     public static String getInstallZookeeper ()
     {
-        return ( "sudo apt-get install -y zookeeper zookeeperd zookeeper-bin" );
+        return ( "apt-get install -y zookeeper zookeeperd zookeeper-bin" );
     }
 
 
@@ -76,45 +70,45 @@ public class Commands
     public static List<String> getZookeeperStopAndDisable ()
     {
         List<String> ret = new ArrayList<> ();
-        ret.add ( "sudo /etc/init.d/zookeeper stop" );
-        ret.add ( "sudo disableservice zookeeper" );
+        ret.add ( "/etc/init.d/zookeeper stop" );
+        ret.add ( "disableservice zookeeper" );
         return ret;
     }
 
 
     public static String getAppScaleStartCommand ()
     {
-        return ( "sudo /root/appscale-tools/bin/appscale up --yes" );
+        return ( "/root/appscale-tools/bin/appscale up" );
     }
 
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "sudo /root/appscale-tools/bin/appscale down" );
+        return ( "/root/appscale-tools/bin/appscale down" );
     }
 
 
     public static String getAppscaleInit ()
     {
-        return ( "sudo /root/appscale-tools/bin/appscale init cluster" );
+        return ( "/root/appscale-tools/bin/appscale init cluster" );
     }
 
 
     public static String getAppscaleToolsBuild ()
     {
-        return ( "sudo bash //root/appscale-tools/debian/appscale_build.sh" );
+        return ( "bash /root/appscale-tools/debian/appscale_build.sh" );
     }
 
 
     public static String getAppscaleBuild ()
     {
-        return ( "sudo bash /root/appscale/debian/appscale_build.sh" );
+        return ( "bash /root/appscale/debian/appscale_build.sh" );
     }
 
 
     public static String getRemoveSubutaiList ()
     {
-        return ( "sudo rm -f /etc/apt/sources.list.d/subutai-repo.list" );
+        return ( "rm -f /etc/apt/sources.list.d/subutai-repo.list" );
     }
 
 }
