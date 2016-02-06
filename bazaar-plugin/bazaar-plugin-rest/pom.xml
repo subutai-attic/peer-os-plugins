@@ -15,6 +15,18 @@
   <description>Bazaar Plugin REST</description>
   <packaging>bundle</packaging>
 
+  <dependencies>
+	  <dependency>
+		  <groupId>${project.groupId}</groupId>
+		  <artifactId>bazaar-plugin-api</artifactId>
+		  <version>4.0.0-RC6</version>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.apache.cxf</groupId>
+		  <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		  <version>3.1.0</version>
+	  </dependency>
+  </dependencies>
   <build>
     <plugins>
       <!--<plugin>-->

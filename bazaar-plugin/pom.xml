@@ -33,6 +33,13 @@
     <module>bazaar-plugin-rest</module>
   </modules>
 
+  <dependencies>
+	  <dependency>
+		  <groupId>org.apache.cxf</groupId>
+		  <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		  <version>3.1.0</version>
+	  </dependency>
+  </dependencies>
 
   <build>
     <plugins>

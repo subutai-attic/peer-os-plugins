@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<blueprint
+		xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		xmlns:jpa="http://aries.apache.org/xmlns/jpa/v1.0.0">
+
+	<reference id="integration"
+			   interface="io.subutai.plugin.hub.api.Integration" />
+
+	<service id="bazaarPlugin" ref="bazaarPluginImpl" interface="io.subutai.plugin.bazaar.api.Bazaar">
+	</service>
+	<bean id="bazaarPluginImpl" class="io.subutai.plugin.bazaar.impl.BazaarImpl"
+		  scope="singleton" activation="eager">
+		<argument ref="integration" />
+	</bean>
+
+
+	<service ref="integration" interface="io.subutai.webui.api.WebuiModule" />
+
+
+	<bean id="module" scope="singleton" class="io.subutai.plugin.generic.impl.GenericWebModule">
+	</bean>
+</blueprint>
