@@ -111,5 +111,19 @@ public class Commands
         return ( "rm -f /etc/apt/sources.list.d/subutai-repo.list" );
     }
 
+
+    public static String getAutoRemove ()
+    {
+        return ( "apt-get autoremove" );
+    }
+
+
+    public static String getTermColorInstall ()
+    {
+        // forget to install term color in template...
+
+        return ( "pip install termcolor" );
+    }
+
 }
 

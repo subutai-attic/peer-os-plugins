@@ -19,7 +19,7 @@ public class AppScaleConfig implements ConfigBase
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
 
     // private static final String TEMPLATE_NAME = "Appscale";
-    private static final String TEMPLATE_NAME = "appscale"; // we will be using master template
+    private static final String TEMPLATE_NAME = "appscale01"; // we will be using master template
     private String clusterName = ""; // this will be login point => management
 
     // if any means of other clusters.
@@ -35,7 +35,6 @@ public class AppScaleConfig implements ConfigBase
     private List<AppScaleConfig> clusters;
 
 
-    
     public AppScaleConfig ()
     {
         nodes = new ArrayList<> ();

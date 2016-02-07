@@ -74,6 +74,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 "Container Host Found: " + containerHost.getContainerId () + "\n"
                 + "\n" + containerHost.getHostname () + "\n" );
         // start of commands
+
         this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
         LOG.info ( "installing appscale can take 30 min or longer..." );
         po.addLog ( "installing appscale can take 30 min or longer..." );
@@ -81,9 +82,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "installing appscale tools can take 30 min or longer..." );
         po.addLog ( "installing appscale tools can take 30 min or longer..." );
         this.commandExecute ( containerHost, Commands.getAppscaleToolsBuild () );
+        this.commandExecute ( containerHost, Commands.getTermColorInstall () );
         this.appscaleInitCluster ( containerHost, environment, config );
+        this.commandExecute ( containerHost, Commands.getAutoRemove () );
         // end of executing commands
-
         config.setEnvironmentId ( environment.getId () );
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
@@ -97,7 +99,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 4000 ) );
+            // downloading takes time...
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 8000 ) );
             po.addLogDone ( command + " executed with: " + responseFrom );
         }
         catch ( CommandException e )
