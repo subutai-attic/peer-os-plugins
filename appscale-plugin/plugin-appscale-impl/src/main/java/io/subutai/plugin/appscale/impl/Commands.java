@@ -114,7 +114,7 @@ public class Commands
 
     public static String getAutoRemove ()
     {
-        return ( "apt-get autoremove" );
+        return ( "apt-get autoremove -y" );
     }
 
 
