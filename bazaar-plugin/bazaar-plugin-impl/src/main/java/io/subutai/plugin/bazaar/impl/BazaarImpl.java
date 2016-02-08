@@ -13,6 +13,14 @@ public class BazaarImpl implements Bazaar
 	public BazaarImpl (final Integration integration)
 	{
 		this.integration = integration;
+		try
+		{
+			this.integration.registerPeer ("hub.subut.ai");
+		}
+		catch (HubPluginException e)
+		{
+			e.printStackTrace ();
+		}
 	}
 
 

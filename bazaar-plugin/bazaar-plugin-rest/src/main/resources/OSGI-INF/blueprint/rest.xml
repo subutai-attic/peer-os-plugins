@@ -15,9 +15,9 @@
     </jaxrs:serviceBeans>
   </jaxrs:server>
   <bean id="bazaarRestServiceImpl" class="io.subutai.plugin.bazaar.rest.RestServiceImpl">
-    <property name="bazaarPlugin" ref="bazaarPlugin" />
+    <property name="bazaar" ref="bazaar" />
   </bean>
-  <reference id="bazaarPlugin" availability="mandatory"
+  <reference id="bazaar" availability="mandatory"
              interface="io.subutai.plugin.bazaar.api.Bazaar" />
 
 </blueprint>
