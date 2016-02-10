@@ -1,8 +1,6 @@
 package io.subutai.plugin.bazaar.rest;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -12,4 +10,19 @@ public interface RestService
 	@Path( "products" )
 	@Produces( { MediaType.APPLICATION_JSON } )
 	public Response listProducts();
+
+	@GET
+	@Path( "installed" )
+	@Produces( { MediaType.APPLICATION_JSON } )
+	public Response listInstalled();
+
+	@POST
+	@Path( "install" )
+	@Produces( { MediaType.TEXT_PLAIN } )
+	public Response installPlugin( @FormParam ( "name" ) String name, @FormParam ("version") String version, @FormParam ("kar") String kar, @FormParam ("url") String url);
+
+	@POST
+	@Path( "uninstall" )
+	@Produces( { MediaType.TEXT_PLAIN } )
+	public Response uninstallPlugin( @FormParam ( "id" ) Long id, @FormParam ("kar") String kar);
 }

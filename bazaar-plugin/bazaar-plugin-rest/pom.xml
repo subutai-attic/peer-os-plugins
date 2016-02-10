@@ -26,6 +26,11 @@
 		  <artifactId>cxf-rt-frontend-jaxrs</artifactId>
 		  <version>3.1.0</version>
 	  </dependency>
+	  <dependency>
+		  <groupId>io.subutai</groupId>
+		  <artifactId>subutai-common</artifactId>
+		  <version>4.0.0-RC6</version>
+	  </dependency>
   </dependencies>
   <build>
     <plugins>
