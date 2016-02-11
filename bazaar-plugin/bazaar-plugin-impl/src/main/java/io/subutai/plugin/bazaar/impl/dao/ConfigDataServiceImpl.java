@@ -83,7 +83,7 @@ public class ConfigDataServiceImpl implements ConfigDataService
 		EntityManager em = daoManager.getEntityManagerFromFactory();
 		try
 		{
-			result = ( List<Plugin> ) em.createQuery( "select h from Plugin h" ).getResultList();
+			result = ( List<Plugin> ) em.createQuery( "select h from PluginEntity h" ).getResultList();
 		}
 		catch ( Exception e )
 		{
