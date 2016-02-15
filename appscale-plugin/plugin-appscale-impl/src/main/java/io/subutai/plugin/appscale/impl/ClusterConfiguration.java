@@ -60,7 +60,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
-        System.setProperty ( "user.dir", "/root" );
+        // System.setProperty ( "user.dir", "/root" );
         LOG.info ( "we are running this in : " + System.getProperty ( "user.dir" ) );
 
         try
@@ -75,14 +75,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 "Container Host Found: " + containerHost.getContainerId () + "\n"
                 + "\n" + containerHost.getHostname () + "\n" );
 
-        this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
+        // this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
 
         LOG.info ( "installing appscale can take several minutes." );
         po.addLog ( "installing appscale can take several minutes." );
 
-
+        // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config );
+        // end of AppScalefile configuration
         LOG.info ( "You need to Login to your master container and run 'appscale up' manually" );
         po.addLog ( "You need to Login to your master container and run 'appscale up' manually" );
 
