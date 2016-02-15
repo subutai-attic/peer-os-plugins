@@ -43,8 +43,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private String zookeeperName = null;
     @Argument ( index = 4, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
     private String cassandraName = null;
-    @Argument ( index = 5, name = "openJreName", description = "name of openJreName", required = false, multiValued = false )
-    private String openJreName = null;
+
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
@@ -136,16 +135,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-    public String getOpenJreName ()
-    {
-        return openJreName;
-    }
 
-
-    public void setOpenJreName ( String openJreName )
-    {
-        this.openJreName = openJreName;
-    }
 
 
     @Override
@@ -166,10 +156,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         {
             appScaleConfig.setCassandraName ( cassandraName );
         }
-        if ( openJreName != null )
-        {
-            appScaleConfig.setOpenJreName ( openJreName );
-        }
+
 
         LOG.info ( "installing arguments: "
                 + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomainName ()

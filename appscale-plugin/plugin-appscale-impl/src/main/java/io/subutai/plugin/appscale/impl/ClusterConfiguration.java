@@ -60,7 +60,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
-
+        System.setProperty ( "user.dir", "/root" );
+        LOG.info ( "we are running this in : " + System.getProperty ( "user.dir" ) );
 
         try
         {
@@ -73,24 +74,33 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info (
                 "Container Host Found: " + containerHost.getContainerId () + "\n"
                 + "\n" + containerHost.getHostname () + "\n" );
-        // start of commands
 
         this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
-        LOG.info ( "installing appscale can take 30 min or longer..." );
-        po.addLog ( "installing appscale can take 30 min or longer..." );
-        this.commandExecute ( containerHost, Commands.getAppscaleBuild () );
-        LOG.info ( "installing appscale tools can take 30 min or longer..." );
-        po.addLog ( "installing appscale tools can take 30 min or longer..." );
-        this.commandExecute ( containerHost, Commands.getAppscaleToolsBuild () );
-        this.commandExecute ( containerHost, Commands.getTermColorInstall () );
+        this.commandExecute ( containerHost, Commands.getCreateLogDir () );
+
+        LOG.info ( "installing appscale can take several minutes." );
+        po.addLog ( "installing appscale can take several minutes." );
+
+
         this.appscaleInitCluster ( containerHost, environment, config );
-        this.commandExecute ( containerHost, Commands.getAutoRemove () );
-        // end of executing commands
+        LOG.info ( "You need to Login to your master container and run 'appscale up' manually" );
+        po.addLog ( "You need to Login to your master container and run 'appscale up' manually" );
+
+        LOG.info ( "Login into your RH and run these commands: \n"
+                + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
+                + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
+                + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
+        po.addLog ( "Login into your RH and run these commands: \n"
+                + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
+                + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
+                + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
+
         config.setEnvironmentId ( environment.getId () );
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
+        LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "Appscale is saved to database" );
-        this.commandExecute ( containerHost, Commands.getAppScaleStartCommand () );
+        // this.commandExecute ( containerHost, Commands.getAppScaleStartCommand () );
 
     }
 
@@ -122,13 +132,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         String ipaddr = getIPAddress ( containerHost );
         this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
-        LOG.info ( "1" );
+        LOG.info ( "AppScalefile file created." );
         this.commandExecute ( containerHost, "echo ips_layout: >> /root/AppScalefile" );
-        LOG.info ( "2" );
+        LOG.info ( "ips_layout inserted" );
         String cmdmaster = "echo '  master : " + ipaddr + "' >> /root/AppScalefile";
         this.commandExecute ( containerHost, cmdmaster );
-        LOG.info ( "3" );
+        LOG.info ( "master ip address inserted" );
         this.commandExecute ( containerHost, "echo '  appengine : " + ipaddr + "' >> /root/AppScalefile" );
+        LOG.info ( "appengine ip address inserted" );
         if ( config.getZookeeperName () != null )
         {
             try
@@ -138,7 +149,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 String zooip = getIPAddress ( zooContainerHost );
                 this.commandExecute ( containerHost,
                                       "echo '  zookeeper : " + zooip + "' >> /root/AppScalefile" );
-                LOG.info ( "4" );
+                LOG.info ( "zookeeper ip address inserted" );
 
             }
             catch ( ContainerHostNotFoundException ex )
@@ -149,7 +160,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         else
         {
             this.commandExecute ( containerHost, "echo '  zookeeper : " + ipaddr + "' >> /root/AppScalefile" );
-            LOG.info ( "4" );
+            LOG.info ( "zookeeper ip address inserted" );
         }
         if ( config.getCassandraName () != null )
         {
@@ -160,7 +171,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 String cassIP = getIPAddress ( cassContainerHost );
                 this.commandExecute ( containerHost,
                                       "echo '  database : " + cassIP + "' >> /root/AppScalefile" );
-                LOG.info ( "4" );
+                LOG.info ( "cassandra ip address inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
             {
@@ -170,7 +181,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         else
         {
             this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
-            LOG.info ( "4" );
+            LOG.info ( "cassandra ip address inserted" );
         }
 
     }

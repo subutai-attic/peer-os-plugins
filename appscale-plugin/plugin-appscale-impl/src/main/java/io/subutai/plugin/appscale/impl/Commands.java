@@ -6,12 +6,6 @@
 package io.subutai.plugin.appscale.impl;
 
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.slf4j.LoggerFactory;
 
 import io.subutai.plugin.appscale.api.AppScaleConfig;
@@ -34,75 +28,21 @@ public class Commands
     }
 
 
-    /**
-     * we have to install zookeeper manually and configure it.
-     *
-     * @return
-     */
-    public static String getInstallZookeeper ()
-    {
-        return ( "apt-get install -y zookeeper zookeeperd zookeeper-bin" );
-    }
-
-
-    public static String getEditZookeeperConf ()
-    {
-        try
-        {
-            List<String> lines = Files.readAllLines ( Paths.get ( "/etc/init/zookeeper.conf" ) );
-            lines.stream ().filter ( (line) -> ( line.contains ( "limit" ) ) ).forEach ( (line)
-                    ->
-                    {
-                        line = "#" + line;
-            } );
-            Files.write ( Paths.get ( "/etc/init/zookeeper.conf" ), lines );
-            return "Complated";
-        }
-        catch ( IOException ex )
-        {
-            LOG.error ( ex.getLocalizedMessage () );
-        }
-
-        return null;
-    }
-
-
-    public static List<String> getZookeeperStopAndDisable ()
-    {
-        List<String> ret = new ArrayList<> ();
-        ret.add ( "/etc/init.d/zookeeper stop" );
-        ret.add ( "disableservice zookeeper" );
-        return ret;
-    }
-
-
     public static String getAppScaleStartCommand ()
     {
-        return ( "/root/appscale-tools/bin/appscale up" );
+        return ( "appscale up" );
     }
 
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "/root/appscale-tools/bin/appscale down" );
+        return ( "appscale down" );
     }
 
 
     public static String getAppscaleInit ()
     {
-        return ( "/root/appscale-tools/bin/appscale init cluster" );
-    }
-
-
-    public static String getAppscaleToolsBuild ()
-    {
-        return ( "bash /root/appscale-tools/debian/appscale_build.sh" );
-    }
-
-
-    public static String getAppscaleBuild ()
-    {
-        return ( "bash /root/appscale/debian/appscale_build.sh" );
+        return ( "appscale init cluster" );
     }
 
 
@@ -112,17 +52,9 @@ public class Commands
     }
 
 
-    public static String getAutoRemove ()
+    public static String getCreateLogDir ()
     {
-        return ( "apt-get autoremove -y" );
-    }
-
-
-    public static String getTermColorInstall ()
-    {
-        // forget to install term color in template...
-
-        return ( "pip install termcolor" );
+        return ( "mkdir /var/log/appscale" );
     }
 
 }
