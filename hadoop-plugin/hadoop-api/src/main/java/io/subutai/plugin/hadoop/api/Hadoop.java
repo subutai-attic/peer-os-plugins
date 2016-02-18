@@ -4,9 +4,9 @@ package io.subutai.plugin.hadoop.api;
 import java.util.UUID;
 
 import io.subutai.common.environment.Blueprint;
-import io.subutai.plugin.common.api.ApiBase;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
 
 
 public interface Hadoop extends ApiBase<HadoopClusterConfig>

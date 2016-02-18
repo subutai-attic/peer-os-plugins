@@ -11,11 +11,10 @@ import org.mockito.Mock;
 
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.Monitor;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
-import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
