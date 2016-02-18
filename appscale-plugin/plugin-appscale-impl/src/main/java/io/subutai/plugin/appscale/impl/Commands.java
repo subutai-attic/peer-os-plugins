@@ -57,5 +57,11 @@ public class Commands
         return ( "sudo mkdir /var/log/appscale" );
     }
 
+
+    public static String getRunShell ()
+    {
+        return ( "sudo /root/run.sh 1" );
+    }
+
 }
 

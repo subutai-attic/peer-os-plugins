@@ -76,5 +76,14 @@ public interface RestService
                 MediaType.APPLICATION_JSON
             } )
     Response stopNameNode ( @PathParam ( "clusterName" ) String clusterName );
+
+
+    @PUT
+    @Path ( "clusters/{clusterName}/runssh" )
+    @Produces (
+                        {
+                MediaType.APPLICATION_JSON
+            } )
+    Response runSsh ( @PathParam ( "clusterName" ) String clusterName );
 }
 

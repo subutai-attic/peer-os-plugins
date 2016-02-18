@@ -6,6 +6,8 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.logging.Level;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,11 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.HostNotFoundException;
+import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.common.api.ClusterConfigurationException;
 import io.subutai.plugin.common.api.ClusterConfigurationInterface;
@@ -60,7 +66,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
-        // System.setProperty ( "user.dir", "/root" );
+        System.setProperty ( "user.dir", "/root" );
         LOG.info ( "we are running this in : " + System.getProperty ( "user.dir" ) );
 
         try
@@ -84,8 +90,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config );
         // end of AppScalefile configuration
-        LOG.info ( "You need to Login to your master container and run 'appscale up' manually" );
-        po.addLog ( "You need to Login to your master container and run 'appscale up' manually" );
+        LOG.info ( "cleaning up..." );
+        this.makeCleanUpPreviousInstallation ( containerHost );
+        LOG.info ( "clean up ended..." );
+        LOG.info ( "Opening necessary PORTS" );
+        // this.runShhInResourceHost ( containerHost ); // this bit has to change..
+        LOG.info ( "opening the ports finished" );
+        LOG.info ( "Run shell starting..." );
+        this.commandExecute ( containerHost, Commands.getRunShell () );
+        LOG.info ( "Run shell completed..." );
+        LOG.info ( "Correcting Hostname" );
+        // this.commandExecute ( containerHost, "sudo echo '" + config.getClusterName () + "' > /etc/hostname" );
+
 
         LOG.info ( "Login into your RH and run these commands: \n"
                 + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
@@ -101,8 +117,39 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                                    configBase );
         LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "Appscale is saved to database" );
-        // this.commandExecute ( containerHost, Commands.getAppScaleStartCommand () );
 
+
+    }
+
+
+    public void runShhInResourceHost ( EnvironmentContainerHost containerHost )
+    {
+        PeerManager peerManager = appscaleManager.getPeerManager ();
+        LocalPeer localPeer = peerManager.getLocalPeer ();
+        String ipAddress = this.getIPAddress ( containerHost ); // only for master
+        String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
+        String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
+        String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
+        try
+        {
+            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command1443 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command5555 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command8081 ) );
+        }
+        catch ( HostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+
+    }
+
+
+    private void makeCleanUpPreviousInstallation ( EnvironmentContainerHost containerHost )
+    {
+        this.commandExecute ( containerHost, "sudo rm /root/.ssh/*" );
+        this.commandExecute ( containerHost, "sudo touch /root/.ssh/known_hosts" );
+        this.commandExecute ( containerHost, "sudo rm /root/.appscale/*" );
     }
 
 
@@ -184,6 +231,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
             LOG.info ( "cassandra ip address inserted" );
         }
+
+        this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
 
     }
 

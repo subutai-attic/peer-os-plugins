@@ -90,7 +90,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                 runOperationOnContainers ( operationType );
                 break;
             }
+            case CUSTOM:
+            {
+                runSSH ( clusterName );
+                break;
+            }
         }
+    }
+
+
+    private void runSSH ( String clusterName )
+    {
+
     }
 
 

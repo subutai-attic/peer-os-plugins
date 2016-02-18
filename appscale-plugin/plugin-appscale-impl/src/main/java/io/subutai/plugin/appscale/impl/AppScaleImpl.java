@@ -117,6 +117,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
+    public UUID configureSSH ( AppScaleConfig appScaleConfig )
+    {
+
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
+                                                                                          ClusterOperationType.CUSTOM );
+        executor.execute ( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId ();
+
+    }
+
+
+    @Override
     public UUID uninstallCluster ( String string )
     {
         return uninstallCluster ( getConfig ( string ) );

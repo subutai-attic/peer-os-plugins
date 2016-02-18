@@ -49,6 +49,9 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
     UUID removeCluster ( String clusterName );
 
 
+    UUID configureSSH ( AppScaleConfig appScaleConfig );
+
+
     public ClusterSetupStrategy getClusterSetupStrategy ( Environment e, TrackerOperation t, AppScaleConfig ac );
 
 

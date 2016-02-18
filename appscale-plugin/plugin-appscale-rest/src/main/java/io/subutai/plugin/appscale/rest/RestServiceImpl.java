@@ -67,6 +67,27 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response runSsh ( String clusterName )
+    {
+        AppScaleConfig config = appScaleInterface.getConfig ( clusterName );
+
+        UUID configureSSH = appScaleInterface.configureSSH ( config );
+        OperationState operationState = waitUntilOperationFinish ( configureSSH );
+        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, configureSSH );
+        switch ( operationState )
+        {
+            case SUCCEEDED:
+                return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( tov.getLog () ) ).build ();
+            case FAILED:
+                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( JsonUtil.GSON.toJson (
+                        tov.getLog () ) ).build ();
+            default:
+                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
+        }
+    }
+
+
+    @Override
     public Response getCluster ( String clusterName )
     {
         AppScaleConfig appScaleConfig = appScaleInterface.getCluster ( clusterName );

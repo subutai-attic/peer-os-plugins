@@ -1,7 +1,7 @@
 #Appscale Integration to Subutai Environment.
 
 
-1. please get template: https://drive.google.com/drive/folders/0B9sIiM-WQlDpQUFLV1VQSWJTOWM
+1. please get template: https://drive.google.com/a/optimal-dynamics.com/file/d/0B9sIiM-WQlDpMWhvVXFwRU1QT1E/view?usp=sharing
 
     use template name appscale01-subutai-template.tar.gz
 2. in your rh => copy this tar.gz to proper place for template... and subutai import appscale01 and subutai register appscale01
