@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 
 
 /**

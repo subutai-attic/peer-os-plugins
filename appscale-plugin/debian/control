@@ -4,7 +4,7 @@ Priority: optional
 Architecture: all
 Standards-Version: 3.9.4
 Homepage: http://www.subutai.io
-Pre-Depends: subutai-repo-master-subutai-template (= 2.1.2), plugin-common
+Pre-Depends: subutai-repo-master-subutai-template (= 2.1.2), plugin-common-core
 Build-Depends: debhelper (>= 8.0.0)
 Version: [[project.version]]
 Maintainer: Subutai

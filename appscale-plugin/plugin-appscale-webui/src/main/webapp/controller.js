@@ -1,109 +1,63 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 'use strict';
 
 angular.module('subutai.plugins.appscale.controller', [])
-        .controller('AppscaleCtrl', AppscaleCtrl)
-        .directive('colSelectAppscaleContainers', colSelectAppscaleContainers)
-        .directive('checkboxListDown', checkboxListDown);
+        .controller('AppscaleCtrl', AppscaleCtrl);
 
-AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', 'DTOptionsBuilder', 'DTColumnDefBuilder'];
+AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog'];
 
-function AppscaleCtrl(appscaleSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder) {
-    var vm = this;
-    vm.activeTab = 'install';
-    vm.appscaleInstall = [];
-    vm.environments = [];
-    vm.containers = [];
-    vm.clusters = [];
-    
-    
-    // functions...
-    
-    vm.getClusters = getClusters;
-    vm.configureClusters = configureCluster;
-    vm.uninstallCluster = uninstallCluster;
-    
-    setDefaultValues ();
-    
-    appscaleSrv.getEnvironments().success( function (data) {
-        vm.environments = data;
-    } );
-    
-    function getClusters () {
-        appscaleSrv.listClusters().success ( function (data) {
-            vm.clusters = data;
-        } );
-    }
-    
-    getClusters();
-    
-    function configureCluster () {
-        SweetAlert.swal ("Success !", "Appscale installation is being created.", "success");
-        vm.activeTab = "manage";
-        appscaleSrv.configureCluster(JSON.stringify(vm.appscaleInstall)).success(function (data) {
-            SweetAlert.swal("Success!", "Appscale create message"+ data.replace(/\\n/g, ''), "success" );
-            getClusters();
-        } ).error ( function (error) {
-            SweetAlert.swal("ERROR!", 'Appscale cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
-            getClusters();
-        } );
-        setDefaultValues();
-    }
-    
-    function uninstallCluster () {
-        if (vm.currentCluster.clusterName === undefined) return;
-        SweetAlert.swal({
-                title: "Are you sure?",
-                text: "Your will not be able to recover this cluster!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ff3f3c",
-                confirmButtonText: "Delete",
-                cancelButtonText: "Cancel",
-                closeOnConfirm: false,
-                closeOnCancel: true,
-                showLoaderOnConfirm: true
-            },
-            function (isConfirm) {
-                if (isConfirm) {
-                    appscaleSrv.uninstallCluster(vm.currentCluster.clusterName).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Cluster has been deleted.", "success");
-                        vm.currentCluster = {};
-                        getClusters();
-                    });
-                }
-            });
-    }
-    
-    function setDefaultValues() {
-        vm.appscaleInstall = {};
-        vm.appscaleInstall.domainName = 'intra.lan';
-    }
-    
-};
-function colSelectAppscaleContainers() {
-    return {
-        restrict: 'E',
-        templateUrl: 'plugins/appscale/directives/col-select/col-select-containers.html'
-    };
-};
-function checkboxListDown() {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attr) {
-            $(".b-form-input_dropdown").click(function () {
-                $(this).toggleClass("is-active");
-            });
 
-            $(".b-form-input-dropdown-list").click(function (e) {
-                e.stopPropagation();
-            });
-        }
-    };
-};
+function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
+	var vm = this;
+	vm.config = {};
+	vm.nodes = [];
+	vm.console = "";
+
+	function getContainers() {
+		// TODO: get ip of master if appscale is already built
+		appscaleSrv.getEnvironments().success (function (data) {
+			for (var i = 0; i < data.length; ++i)
+			{
+				for (var j = 0; j < data[i].containers.length; ++j) {
+					if (data[i].containers[j].templateName === "appscale") {
+						vm.environments.push (data[i]);
+						break;
+					}
+				}
+			}
+			if (vm.environments.length === 0) {
+				SweetAlert.swal("ERROR!", 'Please create environment first, "error");
+			}
+			else {
+				vm.currentEnvironment = vm.environments[0];
+				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+					if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+						vm.nodes.push (vm.currentEnvironment.containers [i]);
+					}
+				}
+				vm.config.master = vm.nodes[0];
+				vm.config.zookeeper = vm.nodes[0];
+				vm.config.db = vm.nodes[0];
+			}
+		});
+	}
+	//getContainers();
+
+	function changeNodes() {
+		vm.nodes = [];
+		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+			if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+				vm.nodes.push (vm.currentEnvironment.containers[i]);
+			}
+		}
+	}
+
+
+	function build() {
+		appscaleSrv.build (config).success (function (data) {
+			SweetAlert.swal ("Success!", "Your Appscale cluster is being created.", "success");
+			vm.console = vm.config.master.hostname;
+		}).error (function (error) {
+			SweetAlert.swal ("ERROR!", 'Appscale build error: ' + error.replace(/\\n/g, ' '), "error");
+		});
+	}
+}

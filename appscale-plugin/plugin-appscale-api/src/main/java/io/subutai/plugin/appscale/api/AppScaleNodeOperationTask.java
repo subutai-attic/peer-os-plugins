@@ -11,12 +11,12 @@ import java.util.UUID;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.ConfigBase;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
+import io.subutai.core.plugincommon.api.CompleteEvent;
+import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeState;
+import io.subutai.core.plugincommon.api.NodeType;
+import io.subutai.core.plugincommon.impl.AbstractNodeOperationTask;
 
 
 /**

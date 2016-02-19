@@ -20,7 +20,7 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
-import io.subutai.plugin.common.api.NodeState;
+import io.subutai.core.plugincommon.api.NodeState;
 
 
 /**
