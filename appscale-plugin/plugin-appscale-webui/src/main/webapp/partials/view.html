@@ -6,33 +6,31 @@
 
 	<div class="b-workspace__content">
 		<div class="b-workspace-content-row_col-4">
-			<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
-				<div class="b-form g-margin-bottom">
-					<div class="b-form-group g-margin-bottom">
-						<label for="env-name" class="b-form-label">Environment name</label>
-						<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.currentEnvironment" id="env-name" ng-change="appscaleCtrl.changeNodes()" ng-options = "environment.name for environment in appscaleCtrl.environments">
-						</select>
-					</div>
-					<div class="b-form-group g-margin-bottom">
-						<label for="master-name" class="b-form-label">Master container name</label>
-						<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
-						</select>
-					</div>
-					<div class="b-form-group g-margin-bottom">
-						<label for="zookeeper-name" class="b-form-label">Zookeeper container name</label>
-						<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.zookeeper" id="zookeeper-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
-						</select>
-					</div>
-					<div class="b-form-group g-margin-bottom">
-						<label for="database-name" class="b-form-label">Database container name</label>
-						<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.db" id="database-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
-						</select>
-					</div>
+			<div class="b-form g-margin-bottom">
+				<div class="b-form-group g-margin-bottom">
+					<label for="env-name" class="b-form-label">Environment name</label>
+					<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.currentEnvironment" id="env-name" ng-change="appscaleCtrl.changeNodes()" ng-options = "environment.name for environment in appscaleCtrl.environments">
+					</select>
 				</div>
-				<a href class="b-btn b-btn_green g-left" ng-click = "appscaleCtrl.build()">Build</a>
-				<a href = "https://{{ appscaleCtrl.console }}:1443" target="_blank" class="b-btn b-btn_green g-left" ng-show = "appscaleCtrl.console !== ''">Console</a>
+				<div class="b-form-group g-margin-bottom">
+					<label for="master-name" class="b-form-label">Master container name</label>
+					<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+					</select>
+				</div>
+				<div class="b-form-group g-margin-bottom">
+					<label for="zookeeper-name" class="b-form-label">Zookeeper container name</label>
+					<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.zookeeper" id="zookeeper-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+					</select>
+				</div>
+				<div class="b-form-group g-margin-bottom">
+					<label for="database-name" class="b-form-label">Database container name</label>
+					<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.db" id="database-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+					</select>
+				</div>
 			</div>
-			<div class="clear"></div>
+			<a href class="b-btn b-btn_green g-left" ng-click = "appscaleCtrl.build()">Build</a>
+			<a href = "https://{{ appscaleCtrl.console }}:1443" target="_blank" class="b-btn b-btn_green g-left" ng-show = "appscaleCtrl.console !== ''">Console</a>
+		<div class="clear"></div>
 		</div>
 	</div>
 </div>

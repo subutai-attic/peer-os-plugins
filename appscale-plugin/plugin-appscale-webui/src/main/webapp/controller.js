@@ -25,7 +25,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 				}
 			}
 			if (vm.environments.length === 0) {
-				SweetAlert.swal("ERROR!", 'Please create environment first, "error");
+				SweetAlert.swal("ERROR!", 'Please create environment first', "error");
 			}
 			else {
 				vm.currentEnvironment = vm.environments[0];

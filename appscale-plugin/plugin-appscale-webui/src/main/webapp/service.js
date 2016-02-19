@@ -25,6 +25,6 @@ function appscaleSrv ($http, environmentService) {
 	}
 
 	function listClusters (clusterName) {
-		return return $http.get (CLUSTER_URL + clusterName, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+		return $http.get (CLUSTER_URL + clusterName, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
 	}
 }

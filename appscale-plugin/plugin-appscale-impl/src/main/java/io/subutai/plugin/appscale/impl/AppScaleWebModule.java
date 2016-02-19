@@ -38,8 +38,13 @@ public class AppScaleWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList()
     {
-        return "        .state('appscale', {\n" + "            url: '/plugins/appscale',\n"
-                + "            templateUrl: 'plugins/appscale/partials/view.html',\n" + "            resolve: {\n"
+        return ".state('appscale', {\n" + "            url: '/plugins/appscale',\n"
+                + "            templateUrl: 'plugins/appscale/partials/view.html',\n"
+                + "            data: {\n"
+				+ "                bodyClass: '',\n"
+				+ "                layout: 'default'\n"
+				+ "            },\n"
+                + "            resolve: {\n"
                 + "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
                 + "                    return $ocLazyLoad.load([\n" + "                        {\n"
                 + "                            name: 'subutai.plugins.appscale',\n"
