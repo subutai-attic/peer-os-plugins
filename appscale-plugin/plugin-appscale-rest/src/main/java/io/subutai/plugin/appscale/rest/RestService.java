@@ -17,6 +17,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.environment.Environment;
+
 
 /**
  *
@@ -34,6 +36,15 @@ public interface RestService
 
 
     @GET
+    @Path ( "appscale" )
+    @Produces (
+                        {
+                MediaType.APPLICATION_JSON
+            } )
+    Response getIfAppscaleInstalled ( @PathParam ( "environmentID" ) Environment environmentID );
+
+
+    @GET
     @Path ( "clusters/{clusterName}" )
     @Produces (
                         {
@@ -48,7 +59,9 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName );
+    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName,
+                                @FormParam ( "zookeeperName" ) String zookeeperName,
+                                @FormParam ( "cassandraName" ) String cassandraName );
 
 
     @DELETE

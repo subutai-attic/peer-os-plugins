@@ -8,10 +8,13 @@ package io.subutai.plugin.appscale.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -97,10 +100,48 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response configureCluster ( String clusterName )
+    public Response getIfAppscaleInstalled ( Environment id )
     {
+        Set<EnvironmentContainerHost> containerHosts = id.getContainerHosts ();
+        for ( EnvironmentContainerHost ech : containerHosts )
+        {
+            String containerName = ech.getContainerName ();
+            AppScaleConfig as = appScaleInterface.getConfig ( containerName );
+            if ( as.getClusterName () != null )
+            {
+                Boolean checkIfContainerInstalled = appScaleInterface.checkIfContainerInstalled ( as );
+                if ( checkIfContainerInstalled )
+                {
+                    return Response.status ( Response.Status.OK ).entity ( id ).build ();
+                }
+                else
+                {
+                    return Response.status ( Response.Status.NOT_FOUND ).entity ( id ).build ();
+                }
+            }
+
+        }
+        return Response.status ( Response.Status.NOT_FOUND ).entity ( id ).build ();
+    }
+
+
+    @Override
+    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName )
+    {
+        UUID uuid = null;
         AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
-        UUID uuid = appScaleInterface.installCluster ( appScaleConfig );
+
+        if ( !zookeeperName.isEmpty () )
+        {
+            appScaleConfig.setZookeeperName ( zookeeperName );
+        }
+        if ( !cassandraName.isEmpty () )
+        {
+            appScaleConfig.setCassandraName ( cassandraName );
+        }
+
+        uuid = appScaleInterface.installCluster ( appScaleConfig );
+
         OperationState operationState = waitUntilOperationFinish ( uuid );
         TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
         switch ( operationState )

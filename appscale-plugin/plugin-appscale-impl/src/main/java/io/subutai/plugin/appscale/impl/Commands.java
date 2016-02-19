@@ -63,5 +63,11 @@ public class Commands
         return ( "sudo /root/run.sh 1" );
     }
 
+
+    public static String getPsAUX ()
+    {
+        return ( "cat /AppScalefile" );
+    }
+
 }
 

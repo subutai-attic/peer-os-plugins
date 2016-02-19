@@ -8,6 +8,7 @@
         init-method="init" destroy-method="destroy">
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    <argument ref="appScaleInterface" />
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />

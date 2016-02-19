@@ -88,7 +88,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         po.addLog ( "installing appscale can take several minutes." );
 
         // AppScalefile configuration
-        this.appscaleInitCluster ( containerHost, environment, config );
+        this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // end of AppScalefile configuration
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );

@@ -36,6 +36,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
 {
     private final ClusterOperationType operationType;
     private final AppScaleConfig config;
+
     private final String clstrName;
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
@@ -49,6 +50,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         this.operationType = operationType;
         String msg = String.format ( "Starting %s operation on %s(%s) cluster...", operationType, clstrName,
                                      config.getProductKey () );
+
         LOG.info ( msg );
         trackerOperation = manager.getTracker ().createTrackerOperation ( AppScaleConfig.PRODUCT_KEY, msg );
         if ( trackerOperation == null )
@@ -70,10 +72,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         Preconditions.checkNotNull ( config, "Configuration is null" );
         switch ( operationType )
         {
+
+
             case INSTALL:
             {
+
                 setupCluster ();
                 break;
+
             }
             case UNINSTALL:
             {
@@ -94,6 +100,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             {
                 runSSH ( clusterName );
                 break;
+            }
+
+            case DECOMISSION_STATUS:
+            {
+
             }
         }
     }
@@ -163,6 +174,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     {
         LOG.info ( "setupCluster started..." );
         Environment env = null;
+
         try
         {
             env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
@@ -175,6 +187,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             LOG.error ( "EnvironmentNotFound: " + e );
         }
 
+
         LOG.info ( String.format (
                 "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
                 config.getClusterName (), config.getProductKey () ) );
@@ -186,6 +199,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         {
             LOG.error ( "ClusterConfigurationException: " + cce );
         }
+
+
     }
 
 

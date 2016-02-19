@@ -54,12 +54,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private NetworkManager networkManager;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
+    private final AppScaleInterface appScaleInterface;
 
 
-    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
+    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO, AppScaleInterface appScaleInterface )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+        this.appScaleInterface = appScaleInterface;
     }
 
 
@@ -100,6 +102,25 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
         return abstractOperationHandler.getTrackerId ();
 
+    }
+
+
+    @Override
+    public Boolean checkIfContainerInstalled ( AppScaleConfig appScaleConfig )
+    {
+
+        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument (
+                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
+        String psAUX = Commands.getPsAUX ();
+        if ( psAUX.contains ( "No such file or directory" ) )
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
 
