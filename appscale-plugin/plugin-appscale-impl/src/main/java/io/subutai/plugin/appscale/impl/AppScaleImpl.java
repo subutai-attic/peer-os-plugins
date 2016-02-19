@@ -6,10 +6,12 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +19,16 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.HostNotFoundException;
+import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -27,14 +36,14 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.appscale.api.AppScaleConfig;
-import io.subutai.plugin.appscale.api.AppScaleInterface;
-import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.plugin.appscale.api.AppScaleConfig;
+import io.subutai.plugin.appscale.api.AppScaleInterface;
+import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 
 
 /**
@@ -54,14 +63,13 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private NetworkManager networkManager;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
-    private final AppScaleInterface appScaleInterface;
+    private Environment environment;
 
 
-    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO, AppScaleInterface appScaleInterface )
+    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
-        this.appScaleInterface = appScaleInterface;
     }
 
 
@@ -106,21 +114,32 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
+    /**
+     * returns true if container installed
+     */
     public Boolean checkIfContainerInstalled ( AppScaleConfig appScaleConfig )
     {
+        Boolean ret = true;
 
         Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
         Preconditions.checkArgument (
                 !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
-        String psAUX = Commands.getPsAUX ();
-        if ( psAUX.contains ( "No such file or directory" ) )
+
+        try
         {
-            return false;
+            EnvironmentContainerHost containerHostByHostname = environment.getContainerHostByHostname (
+                    appScaleConfig.getClusterName () );
+            CommandResult commandResult = containerHostByHostname.execute ( new RequestBuilder ( Commands.getPsAUX () ) );
+            if ( commandResult.getStdOut ().contains ( "No such file or directory" ) )
+            {
+                ret = false;
+            }
         }
-        else
+        catch ( ContainerHostNotFoundException | CommandException ex )
         {
-            return true;
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
         }
+        return ret;
     }
 
 
@@ -138,6 +157,53 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
+    public void configureSsh ( AppScaleConfig appScaleConfig )
+    {
+        try
+        {
+            EnvironmentContainerHost containerHost = environment.getContainerHostByHostname (
+                    appScaleConfig.getClusterName () );
+            String ipAddress = this.getIPAddress ( containerHost );
+            String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
+            String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
+            String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
+
+            LocalPeer localPeer = peerManager.getLocalPeer ();
+            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command8081 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command1443 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command5555 ) );
+
+        }
+        catch ( ContainerHostNotFoundException | HostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+    }
+
+
+    private String getIPAddress ( EnvironmentContainerHost ch )
+    {
+        String ipaddr = null;
+        try
+        {
+
+            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
+            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
+            ipaddr = resultAddr.getStdOut ();
+            ipaddr = ipaddr.replace ( "\n", "" );
+            LOG.info ( "Container IP: " + ipaddr );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "ip address command error : " + ex );
+        }
+        return ipaddr;
+
+    }
+
+
+    @Override
     public UUID configureSSH ( AppScaleConfig appScaleConfig )
     {
 
@@ -146,6 +212,19 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
 
+    }
+
+
+    @Override
+    public List<String> getClusterList ( Environment name )
+    {
+        List<String> c = new ArrayList ();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
+        for ( EnvironmentContainerHost ech : containerHosts )
+        {
+            c.add ( ech.toString () );
+        }
+        return c;
     }
 
 
@@ -372,6 +451,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setPeerManager ( PeerManager peerManager )
     {
         this.peerManager = peerManager;
+    }
+
+
+    public Environment getEnvironment ()
+    {
+        return environment;
+    }
+
+
+    public void setEnvironment ( Environment environment )
+    {
+        this.environment = environment;
     }
 
 

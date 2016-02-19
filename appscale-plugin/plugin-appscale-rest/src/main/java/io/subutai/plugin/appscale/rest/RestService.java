@@ -32,7 +32,7 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response listCluster ();
+    Response listCluster ( @PathParam ( "name" ) Environment name );
 
 
     @GET
@@ -51,6 +51,15 @@ public interface RestService
                 MediaType.APPLICATION_JSON
             } )
     Response getCluster ( @PathParam ( "clusterName" ) String clusterName );
+
+
+    @GET
+    @Path ( "clusters/{clusterName}" )
+    @Produces (
+                        {
+                MediaType.APPLICATION_JSON
+            } )
+    Response getConfigureSsh ( @PathParam ( "clusterName" ) String clusterName );
 
 
     @POST

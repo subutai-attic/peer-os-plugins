@@ -6,7 +6,6 @@
 package io.subutai.plugin.appscale.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -51,21 +50,10 @@ public class RestServiceImpl implements RestService
      * @return
      */
     @Override
-    public Response listCluster ()
+    public Response listCluster ( Environment name )
     {
-        List<AppScaleConfig> appscaleConfigList = appScaleInterface.getClusters ();
-
-        ArrayList<String> cnStrings = new ArrayList<> ();
-
-        appscaleConfigList.stream ().forEach ( (asc)
-                ->
-                {
-                    cnStrings.add ( asc.getClusterName () );
-        } );
-
-        String clusters = JsonUtil.GSON.toJson ( cnStrings );
-        return Response.status ( Response.Status.OK ).entity ( clusters ).build ();
-
+        List<String> clusterList = appScaleInterface.getClusterList ( name );
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( clusterList ) ).build ();
     }
 
 
@@ -87,6 +75,15 @@ public class RestServiceImpl implements RestService
             default:
                 return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
         }
+    }
+
+
+    @Override
+    public Response getConfigureSsh ( String clusterName )
+    {
+        AppScaleConfig config = appScaleInterface.getConfig ( clusterName );
+        appScaleInterface.configureSsh ( config );
+        return Response.status ( Response.Status.OK ).entity ( clusterName ).build ();
     }
 
 
