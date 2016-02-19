@@ -1,7 +1,7 @@
-<features name="etl-plugin" version="4.0.0-RC3">
-  <feature name="etl-plugin" version="4.0.0-RC3">
-    <bundle>mvn:io.subutai/etl-plugin-api/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/etl-plugin-impl/4.0.0-RC3</bundle>
-    <bundle>mvn:io.subutai/etl-plugin-ui/4.0.0-RC3</bundle>
+<features name="etl-plugin" version="4.0.0-RC6">
+  <feature name="etl-plugin" version="4.0.0-RC6">
+    <bundle>mvn:io.subutai/etl-plugin-api/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/etl-plugin-impl/4.0.0-RC6</bundle>
+    <bundle>mvn:io.subutai/etl-plugin-ui/4.0.0-RC6</bundle>
   </feature>
 </features>

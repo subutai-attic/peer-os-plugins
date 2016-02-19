@@ -91,7 +91,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
                 final int newNodes = nodeCount - numberOfContainersNotBeingUsed;
                 Set<NodeGroup> nodeGroups = new HashSet<>();
-                PeerGroupResources groupResources = new PeerGroupResources();
+                PeerGroupResources groupResources = manager.getPeerManager ().getPeerGroupResources ();
                 for ( Peer peer : environment.getPeers() )
                 {
                     try
