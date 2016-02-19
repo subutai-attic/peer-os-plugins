@@ -18,14 +18,14 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.plugin.appscale.api.AppScaleConfig;
-import io.subutai.plugin.appscale.impl.AppScaleImpl;
-import io.subutai.plugin.appscale.impl.ClusterConfiguration;
-import io.subutai.plugin.appscale.impl.Commands;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.plugin.appscale.api.AppScaleConfig;
+import io.subutai.plugin.appscale.impl.AppScaleImpl;
+import io.subutai.plugin.appscale.impl.ClusterConfiguration;
+import io.subutai.plugin.appscale.impl.Commands;
 
 
 /**
@@ -181,6 +181,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             trackerOperation.addLog ( String.format (
                     "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
                     config.getClusterName (), config.getProductKey () ) );
+            LOG.info ( "tracker operations" );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -193,7 +194,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                 config.getClusterName (), config.getProductKey () ) );
         try
         {
+            LOG.info ( "Before" );
             new ClusterConfiguration ( trackerOperation, manager ).configureCluster ( config, env );
+            LOG.info ( "After" );
         }
         catch ( ClusterConfigurationException cce )
         {

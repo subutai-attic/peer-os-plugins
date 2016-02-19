@@ -123,10 +123,11 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName )
+    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName, String envID )
     {
         UUID uuid = null;
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        AppScaleConfig appScaleConfig = new AppScaleConfig ();
+        appScaleConfig.setClusterName ( clusterName );
 
         if ( !zookeeperName.isEmpty () )
         {
@@ -136,6 +137,8 @@ public class RestServiceImpl implements RestService
         {
             appScaleConfig.setCassandraName ( cassandraName );
         }
+
+        appScaleConfig.setEnvironmentId ( envID );
 
         uuid = appScaleInterface.installCluster ( appScaleConfig );
 

@@ -72,6 +72,5 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
 
 
     public AppScaleConfig getConfig ( String clusterName );
-
 }
 

@@ -28,7 +28,7 @@ public class AppScaleConfig implements ConfigBase
     private String openJreName;
 
 
-    private String domainName;
+    private String domainName = "intra.lan";
     private List<String> nodes;
     private String environmentId;
     private String containerType;

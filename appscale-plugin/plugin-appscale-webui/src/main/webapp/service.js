@@ -10,21 +10,23 @@ function appscaleSrv ($http, environmentService) {
 	var BASE_URL = SERVER_URL + 'rest/appscale/';
 	var CLUSTERS_URL = BASE_URL + 'clusters/';
 	var appscaleSrv = {
-		listClusters: listClusters,
+		getEnvironments: getEnvironments,
 		build: build
 	};
 	return appscaleSrv;
 
+        function getEnvironments() {
+            return environmentService.getEnvironments();
+        }
 	function build (config) {
-		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.master.db.hostname;
-		return $http.post(
+                console.log ( " CONFIG:   " + config);
+                console.log ("IDIDID:  " + config.environment.id);
+		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.db.hostname + "&envID=" + config.environment.id;
+                console.log (postData);
+                return $http.post(
 			BASE_URL + 'configure_environment',
 			postData,
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
-	}
-
-	function listClusters (clusterName) {
-		return $http.get (CLUSTER_URL + clusterName, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
 	}
 }

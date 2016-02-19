@@ -64,6 +64,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private QuotaManager quotaManager;
     private PeerManager peerManager;
     private Environment environment;
+    private AppScaleConfig appScaleConfig;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
@@ -179,6 +180,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         {
             java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
         }
+    }
+
+
+    public AppScaleConfig getAppScaleConfig ()
+    {
+        return appScaleConfig;
+    }
+
+
+    public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
+    {
+        this.appScaleConfig = appScaleConfig;
     }
 
 
@@ -329,7 +342,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public AppScaleConfig getConfig ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return this.appScaleConfig;
     }
 
 
