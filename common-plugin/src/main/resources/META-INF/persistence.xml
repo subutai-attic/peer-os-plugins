@@ -7,7 +7,7 @@
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
     <non-jta-data-source>osgi:service/javax.sql.DataSource/(osgi.jndi.service.name=openjpa/pluginsDS)
     </non-jta-data-source>
-    <class>io.subutai.plugin.common.model.ClusterDataEntity</class>
+    <class>io.subutai.core.plugincommon.model.ClusterDataEntity</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(ForeignKeys=true)" />

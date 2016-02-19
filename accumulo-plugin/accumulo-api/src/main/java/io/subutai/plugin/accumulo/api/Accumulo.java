@@ -8,9 +8,9 @@ package io.subutai.plugin.accumulo.api;
 
 import java.util.UUID;
 
-import io.subutai.plugin.common.api.ApiBase;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.NodeType;
 
 
 public interface Accumulo extends ApiBase<AccumuloClusterConfig>

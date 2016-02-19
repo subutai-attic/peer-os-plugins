@@ -1,4 +1,4 @@
-Package: plugin-common
+Package: plugin-common-core
 Section: devel
 Priority: optional
 Architecture: all

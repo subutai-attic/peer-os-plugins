@@ -18,9 +18,9 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.MonitorException;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
-import io.subutai.plugin.common.api.ClusterConfigurationInterface;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
+import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 

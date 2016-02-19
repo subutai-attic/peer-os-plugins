@@ -16,9 +16,9 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeState;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.CompleteEvent;
+import io.subutai.core.plugincommon.api.NodeState;
 
 
 public class MongoClusterOperationTask implements Runnable

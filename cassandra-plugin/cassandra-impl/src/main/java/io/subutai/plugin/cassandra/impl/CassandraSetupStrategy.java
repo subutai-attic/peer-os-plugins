@@ -12,9 +12,9 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 
 public class CassandraSetupStrategy implements ClusterSetupStrategy

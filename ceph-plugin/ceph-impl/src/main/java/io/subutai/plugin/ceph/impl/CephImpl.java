@@ -17,10 +17,10 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.ceph.api.Ceph;
 import io.subutai.plugin.ceph.api.CephClusterConfig;
 import io.subutai.plugin.ceph.impl.handler.ClusterOperationHandler;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.PluginDAO;
 
 
 public class CephImpl implements Ceph

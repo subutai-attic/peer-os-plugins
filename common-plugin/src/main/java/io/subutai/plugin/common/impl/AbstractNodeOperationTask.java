@@ -1,16 +1,16 @@
-package io.subutai.plugin.common.impl;
+package io.subutai.core.plugincommon.impl;
 
 
 import java.util.UUID;
 
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.plugin.common.api.NodeState;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.NodeState;
+import io.subutai.core.plugincommon.api.CompleteEvent;
+import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeOperationTaskInterface;
+import io.subutai.core.plugincommon.api.NodeOperationTaskInterface;
 
 
 public abstract class AbstractNodeOperationTask implements Runnable, NodeOperationTaskInterface

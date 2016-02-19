@@ -20,8 +20,8 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hipi.api.HipiConfig;
 

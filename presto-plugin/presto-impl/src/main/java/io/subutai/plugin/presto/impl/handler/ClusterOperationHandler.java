@@ -13,12 +13,12 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.impl.PrestoImpl;
 

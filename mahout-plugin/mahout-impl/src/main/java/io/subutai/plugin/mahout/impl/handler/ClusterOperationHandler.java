@@ -16,11 +16,11 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 import io.subutai.plugin.mahout.impl.MahoutImpl;
 

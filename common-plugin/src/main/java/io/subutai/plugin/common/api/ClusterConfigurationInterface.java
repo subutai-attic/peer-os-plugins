@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.api;
+package io.subutai.core.plugincommon.api;
 
 
 import io.subutai.common.environment.Environment;

@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.mock;
+package io.subutai.core.plugincommon.mock;
 
 
 import java.util.Date;

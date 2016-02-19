@@ -2,7 +2,7 @@ Source: nutch-subutai-plugin
 Section: devel
 Priority: optional
 Maintainer: Subutai
-Pre-Depends: plugin-common, hadoop-subutai-plugin
+Pre-Depends: plugin-common-core, hadoop-subutai-plugin
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org

@@ -7,8 +7,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 import io.subutai.plugin.mahout.impl.MahoutImpl;
 

@@ -9,7 +9,7 @@
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="monitor"
              interface="io.subutai.core.metric.api.Monitor" />
-  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
   <!-- *********************************************************************************** -->
 
 

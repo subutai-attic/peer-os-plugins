@@ -21,7 +21,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 
 
 /**

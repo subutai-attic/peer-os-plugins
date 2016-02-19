@@ -2,7 +2,7 @@ Source: shark-subutai-plugin
 Section: devel
 Priority: optional
 Maintainer: Subutai
-Pre-Depends: plugin-common, spark-subutai-plugin
+Pre-Depends: plugin-common-core, spark-subutai-plugin
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org

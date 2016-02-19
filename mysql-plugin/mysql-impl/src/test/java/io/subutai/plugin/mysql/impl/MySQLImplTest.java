@@ -20,9 +20,9 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.NodeType;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.NodeType;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.alert.MySQLAlertListener;
 

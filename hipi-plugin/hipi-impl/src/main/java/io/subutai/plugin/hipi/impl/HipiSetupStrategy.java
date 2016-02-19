@@ -17,11 +17,11 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.ConfigBase;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hipi.api.HipiConfig;
 

@@ -22,7 +22,7 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

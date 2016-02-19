@@ -28,7 +28,7 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.rest.pojo.ContainerPojo;

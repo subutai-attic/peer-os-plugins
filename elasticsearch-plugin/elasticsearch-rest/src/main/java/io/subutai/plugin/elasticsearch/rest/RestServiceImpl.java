@@ -22,7 +22,7 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.rest.dto.ClusterDto;

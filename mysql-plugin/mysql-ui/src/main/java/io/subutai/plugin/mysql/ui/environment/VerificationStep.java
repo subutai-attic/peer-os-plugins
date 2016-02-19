@@ -17,7 +17,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.core.plugincommon.ui.ConfigView;
 import io.subutai.plugin.mysql.api.MySQLC;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.server.ui.component.ProgressWindow;

@@ -29,11 +29,11 @@ import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.AccumuloOverZkNHadoopSetupStrategy;
 import io.subutai.plugin.accumulo.impl.Commands;
 import io.subutai.plugin.accumulo.impl.Util;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 

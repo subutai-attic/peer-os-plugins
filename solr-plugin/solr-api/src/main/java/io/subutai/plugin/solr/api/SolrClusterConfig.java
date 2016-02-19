@@ -12,7 +12,7 @@ import java.util.Set;
 import com.google.common.base.Objects;
 
 import io.subutai.common.environment.Topology;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 
 
 public class SolrClusterConfig implements ConfigBase

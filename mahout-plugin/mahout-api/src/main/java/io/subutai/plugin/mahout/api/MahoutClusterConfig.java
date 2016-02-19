@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 
 
 public class MahoutClusterConfig implements ConfigBase

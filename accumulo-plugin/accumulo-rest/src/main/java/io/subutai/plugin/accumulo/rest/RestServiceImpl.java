@@ -17,8 +17,8 @@ import io.subutai.common.util.JsonUtil;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.plugin.hadoop.api.Hadoop;
 
 

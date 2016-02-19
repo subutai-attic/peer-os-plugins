@@ -15,9 +15,9 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ApiBase;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.mongodb.impl.common.CommandDef;
 
 

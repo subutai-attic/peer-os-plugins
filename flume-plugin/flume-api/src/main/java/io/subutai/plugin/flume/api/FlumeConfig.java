@@ -6,7 +6,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 
 
 public class FlumeConfig implements ConfigBase

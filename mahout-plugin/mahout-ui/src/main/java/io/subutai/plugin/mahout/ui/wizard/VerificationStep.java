@@ -24,7 +24,7 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.ui.ConfigView;
+import io.subutai.core.plugincommon.ui.ConfigView;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.mahout.api.Mahout;

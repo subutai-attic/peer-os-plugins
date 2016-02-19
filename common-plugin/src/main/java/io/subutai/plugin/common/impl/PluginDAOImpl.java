@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.impl;
+package io.subutai.core.plugincommon.impl;
 
 
 import java.sql.SQLException;
@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.PluginDAO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -8,7 +8,7 @@ import com.google.common.collect.Sets;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ConfigBase;
 
 
 public class CassandraClusterConfig implements ConfigBase

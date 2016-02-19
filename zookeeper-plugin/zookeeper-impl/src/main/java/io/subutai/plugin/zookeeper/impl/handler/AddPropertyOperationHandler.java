@@ -19,7 +19,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
 import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;

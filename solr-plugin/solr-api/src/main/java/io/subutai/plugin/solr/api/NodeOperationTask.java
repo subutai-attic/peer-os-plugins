@@ -10,9 +10,9 @@ import java.util.UUID;
 
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
+import io.subutai.core.plugincommon.api.CompleteEvent;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.impl.AbstractNodeOperationTask;
 
 
 public class NodeOperationTask extends AbstractNodeOperationTask implements Runnable

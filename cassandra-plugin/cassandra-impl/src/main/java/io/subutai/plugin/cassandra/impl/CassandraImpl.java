@@ -27,12 +27,12 @@ import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.PluginDAO;
 
 
 public class CassandraImpl implements Cassandra, EnvironmentEventListener

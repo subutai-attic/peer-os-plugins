@@ -20,8 +20,8 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.PluginDAO;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

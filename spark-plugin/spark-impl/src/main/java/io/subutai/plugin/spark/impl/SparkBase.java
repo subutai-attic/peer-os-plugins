@@ -10,7 +10,7 @@ import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.hadoop.api.Hadoop;
 
 

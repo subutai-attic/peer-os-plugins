@@ -30,7 +30,7 @@
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
-      <artifactId>plugin-common</artifactId>
+      <artifactId>plugin-common-core</artifactId>
     </dependency>
   </dependencies>
 

@@ -31,7 +31,7 @@ import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.rest.pojo.ClusterDto;
 import io.subutai.plugin.cassandra.rest.pojo.ContainerDto;
 import io.subutai.plugin.cassandra.rest.pojo.VersionPojo;
-import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterException;
 
 
 public class RestServiceImpl implements RestService

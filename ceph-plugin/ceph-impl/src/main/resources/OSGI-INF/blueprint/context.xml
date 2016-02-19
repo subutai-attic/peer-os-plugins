@@ -6,7 +6,7 @@
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
-  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
 
   <service id="cephInterface" ref="cephImpl" interface="io.subutai.plugin.ceph.api.Ceph">
   </service>

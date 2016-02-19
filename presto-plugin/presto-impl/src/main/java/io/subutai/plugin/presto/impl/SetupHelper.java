@@ -15,7 +15,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 
 

@@ -3,8 +3,8 @@ package io.subutai.plugin.elasticsearch.api;
 
 import java.util.UUID;
 
-import io.subutai.plugin.common.api.ApiBase;
-import io.subutai.plugin.common.api.ClusterException;
+import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ClusterException;
 
 
 public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration>

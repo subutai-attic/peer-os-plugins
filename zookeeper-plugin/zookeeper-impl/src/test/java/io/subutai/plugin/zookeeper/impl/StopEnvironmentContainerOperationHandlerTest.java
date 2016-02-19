@@ -5,9 +5,9 @@ import org.junit.Test;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.mock.TrackerMock;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.mock.TrackerMock;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.impl.handler.ZookeeperNodeOperationHandler;
 

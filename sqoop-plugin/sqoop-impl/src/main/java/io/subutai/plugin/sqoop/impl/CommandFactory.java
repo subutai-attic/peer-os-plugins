@@ -3,7 +3,7 @@ package io.subutai.plugin.sqoop.impl;
 
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 import io.subutai.plugin.sqoop.api.setting.CommonSetting;
 import io.subutai.plugin.sqoop.api.setting.ExportSetting;

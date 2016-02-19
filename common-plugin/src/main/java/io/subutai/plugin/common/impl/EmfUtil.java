@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.impl;
+package io.subutai.core.plugincommon.impl;
 
 
 import javax.persistence.EntityManagerFactory;

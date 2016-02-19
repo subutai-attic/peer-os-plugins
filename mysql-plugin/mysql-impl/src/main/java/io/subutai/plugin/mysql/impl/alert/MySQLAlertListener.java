@@ -16,7 +16,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.AlertListener;
 import io.subutai.core.metric.api.MonitoringSettings;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 import io.subutai.plugin.mysql.impl.MySQLCImpl;
 import io.subutai.plugin.mysql.impl.common.Commands;

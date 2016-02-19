@@ -2,8 +2,8 @@ package io.subutai.plugin.sqoop.impl;
 
 
 import io.subutai.common.environment.Environment;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
-import io.subutai.plugin.common.api.ClusterConfigurationInterface;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 
 

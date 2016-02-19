@@ -19,10 +19,10 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.shark.api.SharkClusterConfig;
 import io.subutai.plugin.spark.api.Spark;
 

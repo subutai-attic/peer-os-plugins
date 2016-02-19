@@ -2,9 +2,9 @@ package io.subutai.plugin.oozie.api;
 
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.CompleteEvent;
-import io.subutai.plugin.common.api.NodeOperationType;
-import io.subutai.plugin.common.impl.AbstractNodeOperationTask;
+import io.subutai.core.plugincommon.api.CompleteEvent;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.impl.AbstractNodeOperationTask;
 
 import java.util.UUID;
 

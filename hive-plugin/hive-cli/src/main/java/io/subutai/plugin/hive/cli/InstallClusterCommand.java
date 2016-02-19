@@ -15,7 +15,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
+import io.subutai.core.plugincommon.api.NodeState;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hive.api.Hive;
 import io.subutai.plugin.hive.api.HiveConfig;

@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.model;
+package io.subutai.core.plugincommon.model;
 
 
 import java.io.Serializable;

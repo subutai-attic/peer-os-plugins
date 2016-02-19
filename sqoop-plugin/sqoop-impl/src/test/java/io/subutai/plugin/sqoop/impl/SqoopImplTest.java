@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.mock.TrackerOperationMock;
+import io.subutai.core.plugincommon.mock.TrackerOperationMock;
 import io.subutai.plugin.sqoop.api.SqoopConfig;
 import io.subutai.plugin.sqoop.impl.SqoopImpl;
 

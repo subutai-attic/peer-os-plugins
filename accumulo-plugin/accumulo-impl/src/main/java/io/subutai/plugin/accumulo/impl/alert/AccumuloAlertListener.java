@@ -22,7 +22,7 @@ import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
 import io.subutai.plugin.accumulo.impl.Commands;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.NodeType;
 
 
 public class AccumuloAlertListener implements AlertListener

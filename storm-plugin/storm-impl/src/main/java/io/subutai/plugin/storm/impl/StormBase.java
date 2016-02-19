@@ -15,7 +15,7 @@ import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.impl.alert.StormAlertListener;
 import io.subutai.plugin.zookeeper.api.Zookeeper;

@@ -23,30 +23,60 @@ public class ProfileEntity implements Profile
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     private Long id;
 
-    @Column( name = "name", unique = true )
-    private String name;
+	@Column( name = "name" )
+	private String name;
+
+	@Column( name = "version" )
+	private String version;
+
+	@Column( name = "kar" )
+	private String kar;
 
 
-    public Long getId()
-    {
-        return id;
-    }
+	public Long getId()
+	{
+		return id;
+	}
 
 
-    public void setId( final Long id )
-    {
-        this.id = id;
-    }
+	public void setId( final Long id )
+	{
+		this.id = id;
+	}
 
 
-    public String getName()
-    {
-        return name;
-    }
+	public String getName()
+	{
+		return name;
+	}
 
 
-    public void setName( final String name )
-    {
-        this.name = name;
-    }
+	public void setName( final String name )
+	{
+		this.name = name;
+	}
+
+
+	public String getKar()
+	{
+		return kar;
+	}
+
+
+	public void setKar( final String kar )
+	{
+		this.kar = kar;
+	}
+
+
+	public String getVersion()
+	{
+		return version;
+	}
+
+
+	public void setVersion( final String version )
+	{
+		this.version = version;
+	}
 }

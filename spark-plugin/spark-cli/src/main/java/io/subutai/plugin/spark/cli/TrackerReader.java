@@ -6,7 +6,7 @@ import java.util.UUID;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeState;
+import io.subutai.core.plugincommon.api.NodeState;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
 

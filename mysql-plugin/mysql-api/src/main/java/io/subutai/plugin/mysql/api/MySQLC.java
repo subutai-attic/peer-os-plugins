@@ -6,10 +6,10 @@ import java.util.UUID;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.common.api.ApiBase;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.NodeType;
 
 public interface MySQLC extends ApiBase<MySQLClusterConfig>
 {

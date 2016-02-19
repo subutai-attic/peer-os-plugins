@@ -2,7 +2,7 @@ package io.subutai.plugin.hipi.impl;
 
 
 import io.subutai.common.settings.Common;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.hipi.api.HipiConfig;
 
 

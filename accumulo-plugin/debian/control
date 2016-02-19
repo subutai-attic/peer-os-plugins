@@ -5,7 +5,7 @@ Maintainer: Subutai
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-Pre-Depends: plugin-common, hadoop-subutai-plugin, zookeeper-subutai-plugin
+Pre-Depends: plugin-common-core, hadoop-subutai-plugin, zookeeper-subutai-plugin
 Package: accumulo-subutai-plugin
 Architecture: all
 Version: [[project.version]]

@@ -12,7 +12,7 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.plugin.mysql.api.MySQLC;
 import io.subutai.plugin.mysql.api.MySQLClusterConfig;
 

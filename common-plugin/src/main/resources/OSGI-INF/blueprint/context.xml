@@ -7,13 +7,13 @@
                                http://aries.apache.org/xmlns/jpa/v1.0.0 http://aries.apache.org/xmlns/jpa/v1.0.0">
 
   <!-- ************************************************************************************************* -->
-  <bean id="pluginDAO" init-method="init" class="io.subutai.plugin.common.impl.PluginDAOImpl" activation="eager">
+  <bean id="pluginDAO" init-method="init" class="io.subutai.core.plugincommon.impl.PluginDAOImpl" activation="eager">
     <jpa:unit unitname="pluginsPUnit" property="entityManagerFactory" />
   </bean>
   <!-- ************************************************************************************************* -->
 
   <!-- ************************************************************************************************** -->
-  <service ref="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <service ref="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
   <!-- ************************************************************************************************** -->
 
 </blueprint>

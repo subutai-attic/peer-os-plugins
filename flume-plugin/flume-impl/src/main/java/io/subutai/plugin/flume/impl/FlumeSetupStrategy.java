@@ -15,9 +15,9 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.ConfigBase;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 

@@ -11,8 +11,8 @@ import com.google.common.collect.Sets;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.util.UUIDUtil;
-import io.subutai.plugin.common.api.ConfigBase;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.core.plugincommon.api.NodeType;
 
 
 public class HBaseConfig implements ConfigBase

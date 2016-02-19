@@ -9,9 +9,9 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
-import io.subutai.plugin.common.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
 
 
 public class ConfigureEnvironmentClusterHandler extends AbstractOperationHandler<CassandraImpl, CassandraClusterConfig>

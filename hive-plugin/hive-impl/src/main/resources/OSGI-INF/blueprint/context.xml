@@ -4,7 +4,7 @@
   <reference id="hadoopManager" interface="io.subutai.plugin.hadoop.api.Hadoop" />
   <reference id="tracker" interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" interface="io.subutai.core.environment.api.EnvironmentManager" />
-  <reference id="pluginDAO" interface="io.subutai.plugin.common.api.PluginDAO" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
   <!-- *********************************************************************************** -->
 
   <bean id="hive-impl" scope="singleton" class="io.subutai.plugin.hive.impl.HiveImpl"

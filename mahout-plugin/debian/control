@@ -4,7 +4,7 @@ Priority: optional
 Architecture: all
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
-Pre-Depends: plugin-common, hadoop-subutai-plugin
+Pre-Depends: plugin-common-core, hadoop-subutai-plugin
 Build-Depends: debhelper (>= 8.0.0)
 Version: [[project.version]]
 Maintainer: Subutai

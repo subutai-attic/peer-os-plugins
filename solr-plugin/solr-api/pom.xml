@@ -17,7 +17,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>plugin-common</artifactId>
+      <artifactId>plugin-common-core</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

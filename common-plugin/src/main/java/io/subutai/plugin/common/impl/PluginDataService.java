@@ -1,4 +1,4 @@
-package io.subutai.plugin.common.impl;
+package io.subutai.core.plugincommon.impl;
 
 
 import java.sql.SQLException;
@@ -17,7 +17,7 @@ import io.subutai.common.security.objects.PermissionScope;
 import io.subutai.common.util.ServiceLocator;
 import io.subutai.core.identity.api.IdentityManager;
 import io.subutai.core.identity.api.model.User;
-import io.subutai.plugin.common.model.ClusterDataEntity;
+import io.subutai.core.plugincommon.model.ClusterDataEntity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

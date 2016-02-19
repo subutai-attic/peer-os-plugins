@@ -30,11 +30,11 @@ import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
 import io.subutai.plugin.cassandra.impl.Commands;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
-import io.subutai.plugin.common.api.ClusterException;
-import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import io.subutai.plugin.common.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
 
 
 /**

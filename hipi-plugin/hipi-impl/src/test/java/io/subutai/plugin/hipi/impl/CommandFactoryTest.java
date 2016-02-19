@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.hipi.impl.CommandFactory;
 
 

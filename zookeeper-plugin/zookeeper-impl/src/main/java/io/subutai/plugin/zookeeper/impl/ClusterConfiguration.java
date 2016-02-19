@@ -17,7 +17,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.FileUtil;
-import io.subutai.plugin.common.api.ClusterConfigurationException;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 

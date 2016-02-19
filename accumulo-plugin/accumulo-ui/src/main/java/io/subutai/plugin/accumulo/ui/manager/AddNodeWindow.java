@@ -28,7 +28,7 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
-import io.subutai.plugin.common.api.NodeType;
+import io.subutai.core.plugincommon.api.NodeType;
 
 
 public class AddNodeWindow extends Window

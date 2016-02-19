@@ -20,7 +20,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.Commands;
 import io.subutai.plugin.solr.impl.SolrImpl;

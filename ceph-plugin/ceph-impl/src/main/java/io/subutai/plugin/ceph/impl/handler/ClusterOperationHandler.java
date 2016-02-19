@@ -9,11 +9,11 @@ import com.google.common.base.Strings;
 
 import io.subutai.plugin.ceph.api.CephClusterConfig;
 import io.subutai.plugin.ceph.impl.CephImpl;
-import io.subutai.plugin.common.api.AbstractOperationHandler;
-import io.subutai.plugin.common.api.ClusterOperationHandlerInterface;
-import io.subutai.plugin.common.api.ClusterOperationType;
-import io.subutai.plugin.common.api.ClusterSetupException;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 
 public class ClusterOperationHandler extends AbstractOperationHandler<CephImpl, CephClusterConfig>

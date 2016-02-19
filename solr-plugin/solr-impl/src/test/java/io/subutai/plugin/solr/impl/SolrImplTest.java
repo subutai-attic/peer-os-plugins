@@ -28,8 +28,8 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
-import io.subutai.plugin.common.api.ClusterSetupStrategy;
-import io.subutai.plugin.common.api.PluginDAO;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 
 import static org.junit.Assert.assertEquals;
