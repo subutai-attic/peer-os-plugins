@@ -40,6 +40,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>plugin-common-core</artifactId>
+	  <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

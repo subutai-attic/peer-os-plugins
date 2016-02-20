@@ -46,7 +46,6 @@ public class MongoWebModule implements WebuiModule
 				"'plugins/mongo/mongo.js',\n" +
 				"'plugins/mongo/controller.js',\n" +
 				"'plugins/mongo/service.js',\n" +
-				"'plugins/hadoop/service.js',\n" +
 				"'subutai-app/environment/service.js'\n" +
 				"]\n" +
 				"}\n" +
