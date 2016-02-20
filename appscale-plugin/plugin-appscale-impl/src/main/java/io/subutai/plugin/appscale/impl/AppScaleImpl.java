@@ -107,7 +107,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.INSTALL );
         LOG.info ( "install cluster " + abstractOperationHandler );
-        executor.execute ( abstractOperationHandler ); // here crashes
+        executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
         return abstractOperationHandler.getTrackerId ();
 

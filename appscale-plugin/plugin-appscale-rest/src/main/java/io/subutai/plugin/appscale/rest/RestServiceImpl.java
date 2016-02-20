@@ -12,6 +12,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
@@ -34,6 +37,8 @@ public class RestServiceImpl implements RestService
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+
+    private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 
     public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker, EnvironmentManager environmentManager )
@@ -143,16 +148,27 @@ public class RestServiceImpl implements RestService
         uuid = appScaleInterface.installCluster ( appScaleConfig );
 
         OperationState operationState = waitUntilOperationFinish ( uuid );
-        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
-        switch ( operationState )
+        return createResponse ( uuid, operationState );
+
+    }
+
+
+    private Response createResponse ( UUID uuid, OperationState state )
+    {
+        TrackerOperationView po = tracker.getTrackerOperation ( AppScaleConfig.PRODUCT_NAME, uuid );
+        if ( state == OperationState.FAILED )
         {
-            case SUCCEEDED:
-                return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( tov.getLog () ) ).build ();
-            case FAILED:
-                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( JsonUtil.GSON.toJson (
-                        tov.getLog () ) ).build ();
-            default:
-                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
+            return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( JsonUtil.toJson ( po.getLog () ) )
+                    .build ();
+        }
+        else if ( state == OperationState.SUCCEEDED )
+        {
+            return Response.status ( Response.Status.OK ).entity ( JsonUtil.toJson ( JsonUtil.toJson ( po.getLog () ) ) )
+                    .build ();
+        }
+        else
+        {
+            return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "Timeout" ).build ();
         }
     }
 
@@ -229,18 +245,23 @@ public class RestServiceImpl implements RestService
 
     private OperationState waitUntilOperationFinish ( UUID uuid )
     {
+        // OperationState state = OperationState.RUNNING;
         OperationState state = null;
         long start = System.currentTimeMillis ();
         while ( !Thread.interrupted () )
         {
             TrackerOperationView po = tracker.getTrackerOperation ( AppScaleConfig.PRODUCT_NAME, uuid );
+            LOG.info ( "PO : " + po.toString () );
             if ( po != null )
             {
+
                 if ( po.getState () != OperationState.RUNNING )
                 {
                     state = po.getState ();
+                    // LOG.info ( "STATE: " + state.toString () );
                     break;
                 }
+
             }
             try
             {
@@ -250,11 +271,12 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis () - start > ( 60 * 1000 ) )
+            if ( System.currentTimeMillis () - start > ( 6000 * 1000 ) )
             {
                 break;
             }
         }
+
         return state;
     }
 
