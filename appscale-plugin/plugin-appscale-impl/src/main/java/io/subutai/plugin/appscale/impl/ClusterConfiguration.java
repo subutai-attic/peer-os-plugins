@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -68,6 +69,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
         Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
+        Properties p = System.getProperties ();
+        p.setProperty ( "user.dir", "/root" );
         int numberOfContainers = cn.size ();
 
         try
@@ -163,16 +166,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             CommandResult cr;
-            cr = containerHost.execute ( new RequestBuilder ( "sudo ls /root/.ssh" ) );
+            cr = containerHost.execute ( new RequestBuilder ( "ls /root/.ssh" ) );
             if ( !cr.toString ().equals ( "" ) )
             {
-                this.commandExecute ( containerHost, "sudo rm /root/.ssh/*" );
-                this.commandExecute ( containerHost, "sudo touch /root/.ssh/known_hosts" );
+                this.commandExecute ( containerHost, "rm /root/.ssh/*" );
+                this.commandExecute ( containerHost, "touch /root/.ssh/known_hosts" );
             }
-            cr = containerHost.execute ( new RequestBuilder ( "sudo ls /root/.appscale" ) );
+            cr = containerHost.execute ( new RequestBuilder ( "ls /root/.appscale" ) );
             if ( !cr.toString ().equals ( "" ) )
             {
-                this.commandExecute ( containerHost, "sudo rm /root/.appscale/*" );
+                this.commandExecute ( containerHost, "rm /root/.appscale/*" );
             }
 
         }
@@ -295,10 +298,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         try
         {
-            containerHost.execute ( new RequestBuilder ( "sudo rm /root/run.sh " ) );
-            containerHost.execute ( new RequestBuilder ( "sudo touch /root/run.sh" ) );
-            containerHost.execute ( new RequestBuilder ( "sudo cat " + returnRunSH () + " > /root/run.sh" ) );
-            containerHost.execute ( new RequestBuilder ( "sudo chmod + x /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "rm /root/run.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "touch /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + returnRunSH () + "' > /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/run.sh" ) );
             LOG.info ( "RUN.SH CREATED..." );
         }
         catch ( CommandException ex )
