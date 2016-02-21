@@ -30,31 +30,31 @@ public class Commands
 
     public static String getAppScaleStartCommand ()
     {
-        return ( "sudo /root/appscale-tools/bin/appscale up" );
+        return ( "/root/appscale-tools/bin/appscale up" );
     }
 
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "sudo /root/appscale-tools/bin/appscale down" );
+        return ( "/root/appscale-tools/bin/appscale down" );
     }
 
 
     public static String getAppscaleInit ()
     {
-        return ( "sudo appscale init cluster" );
+        return ( "appscale init cluster" );
     }
 
 
     public static String getRemoveSubutaiList ()
     {
-        return ( "sudo rm -f /etc/apt/sources.list.d/subutai-repo.list" );
+        return ( "rm -f /etc/apt/sources.list.d/subutai-repo.list" );
     }
 
 
     public static String getCreateLogDir ()
     {
-        return ( "sudo mkdir /var/log/appscale" );
+        return ( "mkdir /var/log/appscale" );
     }
 
 
