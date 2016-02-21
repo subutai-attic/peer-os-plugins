@@ -233,10 +233,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         List<String> c = new ArrayList ();
         Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
-        for ( EnvironmentContainerHost ech : containerHosts )
-        {
-            c.add ( ech.toString () );
-        }
+        containerHosts.stream ().forEach ( (ech)
+                ->
+                {
+                    c.add ( ech.toString () );
+        } );
         return c;
     }
 

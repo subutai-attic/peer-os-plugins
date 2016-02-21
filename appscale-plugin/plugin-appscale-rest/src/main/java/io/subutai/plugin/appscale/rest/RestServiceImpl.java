@@ -102,6 +102,10 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    /**
+     * we have to look to all containers if they have AppScalefile under "/" if one of them has this file then appscale
+     * is installed and this is the master container.
+     */
     public Response getIfAppscaleInstalled ( Environment id )
     {
         Set<EnvironmentContainerHost> containerHosts = id.getContainerHosts ();
@@ -114,16 +118,49 @@ public class RestServiceImpl implements RestService
                 Boolean checkIfContainerInstalled = appScaleInterface.checkIfContainerInstalled ( as );
                 if ( checkIfContainerInstalled )
                 {
-                    return Response.status ( Response.Status.OK ).entity ( id ).build ();
-                }
-                else
-                {
-                    return Response.status ( Response.Status.NOT_FOUND ).entity ( id ).build ();
+                    return Response.status ( Response.Status.OK ).entity ( "id" ).build ();
                 }
             }
 
         }
         return Response.status ( Response.Status.NOT_FOUND ).entity ( id ).build ();
+    }
+
+
+    @Override
+    public Response startStopMaster ( Environment envID, String operation )
+    {
+        Set<EnvironmentContainerHost> containerHosts = envID.getContainerHosts ();
+        for ( EnvironmentContainerHost e : containerHosts )
+        {
+            String cn = e.getContainerName ();
+            AppScaleConfig as = appScaleInterface.getConfig ( cn );
+            if ( as.getClusterName () != null )
+            {
+                Boolean b = appScaleInterface.checkIfContainerInstalled ( as );
+                if ( b )
+                {
+                    switch ( operation )
+                    {
+                        case "start":
+                        {
+                            UUID startCluster = appScaleInterface.startCluster ( cn );
+                            OperationState operationState = waitUntilOperationFinish ( startCluster );
+                            return createResponse ( startCluster, operationState );
+                        }
+                        case "stop":
+                        {
+                            UUID startCluster = appScaleInterface.stopCluster ( cn );
+                            OperationState operationState = waitUntilOperationFinish ( startCluster );
+                            return createResponse ( startCluster, operationState );
+                        }
+                        default:
+                            return Response.status ( Response.Status.NOT_FOUND ).entity ( envID ).build ();
+                    }
+                }
+            }
+        }
+        return Response.status ( Response.Status.NOT_FOUND ).entity ( envID ).build ();
     }
 
 
@@ -190,28 +227,6 @@ public class RestServiceImpl implements RestService
             default:
                 return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
         }
-    }
-
-
-    @Override
-    public Response startNameNode ( String clusterName )
-    {
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
-        UUID uuid = appScaleInterface.startCluster ( clusterName );
-        OperationState os = waitUntilOperationFinish ( uuid );
-        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
-        return this.createResponse ( uuid, os );
-    }
-
-
-    @Override
-    public Response stopNameNode ( String clusterName )
-    {
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
-        UUID uuid = appScaleInterface.stopCluster ( clusterName );
-        OperationState os = waitUntilOperationFinish ( uuid );
-        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
-        return this.createResponse ( uuid, os );
     }
 
 
