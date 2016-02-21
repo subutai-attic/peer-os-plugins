@@ -60,7 +60,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	function build() {
 		appscaleSrv.build (vm.config).success (function (data) {
 			SweetAlert.swal ("Success!", "Your Appscale cluster is being created.", "success");
-			vm.console = vm.config.master.hostname;
+			vm.console = vm.config.master.ip;
 		}).error (function (error) {
 			SweetAlert.swal ("ERROR!", 'Appscale build error: ' + error.replace(/\\n/g, ' '), "error");
 		});

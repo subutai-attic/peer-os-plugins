@@ -251,14 +251,40 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID startCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+
+        UUID uuid = null;
+        try
+        {
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
+                    Commands.getAppScaleStartCommand () ) );
+            uuid = a.getTrackerId ();
+        }
+        catch ( ContainerHostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return uuid;
+
     }
 
 
     @Override
     public UUID stopCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        UUID uuid = null;
+        try
+        {
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
+                    Commands.getAppScaleStopCommand () ) );
+            uuid = a.getTrackerId ();
+        }
+        catch ( ContainerHostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return uuid;
     }
 
 

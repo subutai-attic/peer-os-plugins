@@ -6,6 +6,9 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.Set;
+import java.util.logging.Level;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +67,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
-        System.setProperty ( "user.dir", "/root" );
-        LOG.info ( "we are running this in : " + System.getProperty ( "user.dir" ) );
+        Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
+        int numberOfContainers = cn.size ();
 
         try
         {
@@ -86,19 +89,25 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
 
         LOG.info ( "installing appscale can take several minutes." );
-
-
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // end of AppScalefile configuration
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
-        LOG.info ( "Opening necessary PORTS" );
-        // this.runShhInResourceHost ( containerHost ); // this bit has to change..
-        LOG.info ( "opening the ports finished" );
         LOG.info ( "Run shell starting..." );
-        this.commandExecute ( containerHost, Commands.getRunShell () );
+        this.createRunSH ( containerHost ); // we only need this in master container...
+        String runShell = Commands.getRunShell ();
+        runShell = runShell + " " + numberOfContainers;
+        LOG.info ( "RUN SHELL COMMAND: " + runShell );
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
+        }
+        catch ( CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
         LOG.info ( "Run shell completed..." );
         // LOG.info ( "Correcting Hostname" );
         // this.commandExecute ( containerHost, "sudo echo '" + config.getClusterName () + "' > /etc/hostname" );
@@ -180,7 +189,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             // downloading takes time...
-            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 8000 ) );
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 10000 ) );
 
         }
         catch ( CommandException e )
@@ -277,6 +286,54 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error ( "ip address command error : " + ex );
         }
         return ipaddr;
+
+    }
+
+
+    private void createRunSH ( EnvironmentContainerHost containerHost )
+    {
+
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( "sudo rm /root/run.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "sudo touch /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "sudo cat " + returnRunSH () + " > /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "sudo chmod + x /root/run.sh" ) );
+            LOG.info ( "RUN.SH CREATED..." );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "createRunSSH error" + ex );
+        }
+
+
+    }
+
+
+    private String returnRunSH ()
+    {
+        String sh = "#!/usr/bin/expect -f\n"
+                + "set timeout -1\n"
+                + "set num $argv\n"
+                + "spawn /root/appscale-tools/bin/appscale up\n"
+                + "\n"
+                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                + "    send -- \"yes\\n\"\n"
+                + "    expect \" password:\"\n"
+                + "    send -- \"a\\n\"\n"
+                + "}\n"
+                + "\n"
+                + "expect \"Enter your desired admin e-mail address:\"\n"
+                + "send -- \"a@a.com\\n\"\n"
+                + "expect \"Enter new password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "expect \"Confirm password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "\n"
+                + "expect EOD";
+
+        return sh;
 
     }
 

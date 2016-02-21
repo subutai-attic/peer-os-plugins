@@ -196,14 +196,22 @@ public class RestServiceImpl implements RestService
     @Override
     public Response startNameNode ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        UUID uuid = appScaleInterface.startCluster ( clusterName );
+        OperationState os = waitUntilOperationFinish ( uuid );
+        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
+        return this.createResponse ( uuid, os );
     }
 
 
     @Override
     public Response stopNameNode ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        UUID uuid = appScaleInterface.stopCluster ( clusterName );
+        OperationState os = waitUntilOperationFinish ( uuid );
+        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
+        return this.createResponse ( uuid, os );
     }
 
 
