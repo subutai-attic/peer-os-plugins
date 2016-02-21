@@ -15,6 +15,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
+			console.log (data);
 			for (var i = 0; i < data.length; ++i)
 			{
 				for (var j = 0; j < data[i].containers.length; ++j) {
