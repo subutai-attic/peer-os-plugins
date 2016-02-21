@@ -30,13 +30,13 @@ public class Commands
 
     public static String getAppScaleStartCommand ()
     {
-        return ( "sudo appscale up" );
+        return ( "sudo /root/appscale-tools/bin/appscale up" );
     }
 
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "sudo appscale down" );
+        return ( "sudo /root/appscale-tools/bin/appscale down" );
     }
 
 
@@ -60,7 +60,7 @@ public class Commands
 
     public static String getRunShell ()
     {
-        return ( "sudo /root/run.sh 1" );
+        return ( "sudo /root/run.sh" );
     }
 
 

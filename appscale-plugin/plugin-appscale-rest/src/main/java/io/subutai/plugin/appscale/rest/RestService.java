@@ -70,7 +70,8 @@ public interface RestService
             } )
     Response configureCluster ( @FormParam ( "clusterName" ) String clusterName,
                                 @FormParam ( "zookeeperName" ) String zookeeperName,
-                                @FormParam ( "cassandraName" ) String cassandraName );
+                                @FormParam ( "cassandraName" ) String cassandraName,
+                                @FormParam ( "envID" ) String envID );
 
 
     @DELETE

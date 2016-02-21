@@ -7,6 +7,7 @@ import java.util.UUID;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
+import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 
@@ -65,13 +66,12 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
     public ClusterSetupStrategy getClusterSetupStrategy ( Environment e, TrackerOperation t, AppScaleConfig ac );
 
 
-    public void saveCongig ( AppScaleConfig ac );
+    public void saveConfig ( AppScaleConfig ac ) throws ClusterException;
 
 
     public void deleteConfig ( AppScaleConfig ac );
 
 
     public AppScaleConfig getConfig ( String clusterName );
-
 }
 

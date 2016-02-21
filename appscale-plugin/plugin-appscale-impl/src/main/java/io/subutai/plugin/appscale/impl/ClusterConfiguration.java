@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.slf4j.Logger;
@@ -22,10 +23,10 @@ import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.plugin.appscale.api.AppScaleConfig;
 
 
 /**
@@ -66,40 +67,49 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         EnvironmentContainerHost containerHost = null;
-        System.setProperty ( "user.dir", "/root" );
-        LOG.info ( "we are running this in : " + System.getProperty ( "user.dir" ) );
+        Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
+        int numberOfContainers = cn.size ();
 
         try
         {
             containerHost = environment.getContainerHostByHostname ( config.getClusterName () );
+
+            LOG.info (
+                    "Container Host Found: " + containerHost.getContainerId () + "\n"
+                    + "\n" + containerHost.getHostname () + "\n" );
         }
         catch ( ContainerHostNotFoundException ex )
         {
             LOG.error ( "configureCluster " + ex );
+            // po.addLogFailed( "container host is not found : " + ex );
         }
-        LOG.info (
-                "Container Host Found: " + containerHost.getContainerId () + "\n"
-                + "\n" + containerHost.getHostname () + "\n" );
+
 
         // this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
 
         LOG.info ( "installing appscale can take several minutes." );
-        po.addLog ( "installing appscale can take several minutes." );
-
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // end of AppScalefile configuration
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
-        LOG.info ( "Opening necessary PORTS" );
-        // this.runShhInResourceHost ( containerHost ); // this bit has to change..
-        LOG.info ( "opening the ports finished" );
         LOG.info ( "Run shell starting..." );
-        this.commandExecute ( containerHost, Commands.getRunShell () );
+        this.createRunSH ( containerHost ); // we only need this in master container...
+        String runShell = Commands.getRunShell ();
+        runShell = runShell + " " + numberOfContainers;
+        LOG.info ( "RUN SHELL COMMAND: " + runShell );
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
+        }
+        catch ( CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
         LOG.info ( "Run shell completed..." );
-        LOG.info ( "Correcting Hostname" );
+        // LOG.info ( "Correcting Hostname" );
         // this.commandExecute ( containerHost, "sudo echo '" + config.getClusterName () + "' > /etc/hostname" );
 
 
@@ -107,17 +117,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
                 + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
                 + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
-        po.addLog ( "Login into your RH and run these commands: \n"
-                + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
-                + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
-                + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
-
+        /*
+         * po.addLog ( "Login into your RH and run these commands: \n" + "ssh -f -N -R 1443:<Your RH IP>:1443
+         * ubuntu@localhost\n" + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n" + "ssh -f -N -R 8081:<Your RH
+         * IP>:8081 ubuntu@localhost\n" );
+         */
         config.setEnvironmentId ( environment.getId () );
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
         LOG.info ( "Appscale saved to database" );
-        po.addLogDone ( "Appscale is saved to database" );
-
+        po.addLogDone ( "Appscale is saved to database" ); // will try to last po.addLogDone... nothing else..
+        this.runShhInResourceHost ( containerHost );
 
     }
 
@@ -129,17 +139,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         String ipAddress = this.getIPAddress ( containerHost ); // only for master
         String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
         String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
+        String command8080 = "ssh -f -N -R 8081:" + ipAddress + ":8080 ubuntu@localhost";
         String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            LOG.info ( "HERE IS RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
             resourceHostByContainerId.execute ( new RequestBuilder ( command1443 ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( command5555 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( command8080 ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( command8081 ) );
         }
         catch ( HostNotFoundException | CommandException ex )
         {
-            java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
+            LOG.error ( ex.toString () );
         }
 
     }
@@ -147,9 +160,27 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private void makeCleanUpPreviousInstallation ( EnvironmentContainerHost containerHost )
     {
-        this.commandExecute ( containerHost, "sudo rm /root/.ssh/*" );
-        this.commandExecute ( containerHost, "sudo touch /root/.ssh/known_hosts" );
-        this.commandExecute ( containerHost, "sudo rm /root/.appscale/*" );
+        try
+        {
+            CommandResult cr;
+            cr = containerHost.execute ( new RequestBuilder ( "sudo ls /root/.ssh" ) );
+            if ( !cr.toString ().equals ( "" ) )
+            {
+                this.commandExecute ( containerHost, "sudo rm /root/.ssh/*" );
+                this.commandExecute ( containerHost, "sudo touch /root/.ssh/known_hosts" );
+            }
+            cr = containerHost.execute ( new RequestBuilder ( "sudo ls /root/.appscale" ) );
+            if ( !cr.toString ().equals ( "" ) )
+            {
+                this.commandExecute ( containerHost, "sudo rm /root/.appscale/*" );
+            }
+
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( " clean process command exception: " + ex );
+            // po.addLogFailed( "Clean up failed..." );
+        }
     }
 
 
@@ -158,12 +189,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             // downloading takes time...
-            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 8000 ) );
-            po.addLogDone ( command + " executed with: " + responseFrom );
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 10000 ) );
+
         }
         catch ( CommandException e )
         {
             LOG.error ( "Error while executing \"" + command + "\".\n" + e );
+            // po.addLogFailed( command + " can not be executed properly..." );
         }
     }
 
@@ -202,7 +234,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
             catch ( ContainerHostNotFoundException ex )
             {
-
+                LOG.error ( ex.toString () );
             }
         }
         else
@@ -254,6 +286,54 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error ( "ip address command error : " + ex );
         }
         return ipaddr;
+
+    }
+
+
+    private void createRunSH ( EnvironmentContainerHost containerHost )
+    {
+
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( "sudo rm /root/run.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "sudo touch /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "sudo cat " + returnRunSH () + " > /root/run.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "sudo chmod + x /root/run.sh" ) );
+            LOG.info ( "RUN.SH CREATED..." );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "createRunSSH error" + ex );
+        }
+
+
+    }
+
+
+    private String returnRunSH ()
+    {
+        String sh = "#!/usr/bin/expect -f\n"
+                + "set timeout -1\n"
+                + "set num $argv\n"
+                + "spawn /root/appscale-tools/bin/appscale up\n"
+                + "\n"
+                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                + "    send -- \"yes\\n\"\n"
+                + "    expect \" password:\"\n"
+                + "    send -- \"a\\n\"\n"
+                + "}\n"
+                + "\n"
+                + "expect \"Enter your desired admin e-mail address:\"\n"
+                + "send -- \"a@a.com\\n\"\n"
+                + "expect \"Enter new password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "expect \"Confirm password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "\n"
+                + "expect EOD";
+
+        return sh;
 
     }
 

@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
+import io.subutai.core.plugincommon.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +37,6 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.plugincommon.api.AbstractOperationHandler;
-import io.subutai.core.plugincommon.api.ClusterOperationType;
-import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
-import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -64,7 +61,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private QuotaManager quotaManager;
     private PeerManager peerManager;
     private Environment environment;
-
+    private AppScaleConfig appScaleConfig;
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
     {
@@ -106,10 +103,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.INSTALL );
         LOG.info ( "install cluster " + abstractOperationHandler );
-        executor.execute ( abstractOperationHandler ); // here crashes
+        executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
+		getPluginDAO()
+				.saveInfo( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName(), appScaleConfig );
         return abstractOperationHandler.getTrackerId ();
-
     }
 
 
@@ -182,6 +180,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
+    public AppScaleConfig getAppScaleConfig ()
+    {
+        return appScaleConfig;
+    }
+
+
+    public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
+    {
+        this.appScaleConfig = appScaleConfig;
+    }
+
+
     private String getIPAddress ( EnvironmentContainerHost ch )
     {
         String ipaddr = null;
@@ -238,14 +248,40 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID startCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+
+        UUID uuid = null;
+        try
+        {
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
+                    Commands.getAppScaleStartCommand () ) );
+            uuid = a.getTrackerId ();
+        }
+        catch ( ContainerHostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return uuid;
+
     }
 
 
     @Override
     public UUID stopCluster ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        UUID uuid = null;
+        try
+        {
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
+                    Commands.getAppScaleStopCommand () ) );
+            uuid = a.getTrackerId ();
+        }
+        catch ( ContainerHostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return uuid;
     }
 
 
@@ -313,7 +349,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public void saveCongig ( AppScaleConfig ac )
+    public void saveConfig ( AppScaleConfig ac )
     {
         throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
@@ -329,7 +365,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public AppScaleConfig getConfig ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return this.appScaleConfig;
     }
 
 

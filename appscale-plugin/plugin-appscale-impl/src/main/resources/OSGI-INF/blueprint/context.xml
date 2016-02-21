@@ -11,7 +11,7 @@
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
-    <property name="environment" ref="environment" />
+    
   </bean>
 
   <reference id="tracker" availability="mandatory"
