@@ -32,7 +32,7 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response listCluster ( @PathParam ( "name" ) Environment name );
+    Response listCluster ( @PathParam ( "name" ) Environment environmentID );
 
 
     @GET
