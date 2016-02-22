@@ -11,7 +11,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.config = {};
 	vm.nodes = [];
 	vm.console = "";
-
+	vm.activeTab = "install";
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
@@ -54,6 +54,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		vm.config.master = vm.nodes[0];
 		vm.config.zookeeper = vm.nodes[0];
 		vm.config.db = vm.nodes[0];
+		vm.config.environment = vm.currentEnvironment;
 	}
 
     vm.build = build;

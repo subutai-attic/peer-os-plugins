@@ -1,152 +1,28 @@
-<form ng-submit="AppscaleCtrl.configureCluster()">
-  <div class="b-workspace-content b-workspace-content_border">
-    <div class="b-workspace-content__row">
-      <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
-        <div class="b-form">
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">Enter cluster name</label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <input class="b-form-input b-form-input_full" type="text"
-                     placeholder="Enter cluster name"
-                     ng-model="AppscaleCtrl.configureCluster.clusterName"
-                     required>
-            </div>
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">Enter domain name</label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <input class="b-form-input b-form-input_full" type="text"
-                     placeholder="Enter domain name"
-                     ng-model="AppscaleCtrl.configureCluster.domainName"
-                     required>
-            </div>
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">Choose Environment</label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select class="b-form-input b-form-input_full"
-                      ng-model="AppscaleCtrl.configureCluster.environmentId"
-                      ng-change="AppscaleCtrl.showContainers(AppscaleCtrl.configureCluster.environmentId)">
-                <option value="">Select environment</option>
-                <option ng-repeat="environment in AppscaleCtrl.environments" value="{{ environment.id }}">
-                  {{ environment.name }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_2-line b-form-label_fix-size-1 g-left">
-              Choose replication factor<br> for slave nodes
-            </label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="AppscaleCtrl.configureCluster.replicationFactor">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-        </div>
-      </div>
-      <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-left g-right">
-
-        <div class="b-form">
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">Choose Name Node</label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="AppscaleCtrl.configureCluster.nameNode">
-                <option ng-repeat="container in AppscaleCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">
-              Choose Job Tracker
-            </label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="AppscaleCtrl.configureCluster.jobTracker">
-                <option ng-repeat="container in AppscaleCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_2-line b-form-label_fix-size-1 g-left">
-              Choose Secondary Name Node
-            </label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="AppscaleCtrl.configureCluster.secNameNode">
-                <option ng-repeat="container in AppscaleCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-    <div class="b-workspace-content__row">
-      <h2 class="b-workspace-content-row-h2">
-        Slave Nodes
-      </h2>
-
-      <col-select-hadoop-containers></col-select-hadoop-containers>
-
-      <div class="clear"></div>
-    </div>
-
-  </div>
-
-  <div class="b-workspace__button-group b-workspace__button-group_right">
-    <button type="submit" class="b-btn b-btn_green g-right">Create</button>
-  </div>
-</form>
-
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace-content-row_col-4">
+		<div class="b-form g-margin-bottom">
+			<div class="b-form-group g-margin-bottom">
+				<label for="env-name" class="b-form-label">Environment name</label>
+				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.currentEnvironment" id="env-name" ng-change="appscaleCtrl.changeNodes()" ng-options = "environment.name for environment in appscaleCtrl.environments">
+				</select>
+			</div>
+			<div class="b-form-group g-margin-bottom">
+				<label for="master-name" class="b-form-label">Master container name</label>
+				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+				</select>
+			</div>
+			<div class="b-form-group g-margin-bottom">
+				<label for="zookeeper-name" class="b-form-label">Zookeeper container name</label>
+				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.zookeeper" id="zookeeper-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+				</select>
+			</div>
+			<div class="b-form-group g-margin-bottom">
+				<label for="database-name" class="b-form-label">Database container name</label>
+				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.db" id="database-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+				</select>
+			</div>
+		</div>
+		<a href class="b-btn b-btn_green g-left" ng-click = "appscaleCtrl.build()" style = "margin-right: 10px">Build</a>
+		<div class="clear"></div>
+	</div>
+</div>

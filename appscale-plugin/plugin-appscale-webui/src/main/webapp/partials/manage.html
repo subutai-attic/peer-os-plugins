@@ -8,122 +8,62 @@
                 ng-change="AppscaleCtrl.getClustersInfo(selectedCluster)"
                 ng-options="cluster for cluster in AppscaleCtrl.clusters">
         </select>
-        <a href
-           class="b-btn b-btn_light-grey b-btn_margin-r"
-           ng-click="AppscaleCtrl.addNode()">
-          Add
-					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_green">
-						<i class="fa fa-plus"></i>
-					</span>
-        </a>
-        <a href
-           class="b-btn b-btn_light-grey b-btn_margin-r"
-           ng-click="AppscaleCtrl.deleteCluster()">
-          Remove
+        <a href = "https://{{ appscaleCtrl.console }}:1443"
+           class="b-btn b-btn_light-grey b-btn_margin-r">
+          Console
 					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_red">
 						<i class="fa fa-times"></i>
 					</span>
         </a>
 
-        <label class="b-form-label">
-          <input type="checkbox"
-                 ng-change="AppscaleCtrl.changeClusterScaling(AppscaleCtrl.currentCluster.autoScaling)"
-                 ng-model="AppscaleCtrl.currentCluster.autoScaling">
-          Auto scale
-        </label>
       </div>
     </div>
   </div>
+	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
+		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+			Master nodes
+		</h2>
+
+		<div class="b-data-table">
+
+			<table datatable="ng"
+				   dt-options="AppscaleCtrl.dtOptions"
+				   dt-column-defs="AppscaleCtrl.dtColumnDefs"
+				   class="row-border hover">
+				<thead>
+				<tr>
+					<th>Status</th>
+					<th>Hostname</th>
+					<th>IP</th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr ng-repeat="(key, dataNode) in AppscaleCtrl.currentCluster.dataNodes">
+					<td class="b-main-table__container-status">
+						<div
+								class="b-status-icon b-status-icon_{{ dataNode.status }}"
+								tooltips
+								tooltip-title="{{ dataNode.status }}">
+						</div>
+					</td>
+					<td>{{ dataNode.hostname }}</td>
+					<td class="subt_text__container-ip">{{ dataNode.ip }}</td>
+					<td>
+						<a href
+						   class="b-icon b-icon_remove"
+						   ng-click="AppscaleCtrl.destroyNode(dataNode.uuid, key)">
+						</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
   <div class="b-workspace-content__row b-workspace-content__row_margin-b">
     <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-      Master nodes
-    </h2>
-
-    <div class="b-main-table-border">
-      <table class="b-main-table b-main-table_with-header">
-        <tr>
-          <th>Status</th>
-          <th>Type</th>
-          <th>Hostname</th>
-          <th>IP</th>
-          <th></th>
-        </tr>
-        <td colspan="5" class="b-main-table__empty-item" ng-if="AppscaleCtrl.currentCluster.nameNode === undefined">No
-          data available in table
-        </td>
-        <tr ng-if="AppscaleCtrl.currentCluster.nameNode !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ AppscaleCtrl.currentCluster.nameNode.status }}"
-                tooltips
-                tooltip-title="{{ AppscaleCtrl.currentCluster.nameNode.status }}">
-            </div>
-          </td>
-          <td>Name Node</td>
-          <td>{{ AppscaleCtrl.currentCluster.nameNode.hostname }}</td>
-          <td>{{ AppscaleCtrl.currentCluster.nameNode.ip }}</td>
-          <td>
-            <button ng-show="AppscaleCtrl.currentCluster.nameNode.status == 'RUNNING'"
-                    class="b-btn b-btn_red subt_button__container-stop"
-                    ng-click="AppscaleCtrl.stopNode(AppscaleCtrl.currentCluster.nameNode, '')">
-              Stop
-            </button>
-            <button ng-show="AppscaleCtrl.currentCluster.nameNode.status == 'STOPPED'"
-                    class="b-btn b-btn_green subt_button__container-start"
-                    ng-click="AppscaleCtrl.startNode(AppscaleCtrl.currentCluster.nameNode, '')">
-              Start
-            </button>
-						<span class="b-load-icon" title="{{ AppscaleCtrl.currentCluster.nameNode.state }}"
-                  ng-show="AppscaleCtrl.currentCluster.nameNode.status != 'STOPPED' && AppscaleCtrl.currentCluster.nameNode.status != 'RUNNING'">
-						</span>
-          </td>
-        </tr>
-        <tr ng-if="AppscaleCtrl.currentCluster.jobTracker !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ AppscaleCtrl.currentCluster.jobTracker.status }}"
-                tooltips
-                tooltip-title="{{ AppscaleCtrl.currentCluster.jobTracker.status }}">
-            </div>
-          </td>
-          <td>Job Tracker</td>
-          <td>{{ AppscaleCtrl.currentCluster.jobTracker.hostname }}</td>
-          <td>{{ AppscaleCtrl.currentCluster.jobTracker.ip }}</td>
-          <td>
-            <button ng-show="AppscaleCtrl.currentCluster.jobTracker.status == 'RUNNING'"
-                    class="b-btn b-btn_red subt_button__container-stop"
-                    ng-click="AppscaleCtrl.stopNode(AppscaleCtrl.currentCluster.jobTracker, 'job/')">
-              Stop
-            </button>
-            <button ng-show="AppscaleCtrl.currentCluster.jobTracker.status == 'STOPPED'"
-                    class="b-btn b-btn_green subt_button__container-start"
-                    ng-click="AppscaleCtrl.startNode(AppscaleCtrl.currentCluster.jobTracker, 'job/')">
-              Start
-            </button>
-						<span class="b-load-icon" title="{{ AppscaleCtrl.currentCluster.jobTracker.state }}"
-                  ng-show="AppscaleCtrl.currentCluster.jobTracker.status != 'STOPPED' && AppscaleCtrl.currentCluster.jobTracker.status != 'RUNNING'">
-						</span>
-          </td>
-        </tr>
-        <tr ng-if="AppscaleCtrl.currentCluster.secondaryNameNode !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ AppscaleCtrl.currentCluster.secondaryNameNode.status }}"
-                tooltips
-                tooltip-title="{{ AppscaleCtrl.currentCluster.secondaryNameNode.status }}">
-            </div>
-          </td>
-          <td>Secondary Name Node</td>
-          <td>{{ AppscaleCtrl.currentCluster.secondaryNameNode.hostname }}</td>
-          <td>{{ AppscaleCtrl.currentCluster.secondaryNameNode.ip }}</td>
-          <td></td>
-        </tr>
-      </table>
-    </div>
-  </div>
-  <div class="b-workspace-content__row">
-    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-      Slaves nodes
+      Zookeeper nodes
     </h2>
 
     <div class="b-data-table">
@@ -163,4 +103,46 @@
 
     </div>
   </div>
+	<div class="b-workspace-content__row">
+		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+			Database nodes
+		</h2>
+
+		<div class="b-data-table">
+
+			<table datatable="ng"
+				   dt-options="AppscaleCtrl.dtOptions"
+				   dt-column-defs="AppscaleCtrl.dtColumnDefs"
+				   class="row-border hover">
+				<thead>
+				<tr>
+					<th>Status</th>
+					<th>Hostname</th>
+					<th>IP</th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr ng-repeat="(key, dataNode) in AppscaleCtrl.currentCluster.dataNodes">
+					<td class="b-main-table__container-status">
+						<div
+								class="b-status-icon b-status-icon_{{ dataNode.status }}"
+								tooltips
+								tooltip-title="{{ dataNode.status }}">
+						</div>
+					</td>
+					<td>{{ dataNode.hostname }}</td>
+					<td class="subt_text__container-ip">{{ dataNode.ip }}</td>
+					<td>
+						<a href
+						   class="b-icon b-icon_remove"
+						   ng-click="AppscaleCtrl.destroyNode(dataNode.uuid, key)">
+						</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
 </div>

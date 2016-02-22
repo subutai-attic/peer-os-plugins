@@ -19,8 +19,6 @@ function appscaleSrv ($http, environmentService) {
             return environmentService.getEnvironments();
         }
 	function build (config) {
-                console.log ( " CONFIG:   " + config);
-                console.log ("IDIDID:  " + config.environment.id);
 		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.db.hostname + "&envID=" + config.environment.id;
                 console.log (postData);
                 return $http.post(
