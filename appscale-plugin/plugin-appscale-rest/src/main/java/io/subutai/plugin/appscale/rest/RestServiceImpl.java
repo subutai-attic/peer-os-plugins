@@ -137,7 +137,7 @@ public class RestServiceImpl implements RestService
             AppScaleConfig as = appScaleInterface.getConfig ( cn );
             if ( as.getClusterName () != null )
             {
-                Boolean b = appScaleInterface.checkIfContainerInstalled ( as );
+                Boolean b = appScaleInterface.checkIfContainerInstalled ( as ); // this will also finds the master container
                 if ( b )
                 {
                     switch ( operation )
