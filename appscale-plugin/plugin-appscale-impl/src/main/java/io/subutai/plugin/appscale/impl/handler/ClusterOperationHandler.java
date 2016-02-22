@@ -6,6 +6,8 @@
 package io.subutai.plugin.appscale.impl.handler;
 
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -213,8 +216,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     @Override
     public void destroyCluster ()
     {
-        throw new UnsupportedOperationException (
-                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        LOG.info ( "setupCluster started..." );
+        Environment env = null;
+
+        try
+        {
+            env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+            for ( EnvironmentContainerHost ech : containerHosts )
+            {
+                ech.dispose ();
+            }
+            trackerOperation.addLogDone ( "Containers destroyed successfully" );
+            LOG.info ( "Containers destroyed successfully..." );
+
+        }
+        catch ( EnvironmentNotFoundException | PeerException ex )
+        {
+            trackerOperation.addLogFailed ( "Destroy cluster failed..." );
+            LOG.error ( "Destroy cluster failed..." );
+        }
+
     }
 
 

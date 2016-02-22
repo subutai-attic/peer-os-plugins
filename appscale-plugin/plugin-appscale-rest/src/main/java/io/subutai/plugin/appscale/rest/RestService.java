@@ -84,21 +84,12 @@ public interface RestService
 
 
     @PUT
-    @Path ( "clusters/{clusterName}/start" )
+    @Path ( "clusters/{envID}/{operation}" )
     @Produces (
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response startNameNode ( @PathParam ( "clusterName" ) String clusterName );
-
-
-    @PUT
-    @Path ( "clusters/{clusterName}/stop" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response stopNameNode ( @PathParam ( "clusterName" ) String clusterName );
+    Response startStopMaster ( @PathParam ( "envID" ) Environment envID, String operation );
 
 
     @PUT

@@ -112,25 +112,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
         }
         LOG.info ( "Run shell completed..." );
-        // LOG.info ( "Correcting Hostname" );
-        // this.commandExecute ( containerHost, "sudo echo '" + config.getClusterName () + "' > /etc/hostname" );
-
 
         LOG.info ( "Login into your RH and run these commands: \n"
                 + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
                 + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
                 + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
-        /*
-         * po.addLog ( "Login into your RH and run these commands: \n" + "ssh -f -N -R 1443:<Your RH IP>:1443
-         * ubuntu@localhost\n" + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n" + "ssh -f -N -R 8081:<Your RH
-         * IP>:8081 ubuntu@localhost\n" );
-         */
+
         config.setEnvironmentId ( environment.getId () );
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
         LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "Appscale is saved to database" ); // will try to last po.addLogDone... nothing else..
-        this.runShhInResourceHost ( containerHost );
+        // this.runShhInResourceHost ( containerHost );
 
     }
 

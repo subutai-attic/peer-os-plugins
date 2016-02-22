@@ -17,10 +17,10 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
+import io.subutai.core.plugincommon.api.NodeState;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
-import io.subutai.core.plugincommon.api.NodeState;
 
 
 /**
@@ -135,9 +135,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
-
-
-
     @Override
     protected Object doExecute () throws Exception
     {
@@ -164,11 +161,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
         UUID installCluster = appScaleInterface.installCluster ( appScaleConfig );
         waitUntilOperationFinish ( tracker, installCluster );
         LOG.info ( " uuid " + installCluster );
-        /*
-         * System.out.println ( "Installing ..." + StartClusterCommand.operationState ( tracker, installCluster ) );
-         * UUID startCluster = appScaleInterface.startCluster ( clusterName ); System.out.println ( "Starting ..." +
-         * StartClusterCommand.operationState ( tracker, startCluster ) );
-         */
         return null;
     }
 
