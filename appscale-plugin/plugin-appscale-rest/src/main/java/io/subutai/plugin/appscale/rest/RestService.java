@@ -36,6 +36,15 @@ public interface RestService
 
 
     @GET
+    @Path ( "clusterList" )
+    @Produces (
+                        {
+                MediaType.APPLICATION_JSON
+            } )
+    Response listClusters ();
+
+
+    @GET
     @Path ( "appscale" )
     @Produces (
                         {

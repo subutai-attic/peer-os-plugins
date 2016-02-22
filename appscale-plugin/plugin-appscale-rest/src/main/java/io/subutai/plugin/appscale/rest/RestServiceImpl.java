@@ -53,9 +53,9 @@ public class RestServiceImpl implements RestService
 
 
     /**
-     * at the beginning we will have only 1 container but later on we will make more containers...
      *
-     * @return
+     * @param environmentID
+     * @return list of clusters in environment.
      */
     @Override
     public Response listCluster ( Environment environmentID )
@@ -79,6 +79,25 @@ public class RestServiceImpl implements RestService
 
         }
         return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( containerNameList ) ).build ();
+    }
+
+
+    /**
+     *
+     * @return return list of cluster in format of master : mastername; cassandra : cassandraname; zookeeper :
+     * zookeepername
+     */
+    @Override
+    public Response listClusters ()
+    {
+        List<AppScaleConfig> ascs = appScaleInterface.getClusters ();
+        List<String> cn = new ArrayList ();
+        for ( AppScaleConfig ac : ascs )
+        {
+            cn.add ( "master : " + ac.getClusterName ()
+                    + "; cassandra : " + ac.getCassandraName () + "; zookeeper : " + ac.getZookeeperName () );
+        }
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( cn ) ).build ();
     }
 
 

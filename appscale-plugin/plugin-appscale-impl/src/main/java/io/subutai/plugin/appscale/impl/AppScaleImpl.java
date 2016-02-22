@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
-import io.subutai.core.plugincommon.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,7 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.plugincommon.api.*;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -62,6 +62,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private PeerManager peerManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
+
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
     {
@@ -105,8 +106,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         LOG.info ( "install cluster " + abstractOperationHandler );
         executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
-		getPluginDAO()
-				.saveInfo( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName(), appScaleConfig );
+        getPluginDAO ()
+                .saveInfo ( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName (), appScaleConfig );
         return abstractOperationHandler.getTrackerId ();
     }
 
@@ -373,14 +374,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public List<AppScaleConfig> getClusters ()
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
     }
 
 
     @Override
     public AppScaleConfig getCluster ( String string )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class );
     }
 
 
