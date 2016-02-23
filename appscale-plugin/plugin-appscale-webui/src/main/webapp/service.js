@@ -11,13 +11,18 @@ function appscaleSrv ($http, environmentService) {
 	var CLUSTERS_URL = BASE_URL + 'clusters/';
 	var appscaleSrv = {
 		getEnvironments: getEnvironments,
-		build: build
+		build: build,
+		listClusters: listClusters,
+		getClusterInfo: getClusterInfo,
+		uninstallCluster: uninstallCluster
 	};
 	return appscaleSrv;
 
-        function getEnvironments() {
-            return environmentService.getEnvironments();
-        }
+	function getEnvironments() {
+		return environmentService.getEnvironments();
+	}
+
+
 	function build (config) {
 		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.db.hostname + "&envID=" + config.environment.id;
                 console.log (postData);
@@ -26,5 +31,19 @@ function appscaleSrv ($http, environmentService) {
 			postData,
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
+	}
+
+
+	function listClusters() {
+		return $http.get (BASE_URL + "clusterList", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+	}
+
+	function getClusterInfo (cluster) {
+		return $http.get (BASE_URL + "clusters/" + cluster.clusterName, {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+	}
+
+	function uninstallCluster (cluster) {
+		console.log (cluster);
+		return $http.delete (BASE_URL + "clusters/" + cluster.clusterName);
 	}
 }
