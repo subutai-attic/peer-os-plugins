@@ -12,10 +12,15 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.nodes = [];
 	vm.console = "";
 	vm.activeTab = "install";
+	vm.currentEnvironment = {};
+	vm.environments = [];
+	vm.currentCluster = {};
+	vm.clusters = [];
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
-                        console.log (data);
+            console.log (data);
+            vm.environments = [];
 			for (var i = 0; i < data.length; ++i)
 			{
 				for (var j = 0; j < data[i].containers.length; ++j) {
@@ -25,6 +30,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 			}
+
 			if (vm.environments.length === 0) {
 				SweetAlert.swal("ERROR!", 'Please create environment first', "error");
 			}
@@ -42,6 +48,8 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			}
 		});
 	}
+
+
 	getContainers();
     vm.changeNodes = changeNodes;
 	function changeNodes() {
@@ -57,13 +65,49 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		vm.config.environment = vm.currentEnvironment;
 	}
 
+	function listClusters() {
+		appscaleSrv.listClusters().success (function (data) {
+			console.log (data);
+			vm.clusters = data;
+			vm.currentCluster = vm.clusters[0];
+		});
+	}
+	listClusters();
+
     vm.build = build;
 	function build() {
+		LOADING_SCREEN();
 		appscaleSrv.build (vm.config).success (function (data) {
-			SweetAlert.swal ("Success!", "Your Appscale cluster is being created.", "success");
-			vm.console = vm.config.master.ip;
+			LOADING_SCREEN ('none');
+			SweetAlert.swal ("Success!", "Your Appscale cluster was created.", "success");
+			listClusters();
 		}).error (function (error) {
+			LOADING_SCREEN ('none');
 			SweetAlert.swal ("ERROR!", 'Appscale build error: ' + error.replace(/\\n/g, ' '), "error");
+		});
+	}
+
+
+	vm.getClustersInfo = getClustersInfo;
+	function getClustersInfo (selectedCluster) {
+		LOADING_SCREEN();
+		appscaleSrv.getClusterInfo(selectedCluster).success(function (data) {
+			LOADING_SCREEN ('none');
+			vm.currentCluster = data;
+		});
+	}
+
+	vm.uninstallCluster = uninstallCluster;
+	function uninstallCluster() {
+		LOADING_SCREEN();
+		console.log (vm.currentCluster);
+		appscaleSrv.uninstallCluster (vm.currentCluster).success (function (data) {
+			LOADING_SCREEN ('none');
+			SweetAlert.swal ("Success!", "Your Appscale cluster is being deleted.", "success");
+			listClusters();
+		}).error (function (error) {
+			LOADING_SCREEN ('none');
+			SweetAlert.swal ("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.core.plugincommon.api.ClusterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,7 +208,15 @@ public class RestServiceImpl implements RestService
     public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName, String envID )
     {
         UUID uuid = null;
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        AppScaleConfig appScaleConfig = new AppScaleConfig();
+       /* try
+		{
+			appScaleInterface.saveConfig (appScaleConfig);
+		}
+		catch (ClusterException e)
+		{
+			e.printStackTrace ();
+		}*/
         appScaleConfig.setClusterName ( clusterName );
 
         if ( !zookeeperName.isEmpty () )

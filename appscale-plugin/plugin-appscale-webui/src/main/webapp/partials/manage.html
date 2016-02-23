@@ -2,14 +2,13 @@
   <div class="b-main-form">
     <div class="b-main-form__wrapper b-main-form__wrapper_margin-r">
       <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-        <label class="b-form-label b-form-label_margin_r">Select the cluster</label>
+        <label class="b-form-label b-form-label_margin_r">Select environment</label>
         <select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r"
-                ng-model="selectedCluster"
-                ng-change="AppscaleCtrl.getClustersInfo(selectedCluster)"
-                ng-options="cluster for cluster in AppscaleCtrl.clusters">
+                ng-model="appscaleCtrl.currentCluster"
+                ng-options="cluster.environmentId for cluster in appscaleCtrl.clusters">
         </select>
-        <a href = "https://{{ appscaleCtrl.console }}:1443"
-           class="b-btn b-btn_blue b-btn_margin-r">
+        <a href = "https://{{ appscaleCtrl.currentCluster.url }}:1443"
+		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r" ng-class = "{'disabled_button': appscaleCtrl.currentCluster.url === undefined}">
           Console
         </a>
 
@@ -17,40 +16,30 @@
     </div>
   </div>
 	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
+
 		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
 			Master nodes
 		</h2>
 
-		<div class="b-data-table">
-
-			<table datatable="ng"
-				   dt-options="AppscaleCtrl.dtOptions"
-				   dt-column-defs="AppscaleCtrl.dtColumnDefs"
-				   class="row-border hover">
+		<div class="b-main-table-border">
+			<table class="b-main-table b-main-table_with-header">
 				<thead>
 				<tr>
-					<th>Status</th>
 					<th>Hostname</th>
-					<th>IP</th>
+					<th></th>
 					<th></th>
 				</tr>
 				</thead>
 				<tbody>
-				<tr ng-repeat="(key, dataNode) in AppscaleCtrl.currentCluster.dataNodes">
-					<td class="b-main-table__container-status">
-						<div
-								class="b-status-icon b-status-icon_{{ dataNode.status }}"
-								tooltips
-								tooltip-title="{{ dataNode.status }}">
-						</div>
+				<tr>
+					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.clusterName === undefined">
+						No data available in table
 					</td>
-					<td>{{ dataNode.hostname }}</td>
-					<td class="subt_text__container-ip">{{ dataNode.ip }}</td>
+				<tr>
+				<tr ng-show="appscaleCtrl.currentCluster.clusterName !== undefined">
+					<td>{{ appscaleCtrl.currentCluster.clusterName }}</td>
 					<td>
-						<a href
-						   class="b-icon b-icon_remove"
-						   ng-click="AppscaleCtrl.destroyNode(dataNode.uuid, key)">
-						</a>
+					<td>
 					</td>
 				</tr>
 				</tbody>
@@ -58,83 +47,61 @@
 
 		</div>
 	</div>
-  <div class="b-workspace-content__row b-workspace-content__row_margin-b">
-    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-      Zookeeper nodes
-    </h2>
+	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
+		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+			Zookeeper nodes
+		</h2>
 
-    <div class="b-data-table">
+		<div class="b-main-table-border">
+			<table class="b-main-table b-main-table_with-header">
+				<thead>
+				<tr>
+					<th>Hostname</th>
+					<th></th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.zookeeperName === undefined">
+						No data available in table
+					</td>
+				<tr>
+				<tr ng-show="appscaleCtrl.currentCluster.zookeeperName !== undefined">
+					<td>{{ appscaleCtrl.currentCluster.zookeeperName }}</td>
+					<td>
+					<td>
+					</td>
+				</tr>
+				</tbody>
+			</table>
 
-      <table datatable="ng"
-             dt-options="AppscaleCtrl.dtOptions"
-             dt-column-defs="AppscaleCtrl.dtColumnDefs"
-             class="row-border hover">
-        <thead>
-        <tr>
-          <th>Status</th>
-          <th>Hostname</th>
-          <th>IP</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="(key, dataNode) in AppscaleCtrl.currentCluster.dataNodes">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ dataNode.status }}"
-                tooltips
-                tooltip-title="{{ dataNode.status }}">
-            </div>
-          </td>
-          <td>{{ dataNode.hostname }}</td>
-          <td class="subt_text__container-ip">{{ dataNode.ip }}</td>
-          <td>
-            <a href
-               class="b-icon b-icon_remove"
-               ng-click="AppscaleCtrl.destroyNode(dataNode.uuid, key)">
-            </a>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-
-    </div>
-  </div>
+		</div>
+	</div>
 	<div class="b-workspace-content__row">
 		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
 			Database nodes
 		</h2>
 
-		<div class="b-data-table">
-
-			<table datatable="ng"
-				   dt-options="AppscaleCtrl.dtOptions"
-				   dt-column-defs="AppscaleCtrl.dtColumnDefs"
-				   class="row-border hover">
+		<div class="b-main-table-border">
+			<table class="b-main-table b-main-table_with-header">
 				<thead>
 				<tr>
-					<th>Status</th>
 					<th>Hostname</th>
-					<th>IP</th>
+					<th></th>
 					<th></th>
 				</tr>
 				</thead>
 				<tbody>
-				<tr ng-repeat="(key, dataNode) in AppscaleCtrl.currentCluster.dataNodes">
-					<td class="b-main-table__container-status">
-						<div
-								class="b-status-icon b-status-icon_{{ dataNode.status }}"
-								tooltips
-								tooltip-title="{{ dataNode.status }}">
-						</div>
+				<tr>
+					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.cassandraName === undefined">
+						No data available in table
 					</td>
-					<td>{{ dataNode.hostname }}</td>
-					<td class="subt_text__container-ip">{{ dataNode.ip }}</td>
+				<tr>
+				<tr ng-show="appscaleCtrl.currentCluster.cassandraName !== undefined">
+					<td>{{ appscaleCtrl.currentCluster.cassandraName }}</td>
 					<td>
-						<a href
-						   class="b-icon b-icon_remove"
-						   ng-click="AppscaleCtrl.destroyNode(dataNode.uuid, key)">
-						</a>
+					<td>
 					</td>
 				</tr>
 				</tbody>
