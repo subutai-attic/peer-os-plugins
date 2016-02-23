@@ -419,9 +419,16 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public void onEnvironmentDestroyed ( String string )
+    public void onEnvironmentDestroyed ( String envID )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        List<AppScaleConfig> c = getClusters ();
+        for ( AppScaleConfig a : c )
+        {
+            if ( a.getEnvironmentId ().equals ( envID ) )
+            {
+                getPluginDAO ().deleteInfo ( AppScaleConfig.getPRODUCT_KEY (), a.getClusterName () );
+            }
+        }
     }
 
 
