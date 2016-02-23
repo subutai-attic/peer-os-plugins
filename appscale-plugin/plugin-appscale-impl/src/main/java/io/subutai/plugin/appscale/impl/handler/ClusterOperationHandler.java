@@ -7,6 +7,7 @@ package io.subutai.plugin.appscale.impl.handler;
 
 
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,9 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.PeerException;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -136,7 +137,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             {
                 case START_ALL:
                 {
-                    res = containerHostById.execute ( new RequestBuilder ( Commands.getAppScaleStartCommand () ) );
+                    Integer numberOfContainers = this.createUpShell ();
+                    String cmd = Commands.getAppScaleStartCommand () + Integer.toString ( numberOfContainers );
+                    res = containerHostById.execute ( new RequestBuilder ( cmd ) );
                     if ( res.hasSucceeded () )
                     {
                         trackerOperation.addLogDone ( res.getStdOut () );
@@ -166,6 +169,45 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         {
             LOG.error ( ex.getLocalizedMessage () );
         }
+    }
+
+
+    private Integer createUpShell ()
+    {
+        Integer numberOfCOntainers = 0;
+        String a = null;
+        a = "#!/usr/bin/expect -f\n"
+                + "set timeout -1\n"
+                + "set num $argv\n"
+                + "spawn /root/appscale-tools/bin/appscale up\n"
+                + "\n"
+                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                + "expect \"Enter your desired admin e-mail address:\"\n"
+                + "send -- \"a@a.com\\n\"\n"
+                + "expect \"Enter new password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "expect \"Confirm password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "\n"
+                + "}\n"
+                + "\n"
+                + "expect EOD";
+        Environment env;
+        try
+        {
+            env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+            numberOfCOntainers = containerHosts.size ();
+            EnvironmentContainerHost containerHost = env.getContainerHostByHostname ( config.getClusterName () );
+            containerHost.execute ( new RequestBuilder ( "touch /root/up.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + a + "' > /root/up.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/up.sh" ) );
+        }
+        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException ex )
+        {
+            java.util.logging.Logger.getLogger ( ClusterOperationHandler.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return numberOfCOntainers;
     }
 
 
@@ -222,19 +264,24 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         try
         {
             env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+
             Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
             for ( EnvironmentContainerHost ech : containerHosts )
             {
-                ech.dispose ();
+                env.destroyContainer ( ech, true );
             }
             trackerOperation.addLogDone ( "Containers destroyed successfully" );
             LOG.info ( "Containers destroyed successfully..." );
 
         }
-        catch ( EnvironmentNotFoundException | PeerException ex )
+        catch ( EnvironmentNotFoundException ex )
         {
             trackerOperation.addLogFailed ( "Destroy cluster failed..." );
             LOG.error ( "Destroy cluster failed..." );
+        }
+        catch ( EnvironmentModificationException ex )
+        {
+            java.util.logging.Logger.getLogger ( ClusterOperationHandler.class.getName () ).log ( Level.SEVERE, null, ex );
         }
 
     }

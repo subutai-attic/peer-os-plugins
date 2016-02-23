@@ -119,7 +119,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
 
         config.setEnvironmentId ( environment.getId () );
-        // config.setEnvironmentName ( environment.getName () );
+
         appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                                                    configBase );
         LOG.info ( "Appscale saved to database" );

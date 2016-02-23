@@ -30,7 +30,7 @@ public class Commands
 
     public static String getAppScaleStartCommand ()
     {
-        return ( "/root/appscale-tools/bin/appscale up" );
+        return ( "sudo /root/up.sh" );
     }
 
 
