@@ -98,7 +98,7 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response startStopMaster ( @PathParam ( "envID" ) Environment envID, String operation );
+    Response startStopMaster ( @PathParam ( "envID" ) Environment envID, @PathParam ( "operation" ) String operation );
 
 
     @PUT
