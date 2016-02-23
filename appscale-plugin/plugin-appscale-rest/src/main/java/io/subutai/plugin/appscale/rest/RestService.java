@@ -45,15 +45,6 @@ public interface RestService
 
 
     @GET
-    @Path ( "appscale" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response getIfAppscaleInstalled ( @PathParam ( "environmentID" ) Environment environmentID );
-
-
-    @GET
     @Path ( "clusters/{clusterName}" )
     @Produces (
                         {

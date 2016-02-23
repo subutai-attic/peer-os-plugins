@@ -137,7 +137,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             {
                 case START_ALL:
                 {
-                    Integer numberOfContainers = this.createUpShell ();
+                    Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+                    int numberOfContainers = containerHosts.size ();
                     String cmd = Commands.getAppScaleStartCommand () + Integer.toString ( numberOfContainers );
                     res = containerHostById.execute ( new RequestBuilder ( cmd ) );
                     if ( res.hasSucceeded () )
@@ -169,45 +171,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         {
             LOG.error ( ex.getLocalizedMessage () );
         }
-    }
-
-
-    private Integer createUpShell ()
-    {
-        Integer numberOfCOntainers = 0;
-        String a = null;
-        a = "#!/usr/bin/expect -f\n"
-                + "set timeout -1\n"
-                + "set num $argv\n"
-                + "spawn /root/appscale-tools/bin/appscale up\n"
-                + "\n"
-                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
-                + "expect \"Enter your desired admin e-mail address:\"\n"
-                + "send -- \"a@a.com\\n\"\n"
-                + "expect \"Enter new password:\"\n"
-                + "send -- \"aaaaaa\\n\"\n"
-                + "expect \"Confirm password:\"\n"
-                + "send -- \"aaaaaa\\n\"\n"
-                + "\n"
-                + "}\n"
-                + "\n"
-                + "expect EOD";
-        Environment env;
-        try
-        {
-            env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
-            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
-            numberOfCOntainers = containerHosts.size ();
-            EnvironmentContainerHost containerHost = env.getContainerHostByHostname ( config.getClusterName () );
-            containerHost.execute ( new RequestBuilder ( "touch /root/up.sh" ) );
-            containerHost.execute ( new RequestBuilder ( "echo '" + a + "' > /root/up.sh" ) );
-            containerHost.execute ( new RequestBuilder ( "chmod +x /root/up.sh" ) );
-        }
-        catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException ex )
-        {
-            java.util.logging.Logger.getLogger ( ClusterOperationHandler.class.getName () ).log ( Level.SEVERE, null, ex );
-        }
-        return numberOfCOntainers;
     }
 
 

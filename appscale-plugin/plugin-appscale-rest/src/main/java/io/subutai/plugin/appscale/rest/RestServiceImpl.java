@@ -116,32 +116,6 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    /**
-     * we have to look to all containers if they have AppScalefile under "/" if one of them has this file then appscale
-     * is installed and this is the master container.
-     */
-    public Response getIfAppscaleInstalled ( Environment id )
-    {
-        Set<EnvironmentContainerHost> containerHosts = id.getContainerHosts ();
-        for ( EnvironmentContainerHost ech : containerHosts )
-        {
-            String containerName = ech.getContainerName ();
-            AppScaleConfig as = appScaleInterface.getConfig ( containerName );
-            if ( as.getClusterName () != null )
-            {
-                Boolean checkIfContainerInstalled = appScaleInterface.checkIfContainerInstalled ( as );
-                if ( checkIfContainerInstalled )
-                {
-                    return Response.status ( Response.Status.OK ).entity ( "id" ).build ();
-                }
-            }
-
-        }
-        return Response.status ( Response.Status.NOT_FOUND ).entity ( id ).build ();
-    }
-
-
-    @Override
     public Response startStopMaster ( Environment envID, String operation )
     {
         Set<EnvironmentContainerHost> containerHosts = envID.getContainerHosts ();

@@ -112,7 +112,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
         }
         LOG.info ( "Run shell completed..." );
-
+        this.createUpShell ( containerHost );
         LOG.info ( "Login into your RH and run these commands: \n"
                 + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
                 + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
@@ -334,6 +334,41 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     }
 
+
+    private void createUpShell ( EnvironmentContainerHost containerHost )
+    {
+
+        String a = null;
+        a = "#!/usr/bin/expect -f\n"
+                + "set timeout -1\n"
+                + "set num $argv\n"
+                + "spawn /root/appscale-tools/bin/appscale up\n"
+                + "\n"
+                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                + "expect \"Enter your desired admin e-mail address:\"\n"
+                + "send -- \"a@a.com\\n\"\n"
+                + "expect \"Enter new password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "expect \"Confirm password:\"\n"
+                + "send -- \"aaaaaa\\n\"\n"
+                + "\n"
+                + "}\n"
+                + "\n"
+                + "expect EOD";
+        Environment env;
+        try
+        {
+
+            containerHost.execute ( new RequestBuilder ( "touch /root/up.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + a + "' > /root/up.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/up.sh" ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "Error on create up shell: " + ex );
+        }
+
+    }
 
 }
 
