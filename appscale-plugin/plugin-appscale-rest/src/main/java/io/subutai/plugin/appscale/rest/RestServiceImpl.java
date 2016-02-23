@@ -6,7 +6,6 @@
 package io.subutai.plugin.appscale.rest;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,8 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.PeerException;
-import io.subutai.common.protocol.TemplateKurjun;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -61,24 +58,7 @@ public class RestServiceImpl implements RestService
     public Response listCluster ( Environment environmentID )
     {
         Set<EnvironmentContainerHost> containerHosts = environmentID.getContainerHosts ();
-        List<String> containerNameList = new ArrayList ();
-        for ( EnvironmentContainerHost e : containerHosts )
-        {
-            try
-            {
-                TemplateKurjun template = e.getTemplate ();
-                if ( "appscale".equals ( template.getName () ) )
-                {
-                    containerNameList.add ( e.toString () );
-                }
-            }
-            catch ( PeerException ex )
-            {
-                LOG.error ( "error getting template name: " + ex );
-            }
-
-        }
-        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( containerNameList ) ).build ();
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( containerHosts ) ).build ();
     }
 
 
@@ -91,13 +71,8 @@ public class RestServiceImpl implements RestService
     public Response listClusters ()
     {
         List<AppScaleConfig> ascs = appScaleInterface.getClusters ();
-        List<String> cn = new ArrayList ();
-        for ( AppScaleConfig ac : ascs )
-        {
-            cn.add ( "master : " + ac.getClusterName ()
-                    + "; cassandra : " + ac.getCassandraName () + "; zookeeper : " + ac.getZookeeperName () );
-        }
-        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( cn ) ).build ();
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( ascs ) ).build ();
+
     }
 
 

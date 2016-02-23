@@ -27,7 +27,7 @@ import io.subutai.common.environment.Environment;
 public interface RestService
 {
     @GET
-    @Path ( "clusters" )
+    @Path ( "clusters/{environmentID}" )
     @Produces (
                         {
                 MediaType.APPLICATION_JSON

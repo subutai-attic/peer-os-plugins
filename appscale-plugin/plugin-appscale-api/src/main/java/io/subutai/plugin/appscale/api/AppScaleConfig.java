@@ -31,6 +31,7 @@ public class AppScaleConfig implements ConfigBase
     private String domainName = "intra.lan";
     private List<String> nodes;
     private String environmentId;
+    private String environmentName;
     private String containerType;
     private String tracker;
     private List<AppScaleConfig> clusters;
@@ -178,6 +179,18 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
+    public String getEnvironmentName ()
+    {
+        return environmentName;
+    }
+
+
+    public void setEnvironmentName ( String environmentName )
+    {
+        this.environmentName = environmentName;
+    }
+
+
     public static String getPRODUCT_NAME ()
     {
         return PRODUCT_NAME;
@@ -213,6 +226,6 @@ public class AppScaleConfig implements ConfigBase
         this.domainName = domainName;
     }
 
-
+    
 }
 
