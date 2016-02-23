@@ -86,9 +86,37 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 
 	function listClusters() {
 		appscaleSrv.listClusters().success (function (data) {
-			console.log (data);
 			vm.clusters = data;
 			vm.currentCluster = vm.clusters[0];
+			var temp = [];
+			var check = true;
+			for (var i = 0; i < vm.environments.length; ++i) {
+				for (var j = 0; j < vm.clusters.length; ++j) {
+					if (vm.environments[i].id === vm.clusters[j].environmentId) {
+						check = false;
+						break;
+					}
+				}
+				if (check) {
+					temp.push (vm.environments[i]);
+				}
+			}
+			vm.environments = temp;
+			if (vm.environments.length === 0) {
+				SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+			}
+			else {
+				vm.currentEnvironment = vm.environments[0];
+				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+					if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+						vm.nodes.push (vm.currentEnvironment.containers [i]);
+					}
+				}
+				vm.config.master = vm.nodes[0];
+				vm.config.zookeeper = vm.nodes[0];
+				vm.config.db = vm.nodes[0];
+				vm.config.environment = vm.currentEnvironment;
+			}
 		});
 	}
 
