@@ -351,9 +351,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public void saveConfig ( AppScaleConfig ac )
+    public void saveConfig ( AppScaleConfig ac ) throws ClusterException
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        Preconditions.checkNotNull ( ac );
+
+        if ( !getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, ac.getClusterName (), ac ) )
+        {
+            throw new ClusterException ( "Could not save cluster info" );
+        }
     }
 
 
@@ -367,7 +372,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public AppScaleConfig getConfig ( String clusterName )
     {
-        return this.appScaleConfig;
+        return this.getAppScaleConfig ();
     }
 
 
