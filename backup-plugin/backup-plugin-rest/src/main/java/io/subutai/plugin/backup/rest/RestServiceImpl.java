@@ -7,7 +7,7 @@ import io.subutai.plugin.backup.api.Backup;
 /**
  * Created by ermek on 2/24/16.
  */
-public class RestServiceImpl /*implements Backup*/
+public class RestServiceImpl implements RestService
 {
     private Backup backup;
 
@@ -16,6 +16,7 @@ public class RestServiceImpl /*implements Backup*/
     {
         this.backup = backup;
     }
+
 
     public void setBackup( final Backup backup )
     {
