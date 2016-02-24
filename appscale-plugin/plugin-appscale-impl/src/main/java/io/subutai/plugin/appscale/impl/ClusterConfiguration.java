@@ -117,7 +117,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "Run shell completed..." );
         this.createUpShell ( containerHost );
         LOG.info ( "RH command started" );
-        this.runInRH ( containerHost );
+
+        this.runInRH ( containerHost, config.getClusterName () );
         LOG.info ( "RH command ended" );
 
         LOG.info ( "Environment ID: " + environment.getId () );
@@ -133,7 +134,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void runInRH ( EnvironmentContainerHost containerHost )
+    private void runInRH ( EnvironmentContainerHost containerHost, String clusterName )
     {
         LOG.info ( "RUN IN RH" );
         PeerManager peerManager = appscaleManager.getPeerManager ();
@@ -147,20 +148,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
-            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -d *.domain.com" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "subutai proxy add 100 -d \"*.domain.com\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
-            // need to remove later...
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "ssh -f -N -R 8080:" + ipAddress + ":8080 ubuntu@localhost" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "ssh -f -N -R 8082:" + ipAddress + ":8082 ubuntu@localhost" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost" ) );
-            // remove upto here
+
         }
         catch ( HostNotFoundException | CommandException ex )
         {
@@ -289,21 +280,30 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost,
                               "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb" );
 
+        this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
+        String nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n"
+                + "server {\n"
+                + "        listen        80;\n"
+                + "        server_name   ~^(?<port>.+)\\.appscale\\.subut\\.ai$;\n"
+                + "\n"
+                + "	set $appbackend \"127.0.0.1:${port}\";\n"
+                + "\n"
+                + "	# proxy to AppScale over http\n"
+                + "	if ($port = 1443) {\n"
+                + "		set $appbackend \"appscaledashboard\";\n"
+                + "	}\n"
+                + "\n"
+                + "	location / {\n"
+                + "   		proxy_pass http://$appbackend;\n"
+                + "		proxy_set_header   X-Real-IP $remote_addr;\n"
+                + "		proxy_set_header   Host $http_host;\n"
+                + "		proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;\n"
+                + "\n"
+                + "	}\n"
+                + "}\n"
+                + "EOF";
+        this.commandExecute ( containerHost, nginx );
 
-
-        /*
-         * this.commandExecute ( containerHost, Commands.getChangeHostHame () ); String ip = this.getIPAddress (
-         * containerHost ); String catcat = "echo '" + ip + " domain.com' > /etc/hosts"; this.commandExecute (
-         * containerHost, catcat ); String hostsString = "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1
-         * localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb"; this.commandExecute (
-         * containerHost, hostsString ); String hostsString2 = "sed -i 's/my_hostname =
-         * \"appscale-image#{@my_index}\"/my_hostname = \"domain.com\"g' /root/appscale/AppController/djinn.rb";
-         * this.commandExecute ( containerHost, hostsString2 ); String app = "sed -i 's/{0}:{1}/{1}.{0}/g'
-         * /root/appscale/AppDashboard/lib/app_dashboard_data.py"; this.commandExecute ( containerHost, app ); String
-         * nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n" + "server {\n" + " listen 80;\n" + " server_name
-         * ~^(?<port>.+)\\.domain\\.com$;\n" + " location / {\n" + " proxy_pass http://127.0.0.1:$port;\n" + " }\n" +
-         * "}\n" + "EOF"; this.commandExecute ( containerHost, nginx );
-        * */
     }
 
 
