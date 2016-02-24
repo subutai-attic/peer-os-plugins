@@ -7,8 +7,8 @@
                 ng-model="appscaleCtrl.currentCluster"
                 ng-options="cluster.environmentId for cluster in appscaleCtrl.clusters">
         </select>
-        <a href = "https://{{ appscaleCtrl.currentCluster.url }}:1443"
-		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r" ng-class = "{'disabled_button': appscaleCtrl.currentCluster.url === undefined}">
+        <a href = "https://1443.domain.com"
+		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
           Console
         </a>
 
