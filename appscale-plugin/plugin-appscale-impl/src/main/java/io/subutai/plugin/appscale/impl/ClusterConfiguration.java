@@ -276,7 +276,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private void runAfterInitCommands ( EnvironmentContainerHost containerHost )
     {
 
-        this.commandExecute ( containerHost, "echo -e \"\\n127.0.0.1 domain.com\" >> /etc/hosts" );
+        this.commandExecute ( containerHost, "echo -e '127.0.0.1 domain.com' >> /etc/hosts" );
         this.commandExecute ( containerHost,
                               "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb" );
 
