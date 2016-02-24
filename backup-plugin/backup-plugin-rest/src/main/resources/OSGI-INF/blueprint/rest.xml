@@ -16,11 +16,12 @@
     </jaxrs:serviceBeans>
   </jaxrs:server>
 
+  <bean id="backupRestServiceImpl" class="io.subutai.plugin.backup.rest.RestServiceImpl">
+    <property name="backup" ref="backup" />
+  </bean>
+
   <reference id="backup" availability="mandatory"
              interface="io.subutai.plugin.backup.api.Backup" />
 
-  <bean id="backupRestServiceImpl" class="io.subutai.plugin.backup.rest.RestServiceImpl">
-    <argument ref="backup" />
-  </bean>
 
 </blueprint>

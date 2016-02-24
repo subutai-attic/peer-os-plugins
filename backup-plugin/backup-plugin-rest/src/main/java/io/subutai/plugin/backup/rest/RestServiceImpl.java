@@ -1,6 +1,8 @@
 package io.subutai.plugin.backup.rest;
 
 
+import javax.ws.rs.core.Response;
+
 import io.subutai.plugin.backup.api.Backup;
 
 
@@ -12,14 +14,15 @@ public class RestServiceImpl implements RestService
     private Backup backup;
 
 
-    public RestServiceImpl( Backup backup )
+    public void setBackup( final Backup backup )
     {
         this.backup = backup;
     }
 
 
-    public void setBackup( final Backup backup )
+    @Override
+    public Response getClusters()
     {
-        this.backup = backup;
+        return null;
     }
 }
