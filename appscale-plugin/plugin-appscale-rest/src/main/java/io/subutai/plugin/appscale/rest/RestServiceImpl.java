@@ -262,14 +262,13 @@ public class RestServiceImpl implements RestService
         while ( !Thread.interrupted () )
         {
             TrackerOperationView po = tracker.getTrackerOperation ( AppScaleConfig.PRODUCT_NAME, uuid );
-            LOG.info ( "PO : " + po.toString () );
+            LOG.info ( "*********\n" + po.getState () + "\n********" );
             if ( po != null )
             {
 
                 if ( po.getState () != OperationState.RUNNING )
                 {
                     state = po.getState ();
-                    // LOG.info ( "STATE: " + state.toString () );
                     break;
                 }
 

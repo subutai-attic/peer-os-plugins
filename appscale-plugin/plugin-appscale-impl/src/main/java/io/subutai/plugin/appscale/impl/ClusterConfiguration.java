@@ -116,40 +116,57 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         LOG.info ( "Run shell completed..." );
         this.createUpShell ( containerHost );
-
-
+        LOG.info ( "RH command started" );
         this.runInRH ( containerHost );
+        LOG.info ( "RH command ended" );
+
+        LOG.info ( "Environment ID: " + environment.getId () );
 
         config.setEnvironmentId ( environment.getId () );
-
-        appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
-                                                   configBase );
+        boolean saveInfo = appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY,
+                                                                      configBase.getClusterName (),
+                                                                      configBase );
+        LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
-        po.addLogDone ( "Appscale is saved to database" ); // will try to last po.addLogDone... nothing else..
-        // this.runShhInResourceHost ( containerHost );
+        po.addLogDone ( "DONE" );
 
     }
 
 
     private void runInRH ( EnvironmentContainerHost containerHost )
     {
-        LOG.info ( "********************************RUN IN RH*********************************" );
+        LOG.info ( "RUN IN RH" );
         PeerManager peerManager = appscaleManager.getPeerManager ();
+        LOG.info ( "PeerManager: " + peerManager );
         LocalPeer localPeer = peerManager.getLocalPeer ();
+        LOG.info ( "LocalPeer: " + localPeer );
         String ipAddress = this.getIPAddress ( containerHost ); // only for master
 
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -d *.domain.com" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
+            // need to remove later...
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "ssh -f -N -R 8080:" + ipAddress + ":8080 ubuntu@localhost" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "ssh -f -N -R 8082:" + ipAddress + ":8082 ubuntu@localhost" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost" ) );
+            // remove upto here
         }
         catch ( HostNotFoundException | CommandException ex )
         {
             LOG.error ( ex.toString () );
         }
-        LOG.info ( "******************* END OF RUN IN RH************************************" );
+        LOG.info ( "END OF RUN IN RH" );
     }
 
 
@@ -267,26 +284,26 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private void runAfterInitCommands ( EnvironmentContainerHost containerHost )
     {
-        this.commandExecute ( containerHost, Commands.getChangeHostHame () );
-        String ip = this.getIPAddress ( containerHost );
-        String catcat = "echo '" + ip + " domain.com' > /etc/hosts";
-        this.commandExecute ( containerHost, catcat );
-        String hostsString = "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb";
-        this.commandExecute ( containerHost, hostsString );
-        String hostsString2 = "sed -i 's/my_hostname = \"appscale-image#{@my_index}\"/my_hostname = \"domain.com\"g' /root/appscale/AppController/djinn.rb";
-        this.commandExecute ( containerHost, hostsString2 );
-        String app = "sed -i 's/{0}:{1}/{1}.{0}/g' /root/appscale/AppDashboard/lib/app_dashboard_data.py";
-        this.commandExecute ( containerHost, app );
-        String nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n"
-                + "server {\n"
-                + "        listen 80;\n"
-                + "        server_name ~^(?<port>.+)\\.domain\\.com$;\n"
-                + "        location / {\n"
-                + "                proxy_pass http://127.0.0.1:$port;\n"
-                + "        }\n"
-                + "}\n"
-                + "EOF";
-        this.commandExecute ( containerHost, nginx );
+
+        this.commandExecute ( containerHost, "echo -e \"\\n127.0.0.1 domain.com\" >> /etc/hosts" );
+        this.commandExecute ( containerHost,
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb" );
+
+
+
+        /*
+         * this.commandExecute ( containerHost, Commands.getChangeHostHame () ); String ip = this.getIPAddress (
+         * containerHost ); String catcat = "echo '" + ip + " domain.com' > /etc/hosts"; this.commandExecute (
+         * containerHost, catcat ); String hostsString = "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1
+         * localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb"; this.commandExecute (
+         * containerHost, hostsString ); String hostsString2 = "sed -i 's/my_hostname =
+         * \"appscale-image#{@my_index}\"/my_hostname = \"domain.com\"g' /root/appscale/AppController/djinn.rb";
+         * this.commandExecute ( containerHost, hostsString2 ); String app = "sed -i 's/{0}:{1}/{1}.{0}/g'
+         * /root/appscale/AppDashboard/lib/app_dashboard_data.py"; this.commandExecute ( containerHost, app ); String
+         * nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n" + "server {\n" + " listen 80;\n" + " server_name
+         * ~^(?<port>.+)\\.domain\\.com$;\n" + " location / {\n" + " proxy_pass http://127.0.0.1:$port;\n" + " }\n" +
+         * "}\n" + "EOF"; this.commandExecute ( containerHost, nginx );
+        * */
     }
 
 

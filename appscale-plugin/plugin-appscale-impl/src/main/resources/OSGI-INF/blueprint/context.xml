@@ -11,6 +11,7 @@
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
+    <property name="peerManager" ref="peerManager" />
     
   </bean>
 
