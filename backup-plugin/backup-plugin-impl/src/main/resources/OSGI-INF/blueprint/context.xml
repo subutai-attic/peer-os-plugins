@@ -10,12 +10,13 @@
 
   </bean>
 
-  <!-- ************************************************************************************************** -->
-  <!--<service ref="module" interface="io.subutai.webui.api.WebuiModule" />-->
   <service ref="backup-impl" interface="io.subutai.plugin.backup.api.Backup" />
-  <!-- ************************************************************************************************** -->
 
-  <!--<bean id="module" scope="singleton" class="io.subutai.plugin.hadoop.impl.HadoopWebModule">-->
-  <!--</bean>-->
+	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+
+
+	<bean id="module" scope="singleton" class="io.subutai.plugin.backup.impl.BackupWebModule">
+	</bean>
 
 </blueprint>

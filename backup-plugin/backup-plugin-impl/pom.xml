@@ -27,6 +27,12 @@
       <groupId>io.subutai</groupId>
       <artifactId>peer-manager-api</artifactId>
     </dependency>
+	<dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>webui</artifactId>
+	  <classifier>classes</classifier>
+	  <version>4.0.0-RC6</version>
+	</dependency>
   </dependencies>
 
   <build>
