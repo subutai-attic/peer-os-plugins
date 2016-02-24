@@ -11,7 +11,7 @@
     <module>backup-plugin-api</module>
     <module>backup-plugin-impl</module>
     <module>backup-plugin-rest</module>
-    <!--<module>backup-plugin-webui</module>-->
+    <module>backup-plugin-webui</module>
     <module>backup-plugin-kar</module>
   </modules>
 
