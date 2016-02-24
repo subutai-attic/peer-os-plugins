@@ -233,6 +233,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             {
                 env.destroyContainer ( ech, true );
             }
+
             trackerOperation.addLogDone ( "Containers destroyed successfully" );
             LOG.info ( "Containers destroyed successfully..." );
 

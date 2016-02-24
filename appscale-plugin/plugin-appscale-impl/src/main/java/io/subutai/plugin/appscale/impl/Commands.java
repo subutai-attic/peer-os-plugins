@@ -69,5 +69,11 @@ public class Commands
         return ( "cat /AppScalefile" );
     }
 
+
+    public static String getChangeHostHame ()
+    {
+        return ( "echo 'domain.com' > /etc/hostname" );
+    }
+
 }
 

@@ -8,7 +8,6 @@ package io.subutai.plugin.appscale.impl;
 
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +97,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
+        LOG.info ( "START AFTER INIT" );
+        this.runAfterInitCommands ( containerHost );
+
+
         LOG.info ( "Run shell starting..." );
         this.createRunSH ( containerHost ); // we only need this in master container...
         String runShell = Commands.getRunShell ();
@@ -109,14 +112,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         catch ( CommandException ex )
         {
-            java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null, ex );
+            LOG.error ( "RUN SHELL ERROR" + ex );
         }
         LOG.info ( "Run shell completed..." );
         this.createUpShell ( containerHost );
-        LOG.info ( "Login into your RH and run these commands: \n"
-                + "ssh -f -N -R 1443:<Your RH IP>:1443 ubuntu@localhost\n"
-                + "ssh -f -N -R 5555:<Your RH IP>:5555 ubuntu@localhost\n"
-                + "ssh -f -N -R 8081:<Your RH IP>:8081 ubuntu@localhost\n" );
+
+
+        this.runInRH ( containerHost );
 
         config.setEnvironmentId ( environment.getId () );
 
@@ -129,29 +131,25 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    public void runShhInResourceHost ( EnvironmentContainerHost containerHost )
+    private void runInRH ( EnvironmentContainerHost containerHost )
     {
+        LOG.info ( "********************************RUN IN RH*********************************" );
         PeerManager peerManager = appscaleManager.getPeerManager ();
         LocalPeer localPeer = peerManager.getLocalPeer ();
         String ipAddress = this.getIPAddress ( containerHost ); // only for master
-        String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
-        String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
-        String command8080 = "ssh -f -N -R 8081:" + ipAddress + ":8080 ubuntu@localhost";
-        String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
+
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
             LOG.info ( "HERE IS RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command1443 ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command5555 ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command8080 ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command8081 ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -d *.domain.com" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
         }
         catch ( HostNotFoundException | CommandException ex )
         {
             LOG.error ( ex.toString () );
         }
-
+        LOG.info ( "******************* END OF RUN IN RH************************************" );
     }
 
 
@@ -260,9 +258,35 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
             LOG.info ( "cassandra ip address inserted" );
         }
-
+        this.commandExecute ( containerHost, "echo login: domain.com >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
 
+
+    }
+
+
+    private void runAfterInitCommands ( EnvironmentContainerHost containerHost )
+    {
+        this.commandExecute ( containerHost, Commands.getChangeHostHame () );
+        String ip = this.getIPAddress ( containerHost );
+        String catcat = "echo '" + ip + " domain.com' > /etc/hosts";
+        this.commandExecute ( containerHost, catcat );
+        String hostsString = "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb";
+        this.commandExecute ( containerHost, hostsString );
+        String hostsString2 = "sed -i 's/my_hostname = \"appscale-image#{@my_index}\"/my_hostname = \"domain.com\"g' /root/appscale/AppController/djinn.rb";
+        this.commandExecute ( containerHost, hostsString2 );
+        String app = "sed -i 's/{0}:{1}/{1}.{0}/g' /root/appscale/AppDashboard/lib/app_dashboard_data.py";
+        this.commandExecute ( containerHost, app );
+        String nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n"
+                + "server {\n"
+                + "        listen 80;\n"
+                + "        server_name ~^(?<port>.+)\\.domain\\.com$;\n"
+                + "        location / {\n"
+                + "                proxy_pass http://127.0.0.1:$port;\n"
+                + "        }\n"
+                + "}\n"
+                + "EOF";
+        this.commandExecute ( containerHost, nginx );
     }
 
 
