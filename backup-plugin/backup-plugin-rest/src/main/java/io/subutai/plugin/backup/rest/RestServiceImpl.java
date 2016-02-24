@@ -21,8 +21,9 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response getClusters()
+    public Response executeBackup( String lxcHostName )
     {
+        backup.executeBackup( lxcHostName );
         return null;
     }
 }

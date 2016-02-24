@@ -18,16 +18,10 @@
   <properties>
     <subutai.mgmt.parent.version>4.0.0-RC6</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
-    <guava.version>18.0</guava.version>
-    <mockito.version>1.9.5</mockito.version>
-    <awaitility.version>1.6.1</awaitility.version>
-    <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
     <jaxrs.version>2.7.12</jaxrs.version>
-    <hadoop.version>2.0.4</hadoop.version>
-    <gson.version>2.3.1</gson.version>
+    <openjpa.version>2.3.0</openjpa.version>
   </properties>
 
   <name>Subutai Backup Plugin Parent</name>
@@ -36,6 +30,25 @@
 
   <dependencyManagement>
     <dependencies>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>peer-manager-api</artifactId>
+        <version>${subutai.mgmt.parent.version}</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa-all</artifactId>
+        <version>${openjpa.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa</artifactId>
+        <version>${openjpa.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
