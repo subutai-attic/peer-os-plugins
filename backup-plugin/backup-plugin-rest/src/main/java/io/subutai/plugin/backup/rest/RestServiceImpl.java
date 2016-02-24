@@ -4,6 +4,7 @@ package io.subutai.plugin.backup.rest;
 import javax.ws.rs.core.Response;
 
 import io.subutai.plugin.backup.api.Backup;
+import io.subutai.plugin.backup.api.BackupException;
 
 
 /**
@@ -23,7 +24,16 @@ public class RestServiceImpl implements RestService
     @Override
     public Response executeBackup( String lxcHostName )
     {
-        backup.executeBackup( lxcHostName );
-        return null;
+        try
+        {
+            backup.executeBackup( lxcHostName );
+        }
+        catch ( BackupException e )
+        {
+            e.printStackTrace();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( e.getMessage() ).build();
+        }
+        return Response.ok().build();
     }
 }

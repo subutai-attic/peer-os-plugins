@@ -6,5 +6,5 @@ package io.subutai.plugin.backup.api;
  */
 public interface Backup
 {
-    void executeBackup( String lxcHostName );
+    boolean executeBackup( String lxcHostName ) throws BackupException;
 }
