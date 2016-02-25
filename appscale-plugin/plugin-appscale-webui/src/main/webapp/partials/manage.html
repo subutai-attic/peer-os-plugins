@@ -8,7 +8,7 @@
                 ng-options="cluster.environmentId for cluster in appscaleCtrl.clusters">
         </select>
        
-        <a href = "https://1443.domain.com"
+        <a href = "https://1443.{{appscaleCtrl.currentCluster.userDomain}}"
 		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
           Console
         </a>

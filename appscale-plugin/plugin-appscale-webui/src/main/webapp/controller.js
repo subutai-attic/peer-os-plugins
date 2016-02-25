@@ -8,7 +8,7 @@ AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog'];
 
 function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	var vm = this;
-	vm.config = {};
+	vm.config = {userDomain : ""};
 	vm.nodes = [];
 	vm.console = "";
 	vm.activeTab = "install";
@@ -50,6 +50,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 				vm.environments = temp;
+				console.log (vm.environments);
 				if (vm.environments.length === 0) {
 					SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 				}
@@ -122,17 +123,34 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	}
 
 
+	function wrongDomain() {
+		if (vm.config.userDomain.match (/([a-z]+)\.([a-z][a-z]+)/) === null) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
     vm.build = build;
 	function build() {
-		LOADING_SCREEN();
-		appscaleSrv.build (vm.config).success (function (data) {
-			LOADING_SCREEN ('none');
-			SweetAlert.swal ("Success!", "Your Appscale cluster was created.", "success");
-			listClusters();
-		}).error (function (error) {
-			LOADING_SCREEN ('none');
-			SweetAlert.swal ("ERROR!", 'Appscale build error: ' + error.replace(/\\n/g, ' '), "error");
-		});
+		if (vm.config.userDomain === "") {
+			SweetAlert.swal ("ERROR!", 'Please enter domain', "error");
+		}
+		else if (wrongDomain()) {
+			SweetAlert.swal ("ERROR!", 'Wrong domain format', "error");
+		}
+		else {
+			LOADING_SCREEN();
+			appscaleSrv.build (vm.config).success (function (data) {
+				LOADING_SCREEN ('none');
+				SweetAlert.swal ("Success!", "Your Appscale cluster was created.", "success");
+				listClusters();
+			}).error (function (error) {
+				LOADING_SCREEN ('none');
+				SweetAlert.swal ("ERROR!", 'Appscale build error: ' + error.replace(/\\n/g, ' '), "error");
+			});
+		}
 	}
 
 

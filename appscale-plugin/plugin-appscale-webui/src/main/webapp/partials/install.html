@@ -2,6 +2,10 @@
 	<div class="b-workspace-content-row_col-4">
 		<div class="b-form g-margin-bottom">
 			<div class="b-form-group g-margin-bottom">
+				<label for="user-domain" class="b-form-label">Domain</label>
+				<input type = "text" class="b-form-input b-form-input_full" placeholder = "Enter domain for appscale console (e.g., myappscale.com)" ng-model = "appscaleCtrl.config.userDomain" id="user-domain" required>
+			</div>
+			<div class="b-form-group g-margin-bottom">
 				<label for="env-name" class="b-form-label">Environment name</label>
 				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.currentEnvironment" id="env-name" ng-change="appscaleCtrl.changeNodes()" ng-options = "environment.name for environment in appscaleCtrl.environments">
 				</select>

@@ -23,8 +23,9 @@ function appscaleSrv ($http, environmentService) {
 	}
 
 
+
 	function build (config) {
-		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.db.hostname + "&envID=" + config.environment.id;
+		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.hostname + "&cassandraName=" + config.db.hostname + "&envID=" + config.environment.id + "&userDomain=" + config.userDomain;
                 console.log (postData);
                 return $http.post(
 			BASE_URL + 'configure_environment',
