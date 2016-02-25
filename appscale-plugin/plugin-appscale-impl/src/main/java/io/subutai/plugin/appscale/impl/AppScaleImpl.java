@@ -62,6 +62,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private PeerManager peerManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
+    // private Peer peer;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
@@ -76,12 +77,21 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         executor = SubutaiExecutors.newCachedThreadPool ();
     }
 
-
-    public void destroy ()
-    {
-
-    }
-
+//
+//    public void destroy ()
+//    {
+//        try
+//        {
+//            Vnis vnis = peer.getReservedVnis ();
+//            Long vni = this.environment.getVni ();
+//
+//        }
+//        catch ( PeerException ex )
+//        {
+//            LOG.error ( "no VNI FOUND" );
+//        }
+//    }
+//
 
     /**
      *
@@ -109,6 +119,12 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         getPluginDAO ()
                 .saveInfo ( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName (), appScaleConfig );
         return abstractOperationHandler.getTrackerId ();
+    }
+
+
+    private void getVLAN ()
+    {
+
     }
 
 
@@ -191,6 +207,19 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         this.appScaleConfig = appScaleConfig;
     }
+//
+//
+//    public Peer getPeer ()
+//    {
+//        return peer;
+//    }
+//
+//
+//    public void setPeer ( Peer peer )
+//    {
+//        this.peer = peer;
+//    }
+//
 
 
     private String getIPAddress ( EnvironmentContainerHost ch )

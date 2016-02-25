@@ -8,13 +8,20 @@
         init-method="init" destroy-method="destroy">
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
     
+  
+    <property name="environment" ref="environment" />
+<!--
+    <property name="peer" ref="peer" />
+    -->
   </bean>
-
+  <reference id = "environment" availability="mandatory" interface="io.subutai.common.environment.Environment" />
+  <reference id="peer" availability="mandatory" interface="io.subutai.common.peer.Peer"/>
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="networkManager" availability="mandatory"

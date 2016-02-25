@@ -39,6 +39,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private final TrackerOperation po;
     private final AppScaleImpl appscaleManager;
+
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
@@ -289,6 +290,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                               + "/etc/hosts" );
 
         this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
+
         String nginx = "echo 'server {\n"
                 + "        listen        80;\n"
                 + "        server_name   ~^(?<port>.+)\\." + config.getUserDomain () + "$;\n"
