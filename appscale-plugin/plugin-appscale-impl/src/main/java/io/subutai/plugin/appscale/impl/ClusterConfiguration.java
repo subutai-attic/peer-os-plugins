@@ -147,7 +147,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
-            LOG.info ( "HERE IS RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
+            LOG.info ( "HERE IS THE RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
             resourceHostByContainerId.execute ( new RequestBuilder (
                     "subutai proxy add 100 -d \"*.domain.com\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
@@ -275,33 +275,37 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private void runAfterInitCommands ( EnvironmentContainerHost containerHost )
     {
-
+        this.commandExecute ( containerHost,
+                              "sed -i 's/{0}:{1}/{1}.{0}/g' /root/appscale/AppDashboard/lib/app_dashboard_data.py" );
         this.commandExecute ( containerHost, "echo -e '127.0.0.1 domain.com' >> /etc/hosts" );
         this.commandExecute ( containerHost,
-                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' /root/appscale/AppController/djinn.rb" );
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' "
+                              + "/root/appscale/AppController/djinn.rb" );
+        this.commandExecute ( containerHost,
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' "
+                              + "/etc/hosts" );
 
         this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
-        String nginx = "cat > /etc/nginx/sites-enabled/default <<EOF\n"
-                + "server {\n"
+        String nginx = "echo 'server {\n"
                 + "        listen        80;\n"
-                + "        server_name   ~^(?<port>.+)\\.appscale\\.subut\\.ai$;\n"
+                + "        server_name   ~^(?<port>.+)\\.domain.com$;\n"
                 + "\n"
-                + "	set $appbackend \"127.0.0.1:${port}\";\n"
+                + "    set $appbackend \"127.0.0.1:${port}\";\n"
                 + "\n"
-                + "	# proxy to AppScale over http\n"
-                + "	if ($port = 1443) {\n"
-                + "		set $appbackend \"appscaledashboard\";\n"
-                + "	}\n"
+                + "    # proxy to AppScale over http\n"
+                + "    if ($port = 1443) {\n"
+                + "        set $appbackend \"appscaledashboard\";\n"
+                + "    }\n"
                 + "\n"
-                + "	location / {\n"
-                + "   		proxy_pass http://$appbackend;\n"
-                + "		proxy_set_header   X-Real-IP $remote_addr;\n"
-                + "		proxy_set_header   Host $http_host;\n"
-                + "		proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;\n"
+                + "    location / {\n"
+                + "        proxy_pass http://$appbackend;\n"
+                + "        proxy_set_header   X-Real-IP $remote_addr;\n"
+                + "        proxy_set_header   Host $http_host;\n"
+                + "        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;\n"
                 + "\n"
-                + "	}\n"
-                + "}\n"
-                + "EOF";
+                + "    }\n"
+                + "}' > /etc/nginx/sites-enabled/default";
+
         this.commandExecute ( containerHost, nginx );
 
     }
