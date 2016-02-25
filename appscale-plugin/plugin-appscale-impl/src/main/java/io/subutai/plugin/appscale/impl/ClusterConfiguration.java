@@ -66,6 +66,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "ClusterConfiguration :: configureCluster " );
 
         AppScaleConfig config = ( AppScaleConfig ) configBase;
+        String userDomain = config.getUserDomain ();
+
+        if ( userDomain == null )
+        {
+            po.addLogFailed ( "User Domain Must be Set!" );
+        }
+
         EnvironmentContainerHost containerHost = null;
         Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
         Properties p = System.getProperties ();
@@ -83,11 +90,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         catch ( ContainerHostNotFoundException ex )
         {
             LOG.error ( "configureCluster " + ex );
-            // po.addLogFailed( "container host is not found : " + ex );
         }
-
-
-        // this.commandExecute ( containerHost, Commands.getRemoveSubutaiList () );
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
 
         LOG.info ( "installing appscale can take several minutes." );
@@ -98,7 +101,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
         LOG.info ( "START AFTER INIT" );
-        this.runAfterInitCommands ( containerHost );
+        this.runAfterInitCommands ( containerHost, config );
 
 
         LOG.info ( "Run shell starting..." );
@@ -118,7 +121,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.createUpShell ( containerHost );
         LOG.info ( "RH command started" );
 
-        this.runInRH ( containerHost, config.getClusterName () );
+        this.runInRH ( containerHost, config.getClusterName (), config );
         LOG.info ( "RH command ended" );
 
         LOG.info ( "Environment ID: " + environment.getId () );
@@ -134,7 +137,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void runInRH ( EnvironmentContainerHost containerHost, String clusterName )
+    private void runInRH ( EnvironmentContainerHost containerHost, String clusterName, AppScaleConfig config )
     {
         LOG.info ( "RUN IN RH" );
         PeerManager peerManager = appscaleManager.getPeerManager ();
@@ -149,7 +152,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS THE RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add 100 -d \"*.domain.com\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+                    "subutai proxy add 100 -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
 
         }
@@ -266,29 +269,29 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
             LOG.info ( "cassandra ip address inserted" );
         }
-        this.commandExecute ( containerHost, "echo login: domain.com >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
 
 
     }
 
 
-    private void runAfterInitCommands ( EnvironmentContainerHost containerHost )
+    private void runAfterInitCommands ( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
         this.commandExecute ( containerHost,
                               "sed -i 's/{0}:{1}/{1}.{0}/g' /root/appscale/AppDashboard/lib/app_dashboard_data.py" );
-        this.commandExecute ( containerHost, "echo -e '127.0.0.1 domain.com' >> /etc/hosts" );
+        this.commandExecute ( containerHost, "echo -e '127.0.0.1 " + config.getUserDomain () + "' >> /etc/hosts" );
         this.commandExecute ( containerHost,
-                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' "
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost " + config.getUserDomain () + "/g' "
                               + "/root/appscale/AppController/djinn.rb" );
         this.commandExecute ( containerHost,
-                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost domain.com/g' "
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost " + config.getUserDomain () + "/g' "
                               + "/etc/hosts" );
 
         this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
         String nginx = "echo 'server {\n"
                 + "        listen        80;\n"
-                + "        server_name   ~^(?<port>.+)\\.domain.com$;\n"
+                + "        server_name   ~^(?<port>.+)\\." + config.getUserDomain () + "$;\n"
                 + "\n"
                 + "    set $appbackend \"127.0.0.1:${port}\";\n"
                 + "\n"

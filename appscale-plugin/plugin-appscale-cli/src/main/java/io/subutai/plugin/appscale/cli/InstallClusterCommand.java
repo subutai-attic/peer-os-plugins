@@ -39,9 +39,12 @@ public class InstallClusterCommand extends OsgiCommandSupport
     @Argument ( index = 2, name = "environmentId", description = "environment id", required = true, multiValued = false )
     private String environmentId;
 
-    @Argument ( index = 3, name = "zookeeperName", description = "name of zookeeper", required = false, multiValued = false )
+    @Argument ( index = 3, name = "userDomain", description = "links to appscale console", required = true, multiValued = false )
+    private String userDomain;
+
+    @Argument ( index = 4, name = "zookeeperName", description = "name of zookeeper", required = false, multiValued = false )
     private String zookeeperName = null;
-    @Argument ( index = 4, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
+    @Argument ( index = 5, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
     private String cassandraName = null;
 
 
@@ -135,6 +138,18 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
+    public String getUserDomain ()
+    {
+        return userDomain;
+    }
+
+
+    public void setUserDomain ( String userDomain )
+    {
+        this.userDomain = userDomain;
+    }
+
+
     @Override
     protected Object doExecute () throws Exception
     {
@@ -144,6 +159,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         appScaleConfig.setClusterName ( clusterName );
         appScaleConfig.setDomainName ( domainName );
         appScaleConfig.setTracker ( clusterName );
+        appScaleConfig.setUserDomain ( userDomain );
 
         if ( zookeeperName != null )
         {
@@ -157,7 +173,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
         LOG.info ( "installing arguments: "
                 + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomainName ()
-                + " " + appScaleConfig.getEnvironmentId () + " " + appScaleConfig.getTracker () );
+                + " " + appScaleConfig.getEnvironmentId () + " " + appScaleConfig.getTracker () + " " + appScaleConfig.getUserDomain () );
         UUID installCluster = appScaleInterface.installCluster ( appScaleConfig );
         waitUntilOperationFinish ( tracker, installCluster );
         LOG.info ( " uuid " + installCluster );

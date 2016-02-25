@@ -35,6 +35,7 @@ public class AppScaleConfig implements ConfigBase
     private String tracker;
     private List<AppScaleConfig> clusters;
     private List<String> clusternames;
+    private String userDomain;
 
 
     public AppScaleConfig ()
@@ -175,6 +176,18 @@ public class AppScaleConfig implements ConfigBase
     public void setClusternames ( List<String> clusternames )
     {
         this.clusternames = clusternames;
+    }
+
+
+    public String getUserDomain ()
+    {
+        return userDomain;
+    }
+
+
+    public void setUserDomain ( String userDomain )
+    {
+        this.userDomain = userDomain;
     }
 
 

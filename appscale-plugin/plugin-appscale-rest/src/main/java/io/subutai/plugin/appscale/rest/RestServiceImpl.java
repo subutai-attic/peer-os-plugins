@@ -153,11 +153,13 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName, String envID )
+    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName, String envID,
+                                       String userDomain )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig ();
 
         appScaleConfig.setClusterName ( clusterName );
+        appScaleConfig.setUserDomain ( userDomain );
 
         if ( !zookeeperName.isEmpty () )
         {
