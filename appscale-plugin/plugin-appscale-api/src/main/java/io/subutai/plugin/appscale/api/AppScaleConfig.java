@@ -44,7 +44,6 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
-    @Override
     public String getClusterName ()
     {
         return this.clusterName;
@@ -57,14 +56,12 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
-    @Override
     public String getProductName ()
     {
         return AppScaleConfig.PRODUCT_NAME;
     }
 
 
-    @Override
     public String getProductKey ()
     {
         return AppScaleConfig.PRODUCT_KEY;
