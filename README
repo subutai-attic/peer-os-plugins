@@ -13,7 +13,7 @@ click on Console and this link will take you to your appscale console.
 
 PLEASE NOTE THAT: for temporary moment of time, to make accessible console link for you 
 you need to add 
-<resource host ip> 1443:yourdummydomain.com 
+<resource host ip> 1443.yourdummydomain.com 
 into your hosts files
 and to access your deployed app
 add similar entry but with port number 8080, 8081 etc.
