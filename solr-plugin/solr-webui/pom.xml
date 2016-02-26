@@ -5,7 +5,7 @@
   <parent>
     <artifactId>solr-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC6</version>
+    <version>4.0.0-RC7-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -17,6 +17,32 @@
 
   <build>
     <plugins>
+		<plugin>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>maven-bundle-plugin</artifactId>
+			<configuration>
+				<supportedProjectTypes>
+					<supportedProjectType>war</supportedProjectType>
+				</supportedProjectTypes>
+				<instructions>
+					<Bundle-SymbolicName>${project.groupId}.plugin.solr.webui</Bundle-SymbolicName>
+
+					<Embed-Directory>WEB-INF/lib</Embed-Directory>
+					<Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+
+					<Web-ContextPath>/plugins/solr</Web-ContextPath>
+				</instructions>
+			</configuration>
+			<executions>
+				<execution>
+					<id>bundle-manifest</id>
+					<phase>process-classes</phase>
+					<goals>
+						<goal>manifest</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -36,33 +62,6 @@
             <manifestFile>META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <supportedProjectTypes>
-            <supportedProjectType>war</supportedProjectType>
-          </supportedProjectTypes>
-          <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.solr.webui</Bundle-SymbolicName>
-
-            <Embed-Directory>WEB-INF/lib</Embed-Directory>
-            <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
-
-            <Web-ContextPath>/plugins/solr</Web-ContextPath>
-          </instructions>
-        </configuration>
-        <executions>
-          <execution>
-            <id>bundle-manifest</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>manifest</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

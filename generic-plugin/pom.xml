@@ -6,14 +6,14 @@
 
   <groupId>io.subutai</groupId>
   <artifactId>generic-plugin</artifactId>
-  <version>4.0.0-RC6</version>
+  <version>4.0.0-RC7-SNAPSHOT</version>
 
   <name>Generic Plugin Parent</name>
   <description>Generic Plugin Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC6</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC7-SNAPSHOT</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
     <guava.version>18.0</guava.version>
     <openjpa.version>2.3.0</openjpa.version>
