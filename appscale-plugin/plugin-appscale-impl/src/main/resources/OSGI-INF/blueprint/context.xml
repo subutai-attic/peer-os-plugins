@@ -15,7 +15,6 @@
     <property name="peerManager" ref="peerManager" />
     <property name="environment" ref="environment" />
     
-    
   </bean>
   
   <reference id = "environment" availability="mandatory" interface="io.subutai.common.environment.Environment" />

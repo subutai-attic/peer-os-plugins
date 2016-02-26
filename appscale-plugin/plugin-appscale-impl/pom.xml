@@ -41,7 +41,6 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>plugin-common-core</artifactId>
-      <type>jar</type>
     </dependency>
     
   </dependencies>
