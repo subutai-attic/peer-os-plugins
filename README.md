@@ -1,1 +1,1 @@
-** SS Plugins Repo
+# Subutai Social Plugins Repository
