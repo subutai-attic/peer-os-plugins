@@ -147,14 +147,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "LocalPeer: " + localPeer );
         String ipAddress = this.getIPAddress ( containerHost ); // only for master
 
+        if ( config.getVlanNumber () == null )
+        {
+            po.addLogFailed ( "we have a problem here" );
+        }
+
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS THE RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add 100 -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy add 100 -h " + ipAddress ) );
+                    "subutai proxy add " + config.getVlanNumber () + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "subutai proxy add " + config.getVlanNumber () + " -h " + ipAddress ) );
 
         }
         catch ( HostNotFoundException | CommandException ex )

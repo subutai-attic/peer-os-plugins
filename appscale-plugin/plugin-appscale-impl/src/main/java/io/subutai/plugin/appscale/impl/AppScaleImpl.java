@@ -25,9 +25,12 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.network.Vnis;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.Peer;
+import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
@@ -62,7 +65,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private PeerManager peerManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
-    // private Peer peer;
+    private Peer peer;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
@@ -77,21 +80,12 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         executor = SubutaiExecutors.newCachedThreadPool ();
     }
 
-//
-//    public void destroy ()
-//    {
-//        try
-//        {
-//            Vnis vnis = peer.getReservedVnis ();
-//            Long vni = this.environment.getVni ();
-//
-//        }
-//        catch ( PeerException ex )
-//        {
-//            LOG.error ( "no VNI FOUND" );
-//        }
-//    }
-//
+
+    public void destroy ()
+    {
+
+    }
+
 
     /**
      *
@@ -124,6 +118,24 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
     private void getVLAN ()
     {
+        try
+        {
+            Vnis reservedVnis = peer.getReservedVnis ();
+            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
+            if ( findVlanByVni == null )
+            {
+                appScaleConfig.setVlanNumber ( 100 );
+            }
+            else
+            {
+                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
+            }
+
+        }
+        catch ( PeerException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
 
     }
 
@@ -207,19 +219,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         this.appScaleConfig = appScaleConfig;
     }
-//
-//
-//    public Peer getPeer ()
-//    {
-//        return peer;
-//    }
-//
-//
-//    public void setPeer ( Peer peer )
-//    {
-//        this.peer = peer;
-//    }
-//
+
+
+    public Peer getPeer ()
+    {
+        return peer;
+    }
+
+
+    public void setPeer ( Peer peer )
+    {
+        this.peer = peer;
+    }
 
 
     private String getIPAddress ( EnvironmentContainerHost ch )

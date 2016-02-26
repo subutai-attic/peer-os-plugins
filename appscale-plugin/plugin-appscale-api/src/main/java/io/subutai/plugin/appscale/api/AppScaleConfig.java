@@ -36,6 +36,7 @@ public class AppScaleConfig implements ConfigBase
     private List<AppScaleConfig> clusters;
     private List<String> clusternames;
     private String userDomain;
+    private int vlanNumber;
 
 
     public AppScaleConfig ()
@@ -185,6 +186,18 @@ public class AppScaleConfig implements ConfigBase
     public void setUserDomain ( String userDomain )
     {
         this.userDomain = userDomain;
+    }
+
+
+    public Integer getVlanNumber ()
+    {
+        return vlanNumber;
+    }
+
+
+    public void setVlanNumber ( Integer vlanNumber )
+    {
+        this.vlanNumber = vlanNumber;
     }
 
 

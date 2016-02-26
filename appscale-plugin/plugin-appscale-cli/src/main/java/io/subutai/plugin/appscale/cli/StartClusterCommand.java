@@ -52,6 +52,18 @@ public class StartClusterCommand extends OsgiCommandSupport
     }
 
 
+    public AppScaleInterface getAppScaleInterface ()
+    {
+        return appScaleInterface;
+    }
+
+
+    public void setAppScaleInterface ( AppScaleInterface appScaleInterface )
+    {
+        this.appScaleInterface = appScaleInterface;
+    }
+
+
     @Override
     protected Object doExecute () throws Exception
     {

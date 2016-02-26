@@ -38,6 +38,7 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
+
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 

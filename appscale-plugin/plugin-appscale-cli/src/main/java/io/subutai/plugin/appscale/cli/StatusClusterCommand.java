@@ -33,6 +33,18 @@ public class StatusClusterCommand extends OsgiCommandSupport
     private Tracker tracker;
 
 
+    public AppScaleInterface getAppScaleInterface ()
+    {
+        return appScaleInterface;
+    }
+
+
+    public void setAppScaleInterface ( AppScaleInterface appScaleInterface )
+    {
+        this.appScaleInterface = appScaleInterface;
+    }
+
+
     @Override
     protected Object doExecute () throws Exception
     {

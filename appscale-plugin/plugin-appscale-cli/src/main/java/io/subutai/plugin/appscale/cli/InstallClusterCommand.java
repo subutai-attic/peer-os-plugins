@@ -15,6 +15,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import io.subutai.common.peer.Peer;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.core.plugincommon.api.NodeState;
@@ -50,6 +51,8 @@ public class InstallClusterCommand extends OsgiCommandSupport
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
+    private Peer peer;
+
 
     private static final Logger LOG = LoggerFactory.getLogger ( InstallClusterCommand.class.getName () );
 
@@ -147,6 +150,18 @@ public class InstallClusterCommand extends OsgiCommandSupport
     public void setUserDomain ( String userDomain )
     {
         this.userDomain = userDomain;
+    }
+
+
+    public Peer getPeer ()
+    {
+        return peer;
+    }
+
+
+    public void setPeer ( Peer peer )
+    {
+        this.peer = peer;
     }
 
 

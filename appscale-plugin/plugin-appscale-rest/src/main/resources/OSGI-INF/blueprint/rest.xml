@@ -25,11 +25,13 @@
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
+  
 
   <bean id="appscaleRestServiceImpl" class="io.subutai.plugin.appscale.rest.RestServiceImpl">
     <argument ref="appScaleInterface" />
     <argument ref="tracker" />
     <argument ref="environmentManager" />
+    
   </bean>
 
 </blueprint>
