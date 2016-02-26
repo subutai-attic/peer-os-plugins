@@ -29,7 +29,6 @@ import io.subutai.common.network.Vnis;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
@@ -65,7 +64,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private PeerManager peerManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
-    private Peer peer;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
@@ -120,7 +118,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         try
         {
-            Vnis reservedVnis = peer.getReservedVnis ();
+            LocalPeer localPeer = peerManager.getLocalPeer ();
+            Vnis reservedVnis = localPeer.getReservedVnis ();
             Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
             if ( findVlanByVni == null )
             {
@@ -218,18 +217,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
     {
         this.appScaleConfig = appScaleConfig;
-    }
-
-
-    public Peer getPeer ()
-    {
-        return peer;
-    }
-
-
-    public void setPeer ( Peer peer )
-    {
-        this.peer = peer;
     }
 
 
