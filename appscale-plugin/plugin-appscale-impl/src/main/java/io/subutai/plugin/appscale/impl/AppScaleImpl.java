@@ -25,6 +25,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.network.Vnis;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
@@ -122,16 +123,16 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         try
         {
             LocalPeer localPeer = peerManager.getLocalPeer ();
-            localPeer.getReservedVnis ();
-//            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
-//            if ( findVlanByVni == null )
-//            {
-//                appScaleConfig.setVlanNumber ( 100 );
-//            }
-//            else
-//            {
-//                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
-//            }
+            Vnis reservedVnis = localPeer.getReservedVnis ();
+            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
+            if ( findVlanByVni == null )
+            {
+                appScaleConfig.setVlanNumber ( 100 );
+            }
+            else
+            {
+                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
+            }
 
         }
         catch ( PeerException ex )

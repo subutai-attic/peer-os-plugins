@@ -6,7 +6,7 @@
         <artifactId>AppScale</artifactId>
         <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
-    <!-- <artifactId>appscale-plugin-kar</artifactId> -->
+    
     <artifactId>appscale-subutai-plugin</artifactId>
     
     <name>Subutai Appscale Plugin KAR</name>

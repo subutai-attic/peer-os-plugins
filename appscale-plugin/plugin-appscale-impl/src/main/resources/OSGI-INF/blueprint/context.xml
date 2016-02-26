@@ -12,11 +12,6 @@
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
-<<<<<<< HEAD
-    <property name="environment" ref="environment" />
-    
-=======
->>>>>>> 7c81e65697b264ea0dc94810d887484cd9dd7049
   </bean>
 
   <reference id="tracker" availability="mandatory"
