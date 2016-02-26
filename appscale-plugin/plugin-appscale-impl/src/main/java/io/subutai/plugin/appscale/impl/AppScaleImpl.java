@@ -25,7 +25,6 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.network.Vnis;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
@@ -38,7 +37,11 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.plugincommon.api.*;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -119,16 +122,16 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         try
         {
             LocalPeer localPeer = peerManager.getLocalPeer ();
-            Vnis reservedVnis = localPeer.getReservedVnis ();
-            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
-            if ( findVlanByVni == null )
-            {
-                appScaleConfig.setVlanNumber ( 100 );
-            }
-            else
-            {
-                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
-            }
+            localPeer.getReservedVnis ();
+//            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
+//            if ( findVlanByVni == null )
+//            {
+//                appScaleConfig.setVlanNumber ( 100 );
+//            }
+//            else
+//            {
+//                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
+//            }
 
         }
         catch ( PeerException ex )
