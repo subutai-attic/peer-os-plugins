@@ -131,13 +131,13 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             }
             else
             {
-                appScaleConfig.setVlanNumber ( findVlanByVni + 1 );
+                appScaleConfig.setVlanNumber ( findVlanByVni );
             }
 
         }
         catch ( PeerException ex )
         {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+            LOG.error ( "Error on getting environment VLAN: " + ex );
         }
 
     }

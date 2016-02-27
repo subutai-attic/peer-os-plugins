@@ -151,16 +151,29 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             po.addLogFailed ( "we have a problem here" );
         }
-
+        /*
+         * grep vlan /mnt/lib/lxc/master_e5e406ac-4595-4a98-bd1a-391fc8be57df/config | awk '{print $3}'
+         */
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS THE RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
+
+            CommandResult resultStr = resourceHostByContainerId.execute ( new RequestBuilder (
+                    "grep vlan /mnt/lib/lxc/" + clusterName + "/config" ) );
+
+            String stdOut = resultStr.getStdOut ();
+
+            String vlanString = stdOut.substring ( 11, 14 );
+
+            LOG.info ( "****************** STDOUT *******************" + vlanString );
+
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + config.getVlanNumber () + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+                    "subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + config.getVlanNumber () + " -h " + ipAddress ) );
+                    "subutai proxy add " + vlanString + " -h " + ipAddress ) );
 
         }
         catch ( HostNotFoundException | CommandException ex )
