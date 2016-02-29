@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -242,50 +243,55 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         String cmdmaster = "echo '  master : " + ipaddr + "' >> /root/AppScalefile";
         this.commandExecute ( containerHost, cmdmaster );
         LOG.info ( "master ip address inserted" );
-        this.commandExecute ( containerHost, "echo '  appengine : " + ipaddr + "' >> /root/AppScalefile" );
-        LOG.info ( "appengine ip address inserted" );
-        if ( config.getZookeeperName () != null )
+        this.commandExecute ( containerHost, "echo 'appengine:' >> /root/AppScalefile" );
+        List<String> appenList = config.getAppenList ();
+        for ( String a : appenList )
         {
-            try
-            {
-                EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname (
-                        config.getZookeeperName () );
-                String zooip = getIPAddress ( zooContainerHost );
-                this.commandExecute ( containerHost,
-                                      "echo '  zookeeper : " + zooip + "' >> /root/AppScalefile" );
-                LOG.info ( "zookeeper ip address inserted" );
 
+            try
+            {
+                EnvironmentContainerHost appContainerHost = environment.getContainerHostByHostname ( a );
+                String aip = getIPAddress ( appContainerHost );
+                this.commandExecute ( containerHost, "echo '-  " + aip + "' >> /root/AppScalefile" );
+                LOG.info ( "appengine ip " + aip + " inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
             {
-                LOG.error ( ex.toString () );
+                LOG.error ( "AppScalefile: appengine: " + ex );
             }
+
         }
-        else
-        {
-            this.commandExecute ( containerHost, "echo '  zookeeper : " + ipaddr + "' >> /root/AppScalefile" );
-            LOG.info ( "zookeeper ip address inserted" );
-        }
-        if ( config.getCassandraName () != null )
+        this.commandExecute ( containerHost, "echo 'zookeeper:' >> /root/AppScalefile" );
+        List<String> zooList = config.getZooList ();
+        for ( String z : zooList )
         {
             try
             {
-                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname (
-                        config.getCassandraName () );
-                String cassIP = getIPAddress ( cassContainerHost );
-                this.commandExecute ( containerHost,
-                                      "echo '  database : " + cassIP + "' >> /root/AppScalefile" );
-                LOG.info ( "cassandra ip address inserted" );
+                EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname ( z );
+                String zip = getIPAddress ( zooContainerHost );
+                this.commandExecute ( containerHost, "echo '-  " + zip + "' >> /root/AppScalefile" );
+                LOG.info ( "zookeeper ip " + zip + " inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
             {
-                LOG.error ( "Environment can not be found..." + ex );
+                LOG.error ( "AppScalefile: zookeeper: " + ex );
             }
         }
-        else
+        this.commandExecute ( containerHost, "echo 'database:' >> /root/AppScalefile" );
+        List<String> cassList = config.getCassList ();
+        for ( String cis : cassList )
         {
-            this.commandExecute ( containerHost, "echo '  database : " + ipaddr + "' >> /root/AppScalefile" );
-            LOG.info ( "cassandra ip address inserted" );
+            try
+            {
+                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( cis );
+                String cip = getIPAddress ( cassContainerHost );
+                this.commandExecute ( containerHost, "echo '-  " + cip + "' >> /root/AppScalefile" );
+                LOG.info ( "cassandra ip " + cip + " inserted" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "AppScalefile : cassandra: " + ex );
+            }
         }
         this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );

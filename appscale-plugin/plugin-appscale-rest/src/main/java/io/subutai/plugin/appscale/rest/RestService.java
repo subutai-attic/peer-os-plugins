@@ -69,6 +69,7 @@ public interface RestService
                 MediaType.APPLICATION_JSON
             } )
     Response configureCluster ( @FormParam ( "clusterName" ) String clusterName,
+                                @FormParam ( "appengineName" ) String appengine,
                                 @FormParam ( "zookeeperName" ) String zookeeperName,
                                 @FormParam ( "cassandraName" ) String cassandraName,
                                 @FormParam ( "envID" ) String envID,

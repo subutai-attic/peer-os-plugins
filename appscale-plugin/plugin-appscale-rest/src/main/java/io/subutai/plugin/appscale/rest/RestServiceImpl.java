@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.rest;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -154,7 +155,8 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response configureCluster ( String clusterName, String zookeeperName, String cassandraName, String envID,
+    public Response configureCluster ( String clusterName, String appengineName, String zookeeperName,
+                                       String cassandraName, String envID,
                                        String userDomain )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig ();
@@ -164,11 +166,16 @@ public class RestServiceImpl implements RestService
 
         if ( !zookeeperName.isEmpty () )
         {
-            appScaleConfig.setZookeeperName ( zookeeperName );
+
+            appScaleConfig.setZooList ( Arrays.asList ( zookeeperName.split ( "," ) ) );
         }
         if ( !cassandraName.isEmpty () )
         {
-            appScaleConfig.setCassandraName ( cassandraName );
+            appScaleConfig.setCassList ( Arrays.asList ( cassandraName.split ( "," ) ) );
+        }
+        if ( !appengineName.isEmpty () )
+        {
+            appScaleConfig.setAppenList ( Arrays.asList ( appengineName.split ( "," ) ) );
         }
 
         appScaleConfig.setEnvironmentId ( envID );
