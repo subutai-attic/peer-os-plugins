@@ -57,13 +57,13 @@ public class InstallClusterCommand extends OsgiCommandSupport
     private static final Logger LOG = LoggerFactory.getLogger ( InstallClusterCommand.class.getName () );
 
 
-    public String getClusterName ()
+    public String getclusterName ()
     {
         return clusterName;
     }
 
 
-    public void setClusterName ( String clusterName )
+    public void setclusterName ( String clusterName )
     {
         this.clusterName = clusterName;
     }

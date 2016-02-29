@@ -151,9 +151,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             po.addLogFailed ( "we have a problem here" );
         }
-        /*
-         * grep vlan /mnt/lib/lxc/master_e5e406ac-4595-4a98-bd1a-391fc8be57df/config | awk '{print $3}'
-         */
+
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );

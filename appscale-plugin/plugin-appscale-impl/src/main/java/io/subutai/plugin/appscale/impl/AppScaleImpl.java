@@ -104,7 +104,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
         Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
         Preconditions.checkArgument (
-                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
+                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "clusterName is empty or null" );
 
 
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
@@ -153,7 +153,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
         Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
         Preconditions.checkArgument (
-                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "Clustername is empty or null" );
+                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "clusterName is empty or null" );
 
         try
         {
@@ -178,7 +178,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
         Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
-                                      "Clustername is empty" );
+                                      "clusterName is empty" );
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.UNINSTALL );
         executor.execute ( abstractOperationHandler );

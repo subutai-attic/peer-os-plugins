@@ -56,7 +56,7 @@ public class StatusClusterCommand extends OsgiCommandSupport
     }
 
 
-    public void setClusterName ( String clusterName )
+    public void setclusterName ( String clusterName )
     {
         this.clusterName = clusterName;
     }

@@ -34,7 +34,7 @@ public class StartClusterCommand extends OsgiCommandSupport
     private Tracker tracker;
 
 
-    public void setClusterName ( String clusterName )
+    public void setclusterName ( String clusterName )
     {
         this.clusterName = clusterName;
     }

@@ -25,7 +25,11 @@ public class AppScaleConfig implements ConfigBase
     // if any means of other clusters.
     private String zookeeperName;
     private String cassandraName;
-    private String openJreName;
+    private String appengine;
+
+    private List<String> zooList;
+    private List<String> cassList;
+    private List<String> appenList;
 
 
     private String domainName = "intra.lan";
@@ -34,7 +38,7 @@ public class AppScaleConfig implements ConfigBase
     private String containerType;
     private String tracker;
     private List<AppScaleConfig> clusters;
-    private List<String> clusternames;
+    private List<String> clusterNames;
     private String userDomain;
     private int vlanNumber;
 
@@ -141,18 +145,6 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
-    public String getOpenJreName ()
-    {
-        return openJreName;
-    }
-
-
-    public void setOpenJreName ( String openJreName )
-    {
-        this.openJreName = openJreName;
-    }
-
-
     public List<AppScaleConfig> getClusters ()
     {
         return clusters;
@@ -165,15 +157,15 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
-    public List<String> getClusternames ()
+    public List<String> getclusterNames ()
     {
-        return clusternames;
+        return clusterNames;
     }
 
 
-    public void setClusternames ( List<String> clusternames )
+    public void setclusterNames ( List<String> clusterNames )
     {
-        this.clusternames = clusternames;
+        this.clusterNames = clusterNames;
     }
 
 
@@ -198,6 +190,54 @@ public class AppScaleConfig implements ConfigBase
     public void setVlanNumber ( Integer vlanNumber )
     {
         this.vlanNumber = vlanNumber;
+    }
+
+
+    public String getAppengine ()
+    {
+        return appengine;
+    }
+
+
+    public void setAppengine ( String appengine )
+    {
+        this.appengine = appengine;
+    }
+
+
+    public List<String> getZooList ()
+    {
+        return zooList;
+    }
+
+
+    public void setZooList ( List<String> zooList )
+    {
+        this.zooList = zooList;
+    }
+
+
+    public List<String> getCassList ()
+    {
+        return cassList;
+    }
+
+
+    public void setCassList ( List<String> cassList )
+    {
+        this.cassList = cassList;
+    }
+
+
+    public List<String> getAppenList ()
+    {
+        return appenList;
+    }
+
+
+    public void setAppenList ( List<String> appenList )
+    {
+        this.appenList = appenList;
     }
 
 
