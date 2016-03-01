@@ -243,7 +243,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         String cmdmaster = "echo '  master : " + ipaddr + "' >> /root/AppScalefile";
         this.commandExecute ( containerHost, cmdmaster );
         LOG.info ( "master ip address inserted" );
-        this.commandExecute ( containerHost, "echo 'appengine:' >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo '  appengine:' >> /root/AppScalefile" );
         List<String> appenList = config.getAppenList ();
         for ( String a : appenList )
         {
@@ -252,7 +252,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost appContainerHost = environment.getContainerHostByHostname ( a );
                 String aip = getIPAddress ( appContainerHost );
-                this.commandExecute ( containerHost, "echo '-  " + aip + "' >> /root/AppScalefile" );
+                this.commandExecute ( containerHost, "echo '  - " + aip + "' >> /root/AppScalefile" );
                 LOG.info ( "appengine ip " + aip + " inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
@@ -261,7 +261,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
 
         }
-        this.commandExecute ( containerHost, "echo 'zookeeper:' >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo '  zookeeper:' >> /root/AppScalefile" );
         List<String> zooList = config.getZooList ();
         for ( String z : zooList )
         {
@@ -269,7 +269,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname ( z );
                 String zip = getIPAddress ( zooContainerHost );
-                this.commandExecute ( containerHost, "echo '-  " + zip + "' >> /root/AppScalefile" );
+                this.commandExecute ( containerHost, "echo '  - " + zip + "' >> /root/AppScalefile" );
                 LOG.info ( "zookeeper ip " + zip + " inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
@@ -277,7 +277,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 LOG.error ( "AppScalefile: zookeeper: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo 'database:' >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo '  database:' >> /root/AppScalefile" );
         List<String> cassList = config.getCassList ();
         for ( String cis : cassList )
         {
@@ -285,7 +285,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( cis );
                 String cip = getIPAddress ( cassContainerHost );
-                this.commandExecute ( containerHost, "echo '-  " + cip + "' >> /root/AppScalefile" );
+                this.commandExecute ( containerHost, "echo '  - " + cip + "' >> /root/AppScalefile" );
                 LOG.info ( "cassandra ip " + cip + " inserted" );
             }
             catch ( ContainerHostNotFoundException ex )
