@@ -1,2 +1,5 @@
+io/subutai/usergrid/impl/handler/ClusterOperationHandler$1.class
 io/subutai/usergrid/impl/handler/ClusterOperationHandler.class
 io/subutai/usergrid/impl/UsergridIMPL.class
+io/subutai/usergrid/impl/ClusterConfiguration.class
+io/subutai/usergrid/impl/Commands.class

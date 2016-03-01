@@ -8,6 +8,9 @@ package io.subutai.usergrid.rest;
 
 import io.subutai.common.command.Response;
 import io.subutai.common.environment.Environment;
+import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.tracker.api.Tracker;
+import io.subutai.usergrid.api.UsergridInterface;
 
 
 /**
@@ -17,6 +20,12 @@ import io.subutai.common.environment.Environment;
  */
 public class RestServiceImpl implements RestService
 {
+
+    private UsergridInterface usergridInterface;
+    private Tracker tracker;
+    private EnvironmentManager environmentManager;
+
+
     @Override
     public Response configureCluster ( String clusterName )
     {

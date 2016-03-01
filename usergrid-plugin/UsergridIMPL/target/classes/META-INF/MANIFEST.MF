@@ -1,18 +1,27 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1456828729673
+Bnd-LastModified: 1456837250215
 Build-Jdk: 1.8.0_66
 Built-By: caveman
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai Usergrid Plugin IMPL
 Bundle-SymbolicName: io.subutai.plugin.appscale.impl
 Bundle-Version: 4.0.0.RC7-SNAPSHOT
 Created-By: Apache Maven Bundle Plugin
-Import-Package: io.subutai.common.environment;version="[4.0,5)",io.subut
- ai.common.peer;version="[4.0,5)",io.subutai.common.tracker;version="[4.
- 0,5)",io.subutai.core.environment.api;version="[4.0,5)",io.subutai.core
- .lxc.quota.api;version="[4.0,5)",io.subutai.core.metric.api;version="[4
- .0,5)",io.subutai.core.network.api;version="[4.0,5)",io.subutai.core.pe
- er.api;version="[4.0,5)",io.subutai.core.plugincommon.api;version="[4.0
- ,5)",io.subutai.core.tracker.api;version="[4.0,5)",io.subutai.usergrid.
- api;version="[4.0,5)",org.slf4j;version="[1.7,2)"
+Export-Service: io.subutai.plugin.usergrid.api.UsergridInterface
+Import-Package: com.google.common.base;version="[18.0,19)",io.subutai.co
+ mmon.environment;version="[4.0,5)",io.subutai.common.peer;version="[4.0
+ ,5)",io.subutai.common.tracker;version="[4.0,5)",io.subutai.core.enviro
+ nment.api;version="[4.0,5)",io.subutai.core.lxc.quota.api;version="[4.0
+ ,5)",io.subutai.core.metric.api;version="[4.0,5)",io.subutai.core.netwo
+ rk.api;version="[4.0,5)",io.subutai.core.peer.api;version="[4.0,5)",io.
+ subutai.core.plugincommon.api;version="[4.0,5)",io.subutai.core.tracker
+ .api;version="[4.0,5)",io.subutai.plugin.usergrid.api,io.subutai.plugin
+ .usergrid.impl,io.subutai.usergrid.api;version="[4.0,5)",org.osgi.servi
+ ce.blueprint;version="[1.0.0,2.0.0)",org.slf4j;version="[1.7,2)"
+Import-Service: io.subutai.core.environment.api.EnvironmentManager;multi
+ ple:=false,io.subutai.core.metric.api.Monitor;multiple:=false,io.subuta
+ i.core.network.api.NetworkManager;multiple:=false,io.subutai.core.peer.
+ api.PeerManager;multiple:=false,io.subutai.core.plugincommon.api.Plugin
+ DAO;multiple:=false,io.subutai.core.tracker.api.Tracker;multiple:=false
 Tool: Bnd-2.1.0.20130426-122213

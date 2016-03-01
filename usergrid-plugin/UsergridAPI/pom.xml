@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.subutai</groupId>
-        <artifactId>Usergrid</artifactId>
+        <artifactId>UserGrid</artifactId>
         <version>4.0.0.RC7-SNAPSHOT</version>
     </parent>
     <artifactId>plugin-usergrid-api</artifactId>
@@ -16,6 +16,8 @@
     
     <packaging>bundle</packaging>
     <dependencies>
+        
+        
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>subutai-common</artifactId>
@@ -33,6 +35,7 @@
             <groupId>io.subutai</groupId>
             <artifactId>tracker-api</artifactId>
         </dependency>
+        
 
     </dependencies>
 

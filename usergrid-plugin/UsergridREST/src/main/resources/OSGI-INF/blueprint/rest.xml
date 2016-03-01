@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
+           xmlns:cxf="http://cxf.apache.org/blueprint/core" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+
+  http://cxf.apache.org/blueprint/jaxrs http://cxf.apache.org/schemas/blueprint/jaxrs.xsd">
+  <cxf:bus id="cxfBusAppscale">
+    <cxf:features>
+      <cxf:logging />
+    </cxf:features>
+  </cxf:bus>
+  
+  
+  
+  <jaxrs:server address="/usergrid" id="userGridRestService">
+    <jaxrs:serviceBeans>
+      <ref component-id="userGridRestServiceImpl" />
+    </jaxrs:serviceBeans>
+  </jaxrs:server>
+
+  <reference id="userGridInterface" availability="mandatory"
+             interface="io.subutai.plugin.usergrid.api.UsergridInterface" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  
+
+  <bean id="usergridRestServiceImpl" class="io.subutai.plugin.usergrid.rest.RestServiceImpl">
+    <argument ref="usergridInterface" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+    
+  </bean>
+
+</blueprint>
