@@ -1,0 +1,41 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace-content__row">
+		<div class="b-main-table-border" style = "width: 500px">
+			<table class="b-main-table b-main-table_with-header" style = "width: 500px" align = "center">
+				<tr>
+					<th>Commit ID</th>
+					<td>{{ genericCtrl.info.gitCommitId }}</td>
+				</tr>
+				<tr>
+					<th>Branch</th>
+					<td>{{ genericCtrl.info.gitBranch }}</td>
+				</tr>
+				<tr>
+					<th>Committer name</th>
+					<td>{{ genericCtrl.info.gitCommitUserName }}</td>
+				</tr>
+				<tr>
+					<th>Committer e-mail</th>
+					<td>{{ genericCtrl.info.gitCommitUserEmail }}</td>
+				</tr>
+				<tr>
+				<tr>
+					<th>Builder name</th>
+					<td>{{ genericCtrl.info.gitBuildUserName }}</td>
+				</tr>
+				<tr>
+					<th>Builder e-mail</th>
+					<td>{{ genericCtrl.info.gitBuildUserEmail }}</td>
+				</tr>
+				<tr>
+					<th>Build Time</th>
+					<td>{{ genericCtrl.info.gitBuildTime }}</td>
+				</tr>
+				<tr>
+					<th>Version</th>
+					<td>{{ genericCtrl.info.projectVersion }}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

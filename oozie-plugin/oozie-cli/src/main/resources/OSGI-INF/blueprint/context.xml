@@ -1,0 +1,80 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+    >
+
+  <reference id="oozieManager" availability="mandatory"
+             interface="io.subutai.plugin.oozie.api.Oozie" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="environmentManager"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
+    <command name="oozie/list-clusters">
+      <action class="io.subutai.plugin.oozie.cli.ListClustersCommand">
+        <property name="oozieManager" ref="oozieManager" />
+      </action>
+    </command>
+
+    <command name="oozie/uninstall-cluster">
+      <action class="io.subutai.plugin.oozie.cli.UninstallClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/install-cluster">
+      <action class="io.subutai.plugin.oozie.cli.InstallClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="hadoopManager" ref="hadoopManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/start-cluster">
+      <action class="io.subutai.plugin.oozie.cli.StartClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/stop-cluster">
+      <action class="io.subutai.plugin.oozie.cli.StopClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/check-cluster">
+      <action class="io.subutai.plugin.oozie.cli.CheckClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/describe-cluster">
+      <action class="io.subutai.plugin.oozie.cli.DescribeClusterCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+    <command name="oozie/add-node">
+      <action class="io.subutai.plugin.oozie.cli.AddNodeCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="oozie/uninstall-node">
+      <action class="io.subutai.plugin.oozie.cli.UninstallNodeCommand">
+        <property name="oozieManager" ref="oozieManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+  </command-bundle>
+
+</blueprint>

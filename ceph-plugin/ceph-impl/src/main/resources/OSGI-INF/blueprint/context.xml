@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<blueprint
+    xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+
+  <service id="cephInterface" ref="cephImpl" interface="io.subutai.plugin.ceph.api.Ceph">
+  </service>
+
+  <bean id="cephImpl" class="io.subutai.plugin.ceph.impl.CephImpl"
+        scope="singleton" activation="eager" init-method="init" destroy-method="destroy">
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+    <argument ref="pluginDAO" />
+  </bean>
+
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.ceph.impl.CephWebModule">
+  </bean>
+</blueprint>

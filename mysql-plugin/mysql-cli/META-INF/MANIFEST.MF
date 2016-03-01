@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1448451788092
+Build-Jdk: 1.8.0_60
+Built-By: tzhamakeev
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml
+Bundle-Description: Subutai MySQL Cluster Plugin CLI
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai MySQL Cluster Plugin CLI
+Bundle-SymbolicName: io.subutai.plugin.mysql.cli
+Bundle-Version: 4.0.0.RC3
+Created-By: Apache Maven Bundle Plugin
+Export-Package: io.subutai.plugin.mysql.cli;version="4.0.0.RC3";uses:="i
+ o.subutai.common.tracker,io.subutai.core.tracker.api,io.subutai.plugin.
+ mysql.api,org.apache.karaf.shell.commands,org.apache.karaf.shell.consol
+ e"
+Import-Package: io.subutai.common.tracker;version="[4.0,5)",io.subutai.c
+ ore.env.api,io.subutai.core.tracker.api;version="[4.0,5)",io.subutai.pl
+ ugin.common.api;version="[4.0,5)",io.subutai.plugin.mysql.api;version="
+ [4.0,5)",org.apache.karaf.shell.commands;version="[3.0,4)",org.apache.k
+ araf.shell.console;version="[3.0,4)",org.osgi.service.blueprint;version
+ ="[1.0.0,2.0.0)",org.slf4j;version="[1.7,2)"
+Import-Service: io.subutai.core.env.api.EnvironmentManager;multiple:=fal
+ se,io.subutai.core.tracker.api.Tracker;multiple:=false,io.subutai.plugi
+ n.mysql.api.MySQLC;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213

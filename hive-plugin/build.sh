@@ -1,0 +1,1 @@
+mvn clean install && scp hive-api/target/hive-plugin-api-4.0.0-RC5.jar hive-cli/target/hive-plugin-cli-4.0.0-RC5.jar hive-impl/target/hive-plugin-impl-4.0.0-RC5.jar hive-rest/target/hive-plugin-rest-4.0.0-RC5.jar root@management4.critical-factor.com:/root/ermek/subutai-4.0.0-RC5/deploy

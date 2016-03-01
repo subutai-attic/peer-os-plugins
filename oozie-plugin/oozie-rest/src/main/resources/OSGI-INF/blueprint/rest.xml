@@ -1,0 +1,34 @@
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
+           xmlns:cxf="http://cxf.apache.org/blueprint/core" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+
+  http://cxf.apache.org/blueprint/jaxrs http://cxf.apache.org/schemas/blueprint/jaxrs.xsd">
+  <cxf:bus id="cxfBus1Oozie">
+    <cxf:features>
+      <cxf:logging />
+    </cxf:features>
+  </cxf:bus>
+  <jaxrs:server address="/oozie" id="oozieRestService">
+    <jaxrs:serviceBeans>
+      <ref component-id="oozieRestServiceImpl" />
+    </jaxrs:serviceBeans>
+  </jaxrs:server>
+  <bean id="oozieRestServiceImpl" class="io.subutai.plugin.oozie.rest.RestServiceImpl">
+    <argument ref="oozieManager" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+    <property name="hadoopManager" ref="hadoopManager" />
+
+  </bean>
+  <reference id="oozieManager" availability="mandatory"
+             interface="io.subutai.plugin.oozie.api.Oozie" />
+  <reference id="tracker"  availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+
+
+</blueprint>

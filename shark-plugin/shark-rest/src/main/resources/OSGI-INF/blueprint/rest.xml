@@ -1,0 +1,35 @@
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
+           xmlns:cxf="http://cxf.apache.org/blueprint/core" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+
+  http://cxf.apache.org/blueprint/jaxrs http://cxf.apache.org/schemas/blueprint/jaxrs.xsd">
+  <cxf:bus id="cxfBusShark">
+    <cxf:features>
+      <cxf:logging />
+    </cxf:features>
+  </cxf:bus>
+
+  <reference id="sharkManager" availability="mandatory"
+             interface="io.subutai.plugin.shark.api.Shark" />
+  <reference id="sparkManager" availability="mandatory"
+             interface="io.subutai.plugin.spark.api.Spark" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+
+  <bean id="sharkRestServiceImpl" class="io.subutai.plugin.shark.rest.RestServiceImpl">
+    <argument ref="sharkManager" />
+    <property name="sparkManager" ref="sparkManager" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+  </bean>
+
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+
+  <jaxrs:server address="/shark" id="sharkRestServiceInterface">
+    <jaxrs:serviceBeans>
+      <ref component-id="sharkRestServiceImpl" />
+    </jaxrs:serviceBeans>
+  </jaxrs:server>
+</blueprint>
