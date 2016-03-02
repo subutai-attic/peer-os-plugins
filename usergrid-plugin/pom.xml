@@ -9,6 +9,7 @@
         <module>UsergridAPI</module>
         <module>UsergridIMPL</module>
         <module>UsergridREST</module>
+        <module>UsergridCLI</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,7 +27,7 @@
         <gson.version>2.3.1</gson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+   
     
     <dependencyManagement>
         <dependencies>
@@ -154,6 +155,5 @@
             </plugin>
         </plugins>
     </build>
-    
     
 </project>

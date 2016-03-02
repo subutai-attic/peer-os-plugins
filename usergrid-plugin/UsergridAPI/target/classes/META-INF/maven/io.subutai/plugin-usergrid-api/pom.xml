@@ -29,7 +29,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>plugin-common-core</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>

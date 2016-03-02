@@ -1,18 +1,20 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
     
-    <service id="userGridInterface" ref="userGridImpl" interface="io.subutai.plugin.usergrid.api.UsergridInterface" />
+    <service ref="userGridImpl" interface="io.subutai.plugin.usergrid.api.UsergridInterface" />
     
-    <bean id="userGridImpl" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridIMPL">
+    <bean id="userGridImpl" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridIMPL"
         init-method="init" destroy-method="destroy">
         <argument ref="monitor" />
         <argument ref="pluginDAO" />
-
         <property name="tracker" ref="tracker" />
         <property name="networkManager" ref="networkManager" />
         <property name="environmentManager" ref="environmentManager" />
         <property name="peerManager" ref="peerManager" />
     </bean>
-  
+    <reference id="monitor" availability="mandatory"
+               interface="io.subutai.core.metric.api.Monitor" />
+    <reference id="pluginDAO" 
+               interface="io.subutai.core.plugincommon.api.PluginDAO" />
     <reference id="tracker" availability="mandatory"
                interface="io.subutai.core.tracker.api.Tracker" />
     <reference id="networkManager" availability="mandatory"
@@ -21,8 +23,6 @@
                interface="io.subutai.core.environment.api.EnvironmentManager" />
     <reference id="peerManager" availability="mandatory"
                interface="io.subutai.core.peer.api.PeerManager" />
-    <reference id="monitor" availability="mandatory"
-               interface="io.subutai.core.metric.api.Monitor" />
-    <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+    
     
 </blueprint>

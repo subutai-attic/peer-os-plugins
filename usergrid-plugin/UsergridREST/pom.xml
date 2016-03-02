@@ -3,18 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.subutai</groupId>
-        <artifactId>USERGRID</artifactId>
+        <artifactId>UserGrid</artifactId>
         <version>4.0.0.RC7-SNAPSHOT</version>
     </parent>
     <artifactId>plugin-usergrid-rest</artifactId>
     <packaging>bundle</packaging>
-    
+    <name>Subutai Usergrid Plugin REST</name>
     
     <dependencies>
     <dependency>
       <groupId>io.subutai</groupId>
-      <artifactId>appscale-plugin-api</artifactId>
-      <version>${subutai.mgmt.parent.version}</version>
+      <artifactId>plugin-usergrid-api</artifactId>
+      <version>4.0.0.RC7-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -47,12 +47,6 @@
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-frontend-jaxrs</artifactId>
     </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>plugin-usergrid-api</artifactId>
-            <version>4.0.0.RC7-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
     </dependencies>
 
   <build>
@@ -62,7 +56,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.appscale.rest</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.rest</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>
@@ -71,5 +65,5 @@
       </plugin>
     </plugins>
   </build>
-    <name>Subutai Usergrid Plugin REST</name>
+    
 </project>

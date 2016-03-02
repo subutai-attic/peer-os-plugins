@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+    <reference id="userGridInterface" availability="mandatory"
+               interface="io.subutai.plugin.usergrid.api.UsergridInterface" />
+    <reference id="environmentManager"
+               interface="io.subutai.core.environment.api.EnvironmentManager" />
+    <reference id="tracker"
+               interface="io.subutai.core.tracker.api.Tracker" />
+    
+    
+    <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+        
+        <command name="usergrid/install-clusters">
+            <action class="io.subutai.plugin.usergrid.cli.InstallClusterCommand">
+                <property name="userGridInterface" ref="userGridInterface" />
+                <property name="tracker" ref="tracker" />
+                
+            </action>
+        </command>
+           
+    </command-bundle>
+</blueprint>
