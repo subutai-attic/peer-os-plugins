@@ -23,7 +23,7 @@ public class UsergridConfig implements ConfigBase
     private static final String PRODUCT_NAME = "Usergrid";
     private static final String PRODUCT_KEY = "Usergrid";
     private static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
-
+    private static final String TEMPLATE_NAME = "tomcat";
     private String clusterName;
 
     private String tomcatName;

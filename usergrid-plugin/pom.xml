@@ -10,7 +10,8 @@
         <module>UsergridIMPL</module>
         <module>UsergridREST</module>
         <module>UsergridCLI</module>
-    </modules>
+    <module>UsergridWEBUI</module>
+  </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <subutai.mgmt.parent.version>4.0.0-RC7-SNAPSHOT</subutai.mgmt.parent.version>

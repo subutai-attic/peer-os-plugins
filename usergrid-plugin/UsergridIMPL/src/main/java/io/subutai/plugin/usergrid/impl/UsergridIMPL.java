@@ -6,6 +6,7 @@
 package io.subutai.plugin.usergrid.impl;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +15,12 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -22,11 +29,14 @@ import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.usergrid.api.UsergridConfig;
 import io.subutai.plugin.usergrid.api.UsergridInterface;
+import io.subutai.plugin.usergrid.impl.handler.ClusterOperationHandler;
 
 
 /**
@@ -71,28 +81,73 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     @Override
     public List<String> getClusterList ( Environment name )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        List<String> c = new ArrayList ();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
+        containerHosts.stream ().forEach ( (e)
+                ->
+                {
+                    c.add ( e.getHostname () );
+        } );
+        return c;
     }
 
 
     @Override
     public UUID installCluster ( UsergridConfig usergridConfig )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        LOG.info ( "Install cluster Started..." );
+        Preconditions.checkNotNull ( usergridConfig, "Configuration is null" );
+        Preconditions.checkArgument (
+                !Strings.isNullOrEmpty ( usergridConfig.getClusterName () ), "clusterName is empty or null" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, usergridConfig,
+                                                                                          ClusterOperationType.INSTALL );
+        executor.execute ( abstractOperationHandler );
+        boolean saveInfo = getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_KEY (), usergridConfig.getClusterName (),
+                                                      usergridConfig );
+        if ( saveInfo )
+        {
+            LOG.info ( "Configuration saved to db" );
+        }
+        return abstractOperationHandler.getTrackerId ();
+
+    }
+
+
+    private String getIPAddress ( EnvironmentContainerHost ch )
+    {
+        String ipaddr = null;
+        try
+        {
+
+            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
+            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
+            ipaddr = resultAddr.getStdOut ();
+            ipaddr = ipaddr.replace ( "\n", "" );
+            LOG.info ( "Container IP: " + ipaddr );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "ip address command error : " + ex );
+        }
+        return ipaddr;
+
     }
 
 
     @Override
     public void saveConfig ( UsergridConfig ac ) throws ClusterException
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        if ( !getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_KEY (), ac.getClusterName (), ac ) )
+        {
+            throw new ClusterException ( "Could not save cluster info" );
+        }
     }
 
 
     @Override
     public UsergridConfig getConfig ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return this.userGridConfig;
     }
 
 
@@ -290,6 +345,13 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     {
         this.userGridConfig = usergridConfig;
     }
+
+
+    public PluginDAO getPluginDAO ()
+    {
+        return pluginDAO;
+    }
+
 
 }
 
