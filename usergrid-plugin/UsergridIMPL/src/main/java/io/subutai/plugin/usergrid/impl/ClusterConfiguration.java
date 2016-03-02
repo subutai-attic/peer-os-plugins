@@ -6,14 +6,24 @@
 package io.subutai.plugin.usergrid.impl;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.plugin.usergrid.api.UsergridConfig;
 
 
 /**
@@ -40,7 +50,105 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+
+        UsergridConfig config = ( UsergridConfig ) configBase;
+        String tomcatName = config.getClusterName ();
+        EnvironmentContainerHost tomcatContainerHost = null;
+        try
+        {
+            tomcatContainerHost = environment.getContainerHostByHostname ( tomcatName );
+        }
+        catch ( ContainerHostNotFoundException ex )
+        {
+            LOG.error ( "tomcat container host not found... " + ex );
+        }
+
+        List<String> cassandraNameList = config.getCassandraName ();
+        List<String> elasticSearchList = config.getElasticSName ();
+
+        // start command processes:
+        LOG.info ( "create properties file" );
+        this.commandExecute ( tomcatContainerHost, Commands.getCreatePropertiesFile () );
+        // start pushing properties file...
+        this.pushToProperties ( tomcatContainerHost, "usergrid.cluster_name=" + tomcatName );
+        this.pushToProperties ( tomcatContainerHost, "cassandra.cluster=" + cassandraNameList.get ( 0 ) );
+        this.pushToProperties ( tomcatContainerHost, "cassandra.url=" + this.getIpCSV ( cassandraNameList, environment ) );
+        this.pushToProperties ( tomcatContainerHost, "elasticsearh.cluster=" + elasticSearchList.get ( 0 ) );
+        this.pushToProperties ( tomcatContainerHost, "elasticsearch.hosts=" + this.getIpCSV ( elasticSearchList,
+                                                                                              environment ) );
+        this.pushToProperties ( tomcatContainerHost, Commands.getAdminSuperUserString () );
+        this.pushToProperties ( tomcatContainerHost, Commands.getAutoConfirmString () );
+        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
+                                tomcatContainerHost ) + ":8080/ROOT" );
+        this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
+                                                                                      config.getUserDomain () ) );
+        LOG.info ( "End of creating properties file" );
+        this.commandExecute ( tomcatContainerHost, "sudo cp /root/usergrid-deployment.properties /usr/share/tomcat7/lib" );
+
+    }
+
+
+    private void commandExecute ( EnvironmentContainerHost containerHost, String command )
+    {
+        try
+        {
+            CommandResult responseFrom = containerHost.execute ( new RequestBuilder ( command ).withTimeout ( 10000 ) );
+
+        }
+        catch ( CommandException e )
+        {
+            LOG.error ( "Error while executing \"" + command + "\".\n" + e );
+        }
+    }
+
+
+    private String getIpCSV ( List<String> v, Environment environment )
+    {
+        List<String> ipList = new ArrayList ();
+
+        for ( String cont : v )
+        {
+
+            try
+            {
+                EnvironmentContainerHost e = environment.getContainerHostByHostname ( cont );
+                ipList.add ( this.getIPAddress ( e ) );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null,
+                                                                                                   ex );
+            }
+        }
+        return String.join ( ",", ipList );
+    }
+
+
+    private void pushToProperties ( EnvironmentContainerHost containerHost, String value )
+    {
+        this.commandExecute ( containerHost,
+                              "echo '" + value + "' >> /root/usergrid-deployment.properties" );
+    }
+
+
+    private String getIPAddress ( EnvironmentContainerHost ch )
+    {
+        String ipaddr = null;
+        try
+        {
+
+            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
+            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
+            ipaddr = resultAddr.getStdOut ();
+            ipaddr = ipaddr.replace ( "\n", "" );
+            LOG.info ( "Container IP: " + ipaddr );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "ip address command error : " + ex );
+        }
+        return ipaddr;
+
     }
 
 }

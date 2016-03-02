@@ -25,5 +25,76 @@ public class Commands
     }
 
 
+    public static String getCreatePropertiesFile ()
+    {
+        return "sudo touch /root/usergrid-deployment.properties";
+    }
+
+
+    public static String getAdminSuperUserString ()
+    {
+        return "######################################################\n"
+                + "# Admin and test user setup\n"
+                + "usergrid.sysadmin.login.allowed=true\n"
+                + "usergrid.sysadmin.login.name=superuser\n"
+                + "usergrid.sysadmin.login.password=usergrid\n"
+                + "usergrid.sysadmin.login.email=usergrid@usergrid.com\n"
+                + "\n"
+                + "usergrid.sysadmin.email=usergrid@usergrid.com\n"
+                + "usergrid.sysadmin.approve.users=true\n"
+                + "usergrid.sysadmin.approve.organizations=true\n"
+                + "\n"
+                + "# Base mailer account - default for all outgoing messages\n"
+                + "usergrid.management.mailer=Admin <usergrid@usergrid.com>\n"
+                + "\n"
+                + "usergrid.setup-test-account=true\n"
+                + "usergrid.test-account.app=test-app\n"
+                + "usergrid.test-account.organization=test-organization\n"
+                + "usergrid.test-account.admin-user.username=test\n"
+                + "usergrid.test-account.admin-user.name=Test User\n"
+                + "usergrid.test-account.admin-user.email=testadmin@usergrid.com\n"
+                + "usergrid.test-account.admin-user.password=testadmin";
+    }
+
+
+    public static String getAutoConfirmString ()
+    {
+        return "######################################################\n"
+                + "# Auto-confirm and sign-up notifications settings\n"
+                + "\n"
+                + "usergrid.management.admin_users_require_confirmation=false\n"
+                + "usergrid.management.admin_users_require_activation=false\n"
+                + "\n"
+                + "usergrid.management.organizations_require_activation=false\n"
+                + "usergrid.management.notify_sysadmin_of_new_organizations=true\n"
+                + "usergrid.management.notify_sysadmin_of_new_admin_users=true";
+    }
+
+
+    public static String getBaseURL ()
+    {
+        return "######################################################\n"
+                + "# URLs\n"
+                + "\n"
+                + "# Redirect path when request come in for TLD\n"
+                + "usergrid.redirect_root=${BASEURL}/status\n"
+                + "\n"
+                + "usergrid.view.management.organizations.organization.activate=${BASEURL}/accounts/welcome\n"
+                + "usergrid.view.management.organizations.organization.confirm=${BASEURL}/accounts/welcome\n"
+                + "\n"
+                + "usergrid.view.management.users.user.activate=${BASEURL}/accounts/welcome\n"
+                + "usergrid.view.management.users.user.confirm=${BASEURL}/accounts/welcome\n"
+                + "\n"
+                + "usergrid.admin.confirmation.url=${BASEURL}/management/users/%s/confirm\n"
+                + "usergrid.user.confirmation.url=${BASEURL}/%s/%s/users/%s/confirm\n"
+                + "usergrid.organization.activation.url=${BASEURL}/management/organizations/%s/activate\n"
+                + "usergrid.admin.activation.url=${BASEURL}/management/users/%s/activate\n"
+                + "usergrid.user.activation.url=${BASEURL}%s/%s/users/%s/activate\n"
+                + "\n"
+                + "usergrid.admin.resetpw.url=${BASEURL}/management/users/%s/resetpw\n"
+                + "usergrid.user.resetpw.url=${BASEURL}/%s/%s/users/%s/resetpw";
+    }
+
+
 }
 

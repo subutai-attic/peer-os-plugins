@@ -34,6 +34,7 @@ public class UsergridConfig implements ConfigBase
     private List<String> nodes;
     private String environmentId;
     private String tracker;
+    private String userDomain;
 
 
     public String getClusterName ()
@@ -153,6 +154,18 @@ public class UsergridConfig implements ConfigBase
     public void setTracker ( String tracker )
     {
         this.tracker = tracker;
+    }
+
+
+    public String getUserDomain ()
+    {
+        return userDomain;
+    }
+
+
+    public void setUserDomain ( String userDomain )
+    {
+        this.userDomain = userDomain;
     }
 
 

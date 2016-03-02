@@ -13,8 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import io.subutai.common.command.Response;
 import io.subutai.common.environment.Environment;
 
 
@@ -50,7 +50,11 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName );
+    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName,
+                                @FormParam ( "userDomain" ) String userDomain,
+                                @FormParam ( "cassandraCSV" ) String cassandraCSV,
+                                @FormParam ( "elasticSearchCSV" ) String elasticSearchCSV,
+                                @FormParam ( "environmentId" ) String environmentId );
 
 }
 
