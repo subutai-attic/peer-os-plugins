@@ -8,7 +8,6 @@ package io.subutai.plugin.usergrid.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private final TrackerOperation po;
     private final UsergridIMPL usergridImplManager;
+    private final String catalinaHome = "/usr/share/tomcat7";
+    private final String catalinaBase = "/var/lib/tomcat7";
 
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
@@ -73,7 +74,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.pushToProperties ( tomcatContainerHost, "usergrid.cluster_name=" + tomcatName );
         this.pushToProperties ( tomcatContainerHost, "cassandra.cluster=" + cassandraNameList.get ( 0 ) );
         this.pushToProperties ( tomcatContainerHost, "cassandra.url=" + this.getIpCSV ( cassandraNameList, environment ) );
-        this.pushToProperties ( tomcatContainerHost, "elasticsearh.cluster=" + elasticSearchList.get ( 0 ) );
+        this.pushToProperties ( tomcatContainerHost, "elasticsearch.cluster=" + elasticSearchList.get ( 0 ) );
         this.pushToProperties ( tomcatContainerHost, "elasticsearch.hosts=" + this.getIpCSV ( elasticSearchList,
                                                                                               environment ) );
         this.pushToProperties ( tomcatContainerHost, Commands.getAdminSuperUserString () );
@@ -83,7 +84,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
                                                                                       config.getUserDomain () ) );
         LOG.info ( "End of creating properties file" );
-        this.commandExecute ( tomcatContainerHost, "sudo cp /root/usergrid-deployment.properties /usr/share/tomcat7/lib" );
+        this.commandExecute ( tomcatContainerHost,
+                              "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
+        LOG.info ( "Restart TOMCAT7" );
+        this.commandExecute ( tomcatContainerHost, Commands.getTomcatRestart () );
 
     }
 
@@ -106,20 +110,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         List<String> ipList = new ArrayList ();
 
-        for ( String cont : v )
-        {
-
-            try
-            {
-                EnvironmentContainerHost e = environment.getContainerHostByHostname ( cont );
-                ipList.add ( this.getIPAddress ( e ) );
-            }
-            catch ( ContainerHostNotFoundException ex )
-            {
-                java.util.logging.Logger.getLogger ( ClusterConfiguration.class.getName () ).log ( Level.SEVERE, null,
-                                                                                                   ex );
-            }
-        }
+        v.stream ().forEach ( (cont)
+                ->
+                {
+                    try
+                    {
+                        ipList.add ( this.getIPAddress ( environment.getContainerHostByHostname ( cont ) ) );
+                    }
+                    catch ( ContainerHostNotFoundException ex )
+                    {
+                        LOG.error ( "Container Not found while getting ip: " + ex );
+                    }
+        } );
         return String.join ( ",", ipList );
     }
 

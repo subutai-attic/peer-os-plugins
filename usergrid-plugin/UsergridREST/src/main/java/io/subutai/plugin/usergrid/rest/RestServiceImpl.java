@@ -7,6 +7,8 @@ package io.subutai.plugin.usergrid.rest;
 
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
@@ -66,37 +69,39 @@ public class RestServiceImpl implements RestService
     @Override
     public Response listClusterUI ( Environment environmentID )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        Set<EnvironmentContainerHost> containerHosts = environmentID.getContainerHosts ();
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( containerHosts ) ).build ();
     }
 
 
     @Override
     public Response listClustersDB ()
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        List<UsergridConfig> clusters = userGridInterface.getClusters ();
+        return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( clusters ) ).build ();
     }
 
 
     private Response createResponse ( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.getPRODUCT_NAME (), uuid );
-        if ( state == OperationState.FAILED )
+        if ( null != state )
         {
-            return javax.ws.rs.core.Response.status ( javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR ).entity (
-                    JsonUtil.toJson ( po.getLog () ) )
-                    .build ();
+            switch ( state )
+            {
+                case FAILED:
+                    return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity (
+                            JsonUtil.toJson ( po.getLog () ) )
+                            .build ();
+                case SUCCEEDED:
+                    return Response.status ( Response.Status.OK ).entity (
+                            JsonUtil.toJson (
+                                    JsonUtil.toJson ( po.getLog () ) ) )
+                            .build ();
+            }
         }
-        else if ( state == OperationState.SUCCEEDED )
-        {
-            return javax.ws.rs.core.Response.status ( javax.ws.rs.core.Response.Status.OK ).entity ( JsonUtil.toJson (
-                    JsonUtil.toJson ( po.getLog () ) ) )
-                    .build ();
-        }
-        else
-        {
-            return javax.ws.rs.core.Response.status ( javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR ).entity (
-                    "Timeout" ).build ();
-        }
+        return Response.status ( javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR ).entity (
+                "Timeout" ).build ();
     }
 
 

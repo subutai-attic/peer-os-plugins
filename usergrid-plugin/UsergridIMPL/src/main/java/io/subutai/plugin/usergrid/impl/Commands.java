@@ -27,7 +27,13 @@ public class Commands
 
     public static String getCreatePropertiesFile ()
     {
-        return "sudo touch /root/usergrid-deployment.properties";
+        return "touch /root/usergrid-deployment.properties";
+    }
+
+
+    public static String getTomcatRestart ()
+    {
+        return "/etc/init.d/tomcat7 restart";
     }
 
 
