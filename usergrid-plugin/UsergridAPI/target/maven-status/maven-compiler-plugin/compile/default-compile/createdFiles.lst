@@ -1,5 +1,5 @@
 io/subutai/plugin/usergrid/api/UsergridConfig.class
 io/subutai/plugin/usergrid/api/UsergridNodeOperationTask.class
-io/subutai/plugin/usergrid/api/UsergridInterface.class
 io/subutai/plugin/usergrid/api/CompleteEvent.class
+io/subutai/plugin/usergrid/api/UsergridInterface.class
 io/subutai/plugin/usergrid/api/UsergridNodeOperationTask$1.class
