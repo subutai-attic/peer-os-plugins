@@ -1,6 +1,7 @@
 <ul class="b-popup-body-list b-popup-body-list_table">
   <li class="b-popup-body-list-table__link"
       ng-repeat="item in items"
+      ng-if="selected.indexOf(item) < 0"
       ng-click="select(item)">
     {{ item }}
   </li>

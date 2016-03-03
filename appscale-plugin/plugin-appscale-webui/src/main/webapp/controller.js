@@ -52,9 +52,10 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 				vm.environments = temp;
-				console.log (vm.environments);
+
 				if (vm.environments.length === 0) {
-					SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+					// @todo
+					//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 				}
 				else {
 					vm.currentEnvironment = vm.environments[0];
@@ -110,7 +111,8 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			}
 			vm.environments = temp;
 			if (vm.environments.length === 0) {
-				SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+				// @todo
+				//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 			}
 			else {
 				vm.currentEnvironment = vm.environments[0];
