@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('subutai.plugins.appscale.controller', [])
-        .controller('AppscaleCtrl', AppscaleCtrl)
-		.directive('mSelect', initMSelect);
+	.controller('AppscaleCtrl', AppscaleCtrl)
+	.directive('mSelect', initMSelect);
 
 AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog'];
 
@@ -22,9 +22,8 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
-            console.log (data);
-            vm.environments = [];
-            vm.nodes = [];
+			vm.environments = [];
+			vm.nodes = [];
 			vm.hostnames = [];
 			for (var i = 0; i < data.length; ++i)
 			{
@@ -77,7 +76,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 
 
 	getContainers();
-    vm.changeNodes = changeNodes;
+	vm.changeNodes = changeNodes;
 	function changeNodes() {
 		vm.nodes = [];
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
@@ -139,7 +138,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		}
 	}
 
-    vm.build = build;
+	vm.build = build;
 	function build() {
 		if (vm.config.userDomain === "") {
 			SweetAlert.swal ("ERROR!", 'Please enter domain', "error");
@@ -194,18 +193,10 @@ function initMSelect()
 		$scope.select = function( id )
 		{
 			$scope.selected.push( id );
-
-			var idx = $scope.items.indexOf(id);
-			if( idx > -1 )
-			{
-				$scope.items.splice(idx, 1);
-			}
 		};
 
 		$scope.deselect = function( id )
 		{
-			$scope.items.push( id );
-
 			var idx = $scope.selected.indexOf(id);
 			if( idx > -1 )
 			{
@@ -216,15 +207,13 @@ function initMSelect()
 		$scope.selectAll = function( )
 		{
 			$scope.selected = $scope.selected.concat( $scope.items );
-			$scope.items = [];
 		};
 
 		$scope.deselectAll = function( )
 		{
-			$scope.items = $scope.items.concat( $scope.selected );
 			$scope.selected = [];
 		};
-		}];
+	}];
 
 	return {
 		restrict: 'E',
