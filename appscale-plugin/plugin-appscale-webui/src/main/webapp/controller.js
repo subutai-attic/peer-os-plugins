@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('subutai.plugins.appscale.controller', [])
-        .controller('AppscaleCtrl', AppscaleCtrl);
+        .controller('AppscaleCtrl', AppscaleCtrl)
+		.directive('mSelect', initMSelect);
 
 AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog'];
 
@@ -16,6 +17,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.environments = [];
 	vm.currentCluster = {};
 	vm.clusters = [];
+	vm.hostnames = [];
 
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
@@ -23,6 +25,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
             console.log (data);
             vm.environments = [];
             vm.nodes = [];
+			vm.hostnames = [];
 			for (var i = 0; i < data.length; ++i)
 			{
 				for (var j = 0; j < data[i].containers.length; ++j) {
@@ -33,7 +36,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 				}
 			}
 			appscaleSrv.listClusters().success (function (data) {
-				console.log (data);
+
 				vm.clusters = data;
 				vm.currentCluster = vm.clusters[0];
 				var temp = [];
@@ -59,11 +62,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 						if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 							vm.nodes.push (vm.currentEnvironment.containers [i]);
+							vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 						}
 					}
 					vm.config.master = vm.nodes[0];
-					vm.config.zookeeper = vm.nodes[0];
-					vm.config.db = vm.nodes[0];
+					vm.config.appeng = [];
+					vm.config.zookeeper = [];
+					vm.config.db = [];
 					vm.config.environment = vm.currentEnvironment;
 				}
 			});
@@ -81,8 +86,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			}
 		}
 		vm.config.master = vm.nodes[0];
-		vm.config.zookeeper = vm.nodes[0];
-		vm.config.db = vm.nodes[0];
+		vm.config.appeng = [];
+		vm.config.zookeeper = [];
+		vm.config.db = [];
 		vm.config.environment = vm.currentEnvironment;
 	}
 
@@ -115,8 +121,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 				vm.config.master = vm.nodes[0];
-				vm.config.zookeeper = vm.nodes[0];
-				vm.config.db = vm.nodes[0];
+				vm.config.appeng = [];
+				vm.config.zookeeper = [];
+				vm.config.db = [];
 				vm.config.environment = vm.currentEnvironment;
 			}
 		});
@@ -175,5 +182,57 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			LOADING_SCREEN ('none');
 			SweetAlert.swal ("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
 		});
+	}
+}
+
+function initMSelect()
+{
+	var controller = ['$scope', function ($scope) {
+
+		$scope.selected = [];
+
+		$scope.select = function( id )
+		{
+			$scope.selected.push( id );
+
+			var idx = $scope.items.indexOf(id);
+			if( idx > -1 )
+			{
+				$scope.items.splice(idx, 1);
+			}
+		};
+
+		$scope.deselect = function( id )
+		{
+			$scope.items.push( id );
+
+			var idx = $scope.selected.indexOf(id);
+			if( idx > -1 )
+			{
+				$scope.selected.splice(idx, 1);
+			}
+		};
+
+		$scope.selectAll = function( )
+		{
+			$scope.selected = $scope.selected.concat( $scope.items );
+			$scope.items = [];
+		};
+
+		$scope.deselectAll = function( )
+		{
+			$scope.items = $scope.items.concat( $scope.selected );
+			$scope.selected = [];
+		};
+		}];
+
+	return {
+		restrict: 'E',
+		scope: {
+			items: '=',
+			selected: '='
+		},
+		templateUrl : 'plugins/appscale/directives/m-select.html',
+		controller : controller
 	}
 }
