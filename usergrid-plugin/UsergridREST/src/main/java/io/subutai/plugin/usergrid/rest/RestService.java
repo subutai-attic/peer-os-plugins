@@ -50,11 +50,16 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName,
-                                @FormParam ( "userDomain" ) String userDomain,
-                                @FormParam ( "cassandraCSV" ) String cassandraCSV,
-                                @FormParam ( "elasticSearchCSV" ) String elasticSearchCSV,
-                                @FormParam ( "environmentId" ) String environmentId );
+    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName, // this is tomcat template and single selection
+                                @FormParam ( "userDomain" ) String userDomain, // user will enter the desired domain name
+                                @FormParam ( "cassandraCSV" ) String cassandraCSV, // cassandra templates...
+                                @FormParam ( "elasticSearchCSV" ) String elasticSearchCSV, // elastic search templates
+                                @FormParam ( "environmentId" ) String environmentId ); // env.id will be send from ui
+    /*
+     * for each of the boxes only the related templates will be listed. for example if master (clustername) there will
+     * be only tomcat templates and for cassandra only cassandra template will be listed for elastic only elasticsearch
+     * templates will be listed
+     */
 
 }
 

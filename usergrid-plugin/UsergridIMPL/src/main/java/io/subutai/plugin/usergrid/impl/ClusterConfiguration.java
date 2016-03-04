@@ -83,6 +83,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                 tomcatContainerHost ) + ":8080/ROOT" );
         this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
                                                                                       config.getUserDomain () ) );
+        // end of pushing into file
         LOG.info ( "End of creating properties file" );
         this.commandExecute ( tomcatContainerHost,
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );

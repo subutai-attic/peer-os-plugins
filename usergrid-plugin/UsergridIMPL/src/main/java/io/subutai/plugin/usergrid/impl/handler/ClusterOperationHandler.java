@@ -6,13 +6,17 @@
 package io.subutai.plugin.usergrid.impl.handler;
 
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -108,7 +112,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
     @Override
     public void destroyCluster ()
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        try
+        {
+            Environment env = manager.getEnvironmentManager ().loadEnvironment ( clusterName );
+            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+            containerHosts.stream ().forEach ( (cont)
+                    ->
+                    {
+                        try
+                        {
+                            env.destroyContainer ( cont, true );
+                        }
+                        catch ( EnvironmentNotFoundException | EnvironmentModificationException ex )
+                        {
+                            LOG.error ( "Destroy container error: " + ex );
+                        }
+            } );
+        }
+        catch ( EnvironmentNotFoundException ex )
+        {
+            LOG.error ( "destroy container environment not found error: " + ex );
+        }
     }
 
 }
