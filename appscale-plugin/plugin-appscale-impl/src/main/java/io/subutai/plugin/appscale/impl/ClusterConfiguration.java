@@ -169,10 +169,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.info ( "****************** STDOUT *******************" + vlanString );
 
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+                    "sudo subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + vlanString + " -h " + ipAddress ) );
+                    "sudo subutai proxy add " + vlanString + " -h " + ipAddress ) );
 
         }
         catch ( HostNotFoundException | CommandException ex )
