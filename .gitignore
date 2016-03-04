@@ -9,7 +9,6 @@
 .classpath
 .settings
 .metadata
-git.properties
 target
 
 # Package Files #
@@ -23,46 +22,4 @@ server/core/broker/broker-impl/activemq-data
 *.log
 *substvars
 files
-
-# Eclipse
-.classpath
-.project
-.settings/
-
-# Intellij
-.idea/
-*.iml
-*.iws
-
-# Mac
-.DS_Store
-
-debian/zookeeper-subutai-plugin
-debian/storm-subutai-plugin
-debian/sqoop-subutai-plugin
-debian/spark-subutai-plugin
-debian/solr-subutai-plugin
-debian/shark-subutai-plugin
-debian/presto-subutai-plugin
-debian/pig-subutai-plugin
-debian/oozie-subutai-plugin
-debian/nutch-subutai-plugin
-debian/mongo-subutai-plugin
-debian/mahout-subutai-plugin
-debian/lucene-subutai-plugin
-debian/hive-subutai-plugin
-debian/hipi-subutai-plugin
-debian/hbase-subutai-plugin
-debian/hadoop-subutai-plugin
-debian/storm-subutai-plugin
-debian/flume-subutai-plugin
-debian/elasticsearch-subutai-plugin
-debian/ceph-plugin-kar
-debian/hadoop-subutai-plugin
-debian/hipi-subutai-plugin
-debian/accumulo-subutai-plugin
-
-*-subutai-plugin-debian-build/
-*.log
-*substvars
-files
+debian/appscale-subutai-plugin
