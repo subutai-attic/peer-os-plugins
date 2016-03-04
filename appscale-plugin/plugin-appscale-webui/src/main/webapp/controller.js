@@ -52,9 +52,10 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 				vm.environments = temp;
-				console.log (vm.environments);
+
 				if (vm.environments.length === 0) {
-					SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+					// @todo
+					//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 				}
 				else {
 					vm.currentEnvironment = vm.environments[0];
@@ -65,6 +66,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 						}
 					}
 					vm.config.master = vm.nodes[0];
+
+					var index = vm.hostnames.indexOf(vm.config.master.hostname);
+
+					if (index > -1) {
+						vm.hostnames = vm.hostnames.splice(index, 1);
+					}
+
 					vm.config.appeng = [];
 					vm.config.zookeeper = [];
 					vm.config.db = [];
@@ -79,12 +87,21 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.changeNodes = changeNodes;
 	function changeNodes() {
 		vm.nodes = [];
+		vm.hostnames = [];
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 			if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 				vm.nodes.push (vm.currentEnvironment.containers[i]);
+				vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 			}
 		}
 		vm.config.master = vm.nodes[0];
+
+		var index = vm.hostnames.indexOf(vm.config.master.hostname);
+
+		if (index > -1) {
+			vm.hostnames = vm.hostnames.splice(index, 1);
+		}
+
 		vm.config.appeng = [];
 		vm.config.zookeeper = [];
 		vm.config.db = [];
@@ -110,16 +127,25 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			}
 			vm.environments = temp;
 			if (vm.environments.length === 0) {
-				SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+				// @todo
+				//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 			}
 			else {
 				vm.currentEnvironment = vm.environments[0];
 				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 					if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 						vm.nodes.push (vm.currentEnvironment.containers [i]);
+						vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 					}
 				}
 				vm.config.master = vm.nodes[0];
+
+				var index = vm.hostnames.indexOf(vm.config.master.hostname);
+
+				if (index > -1) {
+					vm.hostnames = vm.hostnames.splice(index, 1);
+				}
+
 				vm.config.appeng = [];
 				vm.config.zookeeper = [];
 				vm.config.db = [];
@@ -181,6 +207,19 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			LOADING_SCREEN ('none');
 			SweetAlert.swal ("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
 		});
+	}
+
+	vm.masterChanged = function() {
+		vm.hostnames = [];
+		for( var i = 0; i < vm.nodes; i++ ) {
+			vm.hostnames.push( vm.nodes[i].hostname )
+		}
+
+		var index = vm.hostnames.indexOf(vm.config.master.hostname);
+
+		if (index > -1) {
+			vm.hostnames = vm.hostnames.splice(index, 1);
+		}
 	}
 }
 

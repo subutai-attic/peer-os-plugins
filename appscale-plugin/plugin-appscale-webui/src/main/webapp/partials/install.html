@@ -1,6 +1,8 @@
 <div class="b-workspace-content b-workspace-content_border">
-	<div class="b-workspace-content-row_col-4">
-		<div class="b-form">
+
+	<div class="b-form">
+
+		<div class="b-form__coll">
 			<div class="b-form-group">
 				<label for="user-domain" class="b-form-label">Domain</label>
 				<input type = "text" class="b-form-input b-form-input_full" placeholder = "Enter domain for appscale console (e.g., myappscale.com)" ng-model = "appscaleCtrl.config.userDomain" id="user-domain" required>
@@ -12,23 +14,36 @@
 			</div>
 			<div class="b-form-group">
 				<label for="master-name" class="b-form-label">Controller container name</label>
-				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-change="appscaleCtrl.masterChanged()" ng-options = "container.hostname for container in appscaleCtrl.nodes">
 				</select>
-			</div>
+			</div>		
+		</div>		
+		<div class="clear"></div>
+
+		<div class="b-form__coll">
 			<div class="b-form-group">
-				<label class="b-form-label">Appscale</label>
+				<label class="b-form-label">App Engine</label>
 				<m-select items="appscaleCtrl.hostnames" selected="appscaleCtrl.config.appeng"></m-select>
 			</div>
+		</div>
+
+		<div class="b-form__coll">
 			<div class="b-form-group">
 				<label class="b-form-label">Zookeeper container name</label>
 				<m-select items="appscaleCtrl.hostnames" selected="appscaleCtrl.config.zookeeper"></m-select>
 			</div>
+		</div>
+
+		<div class="b-form__coll">
 			<div class="b-form-group">
 				<label class="b-form-label">Database container name</label>
 				<m-select items="appscaleCtrl.hostnames" selected="appscaleCtrl.config.db"></m-select>
 			</div>
 		</div>
-		<a href class="b-btn b-btn_green g-left" ng-click = "appscaleCtrl.build()" style = "margin-right: 10px">Install</a>
+
 		<div class="clear"></div>
 	</div>
+	<div class="clear"></div>
+
+	<button class="b-btn b-btn_green" ng-click = "appscaleCtrl.build()" style="margin-top: 30px">Install</button>
 </div>
