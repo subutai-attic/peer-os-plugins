@@ -1,5 +1,6 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
-    
+
+    <!-- service -->
     <service ref="userGridImpl" interface="io.subutai.plugin.usergrid.api.UsergridInterface" />
     
     <bean id="userGridImpl" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridIMPL"
@@ -23,6 +24,11 @@
                interface="io.subutai.core.environment.api.EnvironmentManager" />
     <reference id="peerManager" availability="mandatory"
                interface="io.subutai.core.peer.api.PeerManager" />
-    
-    
+
+
+    <!-- service -->
+    <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+    <bean id="module" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridWebModule">
+    </bean>
 </blueprint>

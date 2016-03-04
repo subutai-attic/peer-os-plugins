@@ -23,14 +23,14 @@
             <version>4.0.0-RC7-SNAPSHOT</version>
       
         </dependency>
-        <!--
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>webui</artifactId>
             <classifier>classes</classifier>
             <version>4.0.0-RC7-SNAPSHOT</version>
         </dependency>
-        -->
+
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>environment-manager-api</artifactId>
