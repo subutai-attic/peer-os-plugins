@@ -87,8 +87,24 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "End of creating properties file" );
         this.commandExecute ( tomcatContainerHost,
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
+
+        this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
+        this.commandExecute ( tomcatContainerHost, Commands.getCopyPortal () );
+        this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
+        this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
+        LOG.info ( "**************************************ALL DONE**************************************" );
         LOG.info ( "Restart TOMCAT7" );
         this.commandExecute ( tomcatContainerHost, Commands.getTomcatRestart () );
+        LOG.info ( "**************************************TOMCAT RESTARTED**************************************" );
+        if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_NAME (),
+                                                             configBase.getClusterName (), configBase ) )
+        {
+            LOG.error ( "Usergrid can NOT be saved to DB" );
+        }
+        else
+        {
+            LOG.info ( "Usergrid SAVED to DB" );
+        }
 
     }
 

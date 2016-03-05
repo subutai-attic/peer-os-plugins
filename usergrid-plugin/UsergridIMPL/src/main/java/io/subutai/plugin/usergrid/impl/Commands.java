@@ -17,6 +17,8 @@ import io.subutai.plugin.usergrid.api.UsergridConfig;
 public class Commands
 {
     UsergridConfig usergridConfig;
+    private static String catalinaHome = "/usr/share/tomcat7";
+    private static String catalinaBase = "/var/lib/tomcat7";
 
 
     public Commands ( UsergridConfig config )
@@ -34,6 +36,30 @@ public class Commands
     public static String getTomcatRestart ()
     {
         return "/etc/init.d/tomcat7 restart";
+    }
+
+
+    public static String getCopyRootWAR ()
+    {
+        return "cp /root/ROOT.war " + catalinaBase + "/webapps";
+    }
+
+
+    public static String getCopyPortal ()
+    {
+        return "cp /root/usergrid-portal.tar" + catalinaBase + "/webapps";
+    }
+
+
+    public static String getUntarPortal ()
+    {
+        return "tar xf " + catalinaBase + "/webapps/usergrid-portal.tar";
+    }
+
+
+    public static String getRenamePortal ()
+    {
+        return "mv " + catalinaBase + "/webapps/usergrid-portal.2.0.18 " + catalinaBase + "/webapps/portal";
     }
 
 

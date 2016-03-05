@@ -1,13 +1,7 @@
 Manifest-Version: 1.0
-<<<<<<< HEAD
-Bnd-LastModified: 1457004301687
+Bnd-LastModified: 1457102973617
 Build-Jdk: 1.8.0_66
 Built-By: caveman
-=======
-Bnd-LastModified: 1457100087554
-Build-Jdk: 1.8.0_74
-Built-By: ubuntu
->>>>>>> 7252179c47b9f6cdda7cd88e1a8095dea6c14045
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai Usergrid Plugin IMPL
