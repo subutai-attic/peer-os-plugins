@@ -41,6 +41,7 @@ public class AppScaleConfig implements ConfigBase
     private List<String> clusterNames;
     private String userDomain;
     private int vlanNumber;
+    private String scaleOption;
 
 
     public AppScaleConfig ()
@@ -238,6 +239,18 @@ public class AppScaleConfig implements ConfigBase
     public void setAppenList ( List<String> appenList )
     {
         this.appenList = appenList;
+    }
+
+
+    public String getScaleOption ()
+    {
+        return scaleOption;
+    }
+
+
+    public void setScaleOption ( String scaleOption )
+    {
+        this.scaleOption = scaleOption;
     }
 
 

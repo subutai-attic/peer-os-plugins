@@ -73,7 +73,8 @@ public interface RestService
                                 @FormParam ( "zookeeperName" ) String zookeeperName,
                                 @FormParam ( "cassandraName" ) String cassandraName,
                                 @FormParam ( "envID" ) String envID,
-                                @FormParam ( "userDomain" ) String userDomain );
+                                @FormParam ( "userDomain" ) String userDomain,
+                                @FormParam ( "scaleOption" ) String scaleOption );
 
 
     @DELETE

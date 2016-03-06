@@ -48,6 +48,9 @@ public class InstallClusterCommand extends OsgiCommandSupport
     @Argument ( index = 5, name = "cassandraName", description = "name of cassandraName", required = false, multiValued = false )
     private String cassandraName = null;
 
+    @Argument ( index = 6, name = "scaleOption", description = "scale option, static / scale", required = false, multiValued = false )
+    private String scaleOption = null;
+
 
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
@@ -165,6 +168,18 @@ public class InstallClusterCommand extends OsgiCommandSupport
     }
 
 
+    public String getScaleOption ()
+    {
+        return scaleOption;
+    }
+
+
+    public void setScaleOption ( String scaleOption )
+    {
+        this.scaleOption = scaleOption;
+    }
+
+
     @Override
     protected Object doExecute () throws Exception
     {
@@ -175,6 +190,11 @@ public class InstallClusterCommand extends OsgiCommandSupport
         appScaleConfig.setDomainName ( domainName );
         appScaleConfig.setTracker ( clusterName );
         appScaleConfig.setUserDomain ( userDomain );
+        if ( scaleOption == null )
+        {
+            scaleOption = "static";
+        }
+        appScaleConfig.setScaleOption ( scaleOption );
 
         if ( zookeeperName != null )
         {

@@ -157,13 +157,17 @@ public class RestServiceImpl implements RestService
     @Override
     public Response configureCluster ( String clusterName, String appengineName, String zookeeperName,
                                        String cassandraName, String envID,
-                                       String userDomain )
+                                       String userDomain, String scaleOption )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig ();
 
         appScaleConfig.setClusterName ( clusterName );
         appScaleConfig.setUserDomain ( userDomain );
-
+        if ( scaleOption == null )
+        {
+            scaleOption = "static";
+        }
+        appScaleConfig.setScaleOption ( scaleOption );
         if ( !zookeeperName.isEmpty () )
         {
 
