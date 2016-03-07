@@ -70,7 +70,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					var index = vm.hostnames.indexOf(vm.config.master.hostname);
 
 					if (index > -1) {
-						vm.hostnames = vm.hostnames.splice(index, 1);
+						vm.hostnames.splice(index, 1);
 					}
 
 					vm.config.appeng = [];
@@ -99,7 +99,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		var index = vm.hostnames.indexOf(vm.config.master.hostname);
 
 		if (index > -1) {
-			vm.hostnames = vm.hostnames.splice(index, 1);
+			vm.hostnames.splice(index, 1);
 		}
 
 		vm.config.appeng = [];
@@ -143,7 +143,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 				var index = vm.hostnames.indexOf(vm.config.master.hostname);
 
 				if (index > -1) {
-					vm.hostnames = vm.hostnames.splice(index, 1);
+					vm.hostnames.splice(index, 1);
 				}
 
 				vm.config.appeng = [];
@@ -211,14 +211,14 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 
 	vm.masterChanged = function() {
 		vm.hostnames = [];
-		for( var i = 0; i < vm.nodes; i++ ) {
+		for( var i = 0; i < vm.nodes.length; i++ ) {
 			vm.hostnames.push( vm.nodes[i].hostname )
 		}
 
 		var index = vm.hostnames.indexOf(vm.config.master.hostname);
 
 		if (index > -1) {
-			vm.hostnames = vm.hostnames.splice(index, 1);
+			vm.hostnames.splice(index, 1);
 		}
 	}
 }
