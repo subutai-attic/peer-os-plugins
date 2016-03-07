@@ -19,6 +19,8 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.clusters = [];
 	vm.hostnames = [];
 
+	vm.checked = false;
+
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
@@ -220,6 +222,10 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		if (index > -1) {
 			vm.hostnames.splice(index, 1);
 		}
+	};
+
+	vm.toggleScale = function( val ) {
+		vm.checked = val;
 	}
 }
 
