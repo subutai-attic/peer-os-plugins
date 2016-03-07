@@ -66,7 +66,61 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
         LOG.info ( "ClusterConfiguration :: configureCluster " );
+        AppScaleConfig config = ( AppScaleConfig ) configBase;
 
+        if ( "static".equals ( config.getScaleOption () ) )
+        {
+            this.installAsStatic ( configBase, environment );
+        }
+        else
+        {
+            this.installAsScale ( configBase, environment );
+        }
+
+
+    }
+
+
+    private void installAsScale ( ConfigBase configBase, Environment environment )
+    {
+        AppScaleConfig config = ( AppScaleConfig ) configBase;
+        String userDomain = config.getUserDomain ();
+
+        if ( userDomain == null )
+        {
+            po.addLogFailed ( "User Domain Must be Set!" );
+        }
+        EnvironmentContainerHost containerHost = null;
+        Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
+        try
+        {
+            containerHost = environment.getContainerHostByHostname ( config.getClusterName () );
+
+            LOG.info (
+                    "Container Host Found: " + containerHost.getContainerId () + "\n"
+                    + "\n" + containerHost.getHostname () + "\n" );
+        }
+        catch ( ContainerHostNotFoundException ex )
+        {
+            LOG.error ( "configureCluster " + ex );
+        }
+        this.commandExecute ( containerHost, Commands.getCreateLogDir () );
+        this.appscaleInitCloud ( containerHost, environment, config );
+        this.runAfterInitCommands ( containerHost, config );
+        this.commandExecute ( containerHost, "sudo /root/appscale-tools/bin/appscale up" );
+        config.setEnvironmentId ( environment.getId () );
+        boolean saveInfo = appscaleManager.getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY,
+                                                                      configBase.getClusterName (),
+                                                                      configBase );
+        LOG.info ( "SAVE INFO: " + saveInfo );
+        LOG.info ( "Appscale saved to database" );
+        po.addLogDone ( "DONE" );
+
+    }
+
+
+    private void installAsStatic ( ConfigBase configBase, Environment environment )
+    {
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         String userDomain = config.getUserDomain ();
 
@@ -135,7 +189,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "DONE" );
-
     }
 
 
@@ -169,10 +222,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.info ( "****************** STDOUT *******************" + vlanString );
 
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+                    "sudo subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + vlanString + " -h " + ipAddress ) );
+                    "sudo subutai proxy add " + vlanString + " -h " + ipAddress ) );
 
         }
         catch ( HostNotFoundException | CommandException ex )
@@ -222,6 +275,23 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error ( "Error while executing \"" + command + "\".\n" + e );
             // po.addLogFailed( command + " can not be executed properly..." );
         }
+    }
+
+
+    private void appscaleInitCloud ( EnvironmentContainerHost containerHost, Environment environment,
+                                     AppScaleConfig config )
+    {
+        String ipaddr = getIPAddress ( containerHost );
+        this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
+        LOG.info ( "AppScalefile file created." );
+        this.commandExecute ( containerHost, "echo infrastructure: 'ss' >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo ss_ACCESS_KEY: XXXXXXX >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo ss_SECRET_KEY: XXXXXXX >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo min: 1 >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo max: 1 >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo static_ip: '" + config.getUserDomain () + "'  >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 
 
