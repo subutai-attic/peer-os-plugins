@@ -39,7 +39,7 @@ public class UsergridConfig implements ConfigBase
 
     public String getClusterName ()
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return this.clusterName;
     }
 
 
