@@ -68,11 +68,11 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 						}
 
 						if (vm.currentEnvironment.containers[i].templateName === "cassandra") {
-							vm.cassandras.push (vm.currentEnvironment.containers [i]);
+							vm.cassandras.push (vm.currentEnvironment.containers [i].hostname);
 						}
 
 						if (vm.currentEnvironment.containers[i].templateName.indexOf( "elastic" ) >= 0 ) {
-							vm.elastics.push (vm.currentEnvironment.containers [i]);
+							vm.elastics.push (vm.currentEnvironment.containers [i].hostname);
 						}
 					}
 					vm.config.master = vm.nodes[0];
@@ -95,11 +95,11 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			}
 
 			if (vm.currentEnvironment.containers[i].templateName === "cassandra") {
-				vm.cassandras.push (vm.currentEnvironment.containers[i]);
+				vm.cassandras.push (vm.currentEnvironment.containers[i].hostname);
 			}
 
 			if (vm.currentEnvironment.containers[i].templateName.indexOf( "elastic" ) >= 0) {
-				vm.elastics.push (vm.currentEnvironment.containers[i]);
+				vm.elastics.push (vm.currentEnvironment.containers[i].hostname);
 			}
 		}
 		vm.config.master = vm.nodes[0];
@@ -137,11 +137,11 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 					}
 
 					if (vm.currentEnvironment.containers[i].templateName === "cassandra") {
-						vm.cassandras.push (vm.currentEnvironment.containers [i]);
+						vm.cassandras.push (vm.currentEnvironment.containers [i].hostname);
 					}
 
 					if (vm.currentEnvironment.containers[i].templateName.indexOf( "elastic" ) >= 0 ) {
-						vm.elastics.push (vm.currentEnvironment.containers [i]);
+						vm.elastics.push (vm.currentEnvironment.containers [i].hostname);
 					}
 				}
 				vm.config.master = vm.nodes[0];
