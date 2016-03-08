@@ -18,6 +18,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.currentCluster = {};
 	vm.clusters = [];
 	vm.hostnames = [];
+	vm.config.scaleOption = "static";
 
 	vm.checked = false;
 
@@ -226,6 +227,10 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 
 	vm.toggleScale = function( val ) {
 		vm.checked = val;
+		if( vm.checked  )
+			vm.config.scaleOption = "static";
+		else
+			vm.config.scaleOption = "scale";
 	}
 }
 
