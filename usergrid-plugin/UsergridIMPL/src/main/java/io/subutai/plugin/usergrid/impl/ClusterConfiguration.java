@@ -68,6 +68,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         List<String> elasticSearchList = config.getElasticSName ();
 
         // start command processes:
+        this.commandExecute ( tomcatContainerHost, Commands.getExportJAVAHOME () );
         LOG.info ( "create properties file" );
         this.commandExecute ( tomcatContainerHost, Commands.getCreatePropertiesFile () );
         // start pushing properties file...
@@ -89,12 +90,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
 
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
-        this.commandExecute ( tomcatContainerHost, Commands.getCopyPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
         LOG.info ( "**************************************ALL DONE**************************************" );
         LOG.info ( "Restart TOMCAT7" );
-        this.commandExecute ( tomcatContainerHost, Commands.getTomcatRestart () );
+        this.exportScriptCreate ( tomcatContainerHost );
+        this.commandExecute ( tomcatContainerHost, "bash /exportScript.sh" );
+        // this.commandExecute ( tomcatContainerHost, Commands.getTomcatRestart () );
         LOG.info ( "**************************************TOMCAT RESTARTED**************************************" );
         if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_NAME (),
                                                              configBase.getClusterName (), configBase ) )
@@ -168,6 +170,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         return ipaddr;
 
+    }
+
+
+    private void exportScriptCreate ( EnvironmentContainerHost ch )
+    {
+        this.commandExecute ( ch, "rm exportScript.sh" );
+        this.commandExecute ( ch, "touch exportScript.sh" );
+        this.commandExecute ( ch, "echo '#!/bin/bash' >> exportScript.sh" );
+        this.commandExecute ( ch, "echo export JAVA_HOME=\"/usr/lib/jvm/java-8-oracle\" >> exportScript.sh" );
+        this.commandExecute ( ch, "chmod +x exportScript.sh" );
     }
 
 }
