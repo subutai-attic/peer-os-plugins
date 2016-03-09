@@ -13,14 +13,10 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 public interface AppScaleInterface extends ApiBase<AppScaleConfig>
 {
-    // public AppScaleConfig getCluster ( String clusterName );
-
 
     List<String> getClusterList ( Environment name );
 
 
-    // AppScaleConfig getCluster ( String clusterName );
-    // UUID installCluster ( AppScaleConfig appScaleConfig );
     UUID uninstallCluster ( AppScaleConfig appScaleConfig );
 
 

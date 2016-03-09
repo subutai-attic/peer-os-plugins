@@ -445,7 +445,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public void onContainerDestroyed ( Environment e, String string )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+
     }
 
 
