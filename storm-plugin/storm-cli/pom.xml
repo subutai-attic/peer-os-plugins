@@ -6,7 +6,7 @@
   <parent>
     <artifactId>storm-plugin-parent</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC7-SNAPSHOT</version>
+    <version>4.0.0-RC7</version>
   </parent>
 
   <artifactId>storm-plugin-cli</artifactId>
@@ -22,7 +22,7 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>storm-plugin-api</artifactId>
-      <version>4.0.0-RC7-SNAPSHOT</version>
+      <version>4.0.0-RC7</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

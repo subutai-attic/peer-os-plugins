@@ -1,39 +1,34 @@
 package io.subutai.plugin.mongodb.rest;
 
 
-import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import io.subutai.plugin.mongodb.rest.pojo.ContainerPojo;
 import io.subutai.plugin.mongodb.rest.pojo.MongoPojo;
 
@@ -440,8 +435,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getConfigHosts() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname (), NodeType.CONFIG_NODE );
-                configHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                configHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setConfigHosts( configHosts );
@@ -449,8 +445,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getRouterHosts() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.ROUTER_NODE );
-                routerHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                routerHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setRouterHosts( routerHosts );
@@ -458,8 +455,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getDataHosts() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.DATA_NODE );
-                dataHosts.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                dataHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setDataHosts( dataHosts );

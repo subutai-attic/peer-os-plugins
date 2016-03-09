@@ -5,7 +5,7 @@
   <parent>
     <artifactId>backup-plugin</artifactId>
     <groupId>io.subutai</groupId>
-    <version>4.0.0-RC7-SNAPSHOT</version>
+    <version>4.0.0-RC7</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -31,7 +31,7 @@
 	  <groupId>${project.groupId}</groupId>
 	  <artifactId>webui</artifactId>
 	  <classifier>classes</classifier>
-	  <version>4.0.0-RC7-SNAPSHOT</version>
+	  <version>4.0.0-RC7</version>
 	</dependency>
   </dependencies>
 
