@@ -220,10 +220,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             String vlanString = stdOut.substring ( 11, 14 );
 
             LOG.info ( "****************** STDOUT *******************" + vlanString );
-
+            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
                     "sudo subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
                     "sudo subutai proxy add " + vlanString + " -h " + ipAddress ) );
 

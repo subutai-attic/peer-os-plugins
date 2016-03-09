@@ -21,8 +21,8 @@ public class AppScaleConfig implements ConfigBase
     // private static final String TEMPLATE_NAME = "Appscale";
     private static final String TEMPLATE_NAME = "appscale"; // we will be using master template
     private String clusterName = ""; // this will be login point => management AKA master
-
-    // if any means of other clusters.
+    // if any means of other containers..
+    // private String loginName;
     private String zookeeperName;
     private String cassandraName;
     private String appengine;
@@ -254,6 +254,16 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
+//    public String getLoginNode ()
+//    {
+//        return loginName;
+//    }
+//
+//
+//    public void setLoginNode ( String loginName )
+//    {
+//        this.loginName = loginName;
+//    }
     public static String getPRODUCT_NAME ()
     {
         return PRODUCT_NAME;
