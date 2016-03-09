@@ -17,7 +17,6 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -183,9 +182,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
 
         String hostId = getPreferredHost();
-        NodeGroup nodeGroup =
+        /*NodeGroup nodeGroup =
                 new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1,
-                        1, localPeer.getId(), hostId );
+                        1, localPeer.getId(), hostId );*/
 
         EnvironmentContainerHost newNode;
         try
@@ -201,7 +200,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 try
                 {
                     Topology topology = new Topology( config.getClusterName(), 0, 0 );
-                    topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                   // topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
