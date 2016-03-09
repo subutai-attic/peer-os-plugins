@@ -228,9 +228,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.toggleScale = function( val ) {
 		vm.checked = val;
 		if( vm.checked  )
-			vm.config.scaleOption = "static";
-		else
 			vm.config.scaleOption = "scale";
+		else
+			vm.config.scaleOption = "static";
 	}
 }
 
