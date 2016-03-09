@@ -70,12 +70,6 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 					vm.config.master = vm.nodes[0];
 
-					var index = vm.hostnames.indexOf(vm.config.master.hostname);
-
-					if (index > -1) {
-						vm.hostnames.splice(index, 1);
-					}
-
 					vm.config.appeng = [];
 					vm.config.zookeeper = [];
 					vm.config.db = [];
@@ -98,12 +92,6 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			}
 		}
 		vm.config.master = vm.nodes[0];
-
-		var index = vm.hostnames.indexOf(vm.config.master.hostname);
-
-		if (index > -1) {
-			vm.hostnames.splice(index, 1);
-		}
 
 		vm.config.appeng = [];
 		vm.config.zookeeper = [];
@@ -142,12 +130,6 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					}
 				}
 				vm.config.master = vm.nodes[0];
-
-				var index = vm.hostnames.indexOf(vm.config.master.hostname);
-
-				if (index > -1) {
-					vm.hostnames.splice(index, 1);
-				}
 
 				vm.config.appeng = [];
 				vm.config.zookeeper = [];
@@ -211,19 +193,6 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			SweetAlert.swal ("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
-
-	vm.masterChanged = function() {
-		vm.hostnames = [];
-		for( var i = 0; i < vm.nodes.length; i++ ) {
-			vm.hostnames.push( vm.nodes[i].hostname )
-		}
-
-		var index = vm.hostnames.indexOf(vm.config.master.hostname);
-
-		if (index > -1) {
-			vm.hostnames.splice(index, 1);
-		}
-	};
 
 	vm.toggleScale = function( val ) {
 		vm.checked = val;

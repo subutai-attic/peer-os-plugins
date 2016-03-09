@@ -7,7 +7,7 @@
                 ng-model="appscaleCtrl.currentCluster"
                 ng-options="cluster.environmentId for cluster in appscaleCtrl.clusters">
         </select>
-       
+
         <a href = "https://1443.{{appscaleCtrl.currentCluster.userDomain}}"
 		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
           Console
@@ -50,6 +50,32 @@
 	</div>
 	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
 		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+			App engine nodes
+		</h2>
+
+		<div class="b-main-table-border">
+			<table class="b-main-table b-main-table_with-header">
+				<thead>
+				<tr>
+					<th>Hostname</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr ng-show="appscaleCtrl.currentCluster.appenList == undefined">
+					<td colspan="3" class="b-main-table__empty-item">
+						No data available in table
+					</td>
+				<tr>
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.appenList">
+					<td>{{ name }}</td>
+				</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
+	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
+		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
 			Zookeeper nodes
 		</h2>
 
@@ -58,21 +84,16 @@
 				<thead>
 				<tr>
 					<th>Hostname</th>
-					<th></th>
-					<th></th>
 				</tr>
 				</thead>
 				<tbody>
-				<tr>
-					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.zookeeperName === undefined">
+				<tr ng-show="appscaleCtrl.currentCluster.zooList == undefined">
+					<td colspan="3" class="b-main-table__empty-item">
 						No data available in table
 					</td>
 				<tr>
-				<tr ng-show="appscaleCtrl.currentCluster.zookeeperName !== undefined">
-					<td>{{ appscaleCtrl.currentCluster.zookeeperName }}</td>
-					<td>
-					<td>
-					</td>
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.zooList">
+					<td>{{ name }}</td>
 				</tr>
 				</tbody>
 			</table>
@@ -89,21 +110,16 @@
 				<thead>
 				<tr>
 					<th>Hostname</th>
-					<th></th>
-					<th></th>
 				</tr>
 				</thead>
 				<tbody>
-				<tr>
-					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.cassandraName === undefined">
+				<tr ng-show="appscaleCtrl.currentCluster.cassList == undefined">
+					<td colspan="3" class="b-main-table__empty-item">
 						No data available in table
 					</td>
 				<tr>
-				<tr ng-show="appscaleCtrl.currentCluster.cassandraName !== undefined">
-					<td>{{ appscaleCtrl.currentCluster.cassandraName }}</td>
-					<td>
-					<td>
-					</td>
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.cassList">
+					<td>{{ name }}</td>
 				</tr>
 				</tbody>
 			</table>
