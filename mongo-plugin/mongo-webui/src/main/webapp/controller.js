@@ -70,10 +70,14 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         }
         else {
             SweetAlert.swal("Success!", "Mongo cluster creating started.", "success");
+            LOADING_SCREEN('block');
             mongoSrv.createMongo(JSON.stringify(vm.mongoInstall)).success(function (data) {
                 SweetAlert.swal("Success!", "Mongo cluster created.", "success");
+                LOADING_SCREEN('none');
+                getClustersInfo(vm.currentCluster.clusterName);
             }).error(function (error) {
                 SweetAlert.swal("ERROR!", 'Mongo cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+                LOADING_SCREEN('none');
             });
         }
     }
@@ -138,8 +142,11 @@ function MongoCtrl(mongoSrv, SweetAlert) {
             timer: VARS_TOOLTIP_TIMEOUT,
             showConfirmButton: false
         });
+        LOADING_SCREEN('block');
         mongoSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
+            LOADING_SCREEN('none');
+            vm.nodes2Action = [];
             getClustersInfo(vm.currentCluster.clusterName);
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
@@ -158,6 +165,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         });
         mongoSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes stopped successfully.", "success");
+            vm.nodes2Action = [];
             getClustersInfo(vm.currentCluster.clusterName);
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
