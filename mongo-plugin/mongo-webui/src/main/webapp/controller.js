@@ -44,9 +44,13 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         vm.environments = data;
     });
 
-    mongoSrv.listClusters().success(function (data) {
-        vm.clusters = data;
-    });
+
+    updateClusters();
+    function updateClusters() {
+        mongoSrv.listClusters().success(function (data) {
+            vm.clusters = data;
+        });
+    }
 
 
     // Install
@@ -74,7 +78,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
             mongoSrv.createMongo(JSON.stringify(vm.mongoInstall)).success(function (data) {
                 SweetAlert.swal("Success!", "Mongo cluster created.", "success");
                 LOADING_SCREEN('none');
-                getClustersInfo(vm.currentCluster.clusterName);
+                updateClusters();
             }).error(function (error) {
                 SweetAlert.swal("ERROR!", 'Mongo cluster create error: ' + error.replace(/\\n/g, ' '), "error");
                 LOADING_SCREEN('none');
@@ -241,6 +245,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
                     mongoSrv.destroyCluster(vm.currentCluster.clusterName).success(function (data) {
                         SweetAlert.swal("Deleted!", "Cluster has been deleted.", "success");
                         vm.currentCluster = {};
+                        updateClusters();
                     }).error(function (error) {
                         SweetAlert.swal("ERROR!", 'Cluster delete error: ' + error.replace(/\\n/g, ' '), "error");
                     });
