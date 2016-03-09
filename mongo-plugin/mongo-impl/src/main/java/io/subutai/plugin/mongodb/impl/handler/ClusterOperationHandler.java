@@ -3,6 +3,7 @@ package io.subutai.plugin.mongodb.impl.handler;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,15 +18,12 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.peer.Peer;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
-import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -183,9 +181,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
 
         String hostId = getPreferredHost();
-        NodeGroup nodeGroup =
-                new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1,
-                        1, localPeer.getId(), hostId );
+        final String hostname = UUID.randomUUID().toString();
+        final String containerName = MongoClusterConfig.PRODUCT_NAME + "_" + hostname;
+        Node node = new Node( hostname, containerName, MongoClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+                localPeer.getId(), hostId );
 
         EnvironmentContainerHost newNode;
         try
@@ -201,7 +200,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 try
                 {
                     Topology topology = new Topology( config.getClusterName(), 0, 0 );
-                    topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                    topology.addNodePlacement( node.getPeerId(), node );
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
