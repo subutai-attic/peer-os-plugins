@@ -24,9 +24,9 @@ function usergridSrv ($http, environmentService) {
 
 
 	function build (config) {
-		var postData = 'clusterName=' + config.master.hostname + '&cassandraCSV=' + config.cassandra.join(",")
-			+ "&elasticSearchCSV=" + config.elastic.join(",") + "&envID=" + config.environment.id
-			+ "&userDomain=" + config.userDomain;
+		var postData = 'clusterName=' + config.master.hostname + "&userDomain=" + config.userDomain
+			+ '&cassandraCSV=' + config.cassandra.join(",")
+			+ "&elasticSearchCSV=" + config.elastic.join(",") + "&environmentId=" + config.environment.id;
                 console.log (postData);
                 return $http.post(
 			BASE_URL + 'configure_environment',

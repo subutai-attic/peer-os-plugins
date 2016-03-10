@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -71,6 +72,30 @@ public class ClusterConfiguration
 
         try
         {
+            RequestBuilder requestBuilder = new RequestBuilder( "sudo mkdir /var/log/mongodb/" );
+            for ( String id : config.getConfigHosts() )
+            {
+                EnvironmentContainerHost host = findContainerHost( id, environment );
+                host.execute( requestBuilder );
+            }
+            for ( String id : config.getDataHosts() )
+            {
+                EnvironmentContainerHost host = findContainerHost( id, environment );
+                host.execute( requestBuilder );
+            }
+            for ( String id : config.getRouterHosts() )
+            {
+                EnvironmentContainerHost host = findContainerHost( id, environment );
+                host.execute( requestBuilder );
+            }
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
+
+        try
+        {
             mongoManager.saveConfig( config );
         }
         catch ( ClusterException e )
@@ -78,8 +103,6 @@ public class ClusterConfiguration
             throw new ClusterConfigurationException( e );
         }
         po.addLogDone( "MongoDB cluster data saved into database" );
-
-
     }
 
 
@@ -117,7 +140,8 @@ public class ClusterConfiguration
     }
 
 
-    public void registerSecondaryNode( final EnvironmentContainerHost dataNode, MongoClusterConfig config ) throws MongoException
+    public void registerSecondaryNode( final EnvironmentContainerHost dataNode, MongoClusterConfig config )
+            throws MongoException
     {
         CommandDef commandDef = Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(),
                 config.getDataNodePort(), config.getDomainName() );

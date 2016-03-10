@@ -65,6 +65,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
     function createMongo() {
         console.log(vm.mongoInstall.configNodes.length);
+        SweetAlert.swal("Success!", "Mongo cluster started creating.", "success");
         if (vm.mongoInstall.configNodes.length % 2 !== 1) {
             SweetAlert.swal("ERROR!", "Number of configuration node servers must be odd");
         }
@@ -164,12 +165,21 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         });
     }
 
+	function arrayObjectIndexOf(myArray, searchTerm, property) {
+		for(var i = 0, len = myArray.length; i < len; i++) {
+			if (myArray[i][property] === searchTerm) return i;
+		}
+		return -1;
+	}
+
+
     function pushNode(id, type) {
-        if (vm.nodes2Action.indexOf(id) >= 0) {
+        if (arrayObjectIndexOf (vm.nodes2Action, id, "name") >= 0) {
             vm.nodes2Action.splice(vm.nodes2Action.indexOf(id), 1);
         } else {
             vm.nodes2Action.push({name: id, type: type});
         }
+        console.log (vm.nodes2Action);
     }
 
     function addNode() {
