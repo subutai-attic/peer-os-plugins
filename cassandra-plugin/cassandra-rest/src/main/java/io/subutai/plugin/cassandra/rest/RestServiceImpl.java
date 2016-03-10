@@ -20,6 +20,7 @@ import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -77,9 +78,9 @@ public class RestServiceImpl implements RestService
 
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+				HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
 
-                String ip = containerHost.getIpByInterfaceName( "eth0" );
-                containerDto.setIp( ip );
+                containerDto.setIp( hostInterface.getIp () );
 
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
@@ -110,7 +111,6 @@ public class RestServiceImpl implements RestService
         result.setScaling( config.isAutoScaling() );
 
         String cluster = JsonUtil.toJson( result );
-
 
         if ( thrownException )
         {

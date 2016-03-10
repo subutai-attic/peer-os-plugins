@@ -4,7 +4,9 @@ package io.subutai.plugin.cassandra.impl.handler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
+import io.subutai.common.environment.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,12 +16,6 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
@@ -124,9 +120,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup =
-                new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),ContainerSize.SMALL, 0, 0,
-                        localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
+		final String hostname = UUID.randomUUID().toString();
+		final String containerName = CassandraClusterConfig.PRODUCT_NAME + "_" + hostname;
+		Node node = new Node( hostname, containerName, CassandraClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+				localPeer.getId(), localPeer.getResourceHosts ().iterator().next().getId () );
 
         try
         {

@@ -6,14 +6,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>solr-plugin-parent</artifactId>
-  <version>4.0.0-RC7</version>
+  <version>4.0.0-RC7-SNAPSHOT</version>
 
   <name>Subutai Solr Parent</name>
   <description>Subutai Solr Parent</description>
   <packaging>pom</packaging>
 
   <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC7</subutai.mgmt.parent.version>
+    <subutai.mgmt.parent.version>4.0.0-RC7-SNAPSHOT</subutai.mgmt.parent.version>
     <karaf.version>3.0.2</karaf.version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
