@@ -102,12 +102,12 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, usergridConfig,
                                                                                           ClusterOperationType.INSTALL );
         executor.execute ( abstractOperationHandler );
-        boolean saveInfo = getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_KEY (), usergridConfig.getClusterName (),
-                                                      usergridConfig );
-        if ( saveInfo )
-        {
-            LOG.info ( "Configuration saved to db" );
-        }
+//        boolean saveInfo = getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_KEY, usergridConfig.getClusterName (),
+//                                                      usergridConfig );
+//        if ( saveInfo )
+//        {
+//            LOG.info ( "Configuration saved to db" );
+//        }
         return abstractOperationHandler.getTrackerId ();
 
     }
@@ -137,7 +137,7 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     @Override
     public void saveConfig ( UsergridConfig ac ) throws ClusterException
     {
-        if ( !getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_KEY (), ac.getClusterName (), ac ) )
+        if ( !getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_KEY, ac.getClusterName (), ac ) )
         {
             throw new ClusterException ( "Could not save cluster info" );
         }
@@ -217,14 +217,14 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     @Override
     public List<UsergridConfig> getClusters ()
     {
-        return this.pluginDAO.getInfo ( userGridConfig.getProductName (), UsergridConfig.class );
+        return this.pluginDAO.getInfo ( UsergridConfig.PRODUCT_NAME, UsergridConfig.class );
     }
 
 
     @Override
     public UsergridConfig getCluster ( String string )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return pluginDAO.getInfo ( UsergridConfig.PACKAGE_NAME, string, UsergridConfig.class );
     }
 
 

@@ -80,7 +80,7 @@ public class InstallClusterCommand extends OsgiCommandSupport
         long start = System.currentTimeMillis ();
         while ( !Thread.interrupted () )
         {
-            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.getPRODUCT_NAME (), uuid );
+            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.PRODUCT_NAME, uuid );
             if ( po != null )
             {
                 LOG.info ( po.getState ().toString () );

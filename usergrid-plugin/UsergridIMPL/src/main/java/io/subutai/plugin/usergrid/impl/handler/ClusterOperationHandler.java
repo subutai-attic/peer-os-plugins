@@ -49,7 +49,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
         this.operationType = operationType;
         this.config = config;
         clusterName = config.getClusterName ();
-        trackerOperation = manager.getTracker ().createTrackerOperation ( UsergridConfig.getPACKAGE_NAME (), "starting" );
+        trackerOperation = manager.getTracker ().createTrackerOperation ( UsergridConfig.PACKAGE_NAME, "starting" );
     }
 
 
@@ -84,18 +84,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
 
         try
         {
+            LOG.info ( "before finding env..." );
+            LOG.info ( "envid: " + config.getEnvironmentId () );
+            LOG.info ( "clusterName: " + config.getClusterName () );
+            LOG.info ( "cassandraName: " + config.getCassandraName () );
+            LOG.info ( "elastic: " + config.getElasticSName () );
+            LOG.info ( "userdomain: " + config.getUserDomain () );
             env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
             trackerOperation.addLog ( String.format (
                     "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
                     config.getClusterName (), config.getProductKey () ) );
-            LOG.info ( "tracker operations" );
+            LOG.info ( "environment: " + env );
         }
         catch ( EnvironmentNotFoundException ex )
         {
             LOG.error ( "load environment: " + ex );
         }
-
-        LOG.info ( "Before" );
         try
         {
             new ClusterConfiguration ( trackerOperation, manager ).configureCluster ( config, env );
@@ -104,7 +108,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
         {
             LOG.error ( "ClusterConfigurationHandler :> " + ex );
         }
-        LOG.info ( "After" );
 
     }
 

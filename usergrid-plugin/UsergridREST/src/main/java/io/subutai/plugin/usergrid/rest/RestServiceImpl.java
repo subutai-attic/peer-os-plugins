@@ -84,7 +84,7 @@ public class RestServiceImpl implements RestService
 
     private Response createResponse ( UUID uuid, OperationState state )
     {
-        TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.getPRODUCT_NAME (), uuid );
+        TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.PRODUCT_NAME, uuid );
         if ( null != state )
         {
             switch ( state )
@@ -112,8 +112,8 @@ public class RestServiceImpl implements RestService
         long start = System.currentTimeMillis ();
         while ( !Thread.interrupted () )
         {
-            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.getPRODUCT_NAME (), uuid );
-            LOG.info ( "*********\n" + po.getState () + "\n********" );
+            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.PRODUCT_NAME, uuid );
+
             if ( po != null )
             {
 

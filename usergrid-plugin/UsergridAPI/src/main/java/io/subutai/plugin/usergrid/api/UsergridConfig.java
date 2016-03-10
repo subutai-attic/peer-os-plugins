@@ -20,9 +20,9 @@ import io.subutai.core.plugincommon.api.ConfigBase;
 public class UsergridConfig implements ConfigBase
 {
 
-    private static final String PRODUCT_NAME = "Usergrid";
-    private static final String PRODUCT_KEY = "Usergrid";
-    private static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
+    public static final String PRODUCT_NAME = "Usergrid";
+    public static final String PRODUCT_KEY = "Usergrid";
+    public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
     private static final String TEMPLATE_NAME = "tomcat";
     private String clusterName;
 
@@ -168,23 +168,6 @@ public class UsergridConfig implements ConfigBase
         this.userDomain = userDomain;
     }
 
-
-    public static String getPRODUCT_KEY ()
-    {
-        return PRODUCT_KEY;
-    }
-
-
-    public static String getPRODUCT_NAME ()
-    {
-        return PRODUCT_NAME;
-    }
-
-
-    public static String getPACKAGE_NAME ()
-    {
-        return PACKAGE_NAME;
-    }
 
 }
 

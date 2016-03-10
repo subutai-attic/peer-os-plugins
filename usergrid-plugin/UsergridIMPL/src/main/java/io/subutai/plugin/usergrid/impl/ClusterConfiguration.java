@@ -51,6 +51,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
+        LOG.info ( "configureCluster: " );
 
         UsergridConfig config = ( UsergridConfig ) configBase;
         String tomcatName = config.getClusterName ();
@@ -95,11 +96,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "**************************************ALL DONE**************************************" );
         LOG.info ( "Restart TOMCAT7" );
         this.exportScriptCreate ( tomcatContainerHost );
-        this.commandExecute ( tomcatContainerHost, "bash /exportScript.sh" );
-        // this.commandExecute ( tomcatContainerHost, Commands.getTomcatRestart () );
+        this.commandExecute ( tomcatContainerHost, "bash /exportScript.sh" ); // this restart tomcat as well..
         LOG.info ( "**************************************TOMCAT RESTARTED**************************************" );
-        if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.getPRODUCT_NAME (),
-                                                             configBase.getClusterName (), configBase ) )
+        if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_NAME,
+                                                             configBase.getClusterName (), configBase
+        ) )
         {
             LOG.error ( "Usergrid can NOT be saved to DB" );
         }
@@ -179,6 +180,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( ch, "touch exportScript.sh" );
         this.commandExecute ( ch, "echo '#!/bin/bash' >> exportScript.sh" );
         this.commandExecute ( ch, "echo export JAVA_HOME=\"/usr/lib/jvm/java-8-oracle\" >> exportScript.sh" );
+        this.commandExecute ( ch, "echo 'sudo /etc/init.d/tomcat7 restart' >> exportScript.sh" );
         this.commandExecute ( ch, "chmod +x exportScript.sh" );
     }
 
