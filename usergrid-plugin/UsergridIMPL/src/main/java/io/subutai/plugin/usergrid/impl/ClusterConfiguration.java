@@ -18,7 +18,11 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.HostNotFoundException;
+import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
@@ -36,7 +40,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private final TrackerOperation po;
     private final UsergridIMPL usergridImplManager;
     private final String catalinaHome = "/usr/share/tomcat7";
-    private final String catalinaBase = "/var/lib/tomcat7";
+
 
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
@@ -89,7 +93,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "End of creating properties file" );
         this.commandExecute ( tomcatContainerHost,
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
-
+        this.commandExecute ( tomcatContainerHost, Commands.replace8080To80 () );
+        this.configureReversProxy ( tomcatContainerHost, config, tomcatName );
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
@@ -108,8 +113,38 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.info ( "Usergrid SAVED to DB" );
         }
+        LOG.info ( "DONE" );
         po.addLogDone ( "DONE" );
 
+    }
+
+
+    private void configureReversProxy ( EnvironmentContainerHost containerHost, UsergridConfig config,
+                                        String clusterName )
+    {
+        this.commandExecute ( containerHost,
+                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost " + config.getUserDomain () + "/g' "
+                              + "/etc/hosts" );
+        PeerManager peerManager = usergridImplManager.getPeerManager ();
+        LocalPeer localPeer = peerManager.getLocalPeer ();
+        String ipAddress = this.getIPAddress ( containerHost );
+        try
+        {
+            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            CommandResult resultStr = resourceHostByContainerId.execute ( new RequestBuilder (
+                    "grep vlan /mnt/lib/lxc/" + clusterName + "/config" ) );
+            String stdOut = resultStr.getStdOut ();
+            String vlanString = stdOut.substring ( 11, 14 );
+            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
+            resourceHostByContainerId.execute ( new RequestBuilder (
+                    "subutai proxy add " + vlanString + " -h " + ipAddress ) );
+        }
+        catch ( HostNotFoundException | CommandException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
     }
 
 

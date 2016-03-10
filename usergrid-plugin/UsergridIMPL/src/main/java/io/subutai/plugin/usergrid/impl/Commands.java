@@ -63,6 +63,12 @@ public class Commands
     }
 
 
+    public static String replace8080To80 ()
+    {
+        return ( "sed -i -e 's/8080/80/g' " + catalinaBase + "conf/server.xml" );
+    }
+
+
     public static String getAdminSuperUserString ()
     {
         return "######################################################\n"
