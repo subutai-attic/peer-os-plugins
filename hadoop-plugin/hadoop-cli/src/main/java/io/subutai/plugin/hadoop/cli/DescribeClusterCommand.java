@@ -1,6 +1,8 @@
 package io.subutai.plugin.hadoop.cli;
 
 
+import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.Host;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -102,18 +104,20 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                     EnvironmentContainerHost namenode = environment.getContainerHostById( nn );
                     EnvironmentContainerHost secnamenode = environment.getContainerHostById( snn );
                     EnvironmentContainerHost jobTracker = environment.getContainerHostById( jt );
-
+					HostInterface nameHostInterface = namenode.getInterfaceByName ("eth0");
+					HostInterface secNameHostInterface = secnamenode.getInterfaceByName ("eth0");
+					HostInterface trackerHostInterface = jobTracker.getInterfaceByName ("eth0");
                     sb.append( "NameNode" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( namenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( namenode.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( nameHostInterface.getIp () ).append( "\n" );
 
                     sb.append( "SecondaryNameNode" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( secnamenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( secnamenode.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( secNameHostInterface.getIp () ).append( "\n" );
 
                     sb.append( "Job tracker" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( jobTracker.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( jobTracker.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( trackerHostInterface.getIp () ).append( "\n" );
                     System.out.println( sb.toString() );
                 }
                 catch ( ContainerHostNotFoundException e )

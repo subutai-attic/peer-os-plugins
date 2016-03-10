@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -251,7 +252,8 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodes() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ), uuid ) );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp (), uuid ) );
             }
 
             pojo.setNodes( containerPojoSet );

@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.Host;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
@@ -95,7 +97,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 return;
             }
         }
-        paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
+		HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
+        paramValues.put( "nimbus.host", hostInterface.getIp () );
 
         Set<EnvironmentContainerHost> supervisorNodes;
         try
@@ -230,7 +233,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     {
                         sb.append( "," );
                     }
-                    sb.append( containerHost.getIpByInterfaceName( "eth0" ) );
+                    HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+                    sb.append( hostInterface.getIp () );
                 }
                 return sb.toString();
             }
@@ -253,7 +257,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
                 return "";
             }
-            return nimbusHost.getIpByInterfaceName( "eth0" );
+			HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
+            return hostInterface.getIp ();
         }
         return null;
     }

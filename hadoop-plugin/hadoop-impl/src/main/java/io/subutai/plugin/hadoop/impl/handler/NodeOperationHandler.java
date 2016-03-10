@@ -3,6 +3,7 @@ package io.subutai.plugin.hadoop.impl.handler;
 
 import java.util.Iterator;
 
+import io.subutai.common.host.HostInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +171,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
         EnvironmentContainerHost host = findNodeInCluster( hostname );
-
+		HostInterface hostInterface = host.getInterfaceByName ("eth0");
         try
         {
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
@@ -182,12 +183,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             // TaskTracker
             jobtracker.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );
             jobtracker.execute( new RequestBuilder(
-                    Commands.getIncludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    Commands.getIncludeTaskTrackerCommand( hostInterface.getIp () ) ));
 
             // DataNode
             namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
             namenode.execute(
-                    new RequestBuilder( Commands.getIncludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    new RequestBuilder( Commands.getIncludeDataNodeCommand(  hostInterface.getIp () ) ) );
 
             namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
             jobtracker.execute( new RequestBuilder( Commands.getRefreshJobTrackerCommand() ) );
@@ -269,7 +270,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
         HadoopClusterConfig config = manager.getCluster( clusterName );
         EnvironmentContainerHost host = findNodeInCluster( hostname );
-
+		HostInterface hostInterface = host.getInterfaceByName ("eth0");
         try
         {
             EnvironmentContainerHost namenode;
@@ -317,7 +318,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
             // remove data node from dfs.exclude
             namenode.execute(
-                    new RequestBuilder( Commands.getExcludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    new RequestBuilder( Commands.getExcludeDataNodeCommand(  hostInterface.getIp () ) ) );
 
             // start datanode if namenode is already running
             if ( isClusterRunning( namenode ) )
@@ -342,7 +343,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
             // remove task tracker from dfs.exclude
             jobtracker.execute( new RequestBuilder(
-                    Commands.getExcludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    Commands.getExcludeTaskTrackerCommand(  hostInterface.getIp () ) ) );
 
             // start tasktracker if namenode is already running
             if ( isClusterRunning( namenode ) )

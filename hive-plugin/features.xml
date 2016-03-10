@@ -1,11 +1,11 @@
-<features name="hive-plugin" version="4.0.0-RC7-SNAPSHOT">
-  <feature name="hive-plugin" version="4.0.0-RC7-SNAPSHOT">
-    <bundle>mvn:io.subutai/hive-plugin-api/4.0.0-RC7-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-impl/4.0.0-RC7-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-cli/4.0.0-RC7-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/hive-plugin-rest/4.0.0-RC7-SNAPSHOT</bundle>
+<features name="hive-plugin" version="4.0.0-RC7">
+  <feature name="hive-plugin" version="4.0.0-RC7">
+    <bundle>mvn:io.subutai/hive-plugin-api/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-impl/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-cli/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/hive-plugin-rest/4.0.0-RC7</bundle>
   </feature>
-    <feature name="hive-plugin-war" version="4.0.0-RC7-SNAPSHOT">
-        <bundle> war:mvn:io.subutai/hive-plugin-webui/4.0.0-RC7-SNAPSHOT/war?Webapp-Context=hive-plugin-war</bundle>
+    <feature name="hive-plugin-war" version="4.0.0-RC7">
+        <bundle> war:mvn:io.subutai/hive-plugin-webui/4.0.0-RC7/war?Webapp-Context=hive-plugin-war</bundle>
     </feature>
 </features>

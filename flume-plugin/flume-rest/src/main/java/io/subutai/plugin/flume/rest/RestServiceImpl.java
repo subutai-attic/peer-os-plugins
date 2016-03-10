@@ -19,6 +19,7 @@ import com.google.gson.reflect.TypeToken;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -91,8 +92,8 @@ public class RestServiceImpl implements RestService
 
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-
-                String ip = containerHost.getIpByInterfaceName( "eth0" );
+				HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+                String ip = hostInterface.getIp ();
                 containerDto.setIp( ip );
                 containerDto.setId( node );
                 containerDto.setHostname( containerHost.getHostname() );

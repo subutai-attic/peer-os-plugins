@@ -1,14 +1,11 @@
 package io.subutai.plugin.storm.impl.handler;
 
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.collect.Sets;
 import io.subutai.common.environment.*;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.protocol.PlacementStrategy;
 import org.slf4j.Logger;
@@ -218,9 +215,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup =
-                new NodeGroup( StormClusterConfiguration.PRODUCT_KEY, StormClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL, 0, 0,
-                        localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
+		final String hostname = UUID.randomUUID().toString();
+		final String containerName = ZookeeperClusterConfig.PRODUCT_NAME + "_" + hostname;
+		Node node = new Node( hostname, containerName, ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+				localPeer.getId(), localPeer.getResourceHosts ().iterator().next().getId () );
 
         EnvironmentContainerHost newNode;
         try
@@ -345,9 +343,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             return;
         }
         Map<String, String> paramValues = new LinkedHashMap<>();
+		HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
         paramValues.put( "storm.zookeeper.servers", zk_servers );
         paramValues.put( "storm.local.dir", "/var/lib/storm" );
-        paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
+        paramValues.put( "nimbus.host", hostInterface.getIp () );
         for ( Map.Entry<String, String> entry : paramValues.entrySet() )
         {
             String s = Commands.configure( "add", "storm.xml", entry.getKey(), entry.getValue() );
@@ -440,7 +439,8 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                     {
                         sb.append( "," );
                     }
-                    sb.append( containerHost.getIpByInterfaceName( "eth0" ) );
+                   	HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+                    sb.append( hostInterface.getIp () );
                 }
                 return sb.toString();
             }
@@ -463,7 +463,8 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
                 return "";
             }
-            return nimbusHost.getIpByInterfaceName( "eth0" );
+            HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
+            return hostInterface.getIp ();
         }
         return null;
     }

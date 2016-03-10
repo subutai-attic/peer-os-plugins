@@ -28,6 +28,11 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
 
 
+	public RestServiceImpl (final Ceph cephManager)
+	{
+		this.cephManager = cephManager;
+	}
+
     @Override
     public Response getClusters()
     {

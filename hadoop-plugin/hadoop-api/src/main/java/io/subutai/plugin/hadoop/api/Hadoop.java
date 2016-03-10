@@ -3,10 +3,11 @@ package io.subutai.plugin.hadoop.api;
 
 import java.util.UUID;
 
-import io.subutai.common.environment.Blueprint;
+
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.core.strategy.api.Blueprint;
 
 
 public interface Hadoop extends ApiBase<HadoopClusterConfig>
@@ -185,7 +186,7 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      */
     public UUID includeNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
 
-    public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException;
+    public Blueprint getDefaultEnvironmentBlueprint(final HadoopClusterConfig config ) throws ClusterSetupException;
 
 
     /**

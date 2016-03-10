@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,7 +250,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 return;
             }
         }
-        paramValues.put( "nimbus.host", nimbusHost.getIpByInterfaceName( "eth0" ) );
+		HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
+        paramValues.put( "nimbus.host", hostInterface.getIp () );
 
         Set<EnvironmentContainerHost> supervisorNodes;
         try
@@ -370,7 +373,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                     {
                         sb.append( "," );
                     }
-                    sb.append( containerHost.getIpByInterfaceName( "eth0" ) );
+					HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+                    sb.append( hostInterface.getIp () );
                 }
                 return sb.toString();
             }
@@ -387,7 +391,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return "";
             }
-            return nimbusHost.getIpByInterfaceName( "eth0" );
+            HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
+            return hostInterface.getIp ();
         }
 
         return null;

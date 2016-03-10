@@ -7,6 +7,8 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.Host;
 import io.subutai.plugin.zookeeper.rest.pojo.VersionPojo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -562,8 +564,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodes() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
                 UUID uuidStatus = zookeeperManager.checkNode( config.getClusterName(), ch.getHostname() );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp () ,
                         checkStatus( tracker, uuidStatus ) ) );
             }
 

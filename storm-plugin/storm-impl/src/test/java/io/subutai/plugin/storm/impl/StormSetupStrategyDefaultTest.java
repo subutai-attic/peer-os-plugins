@@ -212,7 +212,7 @@ public class StormSetupStrategyDefaultTest
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
         when( containerHost.getNodeGroupName() ).thenReturn( StormService.NIMBUS.toString() );
-        when( containerHost.getIpByInterfaceName( anyString() ) ).thenReturn( "test" );
+        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
         when( zookeeper.getCommand( CommandType.INSTALL ) ).thenReturn( "testCommand" );
         when( environment.getId() ).thenReturn( id );
 

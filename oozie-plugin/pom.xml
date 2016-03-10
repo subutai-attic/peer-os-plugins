@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>oozie-plugin-parent</artifactId>
-  <version>4.0.0-RC7-SNAPSHOT</version>
+  <version>4.0.0-RC7</version>
 
   <name>Subutai Oozie Parent</name>
   <description>Subutai Oozie Parent</description>
@@ -14,7 +14,7 @@
 
   <properties>
     <subutai.mgmt.parent.version>4.0.0-RC7-SNAPSHOT</subutai.mgmt.parent.version>
-    <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
+    <hadoop.version>${project.version}</hadoop.version>
     <karaf.version>3.0.2</karaf.version>
     <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
     <guava.version>18.0</guava.version>
@@ -89,7 +89,7 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>hadoop-plugin-api</artifactId>
-        <version>4.0.0-RC7-SNAPSHOT</version>
+        <version>4.0.0-RC7</version>
       </dependency>
 
       <dependency>

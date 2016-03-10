@@ -1,11 +1,7 @@
 package io.subutai.plugin.zookeeper.impl.handler;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import io.subutai.common.environment.*;
 import org.slf4j.Logger;
@@ -180,9 +176,10 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 //if envHost is not in zoo cluster add it else create new one.
                 if ( envContainerHosts.isEmpty() )
                 {
-                    NodeGroup nodeGroup =
-                            new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME,
-                                    ContainerSize.TINY, 1, 1, null, null );
+					final String hostname = UUID.randomUUID().toString();
+					final String containerName = ZookeeperClusterConfig.PRODUCT_NAME + "_" + hostname;
+					Node node = new Node( hostname, containerName, ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+							null, null );
 					Topology topology = new Topology( environment.getName(), 1, 1 );
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
