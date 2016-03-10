@@ -49,7 +49,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
         this.operationType = operationType;
         this.config = config;
         clusterName = config.getClusterName ();
-        trackerOperation = manager.getTracker ().createTrackerOperation ( UsergridConfig.PACKAGE_NAME, "starting" );
+        trackerOperation = manager.getTracker ().createTrackerOperation ( UsergridConfig.PRODUCT_KEY, "starting" );
+        if ( trackerOperation == null )
+        {
+            LOG.error ( "trackerOperation is null " );
+        }
+        else
+        {
+            LOG.info ( "trackerOperation: " + trackerOperation );
+        }
     }
 
 

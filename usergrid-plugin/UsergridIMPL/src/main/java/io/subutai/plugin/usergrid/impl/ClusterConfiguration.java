@@ -108,6 +108,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.info ( "Usergrid SAVED to DB" );
         }
+        po.addLogDone ( "DONE" );
 
     }
 
@@ -180,7 +181,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( ch, "touch exportScript.sh" );
         this.commandExecute ( ch, "echo '#!/bin/bash' >> exportScript.sh" );
         this.commandExecute ( ch, "echo export JAVA_HOME=\"/usr/lib/jvm/java-8-oracle\" >> exportScript.sh" );
-        this.commandExecute ( ch, "echo 'sudo /etc/init.d/tomcat7 restart' >> exportScript.sh" );
+        this.commandExecute ( ch, "echo '/etc/init.d/tomcat7 restart' >> exportScript.sh" );
         this.commandExecute ( ch, "chmod +x exportScript.sh" );
     }
 

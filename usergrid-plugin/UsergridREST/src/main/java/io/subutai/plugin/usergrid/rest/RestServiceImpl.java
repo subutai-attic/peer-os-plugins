@@ -112,7 +112,7 @@ public class RestServiceImpl implements RestService
         long start = System.currentTimeMillis ();
         while ( !Thread.interrupted () )
         {
-            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.PRODUCT_NAME, uuid );
+            TrackerOperationView po = tracker.getTrackerOperation ( UsergridConfig.PRODUCT_KEY, uuid );
 
             if ( po != null )
             {
