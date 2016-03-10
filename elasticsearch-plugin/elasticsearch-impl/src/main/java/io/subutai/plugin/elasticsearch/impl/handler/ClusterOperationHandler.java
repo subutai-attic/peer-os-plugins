@@ -2,7 +2,9 @@ package io.subutai.plugin.elasticsearch.impl.handler;
 
 
 import java.util.Set;
+import java.util.UUID;
 
+import io.subutai.common.environment.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,12 +14,6 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
@@ -190,9 +186,10 @@ public class ClusterOperationHandler
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY,
-                ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL, 0, 0,
-                localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
+		final String hostname = UUID.randomUUID().toString();
+		final String containerName = ElasticsearchClusterConfiguration.PRODUCT_KEY + "_" + hostname;
+		Node tempnode = new Node( hostname, containerName, ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+				localPeer.getId(), localPeer.getResourceHosts ().iterator().next().getId () );
 
         EnvironmentContainerHost newNode;
         try
