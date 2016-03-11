@@ -93,7 +93,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "End of creating properties file" );
         this.commandExecute ( tomcatContainerHost,
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
-        this.commandExecute ( tomcatContainerHost, Commands.replace8080To80 () );
+        // this.commandExecute ( tomcatContainerHost, Commands.replace8080To80 () );
         this.configureReversProxy ( tomcatContainerHost, config, tomcatName );
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
@@ -123,8 +123,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                         String clusterName )
     {
         this.commandExecute ( containerHost,
-                              "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost " + config.getUserDomain () + "/g' "
+                              "sed -i 's/127.0.0.1 localhost/127.0.0.1 localhost " + config.getUserDomain () + "/g' "
                               + "/etc/hosts" );
+        this.commandExecute ( containerHost, "touch /etc/apache2/sites-enabled/subutai.conf" );
+        this.commandExecute ( containerHost,
+                              "echo '" + Commands.getVirtual ( config.getUserDomain () ) + "' >> /etc/apache2/sites-enabled/subutai.conf" );
+        this.commandExecute ( containerHost, Commands.getCopyModes () );
+        this.commandExecute ( containerHost, "/etc/init.d/apache2 restart" );
+
         PeerManager peerManager = usergridImplManager.getPeerManager ();
         LocalPeer localPeer = peerManager.getLocalPeer ();
         String ipAddress = this.getIPAddress ( containerHost );

@@ -65,7 +65,31 @@ public class Commands
 
     public static String replace8080To80 ()
     {
-        return ( "sed -i -e 's/8080/80/g' " + catalinaBase + "conf/server.xml" );
+        return ( "sed -i -e 's/8080/80/g' /etc/tomcat7/server.xml" );
+    }
+
+
+    public static String getVirtual ( String a )
+    {
+        return "<VirtualHost *:80>\n"
+                + "	ServerName *." + a + "\n"
+                + "\n"
+                + "	ProxyRequests On\n"
+                + "	ProxyPass / http://localhost:8080/\n"
+                + "	ProxyPassReverse / http://localhost:8080/\n"
+                + "\n"
+                + "	<Location \"/\">\n"
+                + "	  Order allow,deny\n"
+                + "	  Allow from all\n"
+                + "	</Location>\n"
+                + "	\n"
+                + "</VirtualHost>";
+    }
+
+
+    public static String getCopyModes ()
+    {
+        return "cp /etc/apache2/mods-available/proxy.* /etc/apache2/mods-enabled";
     }
 
 
