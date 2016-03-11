@@ -29,4 +29,12 @@
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.appscale.impl.AppScaleWebModule">
   </bean>
+
+
+  <bean id="alertHandler" scope="singleton"
+        class="io.subutai.plugin.appscale.impl.handler.AlertHandler">
+    <argument ref="appScaleImpl" />
+  </bean>
+
+  <service ref="alertHandler" interface="io.subutai.common.peer.AlertHandler" />
 </blueprint>
