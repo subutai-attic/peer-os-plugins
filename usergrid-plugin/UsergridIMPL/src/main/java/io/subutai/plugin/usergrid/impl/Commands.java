@@ -87,9 +87,34 @@ public class Commands
     }
 
 
+    public static String get000Default ()
+    {
+        return "<VirtualHost *:*>\n"
+                + "    ProxyPreserveHost On\n"
+                + "\n"
+                + "    # Servers to proxy the connection, or;\n"
+                + "    # List of application servers:\n"
+                + "    # Usage:\n"
+                + "    # ProxyPass / http://[IP Addr.]:[port]/\n"
+                + "    # ProxyPassReverse / http://[IP Addr.]:[port]/\n"
+                + "    # Example: \n"
+                + "    ProxyPass / http://0.0.0.0:8080/\n"
+                + "    ProxyPassReverse / http://0.0.0.0:8080/\n"
+                + "\n"
+                + "    ServerName localhost\n"
+                + "</VirtualHost>";
+    }
+
+
     public static String getCopyModes ()
     {
-        return "cp /etc/apache2/mods-available/proxy.* /etc/apache2/mods-enabled";
+        return "cp /etc/apache2/mods-available/proxy* /etc/apache2/mods-enabled/";
+    }
+
+
+    public static String getCopySlotMem ()
+    {
+        return "cp /etc/apache2/mods-available/slotmem* /etc/apache2/mods-enabled/";
     }
 
 

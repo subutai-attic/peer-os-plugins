@@ -85,8 +85,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                                                                               environment ) );
         this.pushToProperties ( tomcatContainerHost, Commands.getAdminSuperUserString () );
         this.pushToProperties ( tomcatContainerHost, Commands.getAutoConfirmString () );
-        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
-                                tomcatContainerHost ) + ":8080/ROOT" );
+//        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
+//                                tomcatContainerHost ) + ":8080/ROOT" );
+        this.pushToProperties ( tomcatContainerHost,
+                                "usergrid.api.url.base=http://8080." + config.getUserDomain () + "/ROOT" );
         this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
                                                                                       config.getUserDomain () ) );
         // end of pushing into file
@@ -125,10 +127,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost,
                               "sed -i 's/127.0.0.1 localhost/127.0.0.1 localhost " + config.getUserDomain () + "/g' "
                               + "/etc/hosts" );
-        this.commandExecute ( containerHost, "touch /etc/apache2/sites-enabled/subutai.conf" );
         this.commandExecute ( containerHost,
-                              "echo '" + Commands.getVirtual ( config.getUserDomain () ) + "' >> /etc/apache2/sites-enabled/subutai.conf" );
+                              "echo '" + Commands.get000Default () + "' > /etc/apache2/sites-enabled/000-default.conf" );
         this.commandExecute ( containerHost, Commands.getCopyModes () );
+        this.commandExecute ( containerHost, Commands.getCopySlotMem () );
         this.commandExecute ( containerHost, "/etc/init.d/apache2 restart" );
 
         PeerManager peerManager = usergridImplManager.getPeerManager ();
