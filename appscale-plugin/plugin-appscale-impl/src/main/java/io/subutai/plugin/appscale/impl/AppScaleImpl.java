@@ -25,11 +25,9 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.network.Vnis;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
@@ -118,31 +116,29 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    private void getVLAN ()
-    {
-        try
-        {
-            LocalPeer localPeer = peerManager.getLocalPeer ();
-            Vnis reservedVnis = localPeer.getReservedVnis ();
-            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
-            if ( findVlanByVni == null )
-            {
-                appScaleConfig.setVlanNumber ( 100 );
-            }
-            else
-            {
-                appScaleConfig.setVlanNumber ( findVlanByVni );
-            }
-
-        }
-        catch ( PeerException ex )
-        {
-            LOG.error ( "Error on getting environment VLAN: " + ex );
-        }
-
-    }
-
-
+//    private void getVLAN ()
+//    {
+//        try
+//        {
+//            LocalPeer localPeer = peerManager.getLocalPeer ();
+//            Vnis reservedVnis = localPeer.getReservedVnis ();
+//            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
+//            if ( findVlanByVni == null )
+//            {
+//                appScaleConfig.setVlanNumber ( 100 );
+//            }
+//            else
+//            {
+//                appScaleConfig.setVlanNumber ( findVlanByVni );
+//            }
+//
+//        }
+//        catch ( PeerException ex )
+//        {
+//            LOG.error ( "Error on getting environment VLAN: " + ex );
+//        }
+//
+//    }
     @Override
     /**
      * returns true if container installed
