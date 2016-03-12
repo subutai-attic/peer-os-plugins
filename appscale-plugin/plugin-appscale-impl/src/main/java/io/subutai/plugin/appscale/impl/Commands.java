@@ -75,5 +75,6 @@ public class Commands
         return ( "echo 'domain.com' > /etc/hostname" );
     }
 
+
 }
 
