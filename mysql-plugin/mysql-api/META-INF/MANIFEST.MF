@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1457605077163
+Bnd-LastModified: 1457762175860
 Build-Jdk: 1.8.0_74
 Built-By: larcohex
 Bundle-Description: Subutai MySQL Cluster Api
