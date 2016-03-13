@@ -78,7 +78,7 @@ public class RestServiceImpl implements RestService
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
 
-                String ip = containerHost.getIpByInterfaceName( "eth0" );
+                String ip = containerHost.getInterfaceByName( "eth0" ).getIp();
                 containerDto.setIp( ip );
 
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
@@ -338,8 +338,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( lxcHosts );
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {
-        }.getType() );
+        {}.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {
@@ -380,8 +379,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( lxcHosts );
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {
-        }.getType() );
+        {}.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {

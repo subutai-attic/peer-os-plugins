@@ -4,6 +4,7 @@ package io.subutai.plugin.cassandra.impl.handler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -124,18 +125,19 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup =
-                new NodeGroup( CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),ContainerSize.SMALL, 0, 0,
-                        localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
+        Node nodeGroup =
+                new Node( UUID.randomUUID().toString(), CassandraClusterConfig.PRODUCT_NAME, config.getTEMPLATE_NAME(),
+                        ContainerSize.SMALL, 0, 0, localPeer.getId(),
+                        localPeer.getResourceHosts().iterator().next().getId() );
 
         try
         {
             Set<EnvironmentContainerHost> newNodeSet;
             try
             {
-                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-                        new Topology (manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName (), 1, 1),
-                        false );
+                newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), new Topology(
+                                manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                       .getName() ), false );
             }
             catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
             {
