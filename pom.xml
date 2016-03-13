@@ -27,6 +27,7 @@
     <module>presto-plugin</module>
     <module>oozie-plugin</module>
     <module>backup-plugin</module>
+    <module>generic-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
