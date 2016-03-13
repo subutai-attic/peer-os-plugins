@@ -18,6 +18,7 @@
     <module>mongo-plugin</module>
     <module>lucene-plugin</module>
     <module>hive-plugin</module>
+    <module>hipi-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
