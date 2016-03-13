@@ -34,6 +34,7 @@
     <module>solr-plugin</module>
     <module>storm-plugin</module>
     <module>nutch-plugin</module>
+    <module>usergrid-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
