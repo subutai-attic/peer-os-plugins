@@ -1,0 +1,10 @@
+<features name="backup-plugin" version="4.0.0-RC7">
+  <feature name="backup-plugin" version="4.0.0-RC7">
+    <bundle> mvn:io.subutai/backup-plugin-api/4.0.0-RC7-SNAPSHOT</bundle>
+    <bundle> mvn:io.subutai/backup-plugin-impl/4.0.0-RC7-SNAPSHOT</bundle>
+    <bundle> mvn:io.subutai/backup-plugin-rest/4.0.0-RC7-SNAPSHOT</bundle>
+  </feature>
+  <feature name="backup-plugin-war" version="4.0.0-RC7-SNAPSHOT">
+    <bundle> war:mvn:io.subutai/backup-plugin-webui/4.0.0-RC7-SNAPSHOT/war?Webapp-Context=backup-plugin-war</bundle>
+  </feature>
+</features>
