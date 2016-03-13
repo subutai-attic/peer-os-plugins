@@ -13,6 +13,7 @@ import com.google.common.collect.Sets;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
@@ -253,7 +254,8 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodeIds() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                nodes.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ) ) );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                nodes.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp () ) );
             }
             pojo.setNodes( nodes );
         }

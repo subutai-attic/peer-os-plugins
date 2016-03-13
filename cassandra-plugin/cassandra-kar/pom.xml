@@ -16,7 +16,7 @@
       <plugin>
         <groupId>org.apache.karaf.tooling</groupId>
         <artifactId>karaf-maven-plugin</artifactId>
-        <version>3.0.2</version>
+        <version>${karaf.version}</version>
         <extensions>true</extensions>
         <configuration>
           <startLevel>80</startLevel>
@@ -30,11 +30,12 @@
             </goals>
             <phase>install</phase>
             <configuration>
-              <featuresFile>features.xml</featuresFile>
+              <featuresFile>${project.basedir}/features.xml</featuresFile>
             </configuration>
           </execution>
         </executions>
       </plugin>
+
 
       <plugin>
         <artifactId>jdeb</artifactId>
@@ -47,7 +48,7 @@
               <goal>jdeb</goal>
             </goals>
             <configuration>
-              <controlDir>debian</controlDir>
+              <controlDir>${project.basedir}/debian</controlDir>
               <dataSet>
                 <data>
                   <src>${project.basedir}/target/${project.build.finalName}.kar</src>

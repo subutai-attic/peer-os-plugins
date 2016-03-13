@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>io.subutai</groupId>
+  <artifactId>generic-plugin-kar</artifactId>
+  <version>4.0.0-RC7</version>
+  <versioning>
+    <snapshot>
+      <localCopy>true</localCopy>
+    </snapshot>
+    <lastUpdated>20160310092854</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <classifier>features</classifier>
+        <extension>xml</extension>
+        <value>4.0.0-RC7</value>
+        <updated>20160310092854</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

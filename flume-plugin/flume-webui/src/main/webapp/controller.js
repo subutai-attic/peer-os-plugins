@@ -204,12 +204,12 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function createFlume() {
 		if(vm.flumeInstall.clusterName === undefined || vm.flumeInstall.clusterName.length == 0) return;
 
-		SweetAlert.swal("Success!", "Elastic Search cluster start creating.", "success");
+		SweetAlert.swal("Success!", "Flume cluster started creating.", "success");
 		flumeSrv.createFlume(vm.flumeInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Elastic Search cluster created.", "success");
+			SweetAlert.swal("Success!", "Your Flume cluster was created.", "success");
 			getClusters();
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Elastic Search cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			SweetAlert.swal("ERROR!", 'Flume cluster create error: ' + error.replace(/\\n/g, ' '), "error");
 			getClusters();
 		});
 		setDefaultValues();

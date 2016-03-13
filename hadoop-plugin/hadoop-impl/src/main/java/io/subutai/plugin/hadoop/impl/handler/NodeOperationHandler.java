@@ -182,12 +182,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             // TaskTracker
             jobtracker.execute( new RequestBuilder( Commands.getRemoveTaskTrackerCommand( host.getHostname() ) ) );
             jobtracker.execute( new RequestBuilder(
-                    Commands.getIncludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    Commands.getIncludeTaskTrackerCommand( host.getInterfaceByName( "eth0" ).getIp() ) ) );
 
             // DataNode
             namenode.execute( new RequestBuilder( Commands.getRemoveDataNodeCommand( host.getHostname() ) ) );
-            namenode.execute(
-                    new RequestBuilder( Commands.getIncludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+            namenode.execute( new RequestBuilder(
+                    Commands.getIncludeDataNodeCommand( host.getInterfaceByName( "eth0" ).getIp() ) ) );
 
             namenode.execute( new RequestBuilder( Commands.getRefreshNameNodeCommand() ) );
             jobtracker.execute( new RequestBuilder( Commands.getRefreshJobTrackerCommand() ) );
@@ -316,8 +316,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             namenode.execute( new RequestBuilder( Commands.getSetDataNodeCommand( host.getHostname() ) ) );
 
             // remove data node from dfs.exclude
-            namenode.execute(
-                    new RequestBuilder( Commands.getExcludeDataNodeCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+            namenode.execute( new RequestBuilder(
+                    Commands.getExcludeDataNodeCommand( host.getInterfaceByName( "eth0" ).getIp() ) ) );
 
             // start datanode if namenode is already running
             if ( isClusterRunning( namenode ) )
@@ -342,7 +342,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
 
             // remove task tracker from dfs.exclude
             jobtracker.execute( new RequestBuilder(
-                    Commands.getExcludeTaskTrackerCommand( host.getIpByInterfaceName( "eth0" ) ) ) );
+                    Commands.getExcludeTaskTrackerCommand( host.getInterfaceByName( "eth0" ).getIp() ) ) );
 
             // start tasktracker if namenode is already running
             if ( isClusterRunning( namenode ) )

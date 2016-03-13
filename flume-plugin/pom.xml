@@ -22,7 +22,7 @@
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
     <jaxrs.version>2.7.12</jaxrs.version>
-    <hadoop.version>${subutai.mgmt.parent.version}</hadoop.version>
+    <hadoop.version>${project.version}</hadoop.version>
   </properties>
 
   <modules>

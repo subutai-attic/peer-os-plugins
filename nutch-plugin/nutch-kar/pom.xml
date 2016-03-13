@@ -30,7 +30,7 @@
             </goals>
             <phase>install</phase>
             <configuration>
-              <featuresFile>features.xml</featuresFile>
+              <featuresFile>${project.basedir}/features.xml</featuresFile>
             </configuration>
           </execution>
         </executions>
@@ -46,7 +46,7 @@
               <goal>jdeb</goal>
             </goals>
             <configuration>
-              <controlDir>debian</controlDir>
+              <controlDir>${project.basedir}/debian</controlDir>
               <dataSet>
                 <data>
                   <src>${project.basedir}/target/${project.build.finalName}.kar</src>

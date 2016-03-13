@@ -138,9 +138,9 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.mahoutInstall.clusterName === undefined || vm.mahoutInstall.clusterName.length == 0) return;
 		if(vm.mahoutInstall.hadoopClusterName === undefined || vm.mahoutInstall.hadoopClusterName.length == 0) return;
 
-		SweetAlert.swal("Success!", "Mahout cluster start creating.", "success");
+		SweetAlert.swal("Success!", "Mahout cluster started creating.", "success");
 		mahoutSrv.createMahout(vm.mahoutInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Mahout cluster start creating.", "success");
+			SweetAlert.swal("Success!", "Mahout cluster was created.", "success");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Mahout cluster create error: ' + error.replace(/\\n/g, ' '), "error");

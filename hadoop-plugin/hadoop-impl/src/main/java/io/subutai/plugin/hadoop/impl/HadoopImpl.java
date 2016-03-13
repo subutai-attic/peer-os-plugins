@@ -1,6 +1,7 @@
 package io.subutai.plugin.hadoop.impl;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +16,8 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.Node;
+import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -533,13 +535,13 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException
     {
 
-        Set<NodeGroup> schema = new HashSet<>();
-        schema.add( new NodeGroup( "hadoop-master-1", "hadoop", ContainerSize.TINY, 1, 1, null, null ) );
-        schema.add( new NodeGroup( "hadoop-master-2", "hadoop", ContainerSize.TINY, 1, 1, null, null ) );
-        schema.add( new NodeGroup( "hadoop-master-2", "hadoop", ContainerSize.TINY, 1, 1, null, null ) );
+        List<NodeSchema> schema = new ArrayList<>();
+        schema.add( new NodeSchema( "hadoop-master-1", ContainerSize.TINY, "hadoop", 1, 1 ) );
+        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
+        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
         for ( int i = 0; i < config.getCountOfSlaveNodes(); i++ )
         {
-            schema.add( new NodeGroup( "hadoop-slave-" + ( i + 1 ), "hadoop", ContainerSize.SMALL, 1, 1, null, null ) );
+            schema.add( new NodeSchema( "hadoop-slave-" + ( i + 1 ), ContainerSize.SMALL, "hadoop", 1, 1 ) );
         }
         //        NodeGroup nodeGroup = new NodeGroup( "Hadoop node group", HadoopClusterConfig.TEMPLATE_NAME,
         //                HadoopClusterConfig.DEFAULT_HADOOP_MASTER_NODES_QUANTITY + config.getCountOfSlaveNodes(),

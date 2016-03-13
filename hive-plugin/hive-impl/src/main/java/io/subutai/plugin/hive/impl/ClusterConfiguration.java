@@ -1,6 +1,7 @@
 package io.subutai.plugin.hive.impl;
 
 
+import io.subutai.common.host.HostInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // configure hive server
         po.addLog( "Configuring server node: " + server.getHostname() );
-        executeCommand( server, Commands.configureHiveServer( server.getIpByInterfaceName( "eth0" ) ) );
+		HostInterface hostInterface = server.getInterfaceByName ("eth0");
+        executeCommand( server, Commands.configureHiveServer( hostInterface.getIp () ) );
 
 
         for ( ContainerHost containerHost : environment.getContainerHosts() )
