@@ -32,6 +32,7 @@
     <module>spark-plugin</module>
     <module>shark-plugin</module>
     <module>solr-plugin</module>
+    <module>storm-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>

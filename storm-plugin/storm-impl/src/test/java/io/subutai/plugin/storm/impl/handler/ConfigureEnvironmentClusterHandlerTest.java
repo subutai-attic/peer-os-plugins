@@ -15,6 +15,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -70,6 +71,9 @@ public class ConfigureEnvironmentClusterHandlerTest
     private Set<EnvironmentContainerHost> mySet;
     private Set<String> myUUID;
 
+    @Mock
+    private HostInterface hostInterface;
+
 
     @Before
     public void setUp() throws Exception
@@ -82,6 +86,7 @@ public class ConfigureEnvironmentClusterHandlerTest
 
         // mock constructor
         id = UUID.randomUUID().toString();
+        when( hostInterface.getIp() ).thenReturn( "192.168.0.1" );
         when( stormImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
@@ -126,6 +131,7 @@ public class ConfigureEnvironmentClusterHandlerTest
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
         when( containerHost.getId() ).thenReturn( id );
+        when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( hostInterface );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
 

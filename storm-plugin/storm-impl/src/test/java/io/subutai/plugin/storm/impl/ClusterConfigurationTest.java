@@ -16,13 +16,14 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
@@ -64,6 +65,8 @@ public class ClusterConfigurationTest
     private String id;
     private Set<EnvironmentContainerHost> mySet;
     private Set<String> myUUID;
+    @Mock
+    private HostInterface hostInterface;
 
 
     @Before
@@ -83,8 +86,10 @@ public class ClusterConfigurationTest
         when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( hostInterface );
         when( commandResult.hasSucceeded() ).thenReturn( true );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
+        when( hostInterface.getIp() ).thenReturn( "192.168.0.1" );
     }
 
 
