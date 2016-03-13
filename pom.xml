@@ -21,6 +21,7 @@
     <module>hipi-plugin</module>
     <module>elasticsearch-plugin</module>
     <module>ceph-plugin</module>
+    <module>flume-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
