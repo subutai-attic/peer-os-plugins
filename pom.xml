@@ -29,6 +29,7 @@
     <module>backup-plugin</module>
     <module>generic-plugin</module>
     <module>pig-plugin</module>
+    <module>spark-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
