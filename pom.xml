@@ -23,6 +23,7 @@
     <module>ceph-plugin</module>
     <module>flume-plugin</module>
     <module>mahout-plugin</module>
+    <module>hbase-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
