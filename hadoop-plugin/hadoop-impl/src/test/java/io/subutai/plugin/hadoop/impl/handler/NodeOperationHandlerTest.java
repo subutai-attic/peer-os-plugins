@@ -17,6 +17,8 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterfaceModel;
+import io.subutai.common.host.HostInterfaces;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -40,6 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith( MockitoJUnitRunner.class )
 public class NodeOperationHandlerTest
 {
+    private static final String ETH0_IP = "192.168.0.1";
     private NodeOperationHandler nodeOperationHandler;
     private String id;
     @Mock
@@ -66,11 +69,14 @@ public class NodeOperationHandlerTest
     RequestBuilder requestBuilder;
     @Mock
     PluginDAO pluginDAO;
+    @Mock
+    private HostInterfaceModel eth0Interface;
 
 
     @Before
     public void setUp() throws CommandException, EnvironmentNotFoundException, ContainerHostNotFoundException
     {
+        when( eth0Interface.getIp() ).thenReturn( ETH0_IP );
         when( commandResult.getStdOut() ).thenReturn( "NameNode" );
         Set<EnvironmentContainerHost> mySet = mock( Set.class );
         mySet.add( containerHost );
@@ -86,6 +92,7 @@ public class NodeOperationHandlerTest
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost ).thenReturn( containerHost2 );
         when( containerHost.getHostname() ).thenReturn( "test" );
+        when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( eth0Interface );
         when( containerHost2.getHostname() ).thenReturn( "test" );
         when( hadoopImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );

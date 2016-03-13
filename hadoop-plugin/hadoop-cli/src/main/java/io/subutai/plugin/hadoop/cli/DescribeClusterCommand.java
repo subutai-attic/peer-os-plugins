@@ -105,15 +105,15 @@ public class DescribeClusterCommand extends OsgiCommandSupport
 
                     sb.append( "NameNode" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( namenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( namenode.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( namenode.getInterfaceByName( "eth0" ) ).append( "\n" );
 
                     sb.append( "SecondaryNameNode" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( secnamenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( secnamenode.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( secnamenode.getInterfaceByName( "eth0" ) ).append( "\n" );
 
                     sb.append( "Job tracker" ).append( "\n" );
                     sb.append( "   Hostname:" ).append( jobTracker.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( jobTracker.getIpByInterfaceName( "eth0" ) ).append( "\n" );
+                    sb.append( "   IPs:" ).append( jobTracker.getInterfaceByName( "eth0" ) ).append( "\n" );
                     System.out.println( sb.toString() );
                 }
                 catch ( ContainerHostNotFoundException e )

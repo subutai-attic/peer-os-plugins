@@ -4,6 +4,7 @@ package io.subutai.plugin.hadoop.impl.handler;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -88,10 +89,10 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             if ( ( !allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
             {
 
-                String nodeGroupName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
+                String containerName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
                 final int newNodes = nodeCount - numberOfContainersNotBeingUsed;
-                Set<NodeGroup> nodeGroups = new HashSet<>();
-                PeerGroupResources groupResources = manager.getPeerManager ().getPeerGroupResources ();
+                Set<Node> nodeGroups = new HashSet<>();
+                PeerGroupResources groupResources = manager.getPeerManager().getPeerGroupResources();
                 for ( Peer peer : environment.getPeers() )
                 {
                     try
@@ -107,15 +108,12 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
                 for ( int i = 0; i < newNodes; i++ )
                 {
-                    //                    final ContainerPlacementStrategy strategy =
-                    //                            manager.getStrategyManager().findStrategyById( ExampleStrategy.ID );
-
                     ResourceHost resourceHost =
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
-                    NodeGroup nodeGroup =
-                            new NodeGroup( nodeGroupName, HadoopClusterConfig.TEMPLATE_NAME, ContainerSize.SMALL, 1, 1,
-                                    resourceHost.getPeerId(), resourceHost.getId() );
+                    Node nodeGroup =
+                            new Node( UUID.randomUUID().toString(), containerName, HadoopClusterConfig.TEMPLATE_NAME,
+                                    ContainerSize.SMALL, 1, 1, resourceHost.getPeerId(), resourceHost.getId() );
 
                     nodeGroups.add( nodeGroup );
                 }
@@ -131,11 +129,11 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     trackerOperation.addLog( "Creating new containers..." );
                 }
-                Topology topology = new Topology( environment.getName(), 1, 1 );
+                Topology topology = new Topology( environment.getName() );
 
-                for ( NodeGroup nodeGroup : nodeGroups )
+                for ( Node nodeGroup : nodeGroups )
                 {
-                    topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                    topology.addNodePlacement( nodeGroup.getPeerId(), nodeGroup );
                 }
                 newlyCreatedContainers =
                         environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
