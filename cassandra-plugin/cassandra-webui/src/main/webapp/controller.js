@@ -186,8 +186,9 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	}
 
 	function createCassandra() {
+		SweetAlert.swal("Success!", "Your Cassandra cluster started creating.", "success");
 		cassandraSrv.createCassandra(JSON.stringify(vm.cassandraInstall)).success(function (data) {
-			SweetAlert.swal("Success!", "Your Cassandra cluster start creating.", "success");
+			SweetAlert.swal("Success!", "Your Cassandra cluster successfully created.", "success");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cassandra cluster create error: ' + error.replace(/\\n/g, ' '), "error");
 		});

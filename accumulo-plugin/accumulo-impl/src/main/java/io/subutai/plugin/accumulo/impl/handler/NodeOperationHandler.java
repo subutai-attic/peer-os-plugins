@@ -417,15 +417,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
                 e.printStackTrace();
             }
 
-            try
-            {
-                manager.subscribeToAlerts( node );
-            }
-            catch ( MonitorException e )
-            {
-                LOGGER.error( "Error while subscribing to alert !", e );
-                e.printStackTrace();
-            }
+//            try
+//            {
+//                manager.subscribeToAlerts( node );
+//            }
+//            catch ( MonitorException e )
+//            {
+//                LOGGER.error( "Error while subscribing to alert !", e );
+//                e.printStackTrace();
+//            }
         }
     }
 

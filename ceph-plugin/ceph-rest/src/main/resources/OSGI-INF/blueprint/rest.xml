@@ -16,11 +16,11 @@
   </jaxrs:server>
 
   <bean id="cephRestServiceImpl" class="io.subutai.plugin.ceph.rest.RestServiceImpl">
-    <property name="cephManager" ref="ceph" />
+    <argument ref="cephManager" />
     <property name="tracker" ref="tracker" />
   </bean>
 
-  <reference id="ceph" availability="mandatory"
+  <reference id="cephManager" availability="mandatory"
              interface="io.subutai.plugin.ceph.api.Ceph" />
   <reference id="tracker"  availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />

@@ -355,7 +355,7 @@ public class StormClusterOperationHandlerTest
     public void testRunOperationTypeAdd() throws Exception
     {
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-        when( containerHost.getIpByInterfaceName( "eth0" ) ).thenReturn( "test" );
+        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
 
         stormClusterOperationHandler6.run();
@@ -367,7 +367,7 @@ public class StormClusterOperationHandlerTest
     public void testRunOperationTypeAdd2() throws Exception
     {
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( false );
-        when( containerHost.getIpByInterfaceName( "eth0" ) ).thenReturn( "test" );
+        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
         when( zookeeper.getCluster( anyString() ) ).thenReturn( null );
 

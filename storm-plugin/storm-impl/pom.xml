@@ -62,7 +62,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>metric-api</artifactId>
-      <version>${project.version}</version>
+      <version>${subutai.mgmt.parent.version}</version>
     </dependency>
   </dependencies>
 

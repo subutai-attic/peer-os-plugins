@@ -8,11 +8,11 @@ package io.subutai.plugin.solr.api;
 
 import java.util.UUID;
 
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.strategy.api.Blueprint;
 
 
 /**
@@ -36,7 +36,7 @@ public interface Solr extends ApiBase<SolrClusterConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final SolrClusterConfig config,
                                                          final TrackerOperation po );
 
-    public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config );
+    public Blueprint getDefaultEnvironmentBlueprint(SolrClusterConfig config );
 
     UUID configureEnvironmentCluster( SolrClusterConfig config );
 }

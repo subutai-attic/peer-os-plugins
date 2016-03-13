@@ -165,11 +165,11 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            accumuloManager.subscribeToAlerts( environment );
+//            accumuloManager.subscribeToAlerts( environment );
             new ClusterConfiguration( accumuloManager, trackerOperation )
                     .configureCluster( accumuloClusterConfig, environment );
         }
-        catch ( ClusterConfigurationException | MonitorException e )
+        catch ( ClusterConfigurationException/* | MonitorException*/ e )
         {
             throw new ClusterSetupException( e.getMessage() );
         }
@@ -292,11 +292,11 @@ public class AccumuloOverZkNHadoopSetupStrategy implements ClusterSetupStrategy
 
         try
         {
-            accumuloManager.subscribeToAlerts( environment );
+//            accumuloManager.subscribeToAlerts( environment );
             new ClusterConfiguration( accumuloManager, trackerOperation )
                     .configureCluster( accumuloClusterConfig, environment );
         }
-        catch ( ClusterConfigurationException | MonitorException e )
+        catch ( ClusterConfigurationException /*| MonitorException */e )
         {
             throw new ClusterSetupException( e.getMessage() );
         }

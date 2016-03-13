@@ -7,6 +7,7 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
 import io.subutai.plugin.oozie.rest.pojo.VersionPojo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -287,14 +288,16 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getClients() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ) ) );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp () ) );
             }
 
             pojo.setClients( containerPojoSet );
 
             ContainerHost ch = environment.getContainerHostById( config.getServer() );
+            HostInterface hostInterface = ch.getInterfaceByName ("eth0");
             UUID uuid = oozieManager.checkNode( config.getClusterName(), ch.getHostname() );
-            pojo.setServer( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ),
+            pojo.setServer( new ContainerPojo( ch.getHostname(), hostInterface.getIp (),
                     checkStatus( tracker, uuid ) ) );
 
         }

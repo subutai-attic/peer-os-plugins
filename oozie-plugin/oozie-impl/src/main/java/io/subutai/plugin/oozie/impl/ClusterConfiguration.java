@@ -12,6 +12,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -69,8 +70,9 @@ public class ClusterConfiguration
             {
                 throw new ClusterConfigurationException( e );
             }
+			HostInterface hostInterface = hadoopNode.getInterfaceByName ("eth0");
             RequestBuilder requestBuilder =
-                    Commands.getConfigureRootHostsCommand( hadoopNode.getIpByInterfaceName( "eth0" ) );
+                    Commands.getConfigureRootHostsCommand( hostInterface.getIp () );
             RequestBuilder requestBuilder2 = Commands.getConfigureRootGroupsCommand();
             CommandResult commandResult = null;
             CommandResult commandResult2 = null;

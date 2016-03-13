@@ -7,6 +7,7 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
 import io.subutai.plugin.mahout.rest.pojo.VersionPojo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -285,7 +286,8 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodes() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), ch.getIpByInterfaceName( "eth0" ) ) );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp () ) );
             }
 
             pojo.setNodes( containerPojoSet );
