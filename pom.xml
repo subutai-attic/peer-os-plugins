@@ -28,6 +28,7 @@
     <module>oozie-plugin</module>
     <module>backup-plugin</module>
     <module>generic-plugin</module>
+    <module>pig-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
