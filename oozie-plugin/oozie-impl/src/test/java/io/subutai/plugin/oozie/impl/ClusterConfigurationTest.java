@@ -16,6 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -50,6 +51,8 @@ public class ClusterConfigurationTest
     EnvironmentContainerHost containerHost;
     @Mock
     CommandResult commandResult;
+    @Mock
+    HostInterface hostInterface;
 
 
     @Before
@@ -62,6 +65,7 @@ public class ClusterConfigurationTest
     @Test
     public void testConfigureCluster() throws Exception
     {
+        when( hostInterface.getIp() ).thenReturn( "192.168.0.1" );
         when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         List<String> myUUID = new ArrayList<>();
@@ -72,6 +76,7 @@ public class ClusterConfigurationTest
         when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+        when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( hostInterface );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
@@ -84,6 +89,7 @@ public class ClusterConfigurationTest
     @Test( expected = ClusterConfigurationException.class )
     public void testConfigureClusterHasNotSucceeded() throws Exception
     {
+        when( hostInterface.getIp() ).thenReturn( "192.168.0.1" );
         when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         List<String> myUUID = new ArrayList<>();
@@ -95,7 +101,7 @@ public class ClusterConfigurationTest
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( commandResult.hasSucceeded() ).thenReturn( false );
-
+        when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( hostInterface );
         clusterConfiguration.configureCluster( oozieClusterConfig, environment );
     }
 }
