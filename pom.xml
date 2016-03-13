@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.subutai</groupId>
+  <artifactId>subutai-plugins-parent</artifactId>
+  <version>4.0.0-RC7-SNAPSHOT</version>
+
+  <name>Subutai Plugins Project Parent</name>
+
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>cassandra-plugin</module>
+    <module>hadoop-plugin</module>
+    <module>zookeeper-plugin</module>
+    <module>accumulo-plugin</module>
+  </modules>
+
+  <description>Parent project for the Subutai Plugins Artifacts</description>
+
+  <repositories>
+
+    <repository>
+      <id>MavenCentral</id>
+      <name>Maven repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </repository>
+
+    <repository>
+      <id>com.springsource.repository.bundles.release</id>
+      <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+      <url>http://repository.springsource.com/maven/bundles/release</url>
+    </repository>
+
+    <repository>
+      <id>com.springsource.repository.bundles.external</id>
+      <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+      <url>http://repository.springsource.com/maven/bundles/external</url>
+    </repository>
+
+  </repositories>
+
+  <properties>
+    <!-- global properties -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Sonar -->
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+    <!-- Runtime -->
+    <karaf.version>3.0.5</karaf.version>
+    <osgi.framework.version>5.0.0</osgi.framework.version>
+    <aries.blueprint.version>1.1.0</aries.blueprint.version>
+    <aries.proxy.version>1.0.1</aries.proxy.version>
+    <aries.util.version>1.1.0</aries.util.version>
+    <com.google.guava.version>18.0</com.google.guava.version>
+    <!-- REST -->
+    <restlet-version>2.2.2</restlet-version>
+    <org.apache.cxf.version>3.1.0</org.apache.cxf.version>
+    <servlet.version>3.0.1</servlet.version>
+    <!-- TEST -->
+    <org.mockito.version>1.9.5</org.mockito.version>
+    <com.jayway.awaitility.version>1.5.0</com.jayway.awaitility.version>
+    <junit.version>4.11</junit.version>
+
+    <!-- bouncycastle -->
+    <org.bouncycastle.version>1.52</org.bouncycastle.version>
+
+    <!-- JWT lib -->
+    <nimbus.jwt.version>4.3.1</nimbus.jwt.version>
+    <!-- Jackson JSON lib lib -->
+    <jackson.version>2.6.1</jackson.version>
+    <jackson-jaxrs.version>1.9.13</jackson-jaxrs.version>
+
+    <!-- Database  -->
+    <openjpa.version>2.3.0</openjpa.version>
+    <derby.version>10.12.1.1</derby.version>
+
+    <org.apache.httpcomonents.httpclient.version>4.5</org.apache.httpcomonents.httpclient.version>
+    <org.apache.httpcomonents.httpcore.version>4.4.1</org.apache.httpcomonents.httpcore.version>
+    <org.apache.commons.lang3.version>3.4</org.apache.commons.lang3.version>
+    <org.apache.commons.io.version>2.4</org.apache.commons.io.version>
+    <slf4j.version>1.7.12</slf4j.version>
+    <log4j.version>1.2.17</log4j.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.2.201409121644</version>
+        <configuration>
+          <destFile>${sonar.jacoco.reportPath}</destFile>
+          <append>true</append>
+        </configuration>
+        <executions>
+          <execution>
+            <id>jacoco-initialize</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-site</id>
+            <phase>install</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.3</version>
+          <configuration>
+            <source>7</source>
+            <target>7</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.karaf.tooling</groupId>
+          <artifactId>karaf-maven-plugin</artifactId>
+          <version>${karaf.version}</version>
+          <extensions>true</extensions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.karaf.tooling</groupId>
+          <artifactId>features-maven-plugin</artifactId>
+          <version>2.3.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>2.4.0</version>
+          <inherited>true</inherited>
+          <extensions>true</extensions>
+          <configuration>
+            <manifestLocation>META-INF</manifestLocation>
+            <unpackBundle>true</unpackBundle>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.6</version>
+          <extensions>true</extensions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>2.4</version>
+          <extensions>true</extensions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>2.5.4</version>
+          <configuration>
+            <!--
+                Enables analysis which takes more memory but finds more bugs.
+                If you run out of memory, changes the value of the effort element
+                to 'Low'.
+            -->
+            <effort>Max</effort>
+            <!-- Build doesn't fail if problems are found -->
+            <failOnError>false</failOnError>
+            <!-- Reports all bugs (other values are medium and max) -->
+            <threshold>Low</threshold>
+            <!-- Produces XML report -->
+            <xmlOutput>true</xmlOutput>
+            <!-- Configures the directory in which the XML report is created -->
+            <findbugsXmlOutputDirectory>${project.build.directory}/target/findbugs
+            </findbugsXmlOutputDirectory>
+          </configuration>
+          <executions>
+            <!--
+                Ensures that FindBugs inspects source code when project is compiled.
+            -->
+            <execution>
+              <id>analyze-compile</id>
+              <phase>compile</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>xml-maven-plugin</artifactId>
+          <version>1.0</version>
+          <configuration>
+            <transformationSets>
+              <transformationSet>
+                <!-- Configures the source directory of XML files. -->
+                <dir>${project.build.directory}/target/findbugs</dir>
+                <!-- Configures the directory in which the FindBugs report is written.-->
+                <outputDir>${project.build.directory}/target/findbugs</outputDir>
+                <!-- Selects the used stylesheet. -->
+                <stylesheet>default.xsl</stylesheet>
+                <fileMappers>
+                  <!-- Configures the file extension of the output files. -->
+                  <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                    <targetExtension>.html</targetExtension>
+                  </fileMapper>
+                </fileMappers>
+              </transformationSet>
+            </transformationSets>
+          </configuration>
+          <executions>
+            <!-- Ensures that the XSLT transformation is run when the project is compiled. -->
+            <execution>
+              <phase>compile</phase>
+              <goals>
+                <goal>transform</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
