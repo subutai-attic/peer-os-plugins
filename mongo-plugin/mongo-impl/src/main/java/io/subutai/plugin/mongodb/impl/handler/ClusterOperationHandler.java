@@ -199,8 +199,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    Topology topology = new Topology( config.getClusterName(), 0, 0 );
-                   // topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                    Topology topology = new Topology( config.getClusterName() );
+                    // topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
