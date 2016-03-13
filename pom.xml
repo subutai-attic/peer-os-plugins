@@ -17,6 +17,7 @@
     <module>accumulo-plugin</module>
     <module>mongo-plugin</module>
     <module>lucene-plugin</module>
+    <module>hive-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
