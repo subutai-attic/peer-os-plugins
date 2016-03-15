@@ -70,10 +70,50 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 
         List<String> cassandraNameList = config.getCassandraName ();
+
+        cassandraNameList.stream ().forEach ( (c)
+                ->
+                {
+                    try
+                    {
+                        EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( c );
+                        this.commandExecute ( cassContainerHost, Commands.replaceRPC () );
+                        this.commandExecute ( cassContainerHost, Commands.getRestartCassandra () );
+                        this.commandExecute ( cassContainerHost,
+                                              "echo '" + Commands.getRestartCassandra () + "' >> /etc/bash.bashrc" );
+                    }
+                    catch ( ContainerHostNotFoundException ex )
+                    {
+                        LOG.error ( "cassandra container host found error: " + ex );
+                    }
+        } );
         List<String> elasticSearchList = config.getElasticSName ();
 
+        elasticSearchList.stream ().forEach ( (e)
+                ->
+                {
+                    try
+                    {
+                        EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname ( e );
+                        this.commandExecute ( elContainerHost, Commands.getStartElastic () );
+                        this.commandExecute ( elContainerHost,
+                                              "echo '" + Commands.getStartElastic () + "' >> /etc/bash.bashrc" );
+                    }
+                    catch ( ContainerHostNotFoundException ex )
+                    {
+                        LOG.error ( ex.toString () );
+                    }
+        } );
+
         // start command processes:
-        this.commandExecute ( tomcatContainerHost, Commands.getExportJAVAHOME () );
+        this.commandExecute ( tomcatContainerHost, Commands.getRemoveSourcesList () );
+        this.commandExecute ( tomcatContainerHost, Commands.getAptgetUpdate () );
+        this.commandExecute ( tomcatContainerHost, Commands.getInstallCurl () );
+        for ( String comm : Commands.getCurlCommands () )
+        {
+            this.commandExecute ( tomcatContainerHost, comm );
+        }
+
         LOG.info ( "create properties file" );
         this.commandExecute ( tomcatContainerHost, Commands.getCreatePropertiesFile () );
         // start pushing properties file...
@@ -87,24 +127,34 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.pushToProperties ( tomcatContainerHost, Commands.getAutoConfirmString () );
 //        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
 //                                tomcatContainerHost ) + ":8080/ROOT" );
+//        this.pushToProperties ( tomcatContainerHost,
+//                                "usergrid.api.url.base=http://8080." + config.getUserDomain () + "/ROOT" );
         this.pushToProperties ( tomcatContainerHost,
-                                "usergrid.api.url.base=http://8080." + config.getUserDomain () + "/ROOT" );
+                                "usergrid.api.url.base=http://localhost:8080/ROOT" );
         this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
-                                                                                      config.getUserDomain () ) );
+                                                                                      "8080." + config.getUserDomain () ) );
         // end of pushing into file
         LOG.info ( "End of creating properties file" );
         this.commandExecute ( tomcatContainerHost,
                               "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
-        // this.commandExecute ( tomcatContainerHost, Commands.replace8080To80 () );
         this.configureReversProxy ( tomcatContainerHost, config, tomcatName );
+        this.commandExecute ( tomcatContainerHost, Commands.getRemoveROOTFolder () );
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
+        // change urloverride...
+        String commandToChange = "sed -i -e 's/localhost:8080/8080." + config.getUserDomain () + "/g' /var/lib/tomcat7/webapps/portal/config.js";
+        this.commandExecute ( tomcatContainerHost, commandToChange );
+
+        this.commandExecute ( tomcatContainerHost, Commands.makeSureApacheRestartOnBoot () );
+        this.commandExecute ( tomcatContainerHost, Commands.makeSureTomcatRestartOnBoot () );
         LOG.info ( "**************************************ALL DONE**************************************" );
         LOG.info ( "Restart TOMCAT7" );
         this.exportScriptCreate ( tomcatContainerHost );
         this.commandExecute ( tomcatContainerHost, "bash /exportScript.sh" ); // this restart tomcat as well..
         LOG.info ( "**************************************TOMCAT RESTARTED**************************************" );
+
+
         if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_NAME,
                                                              configBase.getClusterName (), configBase
         ) )
@@ -128,9 +178,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                               "sed -i 's/127.0.0.1 localhost/127.0.0.1 localhost " + config.getUserDomain () + "/g' "
                               + "/etc/hosts" );
         this.commandExecute ( containerHost,
-                              "echo '" + Commands.get000Default () + "' > /etc/apache2/sites-enabled/000-default.conf" );
+                              "echo '" + Commands.get000Default ( config.getUserDomain () ) + "' > /etc/apache2/sites-enabled/000-default.conf" );
         this.commandExecute ( containerHost, Commands.getCopyModes () );
+        this.commandExecute ( containerHost, Commands.getCopyXMLEnc () );
         this.commandExecute ( containerHost, Commands.getCopySlotMem () );
+        this.commandExecute ( containerHost, Commands.getPutJAVAHome () );
         this.commandExecute ( containerHost, "/etc/init.d/apache2 restart" );
 
         PeerManager peerManager = usergridImplManager.getPeerManager ();
@@ -224,6 +276,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( ch, "touch exportScript.sh" );
         this.commandExecute ( ch, "echo '#!/bin/bash' >> exportScript.sh" );
         this.commandExecute ( ch, "echo export JAVA_HOME=\"/usr/lib/jvm/java-8-oracle\" >> exportScript.sh" );
+
+        // add curl commands here...
         this.commandExecute ( ch, "echo '/etc/init.d/tomcat7 restart' >> exportScript.sh" );
         this.commandExecute ( ch, "chmod +x exportScript.sh" );
     }

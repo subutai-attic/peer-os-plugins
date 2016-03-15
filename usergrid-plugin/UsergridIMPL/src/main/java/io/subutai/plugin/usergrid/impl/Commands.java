@@ -6,6 +6,9 @@
 package io.subutai.plugin.usergrid.impl;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.subutai.plugin.usergrid.api.UsergridConfig;
 
 
@@ -63,9 +66,39 @@ public class Commands
     }
 
 
-    public static String replace8080To80 ()
+    public static String replaceRPC ()
     {
-        return ( "sed -i -e 's/8080/80/g' /etc/tomcat7/server.xml" );
+        return ( "sed -i -e 's/rpc_address: localhost/rpc_address: 0.0.0.0/g' /etc/cassandra/cassandra.yaml" );
+    }
+
+
+    public static String getRestartCassandra ()
+    {
+        return "/opt/cassandra-2.0.9/bin/cassandra start";
+    }
+
+
+    public static String getRemoveROOTFolder ()
+    {
+        return "rm -rf /var/lib/tomcat7/webapps/ROOT";
+    }
+
+
+    public static String getRemoveSourcesList ()
+    {
+        return "rm -f /etc/apt/sources.list.d/*";
+    }
+
+
+    public static String getAptgetUpdate ()
+    {
+        return "apt-get update";
+    }
+
+
+    public static String getInstallCurl ()
+    {
+        return "apt-get install curl -y";
     }
 
 
@@ -87,7 +120,7 @@ public class Commands
     }
 
 
-    public static String get000Default ()
+    public static String get000Default ( String userDomain )
     {
         return "<VirtualHost *:*>\n"
                 + "    ProxyPreserveHost On\n"
@@ -101,7 +134,7 @@ public class Commands
                 + "    ProxyPass / http://0.0.0.0:8080/\n"
                 + "    ProxyPassReverse / http://0.0.0.0:8080/\n"
                 + "\n"
-                + "    ServerName localhost\n"
+                + "    ServerName " + userDomain + "\n"
                 + "</VirtualHost>";
     }
 
@@ -112,9 +145,49 @@ public class Commands
     }
 
 
+    public static String getCopyXMLEnc ()
+    {
+        return "cp /etc/apache2/mods-available/xml* /etc/apache2/mods-enabled/";
+    }
+
+
+    public static String getPutJAVAHome ()
+    {
+        return "echo 'JAVA_HOME=/usr/lib/jvm/java-8-oracle' >> /etc/default/tomcat7";
+    }
+
+
     public static String getCopySlotMem ()
     {
         return "cp /etc/apache2/mods-available/slotmem* /etc/apache2/mods-enabled/";
+    }
+
+
+    public static String makeSureTomcatRestartOnBoot ()
+    {
+        return "echo 'bash /exportScript.sh' >> /etc/bash.bashrc";
+    }
+
+
+    public static String makeSureApacheRestartOnBoot ()
+    {
+        return "echo '/etc/init.d/apache2 restart' >> /etc/bash.bashrc";
+    }
+
+
+    public static List<String> getCurlCommands ()
+    {
+        List<String> r = new ArrayList ();
+        r.add ( "curl -v -u superuser:usergrid PUT http://localhost:8080/system/database/setup" );
+        r.add ( "curl -v -u superuser:usergrid PUT http://localhost:8080/system/database/bootstrap" );
+        r.add ( "curl -v -u superuser:usergrid GET http://localhost:8080/system/superuser/setup" );
+        return r;
+    }
+
+
+    public static String getStartElastic ()
+    {
+        return "/etc/init.d/elasticsearch start";
     }
 
 
@@ -176,7 +249,7 @@ public class Commands
                 + "usergrid.user.confirmation.url=${BASEURL}/%s/%s/users/%s/confirm\n"
                 + "usergrid.organization.activation.url=${BASEURL}/management/organizations/%s/activate\n"
                 + "usergrid.admin.activation.url=${BASEURL}/management/users/%s/activate\n"
-                + "usergrid.user.activation.url=${BASEURL}%s/%s/users/%s/activate\n"
+                + "usergrid.user.activation.url=${BASEURL}/%s/%s/users/%s/activate\n"
                 + "\n"
                 + "usergrid.admin.resetpw.url=${BASEURL}/management/users/%s/resetpw\n"
                 + "usergrid.user.resetpw.url=${BASEURL}/%s/%s/users/%s/resetpw";
