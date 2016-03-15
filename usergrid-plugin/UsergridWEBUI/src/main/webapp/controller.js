@@ -58,7 +58,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 				vm.environments = temp;
 
 				if (vm.environments.length === 0) {
-					SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+					//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 				}
 				else {
 					vm.currentEnvironment = vm.environments[0];
@@ -127,7 +127,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			}
 			vm.environments = temp;
 			if (vm.environments.length === 0) {
-				SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+				//SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
 			}
 			else {
 				vm.currentEnvironment = vm.environments[0];
@@ -196,7 +196,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 	vm.uninstallCluster = uninstallCluster;
 	function uninstallCluster() {
 		LOADING_SCREEN();
-		console.log (vm.currentCluster);
+
 		usergridSrv.uninstallCluster (vm.currentCluster).success (function (data) {
 			LOADING_SCREEN ('none');
 			SweetAlert.swal ("Success!", "Your usergrid cluster is being deleted.", "success");

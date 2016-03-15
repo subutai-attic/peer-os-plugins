@@ -9,6 +9,7 @@ package io.subutai.plugin.mongodb.impl.common;
 import java.util.Set;
 
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
@@ -111,7 +112,8 @@ public class Commands
         StringBuilder configServersArg = new StringBuilder();
         for ( EnvironmentContainerHost c : configServers )
         {
-            configServersArg.append( c.getHostname() ).append( "." ).append( domainName ).
+            HostInterface hostInterface = c.getInterfaceByName( "eth0" );
+            configServersArg.append( hostInterface.getIp() ).append( "." ).
                     append( ":" ).append( cfgSrvPort ).append( "," );
         }
         //drop comma
