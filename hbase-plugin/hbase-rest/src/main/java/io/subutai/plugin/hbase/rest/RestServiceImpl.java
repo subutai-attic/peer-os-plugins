@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,8 +280,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getRegionServers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setRegionServers( regionServers );
@@ -288,8 +290,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getQuorumPeers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setQuorumPeers( quorumPeers );
@@ -297,16 +300,18 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getBackupMasters() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setBackupMasters( backupMasters );
 
             ContainerHost containerHost = environment.getContainerHostById( config.getHbaseMaster() );
+			HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
             UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), containerHost.getHostname() );
             pojo.setHbaseMaster( new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(),
-                    containerHost.getIpByInterfaceName( "eth0" ), checkStatus( tracker, uuidStatus ) ) );
+					hostInterface.getIp (), checkStatus( tracker, uuidStatus ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {

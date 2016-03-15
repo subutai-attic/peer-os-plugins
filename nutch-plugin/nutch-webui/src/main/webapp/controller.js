@@ -136,9 +136,9 @@ function NutchCtrl($scope, nutchSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.nutchInstall.clusterName === undefined || vm.nutchInstall.clusterName.length == 0) return;
 		if(vm.nutchInstall.hadoopClusterName === undefined || vm.nutchInstall.hadoopClusterName.length == 0) return;
 
-		SweetAlert.swal("Success!", "nutch cluster start creating.", "success");
+		SweetAlert.swal("Success!", "Nutch cluster start creating.", "success");
 		nutchSrv.createNutch(vm.nutchInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Nutch cluster created.", "success");
+			SweetAlert.swal("Success!", "Your Nutch cluster was created.", "success");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Nutch cluster create error: ' + error.replace(/\\n/g, ' '), "error");

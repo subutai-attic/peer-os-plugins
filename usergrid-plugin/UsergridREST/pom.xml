@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.subutai</groupId>
         <artifactId>UserGrid</artifactId>
-        <version>4.0.0-RC7</version>
+        <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
     <artifactId>plugin-usergrid-rest</artifactId>
     <packaging>bundle</packaging>
@@ -14,7 +14,7 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>plugin-usergrid-api</artifactId>
-      <version>4.0.0-RC7</version>
+      <version>4.0.0-RC7-SNAPSHOT</version>
     </dependency>
     
     <dependency>

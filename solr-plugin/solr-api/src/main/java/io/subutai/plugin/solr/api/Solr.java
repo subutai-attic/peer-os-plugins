@@ -36,7 +36,7 @@ public interface Solr extends ApiBase<SolrClusterConfig>
     public ClusterSetupStrategy getClusterSetupStrategy( final Environment environment, final SolrClusterConfig config,
                                                          final TrackerOperation po );
 
-    public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config );
+    public Blueprint getDefaultEnvironmentBlueprint(SolrClusterConfig config );
 
     UUID configureEnvironmentCluster( SolrClusterConfig config );
 }

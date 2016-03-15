@@ -248,15 +248,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
         if ( result.hasSucceeded() )
         {
             trackerOperation.addLog( AccumuloClusterConfig.PRODUCT_KEY + " cluster info removed from HDFS." );
-            try
-            {
-                manager.unsubscribeFromAlerts( environment );
-            }
-            catch ( MonitorException e )
-            {
-                LOG.error( "Error removing subscription for environment.", e );
-                trackerOperation.addLogFailed( "Error removing subscription for environment." );
-            }
+//            try
+//            {
+//                manager.unsubscribeFromAlerts( environment );
+//            }
+//            catch ( MonitorException e )
+//            {
+//                LOG.error( "Error removing subscription for environment.", e );
+//                trackerOperation.addLogFailed( "Error removing subscription for environment." );
+//            }
         }
         else
         {

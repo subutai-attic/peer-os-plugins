@@ -445,26 +445,26 @@ public class AccumuloImplTest
     }
 
 
-    @Test
-    public void testSubscribeToAlerts() throws Exception
-    {
-        accumuloImpl.subscribeToAlerts( environment );
-    }
+//    @Test
+//    public void testSubscribeToAlerts() throws Exception
+//    {
+//        accumuloImpl.subscribeToAlerts( environment );
+//    }
+//
+//
+//    @Test
+//    public void testSubscribeToAlerts1() throws Exception
+//    {
+//        accumuloImpl.subscribeToAlerts( containerHost );
+//    }
 
 
-    @Test
-    public void testSubscribeToAlerts1() throws Exception
-    {
-        accumuloImpl.subscribeToAlerts( containerHost );
-    }
-
-
-    @Test
-    public void testUnsubscribeFromAlerts() throws Exception
-    {
-        accumuloImpl.unsubscribeFromAlerts( environment );
-    }
-
+//    @Test
+//    public void testUnsubscribeFromAlerts() throws Exception
+//    {
+//        accumuloImpl.unsubscribeFromAlerts( environment );
+//    }
+//
 
     @Test
     public void testGetMonitor() throws Exception

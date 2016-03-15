@@ -7,6 +7,8 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.Host;
 import io.subutai.plugin.storm.rest.pojo.VersionPojo;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -477,15 +479,17 @@ public class RestServiceImpl implements RestService
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
                 UUID uuidStatus = stormManager.checkNode( config.getClusterName(), ch.getHostname() );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
                         checkStatus( tracker, uuidStatus ) ) );
             }
 
             pojo.setSupervisors( containerPojoSet );
 
             ContainerHost ch = environment.getContainerHostById( config.getNimbus() );
+			HostInterface hostInterface = ch.getInterfaceByName ("eth0");
             UUID uuid = stormManager.checkNode( config.getClusterName(), ch.getHostname() );
-            pojo.setNimbus( new ContainerPojo( ch.getHostname(), config.getNimbus(), ch.getIpByInterfaceName( "eth0" ),
+            pojo.setNimbus( new ContainerPojo( ch.getHostname(), config.getNimbus(), hostInterface.getIp (),
                     checkStatus( tracker, uuid ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )

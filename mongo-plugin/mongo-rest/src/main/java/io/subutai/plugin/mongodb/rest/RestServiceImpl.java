@@ -550,8 +550,9 @@ public class RestServiceImpl implements RestService
 		clusterConfig.setNumberOfDataNodes (clusterConfJson.getDataNodes ().size() );
 		clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
 
-		mongo.installCluster( clusterConfig );
-		return Response.ok().build();
+        UUID uuid = mongo.installCluster( clusterConfig );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
 	}
 
 

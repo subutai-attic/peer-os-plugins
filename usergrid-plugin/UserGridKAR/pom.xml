@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.subutai</groupId>
         <artifactId>UserGrid</artifactId>
-        <version>4.0.0-RC7</version>
+        <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
     
     <artifactId>plugin-usergrid-kar</artifactId>
@@ -31,7 +31,7 @@
                         </goals>
                         <phase>install</phase>
                         <configuration>
-                            <featuresFile>features.xml</featuresFile>
+                            <featuresFile>${project.basedir}/features.xml</featuresFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -48,7 +48,7 @@
                             <goal>jdeb</goal>
                         </goals>
                         <configuration>
-                            <controlDir>debian</controlDir>
+                            <controlDir>${project.basedir}/debian</controlDir>
                             <dataSet>
                                 <data>
                                     <src>${project.basedir}/target/${project.build.finalName}.kar</src>

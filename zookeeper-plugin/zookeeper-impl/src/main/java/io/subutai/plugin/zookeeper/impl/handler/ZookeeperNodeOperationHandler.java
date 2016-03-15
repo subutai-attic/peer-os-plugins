@@ -6,22 +6,26 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
-import io.subutai.common.environment.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentModificationException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.environment.Node;
+import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
@@ -180,10 +184,9 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 //if envHost is not in zoo cluster add it else create new one.
                 if ( envContainerHosts.isEmpty() )
                 {
-                    NodeGroup nodeGroup =
-                            new NodeGroup( ZookeeperClusterConfig.PRODUCT_NAME, ZookeeperClusterConfig.TEMPLATE_NAME,
-                                    ContainerSize.TINY, 1, 1, null, null );
-					Topology topology = new Topology( environment.getName(), 1, 1 );
+                    Node nodeGroup = new Node( UUID.randomUUID().toString(), ZookeeperClusterConfig.PRODUCT_NAME,
+                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1, null, null );
+                    Topology topology = new Topology( environment.getName() );
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
 

@@ -7,6 +7,7 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.host.HostInterface;
 import io.subutai.plugin.presto.rest.pojo.VersionPojo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -407,17 +408,19 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getWorkers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
+				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
                 UUID uuidStatus = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, ch.getIpByInterfaceName( "eth0" ),
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
                         checkStatus( tracker, uuidStatus ) ) );
             }
 
             pojo.setWorkers( containerPojoSet );
 
             ContainerHost ch = environment.getContainerHostById( config.getCoordinatorNode() );
+			HostInterface hostInterface = ch.getInterfaceByName ("eth0");
             UUID uuid = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
             pojo.setCoordinator(
-                    new ContainerPojo( ch.getHostname(), config.getCoordinatorNode(), ch.getIpByInterfaceName( "eth0" ),
+                    new ContainerPojo( ch.getHostname(), config.getCoordinatorNode(), hostInterface.getIp (),
                             checkStatus( tracker, uuid ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )

@@ -1,10 +1,12 @@
 package io.subutai.plugin.solr.impl;
 
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+
 import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.NodeGroup;
+import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -23,12 +25,14 @@ import io.subutai.plugin.solr.api.Solr;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.plugin.solr.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.solr.impl.handler.NodeOperationHandler;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,10 +238,10 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config )
     {
         //1 node group
-        Set<NodeGroup> schema = new HashSet<>();
-        schema.add( new NodeGroup( "solr-master-1", "solr", ContainerSize.TINY, 0, 0, null, null ) );
-        return new Blueprint(
-            String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ), schema );
+        List<NodeSchema> schema = new ArrayList<>();
+        schema.add( new NodeSchema( "solr-master-1", ContainerSize.TINY, SolrClusterConfig.TEMPLATE_NAME, 1, 1 ) );
+        return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+                schema );
     }
 
 

@@ -2,6 +2,9 @@ package io.subutai.plugin.elasticsearch.impl.handler;
 
 
 import java.util.Set;
+import java.util.UUID;
+
+import io.subutai.common.environment.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +15,6 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.ContainerHostNotFoundException;
-import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.NodeGroup;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
@@ -52,8 +49,7 @@ public class ClusterOperationHandler
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
-        trackerOperation = manager.getTracker().createTrackerOperation        ( ElasticsearchClusterConfiguration
-                .PRODUCT_KEY,
+        trackerOperation = manager.getTracker().createTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
 
@@ -190,9 +186,11 @@ public class ClusterOperationHandler
     {
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        NodeGroup nodeGroup = new NodeGroup( ElasticsearchClusterConfiguration.PRODUCT_KEY,
-                ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL, 0, 0,
-                localPeer.getId (), localPeer.getResourceHosts ().iterator().next().getId () );
+        final String hostname = UUID.randomUUID().toString();
+        final String containerName = ElasticsearchClusterConfiguration.PRODUCT_KEY + "_" + hostname;
+        Node tempnode =
+                new Node( hostname, containerName, ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.TINY,
+                        1, 1, localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
 
         EnvironmentContainerHost newNode;
         try
@@ -209,8 +207,8 @@ public class ClusterOperationHandler
                 Set<EnvironmentContainerHost> newNodeSet;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(),
-                            new Topology(manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName (), 1, 1),
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), new Topology(
+                            manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName() ),
                             false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
@@ -288,7 +286,7 @@ public class ClusterOperationHandler
             for ( EnvironmentContainerHost host : containerHostSet )
             {
                 if ( ( !config.getNodes().contains( host.getId() ) ) && host.getTemplateName().equals(
-                        ElasticsearchClusterConfiguration.TEMPLATE_NAME                              ) )
+                        ElasticsearchClusterConfiguration.TEMPLATE_NAME ) )
                 {
                     unusedNode = host;
                     break;
@@ -368,7 +366,7 @@ public class ClusterOperationHandler
             }
             catch ( ClusterConfigurationException e )
             {
-                trackerOperation.addLogFailed                                                                         (
+                trackerOperation.addLogFailed(
                         String.format( "Failed to setup Elasticsearch cluster %s : %s", clusterName, e.getMessage() ) );
                 e.printStackTrace();
             }
@@ -386,7 +384,7 @@ public class ClusterOperationHandler
         ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
         if ( config == null )
         {
-            trackerOperation.addLogFailed                                                                  (
+            trackerOperation.addLogFailed(
                     String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
             return;
         }

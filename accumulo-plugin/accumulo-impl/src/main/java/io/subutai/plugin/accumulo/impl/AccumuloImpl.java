@@ -301,10 +301,10 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( Environment environment ) throws MonitorException
-    {
-        getMonitor().startMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment, alertSettings );
-    }
+//    public void subscribeToAlerts( Environment environment ) throws MonitorException
+//    {
+//        getMonitor().startMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment, alertSettings );
+//    }
 
 
     public Monitor getMonitor()
@@ -319,16 +319,16 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     }
 
 
-    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-    {
-        getMonitor().activateMonitoring( host, alertSettings );
-    }
-
-
-    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-    {
-        getMonitor().stopMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment );
-    }
+//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+//    {
+//        getMonitor().activateMonitoring( host, alertSettings );
+//    }
+//
+//
+//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+//    {
+//        getMonitor().stopMonitoring( AccumuloAlertListener.ACCUMOLO_ALERT_LISTENER, environment );
+//    }
 
 
     public MonitoringSettings getAlertSettings()
