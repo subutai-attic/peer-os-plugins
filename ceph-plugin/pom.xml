@@ -7,7 +7,7 @@
   <groupId>io.subutai</groupId>
   <artifactId>ceph-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <version>4.0.0-RC7-SNAPSHOT</version>
+  <version>4.0.0-RC7</version>
 
   <name>Subutai Ceph Parent</name>
   <description>Subutai Ceph Parent</description>

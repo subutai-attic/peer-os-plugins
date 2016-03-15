@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>hipi-plugin-parent</artifactId>
-  <version>4.0.0-RC7-SNAPSHOT</version>
+  <version>4.0.0-RC7</version>
 
   <name>Subutai Hipi Parent</name>
   <description>Subutai Hipi Parent</description>
