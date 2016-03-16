@@ -216,9 +216,9 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         List<EnvironmentContainerHost> clientNodes = new ArrayList<>( clients );
         //install
         commandResultList2 = runCommandOnContainers( Commands.make( CommandType.INSTALL_SERVER ), oozieServerNodes );
-        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
+//        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
         commandResultList = runCommandOnContainers( Commands.make( CommandType.INSTALL_CLIENT ), clients );
-        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
+//        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
 
         if ( ( getFailedCommandResults( commandResultList2 ).size() == 0 ) && (
                 getFailedCommandResults( commandResultList ).size() == 0 ) )
@@ -265,7 +265,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                commandResults.add( containerHost.execute( new RequestBuilder( command ).withTimeout( 1800 ) ) );
+                commandResults.add( containerHost.execute( new RequestBuilder( command ) ) );
             }
             catch ( CommandException e )
             {
