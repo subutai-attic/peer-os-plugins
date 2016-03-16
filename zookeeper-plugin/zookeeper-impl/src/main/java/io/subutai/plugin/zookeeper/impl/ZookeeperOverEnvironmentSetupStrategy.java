@@ -107,10 +107,10 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
         //check installed subutai packages
         String checkInstalledCommand = Commands.getStatusCommand();
         List<CommandResult> commandResultList = runCommandOnContainers( checkInstalledCommand, zookeeperNodes );
-//        if ( getFailedCommandResults( commandResultList ).size() != 0 )
-//        {
-//            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-//        }
+        if ( getFailedCommandResults( commandResultList ).size() != 0 )
+        {
+            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
+        }
 
         Iterator<EnvironmentContainerHost> iterator = zookeeperNodes.iterator();
         int nodeIndex = 0;
