@@ -46,13 +46,14 @@ function genericSrv($http, environmentService) {
 	// Manage
 
 	function listOperations (profile) {
-		return $http.get (BASE_URL + "operations/" + profile.name);
+		return $http.get (BASE_URL + "operations/" + profile.id);
 	}
 
 
 	function saveOperation (profile, operation) {
 		var fd = new FormData();
-		fd.append('profileName', profile.name);
+		console.log (profile);
+		fd.append('profileId', profile.id);
 		fd.append('operationName', operation.operationName);
 		fd.append('file', operation.commandName);
 		fd.append('cwd', operation.cwd);
