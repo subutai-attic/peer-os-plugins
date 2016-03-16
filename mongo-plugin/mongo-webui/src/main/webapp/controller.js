@@ -135,6 +135,33 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         mongoSrv.listClusters(selectedCluster).success(function (data) {
             vm.loading = false;
             vm.currentCluster = data;
+            vm.currentCluster.configHosts.sort (function (a, b) {
+            	if (a.hostname > b.hostname) {
+					return 1;
+				}
+				if (a.hostname < b.hostname) {
+					return -1;
+				}
+				return 0;
+            });
+            vm.currentCluster.routerHosts.sort (function (a, b) {
+				if (a.hostname > b.hostname) {
+					return 1;
+				}
+				if (a.hostname < b.hostname) {
+					return -1;
+				}
+				return 0;
+            });
+            vm.currentCluster.dataHosts.sort (function (a, b) {
+				if (a.hostname > b.hostname) {
+					return 1;
+				}
+				if (a.hostname < b.hostname) {
+					return -1;
+				}
+				return 0;
+            });
         });
     }
 
@@ -177,16 +204,16 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         });
     }
 
-	function arrayObjectIndexOf(myArray, searchTerm, property) {
+	function arrayObjectIndexOf(myArray, searchTerm1, searchTerm2, property1, property2) {
 		for(var i = 0, len = myArray.length; i < len; i++) {
-			if (myArray[i][property] === searchTerm) return i;
+			if (myArray[i][property1] === searchTerm1 && myArray[i][property2] === searchTerm2) return i;
 		}
 		return -1;
 	}
 
 
     function pushNode(id, type) {
-        if (arrayObjectIndexOf (vm.nodes2Action, id, "name") >= 0) {
+        if (arrayObjectIndexOf (vm.nodes2Action, id, type, "name", "type") >= 0) {
             vm.nodes2Action.splice(vm.nodes2Action.indexOf(id), 1);
         } else {
             vm.nodes2Action.push({name: id, type: type});

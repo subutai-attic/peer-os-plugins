@@ -87,10 +87,10 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
                     String.format( "Master %s not found in the environment", config.getMasterNodeId() ) );
         }
 
-        if ( !master.isConnected() )
+        /*if ( !master.isConnected() )
         {
             throw new ClusterSetupException( "Master is not connected" );
-        }
+        }*/
 
         Set<EnvironmentContainerHost> slaves;
         try

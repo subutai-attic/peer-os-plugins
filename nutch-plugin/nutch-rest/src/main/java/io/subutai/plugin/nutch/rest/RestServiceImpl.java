@@ -86,7 +86,6 @@ public class RestServiceImpl implements RestService
         NutchConfig config = new NutchConfig();
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
-
 		List<String> hosts = JsonUtil.fromJson( nodeIds, new TypeToken<List<String>> (){}.getType() );
 
         for ( String node : hosts )
