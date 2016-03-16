@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1458055656670
+Bnd-LastModified: 1458066050169
 Build-Jdk: 1.8.0_74
 Built-By: larcohex
 Bundle-ManifestVersion: 2
