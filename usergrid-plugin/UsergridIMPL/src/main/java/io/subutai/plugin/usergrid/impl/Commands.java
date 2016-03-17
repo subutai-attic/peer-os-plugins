@@ -66,6 +66,12 @@ public class Commands
     }
 
 
+    public static String getCopyPortal ()
+    {
+        return "sudo cp -rf /root/portal " + catalinaBase + "/webapps/";
+    }
+
+
     public static String replaceRPC ()
     {
         return ( "sed -i -e 's/rpc_address: localhost/rpc_address: 0.0.0.0/g' /etc/cassandra/cassandra.yaml" );
@@ -165,29 +171,30 @@ public class Commands
 
     public static String makeSureTomcatRestartOnBoot ()
     {
-        return "echo 'bash /exportScript.sh' >> /etc/bash.bashrc";
+        return "echo 'bash /exportScript.sh' >> /etc/rc.local";
     }
 
 
     public static String makeSureApacheRestartOnBoot ()
     {
-        return "echo '/etc/init.d/apache2 restart' >> /etc/bash.bashrc";
+        return "echo #!/bin/sh -e\n'/etc/init.d/apache2 restart\nbash /exportScript.sh\nexit 0' > /etc/rc.local";
     }
 
 
     public static List<String> getCurlCommands ()
     {
         List<String> r = new ArrayList ();
-        r.add ( "curl -v -u superuser:usergrid PUT http://localhost:8080/system/database/setup" );
-        r.add ( "curl -v -u superuser:usergrid PUT http://localhost:8080/system/database/bootstrap" );
-        r.add ( "curl -v -u superuser:usergrid GET http://localhost:8080/system/superuser/setup" );
+        r.add ( "curl -v -u superuser:test -X PUT http://localhost:8080/system/database/setup" );
+        r.add ( "curl -v -u superuser:test -X PUT http://localhost:8080/system/database/bootstrap" );
+        r.add ( "curl -v -u superuser:test -X GET http://localhost:8080/system/superuser/setup" );
         return r;
     }
 
 
     public static String getStartElastic ()
     {
-        return "/etc/init.d/elasticsearch start";
+        //echo "threadpool.index.queue_size: -1" >> elasticsearch.yml
+        return "/usr/share/elasticsearch/bin/elasticsearch -d";
     }
 
 
@@ -197,7 +204,7 @@ public class Commands
                 + "# Admin and test user setup\n"
                 + "usergrid.sysadmin.login.allowed=true\n"
                 + "usergrid.sysadmin.login.name=superuser\n"
-                + "usergrid.sysadmin.login.password=usergrid\n"
+                + "usergrid.sysadmin.login.password=test\n"
                 + "usergrid.sysadmin.login.email=usergrid@usergrid.com\n"
                 + "\n"
                 + "usergrid.sysadmin.email=usergrid@usergrid.com\n"
@@ -213,7 +220,7 @@ public class Commands
                 + "usergrid.test-account.admin-user.username=test\n"
                 + "usergrid.test-account.admin-user.name=Test User\n"
                 + "usergrid.test-account.admin-user.email=testadmin@usergrid.com\n"
-                + "usergrid.test-account.admin-user.password=testadmin";
+                + "usergrid.test-account.admin-user.password=testadmin\n";
     }
 
 
@@ -227,7 +234,7 @@ public class Commands
                 + "\n"
                 + "usergrid.management.organizations_require_activation=false\n"
                 + "usergrid.management.notify_sysadmin_of_new_organizations=true\n"
-                + "usergrid.management.notify_sysadmin_of_new_admin_users=true";
+                + "usergrid.management.notify_sysadmin_of_new_admin_users=true\n";
     }
 
 
@@ -252,7 +259,24 @@ public class Commands
                 + "usergrid.user.activation.url=${BASEURL}/%s/%s/users/%s/activate\n"
                 + "\n"
                 + "usergrid.admin.resetpw.url=${BASEURL}/management/users/%s/resetpw\n"
-                + "usergrid.user.resetpw.url=${BASEURL}/%s/%s/users/%s/resetpw";
+                + "usergrid.user.resetpw.url=${BASEURL}/%s/%s/users/%s/resetpw\n";
+    }
+
+
+    public static String getCollectionString ()
+    {
+        return "collections.keyspace=Usergrid_Applications\n"
+                + "collections.keyspace.strategy.options=replication_factor:1\n"
+                + "collections.keyspace.strategy.class=org.apache.cassandra.locator.SimpleStrategy\n"
+                + "\n"
+                + "collection.stage.transient.timeout=60\n"
+                + "collection.max.entity.size=5000000\n"
+                + "\n"
+                + "hystrix.threadpool.graph_user.coreSize=40\n"
+                + "hystrix.threadpool.graph_async.coreSize=40\n"
+                + "cassandra.keyspace.strategy=org.apache.cassandra.locator.SimpleStrategy\n"
+                + "cassandra.keyspace.strategy.options.replication_factor=1\n"
+                + "elasticsearch.port=9300\n";
     }
 
 
