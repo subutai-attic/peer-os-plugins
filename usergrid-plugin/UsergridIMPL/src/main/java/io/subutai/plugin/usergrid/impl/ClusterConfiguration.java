@@ -8,6 +8,7 @@ package io.subutai.plugin.usergrid.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         this.commandExecute ( cassContainerHost, Commands.replaceRPC () );
                         this.commandExecute ( cassContainerHost, Commands.getRestartCassandra () );
                         this.commandExecute ( cassContainerHost,
-                                              "echo '" + Commands.getRestartCassandra () + "' >> /etc/bash.bashrc" );
+                                              "echo '#!/bin/sh -e\n" + Commands.getRestartCassandra () + "\nexit 0' > /etc/rc.local" );
                     }
                     catch ( ContainerHostNotFoundException ex )
                     {
@@ -97,7 +98,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname ( e );
                         this.commandExecute ( elContainerHost, Commands.getStartElastic () );
                         this.commandExecute ( elContainerHost,
-                                              "echo '" + Commands.getStartElastic () + "' >> /etc/bash.bashrc" );
+                                              "echo '#!/bin/sh -e\n" + Commands.getStartElastic () + "\nexit 0' > /etc/rc.local" );
                     }
                     catch ( ContainerHostNotFoundException ex )
                     {
@@ -109,20 +110,25 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( tomcatContainerHost, Commands.getRemoveSourcesList () );
         this.commandExecute ( tomcatContainerHost, Commands.getAptgetUpdate () );
         this.commandExecute ( tomcatContainerHost, Commands.getInstallCurl () );
-        for ( String comm : Commands.getCurlCommands () )
-        {
-            this.commandExecute ( tomcatContainerHost, comm );
-        }
 
         LOG.info ( "create properties file" );
         this.commandExecute ( tomcatContainerHost, Commands.getCreatePropertiesFile () );
         // start pushing properties file...
         this.pushToProperties ( tomcatContainerHost, "usergrid.cluster_name=" + tomcatName );
+        this.pushToProperties ( tomcatContainerHost, "cassandra.embedded=false" );
+        this.pushToProperties ( tomcatContainerHost, "cassandra.timeout=2000" );
+        this.pushToProperties ( tomcatContainerHost, Commands.getCollectionString () );
         this.pushToProperties ( tomcatContainerHost, "cassandra.cluster=" + cassandraNameList.get ( 0 ) );
-        this.pushToProperties ( tomcatContainerHost, "cassandra.url=" + this.getIpCSV ( cassandraNameList, environment ) );
+        this.pushToProperties ( tomcatContainerHost,
+                                "cassandra.url=" + this.getIpCSV ( cassandraNameList, environment ) + ":9160" );
+        this.pushToProperties ( tomcatContainerHost, "elasticsearch.embedded=false" );
         this.pushToProperties ( tomcatContainerHost, "elasticsearch.cluster=" + elasticSearchList.get ( 0 ) );
+        this.pushToProperties ( tomcatContainerHost, "elasticsearch.index_prefix=usergrid" );
         this.pushToProperties ( tomcatContainerHost, "elasticsearch.hosts=" + this.getIpCSV ( elasticSearchList,
                                                                                               environment ) );
+
+        this.pushToProperties ( tomcatContainerHost, "elasticsearch.force_refresh=true" );
+        this.pushToProperties ( tomcatContainerHost, "index.query.limit.default=100" );
         this.pushToProperties ( tomcatContainerHost, Commands.getAdminSuperUserString () );
         this.pushToProperties ( tomcatContainerHost, Commands.getAutoConfirmString () );
 //        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
@@ -140,6 +146,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.configureReversProxy ( tomcatContainerHost, config, tomcatName );
         this.commandExecute ( tomcatContainerHost, Commands.getRemoveROOTFolder () );
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
+        // this.commandExecute ( tomcatContainerHost, Commands.getCopyPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
         // change urloverride...
@@ -147,12 +154,29 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( tomcatContainerHost, commandToChange );
 
         this.commandExecute ( tomcatContainerHost, Commands.makeSureApacheRestartOnBoot () );
-        this.commandExecute ( tomcatContainerHost, Commands.makeSureTomcatRestartOnBoot () );
+
         LOG.info ( "**************************************ALL DONE**************************************" );
         LOG.info ( "Restart TOMCAT7" );
         this.exportScriptCreate ( tomcatContainerHost );
         this.commandExecute ( tomcatContainerHost, "bash /exportScript.sh" ); // this restart tomcat as well..
         LOG.info ( "**************************************TOMCAT RESTARTED**************************************" );
+
+        try
+        {
+            LOG.info ( "Wait to tomcat get alive" );
+            TimeUnit.MINUTES.sleep ( 1 );
+            LOG.info ( "completed" );
+        }
+        catch ( InterruptedException ex )
+        {
+            LOG.error ( "error on waiting..." );
+        }
+
+        List<String> curlCommands = Commands.getCurlCommands ();
+        for ( String comm : curlCommands )
+        {
+            this.commandExecute ( tomcatContainerHost, comm );
+        }
 
 
         if ( !usergridImplManager.getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_NAME,

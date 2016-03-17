@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.subutai</groupId>
         <artifactId>UserGrid</artifactId>
-        <version>4.0.0-RC7-SNAPSHOT</version>
+        <version>4.0.0-RC7</version>
     </parent>
     <artifactId>plugin-usergrid-impl</artifactId>
     
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>metric-api</artifactId>
-            <version>4.0.0-RC7-SNAPSHOT</version>
+            <version>4.0.0-RC7</version>
       
         </dependency>
 
@@ -28,7 +28,7 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>webui</artifactId>
             <classifier>classes</classifier>
-            <version>4.0.0-RC7-SNAPSHOT</version>
+            <version>4.0.0-RC7</version>
         </dependency>
 
         <dependency>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>network-manager-api</artifactId>
-            <version>4.0.0-RC7-SNAPSHOT</version>
+            <version>4.0.0-RC7</version>
       
         </dependency>
         <dependency>
