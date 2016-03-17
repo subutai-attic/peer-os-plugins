@@ -17,7 +17,7 @@ public class Commands
 
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600000 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }

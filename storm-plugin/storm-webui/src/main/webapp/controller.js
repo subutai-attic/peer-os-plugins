@@ -278,7 +278,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		});
 		stormSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes have been started successfully.", "success");
-			getClustersInfo(vm.currentCluster.name);
+			getClustersInfo(vm.currentCluster.clusterName);
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to start Cluster error: ' + error.ERROR, "error");
 		});
@@ -296,7 +296,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		});
 		stormSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes have been stopped successfully.", "success");
-			getClustersInfo(vm.currentCluster.name);
+			getClustersInfo(vm.currentCluster.clusterName);
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.ERROR, "error");
 		});

@@ -113,6 +113,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		LOADING_SCREEN();
 		sparkSrv.getClusters(selectedCluster).success(function (data) {
 			vm.currentCluster = data;
+			console.log (data);
 			LOADING_SCREEN('none');
 		});
 	}
@@ -188,7 +189,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.sparkInstall.hadoopClusterName === undefined || vm.sparkInstall.hadoopClusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Spark cluster is being created.", "success");
 		sparkSrv.createSpark(vm.sparkInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Spark cluster is being created.", "success");
+			SweetAlert.swal("Success!", "Your Spark cluster was created.", "success");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Spark cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
@@ -278,7 +279,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function startMaster() {
 		if(vm.currentCluster.clusterName === undefined) return;
 		vm.currentCluster.server.status = 'STARTING';
-		sparkSrv.startMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.hostname).success (function (data) {
+		sparkSrv.startMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.uuid).success (function (data) {
 			SweetAlert.swal("Success!", "Your server has been started.", "success");
 			vm.currentCluster.server.status = 'RUNNING';
 		}).error(function (error) {
@@ -291,7 +292,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function stopMaster() {
 		if(vm.currentCluster.clusterName === undefined) return;
 		vm.currentCluster.server.status = 'STOPPING';
-		sparkSrv.stopMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.hostname).success (function (data) {
+		sparkSrv.stopMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.uuid).success (function (data) {
 			SweetAlert.swal("Success!", "Your server has been stopped.", "success");
 			vm.currentCluster.server.status = 'STOPPED';
 		}).error(function (error) {
