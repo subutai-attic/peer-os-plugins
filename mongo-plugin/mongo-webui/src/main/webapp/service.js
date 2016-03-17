@@ -11,6 +11,7 @@ function mongoSrv($http, environmentService) {
     var CLUSTER_URL = BASE_URL + 'clusters/';
 
     var mongoSrv = {
+    	getPluginInfo: getPluginInfo,
         listClusters: listClusters,
         configureCluster: configureCluster,
         destroyCluster: destroyCluster,
@@ -129,5 +130,9 @@ function mongoSrv($http, environmentService) {
 
     function sendDataNode(clusterName) {
         return mongoSrv.addNode(clusterName, "data");
+    }
+
+    function getPluginInfo() {
+        return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
     }
 }

@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>etl-plugin-parent</artifactId>
-  <version>4.0.0-RC7-SNAPSHOT</version>
+  <version>4.0.0-RC7</version>
 
   <name>Subutai ETL Parent</name>
   <description>Subutai ETL Parent</description>

@@ -115,4 +115,9 @@ public interface RestService
 	@Produces({MediaType.APPLICATION_JSON})
 	Response installCluster( @FormParam ("clusterConfJson") String config );
 
+	@GET
+	@Path( "about" )
+	@Produces( { MediaType.TEXT_PLAIN } )
+	public Response getPluginInfo();
+
 }
