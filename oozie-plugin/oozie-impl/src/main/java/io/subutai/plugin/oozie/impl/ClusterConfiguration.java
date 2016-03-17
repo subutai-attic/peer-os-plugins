@@ -78,8 +78,8 @@ public class ClusterConfiguration
             CommandResult commandResult2 = null;
             try
             {
-                commandResult = hadoopNode.execute( requestBuilder.withTimeout( 60 ) );
-                commandResult2 = hadoopNode.execute( requestBuilder2.withTimeout( 60 ) );
+                commandResult = hadoopNode.execute( requestBuilder );
+                commandResult2 = hadoopNode.execute( requestBuilder2 );
             }
             catch ( CommandException e )
             {
@@ -90,33 +90,33 @@ public class ClusterConfiguration
             commandsResultList2.add( commandResult2 );
         }
 
-        boolean isSuccesful = true;
-        for ( CommandResult aCommandsResultList : commandsResultList )
-        {
-            if ( !aCommandsResultList.hasSucceeded() )
-            {
-                isSuccesful = false;
-            }
-        }
-
-        boolean isSuccesful2 = true;
-        for ( CommandResult aCommandsResultList : commandsResultList2 )
-        {
-            if ( !aCommandsResultList.hasSucceeded() )
-            {
-                isSuccesful2 = false;
-            }
-        }
-
-        if ( isSuccesful && isSuccesful2 )
-        {
+//        boolean isSuccesful = true;
+//        for ( CommandResult aCommandsResultList : commandsResultList )
+//        {
+//            if ( !aCommandsResultList.hasSucceeded() )
+//            {
+//                isSuccesful = false;
+//            }
+//        }
+//
+//        boolean isSuccesful2 = true;
+//        for ( CommandResult aCommandsResultList : commandsResultList2 )
+//        {
+//            if ( !aCommandsResultList.hasSucceeded() )
+//            {
+//                isSuccesful2 = false;
+//            }
+//        }
+//
+//        if ( isSuccesful && isSuccesful2 )
+//        {
             po.addLog( "Cluster configured\n" );
-        }
-        else
-        {
-
-            throw new ClusterConfigurationException( String.format( "Cluster configuration failed" ) );
-        }
+//        }
+//        else
+//        {
+//
+//            throw new ClusterConfigurationException( String.format( "Cluster configuration failed" ) );
+//        }
     }
 }
 

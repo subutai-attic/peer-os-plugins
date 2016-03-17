@@ -31,11 +31,9 @@ public class Commands
             case STATUS:
                 return "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
             case INSTALL_SERVER:
-                return "export DEBIAN_FRONTEND=noninteractive && apt-get --assume-yes --force-yes install "
-                        + SERVER_PACKAGE_NAME;
+                return "apt-get --assume-yes --force-yes install " + SERVER_PACKAGE_NAME;
             case INSTALL_CLIENT:
-                return "export DEBIAN_FRONTEND=noninteractive && apt-get --assume-yes --force-yes install "
-                        + CLIENT_PACKAGE_NAME;
+                return "apt-get --assume-yes --force-yes install " + CLIENT_PACKAGE_NAME;
             case PURGE:
                 return "apt-get --force-yes --assume-yes " + type.toString().toLowerCase() + " " + PACKAGE_NAME;
             case START:
@@ -46,9 +44,24 @@ public class Commands
                     s += " &"; // TODO:
                 }
                 return s;
+            case UPDATE:
+                return "apt-get --force-yes --assume-yes update";
             default:
                 throw new AssertionError( type.name() );
         }
+    }
+
+
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 600 ).withStdOutRedirection(
+                OutputRedirection.NO );
+    }
+
+
+    public static RequestBuilder getCheckInstalledCommand()
+    {
+        return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
     }
 
 
@@ -88,7 +101,7 @@ public class Commands
 
         return new RequestBuilder( String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.hosts %s", param ) );
+                        + ".root.hosts %s", param ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO );
     }
 
 
@@ -97,7 +110,7 @@ public class Commands
 
         return new RequestBuilder( String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.groups '\\*' " ) );
+                        + ".root.groups '\\*' " ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO );
     }
 
 
@@ -120,6 +133,28 @@ public class Commands
                 new RequestBuilder( "apt-get --force-yes --assume-yes purge " + CLIENT_PACKAGE_NAME ).withTimeout( 90 )
                                                                                                      .withStdOutRedirection(
                                                                                                              OutputRedirection.NO )
+
+                ;
+    }
+
+
+    public static RequestBuilder getInstallServerCommand()
+    {
+        return
+
+                new RequestBuilder( "apt-get --assume-yes --force-yes install " + SERVER_PACKAGE_NAME )
+                        .withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO )
+
+                ;
+    }
+
+
+    public static RequestBuilder getInstallClientsCommand()
+    {
+        return
+
+                new RequestBuilder( "apt-get --assume-yes --force-yes install " + CLIENT_PACKAGE_NAME )
+                        .withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO )
 
                 ;
     }

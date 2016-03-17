@@ -153,7 +153,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
 
         //check installed subutai packages
-        List<CommandResult> commandResultList = runCommandOnContainers( Commands.make( CommandType.STATUS ), clients );
+        List<CommandResult> commandResultList = runCommandOnContainers( Commands.getCheckInstalledCommand(), clients );
 
         if ( getFailedCommandResults( commandResultList ).size() != 0 )
         {
@@ -188,7 +188,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
 
         //check installed subutai packages
         List<CommandResult> commandResultList2 =
-                runCommandOnContainers( Commands.make( CommandType.STATUS ), oozieServerNodes );
+                runCommandOnContainers( Commands.getCheckInstalledCommand(), oozieServerNodes );
 
         if ( getFailedCommandResults( commandResultList2 ).size() != 0 )
         {
@@ -215,10 +215,11 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         List<EnvironmentContainerHost> servers = new ArrayList<>( oozieServerNodes );
         List<EnvironmentContainerHost> clientNodes = new ArrayList<>( clients );
         //install
-        commandResultList2 = runCommandOnContainers( Commands.make( CommandType.INSTALL_SERVER ), oozieServerNodes );
-//        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
-        commandResultList = runCommandOnContainers( Commands.make( CommandType.INSTALL_CLIENT ), clients );
-//        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
+        runCommandOnContainers( Commands.getAptUpdate(), oozieServerNodes );
+        commandResultList2 = runCommandOnContainers( Commands.getInstallServerCommand(), oozieServerNodes );
+        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
+        commandResultList = runCommandOnContainers( Commands.getInstallClientsCommand(), clients );
+        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
 
         if ( ( getFailedCommandResults( commandResultList2 ).size() == 0 ) && (
                 getFailedCommandResults( commandResultList ).size() == 0 ) )
@@ -258,14 +259,15 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     }
 
 
-    private List<CommandResult> runCommandOnContainers( String command, final Set<EnvironmentContainerHost> oozieNodes )
+    private List<CommandResult> runCommandOnContainers( RequestBuilder command,
+                                                        final Set<EnvironmentContainerHost> oozieNodes )
     {
         List<CommandResult> commandResults = new ArrayList<>();
         for ( EnvironmentContainerHost containerHost : oozieNodes )
         {
             try
             {
-                commandResults.add( containerHost.execute( new RequestBuilder( command ) ) );
+                commandResults.add( containerHost.execute( command ) );
             }
             catch ( CommandException e )
             {
