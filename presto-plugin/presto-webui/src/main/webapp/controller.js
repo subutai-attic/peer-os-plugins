@@ -48,8 +48,13 @@ function PrestoCtrl($scope, prestoSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 	setDefaultValues();
 
 	function getClusters() {
+		LOADING_SCREEN();
 		prestoSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			console.log (data);
+			LOADING_SCREEN ("none");
+		}).error (function (error) {
+			LOADING_SCREEN ("none");
 		});
 	}
 	getClusters();
@@ -152,11 +157,16 @@ function PrestoCtrl($scope, prestoSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.prestoInstall.clusterName === undefined || vm.prestoInstall.clusterName.length == 0) return;
 		if(vm.prestoInstall.hadoopClusterName === undefined || vm.prestoInstall.hadoopClusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Presto cluster is being created.", "success");
+		LOADING_SCREEN();
 		prestoSrv.createPresto(vm.prestoInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Presto cluster has been successfully created.", "success");
-			getClusters();
+			setTimeout (function() {
+				getClusters();
+			}, 2000);
+			LOADING_SCREEN ("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Presto cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN ("none");
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

@@ -156,6 +156,8 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Installing Presto..." );
             for ( EnvironmentContainerHost node : nodesToInstallPresto )
             {
+            	commandUtil.execute (manager.getCommands ().getAptUpdate (), node);
+            	commandUtil.execute (manager.getCommands ().getInstallPython (), node);
                 CommandResult result = commandUtil.execute( manager.getCommands().getInstallCommand(), node );
                 checkInstalled( node, result );
             }
