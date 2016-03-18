@@ -32,6 +32,7 @@ import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.identity.api.IdentityManager;
 import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
@@ -64,6 +65,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private NetworkManager networkManager;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
+    private IdentityManager identityManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
 
@@ -516,6 +518,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setQuotaManager ( QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    public IdentityManager getIdentityManager()
+    {
+        return identityManager;
+    }
+
+
+    public void setIdentityManager( final IdentityManager identityManager )
+    {
+        this.identityManager = identityManager;
     }
 
 

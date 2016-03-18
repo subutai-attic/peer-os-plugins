@@ -2,6 +2,7 @@ package io.subutai.plugin.appscale.impl.handler;
 
 
 import java.math.BigDecimal;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -10,12 +11,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.security.auth.Subject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentModificationException;
-import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.metric.ExceededQuota;
@@ -24,12 +25,12 @@ import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.resource.ByteValueResource;
 import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.common.resource.PeerResources;
+import io.subutai.core.identity.api.model.Session;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.AppScaleImpl;
@@ -173,9 +174,30 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
                         .distribute( environment.getName(), nodes, peerGroupResources, quotas );
             }
 
-            final Set<EnvironmentContainerHost> result =
-                    appScale.getEnvironmentManager().growEnvironment( environment.getId(), topology, false );
+            final Set<EnvironmentContainerHost>[] result = new Set[] { null };
 
+//            final Session session = appScale.getIdentityManager().login( "internal", "secretSubutai" );
+            final Session session = appScale.getIdentityManager().login( "admin", "secret" );
+            final Topology finalTopology = topology;
+            Subject.doAs( session.getSubject(), new PrivilegedAction<Void>()
+            {
+                @Override
+                public Void run()
+                {
+                    try
+                    {
+                        result[0] = appScale.getEnvironmentManager()
+                                            .growEnvironment( environment.getId(), finalTopology, false );
+                    }
+                    catch ( Exception ex )
+                    {
+                        LOG.error( ex.getMessage(), ex );
+                    }
+                    return null;
+                }
+            } );
+
+            LOG.debug( String.format( "%s", result[0] ) );
             // grow succeeded
             //TODO: need config modified appscale
         }
