@@ -1,18 +1,12 @@
 Manifest-Version: 1.0
-<<<<<<< HEAD
-Bnd-LastModified: 1458223957382
+Bnd-LastModified: 1458312119209
 Build-Jdk: 1.8.0_66
 Built-By: caveman
-=======
-Bnd-LastModified: 1458037652078
-Build-Jdk: 1.8.0_74
-Built-By: larcohex
->>>>>>> 0ca6195e6d077aa314279cb5235d6d22a944bf71
 Bundle-Blueprint: OSGI-INF/blueprint/context.xml
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai Usergrid Plugin IMPL
 Bundle-SymbolicName: io.subutai.plugin.usergrid.impl
-Bundle-Version: 4.0.0.RC7-SNAPSHOT
+Bundle-Version: 4.0.0.RC7
 Created-By: Apache Maven Bundle Plugin
 Export-Service: io.subutai.plugin.usergrid.api.UsergridInterface,io.subu
  tai.webui.api.WebuiModule
