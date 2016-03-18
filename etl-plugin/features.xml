@@ -1,7 +1,0 @@
-<features name="etl-plugin" version="4.0.0-RC7">
-  <feature name="etl-plugin" version="4.0.0-RC7">
-    <bundle>mvn:io.subutai/etl-plugin-api/4.0.0-RC7</bundle>
-    <bundle>mvn:io.subutai/etl-plugin-impl/4.0.0-RC7</bundle>
-    <bundle>mvn:io.subutai/etl-plugin-ui/4.0.0-RC7</bundle>
-  </feature>
-</features>
