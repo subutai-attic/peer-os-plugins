@@ -32,7 +32,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			for (var i = 0; i < data.length; ++i)
 			{
 				for (var j = 0; j < data[i].containers.length; ++j) {
-					if (data[i].containers[j].templateName === "tomcat") {
+					if (data[i].containers[j].templateName === "tomcat7") {
 						vm.environments.push (data[i]);
 						break;
 					}
@@ -63,7 +63,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 				else {
 					vm.currentEnvironment = vm.environments[0];
 					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-						if (vm.currentEnvironment.containers[i].templateName === "tomcat") {
+						if (vm.currentEnvironment.containers[i].templateName === "tomcat7") {
 							vm.nodes.push (vm.currentEnvironment.containers [i]);
 						}
 
@@ -90,7 +90,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 	function changeNodes() {
 		vm.nodes = [];
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-			if (vm.currentEnvironment.containers[i].templateName === "tomcat") {
+			if (vm.currentEnvironment.containers[i].templateName === "tomcat7") {
 				vm.nodes.push (vm.currentEnvironment.containers[i]);
 			}
 
@@ -132,7 +132,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			else {
 				vm.currentEnvironment = vm.environments[0];
 				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-					if (vm.currentEnvironment.containers[i].templateName === "tomcat") {
+					if (vm.currentEnvironment.containers[i].templateName === "tomcat7") {
 						vm.nodes.push (vm.currentEnvironment.containers [i]);
 					}
 
