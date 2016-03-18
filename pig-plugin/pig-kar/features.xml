@@ -1,0 +1,11 @@
+<features name="pig-plugin" version="4.0.0-RC7">
+  <feature name="pig-plugin" version="4.0.0-RC7">
+    <bundle>mvn:io.subutai/pig-plugin-api/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-impl/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-cli/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/pig-plugin-rest/4.0.0-RC7</bundle>
+  </feature>
+    <feature name="pig-plugin-war" version="4.0.0-RC7">
+        <bundle> war:mvn:io.subutai/pig-plugin-webui/4.0.0-RC7/war?Webapp-Context=pig-plugin-war</bundle>
+    </feature>
+</features>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint default-activation="eager" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <reference id="mysql" availability="mandatory" interface="io.subutai.plugin.mysql.api.MySQLC" />
+  <reference id="tracker" availability="mandatory" interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.env.api.EnvironmentManager" />
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.mysql.ui.MySQLPortalModule"
+        init-method="init" destroy-method="destroy">
+    <argument ref="mysql" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+  </bean>
+
+
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
+
+</blueprint>

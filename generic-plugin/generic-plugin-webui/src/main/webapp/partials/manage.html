@@ -1,0 +1,70 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-workspace__content">
+		<div class="b-workspace-content b-workspace-content_border">
+			<div class="b-workspace-content__row">
+				<div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
+					<div class="b-form">
+						<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+							<label class="b-form-label b-form-label_fix-size-1 g-left">Environment</label>
+
+							<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentEnvironment" style = "color: black" ng-change = "genericCtrl.updateEnvironment(genericCtrl.currentEnvironment.environmentId)">
+									<option ng-selected = "environment.id === genericCtrl.currentEnvironment.id" ng-repeat = "environment in genericCtrl.environments" value = "{{ environment }}">{{ environment.name }}</option>
+								</select>
+							</div>
+							<div class="clear"></div>
+						</div>
+						<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+							<label class="b-form-label b-form-label_fix-size-1 g-left">Template</label>
+
+							<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentTemplate" style = "color: black">
+									<option ng-selected = "template === genericCtrl.currentTemplate" ng-repeat = "template in genericCtrl.templates" value = "{{ template }}">{{ template }}</option>
+								</select>
+							</div>
+							<div class="clear"></div>
+						</div>
+						<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+							<label class="b-form-label b-form-label_fix-size-1 g-left">Profile</label>
+
+							<div class="b-form-wrapper b-form-wrapper_margin-size-1">
+								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentProfile" ng-change = "genericCtrl.getOperations()" style = "color: black">
+									<option ng-selected = "profile.name === genericCtrl.currentProfile.name" ng-repeat = "profile in genericCtrl.profiles" value = "{{ profile }}">{{ profile.name }}</option>
+								</select>
+							</div>
+							<div class="clear"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="b-workspace-content__row">
+				<h2 class="b-workspace-content-row-h2">
+					Containers
+				</h2>
+
+				<div class="b-main-table-border">
+					<table class="b-main-table b-main-table_with-header">
+						<tr>
+							<th>Container name</th>
+							<th>Operation</th>
+							<th></th>
+						</tr>
+						<tr ng-repeat = "container in genericCtrl.currentEnvironment.containers" ng-show = "container.templateName === genericCtrl.currentTemplate && container.environmentId === genericCtrl.currentEnvironment.id">
+							<td>{{ container.hostname }}</td>
+							<td>
+								<select class="b-form-input b-form-input_full" ng-model = "container.operation" style = "color: black">
+									<option ng-selected = "operation.operationName === container.operation.operationName" ng-repeat = "operation in genericCtrl.operations" value="{{ operation.operationName }}">{{ operation.operationName }}</option>
+								</select></td>
+							<td><a href class="b-btn b-btn_blue b-btn_margin-r g-right" ng-click = "genericCtrl.executeOperation (container)">Execute</a></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="b-workspace-content__row">
+				<div class="b-terminal">
+					<terminal terminal-class="modern-terminal" terminal-config="modern"></terminal>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

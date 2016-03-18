@@ -1,0 +1,8 @@
+<features name="accumulo-plugin" version="4.0.0-RC7">
+  <feature name="accumulo-plugin" version="4.0.0-RC7">
+    <bundle>mvn:io.subutai/accumulo-plugin-api/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-impl/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-cli/4.0.0-RC7</bundle>
+    <bundle>mvn:io.subutai/accumulo-plugin-rest/4.0.0-RC7</bundle>
+  </feature>
+</features>

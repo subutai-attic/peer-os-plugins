@@ -1,0 +1,92 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <reference id="sparkManager" availability="mandatory"
+             interface="io.subutai.plugin.spark.api.Spark" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+    <command name="spark/list-clusters">
+      <action class="io.subutai.plugin.spark.cli.ListClustersCommand">
+        <argument ref="sparkManager" />
+      </action>
+    </command>
+
+    <command name="spark/uninstall-cluster">
+      <action class="io.subutai.plugin.spark.cli.UninstallClusterCommand">
+        <argument ref="sparkManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/install-cluster">
+      <action class="io.subutai.plugin.spark.cli.InstallClusterCommand">
+        <argument ref="sparkManager" />
+        <argument ref="hadoopManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/start-cluster">
+      <action class="io.subutai.plugin.spark.cli.StartAllNodesCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/stop-cluster">
+      <action class="io.subutai.plugin.spark.cli.StopAllNodesCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/start-node">
+      <action class="io.subutai.plugin.spark.cli.StartServiceCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/stop-node">
+      <action class="io.subutai.plugin.spark.cli.StopServiceCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/check-cluster">
+      <action class="io.subutai.plugin.spark.cli.CheckAllNodesCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/check-node">
+      <action class="io.subutai.plugin.spark.cli.StatusServiceCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+        <argument ref="tracker" />
+      </action>
+    </command>
+
+    <command name="spark/describe-cluster">
+      <action class="io.subutai.plugin.spark.cli.DescribeClusterCommand">
+        <argument ref="sparkManager" />
+        <argument ref="environmentManager" />
+      </action>
+    </command>
+
+  </command-bundle>
+
+</blueprint>
