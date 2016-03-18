@@ -5,12 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.impl.CommandType;
-import io.subutai.plugin.oozie.impl.Commands;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -91,7 +90,7 @@ public class CommandsTest
         assertNotNull( command );
         assertEquals( new RequestBuilder( String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.hosts %s", "test" ) ), command );
+                        + ".root.hosts %s", "test" ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO ), command );
     }
 
 
@@ -103,7 +102,7 @@ public class CommandsTest
         assertNotNull( command );
         assertEquals( new RequestBuilder( String.format(
                 ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.groups '\\*' " ) ), command );
+                        + ".root.groups '\\*' " ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO ), command );
     }
 
 
