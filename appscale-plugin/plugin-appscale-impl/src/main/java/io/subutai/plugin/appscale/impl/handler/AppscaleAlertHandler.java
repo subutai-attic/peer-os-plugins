@@ -4,7 +4,6 @@ package io.subutai.plugin.appscale.impl.handler;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,25 +13,23 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
+import io.subutai.common.metric.ExceededQuota;
 import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.resource.ByteValueResource;
 import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.common.resource.PeerResources;
-import io.subutai.common.task.CloneRequest;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.AppScaleImpl;
@@ -42,15 +39,15 @@ import io.subutai.plugin.appscale.impl.AppscalePlacementStrategy;
 /**
  * Node resource threshold excess alert listener
  */
-public class AlertHandler extends ExceededQuotaAlertHandler
+public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 {
-    private static final Logger LOG = LoggerFactory.getLogger( AlertHandler.class );
-    private static final String HANDLER_ID = "DEFAULT_APPSCALE_QUOTA_EXCEEDED_ALERT_HANDLER";
+    private static final Logger LOG = LoggerFactory.getLogger( AppscaleAlertHandler.class );
+    public static final String HANDLER_ID = "DEFAULT_APPSCALE_QUOTA_EXCEEDED_ALERT_HANDLER";
     private AppScaleImpl appScale;
     private static Set<String> locks = new CopyOnWriteArraySet<>();
 
 
-    public AlertHandler( final AppScaleImpl appScale )
+    public AppscaleAlertHandler( final AppScaleImpl appScale )
     {
         this.appScale = appScale;
     }
@@ -112,37 +109,22 @@ public class AlertHandler extends ExceededQuotaAlertHandler
         }
 
         //check if source host belongs to found appScale cluster
-        if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
+        //        if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
+        //        {
+        //            LOG.info( String.format( "Alert source host %s does not belong to AppScale cluster",
+        //                    alertValue.getValue().getHostId() ) );
+        //            return;
+        //        }
+
+
+        if ( isAppengineStressed( alertValue.getValue() ) )
         {
-            LOG.info( String.format( "Alert source host %s does not belong to AppScale cluster",
-                    alertValue.getValue().getHostId() ) );
-            return;
-        }
-
-
-        if ( alertValue.getValue().getContainerResourceType() == ContainerResourceType.HOME )
-        {
-            final ByteValueResource current = alertValue.getValue().getCurrentValue( ByteValueResource.class );
-            final ByteValueResource quota = alertValue.getValue().getQuotaValue( ByteValueResource.class );
-            if ( current == null || quota == null )
-            {
-                // invalid value
-                return;
-            }
-
-            boolean isStressed = quota.getValue().compareTo( current.getValue() ) < 1
-                    || quota.getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() ) < 1;
-
-
-            if ( isStressed )
-            {
-                createNewInstance( environment );
-            }
+            createAppEngineInstance( environment );
         }
     }
 
 
-    private void createNewInstance( Environment environment )
+    private void createAppEngineInstance( Environment environment )
     {
         if ( isLocked( environment.getId() ) )
         {
@@ -169,10 +151,16 @@ public class AlertHandler extends ExceededQuotaAlertHandler
 
             PeerGroupResources neighbors = new PeerGroupResources( resources, peerGroupResources.getDistances() );
 
+            final List<NodeSchema> nodes = new ArrayList<>();
+            // which template will use appengine node? while it is "master"
+            nodes.add( new NodeSchema( "appengine-" + UUID.randomUUID().toString(), ContainerSize.SMALL, "master", 0,
+                    0 ) );
             Topology topology = null;
             try
             {
-                topology = new AppscalePlacementStrategy().distribute( environment.getName(), neighbors, quotas );
+
+                topology =
+                        new AppscalePlacementStrategy().distribute( environment.getName(), nodes, neighbors, quotas );
             }
             catch ( StrategyException e )
             {
@@ -181,17 +169,17 @@ public class AlertHandler extends ExceededQuotaAlertHandler
 
             if ( topology == null )
             {
-                topology =
-                        new AppscalePlacementStrategy().distribute( environment.getName(), peerGroupResources, quotas );
+                topology = new AppscalePlacementStrategy()
+                        .distribute( environment.getName(), nodes, peerGroupResources, quotas );
             }
 
             final Set<EnvironmentContainerHost> result =
                     appScale.getEnvironmentManager().growEnvironment( environment.getId(), topology, false );
 
             // grow succeeded
-            //TODO: need config new appscale instance
+            //TODO: need config modified appscale
         }
-        catch ( PeerException | EnvironmentModificationException | EnvironmentNotFoundException | StrategyException e )
+        catch ( Exception e )
         {
             LOG.error( e.getMessage(), e );
         }
@@ -228,6 +216,40 @@ public class AlertHandler extends ExceededQuotaAlertHandler
     private boolean isLocked( final String environmentId )
     {
         return locks.contains( environmentId );
+    }
+
+
+    public boolean isAppengineStressed( final ExceededQuota value )
+    {
+        EnvironmentContainerHost host = getSourceHost();
+
+        boolean isAppengine = isAppengineInstance( host );
+        if ( isAppengine && value.getContainerResourceType() == ContainerResourceType.HOME )
+        {
+            final ByteValueResource current = value.getCurrentValue( ByteValueResource.class );
+            final ByteValueResource quota = value.getQuotaValue( ByteValueResource.class );
+            if ( current == null || quota == null )
+            {
+                // invalid value
+                return false;
+            }
+
+            boolean stressed = quota.getValue().compareTo( current.getValue() ) < 1
+                    || quota.getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() ) < 1;
+
+            // appengine instance and stressed /home partition
+            return stressed;
+        }
+
+        return false;
+    }
+
+
+    private boolean isAppengineInstance( final EnvironmentContainerHost host )
+    {
+        // todo: is this host appengine instance?
+        // while just return true
+        return true;
     }
 }
 

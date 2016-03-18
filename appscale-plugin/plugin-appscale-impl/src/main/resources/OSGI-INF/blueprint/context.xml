@@ -12,6 +12,7 @@
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
+    <property name="quotaManager" ref="quotaManager" />
   </bean>
 
   <reference id="tracker" availability="mandatory"
@@ -22,9 +23,12 @@
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="io.subutai.core.peer.api.PeerManager" />
+  <reference id="quotaManager" availability="mandatory"
+             interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="monitor" availability="mandatory"
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
   <bean id="module" scope="singleton" class="io.subutai.plugin.appscale.impl.AppScaleWebModule">
@@ -32,7 +36,7 @@
 
 
   <bean id="alertHandler" scope="singleton"
-        class="io.subutai.plugin.appscale.impl.handler.AlertHandler">
+        class="io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler">
     <argument ref="appScaleImpl" />
   </bean>
 
