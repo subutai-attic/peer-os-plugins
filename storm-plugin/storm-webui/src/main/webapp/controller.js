@@ -48,9 +48,13 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 	function getClusters() {
 		vm.clusters = [];
+		LOADING_SCREEN();
 		stormSrv.getClusters().success(function (data) {
 			console.log (data);
 			vm.clusters = data;
+			LOADING_SCREEN ("none");
+		}).error (function (error) {;
+			LOADING_SCREEN ("none");
 		});
 	}
 	getClusters();
@@ -78,6 +82,8 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			console.log (vm.currentCluster.coordinator === undefined);
 			console.log (vm.currentCluster);
 			LOADING_SCREEN('none');
+		}).error (function (error) {
+			LOADING_SCREEN ("none");
 		});
 	}
 
@@ -113,11 +119,14 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.stormInstall.clusterName === undefined || vm.stormInstall.clusterName.length == 0) return;
 		if(vm.stormInstall.environmentId === undefined || vm.stormInstall.environmentId.length == 0) return;
 		SweetAlert.swal("Success!", "Storm cluster is being created.", "success");
+		LOADING_SCREEN();
 		stormSrv.createStorm(vm.stormInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Storm cluster has been successfully created.", "success");
 			getClusters();
+			LOADING_SCREEN ("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Storm cluster creation error: ' + error, "error");
+			LOADING_SCREEN ("none");
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

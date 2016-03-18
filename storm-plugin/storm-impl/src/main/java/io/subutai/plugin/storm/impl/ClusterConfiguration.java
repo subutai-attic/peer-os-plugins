@@ -122,7 +122,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             stormNode = allNode;
             int operation_count = 0;
-
+            try
+			{
+				stormNode.execute (new RequestBuilder ("apt-get --force-yes --assume-yes update").withTimeout (60));
+				stormNode.execute (new RequestBuilder ("apt-get --force-yes --assume-yes install python").withTimeout (60));
+			}
+			catch (CommandException e)
+			{
+				e.printStackTrace ();
+				return;
+			}
             for ( Map.Entry<String, String> entry : paramValues.entrySet() )
             {
                 String s = Commands.configure( "add", "storm.xml", entry.getKey(), entry.getValue() );

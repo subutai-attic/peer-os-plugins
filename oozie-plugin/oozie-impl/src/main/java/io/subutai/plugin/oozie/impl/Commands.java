@@ -54,7 +54,7 @@ public class Commands
 
     public static RequestBuilder getAptUpdate()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 600 ).withStdOutRedirection(
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 ).withStdOutRedirection(
                 OutputRedirection.NO );
     }
 
