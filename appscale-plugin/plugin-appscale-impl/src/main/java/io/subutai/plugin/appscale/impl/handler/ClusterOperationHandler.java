@@ -102,7 +102,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             }
             case CUSTOM:
             {
-                runSSH ( clusterName );
+                runOperationOnContainers ( ClusterOperationType.ADD );
                 break;
             }
 
@@ -111,12 +111,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
 
             }
         }
-    }
-
-
-    private void runSSH ( String clusterName )
-    {
-
     }
 
 
@@ -162,6 +156,21 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                     else
                     {
                         trackerOperation.addLogFailed ( res.getStdErr () );
+                    }
+                    break;
+                }
+
+                case ADD:
+                {
+                    Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+                    Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager ).scaleUP ( config, env );
+                    if ( scaleUP )
+                    {
+                        LOG.info ( "Appscale Scaled UP" );
+                    }
+                    else
+                    {
+                        LOG.error ( "error occured in scale up" );
                     }
                     break;
                 }

@@ -118,29 +118,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-//    private void getVLAN ()
-//    {
-//        try
-//        {
-//            LocalPeer localPeer = peerManager.getLocalPeer ();
-//            Vnis reservedVnis = localPeer.getReservedVnis ();
-//            Integer findVlanByVni = reservedVnis.findVlanByVni ( environment.getVni () );
-//            if ( findVlanByVni == null )
-//            {
-//                appScaleConfig.setVlanNumber ( 100 );
-//            }
-//            else
-//            {
-//                appScaleConfig.setVlanNumber ( findVlanByVni );
-//            }
-//
-//        }
-//        catch ( PeerException ex )
-//        {
-//            LOG.error ( "Error on getting environment VLAN: " + ex );
-//        }
-//
-//    }
     @Override
     /**
      * returns true if container installed
@@ -354,7 +331,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID addNode ( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        List<String> appenList = appScaleConfig.getAppenList ();
+        appenList.add ( clusterName );
+        appScaleConfig.setAppenList ( appenList ); // new node added as appengine
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
+                                                                                          ClusterOperationType.CUSTOM );
+        // CUSTOM is to scale 1 node up
+        executor.execute ( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId ();
     }
 
 
@@ -521,13 +505,13 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    public IdentityManager getIdentityManager()
+    public IdentityManager getIdentityManager ()
     {
         return identityManager;
     }
 
 
-    public void setIdentityManager( final IdentityManager identityManager )
+    public void setIdentityManager ( final IdentityManager identityManager )
     {
         this.identityManager = identityManager;
     }
