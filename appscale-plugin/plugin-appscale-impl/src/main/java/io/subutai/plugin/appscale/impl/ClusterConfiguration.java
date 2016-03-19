@@ -70,7 +70,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            this.installAsScale ( configBase, environment );
+            // this.installAsScale ( configBase, environment );
+            this.installAsStatic ( configBase, environment );
         }
     }
 
