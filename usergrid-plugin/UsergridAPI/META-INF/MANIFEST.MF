@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1458312116859
-Build-Jdk: 1.8.0_66
-Built-By: caveman
+Bnd-LastModified: 1458535081183
+Build-Jdk: 1.8.0_74
+Built-By: larcohex
 Bundle-ManifestVersion: 2
 Bundle-Name: Subutai Usergrid Plugin API
 Bundle-SymbolicName: io.subutai.plugin.usergrid.api

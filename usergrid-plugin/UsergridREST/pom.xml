@@ -20,17 +20,18 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
+	  <version>${subutai.mgmt.parent.version}</version>
     </dependency>
     
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
-      
+	  <version>${subutai.mgmt.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>tracker-api</artifactId>
-      
+	  <version>${subutai.mgmt.parent.version}</version>
     </dependency>
 
     <dependency>
