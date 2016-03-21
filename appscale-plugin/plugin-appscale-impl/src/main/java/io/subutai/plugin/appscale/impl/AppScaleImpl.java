@@ -331,6 +331,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID addNode ( String clusterName )
     {
+        LOG.info ( "**** Adding Node****" );
         List<String> appenList = appScaleConfig.getAppenList ();
         appenList.add ( clusterName );
         appScaleConfig.setAppenList ( appenList ); // new node added as appengine

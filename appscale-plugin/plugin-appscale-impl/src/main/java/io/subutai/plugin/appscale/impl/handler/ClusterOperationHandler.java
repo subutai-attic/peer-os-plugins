@@ -162,6 +162,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
 
                 case ADD:
                 {
+
                     Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
                     Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager ).scaleUP ( config, env );
                     if ( scaleUP )
