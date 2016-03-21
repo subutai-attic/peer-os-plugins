@@ -166,8 +166,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.runAfterInitCommands ( containerHost, config );
         this.addKeyPairSH ( containerHost );
         this.runInstances ( containerHost );
-        this.commandExecute ( containerHost, "/root/addKey.sh" + numberOfContainers );
-        this.commandExecute ( containerHost, "/root/runIns.sh" + 1 );
+        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
+        this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
 //        LOG.info ( "Run shell starting..." );
 //        this.createRunSH ( containerHost ); // we only need this in master container...
 //        String runShell = Commands.getRunShell ();
@@ -245,13 +245,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 //        LOG.info ( "appscale stopping" );
 //        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
 //        LOG.info ( "appscale stopped and cleaning process started" );
-        this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
+        // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
         // this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
-        this.commandExecute ( containerHost, "/root/addKey.sh" + numberOfContainers );
+        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + 1 );
         this.commandExecute ( containerHost, addInstances () );
 //        String runShell = Commands.getRunShell ();
 //        runShell = runShell + " " + numberOfContainers;
@@ -623,6 +623,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     + "    send -- \"a\\n\"\n"
                     + "}\n"
                     + "expect EOD";
+            containerHost.execute ( new RequestBuilder ( "mkdir .ssh" ) );
             containerHost.execute ( new RequestBuilder ( "rm /root/addKey.sh " ) );
             containerHost.execute ( new RequestBuilder ( "touch /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKey.sh" ) );
@@ -666,7 +667,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private String addInstances ()
     {
-        String addIns = "/root/appscale-tools/bin/appscale-add-instances --ips new.yaml --keyname appscale";
+        String addIns = "sudo /root/appscale-tools/bin/appscale-add-instances --ips new.yaml --keyname appscale";
         return addIns;
     }
 
