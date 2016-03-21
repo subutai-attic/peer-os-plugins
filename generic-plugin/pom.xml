@@ -6,7 +6,7 @@
 
   <groupId>io.subutai</groupId>
   <artifactId>generic-plugin</artifactId>
-  <version>4.0.0-RC7</version>
+  <version>4.0.0-RC7-SNAPSHOT</version>
 
   <name>Generic Plugin Parent</name>
   <description>Generic Plugin Parent</description>

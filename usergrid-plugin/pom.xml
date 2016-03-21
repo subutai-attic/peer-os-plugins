@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.subutai</groupId>
     <artifactId>subutai-usergrid-parent</artifactId>
-    <version>4.0.0-RC7</version>
+    <version>4.0.0-RC7-SNAPSHOT</version>
 
     <name>Subutai Usergrid Parent</name>
     <description>The parent pom for the Subutai Usergrid Plugin</description>

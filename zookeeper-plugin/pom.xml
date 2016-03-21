@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>zookeeper-plugin-parent</artifactId>
-  <version>4.0.0-RC7</version>
+  <version>4.0.0-RC7-SNAPSHOT</version>
 
   <name>Subutai Zookeeper Parent</name>
   <description>Subutai Zookeeper Parent</description>

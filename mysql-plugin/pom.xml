@@ -6,7 +6,7 @@
 
   <groupId>io.subutai</groupId>
   <artifactId>mysql-plugin-parent</artifactId>
-  <version>4.0.0-RC7</version>
+  <version>4.0.0-RC7-SNAPSHOT</version>
 
   <name>Subutai MySQL Parent</name>
   <description>Subutai MySQL Parent</description>
