@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.subutai</groupId>
-    <artifactId>UserGrid</artifactId>
+    <artifactId>subutai-usergrid-parent</artifactId>
     <version>4.0.0-RC7</version>
+
+    <name>Subutai Usergrid Parent</name>
+    <description>The parent pom for the Subutai Usergrid Plugin</description>
     <packaging>pom</packaging>
-    <modules>
-        <module>UsergridAPI</module>
-        <module>UsergridIMPL</module>
-        <module>UsergridREST</module>
-        <module>UsergridCLI</module>
-        <module>UsergridWEBUI</module>
-        <module>UserGridKAR</module>
-    </modules>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <subutai.mgmt.parent.version>4.0.0-RC7-SNAPSHOT</subutai.mgmt.parent.version>
@@ -29,8 +26,16 @@
         <gson.version>2.3.1</gson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-   
-    
+
+    <modules>
+        <module>usergrid-api</module>
+        <module>usergrid-cli</module>
+        <module>usergrid-impl</module>
+        <module>usergrid-kar</module>
+        <module>usergrid-rest</module>
+        <module>usergrid-webui</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
 
@@ -40,6 +45,7 @@
                 <classifier>classes</classifier>
                 <version>${subutai.mgmt.parent.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>subutai-common</artifactId>
