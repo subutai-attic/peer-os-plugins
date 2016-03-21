@@ -191,6 +191,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         boolean saveInfo = appscaleManager.getPluginDAO ()
                 .saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
                             configBase );
+        try
+        {
+            appscaleManager.getEnvironmentManager ()
+                    .startMonitoring ( AppscaleAlertHandler.HANDLER_ID, AlertHandlerPriority.NORMAL,
+                                       environment.getId () );
+            po.addLog ( "Alert handler added successfully." );
+        }
+        catch ( EnvironmentManagerException e )
+        {
+            LOG.error ( e.getMessage (), e );
+            po.addLogFailed ( "Could not add alert handler to monitor this environment." );
+        }
         LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "DONE" );
