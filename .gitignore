@@ -1,4 +1,5 @@
 *.class
+git.properties
 target
 
 # IDE and Maven files and directories #
