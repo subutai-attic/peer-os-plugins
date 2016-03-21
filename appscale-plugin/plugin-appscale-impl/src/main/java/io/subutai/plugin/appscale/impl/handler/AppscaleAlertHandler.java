@@ -156,7 +156,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             final List<NodeSchema> nodes = new ArrayList<> ();
             // which template will use appengine node? while it is "master"
             nodes.add (
-                    new NodeSchema ( "appengine-" + UUID.randomUUID ().toString (), ContainerSize.HUGE, "master", 0,
+                    new NodeSchema ( "appengine-" + UUID.randomUUID ().toString (), ContainerSize.HUGE, "appscale", 0,
                                      0 ) );
             Topology topology = null;
             try
