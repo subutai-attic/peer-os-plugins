@@ -192,10 +192,18 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             LOG.info( "CONTAINER NAME: " + next.getHostname() );
             // grow succeeded
             //TODO: need config modified appscale
+<<<<<<< HEAD
             List<String> appenList = config.getAppenList();
             appenList.add( next.getHostname() );
             config.setAppenList( appenList ); // new appengine setted...
             Boolean modifiyConfig = modifiyConfig( environment, config );
+=======
+            List<String> appenList = config.getAppenList ();
+            appenList.add ( next.getHostname () );
+            config.setAppenList ( appenList ); // new appengine setted...
+            config.setAppengine ( next.getHostname () ); // this is to indicate additional container
+            Boolean modifiyConfig = modifiyConfig ( environment, config );
+>>>>>>> ips
             if ( modifiyConfig )
             {
                 LOG.info( "Appscale is scaled up successfully" );
