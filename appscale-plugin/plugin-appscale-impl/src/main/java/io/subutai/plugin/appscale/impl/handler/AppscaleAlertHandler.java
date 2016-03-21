@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,9 +155,10 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             PeerGroupResources neighbors = new PeerGroupResources ( resources, peerGroupResources.getDistances () );
 
             final List<NodeSchema> nodes = new ArrayList<> ();
-            // which template will use appengine node? while it is "master"
+            String newAppengineName = "appengine-" + UUID.randomUUID ().toString ();
+            LOG.info ( "NEW APPENGINE NAME::::::::::" + newAppengineName );
             nodes.add (
-                    new NodeSchema ( "appengine-" + UUID.randomUUID ().toString (), ContainerSize.HUGE, "appscale", 0,
+                    new NodeSchema ( newAppengineName, ContainerSize.HUGE, "appscale", 0,
                                      0 ) );
             Topology topology = null;
             try
@@ -203,8 +205,15 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
                    } );
 
             LOG.debug ( String.format ( "%s", result[0] ) );
+
+            Iterator<EnvironmentContainerHost> iterator = result[0].iterator ();
+            EnvironmentContainerHost next = iterator.next ();
+            LOG.info ( "CONTAINER NAME: " + next.getHostname () );
             // grow succeeded
             //TODO: need config modified appscale
+            List<String> appenList = config.getAppenList ();
+            appenList.add ( next.getHostname () );
+            config.setAppenList ( appenList ); // new appengine setted...
             Boolean modifiyConfig = modifiyConfig ( environment, config );
             if ( modifiyConfig )
             {
@@ -238,7 +247,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     private Boolean modifiyConfig ( Environment environment, AppScaleConfig targetCluster )
     {
         Boolean modifed = false;
-        UUID addNode = appScale.addNode ( targetCluster.getAppengine () );
+        UUID addNode = appScale.addNode ( targetCluster );
         return modifed;
     }
 

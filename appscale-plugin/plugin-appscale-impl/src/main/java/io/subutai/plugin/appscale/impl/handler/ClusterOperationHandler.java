@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.impl.handler;
 
 
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -102,7 +103,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
             }
             case CUSTOM:
             {
-                runOperationOnContainers ( ClusterOperationType.ADD );
+                scaleUpAppScale ();
                 break;
             }
 
@@ -160,26 +161,40 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                     break;
                 }
 
-                case ADD:
-                {
-
-                    Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
-                    Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager ).scaleUP ( config, env );
-                    if ( scaleUP )
-                    {
-                        LOG.info ( "Appscale Scaled UP" );
-                    }
-                    else
-                    {
-                        LOG.error ( "error occured in scale up" );
-                    }
-                    break;
-                }
             }
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException ex )
         {
             LOG.error ( ex.getLocalizedMessage () );
+        }
+    }
+
+
+    public void scaleUpAppScale ()
+    {
+        LOG.info ( "SCALE UP started" );
+        List<String> appenList = config.getAppenList ();
+        for ( String a : appenList )
+        {
+            LOG.info ( "appengine List................ " + a );
+        }
+        try
+        {
+            Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager ).scaleUP ( config, env );
+            if ( scaleUP )
+            {
+                LOG.info ( "Appscale Scaled UP" );
+            }
+            else
+            {
+                LOG.error ( "error occured in scale up" );
+            }
+
+        }
+        catch ( EnvironmentNotFoundException ex )
+        {
+            LOG.error ( ex.toString () );
         }
     }
 

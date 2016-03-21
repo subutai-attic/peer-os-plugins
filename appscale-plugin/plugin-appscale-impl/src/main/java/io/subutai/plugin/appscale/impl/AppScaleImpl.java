@@ -332,12 +332,23 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public UUID addNode ( String clusterName )
     {
         LOG.info ( "**** Adding Node****" );
+        List<String> info = getPluginDAO ().getInfo ( AppScaleConfig.PRODUCT_KEY );
         List<String> appenList = appScaleConfig.getAppenList ();
         appenList.add ( clusterName );
         appScaleConfig.setAppenList ( appenList ); // new node added as appengine
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.CUSTOM );
         // CUSTOM is to scale 1 node up
+        executor.execute ( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId ();
+    }
+
+
+    public UUID addNode ( AppScaleConfig localConfig )
+    {
+        LOG.info ( "**** Adding Node****" );
+        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, localConfig,
+                                                                                          ClusterOperationType.CUSTOM );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
     }
