@@ -214,6 +214,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             List<String> appenList = config.getAppenList ();
             appenList.add ( next.getHostname () );
             config.setAppenList ( appenList ); // new appengine setted...
+            config.setAppengine ( next.getHostname () ); // this is to indicate additional container
             Boolean modifiyConfig = modifiyConfig ( environment, config );
             if ( modifiyConfig )
             {

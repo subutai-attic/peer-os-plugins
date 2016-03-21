@@ -156,30 +156,33 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         LOG.info ( "installing appscale can take several minutes." );
         // AppScalefile configuration
-        this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
+        // this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
+        this.appscaleInitIPS ( containerHost, environment, config );
         // end of AppScalefile configuration
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
-
-
-        LOG.info ( "Run shell starting..." );
-        this.createRunSH ( containerHost ); // we only need this in master container...
-        String runShell = Commands.getRunShell ();
-        runShell = runShell + " " + numberOfContainers;
-        LOG.info ( "RUN SHELL COMMAND: " + runShell );
-        try
-        {
-            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
-        }
-        catch ( CommandException ex )
-        {
-            LOG.error ( "RUN SHELL ERROR" + ex );
-        }
-        LOG.info ( "Run shell completed..." );
-        this.createUpShell ( containerHost );
+        this.addKeyPairSH ( containerHost );
+        this.runInstances ( containerHost );
+        this.commandExecute ( containerHost, "/root/addKey.sh" + numberOfContainers );
+        this.commandExecute ( containerHost, "/root/runIns.sh" + 1 );
+//        LOG.info ( "Run shell starting..." );
+//        this.createRunSH ( containerHost ); // we only need this in master container...
+//        String runShell = Commands.getRunShell ();
+//        runShell = runShell + " " + numberOfContainers;
+//        LOG.info ( "RUN SHELL COMMAND: " + runShell );
+//        try
+//        {
+//            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
+//        }
+//        catch ( CommandException ex )
+//        {
+//            LOG.error ( "RUN SHELL ERROR" + ex );
+//        }
+//        LOG.info ( "Run shell completed..." );
+        // this.createUpShell ( containerHost );
         LOG.info ( "RH command started" );
 
         this.runInRH ( containerHost, config.getClusterName (), config );
@@ -239,27 +242,29 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( ex.toString () );
         }
-        LOG.info ( "appscale stopping" );
-        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
-        LOG.info ( "appscale stopped and cleaning process started" );
+//        LOG.info ( "appscale stopping" );
+//        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
+//        LOG.info ( "appscale stopped and cleaning process started" );
         this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
-        this.appscaleInitCluster ( containerHost, env, localConfig ); // creates AppScalefile
-        this.commandExecute ( containerHost, "cat /AppScalefile" );
+        this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
+        // this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
-        String runShell = Commands.getRunShell ();
-        runShell = runShell + " " + numberOfContainers;
-        try
-        {
-            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
-            scaled = true;
-            LOG.info ( "appscale restarted" );
-        }
-        catch ( CommandException ex )
-        {
-            LOG.error ( "RUN SHELL ERROR" + ex );
-        }
+        this.commandExecute ( containerHost, "/root/addKey.sh" + numberOfContainers );
+        this.commandExecute ( containerHost, addInstances () );
+//        String runShell = Commands.getRunShell ();
+//        runShell = runShell + " " + numberOfContainers;
+//        try
+//        {
+//            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
+//            scaled = true;
+//            LOG.info ( "appscale restarted" );
+//        }
+//        catch ( CommandException ex )
+//        {
+//            LOG.error ( "RUN SHELL ERROR" + ex );
+//        }
         return scaled;
     }
 
@@ -432,6 +437,89 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
+    /////////////////////////////////////////////////////
+    private void appscaleInitIPS ( EnvironmentContainerHost containerHost, Environment environment,
+                                   AppScaleConfig config )
+    {
+        String ipaddr = getIPAddress ( containerHost );
+        this.commandExecute ( containerHost, "rm -f /root/ips.yaml && touch /root/ips.yaml" );
+        LOG.info ( "ips.yaml file created." );
+        String cmdmaster = "echo 'master : " + ipaddr + "' >> /root/ips.yaml";
+        this.commandExecute ( containerHost, cmdmaster );
+        LOG.info ( "master ip address inserted" );
+        this.commandExecute ( containerHost, "echo 'appengine:' >> /root/ips.yaml" );
+        List<String> appenList = config.getAppenList ();
+        for ( String a : appenList )
+        {
+
+            try
+            {
+                EnvironmentContainerHost appContainerHost = environment.getContainerHostByHostname ( a );
+                String aip = getIPAddress ( appContainerHost );
+                this.commandExecute ( containerHost, "echo '- " + aip + "' >> /root/ips.yaml" );
+                LOG.info ( "appengine ip " + aip + " inserted" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "ips.yaml: appengine: " + ex );
+            }
+        }
+        this.commandExecute ( containerHost, "echo 'zookeeper:' >> /root/ips.yaml" );
+        List<String> zooList = config.getZooList ();
+        for ( String z : zooList )
+        {
+            try
+            {
+                EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname ( z );
+                String zip = getIPAddress ( zooContainerHost );
+                this.commandExecute ( containerHost, "echo '- " + zip + "' >> /root/ips.yaml" );
+                LOG.info ( "zookeeper ip " + zip + " inserted" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "ips.yaml: zookeeper: " + ex );
+            }
+        }
+        this.commandExecute ( containerHost, "echo 'database:' >> /root/ips.yaml" );
+        List<String> cassList = config.getCassList ();
+        for ( String cis : cassList )
+        {
+            try
+            {
+                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( cis );
+                String cip = getIPAddress ( cassContainerHost );
+                this.commandExecute ( containerHost, "echo '- " + cip + "' >> /root/ips.yaml" );
+                LOG.info ( "cassandra ip " + cip + " inserted" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "ips.yaml : cassandra: " + ex );
+            }
+        }
+        this.commandExecute ( containerHost, "echo login: " + ipaddr + " >> /root/ips.yaml" );
+        this.commandExecute ( containerHost, "cp /root/ips.yaml /" );
+
+        if ( config.getAppengine () != null )
+        {
+            this.commandExecute ( containerHost, "rm -f /root/new.yaml && touch /root/new.yaml" );
+            try
+            {
+                String newip = this.getIPAddress ( environment.getContainerHostByHostname ( config.getAppengine () ) );
+                this.commandExecute ( containerHost, "echo 'appengine:' >> /root/new.yaml" );
+                this.commandExecute ( containerHost, "echo '- " + newip + "' >> /root/new.yaml" );
+                this.commandExecute ( containerHost, "cp /root/new.yaml /" );
+                config.setAppengine ( null );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( ex.toString () );
+            }
+
+        }
+    }
+
+    ///////////////////////////////////////////////////
+
     private void runAfterInitCommands ( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
         this.commandExecute ( containerHost,
@@ -511,6 +599,75 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "send -- \"aaaaaa\\n\"\n" + "\n" + "expect EOD";
 
         return sh;
+    }
+
+
+    private void addKeyPairSH ( EnvironmentContainerHost containerHost )
+    {
+        try
+        {
+            String add = "#!/usr/bin/expect -f\n"
+                    + "set timeout -1\n"
+                    + "set num argv\n"
+                    //                + "lassign $argv num existing\n"
+                    //                + "if { $existing == \"no\" } {\n"
+                    + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --keyname appscale\n"
+                    //                + " } else {\n"
+                    //                + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --add_to_existing --keyname appscale\n"
+                    //                + "}\n"
+                    //                + "\n"
+                    + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                    + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                    + "    send -- \"yes\\n\"\n"
+                    + "    expect \" password:\"\n"
+                    + "    send -- \"a\\n\"\n"
+                    + "}\n"
+                    + "expect EOD";
+            containerHost.execute ( new RequestBuilder ( "rm /root/addKey.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "touch /root/addKey.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKey.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKey.sh" ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
+    }
+
+
+    private void runInstances ( EnvironmentContainerHost containerHost )
+    {
+        try
+        {
+            String runins = "#!/usr/bin/expect -f\n"
+                    + "set timeout -1\n"
+                    + "set num $argv\n"
+                    + "spawn /root/appscale-tools/bin/appscale-run-instances --ips ips.yaml -v --keyname appscale\n"
+                    + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                    + "expect \"Enter your desired admin e-mail address:\"\n"
+                    + "send -- \"a@a.com\\n\"\n"
+                    + "expect \"Enter new password:\"\n"
+                    + "send -- \"aaaaaa\\n\"\n"
+                    + "expect \"Confirm password:\"\n"
+                    + "send -- \"aaaaaa\\n\""
+                    + "}\n"
+                    + "expect EOD";
+            containerHost.execute ( new RequestBuilder ( "rm /root/runIns.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "touch /root/runIns.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + runins + "' > /root/runIns.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/runIns.sh" ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
+    }
+
+
+    private String addInstances ()
+    {
+        String addIns = "/root/appscale-tools/bin/appscale-add-instances --ips new.yaml --keyname appscale";
+        return addIns;
     }
 
 
