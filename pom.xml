@@ -14,7 +14,7 @@
     <module>cassandra-plugin</module>
     <module>hadoop-plugin</module>
     <module>zookeeper-plugin</module>
-    <module>accumulo-plugin</module>
+    <!--<module>accumulo-plugin</module>-->
     <module>mongo-plugin</module>
     <module>lucene-plugin</module>
     <module>hive-plugin</module>
