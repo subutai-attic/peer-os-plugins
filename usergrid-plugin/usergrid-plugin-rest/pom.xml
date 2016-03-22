@@ -3,18 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.subutai</groupId>
-        <artifactId>UserGrid</artifactId>
+        <artifactId>usergrid-plugin</artifactId>
         <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
-    <artifactId>plugin-usergrid-rest</artifactId>
+    <artifactId>usergrid-plugin-rest</artifactId>
     <packaging>bundle</packaging>
     <name>Subutai Usergrid Plugin REST</name>
     
     <dependencies>
     <dependency>
       <groupId>io.subutai</groupId>
-      <artifactId>plugin-usergrid-api</artifactId>
-      <version>4.0.0-RC7-SNAPSHOT</version>
+      <artifactId>usergrid-plugin-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     
     <dependency>

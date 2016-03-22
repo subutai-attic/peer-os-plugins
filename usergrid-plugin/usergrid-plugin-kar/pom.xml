@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.subutai</groupId>
-        <artifactId>UserGrid</artifactId>
+        <artifactId>usergrid-plugin</artifactId>
         <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
     
-    <artifactId>plugin-usergrid-kar</artifactId>
+    <artifactId>usergrid-plugin-kar</artifactId>
     
     <name>Subutai Usergrid Plugin KAR</name>
     <packaging>kar</packaging>

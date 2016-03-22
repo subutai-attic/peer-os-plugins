@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+	<parent>
+		<artifactId>subutai-plugins-parent</artifactId>
+		<groupId>io.subutai</groupId>
+		<version>4.0.0-RC7-SNAPSHOT</version>
+	</parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.subutai</groupId>
-    <artifactId>subutai-usergrid-parent</artifactId>
+    <artifactId>usergrid-plugin</artifactId>
     <version>4.0.0-RC7-SNAPSHOT</version>
 
     <name>Subutai Usergrid Parent</name>
@@ -28,12 +32,12 @@
     </properties>
 
     <modules>
-        <module>usergrid-api</module>
-        <module>usergrid-cli</module>
-        <module>usergrid-impl</module>
-        <module>usergrid-kar</module>
-        <module>usergrid-rest</module>
-        <module>usergrid-webui</module>
+        <module>usergrid-plugin-api</module>
+        <module>usergrid-plugin-cli</module>
+        <module>usergrid-plugin-impl</module>
+        <module>usergrid-plugin-rest</module>
+        <module>usergrid-plugin-webui</module>
+		<module>usergrid-plugin-kar</module>
     </modules>
 
     <dependencyManagement>

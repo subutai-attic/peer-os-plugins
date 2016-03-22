@@ -3,70 +3,63 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.subutai</groupId>
-        <artifactId>UserGrid</artifactId>
+        <artifactId>usergrid-plugin</artifactId>
         <version>4.0.0-RC7-SNAPSHOT</version>
     </parent>
-    <artifactId>plugin-usergrid-impl</artifactId>
-    
+    <artifactId>usergrid-plugin-cli</artifactId>
     <packaging>bundle</packaging>
-    <name>Subutai Usergrid Plugin IMPL</name>
-    
+    <name>Subutai Usergrid Plugin CLI</name>
     <dependencies>
         <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>plugin-usergrid-api</artifactId>
+            <artifactId>subutai-common</artifactId>
+			<version>${subutai.mgmt.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>usergrid-plugin-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>
-            <artifactId>metric-api</artifactId>
+            <artifactId>tracker-api</artifactId>
 			<version>${subutai.mgmt.parent.version}</version>
-      
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>webui</artifactId>
-            <classifier>classes</classifier>
-			<version>${subutai.mgmt.parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>environment-manager-api</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.subutai</groupId>
-            <artifactId>network-manager-api</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
-      
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>plugin-common-core</artifactId>
 			<version>${subutai.mgmt.parent.version}</version>
         </dependency>
-    
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.impl</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.cli</Bundle-SymbolicName>
+                        <Export-Package>
+                            {local-packages};version=${project.version};-noimport:=true
+                        </Export-Package>
                     </instructions>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    
-    
 </project>
