@@ -38,7 +38,7 @@
   </bean>
 
 
-  <bean id="alertHandler" scope="singleton"
+  <bean id="alertHandler" scope="singleton" activation="eager"
         class="io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler">
     <argument ref="appScaleImpl" />
   </bean>
