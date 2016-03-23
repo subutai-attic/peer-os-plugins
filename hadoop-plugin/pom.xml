@@ -2,13 +2,6 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<<<<<<< HEAD:hadoop-plugin/pom.xml
-<<<<<<< HEAD:appscale-plugin/pom.xml
-
-=======
->>>>>>> parent of 46f63da... Merge branch 'alert-handler' into dev:hadoop-plugin/pom.xml
-=======
->>>>>>> parent of 46f63da... Merge branch 'alert-handler' into dev:hadoop-plugin/pom.xml
   <parent>
 	<artifactId>subutai-plugins-parent</artifactId>
 	<groupId>io.subutai</groupId>
@@ -21,18 +14,7 @@
 
   <name>Subutai Hadoop Parent</name>
   <description>Subutai Hadoop Parent</description>
-<<<<<<< HEAD:hadoop-plugin/pom.xml
-<<<<<<< HEAD:appscale-plugin/pom.xml
 
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>io.subutai</groupId>
-  <artifactId>AppScale</artifactId>
-  <version>4.0.0-RC7-SNAPSHOT</version>
-
-=======
->>>>>>> parent of 46f63da... Merge branch 'alert-handler' into dev:hadoop-plugin/pom.xml
-=======
->>>>>>> parent of 46f63da... Merge branch 'alert-handler' into dev:hadoop-plugin/pom.xml
   <packaging>pom</packaging>
 
   <properties>
