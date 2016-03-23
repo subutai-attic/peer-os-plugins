@@ -368,8 +368,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "echo ss_SECRET_KEY: XXXXXXX >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo min: 1 >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo max: 1 >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo static_ip: '" + config.getUserDomain () + "'  >> /root/AppScalefile" );
+        // this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo machine: 'appscale'" ); // this will be pointing to our template to add one more
+        // this may not be needed
+        // this.commandExecute ( containerHost, "echo static_ip: '" + config.getUserDomain () + "'  >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 
