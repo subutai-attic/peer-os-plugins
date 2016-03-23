@@ -1,0 +1,64 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+    >
+
+  <reference id="solrManager" availability="mandatory"
+             interface="io.subutai.plugin.solr.api.Solr" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+    <command name="solr/list-clusters">
+      <action class="io.subutai.plugin.solr.cli.ListClustersCommand">
+        <property name="solrManager" ref="solrManager" />
+      </action>
+    </command>
+
+    <command name="solr/uninstall-cluster">
+      <action class="io.subutai.plugin.solr.cli.UninstallClusterCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="solr/install-cluster">
+      <action class="io.subutai.plugin.solr.cli.InstallClusterCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="environmentManager" ref="environmentManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="solr/start-node">
+      <action class="io.subutai.plugin.solr.cli.StartServiceCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="solr/stop-node">
+      <action class="io.subutai.plugin.solr.cli.StopServiceCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="solr/check-node">
+      <action class="io.subutai.plugin.solr.cli.StatusServiceCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="solr/describe-cluster">
+      <action class="io.subutai.plugin.solr.cli.DescribeClusterCommand">
+        <property name="solrManager" ref="solrManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+  </command-bundle>
+
+</blueprint>

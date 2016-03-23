@@ -1,0 +1,62 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <reference id="stormManager" availability="mandatory"
+             interface="io.subutai.plugin.storm.api.Storm" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
+    <command name="storm/describe-cluster">
+      <action class="io.subutai.plugin.storm.cli.DescribeClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+      </action>
+    </command>
+
+    <command name="storm/list-clusters">
+      <action class="io.subutai.plugin.storm.cli.ListClustersCommand">
+        <property name="stormManager" ref="stormManager" />
+      </action>
+    </command>
+
+    <command name="storm/uninstall-cluster">
+      <action class="io.subutai.plugin.storm.cli.UninstallClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="storm/install-cluster">
+      <action class="io.subutai.plugin.storm.cli.InstallClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="storm/start-cluster">
+      <action class="io.subutai.plugin.storm.cli.StartClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="storm/stop-cluster">
+      <action class="io.subutai.plugin.storm.cli.StopClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="storm/check-cluster">
+      <action class="io.subutai.plugin.storm.cli.CheckClusterCommand">
+        <property name="stormManager" ref="stormManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+  </command-bundle>
+
+</blueprint>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <reference id="etl" availability="mandatory"
+             interface="io.subutai.plugin.etl.api.ETL" />
+  <reference id="sqoop" availability="mandatory"
+             interface="io.subutai.plugin.sqoop.api.Sqoop" />
+  <reference id="hive" availability="mandatory"
+             interface="io.subutai.plugin.hive.api.Hive" />
+  <reference id="pig" availability="mandatory"
+             interface="io.subutai.plugin.pig.api.Pig" />
+  <reference id="hadoop" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+
+
+  <bean id="module" scope="singleton" class="io.subutai.plugin.etl.ui.ETLPortalModule"
+        init-method="init" destroy-method="destroy">
+    <argument ref="sqoop"/>
+    <argument ref="hive"/>
+    <argument ref="pig"/>
+    <argument ref="etl" />
+    <argument ref="hadoop" />
+    <argument ref="tracker" />
+    <argument ref="environmentManager" />
+  </bean>
+
+  <service ref="module" interface="io.subutai.server.ui.api.PortalModule" />
+
+</blueprint>

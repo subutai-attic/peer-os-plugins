@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1448451788743
+Build-Jdk: 1.8.0_60
+Built-By: tzhamakeev
+Bundle-Blueprint: OSGI-INF/blueprint/context.xml,OSGI-INF/blueprint/rest
+ .xml
+Bundle-Description: Subutai MySQL Rest
+Bundle-ManifestVersion: 2
+Bundle-Name: Subutai MySQL Rest
+Bundle-SymbolicName: io.subutai.plugin.mysql.rest
+Bundle-Version: 4.0.0.RC3
+Created-By: Apache Maven Bundle Plugin
+Export-Package: io.subutai.plugin.mysql.rest;version="4.0.0.RC3";uses:="
+ io.subutai.core.environment.api,io.subutai.core.tracker.api,io.subutai.
+ plugin.mysql.api,javax.ws.rs,javax.ws.rs.core"
+Import-Package: io.subutai.common.tracker;version="[4.0,5)",io.subutai.c
+ ommon.util;version="[4.0,5)",io.subutai.core.env.api,io.subutai.core.en
+ vironment.api;version="[4.0,5)",io.subutai.core.tracker.api;version="[4
+ .0,5)",io.subutai.core.plugincommon.api;version="[4.0,5)",io.subutai.plugin
+ .mysql.api;version="[4.0,5)",javax.ws.rs;version="[2.0,3)",javax.ws.rs.
+ core;version="[2.0,3)",org.osgi.service.blueprint;version="[1.0.0,2.0.0
+ )"
+Import-Service: io.subutai.core.env.api.EnvironmentManager;multiple:=fal
+ se,io.subutai.core.tracker.api.Tracker;multiple:=false,io.subutai.plugi
+ n.mysql.api.MySQLC;multiple:=false
+Tool: Bnd-2.1.0.20130426-122213

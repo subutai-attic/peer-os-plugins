@@ -1,0 +1,66 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+    >
+
+  <reference id="flumeManager" availability="mandatory"
+             interface="io.subutai.plugin.flume.api.Flume" />
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="hadoopManager" availability="mandatory"
+             interface="io.subutai.plugin.hadoop.api.Hadoop" />
+
+  <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+
+    <command name="flume/describe-cluster">
+      <action class="io.subutai.plugin.flume.cli.DescribeClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+      </action>
+    </command>
+
+    <command name="flume/list-clusters">
+      <action class="io.subutai.plugin.flume.cli.ListClustersCommand">
+        <property name="flumeManager" ref="flumeManager" />
+      </action>
+    </command>
+
+    <command name="flume/uninstall-cluster">
+      <action class="io.subutai.plugin.flume.cli.UninstallClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/install-cluster">
+      <action class="io.subutai.plugin.flume.cli.InstallClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="hadoopManager" ref="hadoopManager" />
+      </action>
+    </command>
+
+    <command name="flume/start-cluster">
+      <action class="io.subutai.plugin.flume.cli.StartNodeCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/stop-cluster">
+      <action class="io.subutai.plugin.flume.cli.StopNodeCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+      </action>
+    </command>
+
+    <command name="flume/check-cluster">
+      <action class="io.subutai.plugin.flume.cli.CheckClusterCommand">
+        <property name="flumeManager" ref="flumeManager" />
+        <property name="tracker" ref="tracker" />
+        <property name="environmentManager" ref="environmentManager" />
+      </action>
+    </command>
+
+  </command-bundle>
+
+</blueprint>
