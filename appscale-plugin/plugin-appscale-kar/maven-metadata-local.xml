@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>io.subutai</groupId>
+<<<<<<< HEAD:cassandra-plugin/maven-metadata-local.xml
+  <artifactId>cassandra-subutai-plugin</artifactId>
+=======
+  <artifactId>appscale-subutai-plugin</artifactId>
+>>>>>>> alert-handler:appscale-plugin/plugin-appscale-kar/maven-metadata-local.xml
+  <version>4.0.0-RC7-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <localCopy>true</localCopy>
+    </snapshot>
+    <lastUpdated>20160319135726</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <classifier>features</classifier>
+        <extension>xml</extension>
+        <value>4.0.0-RC7-SNAPSHOT</value>
+<<<<<<< HEAD:cassandra-plugin/maven-metadata-local.xml
+        <updated>20160310062313</updated>
+=======
+        <updated>20160319135726</updated>
+>>>>>>> alert-handler:appscale-plugin/plugin-appscale-kar/maven-metadata-local.xml
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
