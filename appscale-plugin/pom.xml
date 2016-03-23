@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<<<<<<< HEAD:hadoop-plugin/pom.xml
+
   <parent>
 	<artifactId>subutai-plugins-parent</artifactId>
 	<groupId>io.subutai</groupId>
@@ -14,12 +14,12 @@
 
   <name>Subutai Hadoop Parent</name>
   <description>Subutai Hadoop Parent</description>
-=======
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>AppScale</artifactId>
   <version>4.0.0-RC7-SNAPSHOT</version>
->>>>>>> alert-handler:appscale-plugin/pom.xml
+
   <packaging>pom</packaging>
   <modules>
 
