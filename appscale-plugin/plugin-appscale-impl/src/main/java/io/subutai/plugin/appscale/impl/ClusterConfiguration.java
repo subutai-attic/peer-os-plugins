@@ -70,8 +70,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         else
         {
-            // this.installAsScale ( configBase, environment );
-            this.installAsStatic ( configBase, environment );
+            this.installAsScale ( configBase, environment );
+            // this.installAsStatic ( configBase, environment );
         }
     }
 
@@ -247,7 +247,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "appscale stopped and cleaning process started" );
         this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
-        this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
+        // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
+        this.appscaleInitCluster ( containerHost, env, localConfig );
         // this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
