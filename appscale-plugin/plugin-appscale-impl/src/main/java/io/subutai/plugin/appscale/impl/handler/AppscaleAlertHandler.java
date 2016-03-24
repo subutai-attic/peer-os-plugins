@@ -119,19 +119,18 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 
         if ( isAppengineStressed ( alertValue.getValue () ) )
         {
-            createAppEngineInstance ( environment, targetCluster, sourceHost );
+            createAppEngineInstance ( environment, targetCluster );
         }
     }
 
 
-    private void createAppEngineInstance ( Environment environment, AppScaleConfig config,
-                                           EnvironmentContainerHost sourceHost )
+    public Boolean createAppEngineInstance ( Environment environment, AppScaleConfig config )
     {
         if ( isLocked ( environment.getId () ) )
         {
             LOG.debug ( "Environment is locked. Skipping." );
         }
-
+        Boolean modifiyConfig = false;
         try
         {
             lock ( environment.getId () );
@@ -197,7 +196,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             appenList.add ( next.getHostname () );
             config.setAppenList ( appenList ); // new appengine setted...
             config.setAppengine ( next.getHostname () ); // this is to indicate additional container
-            Boolean modifiyConfig = modifiyConfig ( environment, config );
+            modifiyConfig = modifiyConfig ( environment, config );
 
             if ( modifiyConfig )
             {
@@ -207,6 +206,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             {
                 LOG.error ( "Appscale scale up failed" );
             }
+
         }
         catch ( Exception e )
         {
@@ -216,6 +216,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         {
             unlock ( environment.getId () );
         }
+        return modifiyConfig;
     }
 
 

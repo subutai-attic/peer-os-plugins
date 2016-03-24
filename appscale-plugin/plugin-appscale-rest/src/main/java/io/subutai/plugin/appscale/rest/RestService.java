@@ -45,6 +45,15 @@ public interface RestService
 
 
     @GET
+    @Path ( "growenvironment" )
+    @Produces (
+                        {
+                MediaType.TEXT_PLAIN
+            } )
+    Response growenvironment ();
+
+
+    @GET
     @Path ( "clusters/{clusterName}" )
     @Produces (
                         {

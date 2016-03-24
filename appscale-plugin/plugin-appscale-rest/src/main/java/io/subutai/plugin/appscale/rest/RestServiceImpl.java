@@ -25,6 +25,8 @@ import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
+import io.subutai.plugin.appscale.impl.AppScaleImpl;
+import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 
 
 /**
@@ -38,16 +40,19 @@ public class RestServiceImpl implements RestService
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private AppScaleImpl appScaleImpl;
 
 
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 
-    public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker, EnvironmentManager environmentManager )
+    public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker, EnvironmentManager environmentManager,
+                             AppScaleImpl appScaleImpl )
     {
         this.appScaleInterface = appScaleInterface;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
+        this.appScaleImpl = appScaleImpl;
     }
 
 
@@ -105,6 +110,28 @@ public class RestServiceImpl implements RestService
         AppScaleConfig config = appScaleInterface.getConfig ( clusterName );
         appScaleInterface.configureSsh ( config );
         return Response.status ( Response.Status.OK ).entity ( clusterName ).build ();
+    }
+
+
+    @Override
+
+    public Response growenvironment ()
+    {
+
+        Boolean createAppEngineInstance = new AppscaleAlertHandler ( appScaleImpl ).createAppEngineInstance (
+                appScaleImpl.getEnvironment (),
+                appScaleImpl.getAppScaleConfig () );
+
+        if ( createAppEngineInstance )
+        {
+            return Response.status ( Response.Status.OK ).entity ( appScaleImpl.getAppScaleConfig () ).build ();
+        }
+        else
+        {
+            return Response.status ( Response.Status.EXPECTATION_FAILED ).entity ( appScaleImpl.getAppScaleConfig () ).build ();
+        }
+
+
     }
 
 
