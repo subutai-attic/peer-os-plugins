@@ -245,7 +245,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
         LOG.info ( "appscale stopped and cleaning process started" );
-        this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
+        // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
         this.appscaleInitCluster ( containerHost, env, localConfig );
@@ -255,7 +255,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 //        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
         String runShell = Commands.getRunShell ();
-        runShell = runShell + " " + numberOfContainers;
+        runShell = runShell + " " + 1;
         try
         {
             containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
