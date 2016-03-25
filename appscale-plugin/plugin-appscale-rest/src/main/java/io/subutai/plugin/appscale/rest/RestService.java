@@ -50,7 +50,7 @@ public interface RestService
                         {
                 MediaType.TEXT_PLAIN
             } )
-    Response growenvironment ();
+    Response growenvironment ( @PathParam ( "clusterName" ) String clusterName );
 
 
     @GET

@@ -25,8 +25,6 @@ import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
-import io.subutai.plugin.appscale.impl.AppScaleImpl;
-import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 
 
 /**
@@ -40,19 +38,18 @@ public class RestServiceImpl implements RestService
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-    private AppScaleImpl appScaleImpl;
 
 
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 
-    public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker, EnvironmentManager environmentManager,
-                             AppScaleImpl appScaleImpl )
+    public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker,
+                             EnvironmentManager environmentManager )
     {
         this.appScaleInterface = appScaleInterface;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
-        this.appScaleImpl = appScaleImpl;
+
     }
 
 
@@ -115,23 +112,26 @@ public class RestServiceImpl implements RestService
 
     @Override
 
-    public Response growenvironment ()
+    public Response growenvironment ( String clusterName )
     {
-
-        Boolean createAppEngineInstance = new AppscaleAlertHandler ( appScaleImpl ).createAppEngineInstance (
-                appScaleImpl.getEnvironment (),
-                appScaleImpl.getAppScaleConfig () );
-
-        if ( createAppEngineInstance )
+        AppScaleConfig appScaleConfig = appScaleInterface.getConfig ( clusterName );
+        UUID uuid = appScaleInterface.growEnvironment ( appScaleConfig );
+        OperationState operationState = waitUntilOperationFinish ( uuid );
+        if ( uuid == null )
         {
-            return Response.status ( Response.Status.OK ).entity ( appScaleImpl.getAppScaleConfig () ).build ();
+            return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "failed" ).build ();
         }
-        else
+        TrackerOperationView tov = tracker.getTrackerOperation ( clusterName, uuid );
+        switch ( operationState )
         {
-            return Response.status ( Response.Status.EXPECTATION_FAILED ).entity ( appScaleImpl.getAppScaleConfig () ).build ();
+            case SUCCEEDED:
+                return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( tov.getLog () ) ).build ();
+            case FAILED:
+                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( JsonUtil.GSON.toJson (
+                        tov.getLog () ) ).build ();
+            default:
+                return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
         }
-
-
     }
 
 

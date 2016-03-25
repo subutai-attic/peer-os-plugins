@@ -45,6 +45,7 @@ import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
+import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 
 
@@ -290,6 +291,24 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
         }
         return uuid;
+    }
+
+
+    @Override
+    public UUID growEnvironment ( AppScaleConfig appScaleConfig )
+    {
+
+        Boolean createAppEngineInstance = new AppscaleAlertHandler ( this ).createAppEngineInstance ( environment,
+                                                                                                      appScaleConfig );
+        if ( createAppEngineInstance )
+        {
+            return UUID.randomUUID ();
+        }
+        else
+        {
+            return null;
+        }
+
     }
 
 

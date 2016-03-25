@@ -542,13 +542,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
 
         // modify navigation.html
-        String addButton = "<li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"{{ flower_url }}\">TaskQueue Monitor</a></li>";
-        String replaceString = addButton + "\n" + "<li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"linkToRestCall\">Add Appengine</a></li>";
+        String addButton = "<li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"{{ flower_url }}\">TaskQueue Monitor</a><\\/li>";
+        String replaceString = addButton + "<br><li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"http:\\/\\/linkToRestCall\">Add Appengine<\\/a><\\/li>";
         this.commandExecute ( containerHost,
-                              "sed -i 's/ " + addButton + "/" + replaceString + "/g' /root/appscale/AppDashboard/templates/shared/templates/navigation.html" );
-        String changeMonitURL = "sed -i 's/{{ monit_url }}/2812." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/templates/navigation.html";
+                              "sed -i 's/ " + addButton + "/" + replaceString + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
+        String changeMonitURL = "sed -i 's/{{ monit_url }}/http:\\/\\/2812." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute ( containerHost, changeMonitURL );
-        String changeFlowerURL = "sed -i 's/{{ flower_url }}/5555." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/templates/navigation.html";
+        String changeFlowerURL = "sed -i 's/{{ flower_url }}/http:\\/\\/5555." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute ( containerHost, changeFlowerURL );
 
         String nginx
