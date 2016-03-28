@@ -26,6 +26,7 @@
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   
+  
 
   <bean id="ugrsi" class="io.subutai.plugin.usergrid.rest.RestServiceImpl">
     <argument ref="userGridInterface" />
