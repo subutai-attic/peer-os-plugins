@@ -1,4 +1,7 @@
 *.class
+maven-metadata-local.xml
+git.properties
+target
 
 # IDE and Maven files and directories #
 *.iml
@@ -23,3 +26,17 @@ server/core/broker/broker-impl/activemq-data
 *substvars
 files
 debian/appscale-subutai-plugin
+target
+*.swp
+*.iml
+*.log
+.idea
+*.idea
+*.classes
+*.o
+*.mk
+*.a
+*.deb
+*~
+.DS_Store
+

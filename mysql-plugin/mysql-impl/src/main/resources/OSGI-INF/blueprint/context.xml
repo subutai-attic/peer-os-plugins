@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <!-- *********************************************************************************** -->
+  <reference id="tracker" interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" interface="io.subutai.core.env.api.EnvironmentManager" />
+  <reference id="peerManager" availability="mandatory" interface="io.subutai.core.peer.api.PeerManager" />
+  <reference id="monitor" availability="mandatory" interface="io.subutai.core.metric.api.Monitor" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+  <!-- *********************************************************************************** -->
+
+  <bean id="mysqlImpl" scope="singleton" class="io.subutai.plugin.mysql.impl.MySQLCImpl"
+        init-method="init" destroy-method="destroy">
+    
+    <argument ref="monitor" />
+    <argument ref="pluginDAO" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+    <property name="peerManager" ref="peerManager" />
+  </bean>
+
+  <bean id="alertListener" scope="singleton"
+        class="io.subutai.plugin.mysql.impl.alert.MySQLAlertListener">
+    <argument ref="mysqlImpl" />
+  </bean>
+
+  <!-- *********************************************************************************** -->
+  <service ref="mysqlImpl" interface="io.subutai.core.env.api.EnvironmentEventListener" />
+  <service ref="mysqlImpl" interface="io.subutai.plugin.mysql.api.MySQLC" />
+  <service ref="alertListener" interface="io.subutai.core.metric.api.AlertListener" />
+  <!-- *********************************************************************************** -->
+
+
+</blueprint>

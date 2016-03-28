@@ -1,0 +1,12 @@
+Source: spark-subutai-plugin
+Section: devel
+Priority: optional
+Maintainer: Subutai
+Pre-Depends: plugin-common-core, hadoop-subutai-plugin
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.safehaus.org
+Version: [[project.version]]
+Package: spark-subutai-plugin
+Architecture: all
+Description: This package contains kar file of Subutai Spark plugin that runs  on subutai server application.

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.subutai</groupId>
+        <artifactId>usergrid-plugin</artifactId>
+        <version>4.0.0-RC7-SNAPSHOT</version>
+    </parent>
+    <artifactId>usergrid-plugin-impl</artifactId>
+    
+    <packaging>bundle</packaging>
+    <name>Subutai Usergrid Plugin IMPL</name>
+    
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>usergrid-plugin-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>metric-api</artifactId>
+			<version>${subutai.mgmt.parent.version}</version>
+      
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>webui</artifactId>
+            <classifier>classes</classifier>
+			<version>${subutai.mgmt.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>environment-manager-api</artifactId>
+			<version>${subutai.mgmt.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>network-manager-api</artifactId>
+			<version>${subutai.mgmt.parent.version}</version>
+      
+        </dependency>
+        <dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>plugin-common-core</artifactId>
+			<version>${subutai.mgmt.parent.version}</version>
+        </dependency>
+    
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.impl</Bundle-SymbolicName>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    
+</project>
