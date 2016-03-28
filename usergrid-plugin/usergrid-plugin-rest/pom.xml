@@ -16,7 +16,11 @@
       <artifactId>usergrid-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>appscale-plugin-impl</artifactId>
+      <version>${subutai.mgmt.parent.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
