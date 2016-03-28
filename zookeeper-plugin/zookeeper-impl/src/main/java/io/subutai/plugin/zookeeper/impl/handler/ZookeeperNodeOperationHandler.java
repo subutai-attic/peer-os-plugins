@@ -190,7 +190,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
 
-                    johnnyRawSet.addAll( environment.growEnvironment( environment.getId(), topology, false ) );
+                    johnnyRawSet.addAll( environment.growEnvironment ( topology, false ) );
                 }
                 if ( johnnyRawSet.isEmpty() )
                 {

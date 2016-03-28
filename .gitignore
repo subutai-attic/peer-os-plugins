@@ -1,4 +1,5 @@
 *.class
+maven-metadata-local.xml
 git.properties
 target
 
