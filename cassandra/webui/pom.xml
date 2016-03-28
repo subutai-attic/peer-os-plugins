@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>cassandra-plugin-parent</artifactId>
-    <groupId>io.subutai</groupId>
+    <groupId>io.subutai.plugins</groupId>
     <version>4.0.0-RC7-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -46,7 +46,7 @@
             <supportedProjectType>war</supportedProjectType>
           </supportedProjectTypes>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.cassandra.webui</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.cassandra.webui</Bundle-SymbolicName>
 
             <Embed-Directory>WEB-INF/lib</Embed-Directory>
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>

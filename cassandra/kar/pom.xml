@@ -4,12 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>cassandra-plugin-parent</artifactId>
-     <groupId>io.subutai</groupId>
+     <groupId>io.subutai.plugins</groupId>
     <version>4.0.0-RC7-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>cassandra-subutai-plugin</artifactId>
+  <name>Subutai Cassandra Plugin Kar</name>
 
   <build>
     <plugins>
@@ -35,7 +36,6 @@
           </execution>
         </executions>
       </plugin>
-
 
       <plugin>
         <artifactId>jdeb</artifactId>
