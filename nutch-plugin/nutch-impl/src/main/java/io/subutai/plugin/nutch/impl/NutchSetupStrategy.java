@@ -116,6 +116,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
+                commandUtil.execute( Commands.getAptUpdate(), node );
                 CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), node );
                 if ( result.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) )
                 {

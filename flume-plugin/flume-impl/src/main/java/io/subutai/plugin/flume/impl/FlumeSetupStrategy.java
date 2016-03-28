@@ -149,6 +149,7 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
             }
             try
             {
+                node.execute( Commands.getAptUpdate() );
                 CommandResult result = node.execute( checkInstalledCommand );
                 if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {

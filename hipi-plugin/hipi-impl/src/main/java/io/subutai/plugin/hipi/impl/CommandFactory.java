@@ -1,6 +1,8 @@
 package io.subutai.plugin.hipi.impl;
 
 
+import io.subutai.common.command.OutputRedirection;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.hipi.api.HipiConfig;
@@ -28,4 +30,11 @@ public class CommandFactory
                 throw new IllegalArgumentException( "Unsupported operation type" );
         }
     }
+
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 ).withStdOutRedirection(
+                OutputRedirection.NO );
+    }
+
 }

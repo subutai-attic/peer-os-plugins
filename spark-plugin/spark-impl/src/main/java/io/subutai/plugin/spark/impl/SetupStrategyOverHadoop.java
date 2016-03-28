@@ -201,6 +201,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             RequestBuilder installCommand = manager.getCommands().getInstallCommand();
             for ( EnvironmentContainerHost node : nodesToInstallSpark )
             {
+                executeCommand( node, Commands.getAptUpdate() );
                 CommandResult result = executeCommand( node, installCommand );
                 checkInstalled( node, result );
             }
