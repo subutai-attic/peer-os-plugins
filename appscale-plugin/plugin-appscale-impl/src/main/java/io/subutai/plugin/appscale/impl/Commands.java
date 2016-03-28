@@ -70,11 +70,5 @@ public class Commands
     }
 
 
-    public static String getChangeHostHame ()
-    {
-        return ( "echo 'domain.com' > /etc/hostname" );
-    }
-
-
 }
 
