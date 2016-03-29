@@ -7,13 +7,14 @@
         init-method="init" destroy-method="destroy">
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
-
+    <argument ref="identityManager" />
+    <!-- <argument name="identityManager" ref="identityManager" /> -->
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
     <property name="quotaManager" ref="quotaManager" />
-    <property name="identityManager" ref="identityManager" />
+    
   </bean>
 
   <reference id="tracker" availability="mandatory"

@@ -71,10 +71,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private AppScaleConfig appScaleConfig;
 
 
-    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
+    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO, IdentityManager identityManager )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+        this.identityManager = identityManager;
     }
 
 
@@ -109,7 +110,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.INSTALL );
+                                                                                          ClusterOperationType.INSTALL,
+                                                                                          this.identityManager );
         LOG.info ( "install cluster " + abstractOperationHandler );
         executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
@@ -156,7 +158,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
                                       "clusterName is empty" );
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.UNINSTALL );
+                                                                                          ClusterOperationType.UNINSTALL,
+                                                                                          this.identityManager );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
     }
@@ -226,7 +229,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
 
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.CUSTOM );
+                                                                                          ClusterOperationType.CUSTOM,
+                                                                                          this.identityManager );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
 
@@ -356,7 +360,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         appenList.add ( clusterName );
         appScaleConfig.setAppenList ( appenList ); // new node added as appengine
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.CUSTOM );
+                                                                                          ClusterOperationType.CUSTOM,
+                                                                                          this.identityManager );
         // CUSTOM is to scale 1 node up
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
@@ -367,7 +372,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         LOG.info ( "**** Adding Node****" );
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, localConfig,
-                                                                                          ClusterOperationType.CUSTOM );
+                                                                                          ClusterOperationType.CUSTOM,
+                                                                                          this.identityManager );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
     }

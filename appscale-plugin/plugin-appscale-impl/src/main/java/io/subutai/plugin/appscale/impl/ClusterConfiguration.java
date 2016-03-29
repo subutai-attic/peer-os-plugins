@@ -6,12 +6,15 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang.time.DateUtils;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -25,6 +28,8 @@ import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.exception.EnvironmentManagerException;
+import io.subutai.core.identity.api.IdentityManager;
+import io.subutai.core.identity.api.model.UserToken;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
@@ -42,14 +47,19 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private final TrackerOperation po;
     private final AppScaleImpl appscaleManager;
+    private final IdentityManager identityManager;
+    String token = "";
+
 
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
-    public ClusterConfiguration ( final TrackerOperation operation, final AppScaleImpl appScaleImpl )
+    public ClusterConfiguration ( final TrackerOperation operation, final AppScaleImpl appScaleImpl,
+                                  IdentityManager identityManager )
     {
         this.po = operation;
         this.appscaleManager = appScaleImpl;
+        this.identityManager = identityManager;
     }
 
 
@@ -61,6 +71,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
+        Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
+        final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
+                                                              permanentDate );
+        token = t.getFullToken ();
+
         LOG.info ( "ClusterConfiguration :: configureCluster " );
         AppScaleConfig config = ( AppScaleConfig ) configBase;
 
@@ -98,6 +113,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( "configureCluster " + ex );
         }
+
+        // save token to a file
+        this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
+
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         this.appscaleInitCloud ( containerHost, environment, config );
         this.runAfterInitCommands ( containerHost, config );

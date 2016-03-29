@@ -23,6 +23,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.core.identity.api.IdentityManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -41,13 +42,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
 {
     private final ClusterOperationType operationType;
     private final AppScaleConfig config;
-
+    private final IdentityManager identityManager;
     private final String clstrName;
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
     public ClusterOperationHandler ( final AppScaleImpl manager, final AppScaleConfig config,
-                                     final ClusterOperationType operationType )
+                                     final ClusterOperationType operationType, IdentityManager identityManager )
     {
         super ( manager, config );
         this.config = config;
@@ -55,6 +56,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         this.operationType = operationType;
         String msg = String.format ( "Starting %s operation on %s(%s) cluster...", operationType, clstrName,
                                      config.getProductKey () );
+        this.identityManager = identityManager;
 
         LOG.info ( msg );
         trackerOperation = manager.getTracker ().createTrackerOperation ( AppScaleConfig.PRODUCT_KEY, msg );
@@ -181,7 +183,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         try
         {
             Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
-            Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager ).scaleUP ( config, env );
+            Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager, this.identityManager ).scaleUP (
+                    config, env );
             if ( scaleUP )
             {
                 LOG.info ( "Appscale Scaled UP" );
@@ -228,7 +231,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         try
         {
             LOG.info ( "Before" );
-            new ClusterConfiguration ( trackerOperation, manager ).configureCluster ( config, env );
+            new ClusterConfiguration ( trackerOperation, manager, this.identityManager ).configureCluster ( config, env );
             LOG.info ( "After" );
         }
         catch ( ClusterConfigurationException cce )
