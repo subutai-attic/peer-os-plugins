@@ -116,7 +116,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // save token to a file
         this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
-
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         this.appscaleInitCloud ( containerHost, environment, config );
         this.runAfterInitCommands ( containerHost, config );
@@ -171,8 +170,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( "configureCluster " + ex );
         }
-        this.commandExecute ( containerHost, Commands.getCreateLogDir () );
 
+        this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
+        this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         LOG.info ( "installing appscale can take several minutes." );
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
@@ -383,8 +383,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
         LOG.info ( "AppScalefile file created." );
         this.commandExecute ( containerHost, "echo infrastructure: 'ss' >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo ss_ACCESS_KEY: XXXXXXX >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo ss_SECRET_KEY: XXXXXXX >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo PARAM_IMAGE_ID: appscale >> /root/AppScalefile" );
+        this.commandExecute ( containerHost,
+                              "echo PARAM_SUBUTAI_ENDPOINT: 1443." + config.getUserDomain () + "/rest/appscale/  >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo min: 1 >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo max: 1 >> /root/AppScalefile" );
         // this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >> /root/AppScalefile" );
@@ -569,7 +570,22 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, changeMonitURL );
         String changeFlowerURL = "sed -i 's/{{ flower_url }}/http:\\/\\/5555." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute ( containerHost, changeFlowerURL );
+        String modUrl = "resturl?";
+        String modUrlChange = "1443." + config.getUserDomain () + "\\/rest\\/appscale\\/growenvironment?containerName="
+                + config.getClusterName () + "&";
+        this.commandExecute ( containerHost,
+                              "sed -i 's/" + modUrl + "/" + modUrlChange + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
+        // modify ss_agent.py
+        String modstr = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\\\"";
+        String modstrchange = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\"" + config.getClusterName ();
+        this.commandExecute ( containerHost,
+                              "sed -i 's/" + modstr + "/" + modstrchange + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
+        String tokenUrl = "subutai:8443";
+        String tokenUrlChange = "1443." + config.getUserDomain ();
+        this.commandExecute ( containerHost,
+                              "sed -i 's/" + tokenUrl + "/" + tokenUrlChange + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
 
+        // modify nginx
         String nginx
                 = "echo 'server {\n" + "        listen        80;\n" + "        server_name   ~^(?<port>.+)\\." + config
                 .getUserDomain () + "$;\n" + "\n" + "    set $appbackend \"127.0.0.1:${port}\";\n" + "\n"
