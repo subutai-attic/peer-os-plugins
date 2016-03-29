@@ -187,6 +187,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
+                commandUtil.execute( CommandFactory.getAptUpdate(), node );
                 RequestBuilder installCommand =
                         new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 300 );
                 CommandResult result = commandUtil.execute( installCommand, node );

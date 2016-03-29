@@ -10,6 +10,7 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -176,6 +177,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Installing server..." );
         try
         {
+            server.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
+                                                                        .withStdOutRedirection( OutputRedirection.NO ) );
             if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
             {
                 server.execute( new RequestBuilder(
@@ -202,6 +205,8 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
+                client.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
+                                                                                                    .withStdOutRedirection( OutputRedirection.NO ) );
                 if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
                 {
                     CommandResult result = client.execute( new RequestBuilder(

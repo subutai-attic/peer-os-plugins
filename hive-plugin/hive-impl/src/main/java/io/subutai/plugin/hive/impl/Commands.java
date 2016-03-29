@@ -10,6 +10,8 @@ public class Commands
 
     public static final String installCommand = "apt-get --force-yes --assume-yes install ";
 
+    public static final String updateCommand = "apt-get --force-yes --assume-yes update";
+
     public static final String uninstallCommand = "apt-get --force-yes --assume-yes purge ";
 
     public static final String startCommand = "service hive-thrift start";

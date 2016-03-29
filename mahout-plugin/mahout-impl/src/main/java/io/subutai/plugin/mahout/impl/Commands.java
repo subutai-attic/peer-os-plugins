@@ -33,4 +33,7 @@ public class Commands
     {
         return new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH );
     }
+
+    public static final String updateCommand = "apt-get --force-yes --assume-yes update";
+
 }
