@@ -7,6 +7,7 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -95,6 +96,8 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
         {
             try
             {
+                node.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
+                        OutputRedirection.NO ) );
                 CommandResult result = node.execute( checkInstalledCommand );
                 if ( result.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) )
                 {

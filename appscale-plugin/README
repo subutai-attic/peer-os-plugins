@@ -1,0 +1,20 @@
+
+
+APPSCALE IN SUBUTAI SOCIAL
+
+you can install appscale-plugin as usual like other plugin in subutai social.
+
+installation is also very simplified that you can go in to bazaar and find your appscale you there.
+
+follow the steps in installation part.
+
+in mangement tab, you can select your latest appscale installed environment and 
+click on Console and this link will take you to your appscale console.
+
+PLEASE NOTE THAT: for temporary moment of time, to make accessible console link for you 
+you need to add 
+<resource host ip> 1443.yourdummydomain.com 
+into your hosts files
+and to access your deployed app
+add similar entry but with port number 8080, 8081 etc.
+

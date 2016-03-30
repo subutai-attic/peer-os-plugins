@@ -218,6 +218,8 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         runCommandOnContainers( Commands.getAptUpdate(), oozieServerNodes );
         commandResultList2 = runCommandOnContainers( Commands.getInstallServerCommand(), oozieServerNodes );
         checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
+
+        runCommandOnContainers( Commands.getAptUpdate(), clients );
         commandResultList = runCommandOnContainers( Commands.getInstallClientsCommand(), clients );
         checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
 

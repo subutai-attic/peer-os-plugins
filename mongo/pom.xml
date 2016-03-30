@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>subutai-plugins-parent</artifactId>
+    <groupId>io.subutai.plugin</groupId>
+    <version>4.0.0-RC7-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>mongo-plugin-parent</artifactId>
+  <name>Subutai MongoDB Plugin Parent</name>
+  <description>Subutai MongoDB Parent</description>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>api</module>
+    <module>impl</module>
+    <module>webui</module>
+    <module>cli</module>
+    <module>rest</module>
+    <module>kar</module>
+  </modules>
+</project>

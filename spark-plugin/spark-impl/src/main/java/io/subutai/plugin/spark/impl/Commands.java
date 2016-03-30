@@ -23,6 +23,14 @@ public class Commands
     }
 
 
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 )
+                                                                              .withStdOutRedirection(
+                                                                                      OutputRedirection.NO );
+    }
+
+
     public RequestBuilder getUninstallCommand()
     {
         return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 600 );
@@ -110,7 +118,8 @@ public class Commands
     public RequestBuilder getSetMasterIPCommand( String masterHostname )
     {
         return new RequestBuilder(
-                String.format( "/opt/spark*/bin/sparkMasterConf.sh clear ; /opt/spark*/bin/sparkMasterConf.sh %s", masterHostname ) );
+                String.format( "/opt/spark*/bin/sparkMasterConf.sh clear ; /opt/spark*/bin/sparkMasterConf.sh %s",
+                        masterHostname ) );
     }
 
 
@@ -143,7 +152,7 @@ public class Commands
         }
 
         return new RequestBuilder(
-                String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear ; /opt/spark*/bin/sparkSlaveConf.sh %s", slaves ) )
-                .withTimeout( 60 );
+                String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear ; /opt/spark*/bin/sparkSlaveConf.sh %s",
+                        slaves ) ).withTimeout( 60 );
     }
 }

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
-    <groupId>io.subutai.plugins</groupId>
+    <groupId>io.subutai.plugin</groupId>
     <version>4.0.0-RC7-SNAPSHOT</version>
   </parent>
 

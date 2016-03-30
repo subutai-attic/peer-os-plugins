@@ -1,6 +1,8 @@
 package io.subutai.plugin.flume.impl;
 
 
+import io.subutai.common.command.OutputRedirection;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.flume.api.FlumeConfig;
 
@@ -33,5 +35,13 @@ public class Commands
             default:
                 throw new AssertionError( type.name() );
         }
+    }
+
+
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 )
+                                                                              .withStdOutRedirection(
+                                                                                      OutputRedirection.NO );
     }
 }

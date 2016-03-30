@@ -133,6 +133,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
             }
             try
             {
+                commandUtil.execute( Commands.getAptUpdate(), node );
                 CommandResult result = commandUtil.execute( checkInstalledCommand, node );
                 if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
