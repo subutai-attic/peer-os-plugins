@@ -43,6 +43,9 @@ public class AppScaleConfig implements ConfigBase
     private int vlanNumber;
     private String scaleOption;
 
+    private String permanentToken;
+    private String userEnvironmentName;
+
 
     public AppScaleConfig ()
     {
@@ -251,6 +254,30 @@ public class AppScaleConfig implements ConfigBase
     public void setScaleOption ( String scaleOption )
     {
         this.scaleOption = scaleOption;
+    }
+
+
+    public String getPermanentToken ()
+    {
+        return permanentToken;
+    }
+
+
+    public void setPermanentToken ( String permanentToken )
+    {
+        this.permanentToken = permanentToken;
+    }
+
+
+    public String getUserEnvironmentName ()
+    {
+        return userEnvironmentName;
+    }
+
+
+    public void setUserEnvironmentName ( String userEnvironmentName )
+    {
+        this.userEnvironmentName = userEnvironmentName;
     }
 
 

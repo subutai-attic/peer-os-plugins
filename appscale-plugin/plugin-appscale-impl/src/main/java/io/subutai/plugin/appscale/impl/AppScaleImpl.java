@@ -6,6 +6,13 @@
 package io.subutai.plugin.appscale.impl;
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -13,11 +20,15 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -376,6 +387,103 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
                                                                                           this.identityManager );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
+    }
+
+
+    @Override
+    public UUID oneClickInstall ( AppScaleConfig localConfig )
+    {
+        UUID uuid = UUID.randomUUID ();
+        try
+        {
+            // first get the topology
+            URL url = new URL (
+                    "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY?sptoken" + localConfig.getPermanentToken () );
+            HttpURLConnection conn = ( HttpURLConnection ) url.openConnection ();
+            conn.setDoInput ( true );
+            conn.setRequestProperty ( "Content-Type", "application/json" );
+            conn.setRequestProperty ( "Accept", "application/json" );
+            conn.setRequestMethod ( "POST" );
+            String topologyString = "{"
+                    + "    \"name\": \" " + localConfig.getUserEnvironmentName () + "\","
+                    + "    \"nodes\": "
+                    + "        ["
+                    + "            {"
+                    + "                \"name\": \" " + localConfig.getClusterName () + " \","
+                    + "                \"size\": \"HUGE\","
+                    + "                \"templateName\": \"appscale\","
+                    + "                \"sshGroupId\": 0,"
+                    + "                \"hostGroupId\": 0"
+                    + "            }"
+                    + "        ]"
+                    + "}";
+            JsonObject topo = new JsonObject ();
+            topo.addProperty ( "name", localConfig.getUserEnvironmentName () );
+            JsonObject nodes = new JsonObject ();
+            JsonArray ja = new JsonArray ();
+            nodes.addProperty ( "name", localConfig.getUserDomain () );
+            nodes.addProperty ( "size", "HUGE" );
+            nodes.addProperty ( "templateName", "appscale" );
+            nodes.addProperty ( "sshGroupId", 0 );
+            nodes.addProperty ( "hostGroupId", 0 );
+            ja.add ( nodes );
+            topo.add ( "nodes", ja );
+            OutputStream os = conn.getOutputStream ();
+            os.write ( topo.toString ().getBytes () );
+            os.flush ();
+            if ( conn.getResponseCode () != HttpURLConnection.HTTP_CREATED )
+            {
+                LOG.error ( "ERROR on conn " + conn.getResponseCode () );
+            }
+            BufferedReader bf = new BufferedReader ( new InputStreamReader ( conn.getInputStream () ) );
+            JSONParser parser = new JSONParser ();
+            Object parsed = parser.parse ( bf );
+            JsonObject o = ( JsonObject ) parsed;
+            JsonObject placementJsonObject = o.getAsJsonObject ( "placement" );
+            String hostname = placementJsonObject.getAsJsonPrimitive ( "hostname" ).getAsString ();
+            localConfig.setClusterName ( hostname );
+            localConfig.setCassandraName ( hostname );
+            localConfig.setZookeeperName ( hostname );
+
+            conn.disconnect ();
+
+            // second create environment
+            URL envUrl = new URL (
+                    "https://localhost:8443/rest/v1/environments?sptoken" + localConfig.getPermanentToken () );
+            HttpURLConnection envconn = ( HttpURLConnection ) url.openConnection ();
+            envconn.setDoInput ( true );
+            envconn.setRequestProperty ( "Content-Type", "application/json" );
+            envconn.setRequestProperty ( "Accept", "application/json" );
+            envconn.setRequestMethod ( "POST" );
+            OutputStream envos = envconn.getOutputStream ();
+            envos.write ( bf.toString ().getBytes () );
+            envos.flush ();
+            if ( envconn.getResponseCode () != HttpURLConnection.HTTP_CREATED )
+            {
+                LOG.error ( "ERROR on envconn " + envconn.getResponseCode () );
+            }
+            else
+            {
+                // wait for environment creation
+            }
+            localConfig.setScaleOption ( "static" ); // Subutai Scaling
+            this.installCluster ( localConfig );
+
+
+        }
+        catch ( MalformedURLException ex )
+        {
+            LOG.error ( "error on URL" );
+        }
+        catch ( IOException ex )
+        {
+            LOG.error ( "error open connection" );
+        }
+        catch ( ParseException ex )
+        {
+            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+        }
+        return uuid;
     }
 
 

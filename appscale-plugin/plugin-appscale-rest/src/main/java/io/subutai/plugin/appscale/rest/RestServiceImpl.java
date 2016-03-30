@@ -7,6 +7,7 @@ package io.subutai.plugin.appscale.rest;
 
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -16,12 +17,16 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang.time.DateUtils;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.identity.api.IdentityManager;
+import io.subutai.core.identity.api.model.UserToken;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
@@ -38,17 +43,19 @@ public class RestServiceImpl implements RestService
     private AppScaleInterface appScaleInterface;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+    private IdentityManager identityManager;
 
 
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 
     public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker,
-                             EnvironmentManager environmentManager )
+                             EnvironmentManager environmentManager, IdentityManager identityManager )
     {
         this.appScaleInterface = appScaleInterface;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
+        this.identityManager = identityManager;
 
     }
 
@@ -77,6 +84,21 @@ public class RestServiceImpl implements RestService
         List<AppScaleConfig> ascs = appScaleInterface.getClusters ();
         return Response.status ( Response.Status.OK ).entity ( JsonUtil.GSON.toJson ( ascs ) ).build ();
 
+    }
+
+
+    @Override
+    public Response oneClick ( String oneClick, String userDomain )
+    {
+        Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
+        final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
+                                                              permanentDate );
+        String token = t.getFullToken ();
+        AppScaleConfig appScaleConfig = new AppScaleConfig ();
+        appScaleConfig.setPermanentToken ( token );
+        appScaleConfig.setUserEnvironmentName ( oneClick );
+        appScaleConfig.setUserDomain ( userDomain );
+        return Response.status ( Response.Status.OK ).entity ( oneClick ).build ();
     }
 
 

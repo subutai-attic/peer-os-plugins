@@ -72,5 +72,8 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
 
 
     public UUID growEnvironment ( AppScaleConfig appScaleConfig );
+
+
+    public UUID oneClickInstall ( AppScaleConfig appScaleConfig );
 }
 

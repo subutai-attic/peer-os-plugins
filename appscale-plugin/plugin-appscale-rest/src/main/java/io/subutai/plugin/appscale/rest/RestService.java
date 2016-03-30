@@ -72,6 +72,15 @@ public interface RestService
 
 
     @POST
+    @Path ( "oneclick" )
+    @Produces (
+                        {
+                MediaType.APPLICATION_JSON
+            } )
+    Response oneClick ( @FormParam ( "oneClick" ) String oneClick, @FormParam ( "userDomain" ) String userDomain );
+
+
+    @POST
     @Path ( "configure_environment" )
     @Produces (
                         {
