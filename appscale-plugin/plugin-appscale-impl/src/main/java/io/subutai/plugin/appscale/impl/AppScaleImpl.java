@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.json.simple.parser.JSONParser;
@@ -35,6 +36,7 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
@@ -404,19 +406,19 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             conn.setRequestProperty ( "Content-Type", "application/json" );
             conn.setRequestProperty ( "Accept", "application/json" );
             conn.setRequestMethod ( "POST" );
-            String topologyString = "{"
-                    + "    \"name\": \" " + localConfig.getUserEnvironmentName () + "\","
-                    + "    \"nodes\": "
-                    + "        ["
-                    + "            {"
-                    + "                \"name\": \" " + localConfig.getClusterName () + " \","
-                    + "                \"size\": \"HUGE\","
-                    + "                \"templateName\": \"appscale\","
-                    + "                \"sshGroupId\": 0,"
-                    + "                \"hostGroupId\": 0"
-                    + "            }"
-                    + "        ]"
-                    + "}";
+//            String topologyString = "{"
+//                    + "    \"name\": \" " + localConfig.getUserEnvironmentName () + "\","
+//                    + "    \"nodes\": "
+//                    + "        ["
+//                    + "            {"
+//                    + "                \"name\": \" " + localConfig.getClusterName () + " \","
+//                    + "                \"size\": \"HUGE\","
+//                    + "                \"templateName\": \"appscale\","
+//                    + "                \"sshGroupId\": 0,"
+//                    + "                \"hostGroupId\": 0"
+//                    + "            }"
+//                    + "        ]"
+//                    + "}";
             JsonObject topo = new JsonObject ();
             topo.addProperty ( "name", localConfig.getUserEnvironmentName () );
             JsonObject nodes = new JsonObject ();
@@ -441,9 +443,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             JsonObject o = ( JsonObject ) parsed;
             JsonObject placementJsonObject = o.getAsJsonObject ( "placement" );
             String hostname = placementJsonObject.getAsJsonPrimitive ( "hostname" ).getAsString ();
+            String envid = o.getAsJsonObject ( "id" ).getAsString ();
             localConfig.setClusterName ( hostname );
             localConfig.setCassandraName ( hostname );
             localConfig.setZookeeperName ( hostname );
+            localConfig.setEnvironmentId ( envid );
 
             conn.disconnect ();
 
@@ -462,10 +466,34 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             {
                 LOG.error ( "ERROR on envconn " + envconn.getResponseCode () );
             }
-            else
+            else // we have succesfully send the post... lets wait until container to be created
             {
-                // wait for environment creation
+                int counter = 0;
+                Environment loadEnvironment = null;
+                while ( loadEnvironment == null && counter < 100 )
+                {
+                    TimeUnit.SECONDS.sleep ( 10 );
+                    loadEnvironment = environmentManager.loadEnvironment ( envid );
+                    counter++;
+                }
+                if ( loadEnvironment != null )
+                {
+                    counter = 0;
+                    EnvironmentContainerHost ech = loadEnvironment.getContainerHostByHostname ( hostname );
+                    while ( this.getIPAddress ( ech ) == null && counter < 0 )
+                    {
+                        TimeUnit.SECONDS.sleep ( 10 );
+                        counter++;
+                    }
+                }
+                else
+                {
+                    LOG.error ( "Environment can not be loaded" );
+                    System.exit ( 0 );
+                }
+
             }
+            LOG.info ( "Environment and container are created!" );
             localConfig.setScaleOption ( "static" ); // Subutai Scaling
             this.installCluster ( localConfig );
 
@@ -479,9 +507,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         {
             LOG.error ( "error open connection" );
         }
-        catch ( ParseException ex )
+        catch ( ParseException | ContainerHostNotFoundException | InterruptedException | EnvironmentNotFoundException ex )
         {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+            LOG.error ( "ERROR: " + ex );
         }
         return uuid;
     }

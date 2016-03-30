@@ -71,13 +71,23 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-        Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
-        final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
-                                                              permanentDate );
-        token = t.getFullToken ();
+
 
         LOG.info ( "ClusterConfiguration :: configureCluster " );
         AppScaleConfig config = ( AppScaleConfig ) configBase;
+
+        if ( config.getPermanentToken () == null )
+        {
+            Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
+            final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
+                                                                  permanentDate );
+            token = t.getFullToken ();
+            config.setPermanentToken ( token );
+        }
+        else
+        {
+            token = config.getPermanentToken ();
+        }
 
         if ( "static".equals ( config.getScaleOption () ) )
         {
