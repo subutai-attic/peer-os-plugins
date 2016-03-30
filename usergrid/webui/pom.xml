@@ -13,7 +13,7 @@
 
   <packaging>war</packaging>
   <name>Subutai Usergrid Plugin Web UI</name>
-  <description>Subutai Usergrid Plugin Web UI</description>
+  <description>Subutai Usergrid Web UI</description>
 
   <build>
     <plugins>
