@@ -38,22 +38,6 @@
       <artifactId>hadoop-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>tracker-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>environment-manager-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>metric-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>network-manager-api</artifactId>
-    </dependency>
 
     <!-- test dependencies -->
 

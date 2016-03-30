@@ -71,40 +71,36 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 
         List<String> cassandraNameList = config.getCassandraName ();
-
-        cassandraNameList.stream ().forEach ( (c)
-                ->
-                {
-                    try
-                    {
-                        EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( c );
-                        this.commandExecute ( cassContainerHost, Commands.replaceRPC () );
-                        this.commandExecute ( cassContainerHost, Commands.getRestartCassandra () );
-                        this.commandExecute ( cassContainerHost,
-                                              "echo '#!/bin/sh -e\n" + Commands.getRestartCassandra () + "\nexit 0' > /etc/rc.local" );
-                    }
-                    catch ( ContainerHostNotFoundException ex )
-                    {
-                        LOG.error ( "cassandra container host found error: " + ex );
-                    }
-        } );
+        for (String c : cassandraNameList)
+        {
+            try
+            {
+                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( c );
+                this.commandExecute ( cassContainerHost, Commands.replaceRPC () );
+                this.commandExecute ( cassContainerHost, Commands.getRestartCassandra () );
+                this.commandExecute ( cassContainerHost,
+                        "echo '#!/bin/sh -e\n" + Commands.getRestartCassandra () + "\nexit 0' > /etc/rc.local" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "cassandra container host found error: " + ex );
+            }
+        }
         List<String> elasticSearchList = config.getElasticSName ();
-
-        elasticSearchList.stream ().forEach ( (e)
-                ->
-                {
-                    try
-                    {
-                        EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname ( e );
-                        this.commandExecute ( elContainerHost, Commands.getStartElastic () );
-                        this.commandExecute ( elContainerHost,
-                                              "echo '#!/bin/sh -e\n" + Commands.getStartElastic () + "\nexit 0' > /etc/rc.local" );
-                    }
-                    catch ( ContainerHostNotFoundException ex )
-                    {
-                        LOG.error ( ex.toString () );
-                    }
-        } );
+        for (String e : elasticSearchList)
+        {
+            try
+            {
+                EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname ( e );
+                this.commandExecute ( elContainerHost, Commands.getStartElastic () );
+                this.commandExecute ( elContainerHost,
+                        "echo '#!/bin/sh -e\n" + Commands.getStartElastic () + "\nexit 0' > /etc/rc.local" );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( ex.toString () );
+            }
+        }
 
         // start command processes:
         this.commandExecute ( tomcatContainerHost, Commands.getRemoveSourcesList () );
@@ -250,18 +246,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         List<String> ipList = new ArrayList ();
 
-        v.stream ().forEach ( (cont)
-                ->
-                {
-                    try
-                    {
-                        ipList.add ( this.getIPAddress ( environment.getContainerHostByHostname ( cont ) ) );
-                    }
-                    catch ( ContainerHostNotFoundException ex )
-                    {
-                        LOG.error ( "Container Not found while getting ip: " + ex );
-                    }
-        } );
+        for (String cont : v)
+        {
+            try
+            {
+                ipList.add ( this.getIPAddress ( environment.getContainerHostByHostname ( cont ) ) );
+            }
+            catch ( ContainerHostNotFoundException ex )
+            {
+                LOG.error ( "Container Not found while getting ip: " + ex );
+            }
+        }
         return String.join ( ",", ipList );
     }
 

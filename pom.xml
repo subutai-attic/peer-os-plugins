@@ -188,24 +188,24 @@
     <module>hadoop</module>
     <module>zookeeper</module>
     <module>mongo</module>
+    <module>solr</module>
     <module>elasticsearch</module>
     <module>generic</module>
     <module>ceph</module>
     <module>backup</module>
     <module>usergrid</module>
-<!--    <module>spark</module>-->
+    <module>spark</module>
     <module>lucene</module>
     <module>hive</module>
     <module>hipi</module>
-<!--    <module>flume</module>
+    <module>flume</module>
     <module>mahout</module>
     <module>hbase</module>
     <module>presto</module>
     <module>oozie</module>
     <module>pig</module>
-    <module>shark</module>
-    <module>solr</module>
     <module>nutch</module>
-    <module>storm</module>-->
+    <module>shark</module>
+    <module>storm</module>
   </modules>
 </project>

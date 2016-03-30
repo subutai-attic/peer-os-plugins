@@ -47,7 +47,7 @@ import io.subutai.plugin.usergrid.impl.handler.ClusterOperationHandler;
 public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger ( UsergridIMPL.class.getName () );
+    private static final Logger LOG = LoggerFactory.getLogger( UsergridIMPL.class.getName() );
     private ExecutorService executor;
     private final Monitor monitor;
     private final PluginDAO pluginDAO;
@@ -59,35 +59,34 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     private UsergridConfig userGridConfig;
 
 
-    public UsergridIMPL ( Monitor monitor, PluginDAO pluginDAO )
+    public UsergridIMPL( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
 
-    public void init ()
+    public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool ();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
-    public void destroy ()
+    public void destroy()
     {
 
     }
 
 
     @Override
-    public List<String> getClusterList ( Environment name )
+    public List<String> getClusterList( Environment name )
     {
-        List<String> c = new ArrayList ();
-        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
-        containerHosts.stream ().forEach ( (e)
-                ->
-                {
-                    c.add ( e.getHostname () );
-        } );
+        List<String> c = new ArrayList();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
+        for ( EnvironmentContainerHost e : containerHosts )
+        {
+            c.add ( e.getHostname () );
+        }
         return c;
     }
 
