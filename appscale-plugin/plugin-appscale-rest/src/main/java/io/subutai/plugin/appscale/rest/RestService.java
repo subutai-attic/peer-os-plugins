@@ -77,7 +77,7 @@ public interface RestService
                         {
                 MediaType.APPLICATION_JSON
             } )
-    Response oneClick ( @FormParam ( "oneClick" ) String oneClick, @FormParam ( "userDomain" ) String userDomain );
+    Response oneClick ( @FormParam ( "ename" ) String ename, @FormParam ( "udom" ) String udom );
 
 
     @POST

@@ -9,10 +9,6 @@ package io.subutai.plugin.appscale.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -21,15 +17,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -395,30 +397,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public UUID oneClickInstall ( AppScaleConfig localConfig )
     {
-        UUID uuid = UUID.randomUUID ();
+        UUID uuid = null;
         try
         {
-            // first get the topology
-            URL url = new URL (
-                    "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY?sptoken" + localConfig.getPermanentToken () );
-            HttpURLConnection conn = ( HttpURLConnection ) url.openConnection ();
-            conn.setDoInput ( true );
-            conn.setRequestProperty ( "Content-Type", "application/json" );
-            conn.setRequestProperty ( "Accept", "application/json" );
-            conn.setRequestMethod ( "POST" );
-//            String topologyString = "{"
-//                    + "    \"name\": \" " + localConfig.getUserEnvironmentName () + "\","
-//                    + "    \"nodes\": "
-//                    + "        ["
-//                    + "            {"
-//                    + "                \"name\": \" " + localConfig.getClusterName () + " \","
-//                    + "                \"size\": \"HUGE\","
-//                    + "                \"templateName\": \"appscale\","
-//                    + "                \"sshGroupId\": 0,"
-//                    + "                \"hostGroupId\": 0"
-//                    + "            }"
-//                    + "        ]"
-//                    + "}";
             JsonObject topo = new JsonObject ();
             topo.addProperty ( "name", localConfig.getUserEnvironmentName () );
             JsonObject nodes = new JsonObject ();
@@ -430,87 +411,96 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             nodes.addProperty ( "hostGroupId", 0 );
             ja.add ( nodes );
             topo.add ( "nodes", ja );
-            OutputStream os = conn.getOutputStream ();
-            os.write ( topo.toString ().getBytes () );
-            os.flush ();
-            if ( conn.getResponseCode () != HttpURLConnection.HTTP_CREATED )
-            {
-                LOG.error ( "ERROR on conn " + conn.getResponseCode () );
-            }
-            BufferedReader bf = new BufferedReader ( new InputStreamReader ( conn.getInputStream () ) );
-            JSONParser parser = new JSONParser ();
-            Object parsed = parser.parse ( bf );
-            JsonObject o = ( JsonObject ) parsed;
-            JsonObject placementJsonObject = o.getAsJsonObject ( "placement" );
-            String hostname = placementJsonObject.getAsJsonPrimitive ( "hostname" ).getAsString ();
-            String envid = o.getAsJsonObject ( "id" ).getAsString ();
-            localConfig.setClusterName ( hostname );
-            localConfig.setCassandraName ( hostname );
-            localConfig.setZookeeperName ( hostname );
-            localConfig.setEnvironmentId ( envid );
+            LOG.info ( topo.toString () );
 
-            conn.disconnect ();
 
-            // second create environment
-            URL envUrl = new URL (
-                    "https://localhost:8443/rest/v1/environments?sptoken" + localConfig.getPermanentToken () );
-            HttpURLConnection envconn = ( HttpURLConnection ) url.openConnection ();
-            envconn.setDoInput ( true );
-            envconn.setRequestProperty ( "Content-Type", "application/json" );
-            envconn.setRequestProperty ( "Accept", "application/json" );
-            envconn.setRequestMethod ( "POST" );
-            OutputStream envos = envconn.getOutputStream ();
-            envos.write ( bf.toString ().getBytes () );
-            envos.flush ();
-            if ( envconn.getResponseCode () != HttpURLConnection.HTTP_CREATED )
+            // first get the topology
+            LOG.info ( "permanentToken: " + localConfig.getPermanentToken () );
+            CloseableHttpClient httpClient = HttpClients.createDefault ();
+            HttpPost httpPost = new HttpPost (
+                    "https://127.0.0.1:8443/rest/v1/identity/ROUND-ROBIN-STRATEGY?sptoken=" + localConfig.getPermanentToken () );
+            httpPost.addHeader ( "Content-Type", "application/json" );
+            httpPost.addHeader ( "Accept", "application/json" );
+            StringEntity input = new StringEntity ( topo.toString () );
+            input.setContentType ( "application/json" );
+            httpPost.setEntity ( input );
+            LOG.info ( "httpPost: " + httpPost.toString () );
+            HttpResponse resp = httpClient.execute ( httpPost );
+            if ( resp.getStatusLine ().getStatusCode () != 201 )
             {
-                LOG.error ( "ERROR on envconn " + envconn.getResponseCode () );
+                LOG.error ( "error on : " + resp.getStatusLine ().getStatusCode () );
             }
-            else // we have succesfully send the post... lets wait until container to be created
+            else
             {
-                int counter = 0;
-                Environment loadEnvironment = null;
-                while ( loadEnvironment == null && counter < 100 )
+                LOG.info ( "resp: " + resp.getEntity ().getContent () );
+                BufferedReader bf = new BufferedReader ( new InputStreamReader ( resp.getEntity ().getContent () ) );
+                JsonParser parser = new JsonParser ();
+                JsonObject o = ( JsonObject ) parser.parse ( bf.toString () );
+                JsonObject placement = o.getAsJsonObject ( "placement" );
+                String hn = placement.getAsJsonPrimitive ( "hostname" ).getAsString ();
+                String envID = o.getAsJsonObject ( "id" ).getAsString ();
+                localConfig.setClusterName ( hn );
+                localConfig.setCassandraName ( hn );
+                localConfig.setZookeeperName ( hn );
+                localConfig.setEnvironmentId ( envID );
+                bf.close ();
+                httpClient.close ();
+                // lets start creating environment...
+                CloseableHttpClient envClient = HttpClients.createDefault ();
+                HttpPost envPost = new HttpPost (
+                        "https://127.0.0.1:8443/rest/v1/environments?sptoken=" + localConfig.getPermanentToken () );
+                envPost.addHeader ( "Content-Type", "application/json" );
+                envPost.addHeader ( "Accept", "application/json" );
+                StringEntity envinput = new StringEntity ( bf.toString () );
+                envPost.setEntity ( envinput );
+                HttpResponse envResponse = envClient.execute ( envPost );
+                if ( envResponse.getStatusLine ().getStatusCode () != 201 )
                 {
-                    TimeUnit.SECONDS.sleep ( 10 );
-                    loadEnvironment = environmentManager.loadEnvironment ( envid );
-                    counter++;
+                    LOG.error ( "error env create: " + envResponse.getStatusLine ().getStatusCode () );
                 }
-                if ( loadEnvironment != null )
+                else // we have succesfully send the post... lets wait until container to be created
                 {
-                    counter = 0;
-                    EnvironmentContainerHost ech = loadEnvironment.getContainerHostByHostname ( hostname );
-                    while ( this.getIPAddress ( ech ) == null && counter < 0 )
+                    LOG.info ( "envResponse : " + envResponse.getEntity ().getContent () );
+                    int counter = 0;
+                    Environment loadEnvironment = null;
+                    while ( loadEnvironment == null && counter < 100 )
                     {
                         TimeUnit.SECONDS.sleep ( 10 );
+                        loadEnvironment = environmentManager.loadEnvironment ( envID );
                         counter++;
                     }
-                }
-                else
-                {
-                    LOG.error ( "Environment can not be loaded" );
-                    System.exit ( 0 );
-                }
+                    if ( loadEnvironment != null )
+                    {
+                        counter = 0;
+                        EnvironmentContainerHost ech = loadEnvironment.getContainerHostByHostname ( hn );
+                        while ( this.getIPAddress ( ech ) == null && counter < 0 )
+                        {
+                            TimeUnit.SECONDS.sleep ( 10 );
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        LOG.error ( "Environment can not be loaded" );
+                        System.exit ( 0 );
+                    }
+                    envClient.close ();
 
+                }
             }
+            uuid = UUID.randomUUID ();
             LOG.info ( "Environment and container are created!" );
             localConfig.setScaleOption ( "static" ); // Subutai Scaling
             this.installCluster ( localConfig );
 
 
         }
-        catch ( MalformedURLException ex )
+
+        catch ( IOException | IllegalStateException | JsonSyntaxException | InterruptedException | EnvironmentNotFoundException | ContainerHostNotFoundException ex )
         {
-            LOG.error ( "error on URL" );
+            LOG.error ( "ERROR::::::::::::::: " + ex );
         }
-        catch ( IOException ex )
-        {
-            LOG.error ( "error open connection" );
-        }
-        catch ( ParseException | ContainerHostNotFoundException | InterruptedException | EnvironmentNotFoundException ex )
-        {
-            LOG.error ( "ERROR: " + ex );
-        }
+
         return uuid;
     }
 

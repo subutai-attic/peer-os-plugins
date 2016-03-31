@@ -88,17 +88,25 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response oneClick ( String oneClick, String userDomain )
+    public Response oneClick ( String ename, String udom )
     {
-        Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
-        final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
-                                                              permanentDate );
-        String token = t.getFullToken ();
-        AppScaleConfig appScaleConfig = new AppScaleConfig ();
-        appScaleConfig.setPermanentToken ( token );
-        appScaleConfig.setUserEnvironmentName ( oneClick );
-        appScaleConfig.setUserDomain ( userDomain );
-        return Response.status ( Response.Status.OK ).entity ( oneClick ).build ();
+        LOG.info ( ename + udom );
+        if ( ename != null && udom != null )
+        {
+            Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
+            final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
+                                                                  permanentDate );
+            String token = t.getFullToken ();
+            AppScaleConfig appScaleConfig = new AppScaleConfig ();
+            appScaleConfig.setPermanentToken ( token );
+            appScaleConfig.setUserEnvironmentName ( ename );
+            appScaleConfig.setUserDomain ( udom );
+            LOG.info ( appScaleConfig.toString () );
+            UUID uuid = appScaleInterface.oneClickInstall ( appScaleConfig );
+            OperationState op = waitUntilOperationFinish ( uuid );
+            return createResponse ( uuid, op );
+        }
+        return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "null" ).build ();
     }
 
 
