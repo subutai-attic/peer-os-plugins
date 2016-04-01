@@ -36,6 +36,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	vm.stopNodes = stopNodes;
 
 	sparkSrv.getHadoopClusters().success(function(data){
+	    console.log (data);
 		vm.hadoopClusters = data;
 		if(vm.hadoopClusters.length == 0) {
 			SweetAlert.swal("ERROR!", 'No Hadoop clusters were found! Create Hadoop cluster first.', "error");
