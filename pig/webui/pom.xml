@@ -22,7 +22,7 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>2.4</version>
         <configuration>
-          <attachClasses>true</attachClasses>
+          <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
           <webResources>
             <resource>
               <filtering>true</filtering>
