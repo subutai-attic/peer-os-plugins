@@ -3,6 +3,8 @@
 This repository contains source code of plugins for Subutai Social Console.
 This is a multi-module Maven Java project.
 
+These plugins are available in Subutai Social Console's Bazaar and can be installed directly from there.
+
 ## Building the project
 
 ###Prerequisites
@@ -29,3 +31,12 @@ This is a multi-module Maven Java project.
     ```bash
     bash karPuller.sh
     ```
+- Deploy file using Bazaar's Advanced tab.
+
+    - Go to Bazaar -> Advanced on your Subutai Social Console and press "Upload new plugin"
+    
+    ![alt tag](http://i.imgur.com/h1ebTfm.png)
+    
+    - Fill all data and upload
+    
+    ![alt tag](http://i.imgur.com/bEYjMCb.png)
