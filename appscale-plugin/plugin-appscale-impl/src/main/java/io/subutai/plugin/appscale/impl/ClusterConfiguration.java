@@ -106,6 +106,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         String userDomain = config.getUserDomain ();
 
+        LOG.debug ( config.getUserDomain () + "\n" + config.getClusterName () + "\n" );
+
         if ( userDomain == null )
         {
             po.addLogFailed ( "User Domain Must be Set!" );

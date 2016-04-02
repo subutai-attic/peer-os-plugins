@@ -27,7 +27,8 @@
     <awaitility.version>1.6.1</awaitility.version>
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
-    <jaxrs.version>2.7.12</jaxrs.version>
+    <!-- <jaxrs.version>2.7.12</jaxrs.version> -->
+    <jaxrs.version>3.0.0</jaxrs.version>
     <appScale.version>2.0.4</appScale.version>
     <gson.version>2.3.1</gson.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

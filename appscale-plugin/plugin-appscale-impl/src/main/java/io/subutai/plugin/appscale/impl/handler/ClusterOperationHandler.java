@@ -214,6 +214,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         try
         {
             env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            LOG.info ( "ENV found: " + env.getName () );
             trackerOperation.addLog ( String.format (
                     "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
                     config.getClusterName (), config.getProductKey () ) );

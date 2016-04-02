@@ -6,41 +6,45 @@
 package io.subutai.plugin.appscale.impl;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.TrustManager;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.cxf.configuration.jsse.TLSClientParameters;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.http.HTTPConduit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.environment.EnvironmentStatus;
+import io.subutai.common.environment.NodeSchema;
+import io.subutai.common.environment.Topology;
 import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.EnvironmentId;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.ResourceHost;
@@ -63,6 +67,8 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
 import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+
 
 /**
  *
@@ -84,6 +90,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private IdentityManager identityManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
+    private static final String BUILD_TOPOLOGY_URL
+            = "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY";
+    private static final String ENVIRONMENT_URL = "https://localhost:8443/rest/v1/environments/";
+
+    private static String GET_TOKEN_URL
+            = "https://localhost:8443/rest/v1/identity/gettoken?username=%s&password=%s";
+
+    private String token;
 
 
     public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO, IdentityManager identityManager )
@@ -394,114 +408,134 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
+    private WebClient createWebClient ( String url, Boolean trustCerts )
+    {
+        JacksonJsonProvider jsonProvider = new JacksonJsonProvider ();
+        WebClient webClient = WebClient.create ( url, Collections.singletonList ( jsonProvider ) );
+        if ( trustCerts )
+        {
+            HTTPConduit conduit = WebClient.getConfig ( webClient ).getHttpConduit ();
+            TLSClientParameters params = conduit.getTlsClientParameters ();
+            if ( params == null )
+            {
+                params = new TLSClientParameters ();
+                conduit.setTlsClientParameters ( params );
+            }
+            params.setTrustManagers ( new TrustManager[]
+            {
+                new io.subutai.plugin.appscale.impl.NTM ()
+            // new NaiveTrustManager ()
+            } );
+            params.setDisableCNCheck ( true );
+        }
+        return webClient;
+    }
+
+
     @Override
     public UUID oneClickInstall ( AppScaleConfig localConfig )
     {
         UUID uuid = null;
-        try
+        token = localConfig.getPermanentToken ();
+        AppScaleConfig newAppScaleConfig = buildEnvironment ( localConfig );
+        if ( newAppScaleConfig.getClusterName () != null )
         {
-            JsonObject topo = new JsonObject ();
-            topo.addProperty ( "name", localConfig.getUserEnvironmentName () );
-            JsonObject nodes = new JsonObject ();
-            JsonArray ja = new JsonArray ();
-            nodes.addProperty ( "name", localConfig.getUserDomain () );
-            nodes.addProperty ( "size", "HUGE" );
-            nodes.addProperty ( "templateName", "appscale" );
-            nodes.addProperty ( "sshGroupId", 0 );
-            nodes.addProperty ( "hostGroupId", 0 );
-            ja.add ( nodes );
-            topo.add ( "nodes", ja );
-            LOG.info ( topo.toString () );
-
-
-            // first get the topology
-            LOG.info ( "permanentToken: " + localConfig.getPermanentToken () );
-            CloseableHttpClient httpClient = HttpClients.createDefault ();
-            HttpPost httpPost = new HttpPost (
-                    "https://127.0.0.1:8443/rest/v1/identity/ROUND-ROBIN-STRATEGY?sptoken=" + localConfig.getPermanentToken () );
-            httpPost.addHeader ( "Content-Type", "application/json" );
-            httpPost.addHeader ( "Accept", "application/json" );
-            StringEntity input = new StringEntity ( topo.toString () );
-            input.setContentType ( "application/json" );
-            httpPost.setEntity ( input );
-            LOG.info ( "httpPost: " + httpPost.toString () );
-            HttpResponse resp = httpClient.execute ( httpPost );
-            if ( resp.getStatusLine ().getStatusCode () != 201 )
-            {
-                LOG.error ( "error on : " + resp.getStatusLine ().getStatusCode () );
-            }
-            else
-            {
-                LOG.info ( "resp: " + resp.getEntity ().getContent () );
-                BufferedReader bf = new BufferedReader ( new InputStreamReader ( resp.getEntity ().getContent () ) );
-                JsonParser parser = new JsonParser ();
-                JsonObject o = ( JsonObject ) parser.parse ( bf.toString () );
-                JsonObject placement = o.getAsJsonObject ( "placement" );
-                String hn = placement.getAsJsonPrimitive ( "hostname" ).getAsString ();
-                String envID = o.getAsJsonObject ( "id" ).getAsString ();
-                localConfig.setClusterName ( hn );
-                localConfig.setCassandraName ( hn );
-                localConfig.setZookeeperName ( hn );
-                localConfig.setEnvironmentId ( envID );
-                bf.close ();
-                httpClient.close ();
-                // lets start creating environment...
-                CloseableHttpClient envClient = HttpClients.createDefault ();
-                HttpPost envPost = new HttpPost (
-                        "https://127.0.0.1:8443/rest/v1/environments?sptoken=" + localConfig.getPermanentToken () );
-                envPost.addHeader ( "Content-Type", "application/json" );
-                envPost.addHeader ( "Accept", "application/json" );
-                StringEntity envinput = new StringEntity ( bf.toString () );
-                envPost.setEntity ( envinput );
-                HttpResponse envResponse = envClient.execute ( envPost );
-                if ( envResponse.getStatusLine ().getStatusCode () != 201 )
-                {
-                    LOG.error ( "error env create: " + envResponse.getStatusLine ().getStatusCode () );
-                }
-                else // we have succesfully send the post... lets wait until container to be created
-                {
-                    LOG.info ( "envResponse : " + envResponse.getEntity ().getContent () );
-                    int counter = 0;
-                    Environment loadEnvironment = null;
-                    while ( loadEnvironment == null && counter < 100 )
-                    {
-                        TimeUnit.SECONDS.sleep ( 10 );
-                        loadEnvironment = environmentManager.loadEnvironment ( envID );
-                        counter++;
-                    }
-                    if ( loadEnvironment != null )
-                    {
-                        counter = 0;
-                        EnvironmentContainerHost ech = loadEnvironment.getContainerHostByHostname ( hn );
-                        while ( this.getIPAddress ( ech ) == null && counter < 0 )
-                        {
-                            TimeUnit.SECONDS.sleep ( 10 );
-                            counter++;
-                        }
-                    }
-                    else
-                    {
-                        LOG.error ( "Environment can not be loaded" );
-                        System.exit ( 0 );
-                    }
-                    envClient.close ();
-
-                }
-            }
-            uuid = UUID.randomUUID ();
-            LOG.info ( "Environment and container are created!" );
-            localConfig.setScaleOption ( "static" ); // Subutai Scaling
-            this.installCluster ( localConfig );
-
-
+            AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, newAppScaleConfig,
+                                                                                              ClusterOperationType.INSTALL,
+                                                                                              this.identityManager );
+            executor.execute ( abstractOperationHandler );
+            uuid = abstractOperationHandler.getTrackerId ();
         }
-
-        catch ( IOException | IllegalStateException | JsonSyntaxException | InterruptedException | EnvironmentNotFoundException | ContainerHostNotFoundException ex )
-        {
-            LOG.error ( "ERROR::::::::::::::: " + ex );
-        }
-
         return uuid;
+    }
+
+
+    private AppScaleConfig buildEnvironment ( AppScaleConfig ac )
+    {
+        Random rand = new Random ();
+        String additionString = randomAlphabetic ( 10 ).toLowerCase ();
+        String containerName = "appscale" + additionString;
+        String environmentName = "appscaleenvironment" + additionString;
+        NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale", 0, 0 );
+        List<NodeSchema> nodes = new ArrayList<> ();
+        nodes.add ( node );
+        Blueprint blueprint = new Blueprint ( environmentName, nodes );
+        Topology topology = buildTopology ( blueprint );
+        EnvironmentId envID = createEnvironment ( topology );
+        Boolean healt = false;
+        while ( !healt ) // possible infinite loop here...
+        {
+            try
+            {
+                TimeUnit.SECONDS.sleep ( 10 );
+                Environment env = environmentManager.loadEnvironment ( envID.getId () );
+                if ( env != null && env.getStatus ().equals ( EnvironmentStatus.HEALTHY ) )
+                {
+                    LOG.info ( "Environment loaded and healty..." );
+                    List<String> l = new ArrayList (); // this is necessary for ConfigureCluster method
+                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+                    for ( EnvironmentContainerHost e : containerHosts )
+                    {
+                        l.add ( e.getHostname () );
+                        ac.setClusterName ( e.getHostname () );
+                    }
+                    ac.setCassList ( l );
+                    ac.setZooList ( l );
+                    ac.setAppenList ( l );
+                    ac.setScaleOption ( "static" ); // subutai scaling for now until we figrue out the Appscale scaling
+                    ac.setEnvironmentId ( env.getId () );
+                    healt = true;
+                }
+            }
+            catch ( EnvironmentNotFoundException | InterruptedException ex )
+            {
+
+                LOG.error ( "environment can not loaded yet..." + ex );
+            }
+
+        }
+        return ac;
+    }
+
+
+    private Topology buildTopology ( Blueprint blueprint )
+    {
+        WebClient webClient = createWebClient ( BUILD_TOPOLOGY_URL, true );
+        webClient.type ( MediaType.APPLICATION_JSON );
+        webClient.accept ( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader ( "sptoken", token );
+        LOG.info ( webClient.getHeaders ().toString () );
+        Response response = webClient.post ( blueprint );
+        LOG.info ( String.valueOf ( response.getStatus () ) );
+        if ( response.getStatus () == 200 )
+        {
+            return response.readEntity ( Topology.class );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    private EnvironmentId createEnvironment ( Topology topology )
+    {
+
+        WebClient webClient = createWebClient ( ENVIRONMENT_URL, true );
+        webClient.type ( MediaType.APPLICATION_JSON );
+        webClient.accept ( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader ( "sptoken", token );
+        LOG.info ( webClient.getHeaders ().toString () );
+        Response response = webClient.post ( topology );
+        LOG.info ( String.valueOf ( response.getStatus () ) );
+        if ( response.getStatus () == 200 )
+        {
+            return response.readEntity ( EnvironmentId.class );
+        }
+        else
+        {
+            return null;
+        }
     }
 
 
@@ -555,14 +589,17 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public List<AppScaleConfig> getClusters ()
     {
-        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
+        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class
+        );
     }
 
 
     @Override
-    public AppScaleConfig getCluster ( String string )
+    public AppScaleConfig
+            getCluster ( String string )
     {
-        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class );
+        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class
+        );
     }
 
 
