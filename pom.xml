@@ -41,8 +41,6 @@
     <org.apache.karaf.shell.version>3.0.2</org.apache.karaf.shell.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
     <org.json.version>20151123</org.json.version>
-    <openjpa.version>2.3.0</openjpa.version>
-    <org.apache.aries.proxy>1.0.1</org.apache.aries.proxy>
   </properties>
 
   <dependencies>
