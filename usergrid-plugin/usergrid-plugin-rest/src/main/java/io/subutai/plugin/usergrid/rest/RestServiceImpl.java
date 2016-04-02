@@ -7,6 +7,7 @@ package io.subutai.plugin.usergrid.rest;
 
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -16,12 +17,16 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang.time.DateUtils;
+
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.identity.api.IdentityManager;
+import io.subutai.core.identity.api.model.UserToken;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.usergrid.api.UsergridConfig;
 import io.subutai.plugin.usergrid.api.UsergridInterface;
@@ -39,13 +44,16 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
+    private IdentityManager identityManager;
 
 
-    public RestServiceImpl ( UsergridInterface userGridInterface, Tracker tracker, EnvironmentManager environmentManager )
+    public RestServiceImpl ( UsergridInterface userGridInterface, Tracker tracker, EnvironmentManager environmentManager,
+                             IdentityManager identityManager )
     {
         this.userGridInterface = userGridInterface;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
+        this.identityManager = identityManager;
     }
 
 
@@ -63,6 +71,22 @@ public class RestServiceImpl implements RestService
         OperationState opState = waitUntilOperationFinish ( installCluster );
         return createResponse ( installCluster, opState );
 
+    }
+
+
+    @Override
+    public Response oneClick ( String ename, String udom )
+    {
+        Date permanentDate = DateUtils.addYears ( new Date ( System.currentTimeMillis () ), 10 );
+        final UserToken t = identityManager.createUserToken ( identityManager.getActiveUser (), null, null, null, 2,
+                                                              permanentDate );
+        UsergridConfig localConfig = new UsergridConfig ();
+        localConfig.setPermanentToken ( t.getFullToken () );
+        localConfig.setUserDomain ( udom );
+        localConfig.setEnvironmentName ( ename );
+        UUID uuid = userGridInterface.oneClickInstall ( localConfig );
+        OperationState waitUntilOperationFinish = waitUntilOperationFinish ( uuid );
+        return createResponse ( uuid, waitUntilOperationFinish );
     }
 
 

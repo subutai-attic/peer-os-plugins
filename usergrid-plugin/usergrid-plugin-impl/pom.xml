@@ -20,7 +20,7 @@
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>metric-api</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
+            <version>${subutai.mgmt.parent.version}</version>
       
         </dependency>
 
@@ -28,26 +28,39 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>webui</artifactId>
             <classifier>classes</classifier>
-			<version>${subutai.mgmt.parent.version}</version>
+            <version>${subutai.mgmt.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>environment-manager-api</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
+            <version>${subutai.mgmt.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>network-manager-api</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
+            <version>${subutai.mgmt.parent.version}</version>
       
         </dependency>
         <dependency>
             <groupId>io.subutai</groupId>
             <artifactId>plugin-common-core</artifactId>
-			<version>${subutai.mgmt.parent.version}</version>
+            <version>${subutai.mgmt.parent.version}</version>
         </dependency>
-    
+        
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-ws-policy</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <type>jar</type>
+        </dependency>
+        
+        
     </dependencies>
 
     <build>

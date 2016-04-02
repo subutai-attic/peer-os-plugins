@@ -52,5 +52,8 @@ public interface UsergridInterface extends ApiBase<UsergridConfig>
 
     UUID addNode ( String clusterName );
 
+
+    UUID oneClickInstall ( UsergridConfig usergridConfig );
+
 }
 
