@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.subutai.plugin</groupId>
+    <artifactId>mahout-plugin-parent</artifactId>
+    <version>4.0.0-RC7-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>mahout-plugin-api</artifactId>
+  <packaging>bundle</packaging>
+  <name>Subutai Mahout Api</name>
+  <description>Subutai Mahout Api</description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.groupId}.mahout.api</Bundle-SymbolicName>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

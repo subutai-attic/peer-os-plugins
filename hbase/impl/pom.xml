@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.subutai.plugin</groupId>
+    <artifactId>hbase-plugin-parent</artifactId>
+    <version>4.0.0-RC7-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>hbase-plugin-impl</artifactId>
+  <packaging>bundle</packaging>
+  <name>Subutai HBase Impl</name>
+  <description>Subutai HBase Impl</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>webui</artifactId>
+      <classifier>classes</classifier>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>metric-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>hbase-plugin-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>hadoop-plugin-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- test dependencies -->
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.groupId}.hbase.impl</Bundle-SymbolicName>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
