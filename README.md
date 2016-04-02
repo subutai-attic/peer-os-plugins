@@ -37,6 +37,6 @@ These plugins are available in Subutai Social Console's Bazaar and can be instal
     
     ![alt tag](http://i.imgur.com/h1ebTfm.png)
     
-    - Fill all data and upload
+    - Fill all fields and upload
     
     ![alt tag](http://i.imgur.com/bEYjMCb.png)
