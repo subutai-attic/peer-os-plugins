@@ -32,10 +32,15 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 	vm.startNodes = startNodes;
 	vm.stopNodes = stopNodes;
 
-	elasticSearchSrv.getEnvironments().success(function (data) {
-		vm.environments = data;
-	});
-	setDefaultValues();
+    function getEnvironments() {
+        LOADING_SCREEN();
+        elasticSearchSrv.getEnvironments().success(function (data) {
+            vm.environments = data;
+            LOADING_SCREEN ("none");
+        });
+        setDefaultValues();
+    }
+    getEnvironments();
 
 	function showContainers(environmentId) {
 		vm.containers = [];
@@ -53,8 +58,10 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 	}
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		elasticSearchSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -164,11 +171,14 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 		if(vm.elasticSearchInstall.environmentId === undefined) return;
 
 		SweetAlert.swal("Success!", "Elastic Search cluster is being created.", "success");
+		LOADING_SCREEN();
 		elasticSearchSrv.createElasticSearch(vm.elasticSearchInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Elastic Search cluster has been created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Elastic Search cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
 			getClusters();
 		});
 		setDefaultValues();
