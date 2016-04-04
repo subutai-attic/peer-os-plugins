@@ -36,7 +36,7 @@ public class Commands
 
     public static String getAppScaleStopCommand ()
     {
-        return ( "/root/appscale-tools/bin/appscale down" );
+        return ( "sudo /root/appscale-tools/bin/appscale down" );
     }
 
 

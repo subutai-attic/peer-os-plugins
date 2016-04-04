@@ -288,7 +288,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
         // this.appscaleInitCluster ( containerHost, env, localConfig );
         String ipString = this.getIPAddress ( containerHost );
-        String findthis = "  - " + ipString;
+        String findthis = "  appengine:";
         String addthis = findthis + "\n" + "  - " + appip;
         String addcontainer = "sed -i 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
         this.commandExecute ( containerHost, addcontainer );
@@ -306,12 +306,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 //        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
-        String runShell = Commands.getRunShell ();
-        runShell = runShell + " " + 1;
+        String upShell = Commands.getAppScaleStartCommand ();
+        upShell = upShell + " " + 1;
 
         try
         {
-            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
+            containerHost.execute ( new RequestBuilder ( upShell ).withTimeout ( 10000 ) ); // will take time
             scaled = true;
             LOG.info ( "appscale restarted" );
         }
