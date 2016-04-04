@@ -240,6 +240,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
+
+        String containerIP = this.getIPAddress ( containerHost );
+
+        this.commandExecute ( containerHost,
+                              "sed -i 's/" + containerIP + "/" + containerIP + " appscale-image0 /g' /etc/hosts" );
+
         po.addLogDone ( "DONE" );
     }
 
