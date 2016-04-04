@@ -198,6 +198,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.runAfterInitCommands ( containerHost, config );
         this.addKeyPairSH ( containerHost );
         this.runInstances ( containerHost );
+        this.addKeyPairSHToExistance ( containerHost );
         this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
         this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
 //        LOG.info ( "Run shell starting..." );
@@ -243,8 +244,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         String containerIP = this.getIPAddress ( containerHost );
 
-        this.commandExecute ( containerHost,
-                              "sed -i 's/" + containerIP + "/" + containerIP + " appscale-image0 /g' /etc/hosts" );
+        this.commandExecute ( containerHost, "echo '127.0.1.1 appscale-image0' >> /etc/hosts" );
 
         po.addLogDone ( "DONE" );
     }
@@ -282,7 +282,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 //        LOG.info ( "appscale stopping" );
 //        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
-        LOG.info ( "appscale stopped and cleaning process started" );
         // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
@@ -299,7 +298,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( ex.toString () );
         }
-        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + 1 );
+        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
         this.commandExecute ( containerHost, addInstances () );
 //        String runShell = Commands.getRunShell ();
 //        runShell = runShell + " " + 1;
@@ -709,6 +708,34 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             containerHost.execute ( new RequestBuilder ( "touch /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKey.sh" ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
+    }
+
+
+    private void addKeyPairSHToExistance ( EnvironmentContainerHost containerHost )
+    {
+        try
+        {
+            String add = "#!/usr/bin/expect -f\n"
+                    + "set timeout -1\n"
+                    + "set num argv\n"
+                    + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips new.yaml --add_to_existing --keyname appscale\\n"
+                    + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                    + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                    + "    send -- \"yes\\n\"\n"
+                    + "    expect \" password:\"\n"
+                    + "    send -- \"a\\n\"\n"
+                    + "}\n"
+                    + "expect EOD";
+            containerHost.execute ( new RequestBuilder ( "mkdir .ssh" ) );
+            containerHost.execute ( new RequestBuilder ( "rm /root/addKeyExistance.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "touch /root/addKeyExistance.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKeyExistance.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKeyExistance.sh" ) );
         }
         catch ( CommandException ex )
         {
