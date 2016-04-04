@@ -14,7 +14,8 @@ function appscaleSrv ($http, environmentService) {
 		build: build,
 		listClusters: listClusters,
 		getClusterInfo: getClusterInfo,
-		uninstallCluster: uninstallCluster
+		uninstallCluster: uninstallCluster,
+		quickInstall: quickInstall
 	};
 	return appscaleSrv;
 
@@ -46,7 +47,17 @@ function appscaleSrv ($http, environmentService) {
 	}
 
 	function uninstallCluster (cluster) {
-		console.log (cluster);
 		return $http.delete (BASE_URL + "clusters/" + cluster.clusterName);
+	}
+
+	function quickInstall ( val ) {
+
+		var postData = 'ename=' + val.name + '&udom=' + val.domain;
+
+		return $http.post(
+			BASE_URL + 'oneclick',
+			postData,
+			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+		);
 	}
 }

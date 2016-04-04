@@ -201,6 +201,25 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		else
 			vm.config.scaleOption = "static";
 	}
+
+	vm.quickInstallPopup = function( val )
+	{
+		ngDialog.open({
+			template: 'plugins/appscale/partials/quick-install.html',
+			scope: $scope
+		});
+	}
+
+	vm.quickInstall = function( val )
+	{
+		LOADING_SCREEN();
+		ngDialog.close();
+		appscaleSrv.quickInstall( val ).success(function(data) {
+			SweetAlert.swal ("Success!", "Your Appscale cluster '"+ val.name +"' is created.", "success");
+		}).error( function (data) {
+			SweetAlert.swal ("ERROR!", data, "error");
+		} );
+	}
 }
 
 function initMSelect()
