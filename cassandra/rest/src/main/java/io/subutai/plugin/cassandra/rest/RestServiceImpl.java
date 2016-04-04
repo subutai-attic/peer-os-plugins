@@ -568,7 +568,6 @@ public class RestServiceImpl implements RestService
     public Response installCluster( String config )
     {
         ClusterDto clusterDto = JsonUtil.fromJson( config, ClusterDto.class );
-
         CassandraClusterConfig clusterConfig = new CassandraClusterConfig();
 
         clusterConfig.setClusterName( clusterDto.getName() );
@@ -578,12 +577,34 @@ public class RestServiceImpl implements RestService
         clusterConfig.setSavedCachesDirectory( clusterDto.getCacheDir() );
         clusterConfig.setNodes( clusterDto.getContainers() );
         clusterConfig.setSeedNodes( clusterDto.getSeeds() );
-
         clusterConfig.setNumberOfNodes( clusterDto.getContainers().size() );
         clusterConfig.setNumberOfSeeds( clusterDto.getSeeds().size() );
         clusterConfig.setEnvironmentId( clusterDto.getEnvironmentId() );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.loadEnvironment( clusterDto.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
-        cassandraManager.installCluster( clusterConfig );
-        return Response.ok().build();
+        if ( environment == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "Could not find environment with id : " + clusterDto.getEnvironmentId() ).build();
+        }
+
+        if ( cassandraManager.getCluster( clusterDto.getName() ) != null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( "There is already a cluster with same name !" ).build();
+        }
+
+        UUID uuid = cassandraManager.installCluster( clusterConfig );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 }

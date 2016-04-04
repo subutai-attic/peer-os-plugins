@@ -40,8 +40,10 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	});
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		cassandraSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -180,6 +182,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 				cassandraSrv.deleteCluster(vm.currentCluster.name).success(function (data) {
 					SweetAlert.swal("Deleted!", "Cluster has been deleted.", "success");
 					vm.currentCluster = {};
+					getClusters();
 				});
 			}
 		});
@@ -187,8 +190,11 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 	function createCassandra() {
 		SweetAlert.swal("Success!", "Your Cassandra cluster started creating.", "success");
+		vm.activeTab = "manage";
+		LOADING_SCREEN();
 		cassandraSrv.createCassandra(JSON.stringify(vm.cassandraInstall)).success(function (data) {
 			SweetAlert.swal("Success!", "Your Cassandra cluster successfully created.", "success");
+			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cassandra cluster create error: ' + error.replace(/\\n/g, ' '), "error");
 		});
