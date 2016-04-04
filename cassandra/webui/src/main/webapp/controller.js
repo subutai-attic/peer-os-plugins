@@ -90,11 +90,14 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			timer: VARS_TOOLTIP_TIMEOUT,
 			showConfirmButton: false
 		});
+		LOADING_SCREEN();
 		cassandraSrv.startNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
 			getClustersInfo(vm.currentCluster.name);
+			LOADING_SCREEN("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
 		});
 	}
 
@@ -107,11 +110,14 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			timer: VARS_TOOLTIP_TIMEOUT,
 			showConfirmButton: false
 		});
+		LOADING_SCREEN();
 		cassandraSrv.stopNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes stoped successfully.", "success");
 			getClustersInfo(vm.currentCluster.name);
+			LOADING_SCREEN("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
 		});
 	}
 
