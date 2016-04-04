@@ -125,12 +125,15 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
 	function createHadoop() {
 		SweetAlert.swal("Success!", "Hadoop cluster is being created.", "success");
 		vm.activeTab = 'manage';
+		LOADING_SCREEN();
 		hadoopSrv.createHadoop(JSON.stringify(vm.hadoopInstall)).success(function (data) {
 			SweetAlert.swal("Success!", "Hadoop cluster creation message:" + data.replace(/\\n/g, ' '), "success");
 			getClusters();
+			LOADING_SCREEN ("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Hadoop cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
 			getClusters();
+			LOADING_SCREEN ("none");
 		});
 		setDefaultValues();
 	}

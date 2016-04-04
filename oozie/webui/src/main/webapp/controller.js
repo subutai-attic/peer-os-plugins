@@ -43,8 +43,10 @@ function OozieCtrl($scope, oozieSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		oozieSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -139,11 +141,15 @@ function OozieCtrl($scope, oozieSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.oozieInstall.clusterName === undefined || vm.oozieInstall.clusterName.length == 0) return;
 		if(vm.oozieInstall.hadoopClusterName === undefined || vm.oozieInstall.hadoopClusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Oozie cluster start creating.", "success");
+		LOADING_SCREEN();
 		oozieSrv.createOozie(vm.oozieInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Oozie cluster successfully created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Oozie cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

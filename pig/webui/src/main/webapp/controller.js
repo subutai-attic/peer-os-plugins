@@ -38,8 +38,10 @@ function PigCtrl($scope, pigSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilde
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		pigSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -140,11 +142,15 @@ function PigCtrl($scope, pigSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilde
 		if(vm.pigInstall.hadoopClusterName === undefined || vm.pigInstall.hadoopClusterName.length == 0) return;
 
 		SweetAlert.swal("Success!", "Pig cluster start creating.", "success");
+		LOADING_SCREEN();
 		pigSrv.createPig(vm.pigInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your pig cluster start creating.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Pig cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

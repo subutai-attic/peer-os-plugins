@@ -187,11 +187,15 @@ function SolrCtrl(solrSrv, SweetAlert) {
 	function createSolr() {
 		SweetAlert.swal("Success!", "Solr cluster is being created.", "success");
 		switchTab('manager');
+		LOADING_SCREEN();
 		solrSrv.createSolr(vm.solrInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Solr cluster creation message:" + data.replace(/\\n/g, ' '), "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Solr cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 	}
 

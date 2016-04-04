@@ -42,8 +42,10 @@ function HiveCtrl($scope, hiveSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		hiveSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -152,11 +154,14 @@ function HiveCtrl($scope, hiveSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 		if(vm.hiveInstall.clusterName === undefined || vm.hiveInstall.clusterName.length == 0) return;
 		if(vm.hiveInstall.hadoopClusterName === undefined || vm.hiveInstall.hadoopClusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Hive cluster is being created.", "success");
+		LOADING_SCREEN();
 		hiveSrv.createHive(vm.hiveInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Hive cluster is being created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Hive cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

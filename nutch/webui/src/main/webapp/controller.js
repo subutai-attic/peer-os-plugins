@@ -38,8 +38,10 @@ function NutchCtrl($scope, nutchSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		nutchSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -137,11 +139,15 @@ function NutchCtrl($scope, nutchSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.nutchInstall.hadoopClusterName === undefined || vm.nutchInstall.hadoopClusterName.length == 0) return;
 
 		SweetAlert.swal("Success!", "Nutch cluster start creating.", "success");
+		LOADING_SCREEN();
 		nutchSrv.createNutch(vm.nutchInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Nutch cluster was created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Nutch cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

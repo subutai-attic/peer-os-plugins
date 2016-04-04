@@ -38,8 +38,10 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		luceneSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -144,11 +146,15 @@ function LuceneCtrl($scope, luceneSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 				showConfirmButton: false
 			}
 		);
+		LOADING_SCREEN();
 		luceneSrv.createLucene(vm.luceneInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Lucene cluster has been created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Lucene cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

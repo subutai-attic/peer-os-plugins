@@ -47,8 +47,10 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		sparkSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -189,11 +191,15 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.sparkInstall.clusterName === undefined || vm.sparkInstall.clusterName.length == 0) return;
 		if(vm.sparkInstall.hadoopClusterName === undefined || vm.sparkInstall.hadoopClusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Spark cluster is being created.", "success");
+		LOADING_SCREEN();
 		sparkSrv.createSpark(vm.sparkInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Spark cluster was created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Spark cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

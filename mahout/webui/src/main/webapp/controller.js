@@ -38,8 +38,10 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		mahoutSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -139,11 +141,15 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.mahoutInstall.hadoopClusterName === undefined || vm.mahoutInstall.hadoopClusterName.length == 0) return;
 
 		SweetAlert.swal("Success!", "Mahout cluster started creating.", "success");
+		LOADING_SCREEN();
 		mahoutSrv.createMahout(vm.mahoutInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Mahout cluster was created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Mahout cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

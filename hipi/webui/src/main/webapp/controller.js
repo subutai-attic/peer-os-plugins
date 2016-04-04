@@ -38,8 +38,10 @@ function HipiCtrl($scope, hipiSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		hipiSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -139,11 +141,15 @@ function HipiCtrl($scope, hipiSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 		if(vm.hipiInstall.hadoopClusterName === undefined || vm.hipiInstall.hadoopClusterName.length == 0) return;
 
 		SweetAlert.swal("Success!", "Hipi cluster start creating.", "success");
+		LOADING_SCREEN();
 		hipiSrv.createHipi(vm.hipiInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Hipi cluster start creating. LOG: " + data.replace(/\\n/g, ' '), "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Hipi cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN("none");
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

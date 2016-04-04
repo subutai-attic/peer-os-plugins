@@ -47,8 +47,10 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
     updateClusters();
     function updateClusters() {
+        LOADING_SCREEN();
         mongoSrv.listClusters().success(function (data) {
             vm.clusters = data;
+            LOADING_SCREEN("none");
         });
     }
 
@@ -76,6 +78,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         else {
             SweetAlert.swal("Success!", "Mongo cluster creating started.", "success");
             LOADING_SCREEN('block');
+            vm.activeTab = "manage";
             mongoSrv.createMongo(JSON.stringify(vm.mongoInstall)).success(function (data) {
                 SweetAlert.swal("Success!", "Mongo cluster created.", "success");
                 LOADING_SCREEN('none');

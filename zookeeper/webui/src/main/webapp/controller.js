@@ -72,8 +72,10 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 
 	function getClusters() {
 		vm.clusters = [];
+		LOADING_SCREEN();
 		zookeeperSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -161,14 +163,17 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 	function createZookeeper() {
 		if(vm.zookeeperInstall.clusterName === undefined || vm.zookeeperInstall.clusterName.length == 0) return;
 		SweetAlert.swal("Success!", "Zookeeper cluster start creating.", "success");
+		LOADING_SCREEN();
 		if(vm.installType == 'hadoop') {
 			vm.zookeeperInstall.environmentId = vm.hadoopFullInfo.environmentId;
 		}
 		zookeeperSrv.createZookeeper(vm.zookeeperInstall, vm.installType).success(function (data) {
 			SweetAlert.swal("Success!", "Zookeeper cluster successfully created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Zookeeper cluster create error: ' + error, "error");
+			LOADING_SCREEN("none");
 			getClusters();
 		});
 		setDefaultValues();

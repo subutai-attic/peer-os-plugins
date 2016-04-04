@@ -45,8 +45,10 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		hbaseSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -201,11 +203,15 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.hbaseInstall.domainName = 'intra.lan';
 
 		SweetAlert.swal("Success!", "Hbase cluster start creating.", "success");
+		LOADING_SCREEN();
 		hbaseSrv.createHbase(JSON.stringify(vm.hbaseInstall)).success(function (data) {
 			SweetAlert.swal("Success!", "Your Hbase cluster start creating. LOG: " + data.replace(/\\n/g, ' '), "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Hbase cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN();
+			getClusters();
 		});
 		setDefaultValues();
 		vm.activeTab = 'manage';

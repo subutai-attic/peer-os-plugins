@@ -45,8 +45,10 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	setDefaultValues();
 
 	function getClusters() {
+	    LOADING_SCREEN();
 		flumeSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
 		});
 	}
 	getClusters();
@@ -205,11 +207,14 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.flumeInstall.clusterName === undefined || vm.flumeInstall.clusterName.length == 0) return;
 
 		SweetAlert.swal("Success!", "Flume cluster started creating.", "success");
+		LOADING_SCREEN();
 		flumeSrv.createFlume(vm.flumeInstall).success(function (data) {
 			SweetAlert.swal("Success!", "Your Flume cluster was created.", "success");
+			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Flume cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN();
 			getClusters();
 		});
 		setDefaultValues();
