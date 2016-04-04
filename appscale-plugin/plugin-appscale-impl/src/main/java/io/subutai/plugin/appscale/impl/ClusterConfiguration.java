@@ -487,7 +487,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 LOG.error ( "AppScalefile : cassandra: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
+        // this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo login: " + ipaddr + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 
