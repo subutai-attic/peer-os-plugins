@@ -689,13 +689,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             String add = "#!/usr/bin/expect -f\n"
                     + "set timeout -1\n"
                     + "set num argv\n"
-                    //                + "lassign $argv num existing\n"
-                    //                + "if { $existing == \"no\" } {\n"
                     + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --keyname appscale\n"
-                    //                + " } else {\n"
-                    //                + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --add_to_existing --keyname appscale\n"
-                    //                + "}\n"
-                    //                + "\n"
                     + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                     + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
                     + "    send -- \"yes\\n\"\n"
@@ -731,7 +725,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     + "    send -- \"a\\n\"\n"
                     + "}\n"
                     + "expect EOD";
-            containerHost.execute ( new RequestBuilder ( "mkdir .ssh" ) );
+
             containerHost.execute ( new RequestBuilder ( "rm /root/addKeyExistance.sh " ) );
             containerHost.execute ( new RequestBuilder ( "touch /root/addKeyExistance.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKeyExistance.sh" ) );
