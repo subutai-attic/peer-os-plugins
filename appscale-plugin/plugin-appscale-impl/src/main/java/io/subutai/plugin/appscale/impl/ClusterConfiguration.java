@@ -269,11 +269,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.info ( "Appengine: " + a );
         }
-
+        String appip = null;
         EnvironmentContainerHost containerHost = null;
         try
         {
             containerHost = env.getContainerHostByHostname ( localConfig.getClusterName () );
+            appip = this.getIPAddress ( env.getContainerHostByHostname ( localConfig.getAppengine () ) );
             LOG.info ( "container host found..." );
         }
         catch ( ContainerHostNotFoundException ex )
@@ -285,7 +286,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
-        this.appscaleInitCluster ( containerHost, env, localConfig );
+        // this.appscaleInitCluster ( containerHost, env, localConfig );
+        String ipString = this.getIPAddress ( containerHost );
+        String findthis = "  - " + ipString;
+        String addthis = findthis + "\n" + "  - " + appip;
+        String addcontainer = "sed -s 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
+        this.commandExecute ( containerHost, addcontainer );
         this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
