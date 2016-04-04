@@ -223,13 +223,4 @@ public class StormSetupStrategyDefaultTest
         assertEquals( pluginDAO, stormImpl.getPluginDAO() );
         verify( trackerOperation ).addLog( "Cluster info successfully saved" );
     }
-
-
-    @Test
-    public void testGetNodePlacementStrategyByNodeType() throws Exception
-    {
-        StormSetupStrategyDefault.getNodePlacementStrategyByNodeType( NodeType.STORM_NIMBUS );
-        StormSetupStrategyDefault.getNodePlacementStrategyByNodeType( NodeType.STORM_SUPERVISOR );
-        StormSetupStrategyDefault.getNodePlacementStrategyByNodeType( NodeType.MASTER_NODE );
-    }
 }

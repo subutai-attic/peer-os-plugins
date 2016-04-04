@@ -12,7 +12,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -46,12 +45,6 @@ public class ZookeeperStandaloneSetupStrategy implements ClusterSetupStrategy
         this.po = po;
         this.zookeeperManager = zookeeperManager;
         this.environment = environment;
-    }
-
-
-    public static PlacementStrategy getNodePlacementStrategy()
-    {
-        return new PlacementStrategy( "ROUND_ROBIN" );
     }
 
 

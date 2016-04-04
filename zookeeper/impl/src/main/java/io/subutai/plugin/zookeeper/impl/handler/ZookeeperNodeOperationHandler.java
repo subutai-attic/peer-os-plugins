@@ -318,7 +318,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             {
                 config = manager.getCluster( clusterName );
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-                environmentManager.destroyContainer( environment.getId(), host.getId(), true, true );
+                environmentManager.destroyContainer( environment.getId(), host.getId(), true );
                 config.getNodes().remove( host.getId() );
                 manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
                 ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );

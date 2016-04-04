@@ -59,7 +59,7 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
             config.getBlockedAgents().remove( host.getId() );
             removeNodeFromConfigurationFiles( host );
             manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-            environmentManager.destroyContainer( environment.getId(), host.getId(), true, true );
+            environmentManager.destroyContainer( environment.getId(), host.getId(), true );
             trackerOperation.addLogDone( "Container " + lxcHostName + " is destroyed!" );
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException | EnvironmentModificationException e )

@@ -11,7 +11,6 @@ import io.subutai.common.peer.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -20,13 +19,10 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.protocol.Criteria;
-import io.subutai.common.protocol.PlacementStrategy;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.ConfigBase;
-import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
@@ -47,21 +43,6 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         this.manager = manager;
         this.config = config;
         this.po = po;
-    }
-
-
-    public static PlacementStrategy getNodePlacementStrategyByNodeType( NodeType nodeType )
-    {
-        switch ( nodeType )
-        {
-            case STORM_NIMBUS:
-                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_CPU", true ) ) );
-            case STORM_SUPERVISOR:
-                return new PlacementStrategy( "BEST_SERVER", Sets.newHashSet( new Criteria( "MORE_RAM", true ) ) );
-
-            default:
-                return new PlacementStrategy( "ROUND_ROBIN" );
-        }
     }
 
 

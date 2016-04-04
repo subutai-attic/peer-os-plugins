@@ -232,7 +232,7 @@ public class ZookeeperClusterOperationHandler
             else
             {
                 trackerOperation.addLog( "Destroying environment..." );
-                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true, true );
+                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true );
             }
 
             manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );

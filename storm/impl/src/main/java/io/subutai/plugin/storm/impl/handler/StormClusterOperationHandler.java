@@ -3,12 +3,10 @@ package io.subutai.plugin.storm.impl.handler;
 
 import java.util.*;
 
-import com.google.common.collect.Sets;
 
 import io.subutai.common.environment.*;
 import io.subutai.common.host.HostInterface;
-import io.subutai.common.peer.ContainerSize;
-import io.subutai.common.protocol.PlacementStrategy;
+import io.subutai.common.peer.ContainerSize;;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
