@@ -290,7 +290,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         String ipString = this.getIPAddress ( containerHost );
         String findthis = "  - " + ipString;
         String addthis = findthis + "\n" + "  - " + appip;
-        String addcontainer = "sed -s 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
+        String addcontainer = "sed -i 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
         this.commandExecute ( containerHost, addcontainer );
         this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
