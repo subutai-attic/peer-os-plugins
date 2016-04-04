@@ -455,7 +455,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         Random rand = new Random ();
         String additionString = randomAlphabetic ( 10 ).toLowerCase ();
         String containerName = "appscale" + additionString;
-        String environmentName = "appscaleenvironment" + additionString;
+        String environmentName = ac.getUserEnvironmentName ();
         NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale", 0, 0 );
         List<NodeSchema> nodes = new ArrayList<> ();
         nodes.add ( node );

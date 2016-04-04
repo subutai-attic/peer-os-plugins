@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -287,6 +288,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 //        this.commandExecute ( containerHost, addInstances () );
         String runShell = Commands.getRunShell ();
         runShell = runShell + " " + 1;
+        try
+        {
+            LOG.info ( "let's give some time to container to wake up" );
+            TimeUnit.SECONDS.sleep ( 30 );
+        }
+        catch ( InterruptedException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
         try
         {
             containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
