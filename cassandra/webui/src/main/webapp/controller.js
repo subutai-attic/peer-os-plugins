@@ -93,8 +93,8 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		LOADING_SCREEN();
 		cassandraSrv.startNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
+			console.log ("getting cluster info");
 			getClustersInfo(vm.currentCluster.name);
-			LOADING_SCREEN("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
 			LOADING_SCREEN("none");
@@ -113,8 +113,8 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		LOADING_SCREEN();
 		cassandraSrv.stopNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes stoped successfully.", "success");
+			console.log ("getting cluster info");
 			getClustersInfo(vm.currentCluster.name);
-			LOADING_SCREEN("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
 			LOADING_SCREEN("none");
@@ -256,7 +256,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 
 	function pushAll() {
-		if (vm.currentCluster.clusterName !== undefined) {
+		if (vm.currentCluster.name !== undefined) {
 			if (vm.nodes2Action.length === vm.currentCluster.containers.length) {
 				vm.nodes2Action = [];
 			}
@@ -264,8 +264,8 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 				for (var i = 0; i < vm.currentCluster.containers.length; ++i) {
 					vm.nodes2Action.push (vm.currentCluster.containers[i]);
 				}
-				console.log (vm.nodes2Action);
 			}
+			console.log (vm.nodes2Action);
 		}
 	}
 
