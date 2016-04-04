@@ -188,8 +188,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         LOG.info ( "installing appscale can take several minutes." );
         // AppScalefile configuration
-        // this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
-        this.appscaleInitIPS ( containerHost, environment, config );
+        this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
+        // this.appscaleInitIPS ( containerHost, environment, config );
         // end of AppScalefile configuration
         LOG.info ( "cleaning up..." );
         this.makeCleanUpPreviousInstallation ( containerHost );
@@ -197,24 +197,24 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
         this.addKeyPairSH ( containerHost );
-        this.runInstances ( containerHost );
-        this.addKeyPairSHToExistance ( containerHost );
-        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
-        this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
-//        LOG.info ( "Run shell starting..." );
-//        this.createRunSH ( containerHost ); // we only need this in master container...
-//        String runShell = Commands.getRunShell ();
-//        runShell = runShell + " " + numberOfContainers;
-//        LOG.info ( "RUN SHELL COMMAND: " + runShell );
-//        try
-//        {
-//            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
-//        }
-//        catch ( CommandException ex )
-//        {
-//            LOG.error ( "RUN SHELL ERROR" + ex );
-//        }
-//        LOG.info ( "Run shell completed..." );
+//        this.runInstances ( containerHost );
+//        this.addKeyPairSHToExistance ( containerHost );
+//        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
+//        this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
+        LOG.info ( "Run shell starting..." );
+        this.createRunSH ( containerHost ); // we only need this in master container...
+        String runShell = Commands.getRunShell ();
+        runShell = runShell + " " + numberOfContainers;
+        LOG.info ( "RUN SHELL COMMAND: " + runShell );
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "RUN SHELL ERROR" + ex );
+        }
+        LOG.info ( "Run shell completed..." );
         this.createUpShell ( containerHost );
         LOG.info ( "RH command started" );
 
@@ -280,13 +280,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( ex.toString () );
         }
-//        LOG.info ( "appscale stopping" );
-//        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
+        LOG.info ( "appscale stopping" );
+        this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
         // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
-        this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
-        // this.appscaleInitCluster ( containerHost, env, localConfig );
-        // this.commandExecute ( containerHost, "cat /AppScalefile" );
+        // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
+        this.appscaleInitCluster ( containerHost, env, localConfig );
+        this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
         try
@@ -298,21 +298,21 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( ex.toString () );
         }
-        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
-        this.commandExecute ( containerHost, addInstances () );
-//        String runShell = Commands.getRunShell ();
-//        runShell = runShell + " " + 1;
-//
-//        try
-//        {
-//            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
-//            scaled = true;
-//            LOG.info ( "appscale restarted" );
-//        }
-//        catch ( CommandException ex )
-//        {
-//            LOG.error ( "RUN SHELL ERROR" + ex );
-//        }
+//        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
+//        this.commandExecute ( containerHost, addInstances () );
+        String runShell = Commands.getRunShell ();
+        runShell = runShell + " " + 1;
+
+        try
+        {
+            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
+            scaled = true;
+            LOG.info ( "appscale restarted" );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( "RUN SHELL ERROR" + ex );
+        }
         appscaleManager.getPluginDAO ()
                 .saveInfo ( AppScaleConfig.PRODUCT_KEY, conf.getClusterName (),
                             conf );
