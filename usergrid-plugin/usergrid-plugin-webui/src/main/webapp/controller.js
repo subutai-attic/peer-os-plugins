@@ -206,6 +206,27 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			SweetAlert.swal ("ERROR!", 'usergrid delete error: ' + error.replace(/\\n/g, ' '), "error");
 		});
 	}
+
+	vm.quickInstallPopup = function( val )
+	{
+		ngDialog.open({
+			template: 'plugins/usergrid/partials/quick-install.html',
+			scope: $scope
+		});
+	}
+
+	vm.quickInstall = function( val )
+	{
+		LOADING_SCREEN();
+		ngDialog.close();
+		appscaleSrv.quickInstall( val ).success(function(data) {
+			SweetAlert.swal ("Success!", "Your Usergrid cluster '"+ val.name +"' is created.", "success");
+			LOADING_SCREEN('none');
+		}).error( function (data) {
+			SweetAlert.swal ("ERROR!", data, "error");
+			LOADING_SCREEN('none');
+		} );
+	}
 }
 
 function initMSelect()
