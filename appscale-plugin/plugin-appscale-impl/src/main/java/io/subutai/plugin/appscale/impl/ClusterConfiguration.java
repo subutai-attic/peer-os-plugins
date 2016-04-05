@@ -283,15 +283,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
-        // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
+        this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
-        // this.appscaleInitCluster ( containerHost, env, localConfig );
-        String ipString = this.getIPAddress ( containerHost );
-        String findthis = "  appengine:";
-        String addthis = findthis + "\n" + "  - " + appip;
-        String addcontainer = "sed -i 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
-        this.commandExecute ( containerHost, addcontainer );
+        this.appscaleInitCluster ( containerHost, env, localConfig );
+//        String ipString = this.getIPAddress ( containerHost );
+//        String findthis = "  appengine:";
+//        String addthis = findthis + "\n" + "  - " + appip;
+//        String addcontainer = "sed -i 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
+//        this.commandExecute ( containerHost, addcontainer );
         this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
@@ -306,12 +306,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 //        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
-        String upShell = Commands.getAppScaleStartCommand ();
-        upShell = upShell + " " + 1;
+        String runShell = Commands.getRunShell ();
+        runShell = runShell + " " + numberOfContainers;
 
         try
         {
-            containerHost.execute ( new RequestBuilder ( upShell ).withTimeout ( 10000 ) ); // will take time
+            containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
             scaled = true;
             LOG.info ( "appscale restarted" );
         }
