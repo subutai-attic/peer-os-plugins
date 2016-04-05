@@ -312,7 +312,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 //        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
-        String runShell = Commands.getAppScaleStartCommand ();
+        String runShell = Commands.getRunShell ();
         runShell = runShell + " " + numberOfContainers;
 
         try
@@ -608,7 +608,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // modify navigation.html
         String addButton = "<li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"{{ flower_url }}\">TaskQueue Monitor<\\/a><\\/li>";
-        String replaceString = addButton + "<br><li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"http:\\/\\/linkToRestCall\">Add Appengine<\\/a><\\/li>";
+        String replaceString = addButton + "<br><li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"http:\\/\\/onClick=\"growEnvironment()\"\">Add Appengine<\\/a><\\/li>";
         this.commandExecute ( containerHost,
                               "sed -i 's/ " + addButton + "/" + replaceString + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
         String changeMonitURL = "sed -i 's/{{ monit_url }}/http:\\/\\/2812." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
