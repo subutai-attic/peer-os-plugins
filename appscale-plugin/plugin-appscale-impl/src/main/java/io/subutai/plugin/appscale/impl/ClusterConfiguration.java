@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,7 +197,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
         this.addKeyPairSH ( containerHost );
-        this.runInstances ( containerHost );
+//        this.runInstances ( containerHost );
+//        this.addKeyPairSHToExistance ( containerHost );
 //        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
 //        this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
         LOG.info ( "Run shell starting..." );
@@ -239,6 +241,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
+
+        String containerIP = this.getIPAddress ( containerHost );
+
+        this.commandExecute ( containerHost, "echo '127.0.1.1 appscale-image0' >> /etc/hosts" );
+        this.commandExecute ( containerHost, Commands.backUpSSH () );
+        this.commandExecute ( containerHost, Commands.backUpAppscale () );
         po.addLogDone ( "DONE" );
     }
 
@@ -255,6 +263,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public Boolean scaleUP ( ConfigBase conf, Environment env )
     {
         LOG.info ( "//// scaling started..." );
+
         Boolean scaled = false;
         AppScaleConfig localConfig = ( AppScaleConfig ) conf;
 
@@ -262,31 +271,50 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.info ( "Appengine: " + a );
         }
-
+        String appip = null;
         EnvironmentContainerHost containerHost = null;
         try
         {
             containerHost = env.getContainerHostByHostname ( localConfig.getClusterName () );
+            appip = this.getIPAddress ( env.getContainerHostByHostname ( localConfig.getAppengine () ) );
             LOG.info ( "container host found..." );
         }
         catch ( ContainerHostNotFoundException ex )
         {
             LOG.error ( ex.toString () );
         }
+        this.commandExecute ( containerHost, Commands.revertBackUpSSH () );
+        this.commandExecute ( containerHost, Commands.revertBackupAppscale () );
+        this.commandExecute ( containerHost, "rm -rf /root/sshBACK" );
+        this.commandExecute ( containerHost, "rm -rf /root/appBACK" );
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
-        LOG.info ( "appscale stopped and cleaning process started" );
-        // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
+        this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
         this.appscaleInitCluster ( containerHost, env, localConfig );
-        // this.commandExecute ( containerHost, "cat /AppScalefile" );
+//        String ipString = this.getIPAddress ( containerHost );
+//        String findthis = "  appengine:";
+//        String addthis = findthis + "\n" + "  - " + appip;
+//        String addcontainer = "sed -i 's/" + findthis + "/" + addthis + "/g' /AppScalefile";
+//        this.commandExecute ( containerHost, addcontainer );
+        this.commandExecute ( containerHost, "cat /AppScalefile" );
         Set<EnvironmentContainerHost> cn = env.getContainerHosts ();
         int numberOfContainers = cn.size ();
-//        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + 1 );
+        try
+        {
+            LOG.info ( "let's give some time to container to wake up" );
+            TimeUnit.SECONDS.sleep ( 30 );
+        }
+        catch ( InterruptedException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
+//        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
         String runShell = Commands.getRunShell ();
-        runShell = runShell + " " + 1;
+        runShell = runShell + " " + numberOfContainers;
+
         try
         {
             containerHost.execute ( new RequestBuilder ( runShell ).withTimeout ( 10000 ) ); // will take time
@@ -300,6 +328,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         appscaleManager.getPluginDAO ()
                 .saveInfo ( AppScaleConfig.PRODUCT_KEY, conf.getClusterName (),
                             conf );
+
+        this.commandExecute ( containerHost, Commands.backUpAppscale () );
+        this.commandExecute ( containerHost, Commands.backUpSSH () );
         return scaled;
     }
 
@@ -471,7 +502,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 LOG.error ( "AppScalefile : cassandra: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
+        // this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo login: " + ipaddr + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo 'force: True' >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 
@@ -575,7 +608,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         // modify navigation.html
         String addButton = "<li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"{{ flower_url }}\">TaskQueue Monitor<\\/a><\\/li>";
-        String replaceString = addButton + "<br><li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"http:\\/\\/linkToRestCall\">Add Appengine<\\/a><\\/li>";
+        String replaceString = addButton + "<br><li align=\"center\" class=\"tab\"><a class=\"btn btn-info\" href=\"http:\\/\\/onClick=\"growEnvironment()\"\">Add Appengine<\\/a><\\/li>";
         this.commandExecute ( containerHost,
                               "sed -i 's/ " + addButton + "/" + replaceString + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
         String changeMonitURL = "sed -i 's/{{ monit_url }}/http:\\/\\/2812." + config.getUserDomain () + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
@@ -673,13 +706,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             String add = "#!/usr/bin/expect -f\n"
                     + "set timeout -1\n"
                     + "set num argv\n"
-                    //                + "lassign $argv num existing\n"
-                    //                + "if { $existing == \"no\" } {\n"
                     + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --keyname appscale\n"
-                    //                + " } else {\n"
-                    //                + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips ips.yaml --add_to_existing --keyname appscale\n"
-                    //                + "}\n"
-                    //                + "\n"
                     + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                     + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
                     + "    send -- \"yes\\n\"\n"
@@ -692,6 +719,34 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             containerHost.execute ( new RequestBuilder ( "touch /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKey.sh" ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error ( ex.toString () );
+        }
+    }
+
+
+    private void addKeyPairSHToExistance ( EnvironmentContainerHost containerHost )
+    {
+        try
+        {
+            String add = "#!/usr/bin/expect -f\n"
+                    + "set timeout -1\n"
+                    + "set num argv\n"
+                    + "spawn /root/appscale-tools/bin/appscale-add-keypair --ips new.yaml --add_to_existing --keyname appscale\\n"
+                    + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                    + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                    + "    send -- \"yes\\n\"\n"
+                    + "    expect \" password:\"\n"
+                    + "    send -- \"a\\n\"\n"
+                    + "}\n"
+                    + "expect EOD";
+
+            containerHost.execute ( new RequestBuilder ( "rm /root/addKeyExistance.sh " ) );
+            containerHost.execute ( new RequestBuilder ( "touch /root/addKeyExistance.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKeyExistance.sh" ) );
+            containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKeyExistance.sh" ) );
         }
         catch ( CommandException ex )
         {
