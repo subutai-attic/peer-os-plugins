@@ -245,7 +245,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         String containerIP = this.getIPAddress ( containerHost );
 
         this.commandExecute ( containerHost, "echo '127.0.1.1 appscale-image0' >> /etc/hosts" );
-
+        this.commandExecute ( containerHost, Commands.backUpSSH () );
+        this.commandExecute ( containerHost, Commands.backUpAppscale () );
         po.addLogDone ( "DONE" );
     }
 
@@ -262,6 +263,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public Boolean scaleUP ( ConfigBase conf, Environment env )
     {
         LOG.info ( "//// scaling started..." );
+
         Boolean scaled = false;
         AppScaleConfig localConfig = ( AppScaleConfig ) conf;
 
@@ -281,6 +283,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error ( ex.toString () );
         }
+        this.commandExecute ( containerHost, Commands.revertBackUpSSH () );
+        this.commandExecute ( containerHost, Commands.revertBackupAppscale () );
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
         this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
@@ -322,6 +326,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         appscaleManager.getPluginDAO ()
                 .saveInfo ( AppScaleConfig.PRODUCT_KEY, conf.getClusterName (),
                             conf );
+
+        this.commandExecute ( containerHost, Commands.backUpAppscale () );
+        this.commandExecute ( containerHost, Commands.backUpSSH () );
         return scaled;
     }
 
@@ -495,6 +502,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         // this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo login: " + ipaddr + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo 'force: True' >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 

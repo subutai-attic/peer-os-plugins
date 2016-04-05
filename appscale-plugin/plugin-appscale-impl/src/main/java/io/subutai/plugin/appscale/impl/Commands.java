@@ -76,5 +76,29 @@ public class Commands
     }
 
 
+    public static String backUpSSH ()
+    {
+        return ( "cp -rf /root/.ssh /root/sshBACK" );
+    }
+
+
+    public static String backUpAppscale ()
+    {
+        return ( "cp -rf /root/.appscale /root/appBACK" );
+    }
+
+
+    public static String revertBackUpSSH ()
+    {
+        return ( "mv /root/sshBACK /root/.ssh" );
+    }
+
+
+    public static String revertBackupAppscale ()
+    {
+        return ( "mv /root/appBACK /root/.appscale" );
+    }
+
+
 }
 
