@@ -285,6 +285,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         this.commandExecute ( containerHost, Commands.revertBackUpSSH () );
         this.commandExecute ( containerHost, Commands.revertBackupAppscale () );
+        this.commandExecute ( containerHost, "rm -rf /root/sshBACK" );
+        this.commandExecute ( containerHost, "rm -rf /root/appBACK" );
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
         this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
@@ -310,7 +312,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 //        this.commandExecute ( containerHost, "sudo /root/addKeyExistance.sh " + 1 );
 //        this.commandExecute ( containerHost, addInstances () );
-        String runShell = Commands.getRunShell ();
+        String runShell = Commands.getAppScaleStartCommand ();
         runShell = runShell + " " + numberOfContainers;
 
         try

@@ -90,13 +90,13 @@ public class Commands
 
     public static String revertBackUpSSH ()
     {
-        return ( "mv /root/sshBACK /root/.ssh" );
+        return ( "mv /root/sshBACK/* /root/.ssh" );
     }
 
 
     public static String revertBackupAppscale ()
     {
-        return ( "mv /root/appBACK /root/.appscale" );
+        return ( "mv /root/appBACK/* /root/.appscale" );
     }
 
 
