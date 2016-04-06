@@ -8,13 +8,20 @@
   <packaging>pom</packaging>
   <name>Subutai Appscale Parent</name>
   <modules>
-      <module>plugin-appscale-api</module>
+      <!--
+    <module>plugin-appscale-api</module>
     <module>plugin-appscale-cli</module>
     <module>plugin-appscale-impl</module>
     <module>plugin-appscale-rest</module>
     <module>plugin-appscale-webui</module>
     <module>plugin-appscale-kar</module>
-    
+    -->
+    <module>api</module>
+    <module>cli</module>
+    <module>impl</module>
+    <module>rest</module>
+    <module>webui</module>
+    <module>kar</module>
   </modules>
 
   <properties>
