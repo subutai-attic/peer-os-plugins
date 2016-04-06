@@ -219,7 +219,7 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 	{
 		LOADING_SCREEN();
 		ngDialog.close();
-		appscaleSrv.quickInstall( val ).success(function(data) {
+		usergridSrv.quickInstall( val ).success(function(data) {
 			SweetAlert.swal ("Success!", "Your Usergrid cluster '"+ val.name +"' is created.", "success");
 			LOADING_SCREEN('none');
 		}).error( function (data) {
