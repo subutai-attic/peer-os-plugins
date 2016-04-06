@@ -45,7 +45,7 @@ public class AppScaleConfig implements ConfigBase
 
     private String permanentToken;
     private String userEnvironmentName;
-
+    private String isUUID;
 
     public AppScaleConfig ()
     {
@@ -278,6 +278,18 @@ public class AppScaleConfig implements ConfigBase
     public void setUserEnvironmentName ( String userEnvironmentName )
     {
         this.userEnvironmentName = userEnvironmentName;
+    }
+
+
+    public String getIsUUID ()
+    {
+        return isUUID;
+    }
+
+
+    public void setIsUUID ( String isUUID )
+    {
+        this.isUUID = isUUID;
     }
 
 
