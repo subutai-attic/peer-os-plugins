@@ -23,10 +23,14 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.quota.ContainerCpuResource;
+import io.subutai.common.quota.ContainerDiskResource;
+import io.subutai.common.quota.ContainerOptResource;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.quota.ContainerRamResource;
+import io.subutai.common.quota.Quota;
 import io.subutai.common.resource.ByteUnit;
 import io.subutai.common.resource.ByteValueResource;
+import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.MeasureUnit;
 import io.subutai.common.resource.NumericValueResource;
 import io.subutai.common.resource.ResourceType;
@@ -105,15 +109,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
         //get environment containers and find alert's source host
         Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-        EnvironmentContainerHost sourceHost = null;
-        for ( EnvironmentContainerHost containerHost : containers )
-        {
-            if ( containerHost.getId().equals( alert.getValue().getHostId() ) )
-            {
-                sourceHost = containerHost;
-                break;
-            }
-        }
+        EnvironmentContainerHost sourceHost = getSourceHost();
 
         if ( sourceHost == null )
         {
@@ -130,12 +126,12 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
             return;
         }
 
+
         // Set 50 percent of the available ram capacity of the resource host
         // to maximum ram quota limit assignable to the container
         try
         {
-            ContainerQuota availableQuota = sourceHost.getAvailableQuota();
-            MAX_RAM_QUOTA_MB = availableQuota.getRam().getResource().getValue( ByteUnit.MB ).doubleValue() * 0.5;
+            MAX_RAM_QUOTA_MB = ramResource.getResource().getValue( ByteUnit.MB ).doubleValue() * 0.5;
 
             //figure out process pid
             int processPID = 0;
@@ -156,9 +152,8 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
             MonitoringSettings thresholds = cassandra.getAlertSettings();
 
             // in MB
-            final ExceededQuota exceededQuota = alert.getValue();
-            final ResourceValue<BigDecimal> currentValue = exceededQuota.getCurrentValue();
-            double ramLimit = currentValue.getValue().doubleValue() * thresholds.getRamAlertThreshold() / 100; // 0.8
+            double ramLimit =
+                    ramResource.getResource().getValue().doubleValue() * thresholds.getRamAlertThreshold() / 100; // 0.8
             double redLine = 0.7;
             boolean isCpuStressed = false;
             boolean isRamStressed = false;
@@ -186,11 +181,19 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
                 // check if a quota limit increase does it
                 boolean quotaIncreased = false;
 
+
+                switch ( alert.getValue().getContainerResourceType() )
+                {
+                    case RAM:
+                        processRamAlert();
+                        break;
+                }
                 if ( isRamStressed )
                 {
                     //read current RAM quota
                     final ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.getRam().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
 
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
@@ -204,9 +207,11 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
                             //we can increase RAM quota
-                            ContainerRamResource quota = new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) );
-                            containerQuota.addResource( quota );
+                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
+                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                                    thresholds.getRamAlertThreshold() );
+
+                            containerQuota.add( quota );
                             sourceHost.setQuota( containerQuota );
 
                             quotaIncreased = true;
@@ -219,7 +224,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
 
                     //read current CPU quota
                     final ContainerQuota containerQuota = sourceHost.getQuota();
-                    ContainerCpuResource cpuQuota = containerQuota.getCpu();
+                    ContainerCpuResource cpuQuota = containerQuota.get( ContainerResourceType.CPU ).getAsCpuResource();
                     if ( cpuQuota.getResource().getValue().intValue() < MAX_CPU_QUOTA_PERCENT )
                     {
                         int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
@@ -227,9 +232,10 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
                         //we can increase CPU quota
-                        ContainerCpuResource newQuota =
-                                new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) );
-                        containerQuota.addResource( newQuota );
+                        Quota newQuota = new Quota(
+                                new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) ),
+                                thresholds.getCpuAlertThreshold() );
+                        containerQuota.add( newQuota );
                         sourceHost.setQuota( containerQuota );
 
                         quotaIncreased = true;
@@ -255,6 +261,12 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
         {
             throwAlertException( "Error obtaining quota of " + sourceHost.getId(), null );
         }
+    }
+
+
+    private void processRamAlert()
+    {
+
     }
 
 
