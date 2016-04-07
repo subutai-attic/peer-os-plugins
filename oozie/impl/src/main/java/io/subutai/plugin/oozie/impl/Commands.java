@@ -58,6 +58,11 @@ public class Commands
                 OutputRedirection.NO );
     }
 
+    public static RequestBuilder getInstallPythonCommand()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install python" ).withTimeout( 5000 );
+    }
+
 
     public static RequestBuilder getCheckInstalledCommand()
     {

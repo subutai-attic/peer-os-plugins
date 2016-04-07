@@ -34,7 +34,7 @@ import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
 import io.subutai.plugin.storm.impl.StormImpl;
 import io.subutai.plugin.storm.impl.StormService;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 /**
@@ -78,10 +78,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
             if ( config.isExternalZookeeper() )
             {
-                ZookeeperClusterConfig zookeeperConfig =
-                        manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-                zookeeperEnvironment =
-                        manager.getEnvironmentManager().loadEnvironment( zookeeperConfig.getEnvironmentId() );
+//                ZookeeperClusterConfig zookeeperConfig =
+//                        manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+//                zookeeperEnvironment =
+//                        manager.getEnvironmentManager().loadEnvironment( zookeeperConfig.getEnvironmentId() );
             }
             else
             {
@@ -110,11 +110,11 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                         if ( config.getNimbus().equals( uuid ) )
                         {
 
-                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.START, StormService.NIMBUS ) ) );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.START, StormService.UI ) ) );
+//                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.START, StormService.NIMBUS ) ) );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.START, StormService.UI ) ) );
                         }
                         else if ( config.getSupervisors().contains( uuid ) )
                         {
@@ -138,11 +138,11 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                         if ( config.getNimbus().equals( uuid ) )
                         {
 
-                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.STOP, StormService.NIMBUS ) ) );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.STOP, StormService.UI ) ) );
+//                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.STOP, StormService.NIMBUS ) ) );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.STOP, StormService.UI ) ) );
                         }
                         else if ( config.getSupervisors().contains( uuid ) )
                         {
@@ -166,11 +166,11 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                         if ( config.getNimbus().equals( uuid ) )
                         {
 
-                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) );
-                            commandResultList.add( executeCommand( containerHost,
-                                    Commands.make( CommandType.STATUS, StormService.UI ) ) );
+//                            EnvironmentContainerHost containerHost = zookeeperEnvironment.getContainerHostById( uuid );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) );
+//                            commandResultList.add( executeCommand( containerHost,
+//                                    Commands.make( CommandType.STATUS, StormService.UI ) ) );
                         }
                         else if ( config.getSupervisors().contains( uuid ) )
                         {
@@ -216,9 +216,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         final String hostname = UUID.randomUUID().toString();
-        final String containerName = ZookeeperClusterConfig.PRODUCT_NAME + "_" + hostname;
-        Node node = new Node( hostname, containerName, ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
-                localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
+//        final String containerName = ZookeeperClusterConfig.PRODUCT_NAME + "_" + hostname;
+//        Node node = new Node( hostname, containerName, ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1,
+//                localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
 
         EnvironmentContainerHost newNode;
         try
@@ -353,7 +353,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             {
                 CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
                 trackerOperation.addLog(
-                        String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                        String.format( "Storm %s%s configured for entry %s on %s", stormNode.getTemplateName(),
                                 commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
             }
             catch ( CommandException exception )
@@ -402,47 +402,47 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     {
         if ( config.isExternalZookeeper() )
         {
-            String zk_name = config.getZookeeperClusterName();
-            ZookeeperClusterConfig zk_config;
-            zk_config = manager.getZookeeperManager().getCluster( zk_name );
-            if ( zk_config != null )
-            {
-                StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment;
-                try
-                {
-                    zookeeperEnvironment =
-                            manager.getEnvironmentManager().loadEnvironment( zk_config.getEnvironmentId() );
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException(
-                            String.format( "Error environment not found with id: %s", zk_config.getEnvironmentId() ),
-                            e );
-                    return "";
-                }
-                Set<EnvironmentContainerHost> zookeeperNodes;
-                try
-                {
-                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    logException( String.format( "Some container hosts not found by ids: %s.",
-                            zk_config.getNodes().toString() ), e );
-                    return "";
-                }
-                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
-                {
-                    if ( sb.length() > 0 )
-                    {
-                        sb.append( "," );
-                    }
-                    HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
-                    sb.append( hostInterface.getIp() );
-                }
-                return sb.toString();
-            }
+//            String zk_name = config.getZookeeperClusterName();
+//            ZookeeperClusterConfig zk_config;
+//            zk_config = manager.getZookeeperManager().getCluster( zk_name );
+//            if ( zk_config != null )
+//            {
+//                StringBuilder sb = new StringBuilder();
+//                Environment zookeeperEnvironment;
+//                try
+//                {
+//                    zookeeperEnvironment =
+//                            manager.getEnvironmentManager().loadEnvironment( zk_config.getEnvironmentId() );
+//                }
+//                catch ( EnvironmentNotFoundException e )
+//                {
+//                    logException(
+//                            String.format( "Error environment not found with id: %s", zk_config.getEnvironmentId() ),
+//                            e );
+//                    return "";
+//                }
+//                Set<EnvironmentContainerHost> zookeeperNodes;
+//                try
+//                {
+//                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    logException( String.format( "Some container hosts not found by ids: %s.",
+//                            zk_config.getNodes().toString() ), e );
+//                    return "";
+//                }
+//                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
+//                {
+//                    if ( sb.length() > 0 )
+//                    {
+//                        sb.append( "," );
+//                    }
+//                    HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
+//                    sb.append( hostInterface.getIp() );
+//                }
+//                return sb.toString();
+//            }
         }
         else if ( config.getNimbus() != null )
         {

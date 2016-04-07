@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.subutai.common.host.HostInterface;
-import io.subutai.common.peer.Host;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
@@ -19,12 +18,11 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
@@ -63,27 +61,27 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         if ( config.isExternalZookeeper() )
         {
-            ZookeeperClusterConfig zookeeperClusterConfig =
-                    stormManager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment;
-            try
-            {
-                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
-                return;
-            }
-            try
-            {
-                nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
-                return;
-            }
+//            ZookeeperClusterConfig zookeeperClusterConfig =
+//                    stormManager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+//            Environment zookeeperEnvironment;
+//            try
+//            {
+//                zookeeperEnvironment = environmentManager.loadEnvironment( zookeeperClusterConfig.getEnvironmentId() );
+//            }
+//            catch ( EnvironmentNotFoundException e )
+//            {
+//                logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
+//                return;
+//            }
+//            try
+//            {
+//                nimbusHost = zookeeperEnvironment.getContainerHostById( config.getNimbus() );
+//            }
+//            catch ( ContainerHostNotFoundException e )
+//            {
+//                logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
+//                return;
+//            }
         }
         else
         {
@@ -141,7 +139,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 if ( !config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
                         && operation_count == 0 )
                 {
-                    String installZookeeperCommand = stormManager.getZookeeperManager().getCommand(
+                   /* String installZookeeperCommand = stormManager.getZookeeperManager().getCommand(
                             io.subutai.plugin.zookeeper.api.CommandType.INSTALL );
                     CommandResult commandResult;
                     try
@@ -155,7 +153,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         return;
                     }
                     po.addLog( String.format( "Zookeeper %s installed on Storm nimbus node %s",
-                            commandResult.hasSucceeded() ? "" : "not", stormNode.getHostname() ) );
+                            commandResult.hasSucceeded() ? "" : "not", stormNode.getHostname() ) );*/
                 }
                 // Install storm on zookeeper node if external zookeeper is selected
                 else if ( config.isExternalZookeeper() && config.getNimbus().equals( stormNode.getId() )
@@ -179,7 +177,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 try
                 {
                     CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
-                    po.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                    po.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getTemplateName(),
                             commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
                 }
                 catch ( CommandException exception )
@@ -209,44 +207,44 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         if ( config.isExternalZookeeper() )
         {
-            String zk_name = config.getZookeeperClusterName();
-            ZookeeperClusterConfig zk_config;
-            zk_config = stormManager.getZookeeperManager().getCluster( zk_name );
-            if ( zk_config != null )
-            {
-                StringBuilder sb = new StringBuilder();
-                Environment zookeeperEnvironment;
-                try
-                {
-                    zookeeperEnvironment = environmentManager.loadEnvironment( zk_config.getEnvironmentId() );
-                }
-                catch ( EnvironmentNotFoundException e )
-                {
-                    logException( String.format( "Environment not found by id: %s", zk_config.getEnvironmentId() ), e );
-                    return "";
-                }
-                Set<EnvironmentContainerHost> zookeeperNodes;
-                try
-                {
-                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    logException( String.format( "Some container hosts not found by id: %s",
-                            zk_config.getNodes().toString() ), e );
-                    return "";
-                }
-                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
-                {
-                    if ( sb.length() > 0 )
-                    {
-                        sb.append( "," );
-                    }
-                    HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
-                    sb.append( hostInterface.getIp () );
-                }
-                return sb.toString();
-            }
+//            String zk_name = config.getZookeeperClusterName();
+//            ZookeeperClusterConfig zk_config;
+//            zk_config = stormManager.getZookeeperManager().getCluster( zk_name );
+//            if ( zk_config != null )
+//            {
+//                StringBuilder sb = new StringBuilder();
+//                Environment zookeeperEnvironment;
+//                try
+//                {
+//                    zookeeperEnvironment = environmentManager.loadEnvironment( zk_config.getEnvironmentId() );
+//                }
+//                catch ( EnvironmentNotFoundException e )
+//                {
+//                    logException( String.format( "Environment not found by id: %s", zk_config.getEnvironmentId() ), e );
+//                    return "";
+//                }
+//                Set<EnvironmentContainerHost> zookeeperNodes;
+//                try
+//                {
+//                    zookeeperNodes = zookeeperEnvironment.getContainerHostsByIds( zk_config.getNodes() );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    logException( String.format( "Some container hosts not found by id: %s",
+//                            zk_config.getNodes().toString() ), e );
+//                    return "";
+//                }
+//                for ( EnvironmentContainerHost containerHost : zookeeperNodes )
+//                {
+//                    if ( sb.length() > 0 )
+//                    {
+//                        sb.append( "," );
+//                    }
+//                    HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+//                    sb.append( hostInterface.getIp () );
+//                }
+//                return sb.toString();
+//            }
         }
         else if ( config.getNimbus() != null )
         {

@@ -35,14 +35,14 @@ import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.rest.pojo.ContainerPojo;
 import io.subutai.plugin.storm.rest.pojo.StormPojo;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
 
 
 public class RestServiceImpl implements RestService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger( RestServiceImpl.class );
     private Storm stormManager;
-    private Zookeeper zookeeperManager;
+//    private Zookeeper zookeeperManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
 
@@ -71,16 +71,16 @@ public class RestServiceImpl implements RestService
     }
 
 
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
-    }
-
-
-    public void setZookeeperManager( final Zookeeper zookeeperManager )
-    {
-        this.zookeeperManager = zookeeperManager;
-    }
+//    public Zookeeper getZookeeperManager()
+//    {
+//        return zookeeperManager;
+//    }
+//
+//
+//    public void setZookeeperManager( final Zookeeper zookeeperManager )
+//    {
+//        this.zookeeperManager = zookeeperManager;
+//    }
 
 
 	@Override
@@ -158,6 +158,7 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setEnvironmentId( environmentId );
         config.setNimbus( nimbus );
+        config.setExternalZookeeper( false );
 
         try
         {

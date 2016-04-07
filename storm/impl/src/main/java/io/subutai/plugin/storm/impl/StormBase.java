@@ -6,19 +6,16 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.impl.alert.StormAlertListener;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
 
 
 public abstract class StormBase implements Storm
@@ -27,7 +24,7 @@ public abstract class StormBase implements Storm
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     protected Tracker tracker;
-    protected Zookeeper zookeeperManager;
+//    protected Zookeeper zookeeperManager;
     protected EnvironmentManager environmentManager;
     protected PluginDAO pluginDAO;
     protected ExecutorService executor;
@@ -114,16 +111,16 @@ public abstract class StormBase implements Storm
     }
 
 
-    public Zookeeper getZookeeperManager()
-    {
-        return zookeeperManager;
-    }
-
-
-    public void setZookeeperManager( Zookeeper zookeeperManager )
-    {
-        this.zookeeperManager = zookeeperManager;
-    }
+//    public Zookeeper getZookeeperManager()
+//    {
+//        return zookeeperManager;
+//    }
+//
+//
+//    public void setZookeeperManager( Zookeeper zookeeperManager )
+//    {
+//        this.zookeeperManager = zookeeperManager;
+//    }
 
 
     public EnvironmentManager getEnvironmentManager()

@@ -27,7 +27,7 @@ import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
 import io.subutai.plugin.storm.impl.StormImpl;
 import io.subutai.plugin.storm.impl.StormService;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
 /**
@@ -87,30 +87,30 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         // Check if the container is on external environment
         if ( config.isExternalZookeeper() && containerHost == null )
         {
-            ZookeeperClusterConfig zookeeperCluster =
-                    manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-            Environment zookeeperEnvironment;
-            try
-            {
-                zookeeperEnvironment =
-                        manager.getEnvironmentManager().loadEnvironment( zookeeperCluster.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                logException(
-                        String.format( "Couldn't find environment by id: %s", zookeeperCluster.getEnvironmentId() ),
-                        e );
-                return;
-            }
-            try
-            {
-                containerHost = zookeeperEnvironment.getContainerHostByHostname( hostname );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                logException( String.format( "Error getting container host by name: %s", hostname ), e );
-                return;
-            }
+//            ZookeeperClusterConfig zookeeperCluster =
+//                    manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
+//            Environment zookeeperEnvironment;
+//            try
+//            {
+//                zookeeperEnvironment =
+//                        manager.getEnvironmentManager().loadEnvironment( zookeeperCluster.getEnvironmentId() );
+//            }
+//            catch ( EnvironmentNotFoundException e )
+//            {
+//                logException(
+//                        String.format( "Couldn't find environment by id: %s", zookeeperCluster.getEnvironmentId() ),
+//                        e );
+//                return;
+//            }
+//            try
+//            {
+//                containerHost = zookeeperEnvironment.getContainerHostByHostname( hostname );
+//            }
+//            catch ( ContainerHostNotFoundException e )
+//            {
+//                logException( String.format( "Error getting container host by name: %s", hostname ), e );
+//                return;
+//            }
         }
 
         if ( containerHost == null )
@@ -127,10 +127,10 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
                 case START:
                     if ( config.getNimbus().equals( containerHost.getId() ) )
                     {
-                        commandResultList.add( containerHost
-                                .execute( new RequestBuilder( manager.getZookeeperManager().getCommand(
-
-                                        io.subutai.plugin.zookeeper.api.CommandType.START ) ) ) );
+//                        commandResultList.add( containerHost
+//                                .execute( new RequestBuilder( manager.getZookeeperManager().getCommand(
+//
+//                                        io.subutai.plugin.zookeeper.api.CommandType.START ) ) ) );
                         commandResultList.add( containerHost.execute(
                                 new RequestBuilder( Commands.make( CommandType.START, StormService.NIMBUS ) ) ) );
                         commandResultList.add( containerHost
