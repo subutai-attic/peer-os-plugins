@@ -118,7 +118,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         {
             for ( EnvironmentContainerHost n : environment.getContainerHosts() )
             {
-                if ( n.getNodeGroupName().equals( StormService.NIMBUS.toString() ) )
+                //todo: please see following line. before it was using n.getNodeGrouName()
+                if ( n.getContainerName().equalsIgnoreCase( StormService.NIMBUS.toString() ) )
                 {
                     config.setNimbus( n.getId() );
                 }
@@ -128,7 +129,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
         // collect worker nodes in environment
         for ( EnvironmentContainerHost n : environment.getContainerHosts() )
         {
-            if ( n.getNodeGroupName().equals( StormService.SUPERVISOR.toString() ) )
+            //todo: please see following line. before it was using n.getNodeGrouName()
+            if ( n.getContainerName().equalsIgnoreCase( StormService.SUPERVISOR.toString() ) )
             {
                 config.getSupervisors().add( n.getId() );
             }
@@ -229,8 +231,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 return;
             }
         }
-		HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
-        paramValues.put( "nimbus.host", hostInterface.getIp () );
+        HostInterface hostInterface = nimbusHost.getInterfaceByName( "eth0" );
+        paramValues.put( "nimbus.host", hostInterface.getIp() );
 
         Set<EnvironmentContainerHost> supervisorNodes;
         try
@@ -301,7 +303,7 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 try
                 {
                     CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
-                    po.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                    po.addLog( String.format( "Storm %s configured for entry %s on %s",
                             commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
                 }
                 catch ( CommandException exception )
@@ -370,8 +372,8 @@ public class StormSetupStrategyDefault implements ClusterSetupStrategy
                 logException( String.format( "Container host not found by id: %s", config.getNimbus() ), e );
                 return "";
             }
-            HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
-            return hostInterface.getIp ();
+            HostInterface hostInterface = nimbusHost.getInterfaceByName( "eth0" );
+            return hostInterface.getIp();
         }
 
         return null;

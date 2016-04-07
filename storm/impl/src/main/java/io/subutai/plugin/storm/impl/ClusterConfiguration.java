@@ -95,8 +95,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 return;
             }
         }
-		HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
-        paramValues.put( "nimbus.host", hostInterface.getIp () );
+        HostInterface hostInterface = nimbusHost.getInterfaceByName( "eth0" );
+        paramValues.put( "nimbus.host", hostInterface.getIp() );
 
         Set<EnvironmentContainerHost> supervisorNodes;
         try
@@ -121,15 +121,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             stormNode = allNode;
             int operation_count = 0;
             try
-			{
-				stormNode.execute (new RequestBuilder ("apt-get --force-yes --assume-yes update").withTimeout (60));
-				stormNode.execute (new RequestBuilder ("apt-get --force-yes --assume-yes install python").withTimeout (60));
-			}
-			catch (CommandException e)
-			{
-				e.printStackTrace ();
-				return;
-			}
+            {
+                stormNode.execute( new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 60 ) );
+                stormNode.execute(
+                        new RequestBuilder( "apt-get --force-yes --assume-yes install python" ).withTimeout( 60 ) );
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+                return;
+            }
             for ( Map.Entry<String, String> entry : paramValues.entrySet() )
             {
                 String s = Commands.configure( "add", "storm.xml", entry.getKey(), entry.getValue() );
@@ -177,7 +178,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 try
                 {
                     CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
-                    po.addLog( String.format( "Storm %s%s configured for entry %s on %s", stormNode.getTemplateName(),
+                    po.addLog( String.format( "Storm %s configured for entry %s on %s",
                             commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
                 }
                 catch ( CommandException exception )
@@ -264,8 +265,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 logException( String.format( "Environment not found by id: %s", config.getEnvironmentId() ), e );
                 return "";
             }
-			HostInterface hostInterface = nimbusHost.getInterfaceByName ("eth0");
-            return hostInterface.getIp ();
+            HostInterface hostInterface = nimbusHost.getInterfaceByName( "eth0" );
+            return hostInterface.getIp();
         }
         return null;
     }
