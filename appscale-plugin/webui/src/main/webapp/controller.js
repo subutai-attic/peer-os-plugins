@@ -216,6 +216,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		ngDialog.close();
 		appscaleSrv.quickInstall( val ).success(function(data) {
 			SweetAlert.swal ("Success!", "Your Appscale cluster '"+ val.name +"' is created.", "success");
+			listClusters();
 			LOADING_SCREEN('none');
 		}).error( function (data) {
 			SweetAlert.swal ("ERROR!", data, "error");
