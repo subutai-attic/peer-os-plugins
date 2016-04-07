@@ -181,13 +181,6 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
                 // check if a quota limit increase does it
                 boolean quotaIncreased = false;
 
-
-                switch ( alert.getValue().getContainerResourceType() )
-                {
-                    case RAM:
-                        processRamAlert();
-                        break;
-                }
                 if ( isRamStressed )
                 {
                     //read current RAM quota
@@ -262,13 +255,6 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
             throwAlertException( "Error obtaining quota of " + sourceHost.getId(), null );
         }
     }
-
-
-    private void processRamAlert()
-    {
-
-    }
-
 
     protected int parsePid( String output ) throws AlertHandlerException
     {
