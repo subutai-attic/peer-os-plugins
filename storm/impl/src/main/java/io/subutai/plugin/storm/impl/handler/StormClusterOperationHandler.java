@@ -352,8 +352,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
             try
             {
                 CommandResult commandResult = stormNode.execute( new RequestBuilder( s ).withTimeout( 60 ) );
-                trackerOperation.addLog(
-                        String.format( "Storm %s%s configured for entry %s on %s", stormNode.getNodeGroupName(),
+                trackerOperation.addLog( String.format( "Storm %s configured for entry %s on %s",
                                 commandResult.hasSucceeded() ? "" : " not", entry, stormNode.getHostname() ) );
             }
             catch ( CommandException exception )

@@ -186,7 +186,7 @@ public class StormSetupStrategyDefaultTest
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
         when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
-        when( containerHost.getNodeGroupName() ).thenReturn( StormService.SUPERVISOR.toString() );
+        when( containerHost.getContainerName() ).thenReturn( StormService.SUPERVISOR.toString() );
         when( containerHost.getId() ).thenReturn( id );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
@@ -211,7 +211,7 @@ public class StormSetupStrategyDefaultTest
         when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
-        when( containerHost.getNodeGroupName() ).thenReturn( StormService.NIMBUS.toString() );
+        when( containerHost.getContainerName() ).thenReturn( StormService.NIMBUS.toString() );
         when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
         when( zookeeper.getCommand( CommandType.INSTALL ) ).thenReturn( "testCommand" );
         when( environment.getId() ).thenReturn( id );
