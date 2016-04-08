@@ -8,8 +8,7 @@
 							<label class="b-form-label b-form-label_fix-size-1 g-left">Profile</label>
 
 							<div class="b-form-wrapper b-form-wrapper_margin-size-1">
-								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentProfile" ng-change="genericCtrl.getOperations()" style = "color: black">
-									<option ng-selected = "genericCtrl.currentProfile.name === profile.name" value="{{ profile }}" ng-repeat = "profile in genericCtrl.profiles">{{ profile.name }}</option>
+								<select class="b-form-input b-form-input_full" ng-model = "genericCtrl.currentProfile" ng-change="genericCtrl.getOperations()" style = "color: black" ng-options = "profile.name for profile in genericCtrl.profiles">
 								</select>
 							</div>
 							<div class="clear"></div>
