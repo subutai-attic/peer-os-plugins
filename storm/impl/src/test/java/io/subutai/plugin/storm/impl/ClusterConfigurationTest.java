@@ -25,8 +25,8 @@ import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -55,10 +55,10 @@ public class ClusterConfigurationTest
     ClusterSetupStrategy clusterSetupStrategy;
     @Mock
     PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
+//    @Mock
+//    Zookeeper zookeeper;
+//    @Mock
+//    ZookeeperClusterConfig zookeeperClusterConfig;
     @Mock
     ConfigBase configBase;
     private ClusterConfiguration clusterConfiguration;
@@ -83,7 +83,7 @@ public class ClusterConfigurationTest
         clusterConfiguration = new ClusterConfiguration( trackerOperation, stormImpl );
 
         // mock
-        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
+//        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( containerHost.getInterfaceByName( "eth0" ) ).thenReturn( hostInterface );

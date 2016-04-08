@@ -24,8 +24,8 @@ import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.storm.api.Storm;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -45,10 +45,10 @@ public class RestServiceTest
     Storm storm;
     @Mock
     EnvironmentManager environmentManager;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
+//    @Mock
+//    Zookeeper zookeeper;
+//    @Mock
+//    ZookeeperClusterConfig zookeeperClusterConfig;
     @Mock
     Environment environment;
     @Mock
@@ -72,11 +72,11 @@ public class RestServiceTest
         restService = new RestServiceImpl();
         restService.setEnvironmentManager( environmentManager );
         restService.setStormManager( storm );
-        restService.setZookeeperManager( zookeeper );
+//        restService.setZookeeperManager( zookeeper );
         restService.setTracker( tracker );
 
         // mock
-        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostByHostname( anyString() ) ).thenReturn( containerHost );
         when( containerHost.getId() ).thenReturn( UUID.randomUUID().toString() );
@@ -101,11 +101,11 @@ public class RestServiceTest
     @Test
     public void testGetZookeeperManager() throws Exception
     {
-        restService.getZookeeperManager();
-
-        //assertions
-        assertNotNull( restService.getZookeeperManager() );
-        assertEquals( zookeeper, restService.getZookeeperManager() );
+//        restService.getZookeeperManager();
+//
+//        //assertions
+//        assertNotNull( restService.getZookeeperManager() );
+//        assertEquals( zookeeper, restService.getZookeeperManager() );
     }
 
 

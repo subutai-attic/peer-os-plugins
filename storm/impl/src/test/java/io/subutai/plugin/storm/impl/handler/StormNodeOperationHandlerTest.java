@@ -26,9 +26,9 @@ import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.StormImpl;
-import io.subutai.plugin.zookeeper.api.CommandType;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.CommandType;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -59,10 +59,10 @@ public class StormNodeOperationHandlerTest
     ClusterSetupStrategy clusterSetupStrategy;
     @Mock
     PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
+//    @Mock
+//    Zookeeper zookeeper;
+//    @Mock
+//    ZookeeperClusterConfig zookeeperClusterConfig;
     @Mock
     PeerManager peerManager;
     private StormNodeOperationHandler stormNodeOperationHandler;
@@ -104,12 +104,12 @@ public class StormNodeOperationHandlerTest
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
-        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
-        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+//        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
+//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
         when( containerHost.getId() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-        when( zookeeper.getCommand( any( CommandType.class ) ) ).thenReturn( "testCommand" );
+//        when( zookeeper.getCommand( any( CommandType.class ) ) ).thenReturn( "testCommand" );
     }
 
 

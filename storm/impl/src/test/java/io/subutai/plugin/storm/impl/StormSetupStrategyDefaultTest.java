@@ -25,9 +25,9 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
-import io.subutai.plugin.zookeeper.api.CommandType;
-import io.subutai.plugin.zookeeper.api.Zookeeper;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+//import io.subutai.plugin.zookeeper.api.CommandType;
+//import io.subutai.plugin.zookeeper.api.Zookeeper;
+//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -61,10 +61,10 @@ public class StormSetupStrategyDefaultTest
     ClusterSetupStrategy clusterSetupStrategy;
     @Mock
     PluginDAO pluginDAO;
-    @Mock
-    Zookeeper zookeeper;
-    @Mock
-    ZookeeperClusterConfig zookeeperClusterConfig;
+//    @Mock
+//    Zookeeper zookeeper;
+//    @Mock
+//    ZookeeperClusterConfig zookeeperClusterConfig;
 //    @Mock
 //    Template template;
     private StormSetupStrategyDefault stormSetupStrategyDefault;
@@ -97,9 +97,9 @@ public class StormSetupStrategyDefaultTest
                 new StormSetupStrategyDefault( stormImpl, stormClusterConfiguration, trackerOperation );
 
         // mock setup method
-        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
-        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
+//        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
+//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+//        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
     }
@@ -185,7 +185,7 @@ public class StormSetupStrategyDefaultTest
 //        when( template.getProducts() ).thenReturn( myString );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
-        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+//        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
         when( containerHost.getContainerName() ).thenReturn( StormService.SUPERVISOR.toString() );
         when( containerHost.getId() ).thenReturn( id );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
@@ -205,7 +205,7 @@ public class StormSetupStrategyDefaultTest
 //        when( template.getProducts() ).thenReturn( myString );
         when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( false );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
-        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
+//        when( zookeeperClusterConfig.getNodes() ).thenReturn( myUUID );
         when( containerHost.getId() ).thenReturn( id );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
         when( environment.getContainerHostsByIds( anySetOf( String.class ) ) ).thenReturn( mySet );
@@ -213,7 +213,7 @@ public class StormSetupStrategyDefaultTest
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
         when( containerHost.getContainerName() ).thenReturn( StormService.NIMBUS.toString() );
         when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
-        when( zookeeper.getCommand( CommandType.INSTALL ) ).thenReturn( "testCommand" );
+//        when( zookeeper.getCommand( CommandType.INSTALL ) ).thenReturn( "testCommand" );
         when( environment.getId() ).thenReturn( id );
 
         stormSetupStrategyDefault.setup();
