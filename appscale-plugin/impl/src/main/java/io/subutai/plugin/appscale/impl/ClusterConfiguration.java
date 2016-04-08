@@ -546,7 +546,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
         }
         // this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo login: " + ipaddr + " >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo 'force: True' >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
