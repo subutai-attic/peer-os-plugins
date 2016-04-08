@@ -82,7 +82,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         UUID newUuid = UUID.randomUUID (); // for the control if this is alert handled before;
         LOG.debug ( String.format ( "%s", alertValue ) );
         //find appScale cluster by environment id
-        final List<AppScaleConfig> clusters = appScale.getClusters ();
+        final List<AppScaleConfig> clusters = appScale.getClusters (); // this is already getting from db
 
         String environmentId = environment.getId ();
 

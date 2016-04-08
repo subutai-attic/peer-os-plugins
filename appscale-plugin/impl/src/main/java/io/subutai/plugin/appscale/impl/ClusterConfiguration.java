@@ -22,10 +22,12 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.host.HostId;
 import io.subutai.common.peer.AlertHandlerPriority;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.exception.EnvironmentManagerException;
@@ -343,15 +345,47 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LocalPeer localPeer = peerManager.getLocalPeer ();
         LOG.info ( "LocalPeer: " + localPeer );
         String ipAddress = this.getIPAddress ( containerHost ); // only for master
-
-        if ( config.getVlanNumber () == null )
-        {
-            po.addLogFailed ( "we have a problem here" );
-        }
+//
+//        if ( config.getVlanNumber () == null )
+//        {
+//            po.addLogFailed ( "we have a problem here" );
+//        }
 
         try
         {
-            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
+            ResourceHost resourceHostByContainerId = null;
+
+            try
+            {
+                resourceHostByContainerId = localPeer.getResourceHostByContainerId (
+                        containerHost.getContainerId ().toString () );
+            }
+            catch ( HostNotFoundException e )
+            {
+                // if this happens then we do not have localhost. lets look for remote...
+                LOG.error ( e.toString () );
+                HostId hid = null;
+                try
+                {
+                    hid = peerManager.getPeer ( peerManager.getRemotePeerIdByIp ( ipAddress ) )
+                            .getResourceHostIdByContainerId ( containerHost.getContainerId () );
+                    resourceHostByContainerId = ( ResourceHost ) hid;
+                }
+                catch ( PeerException ex )
+                {
+                    LOG.error ( ex.toString () );
+                    po.addLogFailed ( "NO HOST FOUND!!!" );
+                }
+            }
+            finally
+            {
+                if ( resourceHostByContainerId == null )
+                {
+                    LOG.error ( "still null" );
+                    po.addLogFailed ( "resourceHostByContainerId can not be found " );
+                }
+            }
+
             LOG.info ( "resouceHostID: " + resourceHostByContainerId );
             LOG.info ( "HERE IS THE RESOURCE HOST: " + resourceHostByContainerId.getHostname () );
 
@@ -371,7 +405,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             resourceHostByContainerId
                     .execute ( new RequestBuilder ( "subutai proxy add " + vlanString + " -h " + ipAddress ) );
         }
-        catch ( HostNotFoundException | CommandException ex )
+        catch ( CommandException ex )
         {
             LOG.error ( ex.toString () );
         }
