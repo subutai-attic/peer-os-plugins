@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -166,40 +167,39 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
 
         //install
         Set<Host> hostSet = getHosts( zookeeperClusterConfig.getNodes(), environment );
-        try
+        RequestBuilder installRequest = new RequestBuilder( Commands.getInstallCommand() );
+        installRequest.withTimeout( 360 );
+        CommandUtil.HostCommandResults results = commandUtil.executeParallel( installRequest, hostSet );
+        Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+        Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
+        for ( CommandUtil.HostCommandResult result : resultSet)
         {
-            RequestBuilder installRequest = new RequestBuilder( Commands.getInstallCommand() );
-            installRequest.withTimeout( 360 );
-            Map<Host, CommandResult> resultMap = commandUtil.executeParallel( installRequest, hostSet );
-            if ( isAllSuccessful( resultMap, hostSet ) )
+            resultMap.put (result.getHost(), result.getCommandResult());
+        }
+        if ( isAllSuccessful( resultMap, hostSet ) )
+        {
+            po.addLog( "Zookeeper is installed on all nodes successfully" );
+            try
             {
-                po.addLog( "Zookeeper is installed on all nodes successfully" );
-                try
-                {
-                    new ClusterConfiguration( manager, po ).configureCluster( zookeeperClusterConfig, environment );
+                new ClusterConfiguration( manager, po ).configureCluster( zookeeperClusterConfig, environment );
 
-                    po.addLog( "Saving cluster information to database..." );
+                po.addLog( "Saving cluster information to database..." );
 
-                    zookeeperClusterConfig.setEnvironmentId( environment.getId() );
+                zookeeperClusterConfig.setEnvironmentId( environment.getId() );
 
-                    manager.getPluginDAO()
-                           .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
-                                   zookeeperClusterConfig );
-                    po.addLog( "Cluster information saved to database" );
-                }
-                catch ( ClusterConfigurationException e )
-                {
-                    e.printStackTrace();
-                }
+                manager.getPluginDAO()
+                       .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
+                               zookeeperClusterConfig );
+                po.addLog( "Cluster information saved to database" );
             }
-            else
+            catch ( ClusterConfigurationException e )
             {
-                po.addLogFailed( "Zookeeper is NOT installed on all nodes successfully !!!" );
+                e.printStackTrace();
             }
         }
-        catch ( CommandException e )
+        else
         {
-            e.printStackTrace();
+            po.addLogFailed( "Zookeeper is NOT installed on all nodes successfully !!!" );
         }
         return zookeeperClusterConfig;
     }

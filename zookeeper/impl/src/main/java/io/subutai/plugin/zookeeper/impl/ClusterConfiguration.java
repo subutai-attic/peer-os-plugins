@@ -1,9 +1,13 @@
 package io.subutai.plugin.zookeeper.impl;
 
 
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import com.google.common.base.Strings;
@@ -16,7 +20,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.FileUtil;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
@@ -130,7 +133,22 @@ public class ClusterConfiguration
     //temporary workaround until we get full configuration injection working
     private String prepareConfiguration( Set<EnvironmentContainerHost> nodes ) throws ClusterConfigurationException
     {
-        String zooCfgFile = FileUtil.getContent( "conf/zoo.cfg", ZookeeperStandaloneSetupStrategy.class );
+        String zooCfgFile = "";
+
+        try
+        {
+            URL url = ZookeeperStandaloneSetupStrategy.class.getProtectionDomain().getCodeSource().getLocation();
+
+            URLClassLoader loader = new URLClassLoader( new URL[] { url }, Thread.currentThread().getContextClassLoader() );
+            InputStream is = loader.getResourceAsStream( "conf/zoo.cfg" );
+            Scanner scanner = new Scanner( is ).useDelimiter( "\\A" );
+            zooCfgFile = scanner.hasNext() ? scanner.next() : "";
+            is.close();
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
 
         if ( Strings.isNullOrEmpty( zooCfgFile ) )
         {

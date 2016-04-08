@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -201,20 +202,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             // stop hbase cluster before removing hbase debian package
             manager.stopCluster( clusterName );
 
-            try
+            Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
+            CommandUtil.HostCommandResults results = commandUtil.executeParallel( Commands.getUninstallCommand(),
+                    HBaseSetupStrategy.getHosts( config, environment ) );
+            Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+            Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
+            for ( CommandUtil.HostCommandResult result : resultSet)
             {
-                Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
-                Map<Host, CommandResult> resultMap = commandUtil.executeParallel( Commands.getUninstallCommand(),
-                        HBaseSetupStrategy.getHosts( config, environment ) );
-                if ( isAllSuccessful( resultMap, hostSet ) )
-                {
-                    trackerOperation.addLog( "HBase package is removed from all nodes succesfully" );
-                }
+                resultMap.put (result.getHost(), result.getCommandResult());
             }
-            catch ( CommandException e )
+            if ( isAllSuccessful( resultMap, hostSet ) )
             {
-                LOG.error( "Error while uninstalling HBase from nodes", e );
-                e.printStackTrace();
+                trackerOperation.addLog( "HBase package is removed from all nodes succesfully" );
             }
 
             if ( !manager.getPluginDAO().deleteInfo( HBaseConfig.PRODUCT_KEY, clusterName ) )

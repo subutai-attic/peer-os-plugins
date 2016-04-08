@@ -22,8 +22,10 @@ import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.common.quota.ContainerCpuResource;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.quota.ContainerRamResource;
+import io.subutai.common.quota.Quota;
 import io.subutai.common.resource.ByteUnit;
 import io.subutai.common.resource.ByteValueResource;
+import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.NumericValueResource;
 import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
@@ -208,7 +210,7 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.getRam().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
                     //                    int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
@@ -219,9 +221,11 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
 
-                            ContainerRamResource containerRamResource = new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) );
-                            containerQuota.addResource( containerRamResource );
+                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
+                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                                    thresholds.getRamAlertThreshold() );
+
+                            containerQuota.add( quota );
                             sourceHost.setQuota( containerQuota );
                             quotaIncreased = true;
                         }
@@ -231,7 +235,7 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    ContainerCpuResource cpuQuota = containerQuota.getCpu();
+                    ContainerCpuResource cpuQuota = containerQuota.get( ContainerResourceType.CPU ).getAsCpuResource();
 
                     if ( cpuQuota.getResource().getValue().intValue() < MAX_CPU_QUOTA_PERCENT )
                     {
@@ -240,9 +244,11 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
 
-                        ContainerCpuResource newQuota =
-                                new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) );
-                        containerQuota.addResource( newQuota );
+                        Quota quota = new Quota( new ContainerCpuResource( new ByteValueResource(
+                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
+                                thresholds.getRamAlertThreshold() );
+
+                        containerQuota.add( quota );
                         sourceHost.setQuota( containerQuota );
                         quotaIncreased = true;
                     }

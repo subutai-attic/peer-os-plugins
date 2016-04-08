@@ -9,10 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -101,19 +103,17 @@ public class HBaseSetupStrategy
         // Check installed packages
         trackerOperation.addLog( "Installing HBase..." );
 
-        try
+        Set<Host> hostSet = getHosts( config, environment );
+        CommandUtil.HostCommandResults results = commandUtil.executeParallel( Commands.getInstallCommand(), hostSet );
+        Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+        Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
+        for ( CommandUtil.HostCommandResult result : resultSet)
         {
-            Set<Host> hostSet = getHosts( config, environment );
-            Map<Host, CommandResult> resultMap = commandUtil.executeParallel( Commands.getInstallCommand(), hostSet );
-            if ( ClusterOperationHandler.isAllSuccessful( resultMap, hostSet ) )
-            {
-                trackerOperation.addLog( "HBase debian package is installed on all containers successfully" );
-            }
+            resultMap.put (result.getHost(), result.getCommandResult());
         }
-        catch ( CommandException e )
+        if ( ClusterOperationHandler.isAllSuccessful( resultMap, hostSet ) )
         {
-            LOG.error( "Error while executing commands in parallel", e );
-            e.printStackTrace();
+            trackerOperation.addLog( "HBase debian package is installed on all containers successfully" );
         }
 
         try

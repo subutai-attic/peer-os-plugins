@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -215,18 +216,17 @@ public class ZookeeperClusterOperationHandler
                 Set<Host> hostSet =
                         ZookeeperOverHadoopSetupStrategy.getHosts( config.getNodes(), zookeeperEnvironment );
 
-                try
+                CommandUtil.HostCommandResults results = commandUtil
+                        .executeParallel( new RequestBuilder( Commands.getUninstallCommand() ), hostSet );
+                Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+                Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
+                for ( CommandUtil.HostCommandResult result : resultSet)
                 {
-                    Map<Host, CommandResult> resultMap = commandUtil
-                            .executeParallel( new RequestBuilder( Commands.getUninstallCommand() ), hostSet );
-                    if ( ZookeeperOverHadoopSetupStrategy.isAllSuccessful( resultMap, hostSet ) )
-                    {
-                        trackerOperation.addLog( "Zookeeper is uninstalled from all containers successfully" );
-                    }
+                    resultMap.put (result.getHost(), result.getCommandResult());
                 }
-                catch ( CommandException e )
+                if ( ZookeeperOverHadoopSetupStrategy.isAllSuccessful( resultMap, hostSet ) )
                 {
-                    e.printStackTrace();
+                    trackerOperation.addLog( "Zookeeper is uninstalled from all containers successfully" );
                 }
             }
             else

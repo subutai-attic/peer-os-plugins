@@ -26,8 +26,10 @@ import io.subutai.common.peer.PeerException;
 import io.subutai.common.quota.ContainerCpuResource;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.quota.ContainerRamResource;
+import io.subutai.common.quota.Quota;
 import io.subutai.common.resource.ByteUnit;
 import io.subutai.common.resource.ByteValueResource;
+import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.NumericValueResource;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.plugincommon.api.NodeType;
@@ -292,7 +294,7 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.getRam().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
 
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
@@ -306,11 +308,11 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
                             //we can increase RAM quota
-                            final BigDecimal bigDecimal =
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB );
-                            ContainerRamResource quota =
-                                    new ContainerRamResource( new ByteValueResource( bigDecimal ) );
-                            containerQuota.addResource( quota );
+                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
+                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                                    thresholds.getRamAlertThreshold() );
+
+                            containerQuota.add( quota );
 
                             sourceHost.setQuota( containerQuota );
 
@@ -323,8 +325,8 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current CPU quota
                     //                    ResourceValue cpuQuota = sourceHost.getQuota( ResourceType.CPU );
-                    final ContainerQuota quota = sourceHost.getQuota();
-                    ContainerCpuResource cpuQuota = quota.getCpu();
+                    final ContainerQuota containerQuota = sourceHost.getQuota();
+                    ContainerCpuResource cpuQuota = containerQuota.get( ContainerResourceType.CPU ).getAsCpuResource();
 
                     if ( cpuQuota.getResource().getValue().intValue() < MAX_CPU_QUOTA_PERCENT )
                     {
@@ -334,9 +336,13 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
                         //we can increase CPU quota
 
-                        quota.addResource(
-                                new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) ) );
-                        sourceHost.setQuota( quota );
+                        Quota quota = new Quota( new ContainerCpuResource( new ByteValueResource(
+                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
+                                thresholds.getRamAlertThreshold() );
+
+                        containerQuota.add( quota );
+
+                        sourceHost.setQuota( containerQuota );
 
                         quotaIncreased = true;
                     }

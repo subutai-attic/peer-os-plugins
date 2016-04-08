@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-//import io.subutai.common.quota.CpuQuota;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,20 +16,18 @@ import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.common.quota.ContainerCpuResource;
 import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.quota.ContainerRamResource;
+import io.subutai.common.quota.Quota;
 import io.subutai.common.resource.ByteUnit;
 import io.subutai.common.resource.ByteValueResource;
-import io.subutai.common.resource.NumericValueResource;
+import io.subutai.common.resource.ContainerResourceType;
 import io.subutai.common.resource.ResourceValue;
 
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ContainerHostMetric;
-import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
-import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.impl.MongoImpl;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.common.command.CommandException;
@@ -176,7 +174,7 @@ public class MongoAlertListener extends ExceededQuotaAlertHandler
 			{
 				//read current RAM quota
 				ContainerQuota containerQuota = sourceHost.getQuota();
-				double ramQuota = containerQuota.getRam().getResource().getValue( ByteUnit.MB ).doubleValue();
+				double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
 //                    int ramQuota = mongo.getQuotaManager().getRamQuota( sourceHost.getId() );
 				if ( ramQuota < MAX_RAM_QUOTA_MB )
 				{
@@ -187,9 +185,11 @@ public class MongoAlertListener extends ExceededQuotaAlertHandler
 						LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
 								ramQuota, newRamQuota );
 
-						ContainerRamResource containerRamResource = new ContainerRamResource( new ByteValueResource(
-								ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) );
-						containerQuota.addResource( containerRamResource );
+						Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
+								ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+								thresholds.getRamAlertThreshold() );
+
+						containerQuota.add( quota );
 						sourceHost.setQuota( containerQuota );
 						quotaIncreased = true;
 					}
@@ -199,7 +199,7 @@ public class MongoAlertListener extends ExceededQuotaAlertHandler
 			{
 				//read current RAM quota
 				ContainerQuota containerQuota = sourceHost.getQuota();
-				ContainerCpuResource cpuQuota = containerQuota.getCpu();
+				ContainerCpuResource cpuQuota = containerQuota.get( ContainerResourceType.CPU ).getAsCpuResource();
 
 				if ( cpuQuota.getResource().getValue().intValue() < MAX_CPU_QUOTA_PERCENT )
 				{
@@ -207,9 +207,11 @@ public class MongoAlertListener extends ExceededQuotaAlertHandler
 					LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
 							cpuQuota.getResource().getValue().intValue(), newCpuQuota );
 
-					ContainerCpuResource newQuota =
-							new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) );
-					containerQuota.addResource( newQuota );
+					Quota q = new Quota( new ContainerCpuResource( new ByteValueResource(
+							ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
+							thresholds.getRamAlertThreshold() );
+
+					containerQuota.add( q );
 					sourceHost.setQuota( containerQuota );
 					quotaIncreased = true;
 				}

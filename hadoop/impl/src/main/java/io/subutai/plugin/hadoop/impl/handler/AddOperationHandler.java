@@ -97,7 +97,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     try
                     {
-                        groupResources.addPeerResources(
+                        groupResources.getResources().add(
                                 peer.getResourceLimits( manager.getPeerManager().getLocalPeer().getId() ) );
                     }
                     catch ( PeerException e )

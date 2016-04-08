@@ -112,14 +112,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             {
                 hostSet.add( host );
             }
-            try
-            {
-                commandUtil.executeParallel( new RequestBuilder( Commands.getClearDataDirectory() ), hostSet );
-            }
-            catch ( CommandException e )
-            {
-                e.printStackTrace();
-            }
+            commandUtil.executeParallel( new RequestBuilder( Commands.getClearDataDirectory() ), hostSet );
         }
         catch ( EnvironmentNotFoundException e )
         {
