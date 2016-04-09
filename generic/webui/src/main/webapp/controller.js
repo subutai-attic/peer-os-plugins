@@ -83,7 +83,8 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
                 });
             }
             else {
-                 genericSrv.getEnvironments().success (function (data) {
+                vm.operations = [];
+                genericSrv.getEnvironments().success (function (data) {
                     vm.environments = data;
                     if (vm.environments === "" || vm.environments === undefined) {
                         vm.environments = [];
