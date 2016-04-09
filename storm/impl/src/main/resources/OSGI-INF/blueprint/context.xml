@@ -4,8 +4,8 @@
   <!-- *********************************************************************************** -->
   <reference id="tracker" availability="mandatory"
              interface="io.subutai.core.tracker.api.Tracker" />
-  <reference id="zookeeperManager" availability="mandatory"
-             interface="io.subutai.plugin.zookeeper.api.Zookeeper" />
+<!--  <reference id="zookeeperManager" availability="mandatory"
+             interface="io.subutai.plugin.zookeeper.api.Zookeeper" />-->
   <reference id="environmentManager"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
@@ -18,7 +18,7 @@
   <bean id="storm-impl" scope="singleton" class="io.subutai.plugin.storm.impl.StormImpl"
         init-method="init" destroy-method="destroy">
     <property name="tracker" ref="tracker" />
-    <property name="zookeeperManager" ref="zookeeperManager" />
+<!--    <property name="zookeeperManager" ref="zookeeperManager" />-->
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
     <argument ref="monitor" />

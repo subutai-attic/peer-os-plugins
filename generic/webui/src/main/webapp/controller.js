@@ -11,9 +11,7 @@ GenericCtrl.$inject = ["$scope", "genericSrv", "SweetAlert", "DTOptionsBuilder",
 function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder, ngDialog) {
     var vm = this;
 	vm.activeTab = "create";
-	vm.profiles = [];
 	vm.currentProfile = {};
-	vm.operations = [];
 	vm.newProfile = "";
 	vm.newOperation = {
 		cwd: "/",
@@ -21,11 +19,6 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 		daemon: false,
 		script: false
 	};
-	vm.currentOperation = {};
-	vm.environments = [];
-	vm.templates = [];
-	vm.currentEnvironment = {};
-	vm.currentTemplate = "";
 	vm.currentOperationName = "";
 	vm.previousName = "";
 
@@ -55,38 +48,55 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 		$scope:$scope
 	};
 
-
-	$scope.command = "";
-	$scope.$watch ("command", function() {
-		console.log ("AAA");
-	});
-
 	// Init
 
 	function updateProfiles() {
 		genericSrv.listProfiles().success (function (data) {
 			vm.profiles = data;
+			if (vm.profiles === "" || vm.profiles === undefined) {
+			    vm.profiles = [];
+			}
 			vm.currentProfile = vm.profiles[0];
-			genericSrv.listOperations (vm.currentProfile).success (function (data) {
-				vm.operations = data;
-				for (var i = 0; i < vm.operations.length; ++i) {
-					vm.operations[i].commandName = window.atob (vm.operations[i].commandName);
-				}
-				vm.currentOperation = vm.operations[0];
-				genericSrv.getEnvironments().success (function (data) {
-					vm.environments = data;
-					vm.currentEnvironment = vm.environments[0];
-					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-						vm.currentEnvironment.containers[i].operation = vm.operations[0];
-					}
-					getTemplates();
-					if (vm.environments.length === 0) {
-						SweetAlert.swal ("ERROR!", "Please create environment first", "error");
-					}
-				}).error (function (error) {
-					SweetAlert.swal ("ERROR!", "Environments error: " + error.replace(/\\n/g, " "), "error");
-				});
-			});
+			if (vm.currentProfile !== "" && vm.currentProfile !== undefined) {
+                genericSrv.listOperations (vm.currentProfile).success (function (data) {
+                    vm.operations = data;
+                    for (var i = 0; i < vm.operations.length; ++i) {
+                        vm.operations[i].commandName = window.atob (vm.operations[i].commandName);
+                    }
+                    vm.currentOperation = vm.operations[0];
+                    genericSrv.getEnvironments().success (function (data) {
+                        vm.environments = data;
+                        if (vm.environments === "" || vm.environments === undefined) {
+                            vm.environments = [];
+                        }
+                        vm.currentEnvironment = vm.environments[0];
+                        for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+                            vm.currentEnvironment.containers[i].operation = vm.currentOperation;
+                        }
+                        getTemplates();
+                        if (vm.environents === "" || vm.environments.length === 0) {
+                            SweetAlert.swal ("ERROR!", "Please create environment first", "error");
+                        }
+                    }).error (function (error) {
+                        SweetAlert.swal ("ERROR!", "Environments error: " + error.replace(/\\n/g, " "), "error");
+                    });
+                });
+            }
+            else {
+                 genericSrv.getEnvironments().success (function (data) {
+                    vm.environments = data;
+                    if (vm.environments === "" || vm.environments === undefined) {
+                        vm.environments = [];
+                    }
+                    vm.currentEnvironment = vm.environments[0];
+                    getTemplates();
+                    if (vm.environents === "" || vm.environments.length === 0) {
+                        SweetAlert.swal ("ERROR!", "Please create environment first", "error");
+                    }
+                }).error (function (error) {
+                    SweetAlert.swal ("ERROR!", "Environments error: " + error.replace(/\\n/g, " "), "error");
+                });
+            }
 		});
 	}
 	updateProfiles();
@@ -106,7 +116,14 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 	// Create
 
 	function createProfile() {
-		if (vm.profiles.indexOf (vm.newProfile) > -1) {
+	    var temp = false;
+	    for (var i = 0; i < vm.profiles.length; ++i) {
+	        if (vm.profiles[i].name === vm.newProfile) {
+	            temp = true;
+	            break;
+	        }
+	    }
+		if (temp) {
 			SweetAlert.swal ("ERROR!", "Profile already exists", "error");
 		}
 		else if (vm.newProfile === "") {
@@ -177,6 +194,9 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 					vm.operations[i].commandName = window.atob (vm.operations[i].commandName);
 				}
 				vm.currentOperation = vm.operations[0];
+				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
+                    vm.currentEnvironment.containers[i].operation = vm.currentOperation;
+                }
 				console.log (vm.listOfOperations);
 			});
 		}
@@ -219,7 +239,14 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 		if (vm.newOperation.operationName === "" || vm.newOperation.operationName === undefined) {
 			SweetAlert.swal ("ERROR!", "Please enter operation name", "error");
 		}
-		else if (checkIfExists (vm.newOperation)) {
+		var temp = false;
+        for (var i = 0; i < vm.operations.length; ++i) {
+            if (vm.operations[i].operationName === vm.newOperation.operationName) {
+                temp = true;
+                break;
+            }
+        }
+        if (temp) {
 			SweetAlert.swal ("ERROR!", "Operation already exists", "error");
 		}
 		else if (vm.newOperation.cwd === "" || vm.newOperation.cwd === undefined) {
