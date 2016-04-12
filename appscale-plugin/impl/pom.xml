@@ -46,7 +46,7 @@
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
       <version>1.1</version>
-      <type>jar</type>
+      
     </dependency>
     <dependency>
       <groupId>org.apache.cxf</groupId>
@@ -57,13 +57,13 @@
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
-      <type>jar</type>
+      
     </dependency>
     <dependency>
       <groupId>backport-util-concurrent</groupId>
       <artifactId>backport-util-concurrent</artifactId>
       <version>3.1</version>
-      <type>jar</type>
+      
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
