@@ -13,7 +13,11 @@
 			</div>
 			<div class="b-form-group">
 				<label for="master-name" class="b-form-label">Controller container name</label>
-				<select class="b-form-input b-form-input_full" ng-model = "appscaleCtrl.config.master" id="master-name" ng-options = "container.hostname for container in appscaleCtrl.nodes">
+				<select class="b-form-input b-form-input_full"
+						id="master-name"
+						ng-change="appscaleCtrl.controllerMod()"
+						ng-model="appscaleCtrl.config.master"
+						ng-options = "container.hostname for container in appscaleCtrl.nodes">
 				</select>
 			</div>
 		</div>
