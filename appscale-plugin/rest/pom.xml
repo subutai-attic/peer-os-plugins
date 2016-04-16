@@ -25,17 +25,21 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
+      <version>4.0.0-RC7-SNAPSHOT</version>
+      <type>jar</type>
     </dependency>
     
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>environment-manager-api</artifactId>
-      
+      <version>4.0.0-RC7-SNAPSHOT</version>
+      <type>jar</type>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>tracker-api</artifactId>
-      
+      <version>4.0.0-RC7-SNAPSHOT</version>
+      <type>jar</type>
     </dependency>
 
     <dependency>

@@ -8,7 +8,6 @@ package io.subutai.plugin.appscale.impl;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -102,7 +101,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         else
         {
             this.installAsScale ( configBase, environment );
-            // this.installAsStatic ( configBase, environment );
         }
     }
 
@@ -171,8 +169,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 
         Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
-        Properties p = System.getProperties ();
-        p.setProperty ( "user.dir", "/root" );
         int numberOfContainers = cn.size ();
 
         try
@@ -221,20 +217,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.createUpShell ( containerHost );
         LOG.info ( "RH command started" );
 
-        //please set sslCert otherwise will be used /etc/nginx/ssl.pem
-        //        final String sslCert = "";
-        //        final ReverseProxyConfig reverseProxyConfig
-        //                = new ReverseProxyConfig ( containerHost.getId (), config.getDomainName (), sslCert );
-        //        try
-        //        {
-        //            appscaleManager.getEnvironmentManager ().addReverseProxy ( environment, reverseProxyConfig );
-        //        }
-        //        catch ( EnvironmentModificationException e )
-        //        {
-        //            LOG.error ( e.getMessage (), e );
-        //            po.addLogFailed ( "Could not add alert handler to monitor this environment." );
-        //        }
-
         this.runInRH ( containerHost, config.getClusterName (), config );
         LOG.info ( "RH command ended" );
 
@@ -258,9 +240,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
         LOG.info ( "SAVE INFO: " + saveInfo );
         LOG.info ( "Appscale saved to database" );
-
-        //        String containerIP = this.getIPAddress( containerHost );
-
         this.commandExecute ( containerHost, "echo '127.0.1.1 appscale-image0' >> /etc/hosts" );
         this.commandExecute ( containerHost, Commands.backUpSSH () );
         this.commandExecute ( containerHost, Commands.backUpAppscale () );
@@ -354,11 +333,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info ( "LocalPeer: " + localPeer );
         String ipAddress
                 = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp (); // only for master
-        //
-        //        if ( config.getVlanNumber () == null )
-        //        {
-        //            po.addLogFailed ( "we have a problem here" );
-        //        }
 
         try
         {
@@ -478,9 +452,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // /root/AppScalefile" );
         this.commandExecute ( containerHost,
                               "echo machine: 'appscale'" ); // this will be pointing to our template to add one more
-        // this may not be needed
-        // this.commandExecute ( containerHost, "echo static_ip: '" + config.getUserDomain () + "'  >>
-        // /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
     }
 
@@ -548,7 +519,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 LOG.error ( "AppScalefile : cassandra: " + ex );
             }
         }
-        // this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "echo 'force: True' >> /root/AppScalefile" );
         this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
@@ -680,8 +650,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // modify nginx
         String nginx
                 = "echo 'server {\n" + "        listen        80;\n" + "        server_name   ~^(?<port>.+)\\." + config
-                // .getUserDomain () + "$;\n" + "\n" + "    set $appbackend \"" + this.getIPAddress (
-                // containerHost ) + ":${port}\";\n" + "\n"
                 .getUserDomain () + "$;\n" + "\n" + "    set $appbackend \"127.0.0.1:${port}\";\n" + "\n"
                 + "    # proxy to AppScale over http\n" + "    if ($port = 1443) {\n"
                 + "        set $appbackend \"appscaledashboard\";\n" + "    }\n" + "\n" + "    location / {\n"
@@ -695,24 +663,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    //    private String getIPAddress( EnvironmentContainerHost ch )
-    //    {
-    //        String ipaddr = null;
-    //        try
-    //        {
-    //
-    //            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
-    //            CommandResult resultAddr = ch.execute( new RequestBuilder( localCommand ) );
-    //            ipaddr = resultAddr.getStdOut();
-    //            ipaddr = ipaddr.replace( "\n", "" );
-    //            LOG.info( "Container IP: " + ipaddr );
-    //        }
-    //        catch ( CommandException ex )
-    //        {
-    //            LOG.error( "ip address command error : " + ex );
-    //        }
-    //        return ipaddr;
-    //    }
     private void createRunSH ( EnvironmentContainerHost containerHost )
     {
 
