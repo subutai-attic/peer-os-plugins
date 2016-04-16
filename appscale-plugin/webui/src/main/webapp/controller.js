@@ -16,7 +16,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.currentEnvironment = {};
 	vm.environments = [];
 	vm.currentCluster = {};
-	vm.clusters = [];
+	vm.clusters = [];	
 	vm.hostnames = [];
 	vm.config.scaleOption = "static";
 
@@ -65,7 +65,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 						if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 							vm.nodes.push (vm.currentEnvironment.containers [i]);
-							vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+
+							if( vm.currentEnvironment.containers.length > 1 && i > 0 )
+								vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 						}
 					}
 					vm.config.master = vm.nodes[0];
@@ -88,7 +90,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 			if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 				vm.nodes.push (vm.currentEnvironment.containers[i]);
-				vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+
+				if( vm.currentEnvironment.containers.length > 1 && i > 0 )
+					vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 			}
 		}
 		vm.config.master = vm.nodes[0];
@@ -126,7 +130,9 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 					if (vm.currentEnvironment.containers[i].templateName === "appscale") {
 						vm.nodes.push (vm.currentEnvironment.containers [i]);
-						vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+
+						if( vm.currentEnvironment.containers.length > 1 && i > 0 )
+							vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 					}
 				}
 				vm.config.master = vm.nodes[0];
@@ -200,7 +206,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			vm.config.scaleOption = "scale";
 		else
 			vm.config.scaleOption = "static";
-	}
+	};
 
 	vm.quickInstallPopup = function( val )
 	{
@@ -208,7 +214,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			template: 'plugins/appscale/partials/quick-install.html',
 			scope: $scope
 		});
-	}
+	};
 
 	vm.quickInstall = function( val )
 	{
@@ -222,6 +228,25 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			SweetAlert.swal ("ERROR!", data, "error");
 			LOADING_SCREEN('none');
 		} );
+	}
+	
+	vm.controllerMod = function ( hostname ) {
+		if( vm.nodes.length > 0 )
+		{
+			$('a[ng-click="deselectAll()"]').click();
+
+			vm.hostnames = [];
+			for( var i = 0; i < vm.nodes.length; i++ )
+			{
+				vm.hostnames.push(vm.nodes[i].hostname);
+			}
+
+			var index = vm.hostnames.indexOf(vm.config.master.hostname);
+
+			if (index > -1) {
+				vm.hostnames.splice(index, 1);
+			}
+		}
 	}
 }
 
