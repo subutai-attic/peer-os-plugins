@@ -159,14 +159,16 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 
     private UsergridConfig buildEnvironment ( UsergridConfig lConfig )
     {
+        LOG.info ( "building environment started" );
+
         String environmentName = lConfig.getEnvironmentName ();
-        NodeSchema elasticNode = new NodeSchema ( "elasticsearch" + randomAlphabetic ( 10 ).toLowerCase (),
+        NodeSchema elasticNode = new NodeSchema ( "elasticsearch144" + randomAlphabetic ( 10 ).toLowerCase (),
                                                   ContainerSize.HUGE,
                                                   "elasticsearch144", 0, 0 );
         NodeSchema cassandraNode = new NodeSchema ( "cassandra" + randomAlphabetic ( 10 ).toLowerCase (),
                                                     ContainerSize.HUGE,
                                                     "cassandra", 0, 0 );
-        NodeSchema tomcatNode = new NodeSchema ( "tomcat" + randomAlphabetic ( 10 ).toLowerCase (), ContainerSize.HUGE,
+        NodeSchema tomcatNode = new NodeSchema ( "tomcat7" + randomAlphabetic ( 10 ).toLowerCase (), ContainerSize.HUGE,
                                                  "tomcat7", 0, 0 );
         List<NodeSchema> nodes = new ArrayList<> ();
         nodes.add ( tomcatNode );
@@ -174,8 +176,8 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
         nodes.add ( elasticNode );
         Blueprint blueprint = new Blueprint ( environmentName, nodes );
         Topology topology = buildTopology ( blueprint );
+        LOG.info ( "topology: " + blueprint.toString () );
         EnvironmentId usergridEnvironmentID = createEnvironment ( topology );
-
         Boolean healt = false;
         while ( !healt )
         {
@@ -231,7 +233,7 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 
     private EnvironmentId createEnvironment ( Topology topology )
     {
-
+        LOG.info ( "create environment started" );
         WebClient webClient = createWebClient ( ENVIRONMENT_URL, true );
         webClient.type ( MediaType.APPLICATION_JSON );
         webClient.accept ( MediaType.APPLICATION_JSON );
@@ -273,6 +275,7 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     @Override
     public UUID oneClickInstall ( UsergridConfig localConfig )
     {
+        LOG.info ( "one click install" );
         UUID uuid = null;
         token = localConfig.getPermanentToken ();
         UsergridConfig newLocalConfig = buildEnvironment ( localConfig );
