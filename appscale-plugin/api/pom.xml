@@ -26,10 +26,13 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>plugin-common-core</artifactId>
       <type>jar</type>
+      <version>4.0.0-RC7-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>tracker-api</artifactId>
+      <version>4.0.0-RC7-SNAPSHOT</version>
+      <type>jar</type>
     </dependency>
 
   </dependencies>
