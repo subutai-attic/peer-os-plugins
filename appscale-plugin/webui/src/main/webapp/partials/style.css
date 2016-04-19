@@ -17,3 +17,12 @@
 .b_option_to_select {
 	cursor: pointer;
 }
+
+.b-form__input-domain {
+	line-height: 30px;
+	font-size: 12px;
+	color: #04346E;
+	display: inline-block;
+	margin: 0 0 0 5px;
+}
+

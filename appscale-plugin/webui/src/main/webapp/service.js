@@ -26,9 +26,15 @@ function appscaleSrv ($http, environmentService) {
 
 
 	function build (config) {
+		var domain = config.userDomain;
+		if( config.domainOption == 1 )
+		{
+			domain += 'subut.ai';
+		}
+
 		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.join(",")
 			+ "&cassandraName=" + config.db.join(",") + "&appengineName=" + config.appeng.join(",")
-			+ "&envID=" + config.environment.id + "&userDomain=" + config.userDomain + '&scaleOption=' + config.scaleOption;
+			+ "&envID=" + config.environment.id + "&userDomain=" + domain + '&scaleOption=' + config.scaleOption;
 
                 return $http.post(
 			BASE_URL + 'configure_environment',

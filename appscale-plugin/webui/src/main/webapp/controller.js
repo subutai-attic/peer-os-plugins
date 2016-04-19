@@ -4,10 +4,10 @@ angular.module('subutai.plugins.appscale.controller', [])
 	.controller('AppscaleCtrl', AppscaleCtrl)
 	.directive('mSelect', initMSelect);
 
-AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog'];
+AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog', '$http'];
 
 
-function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
+function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 	var vm = this;
 	vm.config = {userDomain : ""};
 	vm.nodes = [];
@@ -19,6 +19,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 	vm.clusters = [];	
 	vm.hostnames = [];
 	vm.config.scaleOption = "static";
+	vm.hubRegister = false;
 
 	vm.checked = false;
 
@@ -80,6 +81,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog) {
 			});
 		});
 	}
+
+	$http.get(SERVER_URL + "rest/v1/hub/registration_state", {
+		withCredentials: true,
+		headers: {'Content-Type': 'application/json'}
+	}).success(function (data) {
+		vm.hubRegister = data.isRegisteredToHub;
+	});
 
 
 	getContainers();

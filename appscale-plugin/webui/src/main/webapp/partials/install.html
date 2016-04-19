@@ -4,7 +4,25 @@
 		<div class="b-form__coll">
 			<div class="b-form-group">
 				<label for="user-domain" class="b-form-label">Domain</label>
-				<input type ="text" class="b-form-input b-form-input_full" placeholder = "Enter domain for appscale console (e.g., myappscale.com)" ng-model = "appscaleCtrl.config.userDomain" id="user-domain" required>
+
+				<input type ="text" 
+					ng-show="appscaleCtrl.config.domainOption == 0" 
+					class="b-form-input b-form-input_full" 
+					placeholder = "Enter domain for appscale console (e.g., myappscale.com)" 
+					ng-model = "appscaleCtrl.config.userDomain" 
+					id="user-domain" 
+					required>
+
+				<div ng-show="appscaleCtrl.config.domainOption > 0">
+					<input type ="text" 
+						class="b-form-input b-form-input_domain" 
+						placeholder = "Enter domain for appscale" 
+						ng-model = "appscaleCtrl.config.userDomain" 
+						id="user-domain" 
+						required>
+					<span class="b-form__input-domain">.subut.ai</span>
+				</div>
+
 			</div>
 			<div class="b-form-group">
 				<label for="env-name" class="b-form-label">Environment name</label>
@@ -22,6 +40,15 @@
 			</div>
 		</div>
 		<div class="b-form__coll">
+
+			<div class="b-form-group">
+				<label for="env-name" class="b-form-label">Domain options</label>
+				<select class="b-form-input b-form-input_full" ng-init="appscaleCtrl.config.domainOption = 0" ng-model = "appscaleCtrl.config.domainOption">
+					<option value="0">use your own domain</option>
+					<option value="1" ng-disabled="!appscaleCtrl.hubRegister">use hub managed domain</option>
+				</select>
+			</div>
+
 			<div class="b-form-group">
 				<label class="b-form-label">Scale option</label>
 				<div>
