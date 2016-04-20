@@ -28,7 +28,7 @@
   <reference id="identityManager" availability="mandatory"
              interface="io.subutai.core.identity.api.IdentityManager" />
 
-  <reference id="webModule" availability="mandatory"
+  <reference id="webuiModule" availability="mandatory"
              interface="io.subutai.webui.api.WebuiModule" />
   
 
@@ -37,7 +37,7 @@
     <argument ref="tracker" />
     <argument ref="environmentManager" />
     <argument ref="identityManager" />
-    <argument ref="webModule" />
+    <argument ref="webuiModule" />
   </bean>
 
 </blueprint>
