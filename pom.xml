@@ -211,5 +211,6 @@
     <module>nutch</module>
     <module>shark</module>
     <module>storm</module>
+    <module>appscale</module>
   </modules>
 </project>
