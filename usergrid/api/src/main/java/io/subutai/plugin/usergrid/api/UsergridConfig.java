@@ -35,7 +35,8 @@ public class UsergridConfig implements ConfigBase
     private String environmentId;
     private String tracker;
     private String userDomain;
-
+    private String permanentToken;
+    private String environmentName;
 
     public String getClusterName ()
     {
@@ -166,6 +167,30 @@ public class UsergridConfig implements ConfigBase
     public void setUserDomain ( String userDomain )
     {
         this.userDomain = userDomain;
+    }
+
+
+    public String getPermanentToken ()
+    {
+        return permanentToken;
+    }
+
+
+    public void setPermanentToken ( String permanentToken )
+    {
+        this.permanentToken = permanentToken;
+    }
+
+
+    public String getEnvironmentName ()
+    {
+        return environmentName;
+    }
+
+
+    public void setEnvironmentName ( String environmentName )
+    {
+        this.environmentName = environmentName;
     }
 
 

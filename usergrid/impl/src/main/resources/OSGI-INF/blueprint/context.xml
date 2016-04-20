@@ -29,6 +29,6 @@
     <!-- service -->
     <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
-    <bean id="module" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridWebModule">
+    <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.usergrid.impl.UsergridWebModule">
     </bean>
 </blueprint>
