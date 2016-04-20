@@ -1,6 +1,12 @@
 package io.subutai.plugin.presto.impl;
 
+import com.google.gson.Gson;
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PrestoWebModule implements WebuiModule
 {
@@ -27,7 +33,7 @@ public class PrestoWebModule implements WebuiModule
 				"plugins/presto/controller.js",
 				"plugins/presto/service.js",
 				"plugins/hadoop/service.js",
-				"subutai-app/environment/service.js";
+				"subutai-app/environment/service.js"
 		);
 
 		prestoResource.addDependency(angularjsDependency);
