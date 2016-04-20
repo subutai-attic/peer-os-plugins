@@ -31,6 +31,7 @@ import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.elasticsearch.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListener
@@ -43,14 +44,16 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private PluginDAO pluginDAO;
     private Monitor monitor;
     private PeerManager peerManager;
+    private ElasticSearchWebModule webModule;
 
     Commands commands = new Commands();
 
 
-    public ElasticsearchImpl( final Monitor monitor, PluginDAO pluginDAO )
+    public ElasticsearchImpl( final Monitor monitor, PluginDAO pluginDAO, ElasticSearchWebModule webModule )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -367,5 +370,18 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public void setPeerManager( final PeerManager peerManager )
     {
         this.peerManager = peerManager;
+    }
+
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (ElasticSearchWebModule) webModule;
     }
 }

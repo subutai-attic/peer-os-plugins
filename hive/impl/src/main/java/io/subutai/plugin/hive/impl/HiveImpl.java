@@ -33,6 +33,7 @@ import io.subutai.plugin.hive.api.HiveConfig;
 import io.subutai.plugin.hive.impl.handler.CheckInstallHandler;
 import io.subutai.plugin.hive.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hive.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class HiveImpl implements Hive, EnvironmentEventListener
@@ -43,15 +44,16 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Hadoop hadoopManager;
-
+    private HiveWebModule webModule;
 
     public HiveImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                     PluginDAO pluginDAO )
+                     PluginDAO pluginDAO, HiveWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -315,5 +317,17 @@ public class HiveImpl implements Hive, EnvironmentEventListener
     private void logExceptionWithMessage( String message, Exception e )
     {
         LOGGER.error( message, e );
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (HiveWebModule) webModule;
     }
 }

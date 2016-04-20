@@ -120,4 +120,7 @@ public interface RestService
 	@Produces( { MediaType.TEXT_PLAIN } )
 	public Response getPluginInfo();
 
+    @GET
+    @Path( "angular" )
+    Response getAngularConfig();
 }

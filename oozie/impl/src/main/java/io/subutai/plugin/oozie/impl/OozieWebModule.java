@@ -1,7 +1,13 @@
 package io.subutai.plugin.oozie.impl;
 
 
+import com.google.gson.Gson;
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class OozieWebModule implements WebuiModule
@@ -9,47 +15,55 @@ public class OozieWebModule implements WebuiModule
     public static String NAME = "Oozie";
     public static String IMG = "plugins/oozie/oozie.png";
 
+	private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+	static
+	{
+		TEMPLATES_REQUIREMENT = new HashMap<>();
+		TEMPLATES_REQUIREMENT.put("hadoop", 1);
+	}
 
-    @Override
-    public String getName()
-    {
-        return NAME;
-    }
+
+	private WebuiModuleResourse oozieResource;
 
 
-    @Override
-    public String getModuleInfo()
-    {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
-    }
+	public void init()
+	{
+		oozieResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+		AngularjsDependency angularjsDependency = new AngularjsDependency(
+				"subutai.plugins.oozie",
+				"plugins/oozie/oozie.js",
+				"plugins/oozie/controller.js",
+				"plugins/oozie/service.js",
+				"plugins/hadoop/service.js",
+				"subutai-app/environment/service.js"
+		);
+
+		oozieResource.addDependency(angularjsDependency);
+	}
+
+	@Override
+	public String getAngularState()
+	{
+		return oozieResource.getAngularjsList();
+	}
+
+	@Override
+	public String getName()
+	{
+		return NAME;
+	}
+
+
+	@Override
+	public String getModuleInfo()
+	{
+		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString());
+	}
 
 
 	@Override
 	public String getAngularDependecyList()
 	{
-		return ".state('oozie', {\n" +
-				"url: '/plugins/oozie',\n" +
-				"templateUrl: 'plugins/oozie/partials/view.html',\n" +
-				"data: {\n" +
-				"bodyClass: '',\n" +
-				"layout: 'default'\n" +
-				"},\n" +
-				"resolve: {\n" +
-				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
-				"return $ocLazyLoad.load([\n" +
-				"{\n" +
-				"name: 'subutai.plugins.oozie',\n" +
-				"files: [\n" +
-				"'plugins/oozie/oozie.js',\n" +
-				"'plugins/oozie/controller.js',\n" +
-				"'plugins/oozie/service.js',\n" +
-				"'plugins/hadoop/service.js',\n" +
-				"'subutai-app/environment/service.js'\n" +
-				"]\n" +
-				"}\n" +
-				"]);\n" +
-				"}]\n" +
-				"}\n" +
-				"})";
+		return String.format( ".state('%s', %s)", NAME.toLowerCase(), oozieResource.getAngularjsList() );
 	}
 }

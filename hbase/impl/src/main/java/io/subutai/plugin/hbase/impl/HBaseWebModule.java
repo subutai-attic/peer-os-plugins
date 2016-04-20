@@ -1,11 +1,49 @@
 package io.subutai.plugin.hbase.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
 
 public class HBaseWebModule implements WebuiModule
 {
-    public static String NAME = "Hbase";
+    private WebuiModuleResourse hbaseResource;
+    public static String NAME = "HBase";
     public static String IMG = "plugins/hbase/hbase.png";
+    private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+    static
+    {
+        TEMPLATES_REQUIREMENT = new HashMap<>();
+        TEMPLATES_REQUIREMENT.put("hadoop", 2);
+    }
+
+
+    public void init()
+    {
+        this.hbaseResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        AngularjsDependency angularjsDependency = new AngularjsDependency(
+                "subutai.plugins.hbase",
+                "'plugins/hbase/hbase.js'",
+                "'plugins/hbase/controller.js'",
+                "'plugins/hbase/service.js'",
+                "'plugins/hadoop/service.js'",
+                "'subutai-app/environment/service.js'"
+        );
+
+        this.hbaseResource.addDependency(angularjsDependency);
+    }
+
+
+    @Override
+    public String getModuleInfo()
+    {
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
+    }
 
     @Override
     public String getName()
@@ -13,30 +51,16 @@ public class HBaseWebModule implements WebuiModule
         return NAME;
     }
 
-
     @Override
-    public String getModuleInfo()
+    public String getAngularState()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+        return this.hbaseResource.getAngularjsList();
     }
 
 
     @Override
     public String getAngularDependecyList()
     {
-        return ".state('hbase', {\n" + "url: '/plugins/hbase',\n"
-                + "templateUrl: 'plugins/hbase/partials/view.html',\n" +
-				"data: {\n" +
-				"bodyClass: '',\n" +
-				"layout: 'default'\n" +
-				"},\n"
-				+ "resolve: {\n"
-                + "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-                + "return $ocLazyLoad.load([\n" + "{\n"
-                + "name: 'subutai.plugins.hbase',\n" + "files: [\n"
-                + "'plugins/hbase/hbase.js',\n" + "'plugins/hbase/controller.js',\n"
-                + "'plugins/hbase/service.js',\n" + "'plugins/hadoop/service.js',\n"
-                + "'subutai-app/environment/service.js'\n" + "]\n" + "}\n"
-                + "]);\n" + "}]\n" + "}\n" + "})";
+        return String.format( ".state('%s', %s)", NAME.toLowerCase(), this.hbaseResource.getAngularjsList() );
     }
 }

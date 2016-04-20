@@ -27,7 +27,7 @@
 	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-	<bean id="module" scope="singleton" class="io.subutai.plugin.nutch.impl.NutchWebModule">
+	<bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.nutch.impl.NutchWebModule">
 	</bean>
 
 </blueprint>

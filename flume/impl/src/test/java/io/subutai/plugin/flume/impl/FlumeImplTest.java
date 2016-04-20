@@ -70,13 +70,14 @@ public class FlumeImplTest
     ResultSetMetaData resultSetMetaData;
     @Mock
     HadoopClusterConfig hadoopClusterConfig;
-
+    @Mock
+    FlumeWebModule webModule;
 
     @Before
     public void setUp() throws Exception
     {
 
-        flumeImpl = new FlumeImpl( tracker, environmentManager, hadoop, pluginDAO );
+        flumeImpl = new FlumeImpl( tracker, environmentManager, hadoop, pluginDAO, webModule );
         flumeImpl.setExecutor( executor );
         flumeImpl.setPluginDao( pluginDAO );
 

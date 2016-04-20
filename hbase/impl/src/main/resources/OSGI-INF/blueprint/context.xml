@@ -20,6 +20,7 @@
     <argument ref="environmentManager" />
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    <argument ref="module" />
   </bean>
 
   <!-- *********************************************************************************** -->
@@ -36,7 +37,7 @@
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-  <bean id="module" scope="singleton" class="io.subutai.plugin.hbase.impl.HBaseWebModule">
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.hbase.impl.HBaseWebModule">
   </bean>
 
 </blueprint>

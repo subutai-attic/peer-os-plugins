@@ -13,6 +13,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.webui.api.WebuiModule;
 
 
 /**
@@ -144,4 +145,8 @@ public interface Mongo extends ApiBase<MongoClusterConfig>
 	 * @return - UUID of operation to track
 	 */
 	UUID stopService( String clusterName, String hostname );
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

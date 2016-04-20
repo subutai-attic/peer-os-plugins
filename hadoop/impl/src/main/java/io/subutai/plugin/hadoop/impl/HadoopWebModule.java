@@ -1,6 +1,11 @@
 package io.subutai.plugin.hadoop.impl;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -11,6 +16,13 @@ public class HadoopWebModule implements WebuiModule
     private WebuiModuleResourse hadoopResource;
     public static String NAME = "Hadoop";
     public static String IMG = "plugins/hadoop/hadoop.png";
+    private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+    static
+    {
+        TEMPLATES_REQUIREMENT = new HashMap<>();
+        TEMPLATES_REQUIREMENT.put("hadoop", 1);
+    }
+
 
     public void init()
     {
@@ -30,7 +42,7 @@ public class HadoopWebModule implements WebuiModule
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
 
     @Override

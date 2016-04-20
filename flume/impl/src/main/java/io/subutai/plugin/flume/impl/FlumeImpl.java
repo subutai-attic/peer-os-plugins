@@ -30,6 +30,7 @@ import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.flume.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class FlumeImpl implements Flume, EnvironmentEventListener
@@ -41,15 +42,15 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
     private ExecutorService executor;
+    private FlumeWebModule webModule;
 
-
-    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                      PluginDAO pluginDAO )
+    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO, FlumeWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.pluginDao = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -296,5 +297,17 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
                 break;
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (FlumeWebModule) webModule;
     }
 }

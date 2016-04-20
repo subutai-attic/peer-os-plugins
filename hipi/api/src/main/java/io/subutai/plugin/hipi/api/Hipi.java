@@ -7,6 +7,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface Hipi extends ApiBase<HipiConfig>
@@ -21,4 +22,8 @@ public interface Hipi extends ApiBase<HipiConfig>
     public void saveConfig( final HipiConfig config ) throws ClusterException;
 
     public void deleteConfig( final HipiConfig config ) throws ClusterException;
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

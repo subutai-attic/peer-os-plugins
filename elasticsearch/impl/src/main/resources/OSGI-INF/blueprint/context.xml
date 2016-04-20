@@ -15,6 +15,7 @@
 
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    <argument ref="module" />
     <property name="tracker" ref="tracker" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
@@ -31,7 +32,7 @@
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
-  <bean id="module" scope="singleton" class="io.subutai.plugin.elasticsearch.impl.ElasticSearchWebModule">
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.elasticsearch.impl.ElasticSearchWebModule">
   </bean>
 
 </blueprint>

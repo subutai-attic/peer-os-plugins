@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface HBase extends ApiBase<HBaseConfig>
@@ -71,4 +72,8 @@ public interface HBase extends ApiBase<HBaseConfig>
      * @param config HBase cluster configuration object
      */
     public void saveConfig( final HBaseConfig config ) throws ClusterException;
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

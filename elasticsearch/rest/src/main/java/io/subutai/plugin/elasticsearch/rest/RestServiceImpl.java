@@ -512,4 +512,11 @@ public class RestServiceImpl implements RestService
 
         return Response.ok().build();
     }
+
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (elasticsearch.getWebModule().getAngularDependecyList()).build();
+    }
 }

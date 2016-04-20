@@ -81,7 +81,8 @@ public class MahoutImplTest
     ResultSet resultSet;
     @Mock
     ResultSetMetaData resultSetMetaData;
-
+    @Mock
+    MahoutWebModule webModule;
 
     @Before
     public void setUp() throws Exception
@@ -100,7 +101,7 @@ public class MahoutImplTest
         when( resultSet.getMetaData() ).thenReturn( resultSetMetaData );
         when( resultSetMetaData.getColumnCount() ).thenReturn( 1 );
 
-        mahoutImpl = new MahoutImpl( tracker, environmentManager, hadoop, pluginDAO );
+        mahoutImpl = new MahoutImpl( tracker, environmentManager, hadoop, pluginDAO, webModule );
         mahoutImpl.setTracker( tracker );
         mahoutImpl.setExecutor( executorService );
         mahoutImpl.setPluginDAO( pluginDAO );

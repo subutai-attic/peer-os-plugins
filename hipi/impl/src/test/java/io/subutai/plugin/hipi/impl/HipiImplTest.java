@@ -55,6 +55,8 @@ public class HipiImplTest
     PluginDAO pluginDAO;
     @Mock
     ExecutorService executorService;
+    @Mock
+    HipiWebModule webModule;
     private HipiImpl hipiImpl;
     private String id;
 
@@ -68,7 +70,7 @@ public class HipiImplTest
         when( pluginDAO.getInfo( HipiConfig.PRODUCT_KEY, "test", HipiConfig.class ) ).thenReturn( hipiConfig );
 
 
-        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop, pluginDAO );
+        hipiImpl = new HipiImpl( tracker, environmentManager, hadoop, pluginDAO, webModule );
 
         hipiImpl.setPluginDao( pluginDAO );
         hipiImpl.setExecutor( executorService );

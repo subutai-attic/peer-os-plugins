@@ -31,6 +31,7 @@ import io.subutai.plugin.lucene.api.Lucene;
 import io.subutai.plugin.lucene.api.LuceneConfig;
 import io.subutai.plugin.lucene.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.lucene.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class LuceneImpl implements Lucene, EnvironmentEventListener
@@ -42,15 +43,16 @@ public class LuceneImpl implements Lucene, EnvironmentEventListener
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDao;
-
+    private LuceneWebModule webModule;
 
     public LuceneImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                       PluginDAO pluginDAO )
+                       PluginDAO pluginDAO, LuceneWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.pluginDao = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -285,5 +287,17 @@ public class LuceneImpl implements Lucene, EnvironmentEventListener
                 break;
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (LuceneWebModule) webModule;
     }
 }

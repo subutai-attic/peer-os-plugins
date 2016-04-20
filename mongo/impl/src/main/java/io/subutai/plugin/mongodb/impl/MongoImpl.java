@@ -44,6 +44,7 @@ import io.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 /**
@@ -63,12 +64,13 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private MongoWebModule webModule;
 
-
-    public MongoImpl( Monitor monitor, PluginDAO pluginDAO )
+    public MongoImpl( Monitor monitor, PluginDAO pluginDAO, MongoWebModule webModule )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -483,5 +485,17 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
                 }
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (MongoWebModule) webModule;
     }
 }

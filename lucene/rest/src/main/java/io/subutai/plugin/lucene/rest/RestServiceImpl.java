@@ -345,4 +345,10 @@ public class RestServiceImpl implements RestService
     {
         this.environmentManager = environmentManager;
     }
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (luceneManager.getWebModule().getAngularDependecyList()).build();
+    }
 }
