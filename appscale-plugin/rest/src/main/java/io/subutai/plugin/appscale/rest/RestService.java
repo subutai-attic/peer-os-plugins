@@ -120,5 +120,8 @@ public interface RestService
                 MediaType.APPLICATION_JSON
             } )
     Response runSsh ( @PathParam ( "clusterName" ) String clusterName );
-}
 
+    @GET
+    @Path( "angular" )
+    Response getAngularConfig();
+}

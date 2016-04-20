@@ -1,12 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package io.subutai.plugin.appscale.impl;
 
 
+import com.google.gson.Gson;
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -17,9 +18,38 @@ import io.subutai.webui.api.WebuiModule;
 public class AppScaleWebModule implements WebuiModule
 {
 
-    public static String NAME = "AppScale";
-    public static String IMG = "plugins/appscale/appscale.png";
+    public static final String NAME = "AppScale";
+    public static final String IMG = "plugins/appscale/appscale.png";
+    private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+    static
+    {
+        TEMPLATES_REQUIREMENT = new HashMap<>();
+        TEMPLATES_REQUIREMENT.put("appscale", 1);
+    }
 
+
+    private WebuiModuleResourse appscaleResource;
+
+
+    public void init()
+    {
+        WebuiModuleResourse appscaleResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        AngularjsDependency angularjsDependency = new AngularjsDependency(
+                "subutai.plugins.appscale",
+                "'plugins/appscale/appscale.js'",
+                "'plugins/appscale/controller.js'",
+                "'plugins/appscale/service.js'",
+                "'subutai-app/environment/service.js'"
+        );
+
+        appscaleResource.addDependency(angularjsDependency);
+    }
+
+    @Override
+    public String getAngularState()
+    {
+        return appscaleResource.getAngularjsList();
+    }
 
     @Override
     public String getName()
@@ -31,30 +61,14 @@ public class AppScaleWebModule implements WebuiModule
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString());
     }
 
 
     @Override
     public String getAngularDependecyList()
     {
-        return ".state('appscale', {\n" + "            url: '/plugins/appscale',\n"
-                + "            templateUrl: 'plugins/appscale/partials/view.html',\n"
-                + "            data: {\n"
-				+ "                bodyClass: '',\n"
-				+ "                layout: 'default'\n"
-				+ "            },\n"
-                + "            resolve: {\n"
-                + "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-                + "                    return $ocLazyLoad.load([\n" + "                        {\n"
-                + "                            name: 'subutai.plugins.appscale',\n"
-                + "                            files: [\n"
-                + "                                'plugins/appscale/appscale.js',\n"
-                + "                                'plugins/appscale/controller.js',\n"
-                + "                                'plugins/appscale/service.js',\n"
-                + "                                'subutai-app/environment/service.js'\n"
-                + "                            ]\n" + "                        }\n" + "                    ]);\n"
-                + "                }]\n" + "            }\n" + "        })";
+        return String.format( ".state('%s', %s)", NAME, appscaleResource.getAngularjsList() );
     }
 }
 
