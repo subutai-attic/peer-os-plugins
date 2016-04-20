@@ -28,9 +28,9 @@ public class CephWebModule implements WebuiModule
 		this.cephResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
 		AngularjsDependency angularjsDependency = new AngularjsDependency(
 				"subutai.plugins.ceph",
-				"'plugins/ceph/ceph.js'",
-				"'plugins/ceph/controller.js'",
-				"'plugins/ceph/service.js'"
+				"plugins/ceph/ceph.js",
+				"plugins/ceph/controller.js",
+				"plugins/ceph/service.js"
 		);
 
 		this.cephResource.addDependency(angularjsDependency);

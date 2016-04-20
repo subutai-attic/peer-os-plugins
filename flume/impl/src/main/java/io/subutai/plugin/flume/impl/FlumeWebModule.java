@@ -28,11 +28,11 @@ public class FlumeWebModule implements WebuiModule
         this.flumeResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.flume",
-                "'plugins/flume/flume.js'",
-                "'plugins/flume/controller.js'",
-                "'plugins/flume/service.js'",
-                "'plugins/hadoop/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/flume/flume.js",
+                "plugins/flume/controller.js",
+                "plugins/flume/service.js",
+                "plugins/hadoop/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.flumeResource.addDependency(angularjsDependency);

@@ -29,11 +29,11 @@ public class LuceneWebModule implements WebuiModule
         this.luceneResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.lucene",
-                "'plugins/lucene/lucene.js'",
-                "'plugins/lucene/controller.js'",
-                "'plugins/lucene/service.js'",
-                "'plugins/hadoop/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/lucene/lucene.js",
+                "plugins/lucene/controller.js",
+                "plugins/lucene/service.js",
+                "plugins/hadoop/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.luceneResource.addDependency(angularjsDependency);

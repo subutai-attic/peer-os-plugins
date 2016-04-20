@@ -28,11 +28,11 @@ public class HiveWebModule implements WebuiModule
 		this.hiveResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
 		AngularjsDependency angularjsDependency = new AngularjsDependency(
 				"subutai.plugins.hive",
-				"'plugins/hive/hive.js'",
-				"'plugins/hive/controller.js'",
-				"'plugins/hive/service.js'",
-				"'plugins/hadoop/service.js'",
-				"'subutai-app/environment/service.js'"
+				"plugins/hive/hive.js",
+				"plugins/hive/controller.js",
+				"plugins/hive/service.js",
+				"plugins/hadoop/service.js",
+				"subutai-app/environment/service.js"
 		);
 
 		this.hiveResource.addDependency(angularjsDependency);

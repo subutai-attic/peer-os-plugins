@@ -29,10 +29,10 @@ public class ElasticSearchWebModule implements WebuiModule
         this.elasticsearchResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.elastic-search",
-                "'plugins/elasticsearch/elastic-search.js'",
-                "'plugins/elasticsearch/controller.js'",
-                "'plugins/elasticsearch/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/elasticsearch/elastic-search.js",
+                "plugins/elasticsearch/controller.js",
+                "plugins/elasticsearch/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.elasticsearchResource.addDependency(angularjsDependency);

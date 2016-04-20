@@ -28,11 +28,11 @@ public class HipiWebModule implements WebuiModule
         this.hipiResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.hipi",
-                "'plugins/hipi/hipi.js'",
-                "'plugins/hipi/controller.js'",
-                "'plugins/hipi/service.js'",
-                "'plugins/hadoop/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/hipi/hipi.js",
+                "plugins/hipi/controller.js",
+                "plugins/hipi/service.js",
+                "plugins/hadoop/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.hipiResource.addDependency(angularjsDependency);

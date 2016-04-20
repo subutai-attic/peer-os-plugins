@@ -29,11 +29,11 @@ public class MahoutWebModule implements WebuiModule
 		this.mahoutResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
 		AngularjsDependency angularjsDependency = new AngularjsDependency(
 				"subutai.plugins.mahout",
-				"'plugins/mahout/mahout.js'",
-				"'plugins/mahout/controller.js'",
-				"'plugins/mahout/service.js'",
-				"'plugins/hadoop/service.js'",
-				"'subutai-app/environment/service.js'"
+				"plugins/mahout/mahout.js",
+				"plugins/mahout/controller.js",
+				"plugins/mahout/service.js",
+				"plugins/hadoop/service.js",
+				"subutai-app/environment/service.js"
 		);
 
 		this.mahoutResource.addDependency(angularjsDependency);

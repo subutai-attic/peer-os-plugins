@@ -29,10 +29,10 @@ public class MongoWebModule implements WebuiModule
 		this.mongoResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
 		AngularjsDependency angularjsDependency = new AngularjsDependency(
 				"subutai.plugins.mongo",
-				"'plugins/mongo/mongo.js'",
-				"'plugins/mongo/controller.js'",
-				"'plugins/mongo/service.js'",
-				"'subutai-app/environment/service.js'"
+				"plugins/mongo/mongo.js",
+				"plugins/mongo/controller.js",
+				"plugins/mongo/service.js",
+				"subutai-app/environment/service.js"
 		);
 
 		this.mongoResource.addDependency(angularjsDependency);

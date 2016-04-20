@@ -23,10 +23,10 @@ public class GenericWebModule implements WebuiModule
 		this.genericResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
 		AngularjsDependency angularjsDependency = new AngularjsDependency(
 				"subutai.plugins.generic",
-				"'plugins/generic/generic.js'",
-				"'plugins/generic/controller.js'",
-				"'plugins/generic/service.js'",
-				"'subutai-app/environment/service.js'"
+				"plugins/generic/generic.js",
+				"plugins/generic/controller.js",
+				"plugins/generic/service.js",
+				"subutai-app/environment/service.js"
 		);
 
 		this.genericResource.addDependency(angularjsDependency);

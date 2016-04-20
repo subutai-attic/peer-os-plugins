@@ -28,11 +28,11 @@ public class HBaseWebModule implements WebuiModule
         this.hbaseResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.hbase",
-                "'plugins/hbase/hbase.js'",
-                "'plugins/hbase/controller.js'",
-                "'plugins/hbase/service.js'",
-                "'plugins/hadoop/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/hbase/hbase.js",
+                "plugins/hbase/controller.js",
+                "plugins/hbase/service.js",
+                "plugins/hadoop/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.hbaseResource.addDependency(angularjsDependency);

@@ -29,10 +29,10 @@ public class HadoopWebModule implements WebuiModule
         this.hadoopResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.hadoop",
-                "'plugins/hadoop/hadoop.js'",
-                "'plugins/hadoop/controller.js'",
-                "'plugins/hadoop/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/hadoop/hadoop.js",
+                "plugins/hadoop/controller.js",
+                "plugins/hadoop/service.js",
+                "subutai-app/environment/service.js"
         );
 
         this.hadoopResource.addDependency(angularjsDependency);
