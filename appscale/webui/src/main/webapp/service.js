@@ -29,7 +29,7 @@ function appscaleSrv ($http, environmentService) {
 		var domain = config.userDomain;
 		if( config.domainOption == 1 )
 		{
-			domain += 'subut.ai';
+			domain += '.subut.ai';
 		}
 
 		var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + config.zookeeper.join(",")
