@@ -589,8 +589,24 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public List<AppScaleConfig> getClusters ()
     {
-        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class
-        );
+        List<AppScaleConfig> returnConfig = new ArrayList ();
+        List<AppScaleConfig> info = pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
+        for ( AppScaleConfig c : info )
+        {
+            try
+            {
+                Environment loadEnvironment = environmentManager.loadEnvironment ( c.getEnvironmentId () );
+                if ( EnvironmentStatus.HEALTHY == loadEnvironment.getStatus () )
+                {
+                    returnConfig.add ( c );
+                }
+            }
+            catch ( EnvironmentNotFoundException ex )
+            {
+
+            }
+        }
+        return returnConfig;
     }
 
 
