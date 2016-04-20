@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<<<<<<< HEAD
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!--<parent>-->
+        <!--<artifactId>subutai-plugins-parent</artifactId>-->
+        <!--<groupId>io.subutai</groupId>-->
+        <!--<version>4.0.0-RC9-SNAPSHOT</version>-->
+    <!--</parent>-->
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.subutai</groupId>
-    <artifactId>AppScale</artifactId>
+    <artifactId>usergrid-plugin</artifactId>
     <version>4.0.0-RC9-SNAPSHOT</version>
+
+    <name>Subutai Usergrid Parent</name>
+    <description>The parent pom for the Subutai Usergrid Plugin</description>
     <packaging>pom</packaging>
-    <name>Subutai Appscale Parent</name>
-    <modules>
-        <module>api</module>
-        <module>cli</module>
-        <module>impl</module>
-        <module>rest</module>
-        <module>webui</module>
-        <module>kar</module>
-    </modules>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <subutai.mgmt.parent.version>4.0.0-RC9-SNAPSHOT</subutai.mgmt.parent.version>
         <karaf.version>3.0.2</karaf.version>
         <vaadin-version>7.3.3</vaadin-version>
@@ -27,15 +25,30 @@
         <awaitility.version>1.6.1</awaitility.version>
         <junit.version>4.11</junit.version>
         <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
-        <!-- <jaxrs.version>2.7.12</jaxrs.version> -->
         <jaxrs.version>3.0.0</jaxrs.version>
-        <appScale.version>2.6.0</appScale.version>
+        <hadoop.version>2.0.4</hadoop.version>
         <gson.version>2.3.1</gson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <modules>
+        <module>api</module>
+        <module>cli</module>
+        <module>impl</module>
+        <module>rest</module>
+        <module>webui</module>
+        <module>kar</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>webui</artifactId>
+                <classifier>classes</classifier>
+                <version>${subutai.mgmt.parent.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>${project.groupId}</groupId>
@@ -48,53 +61,6 @@
                 <artifactId>environment-manager-api</artifactId>
                 <version>${subutai.mgmt.parent.version}</version>
             </dependency>
-=======
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>io.subutai</groupId>
-  <artifactId>AppScale</artifactId>
-  <version>4.0.0-RC8</version>
-  <packaging>pom</packaging>
-  <modules>
-      <module>plugin-appscale-api</module>
-    <module>plugin-appscale-cli</module>
-    <module>plugin-appscale-impl</module>
-    <module>plugin-appscale-rest</module>
-    <module>plugin-appscale-webui</module>
-    <module>plugin-appscale-kar</module>
-    
-  </modules>
-
-  <properties>
-    <subutai.mgmt.parent.version>4.0.0-RC8</subutai.mgmt.parent.version>
-    <karaf.version>3.0.2</karaf.version>
-    <vaadin-version>7.3.3</vaadin-version>
-    <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
-    <guava.version>18.0</guava.version>
-    <mockito.version>1.9.5</mockito.version>
-    <awaitility.version>1.6.1</awaitility.version>
-    <junit.version>4.11</junit.version>
-    <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
-    <jaxrs.version>2.7.12</jaxrs.version>
-    <appScale.version>2.0.4</appScale.version>
-    <gson.version>2.3.1</gson.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
-  <dependencyManagement>
-    <dependencies>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>subutai-common</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>environment-manager-api</artifactId>
-        <version>${subutai.mgmt.parent.version}</version>
-      </dependency>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b
       
             <dependency>
                 <groupId>${project.groupId}</groupId>
@@ -173,41 +139,19 @@
                 <artifactId>cxf-rt-frontend-jaxrs</artifactId>
                 <version>${jaxrs.version}</version>
             </dependency>
-      
+            
             <dependency>
-                <groupId>io.subutai</groupId>
-                <artifactId>metric-api</artifactId>
-                <version>${subutai.mgmt.parent.version}</version>
-            </dependency>
+            <groupId>io.subutai</groupId>
+            <artifactId>network-manager-api</artifactId>
+            <version>${subutai.mgmt.parent.version}</version>
+        </dependency>
+
             <dependency>
-                <groupId>io.subutai</groupId>
-                <artifactId>network-manager-api</artifactId>
-                <version>${subutai.mgmt.parent.version}</version>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.googlecode.json-simple</groupId>
-                <artifactId>json-simple</artifactId>
-                <version>1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-ws-policy</artifactId>
-                <version>3.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-httpclient</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>3.1</version>
-      
-            </dependency>
-            <dependency>
-                <groupId>backport-util-concurrent</groupId>
-                <artifactId>backport-util-concurrent</artifactId>
-                <version>3.1</version>
-      
-            </dependency>
-      
-      
+
         </dependencies>
 
     </dependencyManagement>
