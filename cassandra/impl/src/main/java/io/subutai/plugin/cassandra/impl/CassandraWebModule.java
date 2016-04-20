@@ -1,59 +1,68 @@
 package io.subutai.plugin.cassandra.impl;
 
 
+import com.google.gson.Gson;
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class CassandraWebModule implements WebuiModule
 {
     public static String NAME = "Cassandra";
     public static String IMG = "plugins/cassandra/cassandra.png";
-
-    public CassandraWebModule()
+    private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+    static
     {
-
+        TEMPLATES_REQUIREMENT = new HashMap<>();
+        TEMPLATES_REQUIREMENT.put("cassandra", 1);
     }
+    
+            
+    private WebuiModuleResourse cassandraResource;
+    
+            
+    public void init()
+    {
+        cassandraResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        AngularjsDependency angularjsDependency = new AngularjsDependency(
+                "subutai.plugins.cassandra",
+                "plugins/cassandra/cassandra.js",
+                "plugins/cassandra/controller.js",
+                "plugins/cassandra/service.js",
+                "subutai-app/environment/service.js",
+                "subutai-app/peerRegistration/service.js"
+        );
 
+        cassandraResource.addDependency(angularjsDependency);
+    }
+    
+    @Override
+    public String getAngularState()
+    {
+        return cassandraResource.getAngularjsList();
+    }
+    
     @Override
     public String getName()
     {
         return NAME;
     }
-
-
+    
+            
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString());
     }
 
-
+            
     @Override
     public String getAngularDependecyList()
     {
-        return ".state('cassandra', {"
-                + "    url: '/plugins/cassandra',"
-                + "    templateUrl: 'plugins/cassandra/partials/view.html',"
-                + "    data: {\n"
-                + "               bodyClass: '',\n"
-                + "               layout: 'default'\n"
-                + "           },\n"
-                + "    resolve: {"
-                + "    loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {"
-                + "        return $ocLazyLoad.load(["
-                + "                {"
-                + "                        name: 'subutai.plugins.cassandra',"
-                + "                files: ["
-                + "        'plugins/cassandra/cassandra.js',"
-                + "                'plugins/cassandra/controller.js',"
-                + "                'plugins/cassandra/service.js',"
-                + "                'subutai-app/environment/service.js',"
-                + "                'subutai-app/peerRegistration/service.js'"
-                + "        ]"
-                + "        }"
-                + "        ]);"
-                + "    }]"
-                + "    }"
-                + "})";
+        return String.format( ".state('%s', %s)", NAME.toLowerCase(), cassandraResource.getAngularjsList() );
     }
 }

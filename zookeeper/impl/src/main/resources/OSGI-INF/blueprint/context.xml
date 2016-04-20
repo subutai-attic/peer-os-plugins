@@ -33,7 +33,7 @@
   </bean>
 
 
-  <bean id="module" scope="singleton" class="io.subutai.plugin.zookeeper.impl.ZookeeperWebModule">
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.zookeeper.impl.ZookeeperWebModule">
   </bean>
 
   <!-- *********************************************************************************** -->
