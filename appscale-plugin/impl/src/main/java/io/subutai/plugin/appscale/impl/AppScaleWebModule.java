@@ -74,7 +74,7 @@ public class AppScaleWebModule implements WebuiModule
     @Override
     public String getAngularDependecyList ()
     {
-        return String.format ( ".state('%s', %s)", NAME, appscaleResource.getAngularjsList () );
+        return String.format ( ".state('%s', %s)", NAME.toLowerCase(), appscaleResource.getAngularjsList () );
     }
 }
 
