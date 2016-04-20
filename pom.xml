@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>subutai-plugins-parent</artifactId>
-  <version>4.0.0-RC7-SNAPSHOT</version>
+  <version>4.0.0-RC9-SNAPSHOT</version>
 
   <name>Subutai Plugins Project Parent</name>
 
@@ -34,8 +34,8 @@
     <module>solr-plugin</module>
     <module>storm-plugin</module>
     <module>nutch-plugin</module>
-    <module>usergrid-plugin</module>
     <module>appscale-plugin</module>
+    <module>usergrid-plugin</module>
   </modules>
 
   <description>Parent project for the Subutai Plugins Artifacts</description>
