@@ -105,5 +105,10 @@ public interface RestService
     @Path( "about" )
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response getPluginInfo();
+
+
+    @GET
+    @Path( "angular" )
+    Response getAngularConfig();
 }
 

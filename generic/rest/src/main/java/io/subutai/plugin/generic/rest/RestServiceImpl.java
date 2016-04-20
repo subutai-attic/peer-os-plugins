@@ -319,4 +319,11 @@ public class RestServiceImpl implements RestService
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
     }
+
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (genericPlugin.getWebModule().getAngularDependecyList()).build();
+    }
 }

@@ -15,6 +15,7 @@ import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
+import io.subutai.plugin.hadoop.impl.HadoopWebModule;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
@@ -30,7 +31,7 @@ public class RemoveNodeOperationHandlerTest
     UUID uuid;
     ExecutorService executorService;
     Monitor monitor;
-
+    HadoopWebModule webModule;
     @Mock
     PluginDAO pluginDAO;
 
@@ -44,11 +45,12 @@ public class RemoveNodeOperationHandlerTest
         executorService = mock( ExecutorService.class );
         trackerOperation = mock( TrackerOperation.class );
         monitor = mock( Monitor.class );
+        webModule = mock (HadoopWebModule.class);
         uuid = new UUID( 50, 50 );
         Tracker tracker = mock( Tracker.class );
         String clusterName = "test";
         String lxcHostName = "test";
-        HadoopImpl hadoop = new HadoopImpl( strategyManager, monitor, pluginDAO );
+        HadoopImpl hadoop = new HadoopImpl( strategyManager, monitor, pluginDAO, webModule );
         when( trackerOperation.getId() ).thenReturn( uuid );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         hadoop.setTracker( tracker );
@@ -67,7 +69,7 @@ public class RemoveNodeOperationHandlerTest
     {
         Tracker tracker = mock( Tracker.class );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
-        HadoopImpl hadoop = new HadoopImpl( strategyManager, monitor, pluginDAO );
+        HadoopImpl hadoop = new HadoopImpl( strategyManager, monitor, pluginDAO, webModule );
         when( trackerOperation.getId() ).thenReturn( uuid );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         hadoop.setTracker( tracker );

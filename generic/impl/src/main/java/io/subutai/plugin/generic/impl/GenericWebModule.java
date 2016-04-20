@@ -1,16 +1,35 @@
 package io.subutai.plugin.generic.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
 
 public class GenericWebModule implements WebuiModule
 {
+
+
+	private WebuiModuleResourse genericResource;
 	public static String NAME = "Generic";
 	public static String IMG = "plugins/generic/generic.png";
 
-	@Override
-	public String getName()
+	public void init()
 	{
-		return NAME;
+		this.genericResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+		AngularjsDependency angularjsDependency = new AngularjsDependency(
+				"subutai.plugins.generic",
+				"'plugins/generic/generic.js'",
+				"'plugins/generic/controller.js'",
+				"'plugins/generic/service.js'",
+				"'subutai-app/environment/service.js'"
+		);
+
+		this.genericResource.addDependency(angularjsDependency);
 	}
 
 
@@ -20,35 +39,22 @@ public class GenericWebModule implements WebuiModule
 		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
 	}
 
+	@Override
+	public String getName()
+	{
+		return NAME;
+	}
+
+	@Override
+	public String getAngularState()
+	{
+		return this.genericResource.getAngularjsList();
+	}
+
 
 	@Override
 	public String getAngularDependecyList()
 	{
-		return ".state('generic', {\n" +
-				"url: '/plugins/generic',\n" +
-				"templateUrl: 'plugins/generic/partials/view.html',\n" +
-				"data: {\n" +
-				"bodyClass: '',\n" +
-				"layout: 'default'\n" +
-				"},\n" +
-				"resolve: {\n" +
-				"loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
-				"return $ocLazyLoad.load([\n" +
-				"{\n" +
-				"name: 'vtortola.ng-terminal'\n" +
-				"},\n" +
-				"{\n" +
-				"name: 'subutai.plugins.generic',\n" +
-				"files: [\n" +
-				"'plugins/generic/generic.js',\n" +
-				"'plugins/generic/controller.js',\n" +
-				"'plugins/generic/service.js',\n" +
-				"'subutai-app/environment/service.js'\n" +
-				"]\n" +
-				"}\n" +
-				"]);\n" +
-				"}]\n" +
-				"}\n" +
-				"})";
+		return String.format( ".state('%s', %s)", NAME.toLowerCase(), this.genericResource.getAngularjsList() );
 	}
 }

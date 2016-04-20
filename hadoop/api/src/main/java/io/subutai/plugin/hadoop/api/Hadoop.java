@@ -8,6 +8,7 @@ import io.subutai.common.environment.Blueprint;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface Hadoop extends ApiBase<HadoopClusterConfig>
@@ -195,4 +196,9 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      * @param config - config to update
      */
     public void saveConfig( HadoopClusterConfig config ) throws ClusterException;
+
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

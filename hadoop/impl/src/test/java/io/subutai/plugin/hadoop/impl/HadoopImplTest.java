@@ -60,6 +60,9 @@ public class HadoopImplTest
     Monitor monitor;
 
     @Mock
+    HadoopWebModule webModule;
+
+    @Mock
     EnvironmentContainerHost containerHost;
 
     @Mock
@@ -84,7 +87,7 @@ public class HadoopImplTest
 
         when( localPeer.getId() ).thenReturn( LOCAL_PEER_ID );
         when( peerManager.getLocalPeer() ).thenReturn( localPeer );
-        hadoopImpl = new HadoopImpl( strategyManager, monitor, pluginDAO);
+        hadoopImpl = new HadoopImpl( strategyManager, monitor, pluginDAO, webModule );
         //        hadoopImpl.init();
         hadoopImpl.setPeerManager( peerManager );
         hadoopImpl.setExecutor( executorService );

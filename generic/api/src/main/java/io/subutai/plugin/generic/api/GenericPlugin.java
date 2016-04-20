@@ -7,6 +7,7 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.plugin.generic.api.dao.ConfigDataService;
 import io.subutai.plugin.generic.api.model.Operation;
 import io.subutai.plugin.generic.api.model.Profile;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface GenericPlugin
@@ -33,4 +34,8 @@ public interface GenericPlugin
     void deleteProfile( String profileName );
 
     void deleteOperations( Long profileId );
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

@@ -455,4 +455,11 @@ public class RestServiceImpl implements RestService
         }
         return log;
     }
+
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (hadoopManager.getWebModule().getAngularDependecyList()).build();
+    }
 }

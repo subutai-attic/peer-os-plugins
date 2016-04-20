@@ -10,11 +10,22 @@ import io.subutai.plugin.generic.api.dao.ConfigDataService;
 import io.subutai.plugin.generic.api.model.Operation;
 import io.subutai.plugin.generic.api.model.Profile;
 import io.subutai.plugin.generic.impl.dao.ConfigDataServiceImpl;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class GenericPluginImpl implements GenericPlugin
 {
     private DaoManager daoManager;
+    private GenericWebModule webModule;
+
+    private ConfigDataService configDataService;
+
+
+    public GenericPluginImpl( final DaoManager daoManager, final GenericWebModule webModule )
+    {
+        this.daoManager = daoManager;
+        this.webModule = webModule;
+    }
 
 
     @Override
@@ -35,15 +46,6 @@ public class GenericPluginImpl implements GenericPlugin
     public void deleteOperations( final Long profileId )
     {
         configDataService.deleteOperations( profileId );
-    }
-
-
-    private ConfigDataService configDataService;
-
-
-    public GenericPluginImpl( final DaoManager daoManager )
-    {
-        this.daoManager = daoManager;
     }
 
 
@@ -104,5 +106,18 @@ public class GenericPluginImpl implements GenericPlugin
     {
         ExecutorManager manager = new ExecutorManager( host, operation );
         return manager.execute();
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (GenericWebModule) webModule;
     }
 }

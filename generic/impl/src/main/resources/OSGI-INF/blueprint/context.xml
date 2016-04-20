@@ -14,12 +14,13 @@
   <bean id="genericPluginImpl" class="io.subutai.plugin.generic.impl.GenericPluginImpl" init-method="init"
         scope="singleton" activation="eager">
     <argument ref="daoManagerPlugin" />
+    <argument ref="module" />
   </bean>
 
 
 	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-	<bean id="module" scope="singleton" class="io.subutai.plugin.generic.impl.GenericWebModule">
+	<bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.generic.impl.GenericWebModule">
 	</bean>
 </blueprint>

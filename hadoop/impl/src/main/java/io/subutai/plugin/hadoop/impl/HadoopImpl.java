@@ -44,6 +44,7 @@ import io.subutai.plugin.hadoop.impl.handler.AddOperationHandler;
 import io.subutai.plugin.hadoop.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hadoop.impl.handler.NodeOperationHandler;
 import io.subutai.plugin.hadoop.impl.handler.RemoveNodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class HadoopImpl implements Hadoop, EnvironmentEventListener
@@ -58,16 +59,17 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private PeerManager peerManager;
     private NetworkManager networkManager;
     private StrategyManager strategyManager;
-
+    private HadoopWebModule webModule;
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
-    public HadoopImpl( StrategyManager strategyManager, Monitor monitor, PluginDAO pluginDAO )
+    public HadoopImpl( StrategyManager strategyManager, Monitor monitor, PluginDAO pluginDAO, HadoopWebModule webModule )
     {
         this.strategyManager = strategyManager;
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -618,5 +620,18 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
                 getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (HadoopWebModule) webModule;
     }
 }

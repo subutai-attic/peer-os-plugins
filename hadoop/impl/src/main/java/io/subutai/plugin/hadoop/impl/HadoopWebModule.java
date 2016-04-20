@@ -2,24 +2,28 @@ package io.subutai.plugin.hadoop.impl;
 
 
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
 
 
 public class HadoopWebModule implements WebuiModule
 {
+    private WebuiModuleResourse hadoopResource;
     public static String NAME = "Hadoop";
     public static String IMG = "plugins/hadoop/hadoop.png";
 
-
-    public HadoopWebModule()
+    public void init()
     {
+        this.hadoopResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        AngularjsDependency angularjsDependency = new AngularjsDependency(
+                "subutai.plugins.hadoop",
+                "'plugins/hadoop/hadoop.js'",
+                "'plugins/hadoop/controller.js'",
+                "'plugins/hadoop/service.js'",
+                "'subutai-app/environment/service.js'"
+        );
 
-    }
-
-
-    @Override
-    public String getName()
-    {
-        return NAME;
+        this.hadoopResource.addDependency(angularjsDependency);
     }
 
 
@@ -29,32 +33,22 @@ public class HadoopWebModule implements WebuiModule
         return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
     }
 
+    @Override
+    public String getName()
+    {
+        return NAME;
+    }
+
+    @Override
+    public String getAngularState()
+    {
+        return this.hadoopResource.getAngularjsList();
+    }
+
 
     @Override
     public String getAngularDependecyList()
     {
-        return "        .state('hadoop', {\n" +
-                "           url: '/plugins/hadoop',\n" +
-                "           templateUrl: 'plugins/hadoop/partials/view.html',\n" +
-                "           data: {\n" +
-                "               bodyClass: '',\n" +
-                "               layout: 'default'\n" +
-                "           },\n" +
-                "            resolve: {\n" +
-                "                loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n" +
-                "                    return $ocLazyLoad.load([\n" +
-                "                        {\n" +
-                "                            name: 'subutai.plugins.hadoop',\n" +
-                "                            files: [\n" +
-                "                                'plugins/hadoop/hadoop.js',\n" +
-                "                                'plugins/hadoop/controller.js',\n" +
-                "                                'plugins/hadoop/service.js',\n" +
-                "                                'subutai-app/environment/service.js'\n" +
-                "                            ]\n" +
-                "                        }\n" +
-                "                    ]);\n" +
-                "                }]\n" +
-                "            }\n" +
-                "        })";
+        return String.format( ".state('%s', %s)", NAME.toLowerCase(), this.hadoopResource.getAngularjsList() );
     }
 }
