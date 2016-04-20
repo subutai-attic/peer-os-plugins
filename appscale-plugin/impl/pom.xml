@@ -5,7 +5,11 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>AppScale</artifactId>
+<<<<<<< HEAD:appscale-plugin/impl/pom.xml
     <version>4.0.0-RC9-SNAPSHOT</version>
+=======
+    <version>4.0.0-RC8</version>
+>>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b:appscale-plugin/plugin-appscale-impl/pom.xml
   </parent>
   <artifactId>appscale-plugin-impl</artifactId>
   <packaging>bundle</packaging>
@@ -19,12 +23,21 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>metric-api</artifactId>
+<<<<<<< HEAD:appscale-plugin/impl/pom.xml
+=======
+      <version>4.0.0-RC8</version>
+      
+>>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b:appscale-plugin/plugin-appscale-impl/pom.xml
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
+<<<<<<< HEAD:appscale-plugin/impl/pom.xml
       <version>4.0.0-RC9-SNAPSHOT</version>
+=======
+      <version>4.0.0-RC8</version>
+>>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b:appscale-plugin/plugin-appscale-impl/pom.xml
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
@@ -33,6 +46,11 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>network-manager-api</artifactId>
+<<<<<<< HEAD:appscale-plugin/impl/pom.xml
+=======
+      <version>4.0.0-RC8</version>
+      
+>>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b:appscale-plugin/plugin-appscale-impl/pom.xml
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
