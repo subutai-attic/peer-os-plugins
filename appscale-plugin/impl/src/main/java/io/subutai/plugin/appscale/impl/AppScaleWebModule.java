@@ -33,7 +33,7 @@ public class AppScaleWebModule implements WebuiModule
 
     public void init()
     {
-        WebuiModuleResourse appscaleResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        this.appscaleResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency(
                 "subutai.plugins.appscale",
                 "'plugins/appscale/appscale.js'",
