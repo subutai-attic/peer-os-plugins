@@ -36,6 +36,7 @@ import io.subutai.plugin.mahout.api.Mahout;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
 import io.subutai.plugin.mahout.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.mahout.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class MahoutImpl implements Mahout, EnvironmentEventListener
@@ -48,15 +49,17 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private ExecutorService executor;
     private Hadoop hadoopManager;
+    private MahoutWebModule webModule;
 
 
     public MahoutImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                       PluginDAO pluginDAO )
+                       PluginDAO pluginDAO, MahoutWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -308,5 +311,17 @@ public class MahoutImpl implements Mahout, EnvironmentEventListener
                 break;
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (MahoutWebModule) webModule;
     }
 }

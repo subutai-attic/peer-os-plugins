@@ -64,6 +64,8 @@ public class LuceneImplTest
     CommandResult commandResult;
     @Mock
     ExecutorService executor;
+    @Mock
+    LuceneWebModule webModule;
 
 
     @Before
@@ -74,7 +76,7 @@ public class LuceneImplTest
         when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
         when( pluginDAO.getInfo( LuceneConfig.PRODUCT_KEY, "test", LuceneConfig.class ) ).thenReturn( luceneConfig );
 
-        luceneImpl = new LuceneImpl( tracker, environmentManager, hadoop, pluginDAO );
+        luceneImpl = new LuceneImpl( tracker, environmentManager, hadoop, pluginDAO, webModule );
         luceneImpl.setTracker( tracker );
         luceneImpl.setHadoopManager( hadoop );
         luceneImpl.setEnvironmentManager( environmentManager );

@@ -7,6 +7,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface Hive extends ApiBase<HiveConfig>
@@ -36,4 +37,8 @@ public interface Hive extends ApiBase<HiveConfig>
     void saveConfig( HiveConfig config ) throws ClusterException;
 
     void deleteConfig( HiveConfig config ) throws ClusterException;
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

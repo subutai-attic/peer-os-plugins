@@ -13,6 +13,7 @@
     <argument ref="environmentManager" />
     <argument ref="hadoopManager" />
     <argument ref="pluginDAO" />
+    <argument ref="module" />
   </bean>
 
   <!-- *********************************************************************************** -->
@@ -23,7 +24,7 @@
 	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-	<bean id="module" scope="singleton" class="io.subutai.plugin.hive.impl.HiveWebModule">
+	<bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.hive.impl.HiveWebModule">
 	</bean>
 
 

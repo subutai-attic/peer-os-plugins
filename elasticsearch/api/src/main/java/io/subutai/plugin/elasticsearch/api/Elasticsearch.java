@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration>
@@ -89,4 +90,9 @@ public interface Elasticsearch extends ApiBase<ElasticsearchClusterConfiguration
      * @throws ClusterException
      */
     void deleteConfig( ElasticsearchClusterConfiguration config ) throws ClusterException;
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
+
 }

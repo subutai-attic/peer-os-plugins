@@ -460,4 +460,10 @@ public class RestServiceImpl implements RestService
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
     }
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (flumeManager.getWebModule().getAngularDependecyList()).build();
+    }
 }

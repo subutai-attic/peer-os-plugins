@@ -11,71 +11,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai.plugin</groupId>
   <artifactId>subutai-plugins-parent</artifactId>
-<<<<<<< HEAD
-  <version>4.0.0-RC9-SNAPSHOT</version>
-
-=======
   <version>4.0.0-RC8</version>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b
+
+
   <name>Subutai Plugins Project Parent</name>
   <description>
     Parent Project for Subutai Social Management Console Plugins.
   </description>
   <packaging>pom</packaging>
 
-<<<<<<< HEAD
-  <modules>
-    <module>cassandra-plugin</module>
-    <module>hadoop-plugin</module>
-    <module>zookeeper-plugin</module>
-    <!--<module>accumulo-plugin</module>-->
-    <module>mongo-plugin</module>
-    <module>lucene-plugin</module>
-    <module>hive-plugin</module>
-    <module>hipi-plugin</module>
-    <module>elasticsearch-plugin</module>
-    <module>ceph-plugin</module>
-    <module>flume-plugin</module>
-    <module>mahout-plugin</module>
-    <module>hbase-plugin</module>
-    <module>presto-plugin</module>
-    <module>oozie-plugin</module>
-    <module>backup-plugin</module>
-    <module>generic-plugin</module>
-    <module>pig-plugin</module>
-    <module>spark-plugin</module>
-    <module>shark-plugin</module>
-    <module>solr-plugin</module>
-    <module>storm-plugin</module>
-    <module>nutch-plugin</module>
-    <module>appscale-plugin</module>
-    <module>usergrid-plugin</module>
-  </modules>
-
-  <description>Parent project for the Subutai Plugins Artifacts</description>
-
-  <repositories>
-
-    <repository>
-      <id>MavenCentral</id>
-      <name>Maven repository</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </repository>
-
-    <repository>
-      <id>com.springsource.repository.bundles.release</id>
-      <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
-    </repository>
-
-    <repository>
-      <id>com.springsource.repository.bundles.external</id>
-      <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/external</url>
-    </repository>
-
-  </repositories>
-=======
   <scm>
     <url>https://github.com/subutai-io/plugins</url>
     <connection>
@@ -86,7 +30,6 @@
     </developerConnection>
     <tag>HEAD</tag>
   </scm>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b
 
   <properties>
     <management.version>4.0.0-RC9-SNAPSHOT</management.version>

@@ -30,6 +30,7 @@ import io.subutai.plugin.hipi.api.Hipi;
 import io.subutai.plugin.hipi.api.HipiConfig;
 import io.subutai.plugin.hipi.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hipi.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class HipiImpl implements Hipi, EnvironmentEventListener
@@ -41,15 +42,16 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
     private ExecutorService executor;
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
-
+    private HipiWebModule webModule;
 
     public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                     PluginDAO pluginDAO )
+                     PluginDAO pluginDAO, HipiWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.hadoopManager = hadoopManager;
         this.pluginDao = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -265,5 +267,17 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
                 break;
             }
         }
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (HipiWebModule) webModule;
     }
 }

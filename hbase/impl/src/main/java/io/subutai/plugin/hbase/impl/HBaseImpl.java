@@ -32,6 +32,7 @@ import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 import io.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.hbase.impl.handler.NodeOperationHandler;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class HBaseImpl implements HBase, EnvironmentEventListener
@@ -47,16 +48,18 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     private Commands commands;
     private Monitor monitor;
     private QuotaManager quotaManager;
+    private HBaseWebModule webModule;
 
 
     public HBaseImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
-                      final Monitor monitor, PluginDAO pluginDAO )
+                      final Monitor monitor, PluginDAO pluginDAO, HBaseWebModule webModule )
     {
         this.hadoopManager = hadoopManager;
         this.tracker = tracker;
         this.monitor = monitor;
         this.environmentManager = environmentManager;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -340,6 +343,18 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void setHadoopManager( Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (HBaseWebModule) webModule;
     }
 }
 

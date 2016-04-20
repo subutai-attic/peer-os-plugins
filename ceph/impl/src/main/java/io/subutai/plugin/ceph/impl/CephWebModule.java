@@ -30,8 +30,7 @@ public class CephWebModule implements WebuiModule
 				"subutai.plugins.ceph",
 				"'plugins/ceph/ceph.js'",
 				"'plugins/ceph/controller.js'",
-				"'plugins/ceph/service.js'",
-				"'subutai-app/environment/service.js'"
+				"'plugins/ceph/service.js'"
 		);
 
 		this.cephResource.addDependency(angularjsDependency);

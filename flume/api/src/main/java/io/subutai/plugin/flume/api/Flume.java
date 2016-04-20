@@ -7,6 +7,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.webui.api.WebuiModule;
 
 
 public interface Flume extends ApiBase<FlumeConfig>
@@ -35,4 +36,8 @@ public interface Flume extends ApiBase<FlumeConfig>
     public void saveConfig( FlumeConfig config ) throws ClusterException;
 
     public void deleteConfig( FlumeConfig config ) throws ClusterException;
+
+    public WebuiModule getWebModule();
+
+    public void setWebModule( final WebuiModule webModule );
 }

@@ -437,4 +437,10 @@ public class RestServiceImpl implements RestService
     {
         this.hadoopManager = hadoopManager;
     }
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok (hiveManager.getWebModule().getAngularDependecyList()).build();
+    }
 }
