@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.webui.api.WebuiModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,19 +45,20 @@ public class RestServiceImpl implements RestService
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private IdentityManager identityManager;
+    private WebuiModule webuiModule;
 
 
     private static final Logger LOG = LoggerFactory.getLogger ( RestServiceImpl.class.getName () );
 
 
-    public RestServiceImpl ( AppScaleInterface appScaleInterface, Tracker tracker,
-                             EnvironmentManager environmentManager, IdentityManager identityManager )
+    public RestServiceImpl (AppScaleInterface appScaleInterface, Tracker tracker,
+                            EnvironmentManager environmentManager, IdentityManager identityManager, WebuiModule webuiModule)
     {
         this.appScaleInterface = appScaleInterface;
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.identityManager = identityManager;
-
+        this.webuiModule = webuiModule;
     }
 
 
@@ -128,6 +130,12 @@ public class RestServiceImpl implements RestService
             default:
                 return Response.status ( Response.Status.INTERNAL_SERVER_ERROR ).entity ( "timeout" ).build ();
         }
+    }
+
+    @Override
+    public Response getAngularConfig()
+    {
+        return Response.ok(webuiModule.getAngularDependecyList()).build();
     }
 
 
