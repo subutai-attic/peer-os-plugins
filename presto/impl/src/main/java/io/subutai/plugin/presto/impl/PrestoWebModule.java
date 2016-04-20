@@ -7,6 +7,38 @@ public class PrestoWebModule implements WebuiModule
 	public static String NAME = "Presto";
 	public static String IMG = "plugins/presto/presto.png";
 
+	private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+	static
+	{
+		TEMPLATES_REQUIREMENT = new HashMap<>();
+		TEMPLATES_REQUIREMENT.put("hadoop", 1);
+	}
+
+
+	private WebuiModuleResourse prestoResource;
+
+
+	public void init()
+	{
+		prestoResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+		AngularjsDependency angularjsDependency = new AngularjsDependency(
+				"subutai.plugins.presto",
+				"plugins/presto/presto.js",
+				"plugins/presto/controller.js",
+				"plugins/presto/service.js",
+				"plugins/hadoop/service.js",
+				"subutai-app/environment/service.js";
+		);
+
+		prestoResource.addDependency(angularjsDependency);
+	}
+
+	@Override
+	public String getAngularState()
+	{
+		return prestoResource.getAngularjsList();
+	}
+
 	@Override
 	public String getName()
 	{
@@ -17,32 +49,13 @@ public class PrestoWebModule implements WebuiModule
 	@Override
 	public String getModuleInfo()
 	{
-		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\"}", IMG, NAME );
+		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString());
 	}
 
 
 	@Override
 	public String getAngularDependecyList()
 	{
-		return ".state('presto', {\n"
-				+ "url: '/plugins/presto',\n"
-				+ "templateUrl: 'plugins/presto/partials/view.html',\n" +
-				"data: {\n" +
-				"bodyClass: '',\n" +
-				"layout: 'default'\n" +
-				"},\n"
-				+ "resolve: {\n"
-					+ "loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {\n"
-						+ "return $ocLazyLoad.load([\n" + "{\n"
-							+ "name: 'subutai.plugins.presto',\n" + "files: [\n"
-							+ "'plugins/presto/presto.js',\n" + "'plugins/presto/controller.js',\n"
-							+ "'plugins/presto/service.js',\n" + "'plugins/hadoop/service.js',\n"
-							+ "'subutai-app/environment/service.js'\n"
-						+ "]\n"
-					+ "}\n"
-					+ "]);\n"
-					+ "}]\n"
-					+ "}\n"
-				+ "})";
+		return String.format( ".state('%s', %s)", NAME.toLowerCase(), prestoResource.getAngularjsList() );
 	}
 }

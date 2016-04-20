@@ -38,6 +38,6 @@
 	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
 
-	<bean id="module" scope="singleton" class="io.subutai.plugin.storm.impl.StormWebModule">
+	<bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.storm.impl.StormWebModule">
 	</bean>
 </blueprint>

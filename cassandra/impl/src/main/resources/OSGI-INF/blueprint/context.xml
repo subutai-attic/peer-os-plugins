@@ -31,7 +31,7 @@
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
-  <bean id="module" scope="singleton" class="io.subutai.plugin.cassandra.impl.CassandraWebModule">
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.cassandra.impl.CassandraWebModule">
   </bean>
 
 </blueprint>
