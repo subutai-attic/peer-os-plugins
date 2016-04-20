@@ -49,6 +49,7 @@ public class AppScaleWebModule implements WebuiModule
     }
 
 
+    @Override
     public String getAngularState ()
     {
         return appscaleResource.getAngularjsList ();

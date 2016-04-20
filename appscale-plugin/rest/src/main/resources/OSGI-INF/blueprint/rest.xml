@@ -29,7 +29,7 @@
              interface="io.subutai.core.identity.api.IdentityManager" />
 
   <reference id="webModule" availability="mandatory"
-             interface="io.subutai.plugin.appscale.impl.AppScaleWebModule" />
+             interface="io.subutai.webui.api.WebuiModule" />
   
 
   <bean id="appscaleRestServiceImpl" class="io.subutai.plugin.appscale.rest.RestServiceImpl">

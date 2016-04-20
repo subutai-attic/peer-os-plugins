@@ -71,6 +71,12 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 								vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 						}
 					}
+
+					if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
+					{
+						vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+					}
+
 					vm.config.master = vm.nodes[0];
 
 					vm.config.appeng = [];
@@ -103,6 +109,11 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 					vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 			}
 		}
+		if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
+		{
+			vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+		}
+
 		vm.config.master = vm.nodes[0];
 
 		vm.config.appeng = [];
@@ -143,6 +154,12 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 							vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
 					}
 				}
+
+				if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
+				{
+					vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+				}
+
 				vm.config.master = vm.nodes[0];
 
 				vm.config.appeng = [];
