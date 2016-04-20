@@ -127,17 +127,18 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
         {
             Environment env = manager.getEnvironmentManager ().loadEnvironment ( clusterName );
             Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
-            for (EnvironmentContainerHost cont : containerHosts)
-            {
-                try
-                {
-                    env.destroyContainer ( cont, true );
-                }
-                catch ( EnvironmentNotFoundException | EnvironmentModificationException ex )
-                {
-                    LOG.error ( "Destroy container error: " + ex );
-                }
-            }
+            containerHosts.stream ().forEach ( (cont)
+                    ->
+                    {
+                        try
+                        {
+                            env.destroyContainer ( cont, true );
+                        }
+                        catch ( EnvironmentNotFoundException | EnvironmentModificationException ex )
+                        {
+                            LOG.error ( "Destroy container error: " + ex );
+                        }
+            } );
         }
         catch ( EnvironmentNotFoundException ex )
         {

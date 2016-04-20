@@ -26,13 +26,14 @@
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   
-  
+  <reference id="identityManager" availability="mandatory"
+             interface="io.subutai.core.identity.api.IdentityManager" />
 
   <bean id="ugrsi" class="io.subutai.plugin.usergrid.rest.RestServiceImpl">
     <argument ref="userGridInterface" />
     <argument ref="tracker" />
     <argument ref="environmentManager" />
-    
+    <argument ref="identityManager" />
   </bean>
 
 </blueprint>

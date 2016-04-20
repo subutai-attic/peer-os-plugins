@@ -7,13 +7,24 @@ package io.subutai.plugin.usergrid.impl;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.TrustManager;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.cxf.configuration.jsse.TLSClientParameters;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.http.HTTPConduit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -21,9 +32,17 @@ import com.google.common.base.Strings;
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.environment.EnvironmentStatus;
+import io.subutai.common.environment.NodeSchema;
+import io.subutai.common.environment.Topology;
 import io.subutai.common.mdc.SubutaiExecutors;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.EnvironmentId;
+import io.subutai.common.security.crypto.ssl.NaiveTrustManager;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
@@ -38,6 +57,8 @@ import io.subutai.plugin.usergrid.api.UsergridConfig;
 import io.subutai.plugin.usergrid.api.UsergridInterface;
 import io.subutai.plugin.usergrid.impl.handler.ClusterOperationHandler;
 
+import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
+
 
 /**
  *
@@ -47,7 +68,7 @@ import io.subutai.plugin.usergrid.impl.handler.ClusterOperationHandler;
 public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger( UsergridIMPL.class.getName() );
+    private static final Logger LOG = LoggerFactory.getLogger ( UsergridIMPL.class.getName () );
     private ExecutorService executor;
     private final Monitor monitor;
     private final PluginDAO pluginDAO;
@@ -57,36 +78,43 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     private PeerManager peerManager;
     private Environment environment;
     private UsergridConfig userGridConfig;
+    private String token;
 
 
-    public UsergridIMPL( Monitor monitor, PluginDAO pluginDAO )
+    private static final String BUILD_TOPOLOGY_URL
+            = "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY";
+    private static final String ENVIRONMENT_URL = "https://localhost:8443/rest/v1/environments/";
+
+
+    public UsergridIMPL ( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
 
-    public void init()
+    public void init ()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = SubutaiExecutors.newCachedThreadPool ();
     }
 
 
-    public void destroy()
+    public void destroy ()
     {
 
     }
 
 
     @Override
-    public List<String> getClusterList( Environment name )
+    public List<String> getClusterList ( Environment name )
     {
-        List<String> c = new ArrayList();
-        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
-        for ( EnvironmentContainerHost e : containerHosts )
-        {
-            c.add ( e.getHostname () );
-        }
+        List<String> c = new ArrayList ();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
+        containerHosts.stream ().forEach ( (e)
+                ->
+                {
+                    c.add ( e.getHostname () );
+        } );
         return c;
     }
 
@@ -101,14 +129,164 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, usergridConfig,
                                                                                           ClusterOperationType.INSTALL );
         executor.execute ( abstractOperationHandler );
-//        boolean saveInfo = getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_KEY, usergridConfig.getClusterName (),
-//                                                      usergridConfig );
-//        if ( saveInfo )
-//        {
-//            LOG.info ( "Configuration saved to db" );
-//        }
         return abstractOperationHandler.getTrackerId ();
 
+    }
+
+
+    private WebClient createWebClient ( String url, Boolean trustCerts )
+    {
+        JacksonJsonProvider jsonProvider = new JacksonJsonProvider ();
+        WebClient webClient = WebClient.create ( url, Collections.singletonList ( jsonProvider ) );
+        if ( trustCerts )
+        {
+            HTTPConduit conduit = WebClient.getConfig ( webClient ).getHttpConduit ();
+            TLSClientParameters params = conduit.getTlsClientParameters ();
+            if ( params == null )
+            {
+                params = new TLSClientParameters ();
+                conduit.setTlsClientParameters ( params );
+            }
+            params.setTrustManagers ( new TrustManager[]
+            {
+                new NaiveTrustManager ()
+            } );
+            params.setDisableCNCheck ( true );
+        }
+        return webClient;
+    }
+
+
+    private UsergridConfig buildEnvironment ( UsergridConfig lConfig )
+    {
+        LOG.info ( "building environment started" );
+
+        String environmentName = lConfig.getEnvironmentName ();
+        NodeSchema elasticNode = new NodeSchema ( "elasticsearch144" + randomAlphabetic ( 10 ).toLowerCase (),
+                                                  ContainerSize.HUGE,
+                                                  "elasticsearch144", 0, 0 );
+        NodeSchema cassandraNode = new NodeSchema ( "cassandra" + randomAlphabetic ( 10 ).toLowerCase (),
+                                                    ContainerSize.HUGE,
+                                                    "cassandra", 0, 0 );
+        NodeSchema tomcatNode = new NodeSchema ( "tomcat7" + randomAlphabetic ( 10 ).toLowerCase (), ContainerSize.HUGE,
+                                                 "tomcat7", 0, 0 );
+        List<NodeSchema> nodes = new ArrayList<> ();
+        nodes.add ( tomcatNode );
+        nodes.add ( cassandraNode );
+        nodes.add ( elasticNode );
+        Blueprint blueprint = new Blueprint ( environmentName, nodes );
+        Topology topology = buildTopology ( blueprint );
+        LOG.info ( "topology: " + blueprint.toString () );
+        EnvironmentId usergridEnvironmentID = createEnvironment ( topology );
+        Boolean healt = false;
+        while ( !healt )
+        {
+            try
+            {
+                TimeUnit.SECONDS.sleep ( 10 );
+                Environment env = environmentManager.loadEnvironment ( usergridEnvironmentID.getId () );
+                if ( env != null && env.getStatus ().equals ( EnvironmentStatus.HEALTHY ) )
+                {
+                    LOG.info ( "Environment loaded and healty..." );
+                    List<String> cassList = new ArrayList ();
+                    List<String> elasticList = new ArrayList ();
+                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+                    for ( EnvironmentContainerHost e : containerHosts )
+                    {
+                        switch ( e.getTemplateName () )
+                        {
+                            case "elasticsearch144":
+                            {
+                                elasticList.add ( e.getHostname () );
+                                break;
+                            }
+                            case "cassandra":
+                            {
+                                cassList.add ( e.getHostname () );
+                                break;
+                            }
+                            case "tomcat7":
+                            {
+                                lConfig.setClusterName ( e.getHostname () );
+                                lConfig.setTomcatName ( e.getHostname () );
+                                break;
+                            }
+                        }
+                    }
+                    lConfig.setElasticSName ( elasticList );
+                    lConfig.setCassandraName ( cassList );
+                    lConfig.setEnvironmentId ( usergridEnvironmentID.getId () );
+                    healt = true;
+                }
+
+            }
+            catch ( EnvironmentNotFoundException | InterruptedException ex )
+            {
+
+                LOG.error ( "environment can not loaded yet..." + ex );
+            }
+        }
+
+        return lConfig;
+    }
+
+
+    private EnvironmentId createEnvironment ( Topology topology )
+    {
+        LOG.info ( "create environment started" );
+        WebClient webClient = createWebClient ( ENVIRONMENT_URL, true );
+        webClient.type ( MediaType.APPLICATION_JSON );
+        webClient.accept ( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader ( "sptoken", token );
+        LOG.info ( webClient.getHeaders ().toString () );
+        Response response = webClient.post ( topology );
+        LOG.info ( String.valueOf ( response.getStatus () ) );
+        if ( response.getStatus () == 200 )
+        {
+            return response.readEntity ( EnvironmentId.class );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    private Topology buildTopology ( Blueprint blueprint )
+    {
+        WebClient webClient = createWebClient ( BUILD_TOPOLOGY_URL, true );
+        webClient.type ( MediaType.APPLICATION_JSON );
+        webClient.accept ( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader ( "sptoken", token );
+        LOG.info ( webClient.getHeaders ().toString () );
+        Response response = webClient.post ( blueprint );
+        LOG.info ( String.valueOf ( response.getStatus () ) );
+        if ( response.getStatus () == 200 )
+        {
+            return response.readEntity ( Topology.class );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    @Override
+    public UUID oneClickInstall ( UsergridConfig localConfig )
+    {
+        LOG.info ( "one click install" );
+        UUID uuid = null;
+        token = localConfig.getPermanentToken ();
+        UsergridConfig newLocalConfig = buildEnvironment ( localConfig );
+        if ( newLocalConfig.getClusterName () != null )
+        {
+            AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, newLocalConfig,
+                                                                                              ClusterOperationType.INSTALL );
+            executor.execute ( abstractOperationHandler );
+            uuid = abstractOperationHandler.getTrackerId ();
+        }
+        return uuid;
     }
 
 
