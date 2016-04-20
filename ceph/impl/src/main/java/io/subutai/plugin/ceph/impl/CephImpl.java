@@ -21,6 +21,7 @@ import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.webui.api.WebuiModule;
 
 
 public class CephImpl implements Ceph
@@ -31,13 +32,14 @@ public class CephImpl implements Ceph
     private Tracker tracker;
     private PluginDAO pluginDAO;
     private ExecutorService executor;
+    private CephWebModule webModule;
 
-
-    public CephImpl( final Tracker tracker, final EnvironmentManager environmentManager, final PluginDAO pluginDAO )
+    public CephImpl( final Tracker tracker, final EnvironmentManager environmentManager, final PluginDAO pluginDAO, CephWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
         this.pluginDAO = pluginDAO;
+        this.webModule = webModule;
     }
 
 
@@ -147,5 +149,17 @@ public class CephImpl implements Ceph
     public void setExecutor( final ExecutorService executor )
     {
         this.executor = executor;
+    }
+
+    @Override
+    public WebuiModule getWebModule()
+    {
+        return webModule;
+    }
+
+    @Override
+    public void setWebModule( final WebuiModule webModule )
+    {
+        this.webModule = (CephWebModule) webModule;
     }
 }

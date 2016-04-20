@@ -45,4 +45,9 @@ public interface RestService
     @Path( "about" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response getPluginInfo();
+
+
+    @GET
+    @Path( "angular" )
+    Response getAngularConfig();
 }
