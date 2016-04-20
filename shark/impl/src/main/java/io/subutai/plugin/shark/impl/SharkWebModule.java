@@ -1,6 +1,12 @@
 package io.subutai.plugin.shark.impl;
 
+import com.google.gson.Gson;
 import io.subutai.webui.api.WebuiModule;
+import io.subutai.webui.entity.AngularjsDependency;
+import io.subutai.webui.entity.WebuiModuleResourse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SharkWebModule implements WebuiModule
 {
@@ -28,7 +34,7 @@ public class SharkWebModule implements WebuiModule
 				"plugins/shark/service.js",
 				"plugins/hadoop/service.js",
 				"plugins/spark/service.js",
-				"subutai-app/environment/service.js";
+				"subutai-app/environment/service.js"
 		);
 
 		sharkResource.addDependency(angularjsDependency);

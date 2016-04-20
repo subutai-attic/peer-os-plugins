@@ -198,8 +198,6 @@
     <module>elasticsearch</module>
     <module>generic</module>
     <module>ceph</module>
-    <module>backup</module>
-    <module>usergrid</module>
     <module>spark</module>
     <module>lucene</module>
     <module>hive</module>
