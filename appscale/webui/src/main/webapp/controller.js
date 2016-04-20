@@ -16,7 +16,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 	vm.currentEnvironment = {};
 	vm.environments = [];
 	vm.currentCluster = {};
-	vm.clusters = [];	
+	vm.clusters = [];
 	vm.hostnames = [];
 	vm.config.scaleOption = "static";
 	vm.hubRegister = false;
@@ -185,7 +185,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 		if (vm.config.userDomain === "") {
 			SweetAlert.swal ("ERROR!", 'Please enter domain', "error");
 		}
-		else if (wrongDomain()) {
+		else if (wrongDomain() && vm.config.domainOption == 0 ) {
 			SweetAlert.swal ("ERROR!", 'Wrong domain format', "error");
 		}
 		else {
@@ -254,7 +254,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 			LOADING_SCREEN('none');
 		} );
 	}
-	
+
 	vm.controllerMod = function ( hostname ) {
 		if( vm.nodes.length > 0 )
 		{
