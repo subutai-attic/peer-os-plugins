@@ -49,13 +49,19 @@
             <artifactId>cxf-rt-ws-policy</artifactId>
             <version>3.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
             <version>3.1</version>
             <type>jar</type>
         </dependency>
-        
         
     </dependencies>
 
