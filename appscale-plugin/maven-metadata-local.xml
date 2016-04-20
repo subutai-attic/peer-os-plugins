@@ -2,11 +2,7 @@
 <metadata modelVersion="1.1.0">
   <groupId>io.subutai</groupId>
   <artifactId>appscale-subutai-plugin</artifactId>
-<<<<<<< HEAD
   <version>4.0.0-RC9-SNAPSHOT</version>
-=======
-  <version>4.0.0-RC8</version>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b
   <versioning>
     <snapshot>
       <localCopy>true</localCopy>
@@ -16,11 +12,7 @@
       <snapshotVersion>
         <classifier>features</classifier>
         <extension>xml</extension>
-<<<<<<< HEAD
         <value>4.0.0-RC9-SNAPSHOT</value>
-=======
-        <value>4.0.0-RC8</value>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b
         <updated>20160226112431</updated>
       </snapshotVersion>
     </snapshotVersions>

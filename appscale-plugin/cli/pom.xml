@@ -5,11 +5,8 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>AppScale</artifactId>
-<<<<<<< HEAD:appscale-plugin/cli/pom.xml
     <version>4.0.0-RC9-SNAPSHOT</version>
-=======
-    <version>4.0.0-RC8</version>
->>>>>>> 1dff14fbd3f4db5d3d3bf7899316e67d2351357b:appscale-plugin/plugin-appscale-cli/pom.xml
+
   </parent>
   <artifactId>appscale-plugin-cli</artifactId>
   <packaging>bundle</packaging>
