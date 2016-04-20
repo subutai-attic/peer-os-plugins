@@ -39,10 +39,10 @@ public class AppScaleWebModule implements WebuiModule
         this.appscaleResource = new WebuiModuleResourse ( NAME.toLowerCase (), IMG );
         AngularjsDependency angularjsDependency = new AngularjsDependency (
                 "subutai.plugins.appscale",
-                "'plugins/appscale/appscale.js'",
-                "'plugins/appscale/controller.js'",
-                "'plugins/appscale/service.js'",
-                "'subutai-app/environment/service.js'"
+                "plugins/appscale/appscale.js",
+                "plugins/appscale/controller.js",
+                "plugins/appscale/service.js",
+                "subutai-app/environment/service.js"
         );
 
         appscaleResource.addDependency ( angularjsDependency );
