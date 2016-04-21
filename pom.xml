@@ -212,5 +212,6 @@
     <module>shark</module>
     <module>storm</module>
     <module>appscale</module>
+    <module>usergrid</module>
   </modules>
 </project>
