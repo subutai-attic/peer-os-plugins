@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai.plugin</groupId>
     <artifactId>mongo-plugin-parent</artifactId>
-    <version>4.0.0-RC9</version>
+    <version>4.0.0-RC10-SNAPSHOT</version>
   </parent>
 
   <artifactId>mongo-plugin-impl</artifactId>
