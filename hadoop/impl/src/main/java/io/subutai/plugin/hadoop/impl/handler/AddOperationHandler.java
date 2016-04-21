@@ -21,6 +21,7 @@ import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
+import io.subutai.common.peer.PeerId;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -98,7 +99,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     try
                     {
                         groupResources.getResources().add(
-                                peer.getResourceLimits( manager.getPeerManager().getLocalPeer().getId() ) );
+                                peer.getResourceLimits( new PeerId( manager.getPeerManager().getLocalPeer().getId() ) ) );
                     }
                     catch ( PeerException e )
                     {
