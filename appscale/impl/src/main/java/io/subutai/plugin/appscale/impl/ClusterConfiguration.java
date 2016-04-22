@@ -23,6 +23,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.host.HostId;
 import io.subutai.common.peer.AlertHandlerPriority;
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
@@ -76,9 +77,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster ( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-
-
-        LOG.info ( "ClusterConfiguration :: configureCluster " );
         AppScaleConfig config = ( AppScaleConfig ) configBase;
 
         if ( config.getPermanentToken () == null )
@@ -94,18 +92,18 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             token = config.getPermanentToken ();
         }
 
-        if ( "static".equals ( config.getScaleOption () ) )
+        if ( "static".equals ( config.getScaleOption () ) ) // static is SS way of scaling
         {
-            this.installAsStatic ( configBase, environment );
+            this.subutaiScaling ( configBase, environment ); // subutai scaling.
         }
         else
         {
-            this.installAsScale ( configBase, environment );
+            this.ASScaling ( configBase, environment );
         }
     }
 
 
-    private void installAsScale ( ConfigBase configBase, Environment environment )
+    private void ASScaling ( ConfigBase configBase, Environment environment )
     {
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         String userDomain = config.getUserDomain ();
@@ -158,7 +156,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void installAsStatic ( ConfigBase configBase, Environment environment )
+    private void subutaiScaling ( ConfigBase configBase, Environment environment )
     {
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         String userDomain = config.getUserDomain ();
@@ -173,14 +171,19 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         try
         {
+            // this will be our controller container.
             containerHost = environment.getContainerHostByHostname ( config.getClusterName () );
-
-            LOG.info ( "Container Host Found: " + containerHost.getContainerId () + "\n" + "\n" + containerHost
-                    .getHostname () + "\n" );
+            if ( containerHost.getContainerSize () != ContainerSize.HUGE )
+            {
+                LOG.error ( "Please select your container size as HUGE. Aborting" );
+                po.addLogFailed ( "Please select your containers HUGE size. Aborting." );
+            }
         }
         catch ( ContainerHostNotFoundException ex )
         {
             LOG.error ( "configureCluster " + ex );
+            po.addLogFailed ( "Container Host Found: " + containerHost.getContainerId () + "\n" + "\n" + containerHost
+                    .getHostname () + "\n" );
         }
 
         this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
@@ -190,8 +193,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // this.appscaleInitIPS ( containerHost, environment, config );
         // end of AppScalefile configuration
-        LOG.info ( "cleaning up..." );
-        this.makeCleanUpPreviousInstallation ( containerHost );
         LOG.info ( "clean up ended..." );
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
@@ -214,18 +215,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error ( "RUN SHELL ERROR" + ex );
         }
         LOG.info ( "Run shell completed..." );
-        this.createUpShell ( containerHost );
+        this.createUpShell ( containerHost ); // later we can add button for start/stop to UI
         LOG.info ( "RH command started" );
-
         this.runInRH ( containerHost, config.getClusterName (), config );
         LOG.info ( "RH command ended" );
-
-        LOG.info ( "Environment ID: " + environment.getId () );
-
         config.setEnvironmentId ( environment.getId () );
-        boolean saveInfo = appscaleManager.getPluginDAO ()
-                .saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
-                            configBase );
+        // add alert handler for scaleUp();
         try
         {
             appscaleManager.getEnvironmentManager ()
@@ -238,11 +233,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error ( e.getMessage (), e );
             po.addLogFailed ( "Could not add alert handler to monitor this environment." );
         }
-        LOG.info ( "SAVE INFO: " + saveInfo );
-        LOG.info ( "Appscale saved to database" );
         this.commandExecute ( containerHost, "echo '127.0.1.1 appscale-image0' >> /etc/hosts" );
         this.commandExecute ( containerHost, Commands.backUpSSH () );
         this.commandExecute ( containerHost, Commands.backUpAppscale () );
+        boolean saveInfo = appscaleManager.getPluginDAO ()
+                .saveInfo ( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName (),
+                            configBase );
+        LOG.info ( "Appscale saved to database" );
         po.addLogDone ( "DONE" );
     }
 
@@ -396,6 +393,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
+    // necessary for SS way of scaling.
     private void makeCleanUpPreviousInstallation ( EnvironmentContainerHost containerHost )
     {
         try
@@ -440,19 +438,19 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                      AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-        this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
+        this.commandExecute ( containerHost, "rm -f /AppScalefile && touch /AppScalefile" );
         LOG.info ( "AppScalefile file created." );
-        this.commandExecute ( containerHost, "echo infrastructure: 'ss' >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo PARAM_IMAGE_ID: appscale >> /root/AppScalefile" );
+        this.commandExecute ( containerHost, "echo infrastructure: 'ss' >> /AppScalefile" );
+        this.commandExecute ( containerHost, "echo PARAM_IMAGE_ID: appscale >> /AppScalefile" );
         this.commandExecute ( containerHost, "echo PARAM_SUBUTAI_ENDPOINT: 1443." + config.getUserDomain ()
-                              + "/rest/appscale/  >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo min: 1 >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo max: 1 >> /root/AppScalefile" );
+                              + "/rest/appscale/  >> /AppScalefile" );
+        this.commandExecute ( containerHost, "echo min: 1 >> /AppScalefile" );
+        this.commandExecute ( containerHost, "echo max: 1 >> /AppScalefile" );
         // this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >>
-        // /root/AppScalefile" );
+        // /AppScalefile" );
         this.commandExecute ( containerHost,
                               "echo machine: 'appscale'" ); // this will be pointing to our template to add one more
-        this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
+        this.commandExecute ( containerHost, "cp /AppScalefile /" );
     }
 
 
@@ -463,14 +461,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                        AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-        this.commandExecute ( containerHost, "rm -f /root/AppScalefile && touch /root/AppScalefile" );
+        this.commandExecute ( containerHost, "rm -f /AppScalefile && touch /AppScalefile" );
         LOG.info ( "AppScalefile file created." );
-        this.commandExecute ( containerHost, "echo ips_layout: >> /root/AppScalefile" );
-        LOG.info ( "ips_layout inserted" );
-        String cmdmaster = "echo '  master : " + ipaddr + "' >> /root/AppScalefile";
-        this.commandExecute ( containerHost, cmdmaster );
-        LOG.info ( "master ip address inserted" );
-        this.commandExecute ( containerHost, "echo '  appengine:' >> /root/AppScalefile" );
+        String toPushinConfig = "ips_layout:\n";
+        toPushinConfig += "  master : " + ipaddr + "\n";
+        toPushinConfig += "  appengine:\n";
+
         List<String> appenList = config.getAppenList ();
         for ( String a : appenList )
         {
@@ -479,15 +475,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost appContainerHost = environment.getContainerHostByHostname ( a );
                 String aip = appContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                this.commandExecute ( containerHost, "echo '  - " + aip + "' >> /root/AppScalefile" );
-                LOG.info ( "appengine ip " + aip + " inserted" );
+                toPushinConfig += "  - " + aip + "\n";
             }
             catch ( ContainerHostNotFoundException ex )
             {
                 LOG.error ( "AppScalefile: appengine: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo '  zookeeper:' >> /root/AppScalefile" );
+        toPushinConfig += "  zookeeper:\n";
         List<String> zooList = config.getZooList ();
         for ( String z : zooList )
         {
@@ -495,15 +490,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname ( z );
                 String zip = zooContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                this.commandExecute ( containerHost, "echo '  - " + zip + "' >> /root/AppScalefile" );
-                LOG.info ( "zookeeper ip " + zip + " inserted" );
+                toPushinConfig += "  - " + zip + "\n";
             }
             catch ( ContainerHostNotFoundException ex )
             {
                 LOG.error ( "AppScalefile: zookeeper: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo '  database:' >> /root/AppScalefile" );
+        toPushinConfig += "'  database:\n";
         List<String> cassList = config.getCassList ();
         for ( String cis : cassList )
         {
@@ -511,17 +505,15 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( cis );
                 String cip = cassContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                this.commandExecute ( containerHost, "echo '  - " + cip + "' >> /root/AppScalefile" );
-                LOG.info ( "cassandra ip " + cip + " inserted" );
+                toPushinConfig += "  - " + cip + "\n";
             }
             catch ( ContainerHostNotFoundException ex )
             {
                 LOG.error ( "AppScalefile : cassandra: " + ex );
             }
         }
-        this.commandExecute ( containerHost, "echo login: " + config.getUserDomain () + " >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "echo 'force: True' >> /root/AppScalefile" );
-        this.commandExecute ( containerHost, "cp /root/AppScalefile /" );
+        toPushinConfig += "login: " + config.getUserDomain () + "\n";
+        this.commandExecute ( containerHost, "echo '" + toPushinConfig + "' > /AppScalefile" );
     }
 
 
@@ -668,8 +660,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         try
         {
-            containerHost.execute ( new RequestBuilder ( "rm /root/run.sh " ) );
-            containerHost.execute ( new RequestBuilder ( "touch /root/run.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + returnRunSH () + "' > /root/run.sh" ) );
             containerHost.execute ( new RequestBuilder ( "chmod +x /root/run.sh" ) );
             LOG.info ( "RUN.SH CREATED..." );
@@ -683,7 +673,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private String returnRunSH ()
     {
-        String sh = "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
+        return "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
                 + "spawn /root/appscale-tools/bin/appscale up\n" + "\n"
                 + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                 + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n" + "    send -- \"yes\\n\"\n"
@@ -691,8 +681,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "expect \"Enter your desired admin e-mail address:\"\n" + "send -- \"a@a.com\\n\"\n"
                 + "expect \"Enter new password:\"\n" + "send -- \"aaaaaa\\n\"\n" + "expect \"Confirm password:\"\n"
                 + "send -- \"aaaaaa\\n\"\n" + "\n" + "expect EOD";
-
-        return sh;
     }
 
 
@@ -707,8 +695,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     + "    send -- \"yes\\n\"\n" + "    expect \" password:\"\n" + "    send -- \"a\\n\"\n" + "}\n"
                     + "expect EOD";
             containerHost.execute ( new RequestBuilder ( "mkdir .ssh" ) );
-            containerHost.execute ( new RequestBuilder ( "rm /root/addKey.sh " ) );
-            containerHost.execute ( new RequestBuilder ( "touch /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "echo '" + add + "' > /root/addKey.sh" ) );
             containerHost.execute ( new RequestBuilder ( "chmod +x /root/addKey.sh" ) );
         }
