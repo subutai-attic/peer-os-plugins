@@ -371,23 +371,19 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
             CommandResult resultStr = resourceHostByContainerId
                     .execute ( new RequestBuilder ( "grep vlan /mnt/lib/lxc/" + clusterName + "/config" ) );
-
             String stdOut = resultStr.getStdOut ();
-
             String vlanString = stdOut.substring ( 11, 14 );
-
-            LOG.info ( "****************** STDOUT *******************" + vlanString );
             resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
             resourceHostByContainerId.execute ( new RequestBuilder (
                     "subutai proxy add " + vlanString + " -d \"*." + config.getUserDomain () + "\" -f /mnt/lib/lxc/"
                     + clusterName + "/rootfs/etc/nginx/ssl.pem" ) );
-
             resourceHostByContainerId
                     .execute ( new RequestBuilder ( "subutai proxy add " + vlanString + " -h " + ipAddress ) );
         }
         catch ( CommandException ex )
         {
             LOG.error ( ex.toString () );
+            po.addLogFailed ( ex.toString () );
         }
         LOG.info ( "END OF RUN IN RH" );
     }
