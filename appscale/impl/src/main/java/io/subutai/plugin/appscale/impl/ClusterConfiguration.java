@@ -410,7 +410,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         catch ( CommandException ex )
         {
             LOG.error ( " clean process command exception: " + ex );
-            // po.addLogFailed( "Clean up failed..." );
         }
     }
 
