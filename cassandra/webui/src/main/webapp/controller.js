@@ -21,7 +21,11 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	//functions
 	vm.showContainers = showContainers;
 	vm.addContainer = addContainer;
+	vm.addAllContainers = addAllContainers;
+	vm.unselectAllContainers = unselectAllContainers;
 	vm.addSeed = addSeed;
+	vm.addAllSeeds = addAllSeeds;
+	vm.unselectAllSeeds = unselectAllSeeds;
 	vm.createCassandra = createCassandra;
 
 	vm.getClustersInfo = getClustersInfo;
@@ -43,6 +47,9 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	    LOADING_SCREEN();
 		cassandraSrv.getClusters().success(function (data) {
 			vm.clusters = data;
+			LOADING_SCREEN("none");
+		}).error(function(error) {
+			console.log(error);
 			LOADING_SCREEN("none");
 		});
 	}
@@ -237,12 +244,38 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.seeds = angular.copy(vm.cassandraInstall.containers);
 	}
 
+	function addAllContainers() {
+		vm.cassandraInstall.containers = [];
+		for(var i = 0; i < vm.containers.length; i++) {
+			vm.cassandraInstall.containers.push(vm.containers[i].id);
+		}
+		console.log(vm.cassandraInstall.containers);
+		vm.seeds = angular.copy(vm.cassandraInstall.containers);
+	}
+
+	function unselectAllContainers() {
+		vm.cassandraInstall.containers = [];
+		vm.cassandraInstall.seeds = [];
+		vm.seeds = [];
+	}
+
 	function addSeed(seedId) {
 		if(vm.cassandraInstall.seeds.indexOf(seedId) > -1) {
 			vm.cassandraInstall.seeds.splice(vm.cassandraInstall.seeds.indexOf(seedId), 1);
 		} else {
 			vm.cassandraInstall.seeds.push(seedId);
 		}
+	}
+
+	function addAllSeeds() {
+		vm.cassandraInstall.seeds = [];
+		for(var i = 0; i < vm.seeds.length; i++) {
+			vm.cassandraInstall.seeds.push(vm.seeds[i]);
+		}
+	}
+
+	function unselectAllSeeds() {
+		vm.cassandraInstall.seeds = [];
 	}
 	
 	function setDefaultValues() {
