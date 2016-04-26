@@ -433,19 +433,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                      AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-        this.commandExecute ( containerHost, "rm -f /AppScalefile && touch /AppScalefile" );
-        LOG.info ( "AppScalefile file created." );
-        this.commandExecute ( containerHost, "echo infrastructure: 'ss' >> /AppScalefile" );
-        this.commandExecute ( containerHost, "echo PARAM_IMAGE_ID: appscale >> /AppScalefile" );
-        this.commandExecute ( containerHost, "echo PARAM_SUBUTAI_ENDPOINT: 1443." + config.getUserDomain ()
-                              + "/rest/appscale/  >> /AppScalefile" );
-        this.commandExecute ( containerHost, "echo min: 1 >> /AppScalefile" );
-        this.commandExecute ( containerHost, "echo max: 1 >> /AppScalefile" );
-        // this.commandExecute ( containerHost, "echo machine: '" + config.getClusterName () + "'  >>
-        // /AppScalefile" );
-        this.commandExecute ( containerHost,
-                              "echo machine: 'appscale'" ); // this will be pointing to our template to add one more
-        this.commandExecute ( containerHost, "cp /AppScalefile /" );
+        String ssConfig = "infrastructure: ss\n";
+        ssConfig += "PARAM_IMAGE_ID: appscale\n";
+        ssConfig += "PARAM_SUBUTAI_ENDPOINT: 1443." + config.getUserDomain () + "/rest/appscale/\n";
+        ssConfig += "min: 1\n";
+        ssConfig += "max: 1\n";
+        ssConfig += "machine: appscale\n";
+        this.commandExecute ( containerHost, "echo " + ssConfig + " > /AppScalefile" );
+
     }
 
 
