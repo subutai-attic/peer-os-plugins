@@ -487,7 +487,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 LOG.error ( "AppScalefile: zookeeper: " + ex );
             }
         }
-        toPushinConfig += "'  database:\n";
+        toPushinConfig += "  database:\n";
         List<String> cassList = config.getCassList ();
         for ( String cis : cassList )
         {
@@ -503,7 +503,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
         }
         toPushinConfig += "login: " + config.getUserDomain () + "\n";
-        this.commandExecute ( containerHost, "echo '" + toPushinConfig + "' > /AppScalefile" );
+        LOG.info ( toPushinConfig );
+        this.commandExecute ( containerHost, "echo -e '" + toPushinConfig + "' > /AppScalefile" );
     }
 
 
@@ -663,7 +664,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private String returnRunSH ()
     {
-        return "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
+        String runsh = "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
                 + "spawn /root/appscale-tools/bin/appscale up\n" + "\n"
                 + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                 + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n" + "    send -- \"yes\\n\"\n"
@@ -671,6 +672,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "expect \"Enter your desired admin e-mail address:\"\n" + "send -- \"a@a.com\\n\"\n"
                 + "expect \"Enter new password:\"\n" + "send -- \"aaaaaa\\n\"\n" + "expect \"Confirm password:\"\n"
                 + "send -- \"aaaaaa\\n\"\n" + "\n" + "expect EOD";
+        return runsh;
     }
 
 
