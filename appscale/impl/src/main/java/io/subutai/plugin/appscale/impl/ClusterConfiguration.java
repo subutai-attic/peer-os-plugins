@@ -666,9 +666,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         String runsh = "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
                 + "spawn /root/appscale-tools/bin/appscale up\n" + "\n"
-                + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
-                + "    expect \"Are you sure you want to continue connecting (yes/no)?\"\n" + "    send -- \"yes\\n\"\n"
-                + "    expect \" password:\"\n" + "    send -- \"a\\n\"\n" + "}\n" + "\n"
+                + "#for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
+                + "#    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
+                + "#    send -- \"yes\\n\"\n"
+                + "#    expect \" password:\"\n"
+                + "#    send -- \"a\\n\"\n"
+                + "#}\n"
+                + "\n"
                 + "expect \"Enter your desired admin e-mail address:\"\n" + "send -- \"a@a.com\\n\"\n"
                 + "expect \"Enter new password:\"\n" + "send -- \"aaaaaa\\n\"\n" + "expect \"Confirm password:\"\n"
                 + "send -- \"aaaaaa\\n\"\n" + "\n" + "expect EOD";
