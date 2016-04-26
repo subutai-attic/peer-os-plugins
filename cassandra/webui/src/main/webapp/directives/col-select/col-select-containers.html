@@ -10,10 +10,15 @@
   </ul>
 </div>
 <div class="b-form-list-buttons b-form-list-buttons_absolute">
-  <a href class="b-btn-grey b-btn-grey_horizontal b-btn-block"><i
-      class="fa fa-angle-double-left"></i></a>
-  <a href class="b-btn-grey b-btn-grey_horizontal"><i
-      class="fa fa-angle-double-right"></i></a>
+
+  <a href class="b-btn-grey b-btn-grey_horizontal b-btn-block" ng-click="cassandraCtrl.unselectAllContainers()">
+	  <i class="fa fa-angle-double-left"></i>
+  </a>
+
+  <a href class="b-btn-grey b-btn-grey_horizontal" ng-click="cassandraCtrl.addAllContainers()">
+	  <i class="fa fa-angle-double-right"></i>
+  </a>
+
 </div>
 <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-left g-right">
   <span class="b-form-label b-form-label_block">Selected nodes</span>
