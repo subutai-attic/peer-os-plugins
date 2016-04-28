@@ -189,6 +189,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         LOG.info ( "installing appscale can take several minutes." );
+
+
+        // this part will be removed
+        this.commandExecute ( containerHost, "apt-get update" );
+        this.commandExecute ( containerHost, "apt-get install expect -y" );
+
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // this.appscaleInitIPS ( containerHost, environment, config );

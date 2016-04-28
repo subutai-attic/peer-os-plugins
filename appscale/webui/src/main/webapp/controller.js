@@ -32,7 +32,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 			for (var i = 0; i < data.length; ++i)
 			{
 				for (var j = 0; j < data[i].containers.length; ++j) {
-					if (data[i].containers[j].templateName === "appscale") {
+					if (data[i].containers[j].templateName === "appscale271") {
 						vm.environments.push (data[i]);
 						break;
 					}
@@ -64,7 +64,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 				else {
 					vm.currentEnvironment = vm.environments[0];
 					for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-						if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+						if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
 							vm.nodes.push (vm.currentEnvironment.containers [i]);
 
 							if( vm.currentEnvironment.containers.length > 1 && i > 0 )
@@ -102,7 +102,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 		vm.nodes = [];
 		vm.hostnames = [];
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-			if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+			if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
 				vm.nodes.push (vm.currentEnvironment.containers[i]);
 
 				if( vm.currentEnvironment.containers.length > 1 && i > 0 )
@@ -147,7 +147,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 			else {
 				vm.currentEnvironment = vm.environments[0];
 				for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-					if (vm.currentEnvironment.containers[i].templateName === "appscale") {
+					if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
 						vm.nodes.push (vm.currentEnvironment.containers [i]);
 
 						if( vm.currentEnvironment.containers.length > 1 && i > 0 )
