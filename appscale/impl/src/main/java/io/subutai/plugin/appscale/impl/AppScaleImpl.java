@@ -48,6 +48,7 @@ import io.subutai.common.peer.EnvironmentId;
 import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -201,7 +202,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         {
             EnvironmentContainerHost containerHost = environment.getContainerHostByHostname (
                     appScaleConfig.getClusterName () );
-            String ipAddress = this.getIPAddress ( containerHost );
+            String ipAddress = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
             String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
             String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
             String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
@@ -229,27 +230,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
     {
         this.appScaleConfig = appScaleConfig;
-    }
-
-
-    private String getIPAddress ( EnvironmentContainerHost ch )
-    {
-        String ipaddr = null;
-        try
-        {
-
-            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
-            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
-            ipaddr = resultAddr.getStdOut ();
-            ipaddr = ipaddr.replace ( "\n", "" );
-            LOG.info ( "Container IP: " + ipaddr );
-        }
-        catch ( CommandException ex )
-        {
-            LOG.error ( "ip address command error : " + ex );
-        }
-        return ipaddr;
-
     }
 
 
@@ -456,7 +436,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         String additionString = randomAlphabetic ( 10 ).toLowerCase ();
         String containerName = "appscale" + additionString;
         String environmentName = ac.getUserEnvironmentName ();
-        NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale", 0, 0 );
+        NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale271", 0, 0 );
         List<NodeSchema> nodes = new ArrayList<> ();
         nodes.add ( node );
         Blueprint blueprint = new Blueprint ( environmentName, nodes );
@@ -575,7 +555,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public void deleteConfig ( AppScaleConfig ac )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        Preconditions.checkNotNull ( ac );
+        if ( !getPluginDAO ().deleteInfo ( AppScaleConfig.PRODUCT_KEY, ac.getClusterName () ) )
+        {
+            LOG.error ( "config could not be deleted..." );
+        }
     }
 
 
@@ -611,8 +595,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public AppScaleConfig
-            getCluster ( String string )
+    public AppScaleConfig getCluster ( String string )
     {
         return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class
         );
@@ -655,7 +638,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         {
             if ( a.getEnvironmentId ().equals ( envID ) )
             {
-                getPluginDAO ().deleteInfo ( AppScaleConfig.getPRODUCT_KEY (), a.getClusterName () );
+                this.deleteConfig ( a );
             }
         }
     }

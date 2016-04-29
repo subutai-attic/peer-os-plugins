@@ -199,7 +199,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
         // this.appscaleInitIPS ( containerHost, environment, config );
         // end of AppScalefile configuration
-        LOG.info ( "clean up ended..." );
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
         this.addKeyPairSH ( containerHost );
@@ -457,8 +456,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                        AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-        this.commandExecute ( containerHost, "rm -f /AppScalefile && touch /AppScalefile" );
-        LOG.info ( "AppScalefile file created." );
         String toPushinConfig = "ips_layout:\n";
         toPushinConfig += "  master : " + ipaddr + "\n";
         toPushinConfig += "  appengine:\n";
@@ -511,6 +508,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         toPushinConfig += "login: " + config.getUserDomain () + "\n";
         LOG.info ( toPushinConfig );
         this.commandExecute ( containerHost, "echo -e '" + toPushinConfig + "' > /AppScalefile" );
+        LOG.info ( "AppScalefile file created." );
     }
 
 
@@ -612,7 +610,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "cat /etc/nginx/mykey.pem /etc/nginx/mycert.pem > /etc/nginx/ssl.pem" );
 
         // modify navigation.html
-
+        // make them point to correct url in AS console
         String changeMonitURL = "sed -i 's/{{ monit_url }}/http:\\/\\/2812." + config.getUserDomain ()
                 + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute ( containerHost, changeMonitURL );
@@ -626,22 +624,27 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "sed -i 's/" + modUrl + "/" + modUrlChange
                               + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
         // modify ss_agent.py
-        String modstr = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\\\"";
-        String modstrchange
-                = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\"" + config.getClusterName ();
-        this.commandExecute ( containerHost, "sed -i 's/" + modstr + "/" + modstrchange
-                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
-        String tokenUrl = "subutai:8443";
-        String tokenUrlChange = "1443." + config.getUserDomain ();
-        this.commandExecute ( containerHost, "sed -i 's/" + tokenUrl + "/" + tokenUrlChange
-                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
+        // for now we can skip this since timur baike will provide ss_agent.py
+//        String modstr = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\\\"";
+//        String modstrchange
+//                = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\"" + config.getClusterName ();
+//        this.commandExecute ( containerHost, "sed -i 's/" + modstr + "/" + modstrchange
+//                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
+//        String tokenUrl = "subutai:8443";
+//        String tokenUrlChange = "1443." + config.getUserDomain ();
+//        this.commandExecute ( containerHost, "sed -i 's/" + tokenUrl + "/" + tokenUrlChange
+//                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
 
         // modify nginx
         String nginx
-                = "echo 'server {\n" + "        listen        80;\n" + "        server_name   ~^(?<port>.+)\\." + config
-                .getUserDomain () + "$;\n" + "\n" + "    set $appbackend \"127.0.0.1:${port}\";\n" + "\n"
-                + "    # proxy to AppScale over http\n" + "    if ($port = 1443) {\n"
-                + "        set $appbackend \"appscaledashboard\";\n" + "    }\n" + "\n" + "    location / {\n"
+                = "echo 'server {\n"
+                + "        listen        80;\n"
+                + "        server_name   ~^(?<port>.+)\\." + config.getUserDomain () + "$;\n" + "\n"
+                + "    set $appbackend \"127.0.0.1:${port}\";\n" + "\n"
+                + "    # proxy to AppScale over http\n"
+                + "    if ($port = 1443) {\n"
+                + "        set $appbackend \"appscaledashboard\";\n" + "    }\n" + "\n"
+                + "    location / {\n"
                 + "        proxy_pass http://$appbackend;\n"
                 + "        proxy_set_header   X-Real-IP $remote_addr;\n"
                 + "        proxy_set_header   Host $http_host;\n"
