@@ -169,6 +169,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         Set<EnvironmentContainerHost> cn = environment.getContainerHosts ();
         int numberOfContainers = cn.size ();
 
+
         try
         {
             // this will be our controller container.
@@ -186,14 +187,25 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                     .getHostname () + "\n" );
         }
 
+        // this part will be removed
+        this.commandExecute ( containerHost, "sudo apt-get update" );
+        this.commandExecute ( containerHost, "sudo apt-get install expect -y" );
+
+        if ( numberOfContainers == 1 )
+        {
+            // we need to add sshkey
+            this.commandExecute ( containerHost,
+                                  "echo /dev/null/ | ssh-keygen -t ecdsa -f /root/.ssh/id_rsa -q -N \"\"" );
+            this.commandExecute ( containerHost, "cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys" );
+            this.commandExecute ( containerHost, "ssh-keyscan " + containerHost.getInterfaceByName (
+                                  Common.DEFAULT_CONTAINER_INTERFACE ).getIp () + " >> /root/.ssh/known_hosts" );
+            LOG.info ( "keys added: " );
+        }
+
         this.commandExecute ( containerHost, "echo '" + token + "' > /token" );
         this.commandExecute ( containerHost, Commands.getCreateLogDir () );
         LOG.info ( "installing appscale can take several minutes." );
 
-
-        // this part will be removed
-        this.commandExecute ( containerHost, "apt-get update" );
-        this.commandExecute ( containerHost, "apt-get install expect -y" );
 
         // AppScalefile configuration
         this.appscaleInitCluster ( containerHost, environment, config ); // writes AppScalefile
@@ -201,7 +213,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // end of AppScalefile configuration
         LOG.info ( "START AFTER INIT" );
         this.runAfterInitCommands ( containerHost, config );
-        this.addKeyPairSH ( containerHost );
+        // this.addKeyPairSH ( containerHost );
         //        this.runInstances ( containerHost );
         //        this.addKeyPairSHToExistance ( containerHost );
         //        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
@@ -282,7 +294,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.commandExecute ( containerHost, "rm -rf /root/appBACK" );
         LOG.info ( "appscale stopping" );
         this.commandExecute ( containerHost, Commands.getAppScaleStopCommand () ); // stop it
-        this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
+        // this.makeCleanUpPreviousInstallation ( containerHost ); // this is just cleaning ssh etc..
         LOG.info ( "init cluster" );
         // this.appscaleInitIPS ( containerHost, env, localConfig ); // creates AppScalefile
         this.appscaleInitCluster ( containerHost, env, localConfig );
@@ -643,7 +655,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 + "    set $appbackend \"127.0.0.1:${port}\";\n" + "\n"
                 + "    # proxy to AppScale over http\n"
                 + "    if ($port = 1443) {\n"
-                + "        set $appbackend \"appscaledashboard\";\n" + "    }\n" + "\n"
+                + "        set $appbackend \"gae_appscaledashboard\";\n" + "    }\n" + "\n"
                 + "    location / {\n"
                 + "        proxy_pass http://$appbackend;\n"
                 + "        proxy_set_header   X-Real-IP $remote_addr;\n"

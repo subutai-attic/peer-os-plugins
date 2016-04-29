@@ -420,6 +420,14 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         AppScaleConfig newAppScaleConfig = buildEnvironment ( localConfig );
         if ( newAppScaleConfig.getClusterName () != null )
         {
+            try
+            {
+                TimeUnit.SECONDS.sleep ( 20 ); // needed for apt-get update
+            }
+            catch ( InterruptedException ex )
+            {
+                LOG.error ( ex.toString () );
+            }
             AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, newAppScaleConfig,
                                                                                               ClusterOperationType.INSTALL,
                                                                                               this.identityManager );
@@ -436,7 +444,10 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         String additionString = randomAlphabetic ( 10 ).toLowerCase ();
         String containerName = "appscale" + additionString;
         String environmentName = ac.getUserEnvironmentName ();
+
         NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale271", 0, 0 );
+        LOG.info ( "Template Name: " + node.getTemplateName () );
+        // System.exit ( 0 );
         List<NodeSchema> nodes = new ArrayList<> ();
         nodes.add ( node );
         Blueprint blueprint = new Blueprint ( environmentName, nodes );
