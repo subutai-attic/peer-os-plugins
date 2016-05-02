@@ -71,7 +71,7 @@ public class CephClusterSetupStrategy implements ClusterSetupStrategy
         {
             radosHost.execute( requestBuilder );
             po.addLog( "Executing ceph.sh script..." );
-            requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/ceph.sh" ).withTimeout( 2000 );
+            requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/ceph.sh" ).withTimeout( 5000 );
             result = radosHost.execute( requestBuilder );
 
             if ( result.hasSucceeded() )
@@ -80,7 +80,7 @@ public class CephClusterSetupStrategy implements ClusterSetupStrategy
                 radosHost.execute( requestBuilder );
 
                 po.addLog( "Executing radosgw.sh script..." );
-                requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/radosgw.sh" ).withTimeout( 2000 );
+                requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/radosgw.sh" ).withTimeout( 5000 );
                 result = radosHost.execute( requestBuilder );
 
                 if ( result.hasSucceeded() )
@@ -89,7 +89,7 @@ public class CephClusterSetupStrategy implements ClusterSetupStrategy
                     radosHost.execute( requestBuilder );
 
                     po.addLog( "Executing getuser.sh script..." );
-                    requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/getuser.sh" ).withTimeout( 2000 );
+                    requestBuilder = new RequestBuilder( "sudo bash /etc/ceph/getuser.sh" ).withTimeout( 5000 );
                     result = radosHost.execute( requestBuilder );
                     po.addLog( result.getStdOut() );
 
