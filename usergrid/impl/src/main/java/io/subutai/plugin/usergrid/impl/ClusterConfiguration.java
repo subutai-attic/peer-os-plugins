@@ -131,10 +131,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.pushToProperties ( tomcatContainerHost, "index.query.limit.default=100" );
         this.pushToProperties ( tomcatContainerHost, Commands.getAdminSuperUserString () );
         this.pushToProperties ( tomcatContainerHost, Commands.getAutoConfirmString () );
-//        this.pushToProperties ( tomcatContainerHost, "usergrid.api.url.base=http://" + this.getIPAddress (
-//                                tomcatContainerHost ) + ":8080/ROOT" );
-//        this.pushToProperties ( tomcatContainerHost,
-//                                "usergrid.api.url.base=http://8080." + config.getUserDomain () + "/ROOT" );
+
         this.pushToProperties ( tomcatContainerHost,
                                 "usergrid.api.url.base=http://localhost:8080/ROOT" );
         this.pushToProperties ( tomcatContainerHost, Commands.getBaseURL ().replace ( "${BASEURL}",
@@ -146,7 +143,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.configureReversProxy ( tomcatContainerHost, config, tomcatName );
         this.commandExecute ( tomcatContainerHost, Commands.getRemoveROOTFolder () );
         this.commandExecute ( tomcatContainerHost, Commands.getCopyRootWAR () );
-        // this.commandExecute ( tomcatContainerHost, Commands.getCopyPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getUntarPortal () );
         this.commandExecute ( tomcatContainerHost, Commands.getRenamePortal () );
         // change urloverride...
@@ -270,27 +266,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         this.commandExecute ( containerHost,
                               "echo '" + value + "' >> /root/usergrid-deployment.properties" );
-    }
-
-
-    private String getIPAddress ( EnvironmentContainerHost ch )
-    {
-        String ipaddr = null;
-        try
-        {
-
-            String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
-            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
-            ipaddr = resultAddr.getStdOut ();
-            ipaddr = ipaddr.replace ( "\n", "" );
-            LOG.info ( "Container IP: " + ipaddr );
-        }
-        catch ( CommandException ex )
-        {
-            LOG.error ( "ip address command error : " + ex );
-        }
-        return ipaddr;
-
     }
 
 
