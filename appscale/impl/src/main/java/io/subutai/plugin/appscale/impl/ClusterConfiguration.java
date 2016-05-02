@@ -468,59 +468,47 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                                        AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-        String toPushinConfig = "ips_layout:\n";
-        toPushinConfig += "  master : " + ipaddr + "\n";
-        toPushinConfig += "  appengine:\n";
-
+        String appscaleFile = "ips_layout :\n  master : " + ipaddr + "\n  appengine :";
         List<String> appenList = config.getAppenList ();
-        for ( String a : appenList )
+        if (appenList.size() == 1)
         {
-
-            try
+            appscaleFile += " " + appenList.get (0);
+        }
+        else
+        {
+            for ( String a : appenList )
             {
-                EnvironmentContainerHost appContainerHost = environment.getContainerHostByHostname ( a );
-                String aip = appContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                toPushinConfig += "  - " + aip + "\n";
-            }
-            catch ( ContainerHostNotFoundException ex )
-            {
-                LOG.error ( "AppScalefile: appengine: " + ex );
+                appscaleFile += "\n    - " + a;
             }
         }
-        toPushinConfig += "  zookeeper:\n";
-        List<String> zooList = config.getZooList ();
-        for ( String z : zooList )
-        {
-            try
-            {
-                EnvironmentContainerHost zooContainerHost = environment.getContainerHostByHostname ( z );
-                String zip = zooContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                toPushinConfig += "  - " + zip + "\n";
-            }
-            catch ( ContainerHostNotFoundException ex )
-            {
-                LOG.error ( "AppScalefile: zookeeper: " + ex );
-            }
-        }
-        toPushinConfig += "  database:\n";
+        appscaleFile += "\n  database :";
         List<String> cassList = config.getCassList ();
-        for ( String cis : cassList )
+        if (cassList.size() == 1)
         {
-            try
+            appscaleFile += " " + cassList.get (0);
+        }
+        else
+        {
+            for ( String a : cassList )
             {
-                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname ( cis );
-                String cip = cassContainerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-                toPushinConfig += "  - " + cip + "\n";
-            }
-            catch ( ContainerHostNotFoundException ex )
-            {
-                LOG.error ( "AppScalefile : cassandra: " + ex );
+                appscaleFile += "\n    - " + a;
             }
         }
-        toPushinConfig += "login: " + config.getUserDomain () + "\n";
-        LOG.info ( toPushinConfig );
-        this.commandExecute ( containerHost, "echo -e '" + toPushinConfig + "' > /AppScalefile" );
-        LOG.info ( "AppScalefile file created." );
+        appscaleFile += "\n  zookeeper :";
+        List<String> zooList = config.getZooList ();
+        if (zooList.size() == 1)
+        {
+            appscaleFile += " " + zooList.get (0);
+        }
+        else
+        {
+            for ( String a : zooList )
+            {
+                appscaleFile += "\n    - " + a;
+            }
+        }
+        appscaleFile += "\nlogin : " + config.getUserDomain() + "\nforce : True";
+        this.commandExecute ( containerHost, "rm -f AppScalefile && echo -e '" + appscaleFile + "' > /AppScalefile" );
     }
 
 

@@ -26,6 +26,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 	function getContainers() {
 		// TODO: get ip of master if appscale is already built
 		appscaleSrv.getEnvironments().success (function (data) {
+		    console.log (data);
 			vm.environments = [];
 			vm.nodes = [];
 			vm.hostnames = [];
@@ -68,13 +69,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 							vm.nodes.push (vm.currentEnvironment.containers [i]);
 
 							if( vm.currentEnvironment.containers.length > 1 && i > 0 )
-								vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+								vm.hostnames.push(vm.currentEnvironment.containers[i]);
 						}
 					}
 
 					if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
 					{
-						vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+						vm.hostnames.push(vm.currentEnvironment.containers[0]);
 					}
 
 					vm.config.master = vm.nodes[0];
@@ -106,12 +107,12 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 				vm.nodes.push (vm.currentEnvironment.containers[i]);
 
 				if( vm.currentEnvironment.containers.length > 1 && i > 0 )
-					vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+					vm.hostnames.push(vm.currentEnvironment.containers[i]);
 			}
 		}
 		if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
 		{
-			vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+			vm.hostnames.push(vm.currentEnvironment.containers[0]);
 		}
 
 		vm.config.master = vm.nodes[0];
@@ -151,13 +152,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 						vm.nodes.push (vm.currentEnvironment.containers [i]);
 
 						if( vm.currentEnvironment.containers.length > 1 && i > 0 )
-							vm.hostnames.push(vm.currentEnvironment.containers[i].hostname);
+							vm.hostnames.push(vm.currentEnvironment.containers[i]);
 					}
 				}
 
 				if( vm.hostnames.length == 0 && vm.currentEnvironment.containers.length > 0 )
 				{
-					vm.hostnames.push(vm.currentEnvironment.containers[0].hostname);
+					vm.hostnames.push(vm.currentEnvironment.containers[0]);
 				}
 
 				vm.config.master = vm.nodes[0];
@@ -182,6 +183,7 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 
 	vm.build = build;
 	function build() {
+        console.log (vm.config);
 		if (vm.config.userDomain === "") {
 			SweetAlert.swal ("ERROR!", 'Please enter domain', "error");
 		}
@@ -255,6 +257,13 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 		} );
 	}
 
+    function arrayObjectIndexOf(myArray, searchTerm, property) {
+        for(var i = 0, len = myArray.length; i < len; i++) {
+            if (myArray[i][property] === searchTerm) return i;
+        }
+        return -1;
+    }
+
 	vm.controllerMod = function ( hostname ) {
 		if( vm.nodes.length > 0 )
 		{
@@ -263,10 +272,10 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 			vm.hostnames = [];
 			for( var i = 0; i < vm.nodes.length; i++ )
 			{
-				vm.hostnames.push(vm.nodes[i].hostname);
+				vm.hostnames.push(vm.nodes[i]);
 			}
-
-			var index = vm.hostnames.indexOf(vm.config.master.hostname);
+			console.log (vm.hostnames);
+            var index = arrayObjectIndexOf (vm.hostnames, vm.config.master.hostname, "hostname");
 
 			if (index > -1) {
 				vm.hostnames.splice(index, 1);
