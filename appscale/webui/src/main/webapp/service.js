@@ -10,6 +10,7 @@ function appscaleSrv ($http, environmentService) {
 	var BASE_URL = SERVER_URL + 'rest/appscale/';
 	var CLUSTERS_URL = BASE_URL + 'clusters/';
 	var appscaleSrv = {
+	    getPluginInfo: getPluginInfo,
 		getEnvironments: getEnvironments,
 		build: build,
 		listClusters: listClusters,
@@ -77,4 +78,9 @@ function appscaleSrv ($http, environmentService) {
 			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
 		);
 	}
+
+    function getPluginInfo() {
+        return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    }
+
 }

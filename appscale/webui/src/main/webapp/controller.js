@@ -282,6 +282,11 @@ function AppscaleCtrl (appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 			}
 		}
 	}
+
+    vm.info = {};
+    appscaleSrv.getPluginInfo().success (function (data) {
+        vm.info = data;
+    });
 }
 
 function initMSelect()
