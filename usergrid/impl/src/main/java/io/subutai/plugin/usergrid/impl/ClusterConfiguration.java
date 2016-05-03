@@ -207,7 +207,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         PeerManager peerManager = usergridImplManager.getPeerManager ();
         LocalPeer localPeer = peerManager.getLocalPeer ();
-        String ipAddress = this.getIPAddress ( containerHost );
+        String ipAddress = containerHost.getInterfaceByName( "eth0" ).getIp();
         try
         {
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
@@ -251,7 +251,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 {
                     try
                     {
-                        ipList.add ( this.getIPAddress ( environment.getContainerHostByHostname ( cont ) ) );
+                        ipList.add ( environment.getContainerHostByHostname ( cont ).getInterfaceByName( "eth0" ).getIp() );
                     }
                     catch ( ContainerHostNotFoundException ex )
                     {
