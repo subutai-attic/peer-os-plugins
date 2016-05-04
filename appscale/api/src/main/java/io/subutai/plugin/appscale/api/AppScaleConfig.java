@@ -47,6 +47,9 @@ public class AppScaleConfig implements ConfigBase
     private String userEnvironmentName;
     private String isUUID;
 
+    private String login;
+    private String password;
+
     public AppScaleConfig ()
     {
         nodes = new ArrayList<> ();
@@ -339,5 +342,27 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
+    public String getLogin()
+    {
+        return login;
+    }
+
+
+    public void setLogin( final String login )
+    {
+        this.login = login;
+    }
+
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+
+    public void setPassword( final String password )
+    {
+        this.password = password;
+    }
 }
 

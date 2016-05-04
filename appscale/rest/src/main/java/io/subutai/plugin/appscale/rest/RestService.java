@@ -67,9 +67,12 @@ public interface RestService
     Response configureCluster( @FormParam( "clusterName" ) String clusterName,
                                @FormParam( "appengineName" ) String appengine,
                                @FormParam( "zookeeperName" ) String zookeeperName,
-                               @FormParam( "cassandraName" ) String cassandraName, @FormParam( "envID" ) String envID,
+                               @FormParam( "cassandraName" ) String cassandraName,
+                               @FormParam( "envID" ) String envID,
                                @FormParam( "userDomain" ) String userDomain,
-                               @FormParam( "scaleOption" ) String scaleOption );
+                               @FormParam( "scaleOption" ) String scaleOption,
+                               @FormParam( "login" ) String login,
+                               @FormParam( "password" ) String password );
 
 
     @DELETE
