@@ -32,7 +32,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
             vm.hostnames = [];
             for (var i = 0; i < data.length; ++i) {
                 for (var j = 0; j < data[i].containers.length; ++j) {
-                    if (data[i].containers[j].templateName === "appscale271") {
+                    if (data[i].containers[j].templateName === "appscale") {
                         vm.environments.push(data[i]);
                         break;
                     }
@@ -64,7 +64,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
                 else {
                     vm.currentEnvironment = vm.environments[0];
                     for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-                        if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
+                        if (vm.currentEnvironment.containers[i].templateName === "appscale") {
                             vm.nodes.push(vm.currentEnvironment.containers [i]);
 
                             if (vm.currentEnvironment.containers.length > 1 && i > 0)
@@ -101,7 +101,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
         vm.nodes = [];
         vm.hostnames = [];
         for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-            if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
+            if (vm.currentEnvironment.containers[i].templateName === "appscale") {
                 vm.nodes.push(vm.currentEnvironment.containers[i]);
 
                 if (vm.currentEnvironment.containers.length > 1 && i > 0)
@@ -145,7 +145,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
             else {
                 vm.currentEnvironment = vm.environments[0];
                 for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
-                    if (vm.currentEnvironment.containers[i].templateName === "appscale271") {
+                    if (vm.currentEnvironment.containers[i].templateName === "appscale") {
                         vm.nodes.push(vm.currentEnvironment.containers [i]);
 
                         if (vm.currentEnvironment.containers.length > 1 && i > 0)
