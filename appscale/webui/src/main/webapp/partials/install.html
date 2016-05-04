@@ -3,8 +3,8 @@
 	<div class="b-form">
 		<div class="b-form__coll">
 			<div class="b-form-group">
-				<label for="user-domain" class="b-form-label">Domain</label>
 
+				<label for="user-domain" class="b-form-label">Domain</label>
 				<input type ="text" 
 					ng-show="appscaleCtrl.config.domainOption == 0" 
 					class="b-form-input b-form-input_full" 
@@ -38,6 +38,27 @@
 						ng-options = "container.hostname for container in appscaleCtrl.nodes">
 				</select>
 			</div>
+
+			<div class="b-form-group">
+
+				<label for="user-login" class="b-form-label">Admin e-mail</label>
+				<input type ="email"
+							 placeholder="email@mail.com"
+							 class="b-form-input b-form-input_full"
+							 ng-model = "appscaleCtrl.config.login"
+							 id="user-login"
+							 required>
+
+				<label for="user-password" class="b-form-label">Password</label>
+				<input type ="password"
+							 class="b-form-input b-form-input_full"
+							 ng-model = "appscaleCtrl.config.password"
+							 id="user-password"
+							 required>
+
+			</div>
+
+
 		</div>
 		<div class="b-form__coll">
 

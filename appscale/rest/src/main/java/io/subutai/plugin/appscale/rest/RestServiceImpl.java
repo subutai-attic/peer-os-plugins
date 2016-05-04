@@ -223,7 +223,7 @@ public class RestServiceImpl implements RestService
 
     @Override
     public Response configureCluster( String clusterName, String appengineName, String zookeeperName,
-                                      String cassandraName, String envID, String userDomain, String scaleOption )
+                                      String cassandraName, String envID, String userDomain, String scaleOption, String login, String password )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
@@ -248,6 +248,8 @@ public class RestServiceImpl implements RestService
             appScaleConfig.setAppenList( Arrays.asList( appengineName.split( "," ) ) );
         }
 
+        appScaleConfig.setLogin( login );
+        appScaleConfig.setPassword( password );
         appScaleConfig.setEnvironmentId( envID );
 
         UUID uuid = appScaleInterface.installCluster( appScaleConfig );
