@@ -203,8 +203,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             manager.stopCluster( clusterName );
 
             Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
-            CommandUtil.HostCommandResults results = commandUtil.executeParallel( Commands.getUninstallCommand(),
-                    HBaseSetupStrategy.getHosts( config, environment ) );
+            CommandUtil.HostCommandResults results = commandUtil.execute( Commands.getUninstallCommand(),
+                    HBaseSetupStrategy.getHosts( config, environment ), environment.getId() );
             Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
             Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
             for ( CommandUtil.HostCommandResult result : resultSet)
