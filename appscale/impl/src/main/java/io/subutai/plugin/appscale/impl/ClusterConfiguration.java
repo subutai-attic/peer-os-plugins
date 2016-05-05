@@ -186,39 +186,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Container Host Found: " + containerHost.getContainerId() + "\n" + "\n" + containerHost
                     .getHostname() + "\n" );
         }
-
-        // this part will be removed
-        this.commandExecute( containerHost, "sudo apt-get update" );
-        this.commandExecute( containerHost, "sudo apt-get install expect -y" );
-
-        if ( numberOfContainers == 1 )
-        {
-            // we need to add sshkey
-            this.commandExecute( containerHost,
-                    "echo /dev/null/ | ssh-keygen -t ecdsa -f /root/.ssh/id_rsa -q -N \"\"" );
-            this.commandExecute( containerHost, "cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys" );
-            this.commandExecute( containerHost,
-                    "ssh-keyscan " + containerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp()
-                            + " >> /root/.ssh/known_hosts" );
-            LOG.info( "keys added: " );
-        }
-
-        this.commandExecute( containerHost, "echo '" + token + "' > /token" );
-        this.commandExecute( containerHost, Commands.getCreateLogDir() );
         LOG.info( "installing appscale can take several minutes." );
 
 
         // AppScalefile configuration
         this.appscaleInitCluster( containerHost, environment, config ); // writes AppScalefile
-        // this.appscaleInitIPS ( containerHost, environment, config );
-        // end of AppScalefile configuration
-        LOG.info( "START AFTER INIT" );
+
+
+        // Domain configuration (nginx and dashboard)
         this.runAfterInitCommands( containerHost, config );
-        // this.addKeyPairSH ( containerHost );
-        //        this.runInstances ( containerHost );
-        //        this.addKeyPairSHToExistance ( containerHost );
-        //        this.commandExecute ( containerHost, "sudo /root/addKey.sh " + numberOfContainers );
-        //        this.commandExecute ( containerHost, "sudo /root/runIns.sh " + 1 );
+
         LOG.info( "Run shell starting..." );
         this.createRunSH( containerHost, config ); // we only need this in master container...
         String runShell = Commands.getRunShell();
@@ -508,7 +485,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             }
         }
         appscaleFile += "\nlogin : " + config.getUserDomain() + "\nforce : True";
-        this.commandExecute( containerHost, "rm -f AppScalefile && echo -e '" + appscaleFile + "' > /AppScalefile" );
+        this.commandExecute( containerHost, "rm -f /root/AppScalefile && echo -e '" + appscaleFile + "' > /root/AppScalefile" );
     }
 
 
@@ -599,11 +576,11 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private void runAfterInitCommands( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
         this.commandExecute( containerHost,
-                "sed -i 's/{0}:{1}/{1}.{0}/g' /root/appscale/AppDashboard/lib/app_dashboard_data.py" );
+                "sed -i 's/{0}:{1}/{1}.{0}/g' /var/lib/appscale/AppDashboard/lib/app_dashboard_data.py" );
         this.commandExecute( containerHost, "echo -e '127.0.0.1 " + config.getUserDomain() + "' >> /etc/hosts" );
         this.commandExecute( containerHost,
                 "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost "
-                        + config.getUserDomain() + "/g' " + "/root/appscale/AppController/djinn.rb" );
+                        + config.getUserDomain() + "/g' " + "/var/lib/appscale/AppController/djinn.rb" );
         this.commandExecute( containerHost,
                 "sed -i 's/127.0.0.1 localhost.localdomain localhost/127.0.0.1 localhost.localdomain localhost "
                         + config.getUserDomain() + "/g' " + "/etc/hosts" );
@@ -613,29 +590,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         // modify navigation.html
         // make them point to correct url in AS console
         String changeMonitURL = "sed -i 's/{{ monit_url }}/http:\\/\\/2812." + config.getUserDomain()
-                + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
+                + "/g' /var/lib/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute( containerHost, changeMonitURL );
         String changeFlowerURL = "sed -i 's/{{ flower_url }}/http:\\/\\/5555." + config.getUserDomain()
-                + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html";
+                + "/g' /var/lib/appscale/AppDashboard/templates/shared/navigation.html";
         this.commandExecute( containerHost, changeFlowerURL );
         String modUrl = "resturl?";
         String modUrlChange =
                 "1443." + config.getUserDomain() + "\\/rest\\/appscale\\/growenvironment?containerName=" + config
                         .getClusterName() + "&";
         this.commandExecute( containerHost, "sed -i 's/" + modUrl + "/" + modUrlChange
-                + "/g' /root/appscale/AppDashboard/templates/shared/navigation.html" );
-        // modify ss_agent.py
-        // for now we can skip this since timur baike will provide ss_agent.py
-        //        String modstr = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\\\"";
-        //        String modstrchange
-        //                = "thispathtochange = \"\\/rest\\/appscale\\/growenvironment?clusterName=\"" + config
-        // .getClusterName ();
-        //        this.commandExecute ( containerHost, "sed -i 's/" + modstr + "/" + modstrchange
-        //                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
-        //        String tokenUrl = "subutai:8443";
-        //        String tokenUrlChange = "1443." + config.getUserDomain ();
-        //        this.commandExecute ( containerHost, "sed -i 's/" + tokenUrl + "/" + tokenUrlChange
-        //                              + "/g' /root/appscale/InfrastructureManager/agents/ss_agent.py" );
+                + "/g' /var/lib/appscale/AppDashboard/templates/shared/navigation.html" );
 
         // modify nginx
         String nginx =
@@ -672,7 +637,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private String returnRunSH( AppScaleConfig config )
     {
         String runsh = "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
-                + "spawn /root/appscale-tools/bin/appscale up\n" + "\n"
+                + "spawn /var/lib/appscale-tools/bin/appscale up\n" + "\n"
                 + "#for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                 + "#    expect \"Are you sure you want to continue connecting (yes/no)?\"\n"
                 + "#    send -- \"yes\\n\"\n" + "#    expect \" password:\"\n" + "#    send -- \"a\\n\"\n" + "#}\n"
@@ -762,7 +727,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         String a = null;
         a = "#!/usr/bin/expect -f\n" + "set timeout -1\n" + "set num $argv\n"
-                + "spawn /root/appscale-tools/bin/appscale up\n" + "\n"
+                + "spawn /var/lib/appscale-tools/bin/appscale up\n" + "\n"
                 + "for {set i 1} {\"$i\" <= \"$num\"} {incr i} {\n"
                 + "expect \"Enter your desired admin e-mail address:\"\n" + "send -- \"a@a.com\\n\"\n"
                 + "expect \"Enter new password:\"\n" + "send -- \"aaaaaa\\n\"\n" + "expect \"Confirm password:\"\n"
