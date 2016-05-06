@@ -38,39 +38,19 @@ public interface RestService
 
 
     @GET
-    @Path( "growenvironment" )
-    @Produces( { MediaType.TEXT_PLAIN } )
-    Response growenvironment( @PathParam( "clusterName" ) String clusterName );
-
-
-    @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     Response getCluster( @PathParam( "clusterName" ) String clusterName );
 
-
-    @GET
-    @Path( "clusters/{clusterName}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response getConfigureSsh( @PathParam( "clusterName" ) String clusterName );
-
-
-    @POST
-    @Path( "oneclick" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response oneClick( @FormParam( "ename" ) String ename, @FormParam( "udom" ) String udom );
-
-
     @POST
     @Path( "configure_environment" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    Response configureCluster( @FormParam( "clusterName" ) String clusterName,
+    Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                @FormParam( "appengineName" ) String appengine,
                                @FormParam( "zookeeperName" ) String zookeeperName,
                                @FormParam( "cassandraName" ) String cassandraName,
                                @FormParam( "envID" ) String envID,
                                @FormParam( "userDomain" ) String userDomain,
-                               @FormParam( "scaleOption" ) String scaleOption,
                                @FormParam( "login" ) String login,
                                @FormParam( "password" ) String password );
 
@@ -80,17 +60,6 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     Response uninstallCluster( @PathParam( "clusterName" ) String clusterName );
 
-
-    @PUT
-    @Path( "clusters/{envID}/{operation}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response startStopMaster( @PathParam( "envID" ) Environment envID, @PathParam( "operation" ) String operation );
-
-
-    @PUT
-    @Path( "clusters/{clusterName}/runssh" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response runSsh( @PathParam( "clusterName" ) String clusterName );
 
     @GET
     @Path( "angular" )

@@ -103,7 +103,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         }
 
         // let's check if alert handled
-        String isUUID = targetCluster.getIsUUID ();
+/*        String isUUID = targetCluster.getIsUUID ();
         if ( isUUID == null || !newUuid.toString ().equals ( isUUID ) )
         {
             // proceed
@@ -124,11 +124,11 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         else
         {
             LOG.error ( "this alert handled before" );
-        }
+        }*/
     }
 
 
-    public Boolean createAppEngineInstance ( Environment environment, AppScaleConfig config )
+/*    public Boolean createAppEngineInstance ( Environment environment, AppScaleConfig config )
     {
         if ( isLocked ( environment.getId () ) )
         {
@@ -220,7 +220,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             unlock ( environment.getId () );
         }
         return modifiyConfig;
-    }
+    }*/
 
 
     private PeerResources findResource ( final List<PeerResources> resources, final String peerId )
@@ -239,15 +239,15 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     }
 
 
-    /**
+/*    *//**
      * @return actuall configuration for the config file in appscale
-     */
+     *//*
     private Boolean modifiyConfig ( Environment environment, AppScaleConfig targetCluster )
     {
         Boolean modifed = false;
         UUID addNode = appScale.addNode ( targetCluster );
         return modifed;
-    }
+    }*/
 
 
     private List<String> getPreferredPeers ( final Environment environment, final PeerGroupResources peerGroupResources )

@@ -6,7 +6,6 @@
 package io.subutai.plugin.appscale.impl.handler;
 
 
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -23,7 +22,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.core.identity.api.IdentityManager;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -34,21 +33,19 @@ import io.subutai.plugin.appscale.impl.ClusterConfiguration;
 import io.subutai.plugin.appscale.impl.Commands;
 
 
-/**
- * @author caveman
- */
+
 public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleImpl, AppScaleConfig>
         implements ClusterOperationHandlerInterface
 {
     private final ClusterOperationType operationType;
     private final AppScaleConfig config;
-    private final IdentityManager identityManager;
+    private final PeerManager peerManager;
     private final String clstrName;
     private static final Logger LOG = LoggerFactory.getLogger ( ClusterConfiguration.class.getName () );
 
 
     public ClusterOperationHandler ( final AppScaleImpl manager, final AppScaleConfig config,
-                                     final ClusterOperationType operationType, IdentityManager identityManager )
+                                     final ClusterOperationType operationType, PeerManager peerManager )
     {
         super ( manager, config );
         this.config = config;
@@ -56,7 +53,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
         this.operationType = operationType;
         String msg = String.format ( "Starting %s operation on %s(%s) cluster...", operationType, clstrName,
                                      config.getProductKey () );
-        this.identityManager = identityManager;
+        this.peerManager = peerManager;
 
         LOG.info ( msg );
         trackerOperation = manager.getTracker ().createTrackerOperation ( AppScaleConfig.PRODUCT_KEY, msg );
@@ -83,10 +80,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
 
             case INSTALL:
             {
-
                 setupCluster ();
                 break;
-
             }
             case UNINSTALL:
             {
@@ -103,11 +98,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                 runOperationOnContainers ( operationType );
                 break;
             }
-            case CUSTOM:
-            {
-                scaleUpAppScale ();
-                break;
-            }
 
             case DECOMISSION_STATUS:
             {
@@ -117,9 +107,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     }
 
 
-    /**
-     * @param cot run operations in containers... like starting up container etc.
-     */
     @Override
     public void runOperationOnContainers ( ClusterOperationType cot )
     {
@@ -172,39 +159,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
     }
 
 
-    public void scaleUpAppScale ()
-    {
-        LOG.info ( "SCALE UP started" );
-        List<String> appenList = config.getAppenList ();
-        for ( String a : appenList )
-        {
-            LOG.info ( "appengine List................ " + a );
-        }
-        try
-        {
-            Environment env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
-            Boolean scaleUP = new ClusterConfiguration ( trackerOperation, manager, this.identityManager ).scaleUP (
-                    config, env );
-            if ( scaleUP )
-            {
-                LOG.info ( "Appscale Scaled UP" );
-            }
-            else
-            {
-                LOG.error ( "error occured in scale up" );
-            }
-
-        }
-        catch ( EnvironmentNotFoundException ex )
-        {
-            LOG.error ( ex.toString () );
-        }
-    }
-
-
-    /**
-     * set up cluster appscale with pre - requirements in tutorial
-     */
     @Override
     public void setupCluster ()
     {
@@ -231,9 +185,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AppScaleIm
                 config.getClusterName (), config.getProductKey () ) );
         try
         {
-            LOG.info ( "Before" );
-            new ClusterConfiguration ( trackerOperation, manager, this.identityManager ).configureCluster ( config, env );
-            LOG.info ( "After" );
+            ClusterConfiguration configuration = new ClusterConfiguration ( this.trackerOperation, this.manager, this.peerManager );
+            configuration.configureCluster ( config, env );
         }
         catch ( ClusterConfigurationException cce )
         {

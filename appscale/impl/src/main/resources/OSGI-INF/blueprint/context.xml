@@ -3,11 +3,9 @@
 
   <service id="appScaleInterface" ref="appScaleImpl" interface="io.subutai.plugin.appscale.api.AppScaleInterface" />
 
-  <bean id="appScaleImpl" scope="singleton" class="io.subutai.plugin.appscale.impl.AppScaleImpl"
-        init-method="init" destroy-method="destroy">
+  <bean id="appScaleImpl" scope="singleton" class="io.subutai.plugin.appscale.impl.AppScaleImpl">
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
-    <argument ref="identityManager" />
     <!-- <argument name="identityManager" ref="identityManager" /> -->
     <property name="tracker" ref="tracker" />
     <property name="networkManager" ref="networkManager" />

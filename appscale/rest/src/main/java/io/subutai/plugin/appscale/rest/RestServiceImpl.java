@@ -90,87 +90,9 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response oneClick( String ename, String udom )
-    {
-        LOG.info( ename + udom );
-        if ( ename != null && udom != null )
-        {
-            Date permanentDate = DateUtils.addYears( new Date( System.currentTimeMillis() ), 10 );
-            final UserToken t = identityManager
-                    .createUserToken( identityManager.getActiveUser(), null, null, null, 2, permanentDate );
-            String token = t.getFullToken();
-            AppScaleConfig appScaleConfig = new AppScaleConfig();
-            appScaleConfig.setPermanentToken( token );
-            appScaleConfig.setUserEnvironmentName( ename );
-            appScaleConfig.setUserDomain( udom );
-            LOG.info( appScaleConfig.toString() );
-            UUID uuid = appScaleInterface.oneClickInstall( appScaleConfig );
-            OperationState op = waitUntilOperationFinish( uuid );
-            return createResponse( uuid, op );
-        }
-        return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "null" ).build();
-    }
-
-
-    @Override
-    public Response runSsh( String clusterName )
-    {
-        AppScaleConfig config = appScaleInterface.getConfig( clusterName );
-
-        UUID configureSSH = appScaleInterface.configureSSH( config );
-        OperationState operationState = waitUntilOperationFinish( configureSSH );
-        TrackerOperationView tov = tracker.getTrackerOperation( clusterName, configureSSH );
-        switch ( operationState )
-        {
-            case SUCCEEDED:
-                return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            case FAILED:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
-                               .entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            default:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "timeout" ).build();
-        }
-    }
-
-
-    @Override
     public Response getAngularConfig()
     {
         return Response.ok( webuiModule.getAngularDependecyList() ).build();
-    }
-
-
-    @Override
-    public Response getConfigureSsh( String clusterName )
-    {
-        AppScaleConfig config = appScaleInterface.getConfig( clusterName );
-        appScaleInterface.configureSsh( config );
-        return Response.status( Response.Status.OK ).entity( clusterName ).build();
-    }
-
-
-    @Override
-
-    public Response growenvironment( String clusterName )
-    {
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig( clusterName );
-        UUID uuid = appScaleInterface.growEnvironment( appScaleConfig );
-        OperationState operationState = waitUntilOperationFinish( uuid );
-        if ( uuid == null )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "failed" ).build();
-        }
-        TrackerOperationView tov = tracker.getTrackerOperation( clusterName, uuid );
-        switch ( operationState )
-        {
-            case SUCCEEDED:
-                return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            case FAILED:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
-                               .entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            default:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "timeout" ).build();
-        }
     }
 
 
@@ -184,68 +106,25 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startStopMaster( Environment envID, String operation )
-    {
-        Set<EnvironmentContainerHost> containerHosts = envID.getContainerHosts();
-        for ( EnvironmentContainerHost e : containerHosts )
-        {
-            String cn = e.getContainerName();
-            AppScaleConfig as = appScaleInterface.getConfig( cn );
-            if ( as.getClusterName() != null )
-            {
-                Boolean b =
-                        appScaleInterface.checkIfContainerInstalled( as ); // this will also finds the master container
-                if ( b )
-                {
-                    switch ( operation )
-                    {
-                        case "start":
-                        {
-                            UUID startCluster = appScaleInterface.startCluster( cn );
-                            OperationState operationState = waitUntilOperationFinish( startCluster );
-                            return createResponse( startCluster, operationState );
-                        }
-                        case "stop":
-                        {
-                            UUID startCluster = appScaleInterface.stopCluster( cn );
-                            OperationState operationState = waitUntilOperationFinish( startCluster );
-                            return createResponse( startCluster, operationState );
-                        }
-                        default:
-                            return Response.status( Response.Status.NOT_FOUND ).entity( envID ).build();
-                    }
-                }
-            }
-        }
-        return Response.status( Response.Status.NOT_FOUND ).entity( envID ).build();
-    }
-
-
-    @Override
-    public Response configureCluster( String clusterName, String appengineName, String zookeeperName,
-                                      String cassandraName, String envID, String userDomain, String scaleOption, String login, String password )
+    public Response installCluster( String clusterName, String appengineName, String zookeeperName,
+                                      String cassandraName, String envID, String userDomain, String login, String password )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
         appScaleConfig.setClusterName( clusterName );
-        appScaleConfig.setUserDomain( userDomain );
-        if ( scaleOption == null )
-        {
-            scaleOption = "static";
-        }
-        appScaleConfig.setScaleOption( scaleOption );
+        appScaleConfig.setDomain( userDomain );
         if ( !zookeeperName.isEmpty() )
         {
 
-            appScaleConfig.setZooList( Arrays.asList( zookeeperName.split( "," ) ) );
+            appScaleConfig.setZookeeperNodes( Arrays.asList( zookeeperName.split( "," ) ) );
         }
         if ( !cassandraName.isEmpty() )
         {
-            appScaleConfig.setCassList( Arrays.asList( cassandraName.split( "," ) ) );
+            appScaleConfig.setCassandraNodes( Arrays.asList( cassandraName.split( "," ) ) );
         }
         if ( !appengineName.isEmpty() )
         {
-            appScaleConfig.setAppenList( Arrays.asList( appengineName.split( "," ) ) );
+            appScaleConfig.setAppengineNodes( Arrays.asList( appengineName.split( "," ) ) );
         }
 
         appScaleConfig.setLogin( login );
@@ -343,7 +222,6 @@ public class RestServiceImpl implements RestService
         while ( !Thread.interrupted() )
         {
             TrackerOperationView po = tracker.getTrackerOperation( AppScaleConfig.PRODUCT_NAME, uuid );
-            LOG.info( "*********\n" + po.getState() + "\n********" );
             if ( po != null )
             {
 
