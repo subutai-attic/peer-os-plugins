@@ -217,7 +217,7 @@ public class ZookeeperClusterOperationHandler
                         ZookeeperOverHadoopSetupStrategy.getHosts( config.getNodes(), zookeeperEnvironment );
 
                 CommandUtil.HostCommandResults results = commandUtil
-                        .executeParallel( new RequestBuilder( Commands.getUninstallCommand() ), hostSet );
+                        .execute( new RequestBuilder( Commands.getUninstallCommand() ), hostSet, zookeeperEnvironment.getId() );
                 Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
                 Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
                 for ( CommandUtil.HostCommandResult result : resultSet)

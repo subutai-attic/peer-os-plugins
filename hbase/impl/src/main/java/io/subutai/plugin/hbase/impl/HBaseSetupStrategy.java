@@ -104,7 +104,7 @@ public class HBaseSetupStrategy
         trackerOperation.addLog( "Installing HBase..." );
 
         Set<Host> hostSet = getHosts( config, environment );
-        CommandUtil.HostCommandResults results = commandUtil.executeParallel( Commands.getInstallCommand(), hostSet );
+        CommandUtil.HostCommandResults results = commandUtil.execute( Commands.getInstallCommand(), hostSet, environment.getId() );
         Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
         Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
         for ( CommandUtil.HostCommandResult result : resultSet)

@@ -201,7 +201,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 hosts.add( environment.getContainerHostById( uuid ) );
             }
-            commandUtil.executeParallel( command, hosts );
+            commandUtil.execute( command, hosts, environment.getId() );
         }
         catch ( ContainerHostNotFoundException e )
         {
