@@ -129,7 +129,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error( e.getMessage(), e );
             po.addLogFailed( "Could not add alert handler to monitor this environment." );
         }*/
-        LOG.info( "Appscale saved to database" );
+        LOG.info( "Appscale installation done" );
+
+        boolean saveInfo = appscaleManager.getPluginDAO()
+                                          .saveInfo( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName(),
+                                                  configBase );
+        if ( saveInfo )
+        {
+            LOG.info( "Appscale saved to DB" );
+            po.addLogDone( "DONE" );
+        }
+        else
+        {
+            LOG.error( "Could not save to DB" );
+        }
     }
 
 
