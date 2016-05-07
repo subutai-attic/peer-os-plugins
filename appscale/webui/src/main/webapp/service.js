@@ -28,7 +28,7 @@ function appscaleSrv($http, environmentService) {
     function build(config) {
         var domain = config.userDomain;
         if (config.domainOption == 1) {
-            domain += '.subut.ai';
+            domain += '.stage-hub.net`';
         }
         var zkp = [];
         for (var i = 0; i < config.zookeeper.length; ++i) {
