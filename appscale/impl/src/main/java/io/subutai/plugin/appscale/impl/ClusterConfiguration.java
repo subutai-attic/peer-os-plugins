@@ -185,7 +185,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private void appscaleInitCluster( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
         String ipaddr = containerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
-        String command = "sudo /var/lib/subutai-appscale/create-appscalefile.sh -master " + ipaddr + " -appengine";
+        String command = "sudo /var/lib/appscale/create-appscalefile.sh -master " + ipaddr + " -appengine";
         for ( int i = 0; i < config.getAppengineNodes().size(); ++i )
         {
             command += " " + config.getAppengineNodes().get( i );
@@ -207,7 +207,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private void runAfterInitCommands( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
-        String cmd = format( "sudo /var/lib/subutai-appscale/setup.sh %s %s %s", config.getDomain(), config.getLogin(),
+        String cmd = format( "sudo /var/lib/appscale/setup.sh %s %s %s", config.getDomain(), config.getLogin(),
                 config.getPassword() );
 
         LOG.info( "Executing: " + cmd );
