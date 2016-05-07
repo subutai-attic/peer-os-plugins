@@ -6,40 +6,27 @@
 package io.subutai.plugin.appscale.impl;
 
 
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.host.HostId;
-import io.subutai.common.peer.AlertHandlerPriority;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.environment.api.exception.EnvironmentManagerException;
-import io.subutai.core.identity.api.IdentityManager;
-import io.subutai.core.identity.api.model.UserToken;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
-import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 
 import static java.lang.String.format;
 
@@ -150,6 +137,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
+            String ipaddr = containerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId( containerHost.getId() );
 
             CommandResult resultStr = resourceHostByContainerId
@@ -166,7 +155,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                             .getClusterName() + "/rootfs/etc/nginx/ssl.pem" ) );
 
             resourceHostByContainerId.execute(
-                    new RequestBuilder( "subutai proxy add " + vlanString + " -h " + config.getMasterNode() ) );
+                    new RequestBuilder( "subutai proxy add " + vlanString + " -h " + ipaddr ) );
         }
         catch ( Exception e )
         {
