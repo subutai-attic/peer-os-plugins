@@ -89,8 +89,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
         LOG.info ( "install cluster " + abstractOperationHandler );
         executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
-        getPluginDAO ()
-                .saveInfo ( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName (), appScaleConfig );
         return abstractOperationHandler.getTrackerId ();
     }
 

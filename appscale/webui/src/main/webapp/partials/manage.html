@@ -61,12 +61,12 @@
 				</tr>
 				</thead>
 				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.appenList == undefined">
+				<tr ng-show="appscaleCtrl.currentCluster.appengineNodes == undefined">
 					<td colspan="3" class="b-main-table__empty-item">
 						No data available in table
 					</td>
 				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.appenList">
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.appengineNodes">
 					<td>{{ name }}</td>
 				</tr>
 				</tbody>
@@ -87,12 +87,12 @@
 				</tr>
 				</thead>
 				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.zooList == undefined">
+				<tr ng-show="appscaleCtrl.currentCluster.zookeeperNodes == undefined">
 					<td colspan="3" class="b-main-table__empty-item">
 						No data available in table
 					</td>
 				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.zooList">
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.zookeeperNodes">
 					<td>{{ name }}</td>
 				</tr>
 				</tbody>
@@ -113,12 +113,12 @@
 				</tr>
 				</thead>
 				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.cassList == undefined">
+				<tr ng-show="appscaleCtrl.currentCluster.cassandraNodes == undefined">
 					<td colspan="3" class="b-main-table__empty-item">
 						No data available in table
 					</td>
 				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.cassList">
+				<tr ng-repeat="name in appscaleCtrl.currentCluster.cassandraNodes">
 					<td>{{ name }}</td>
 				</tr>
 				</tbody>
