@@ -41,6 +41,8 @@ import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 
+import static java.lang.String.format;
+
 
 public class ClusterConfiguration implements ClusterConfigurationInterface
 {
@@ -54,7 +56,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
 
-    public ClusterConfiguration( final TrackerOperation operation, final AppScaleImpl appScaleImpl, final PeerManager peerManager )
+    public ClusterConfiguration( final TrackerOperation operation, final AppScaleImpl appScaleImpl,
+                                 final PeerManager peerManager )
     {
         this.po = operation;
         this.appscaleManager = appScaleImpl;
@@ -65,7 +68,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     @Override
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-        LOG.info ("in configureCluster");
+        LOG.info( "in configureCluster" );
         AppScaleConfig config = ( AppScaleConfig ) configBase;
         this.installCluster( configBase, environment );
     }
@@ -88,11 +91,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             // this will be our controller container.
-            containerHost = environment.getContainerHostByHostname( config.getMasterNode() );
+            containerHost = environment.getContainerHostByHostname( config.getClusterName() );
             if ( containerHost.getContainerSize() != ContainerSize.HUGE )
             {
-                LOG.error( "Please make sure your containers' sizes are HUGE, disk quota is too small for your containers" );
-                po.addLogFailed( "Please make sure your containers' sizes are HUGE, disk quota is too small for your containers" );
+                LOG.error( "Please make sure your containers' sizes are HUGE, disk quota is too small for your "
+                        + "containers" );
+                po.addLogFailed( "Please make sure your containers' sizes are HUGE, disk quota is too small for your "
+                        + "containers" );
             }
         }
         catch ( ContainerHostNotFoundException ex )
@@ -101,16 +106,16 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Container Host Not Found" );
         }
 
-        LOG.info ("Preparing AppScalefile");
+        LOG.info( "Preparing AppScalefile" );
         // AppScalefile configuration
         this.appscaleInitCluster( containerHost, config );
 
-        LOG.info ("Preparing domain and starting cluster");
+        LOG.info( "Preparing domain and starting cluster" );
         // appscale up and domain management
         this.runAfterInitCommands( containerHost, config );
-        LOG.info ("Configuring proxy on RH");
+        LOG.info( "Configuring proxy on RH" );
         // configure proxy on rh
-        this.configureRH ( containerHost, config );
+        this.configureRH( containerHost, config );
 
 /*        try
         {
@@ -135,20 +140,20 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId( containerHost.getId() );
 
             CommandResult resultStr = resourceHostByContainerId
-                    .execute ( new RequestBuilder ( "grep vlan /mnt/lib/lxc/" + config.getClusterName() + "/config" ) );
+                    .execute( new RequestBuilder( "grep vlan /mnt/lib/lxc/" + config.getClusterName() + "/config" ) );
 
-            String stdOut = resultStr.getStdOut ();
+            String stdOut = resultStr.getStdOut();
 
-            String vlanString = stdOut.substring ( 11, 14 );
+            String vlanString = stdOut.substring( 11, 14 );
 
-            resourceHostByContainerId.execute ( new RequestBuilder ( "subutai proxy del " + vlanString + " -d" ) );
+            resourceHostByContainerId.execute( new RequestBuilder( "subutai proxy del " + vlanString + " -d" ) );
 
-            resourceHostByContainerId.execute ( new RequestBuilder (
-                    "subutai proxy add " + vlanString + " -d \"*." + config.getDomain () + "\" -f /mnt/lib/lxc/"
-                            + config.getClusterName() + "/rootfs/etc/nginx/ssl.pem" ) );
+            resourceHostByContainerId.execute( new RequestBuilder(
+                    "subutai proxy add " + vlanString + " -d \"*." + config.getDomain() + "\" -f /mnt/lib/lxc/" + config
+                            .getClusterName() + "/rootfs/etc/nginx/ssl.pem" ) );
 
-            resourceHostByContainerId
-                    .execute ( new RequestBuilder ( "subutai proxy add " + vlanString + " -h " + config.getMasterNode() ) );
+            resourceHostByContainerId.execute(
+                    new RequestBuilder( "subutai proxy add " + vlanString + " -h " + config.getMasterNode() ) );
         }
         catch ( Exception e )
         {
@@ -161,7 +166,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            containerHost.execute( new RequestBuilder( command ).withTimeout( 10000 ).withCwd( "/root" ) );
+            CommandResult result = containerHost.execute( new RequestBuilder( command ).withTimeout( 10000 ) );
+
+            if ( result.getExitCode() != 0 )
+            {
+                throw new CommandException( format( "Error to execute command: %s. %s", command, result.getStdErr() ) );
+            }
         }
         catch ( CommandException e )
         {
@@ -172,33 +182,34 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     private void appscaleInitCluster( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
-        String command = "bash /var/lib/subutai-appscale/create-appscalefile.sh -master " + config.getMasterNode() + " -appengine";
-        for (int i = 0; i < config.getAppengineNodes().size(); ++i)
+        String ipaddr = containerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+        String command = "sudo /var/lib/subutai-appscale/create-appscalefile.sh -master " + ipaddr + " -appengine";
+        for ( int i = 0; i < config.getAppengineNodes().size(); ++i )
         {
             command += " " + config.getAppengineNodes().get( i );
         }
         command += " -database";
-        for (int i = 0; i < config.getCassandraNodes().size(); ++i)
+        for ( int i = 0; i < config.getCassandraNodes().size(); ++i )
         {
             command += " " + config.getCassandraNodes().get( i );
         }
         command += " -zookeeper ";
-        for (int i = 0; i < config.getZookeeperNodes().size(); ++i)
+        for ( int i = 0; i < config.getZookeeperNodes().size(); ++i )
         {
             command += " " + config.getZookeeperNodes().get( i );
         }
-        LOG.info ("Executing: " + command);
+        LOG.info( "Executing: " + command );
         this.commandExecute( containerHost, command );
     }
 
 
-
-
     private void runAfterInitCommands( EnvironmentContainerHost containerHost, AppScaleConfig config )
     {
-        String command = "bash /var/lib/subutai-appscale/setup.sh " + config.getDomain() + " " + config.getLogin() + " " + config.getPassword();
-        LOG.info ("Executing: " + command);
-        this.commandExecute( containerHost, command );
+        String cmd = format( "sudo /var/lib/subutai-appscale/setup.sh %s %s %s", config.getDomain(), config.getLogin(),
+                config.getPassword() );
+
+        LOG.info( "Executing: " + cmd );
+        this.commandExecute( containerHost, cmd );
     }
 }
 
