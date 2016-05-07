@@ -13,51 +13,19 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 public interface AppScaleInterface extends ApiBase<AppScaleConfig>
 {
-
     List<String> getClusterList ( Environment name );
 
+    UUID installCluster( AppScaleConfig config );
 
     UUID uninstallCluster ( AppScaleConfig appScaleConfig );
 
-
-    Boolean checkIfContainerInstalled ( AppScaleConfig as );
-
+    UUID statusCluster ( String clusterName );
 
     UUID startCluster ( String clusterName );
 
-
     UUID stopCluster ( String clusterName );
 
-
-    UUID restartCluster ( String clusterName );
-
-
-    UUID statusCluster ( String clusterName );
-
-
-    UUID startService ( String clusterName, String hostName );
-
-
-    UUID stopService ( String clusterName, String hostName );
-
-
-    UUID statusService ( String clusterName, String hostName );
-
-
-    UUID addNode ( String clusterName );
-
-
-    UUID destroyNode ( String clusterName, String hostName );
-
-
-    UUID removeCluster ( String clusterName );
-
-
-    UUID configureSSH ( AppScaleConfig appScaleConfig );
-
-
-    public void configureSsh ( AppScaleConfig appScaleConfig );
-
+    UUID cleanCluster ( String clusterName );
 
     public ClusterSetupStrategy getClusterSetupStrategy ( Environment e, TrackerOperation t, AppScaleConfig ac );
 
@@ -71,7 +39,7 @@ public interface AppScaleInterface extends ApiBase<AppScaleConfig>
     public AppScaleConfig getConfig ( String clusterName );
 
 
-    public UUID growEnvironment ( AppScaleConfig appScaleConfig );
+//    public UUID growEnvironment ( AppScaleConfig appScaleConfig );
 
 
     public UUID oneClickInstall ( AppScaleConfig appScaleConfig );

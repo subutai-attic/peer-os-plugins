@@ -18,6 +18,11 @@
 					ng-class="appscaleCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
 					Manage
 				</li>
+				<li class="b-tabs-menu__item"
+						ng-click="appscaleCtrl.activeTab = 'about'"
+						ng-class="appscaleCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
 			</ul>
 		</div>
 		<div
@@ -28,6 +33,11 @@
 		<div
 				ng-if="appscaleCtrl.activeTab == 'manage'"
 				ng-include="'plugins/appscale/partials/manage.html'">
+		</div>
+
+		<div
+				ng-if="appscaleCtrl.activeTab == 'about'"
+				ng-include="'plugins/appscale/partials/about.html'">
 		</div>
 	</div>
 </div>

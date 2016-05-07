@@ -7,51 +7,32 @@ import java.util.List;
 import io.subutai.common.settings.Common;
 import io.subutai.core.plugincommon.api.ConfigBase;
 
-
-/**
- *
- * @author caveman
- */
 public class AppScaleConfig implements ConfigBase
 {
     public static final String PRODUCT_NAME = "AppScale";
     public static final String PRODUCT_KEY = "AppScale";
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase ();
 
-    // private static final String TEMPLATE_NAME = "Appscale";
-    private static final String TEMPLATE_NAME = "appscale"; // we will be using master template
-    private String clusterName = ""; // this will be login point => management AKA master
-    // if any means of other containers..
-    // private String loginName;
-    private String zookeeperName;
-    private String cassandraName;
-    private String appengine;
+    private static final String TEMPLATE_NAME = "appscale";
+    private String clusterName = "";
 
-    private List<String> zooList;
-    private List<String> cassList;
-    private List<String> appenList;
+    private String masterNode;
+    private List <String> zookeeperNodes;
+    private List <String> cassandraNodes;
+    private List <String> appengineNodes;
 
 
-    private String domainName = "intra.lan";
     private List<String> nodes;
     private String environmentId;
-    private String containerType;
-    private String tracker;
-    private List<AppScaleConfig> clusters;
-    private List<String> clusterNames;
-    private String userDomain;
-    private int vlanNumber;
-    private String scaleOption;
+    private String domain;
 
-    private String permanentToken;
-    private String userEnvironmentName;
-    private String isUUID;
+    private String login;
+    private String password;
 
     public AppScaleConfig ()
     {
         nodes = new ArrayList<> ();
     }
-
 
     public String getClusterName ()
     {
@@ -101,208 +82,6 @@ public class AppScaleConfig implements ConfigBase
     }
 
 
-    public String getContainerType ()
-    {
-        return containerType;
-    }
-
-
-    public void setContainerType ( String containerType )
-    {
-        this.containerType = containerType;
-    }
-
-
-    public String getTracker ()
-    {
-        return tracker;
-    }
-
-
-    public void setTracker ( String tracker )
-    {
-        this.tracker = tracker;
-    }
-
-
-    public String getZookeeperName ()
-    {
-        return zookeeperName;
-    }
-
-
-    public void setZookeeperName ( String zookeeperName )
-    {
-        this.zookeeperName = zookeeperName;
-    }
-
-
-    public String getCassandraName ()
-    {
-        return cassandraName;
-    }
-
-
-    public void setCassandraName ( String cassandraName )
-    {
-        this.cassandraName = cassandraName;
-    }
-
-
-    public List<AppScaleConfig> getClusters ()
-    {
-        return clusters;
-    }
-
-
-    public void setClusters ( List<AppScaleConfig> clusters )
-    {
-        this.clusters = clusters;
-    }
-
-
-    public List<String> getclusterNames ()
-    {
-        return clusterNames;
-    }
-
-
-    public void setclusterNames ( List<String> clusterNames )
-    {
-        this.clusterNames = clusterNames;
-    }
-
-
-    public String getUserDomain ()
-    {
-        return userDomain;
-    }
-
-
-    public void setUserDomain ( String userDomain )
-    {
-        this.userDomain = userDomain;
-    }
-
-
-    public Integer getVlanNumber ()
-    {
-        return vlanNumber;
-    }
-
-
-    public void setVlanNumber ( Integer vlanNumber )
-    {
-        this.vlanNumber = vlanNumber;
-    }
-
-
-    public String getAppengine ()
-    {
-        return appengine;
-    }
-
-
-    public void setAppengine ( String appengine )
-    {
-        this.appengine = appengine;
-    }
-
-
-    public List<String> getZooList ()
-    {
-        return zooList;
-    }
-
-
-    public void setZooList ( List<String> zooList )
-    {
-        this.zooList = zooList;
-    }
-
-
-    public List<String> getCassList ()
-    {
-        return cassList;
-    }
-
-
-    public void setCassList ( List<String> cassList )
-    {
-        this.cassList = cassList;
-    }
-
-
-    public List<String> getAppenList ()
-    {
-        return appenList;
-    }
-
-
-    public void setAppenList ( List<String> appenList )
-    {
-        this.appenList = appenList;
-    }
-
-
-    public String getScaleOption ()
-    {
-        return scaleOption;
-    }
-
-
-    public void setScaleOption ( String scaleOption )
-    {
-        this.scaleOption = scaleOption;
-    }
-
-
-    public String getPermanentToken ()
-    {
-        return permanentToken;
-    }
-
-
-    public void setPermanentToken ( String permanentToken )
-    {
-        this.permanentToken = permanentToken;
-    }
-
-
-    public String getUserEnvironmentName ()
-    {
-        return userEnvironmentName;
-    }
-
-
-    public void setUserEnvironmentName ( String userEnvironmentName )
-    {
-        this.userEnvironmentName = userEnvironmentName;
-    }
-
-
-    public String getIsUUID ()
-    {
-        return isUUID;
-    }
-
-
-    public void setIsUUID ( String isUUID )
-    {
-        this.isUUID = isUUID;
-    }
-
-
-//    public String getLoginNode ()
-//    {
-//        return loginName;
-//    }
-//
-//
-//    public void setLoginNode ( String loginName )
-//    {
-//        this.loginName = loginName;
-//    }
     public static String getPRODUCT_NAME ()
     {
         return PRODUCT_NAME;
@@ -326,18 +105,99 @@ public class AppScaleConfig implements ConfigBase
         return TEMPLATE_NAME;
     }
 
-
-    public String getDomainName ()
+    public String getLogin()
     {
-        return domainName;
+        return login;
     }
 
 
-    public void setDomainName ( String domainName )
+    public void setLogin( final String login )
     {
-        this.domainName = domainName;
+        this.login = login;
     }
 
 
+    public String getPassword()
+    {
+        return password;
+    }
+
+
+    public void setPassword( final String password )
+    {
+        this.password = password;
+    }
+
+
+    public String getMasterNode()
+    {
+        return masterNode;
+    }
+
+
+    public void setMasterNode( final String masterNode )
+    {
+        this.masterNode = masterNode;
+    }
+
+
+    public static String getTemplateName()
+    {
+        return TEMPLATE_NAME;
+    }
+
+
+    public List<String> getZookeeperNodes()
+    {
+        return zookeeperNodes;
+    }
+
+
+    public void setZookeeperNodes( final List<String> zookeeperNodes )
+    {
+        this.zookeeperNodes = zookeeperNodes;
+    }
+
+
+    public List<String> getCassandraNodes()
+    {
+        return cassandraNodes;
+    }
+
+
+    public void setCassandraNodes( final List<String> cassandraNodes )
+    {
+        this.cassandraNodes = cassandraNodes;
+    }
+
+
+    public List<String> getAppengineNodes()
+    {
+        return appengineNodes;
+    }
+
+
+    public void setAppengineNodes( final List<String> appengineNodes )
+    {
+        this.appengineNodes = appengineNodes;
+    }
+
+
+    public String getDomain()
+    {
+        return domain;
+    }
+
+
+    public void setDomain( final String domain )
+    {
+        this.domain = domain;
+    }
+
+
+    public static String getPackageName()
+    {
+        return PACKAGE_NAME;
+    }
 }
 

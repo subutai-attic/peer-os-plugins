@@ -6,6 +6,7 @@
 package io.subutai.plugin.appscale.cli;
 
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -187,28 +188,25 @@ public class InstallClusterCommand extends OsgiCommandSupport
         AppScaleConfig appScaleConfig = new AppScaleConfig ();
         appScaleConfig.setEnvironmentId ( environmentId );
         appScaleConfig.setClusterName ( clusterName );
-        appScaleConfig.setDomainName ( domainName );
-        appScaleConfig.setTracker ( clusterName );
-        appScaleConfig.setUserDomain ( userDomain );
+        appScaleConfig.setDomain ( userDomain );
         if ( scaleOption == null )
         {
             scaleOption = "static";
         }
-        appScaleConfig.setScaleOption ( scaleOption );
 
         if ( zookeeperName != null )
         {
-            appScaleConfig.setZookeeperName ( zookeeperName );
+            appScaleConfig.setZookeeperNodes( Arrays.asList( zookeeperName.split( "," ) ) );
         }
         if ( cassandraName != null )
         {
-            appScaleConfig.setCassandraName ( cassandraName );
+            appScaleConfig.setCassandraNodes ( Arrays.asList( cassandraName.split( "," ) ) );
         }
 
 
         LOG.info ( "installing arguments: "
-                + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomainName ()
-                + " " + appScaleConfig.getEnvironmentId () + " " + appScaleConfig.getTracker () + " " + appScaleConfig.getUserDomain () );
+                + appScaleConfig.getClusterName () + " " + appScaleConfig.getDomain ()
+                + " " + appScaleConfig.getEnvironmentId () );
         UUID installCluster = appScaleInterface.installCluster ( appScaleConfig );
         waitUntilOperationFinish ( tracker, installCluster );
         LOG.info ( " uuid " + installCluster );

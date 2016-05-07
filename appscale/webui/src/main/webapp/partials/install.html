@@ -3,8 +3,8 @@
 	<div class="b-form">
 		<div class="b-form__coll">
 			<div class="b-form-group">
-				<label for="user-domain" class="b-form-label">Domain</label>
 
+				<label for="user-domain" class="b-form-label">Domain</label>
 				<input type ="text" 
 					ng-show="appscaleCtrl.config.domainOption == 0" 
 					class="b-form-input b-form-input_full" 
@@ -20,7 +20,7 @@
 						ng-model = "appscaleCtrl.config.userDomain" 
 						id="user-domain" 
 						required>
-					<span class="b-form__input-domain">.subut.ai</span>
+					<span class="b-form__input-domain">.stage-hub.net`</span>
 				</div>
 
 			</div>
@@ -38,6 +38,27 @@
 						ng-options = "container.hostname for container in appscaleCtrl.nodes">
 				</select>
 			</div>
+
+			<div class="b-form-group">
+
+				<label for="user-login" class="b-form-label">Admin e-mail</label>
+				<input type ="email"
+							 placeholder="email@mail.com"
+							 class="b-form-input b-form-input_full"
+							 ng-model = "appscaleCtrl.config.login"
+							 id="user-login"
+							 required>
+
+				<label for="user-password" class="b-form-label">Password</label>
+				<input type ="password"
+							 class="b-form-input b-form-input_full"
+							 ng-model = "appscaleCtrl.config.password"
+							 id="user-password"
+							 required>
+
+			</div>
+
+
 		</div>
 		<div class="b-form__coll">
 
@@ -49,14 +70,14 @@
 				</select>
 			</div>
 
-			<div class="b-form-group">
+<!--			<div class="b-form-group">
 				<label class="b-form-label">Scale option</label>
 				<div>
 					<a ng-class="{b_option_selected : appscaleCtrl.checked == false, b_option_to_select : appscaleCtrl.checked}" ng-click="appscaleCtrl.toggleScale( false )">
 						Subutai Scaling</a>&nbsp;/&nbsp;
 					<a ng-class="{b_option_selected : appscaleCtrl.checked,  b_option_to_select : appscaleCtrl.checked == false}" ng-click="appscaleCtrl.toggleScale( true )">Appscale Scaling</a>
 				</div>
-			</div>
+			</div>-->
 		</div>
 		<div class="clear"></div>
 
@@ -87,5 +108,5 @@
 
 	<button class="b-btn b-btn_green" ng-click = "appscaleCtrl.build()" style="margin-top: 30px">Install</button>
 
-	<button class="b-btn b-btn_green" ng-click = "appscaleCtrl.quickInstallPopup()" style="margin-top: 30px">Quick Install</button>
+<!--	<button class="b-btn b-btn_green" ng-click = "appscaleCtrl.quickInstallPopup()" style="margin-top: 30px">Quick Install</button>-->
 </div>

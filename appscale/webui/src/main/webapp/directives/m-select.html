@@ -3,7 +3,7 @@
       ng-repeat="item in items"
       ng-if="selected.indexOf(item) < 0"
       ng-click="select(item)">
-    {{ item }}
+    {{ item.hostname }}
   </li>
 </ul>
 <div class="b-popup-body-list-buttons g-right">
@@ -15,6 +15,6 @@
   <li class="b-popup-body-list-table__link"
       ng-repeat="item in selected"
       ng-click="deselect(item)">
-    {{ item }}
+    {{ item.hostname }}
   </li>
 </ul>

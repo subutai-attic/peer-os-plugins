@@ -7,48 +7,28 @@ package io.subutai.plugin.appscale.impl;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import javax.net.ssl.TrustManager;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.cxf.configuration.jsse.TLSClientParameters;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.transport.http.HTTPConduit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
-import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.EnvironmentStatus;
-import io.subutai.common.environment.NodeSchema;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.EnvironmentId;
-import io.subutai.common.peer.HostNotFoundException;
-import io.subutai.common.peer.LocalPeer;
-import io.subutai.common.peer.ResourceHost;
-import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -68,19 +48,12 @@ import io.subutai.plugin.appscale.api.AppScaleInterface;
 import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 {
 
     private static final Logger LOG = LoggerFactory.getLogger ( AppScaleImpl.class.getName () );
-    private ExecutorService executor;
     private final Monitor monitor;
     private final PluginDAO pluginDAO;
     private Tracker tracker;
@@ -88,47 +61,18 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private NetworkManager networkManager;
     private QuotaManager quotaManager;
     private PeerManager peerManager;
-    private IdentityManager identityManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
-    private static final String BUILD_TOPOLOGY_URL
-            = "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY";
-    private static final String ENVIRONMENT_URL = "https://localhost:8443/rest/v1/environments/";
-
-    private static String GET_TOKEN_URL
-            = "https://localhost:8443/rest/v1/identity/gettoken?username=%s&password=%s";
-
-    private String token;
+    private ExecutorService executor;
 
 
-    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO, IdentityManager identityManager )
+    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
-        this.identityManager = identityManager;
+        this.executor = SubutaiExecutors.newCachedThreadPool();
     }
 
-
-    public void init ()
-    {
-        executor = SubutaiExecutors.newCachedThreadPool ();
-    }
-
-
-    public void destroy ()
-    {
-
-    }
-
-
-    /**
-     *
-     * @param appScaleConfig
-     * @return
-     *
-     * setup -> install
-     *
-     */
     @Override
     public UUID installCluster ( AppScaleConfig appScaleConfig )
     {
@@ -141,43 +85,11 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.INSTALL,
-                                                                                          this.identityManager );
+                                                                                          this.peerManager );
         LOG.info ( "install cluster " + abstractOperationHandler );
         executor.execute ( abstractOperationHandler );
         LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
-        getPluginDAO ()
-                .saveInfo ( AppScaleConfig.PRODUCT_KEY, appScaleConfig.getClusterName (), appScaleConfig );
         return abstractOperationHandler.getTrackerId ();
-    }
-
-
-    @Override
-    /**
-     * returns true if container installed
-     */
-    public Boolean checkIfContainerInstalled ( AppScaleConfig appScaleConfig )
-    {
-        Boolean ret = true;
-
-        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument (
-                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "clusterName is empty or null" );
-
-        try
-        {
-            EnvironmentContainerHost containerHostByHostname = environment.getContainerHostByHostname (
-                    appScaleConfig.getClusterName () );
-            CommandResult commandResult = containerHostByHostname.execute ( new RequestBuilder ( Commands.getPsAUX () ) );
-            if ( commandResult.getStdOut ().contains ( "No such file or directory" ) )
-            {
-                ret = false;
-            }
-        }
-        catch ( ContainerHostNotFoundException | CommandException ex )
-        {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
-        }
-        return ret;
     }
 
 
@@ -189,35 +101,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
                                       "clusterName is empty" );
         AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
                                                                                           ClusterOperationType.UNINSTALL,
-                                                                                          this.identityManager );
+                                                                                          this.peerManager );
         executor.execute ( abstractOperationHandler );
         return abstractOperationHandler.getTrackerId ();
-    }
-
-
-    @Override
-    public void configureSsh ( AppScaleConfig appScaleConfig )
-    {
-        try
-        {
-            EnvironmentContainerHost containerHost = environment.getContainerHostByHostname (
-                    appScaleConfig.getClusterName () );
-            String ipAddress = containerHost.getInterfaceByName ( Common.DEFAULT_CONTAINER_INTERFACE ).getIp ();
-            String command1443 = "ssh -f -N -R 1443:" + ipAddress + ":1443 ubuntu@localhost";
-            String command5555 = "ssh -f -N -R 5555:" + ipAddress + ":5555 ubuntu@localhost";
-            String command8081 = "ssh -f -N -R 8081:" + ipAddress + ":8081 ubuntu@localhost";
-
-            LocalPeer localPeer = peerManager.getLocalPeer ();
-            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId ( containerHost.getId () );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command8081 ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command1443 ) );
-            resourceHostByContainerId.execute ( new RequestBuilder ( command5555 ) );
-
-        }
-        catch ( ContainerHostNotFoundException | HostNotFoundException | CommandException ex )
-        {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
-        }
     }
 
 
@@ -230,19 +116,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
     {
         this.appScaleConfig = appScaleConfig;
-    }
-
-
-    @Override
-    public UUID configureSSH ( AppScaleConfig appScaleConfig )
-    {
-
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.CUSTOM,
-                                                                                          this.identityManager );
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
-
     }
 
 
@@ -308,6 +181,42 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
+    public UUID cleanCluster( final String clusterName )
+    {
+        return null;
+    }
+
+
+    @Override
+    public ClusterSetupStrategy getClusterSetupStrategy( final Environment e, final TrackerOperation t,
+                                                         final AppScaleConfig ac )
+    {
+        return null;
+    }
+
+
+    @Override
+    public void saveConfig( final AppScaleConfig ac ) throws ClusterException
+    {
+
+    }
+
+
+    @Override
+    public void deleteConfig( final AppScaleConfig ac )
+    {
+
+    }
+
+
+    @Override
+    public AppScaleConfig getConfig( final String clusterName )
+    {
+        return null;
+    }
+
+
+/*    @Override
     public UUID growEnvironment ( AppScaleConfig appScaleConfig )
     {
 
@@ -322,13 +231,13 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
             return null;
         }
 
-    }
+    }*/
 
 
     @Override
-    public UUID restartCluster ( String clusterName )
+    public UUID oneClickInstall( final AppScaleConfig appScaleConfig )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        return null;
     }
 
 
@@ -337,249 +246,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
-
-
-    @Override
-    public UUID startService ( String clusterName, String hostName )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public UUID stopService ( String clusterName, String hostName )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public UUID statusService ( String clusterName, String hostName )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public UUID addNode ( String clusterName )
-    {
-        LOG.info ( "**** Adding Node****" );
-        List<String> info = getPluginDAO ().getInfo ( AppScaleConfig.PRODUCT_KEY );
-        List<String> appenList = appScaleConfig.getAppenList ();
-        appenList.add ( clusterName );
-        appScaleConfig.setAppenList ( appenList ); // new node added as appengine
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.CUSTOM,
-                                                                                          this.identityManager );
-        // CUSTOM is to scale 1 node up
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
-    }
-
-
-    public UUID addNode ( AppScaleConfig localConfig )
-    {
-        LOG.info ( "**** Adding Node****" );
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, localConfig,
-                                                                                          ClusterOperationType.CUSTOM,
-                                                                                          this.identityManager );
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
-    }
-
-
-    private WebClient createWebClient ( String url, Boolean trustCerts )
-    {
-        JacksonJsonProvider jsonProvider = new JacksonJsonProvider ();
-        WebClient webClient = WebClient.create ( url, Collections.singletonList ( jsonProvider ) );
-        if ( trustCerts )
-        {
-            HTTPConduit conduit = WebClient.getConfig ( webClient ).getHttpConduit ();
-            TLSClientParameters params = conduit.getTlsClientParameters ();
-            if ( params == null )
-            {
-                params = new TLSClientParameters ();
-                conduit.setTlsClientParameters ( params );
-            }
-            params.setTrustManagers ( new TrustManager[]
-            {
-                new io.subutai.plugin.appscale.impl.NTM ()
-            // new NaiveTrustManager ()
-            } );
-            params.setDisableCNCheck ( true );
-        }
-        return webClient;
-    }
-
-
-    @Override
-    public UUID oneClickInstall ( AppScaleConfig localConfig )
-    {
-        UUID uuid = null;
-        token = localConfig.getPermanentToken ();
-        AppScaleConfig newAppScaleConfig = buildEnvironment ( localConfig );
-        if ( newAppScaleConfig.getClusterName () != null )
-        {
-            try
-            {
-                TimeUnit.SECONDS.sleep ( 20 ); // needed for apt-get update
-            }
-            catch ( InterruptedException ex )
-            {
-                LOG.error ( ex.toString () );
-            }
-            AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, newAppScaleConfig,
-                                                                                              ClusterOperationType.INSTALL,
-                                                                                              this.identityManager );
-            executor.execute ( abstractOperationHandler );
-            uuid = abstractOperationHandler.getTrackerId ();
-        }
-        return uuid;
-    }
-
-
-    private AppScaleConfig buildEnvironment ( AppScaleConfig ac )
-    {
-        Random rand = new Random ();
-        String additionString = randomAlphabetic ( 10 ).toLowerCase ();
-        String containerName = "appscale" + additionString;
-        String environmentName = ac.getUserEnvironmentName ();
-
-        NodeSchema node = new NodeSchema ( containerName, ContainerSize.HUGE, "appscale271", 0, 0 );
-        LOG.info ( "Template Name: " + node.getTemplateName () );
-        // System.exit ( 0 );
-        List<NodeSchema> nodes = new ArrayList<> ();
-        nodes.add ( node );
-        Blueprint blueprint = new Blueprint ( environmentName, nodes );
-        Topology topology = buildTopology ( blueprint );
-        EnvironmentId envID = createEnvironment ( topology );
-        Boolean healt = false;
-        while ( !healt ) // possible infinite loop here...
-        {
-            try
-            {
-                TimeUnit.SECONDS.sleep ( 10 );
-                Environment env = environmentManager.loadEnvironment ( envID.getId () );
-                if ( env != null && env.getStatus ().equals ( EnvironmentStatus.HEALTHY ) )
-                {
-                    LOG.info ( "Environment loaded and healty..." );
-                    List<String> l = new ArrayList (); // this is necessary for ConfigureCluster method
-                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
-                    for ( EnvironmentContainerHost e : containerHosts )
-                    {
-                        l.add ( e.getHostname () );
-                        ac.setClusterName ( e.getHostname () );
-                    }
-                    ac.setCassList ( l );
-                    ac.setZooList ( l );
-                    ac.setAppenList ( l );
-                    ac.setScaleOption ( "static" ); // subutai scaling for now until we figrue out the Appscale scaling
-                    ac.setEnvironmentId ( env.getId () );
-                    healt = true;
-                }
-            }
-            catch ( EnvironmentNotFoundException | InterruptedException ex )
-            {
-
-                LOG.error ( "environment can not loaded yet..." + ex );
-            }
-
-        }
-        return ac;
-    }
-
-
-    private Topology buildTopology ( Blueprint blueprint )
-    {
-        WebClient webClient = createWebClient ( BUILD_TOPOLOGY_URL, true );
-        webClient.type ( MediaType.APPLICATION_JSON );
-        webClient.accept ( MediaType.APPLICATION_JSON );
-        webClient.replaceHeader ( "sptoken", token );
-        LOG.info ( webClient.getHeaders ().toString () );
-        Response response = webClient.post ( blueprint );
-        LOG.info ( String.valueOf ( response.getStatus () ) );
-        if ( response.getStatus () == 200 )
-        {
-            return response.readEntity ( Topology.class );
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-
-    private EnvironmentId createEnvironment ( Topology topology )
-    {
-
-        WebClient webClient = createWebClient ( ENVIRONMENT_URL, true );
-        webClient.type ( MediaType.APPLICATION_JSON );
-        webClient.accept ( MediaType.APPLICATION_JSON );
-        webClient.replaceHeader ( "sptoken", token );
-        LOG.info ( webClient.getHeaders ().toString () );
-        Response response = webClient.post ( topology );
-        LOG.info ( String.valueOf ( response.getStatus () ) );
-        if ( response.getStatus () == 200 )
-        {
-            return response.readEntity ( EnvironmentId.class );
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-
-    @Override
-    public UUID destroyNode ( String clusterName, String hostName )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public UUID removeCluster ( String clusterName )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public ClusterSetupStrategy getClusterSetupStrategy ( Environment e, TrackerOperation t, AppScaleConfig ac )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public void saveConfig ( AppScaleConfig ac ) throws ClusterException
-    {
-        Preconditions.checkNotNull ( ac );
-
-        if ( !getPluginDAO ().saveInfo ( AppScaleConfig.PRODUCT_KEY, ac.getClusterName (), ac ) )
-        {
-            throw new ClusterException ( "Could not save cluster info" );
-        }
-    }
-
-
-    @Override
-    public void deleteConfig ( AppScaleConfig ac )
-    {
-        Preconditions.checkNotNull ( ac );
-        if ( !getPluginDAO ().deleteInfo ( AppScaleConfig.PRODUCT_KEY, ac.getClusterName () ) )
-        {
-            LOG.error ( "config could not be deleted..." );
-        }
-    }
-
-
-    @Override
-    public AppScaleConfig getConfig ( String clusterName )
-    {
-        return this.getAppScaleConfig ();
-    }
-
 
     @Override
     public List<AppScaleConfig> getClusters ()
@@ -614,56 +280,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public UUID addNode ( String string, String string1 )
+    public UUID addNode( final String s, final String s1 )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public void onEnvironmentCreated ( Environment e )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public void onEnvironmentGrown ( Environment e, Set<EnvironmentContainerHost> set )
-    {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
-    @Override
-    public void onContainerDestroyed ( Environment e, String string )
-    {
-
-    }
-
-
-    @Override
-    public void onEnvironmentDestroyed ( String envID )
-    {
-        List<AppScaleConfig> c = getClusters ();
-        for ( AppScaleConfig a : c )
-        {
-            if ( a.getEnvironmentId ().equals ( envID ) )
-            {
-                this.deleteConfig ( a );
-            }
-        }
-    }
-
-
-    public ExecutorService getExecutor ()
-    {
-        return executor;
-    }
-
-
-    public void setExecutor ( ExecutorService executor )
-    {
-        this.executor = executor;
+        return null;
     }
 
 
@@ -715,18 +334,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    public IdentityManager getIdentityManager ()
-    {
-        return identityManager;
-    }
-
-
-    public void setIdentityManager ( final IdentityManager identityManager )
-    {
-        this.identityManager = identityManager;
-    }
-
-
     public PeerManager getPeerManager ()
     {
         return peerManager;
@@ -769,5 +376,31 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
+    @Override
+    public void onEnvironmentCreated( final Environment environment )
+    {
+
+    }
+
+
+    @Override
+    public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerDestroyed( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onEnvironmentDestroyed( final String s )
+    {
+
+    }
 }
 
