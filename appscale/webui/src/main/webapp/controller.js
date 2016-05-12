@@ -12,6 +12,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
     vm.config = {userDomain: "", login: "", password: ""};
     vm.nodes = [];
     vm.console = "";
+    vm.confirmPassword = "";
     vm.activeTab = "install";
     vm.currentEnvironment = {};
     vm.environments = [];
@@ -82,6 +83,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
                     vm.config.zookeeper = [];
                     vm.config.db = [];
                     vm.config.environment = vm.currentEnvironment;
+                    vm.config.password = "";
                 }
             });
         });
@@ -118,6 +120,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
         vm.config.zookeeper = [];
         vm.config.db = [];
         vm.config.environment = vm.currentEnvironment;
+        vm.config.password = "";
     }
 
     function listClusters() {
@@ -163,6 +166,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
                 vm.config.zookeeper = [];
                 vm.config.db = [];
                 vm.config.environment = vm.currentEnvironment;
+                vm.config.password = "";
             }
         });
     }
@@ -184,7 +188,16 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
             SweetAlert.swal("ERROR!", 'Please enter domain', "error");
         }
         else if (wrongDomain() && vm.config.domainOption == 0) {
-            SweetAlert.swal("ERROR!", 'Wrong domain format', "error");
+            SweetAlert.swal("ERROR!", 'Invalid domain', "error");
+        }
+        else if (vm.config.login === "") {
+            SweetAlert.swal("ERROR!", 'Please enter valid email', "error");
+        }
+        else if (vm.config.password === "") {
+            SweetAlert.swal("ERROR!", 'Please enter password', "error");
+        }
+        else if (vm.config.password !== vm.confirmPassword) {
+            SweetAlert.swal("ERROR!", "Passwords don\'t match", "error");
         }
         else {
             LOADING_SCREEN();
