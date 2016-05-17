@@ -16,10 +16,12 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.network.ProxyLoadBalanceStrategy;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.protocol.ReverseProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.peer.api.PeerManager;
@@ -137,25 +139,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            String ipaddr = containerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+            ReverseProxyConfig proxyConfig =
+                    new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(), "*." + config.getDomain(),
+                            "/mnt/lib/lxc/" + config.getClusterName() + "/rootfs/etc/nginx/ssl.pem",
+                            ProxyLoadBalanceStrategy.NONE );
 
-            ResourceHost resourceHostByContainerId = localPeer.getResourceHostByContainerId( containerHost.getId() );
-
-            CommandResult resultStr = resourceHostByContainerId
-                    .execute( new RequestBuilder( "grep vlan /mnt/lib/lxc/" + config.getClusterName() + "/config" ) );
-
-            String stdOut = resultStr.getStdOut();
-
-            String vlanString = stdOut.substring( 11, 14 );
-
-            resourceHostByContainerId.execute( new RequestBuilder( "subutai proxy del " + vlanString + " -d" ) );
-
-            resourceHostByContainerId.execute( new RequestBuilder(
-                    "subutai proxy add " + vlanString + " -d \"*." + config.getDomain() + "\" -f /mnt/lib/lxc/" + config
-                            .getClusterName() + "/rootfs/etc/nginx/ssl.pem" ) );
-
-            resourceHostByContainerId.execute(
-                    new RequestBuilder( "subutai proxy add " + vlanString + " -h " + ipaddr ) );
+            containerHost.getPeer().addReverseProxy( proxyConfig );
         }
         catch ( Exception e )
         {
