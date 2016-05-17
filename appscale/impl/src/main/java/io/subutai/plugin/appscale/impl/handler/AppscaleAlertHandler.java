@@ -42,54 +42,54 @@ import io.subutai.plugin.appscale.impl.AppscalePlacementStrategy;
  */
 public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 {
-    private static final Logger LOG = LoggerFactory.getLogger ( AppscaleAlertHandler.class );
+    private static final Logger LOG = LoggerFactory.getLogger( AppscaleAlertHandler.class );
     public static final String HANDLER_ID = "DEFAULT_APPSCALE_QUOTA_EXCEEDED_ALERT_HANDLER";
     private AppScaleImpl appScale;
-    private static Set<String> locks = new CopyOnWriteArraySet<> ();
+    private static Set<String> locks = new CopyOnWriteArraySet<>();
 
 
-    public AppscaleAlertHandler ( final AppScaleImpl appScale )
+    public AppscaleAlertHandler( final AppScaleImpl appScale )
     {
         this.appScale = appScale;
     }
 
 
-    private void throwAlertException ( String context, Exception e ) throws AlertHandlerException
+    private void throwAlertException( String context, Exception e ) throws AlertHandlerException
     {
-        LOG.error ( context, e );
-        throw new AlertHandlerException ( context, e );
+        LOG.error( context, e );
+        throw new AlertHandlerException( context, e );
     }
 
 
     @Override
-    public String getId ()
+    public String getId()
     {
         return HANDLER_ID;
     }
 
 
     @Override
-    public String getDescription ()
+    public String getDescription()
     {
         return "Node resource threshold excess default alert handler for appScale.";
     }
 
 
     @Override
-    public void process ( final Environment environment, final QuotaAlertValue alertValue ) throws AlertHandlerException
+    public void process( final Environment environment, final QuotaAlertValue alertValue ) throws AlertHandlerException
     {
 
-        UUID newUuid = UUID.randomUUID (); // for the control if this is alert handled before;
-        LOG.debug ( String.format ( "%s", alertValue ) );
+        UUID newUuid = UUID.randomUUID(); // for the control if this is alert handled before;
+        LOG.debug( String.format( "%s", alertValue ) );
         //find appScale cluster by environment id
-        final List<AppScaleConfig> clusters = appScale.getClusters (); // this is already getting from db
+        final List<AppScaleConfig> clusters = appScale.getClusters(); // this is already getting from db
 
-        String environmentId = environment.getId ();
+        String environmentId = environment.getId();
 
         AppScaleConfig targetCluster = null;
         for ( AppScaleConfig cluster : clusters )
         {
-            if ( cluster.getEnvironmentId ().equals ( environmentId ) )
+            if ( cluster.getEnvironmentId().equals( environmentId ) )
             {
                 targetCluster = cluster;
                 break;
@@ -98,7 +98,7 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 
         if ( targetCluster == null )
         {
-            throwAlertException ( String.format ( "Cluster not found by environment id %s", environmentId ), null );
+            throwAlertException( String.format( "Cluster not found by environment id %s", environmentId ), null );
             return;
         }
 
@@ -223,14 +223,14 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     }*/
 
 
-    private PeerResources findResource ( final List<PeerResources> resources, final String peerId )
+    private PeerResources findResource( final List<PeerResources> resources, final String peerId )
     {
         PeerResources result = null;
-        Iterator<PeerResources> i = resources.iterator ();
-        while ( result == null && i.hasNext () )
+        Iterator<PeerResources> i = resources.iterator();
+        while ( result == null && i.hasNext() )
         {
-            PeerResources r = i.next ();
-            if ( peerId.equals ( r.getPeerId () ) )
+            PeerResources r = i.next();
+            if ( peerId.equals( r.getPeerId() ) )
             {
                 result = r;
             }
@@ -239,7 +239,10 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     }
 
 
-/*    *//**
+/*    */
+
+
+    /**
      * @return actuall configuration for the config file in appscale
      *//*
     private Boolean modifiyConfig ( Environment environment, AppScaleConfig targetCluster )
@@ -248,68 +251,66 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         UUID addNode = appScale.addNode ( targetCluster );
         return modifed;
     }*/
-
-
-    private List<String> getPreferredPeers ( final Environment environment, final PeerGroupResources peerGroupResources )
+    private List<String> getPreferredPeers( final Environment environment, final PeerGroupResources peerGroupResources )
     {
-        final Set<String> usedPeers = new HashSet<> ();
+        final Set<String> usedPeers = new HashSet<>();
 
-        for ( EnvironmentContainerHost c : environment.getContainerHosts () )
+        for ( EnvironmentContainerHost c : environment.getContainerHosts() )
         {
-            usedPeers.add ( c.getPeerId () );
+            usedPeers.add( c.getPeerId() );
         }
 
-        Set<String> notUsedPeers = new HashSet<> ();
-        for ( PeerResources resources : peerGroupResources.getResources () )
+        Set<String> notUsedPeers = new HashSet<>();
+        for ( PeerResources resources : peerGroupResources.getResources() )
         {
-            if ( !usedPeers.contains ( resources.getPeerId () ) )
+            if ( !usedPeers.contains( resources.getPeerId() ) )
             {
-                notUsedPeers.add ( resources.getPeerId () );
+                notUsedPeers.add( resources.getPeerId() );
             }
         }
-        final List<String> result = new ArrayList<> ();
-        result.addAll ( notUsedPeers );
-        result.addAll ( usedPeers );
+        final List<String> result = new ArrayList<>();
+        result.addAll( notUsedPeers );
+        result.addAll( usedPeers );
         return result;
     }
 
 
-    private void unlock ( final String environmentId )
+    private void unlock( final String environmentId )
     {
-        locks.remove ( environmentId );
+        locks.remove( environmentId );
     }
 
 
-    private void lock ( final String environmentId )
+    private void lock( final String environmentId )
     {
-        locks.add ( environmentId );
+        locks.add( environmentId );
     }
 
 
-    private boolean isLocked ( final String environmentId )
+    private boolean isLocked( final String environmentId )
     {
-        return locks.contains ( environmentId );
+        return locks.contains( environmentId );
     }
 
 
-    public boolean isOptPartitionStressed ( final ExceededQuota value )
+    public boolean isOptPartitionStressed( final ExceededQuota value )
     {
-        EnvironmentContainerHost host = getSourceHost ();
+        EnvironmentContainerHost host = getSourceHost();
 
-        if ( value.getContainerResourceType () == ContainerResourceType.OPT )
+        if ( value.getContainerResourceType() == ContainerResourceType.OPT )
         {
-            final ByteValueResource current = value.getCurrentValue ( ByteValueResource.class );
-            final ByteValueResource quota = value.getQuotaValue ( ByteValueResource.class );
+            final ByteValueResource current = value.getCurrentValue( ByteValueResource.class );
+            final ByteValueResource quota = value.getQuotaValue( ByteValueResource.class );
             if ( current == null || quota == null )
             {
                 // invalid value
                 return false;
             }
 
-            boolean stressed = quota.getValue ().compareTo ( current.getValue () ) < 1
-                    || quota.getValue ().multiply ( new BigDecimal ( "0.8" ) ).compareTo ( current.getValue () ) < 1;
+            boolean stressed = quota.getValue().compareTo( current.getValue() ) < 1
+                    || quota.getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() ) < 1;
 
-            return value.getPercentage () >= 80.0;
+            return value.getPercentage() >= 80.0;
         }
 
         return false;

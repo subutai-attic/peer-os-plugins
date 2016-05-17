@@ -12,93 +12,90 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
 
 
 /**
- *
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
 public class Commands
 {
     AppScaleConfig config;
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger ( Commands.class.getName () );
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger( Commands.class.getName() );
 
 
-    public Commands ( AppScaleConfig config )
+    public Commands( AppScaleConfig config )
     {
         this.config = config;
     }
 
 
-    public static String getAppScaleStartCommand ()
+    public static String getAppScaleStartCommand()
     {
         return ( "sudo /root/up.sh" );
     }
 
 
-    public static String getAppScaleStopCommand ()
+    public static String getAppScaleStopCommand()
     {
         return ( "sudo /root/appscale-tools/bin/appscale down" );
     }
 
 
-    public static String getAppscaleInit ()
+    public static String getAppscaleInit()
     {
         return ( "appscale init cluster" );
     }
 
 
-    public static String getRemoveSubutaiList ()
+    public static String getRemoveSubutaiList()
     {
         return ( "rm -f /etc/apt/sources.list.d/subutai-repo.list" );
     }
 
 
-    public static String getCreateLogDir ()
+    public static String getCreateLogDir()
     {
         return ( "mkdir /var/log/appscale" );
     }
 
 
-    public static String getRunShell ()
+    public static String getRunShell()
     {
         return ( "sudo /root/run.sh" );
     }
 
 
-    public static String getPsAUX ()
+    public static String getPsAUX()
     {
         return ( "cat /AppScalefile" );
     }
 
 
-    public static String getChangeHostHame ()
+    public static String getChangeHostHame()
     {
         return ( "echo 'domain.com' > /etc/hostname" );
     }
 
 
-    public static String backUpSSH ()
+    public static String backUpSSH()
     {
         return ( "cp -rf /root/.ssh /root/sshBACK" );
     }
 
 
-    public static String backUpAppscale ()
+    public static String backUpAppscale()
     {
         return ( "cp -rf /root/.appscale /root/appBACK" );
     }
 
 
-    public static String revertBackUpSSH ()
+    public static String revertBackUpSSH()
     {
         return ( "mv /root/sshBACK/* /root/.ssh" );
     }
 
 
-    public static String revertBackupAppscale ()
+    public static String revertBackupAppscale()
     {
         return ( "mv /root/appBACK/* /root/.appscale" );
     }
-
-
 }
 

@@ -42,9 +42,9 @@ function appscaleSrv($http, environmentService) {
         for (var i = 0; i < config.db.length; ++i) {
             cass.push(config.db[i].ip);
         }
-        var postData = 'clusterName=' + config.master.hostname + '&zookeeperName=' + zkp.join(",")
+        var postData = 'clusterName=' + config.clusterName + '&zookeeperName=' + zkp.join(",")
             + "&cassandraName=" + cass.join(",") + "&appengineName=" + app.join(",")
-            + "&envID=" + config.environment.id + "&userDomain=" + domain + '&scaleOption=' + config.scaleOption + "&login=" + config.login + "&password=" + config.password;
+            + "&envID=" + config.environment.id + "&userDomain=" + domain + '&scaleOption=' + config.scaleOption + "&login=" + config.login + "&password=" + config.password + "&controllerName=" + config.master.hostname;
 
         return $http.post(
             BASE_URL + 'configure_environment',
@@ -55,14 +55,14 @@ function appscaleSrv($http, environmentService) {
 
 
     function listClusters() {
-        return $http.get(BASE_URL + "clusterList", {
+        return $http.get(CLUSTERS_URL, {
             withCredentials: true,
             headers: {'Content-Type': 'application/json'}
         });
     }
 
     function getClusterInfo(cluster) {
-        return $http.get(BASE_URL + "clusters/" + cluster.clusterName, {
+        return $http.get(CLUSTERS_URL + cluster, {
             withCredentials: true,
             headers: {'Content-Type': 'application/json'}
         });

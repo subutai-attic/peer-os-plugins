@@ -49,11 +49,10 @@ import io.subutai.plugin.appscale.impl.handler.AppscaleAlertHandler;
 import io.subutai.plugin.appscale.impl.handler.ClusterOperationHandler;
 
 
-
 public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger ( AppScaleImpl.class.getName () );
+    private static final Logger LOG = LoggerFactory.getLogger( AppScaleImpl.class.getName() );
     private final Monitor monitor;
     private final PluginDAO pluginDAO;
     private Tracker tracker;
@@ -66,115 +65,117 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private ExecutorService executor;
 
 
-    public AppScaleImpl ( Monitor monitor, PluginDAO pluginDAO )
+    public AppScaleImpl( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
         this.executor = SubutaiExecutors.newCachedThreadPool();
     }
 
+
     @Override
-    public UUID installCluster ( AppScaleConfig appScaleConfig )
+    public UUID installCluster( AppScaleConfig appScaleConfig )
     {
-        LOG.info ( "install cluster started" );
+        LOG.info( "install cluster started" );
 
-        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument (
-                !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ), "clusterName is empty or null" );
+        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ),
+                "clusterName is empty or null" );
 
 
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.INSTALL,
-                                                                                          this.peerManager );
-        LOG.info ( "install cluster " + abstractOperationHandler );
-        executor.execute ( abstractOperationHandler );
-        LOG.info ( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId () );
-        return abstractOperationHandler.getTrackerId ();
+        AbstractOperationHandler abstractOperationHandler =
+                new ClusterOperationHandler( this, appScaleConfig, ClusterOperationType.INSTALL, this.peerManager );
+        LOG.info( "install cluster " + abstractOperationHandler );
+        executor.execute( abstractOperationHandler );
+        LOG.info( "install executor " + " tracker id: " + abstractOperationHandler.getTrackerId() );
+        return abstractOperationHandler.getTrackerId();
     }
 
 
     @Override
-    public UUID uninstallCluster ( AppScaleConfig appScaleConfig )
+    public UUID uninstallCluster( AppScaleConfig appScaleConfig )
     {
-        Preconditions.checkNotNull ( appScaleConfig, "Configuration is null" );
-        Preconditions.checkArgument ( !Strings.isNullOrEmpty ( appScaleConfig.getClusterName () ),
-                                      "clusterName is empty" );
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, appScaleConfig,
-                                                                                          ClusterOperationType.UNINSTALL,
-                                                                                          this.peerManager );
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
+        Preconditions.checkNotNull( appScaleConfig, "Configuration is null" );
+        Preconditions
+                .checkArgument( !Strings.isNullOrEmpty( appScaleConfig.getClusterName() ), "clusterName is empty" );
+        AbstractOperationHandler abstractOperationHandler =
+                new ClusterOperationHandler( this, appScaleConfig, ClusterOperationType.UNINSTALL, this.peerManager );
+        executor.execute( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId();
     }
 
 
-    public AppScaleConfig getAppScaleConfig ()
+    public AppScaleConfig getAppScaleConfig()
     {
         return appScaleConfig;
     }
 
 
-    public void setAppScaleConfig ( AppScaleConfig appScaleConfig )
+    public void setAppScaleConfig( AppScaleConfig appScaleConfig )
     {
         this.appScaleConfig = appScaleConfig;
     }
 
 
     @Override
-    public List<String> getClusterList ( Environment name )
+    public List<String> getClusterList( Environment name )
     {
-        List<String> c = new ArrayList ();
-        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
-        containerHosts.stream ().forEach ( (ech)
-                ->
-                {
-                    c.add ( ech.toString () );
+        List<String> c = new ArrayList();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
+        containerHosts.stream().forEach( ( ech ) -> {
+            c.add( ech.toString() );
         } );
         return c;
     }
 
 
     @Override
-    public UUID uninstallCluster ( String string )
+    public UUID uninstallCluster( String clustername )
     {
-        return uninstallCluster ( getConfig ( string ) );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( clustername ), "Cluster name is null or empty" );
+
+        AppScaleConfig config = getCluster( clustername );
+        AbstractOperationHandler operationHandler =
+                new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL, null );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 
 
     @Override
-    public UUID startCluster ( String clusterName )
+    public UUID startCluster( String clusterName )
     {
 
         UUID uuid = null;
         try
         {
-            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
-            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
-                    Commands.getAppScaleStartCommand () ) );
-            uuid = a.getTrackerId ();
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost
+                    .execute( new RequestBuilder( Commands.getAppScaleStartCommand() ) );
+            uuid = a.getTrackerId();
         }
         catch ( ContainerHostNotFoundException | CommandException ex )
         {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+            java.util.logging.Logger.getLogger( AppScaleImpl.class.getName() ).log( Level.SEVERE, null, ex );
         }
         return uuid;
-
     }
 
 
     @Override
-    public UUID stopCluster ( String clusterName )
+    public UUID stopCluster( String clusterName )
     {
         UUID uuid = null;
         try
         {
-            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname ( clusterName );
-            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost.execute ( new RequestBuilder (
-                    Commands.getAppScaleStopCommand () ) );
-            uuid = a.getTrackerId ();
+            EnvironmentContainerHost masterContainerHost = environment.getContainerHostByHostname( clusterName );
+            AbstractOperationHandler a = ( AbstractOperationHandler ) masterContainerHost
+                    .execute( new RequestBuilder( Commands.getAppScaleStopCommand() ) );
+            uuid = a.getTrackerId();
         }
         catch ( ContainerHostNotFoundException | CommandException ex )
         {
-            java.util.logging.Logger.getLogger ( AppScaleImpl.class.getName () ).log ( Level.SEVERE, null, ex );
+            java.util.logging.Logger.getLogger( AppScaleImpl.class.getName() ).log( Level.SEVERE, null, ex );
         }
         return uuid;
     }
@@ -242,24 +243,26 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public UUID statusCluster ( String clusterName )
+    public UUID statusCluster( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
+
     @Override
-    public List<AppScaleConfig> getClusters ()
+    public List<AppScaleConfig> getClusters()
     {
-        List<AppScaleConfig> returnConfig = new ArrayList ();
-        List<AppScaleConfig> info = pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
+        List<AppScaleConfig> returnConfig = new ArrayList();
+        List<AppScaleConfig> info = pluginDAO.getInfo( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
         for ( AppScaleConfig c : info )
         {
             try
             {
-                Environment loadEnvironment = environmentManager.loadEnvironment ( c.getEnvironmentId () );
-                if ( EnvironmentStatus.HEALTHY == loadEnvironment.getStatus () )
+                Environment loadEnvironment = environmentManager.loadEnvironment( c.getEnvironmentId() );
+                if ( EnvironmentStatus.HEALTHY == loadEnvironment.getStatus() )
                 {
-                    returnConfig.add ( c );
+                    returnConfig.add( c );
                 }
             }
             catch ( EnvironmentNotFoundException ex )
@@ -272,10 +275,9 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
 
 
     @Override
-    public AppScaleConfig getCluster ( String string )
+    public AppScaleConfig getCluster( String string )
     {
-        return pluginDAO.getInfo ( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class
-        );
+        return pluginDAO.getInfo( AppScaleConfig.PRODUCT_KEY, string, AppScaleConfig.class );
     }
 
 
@@ -286,91 +288,91 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     }
 
 
-    public Monitor getMonitor ()
+    public Monitor getMonitor()
     {
         return monitor;
     }
 
 
-    public PluginDAO getPluginDAO ()
+    public PluginDAO getPluginDAO()
     {
         return pluginDAO;
     }
 
 
-    public EnvironmentManager getEnvironmentManager ()
+    public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
     }
 
 
-    public void setEnvironmentManager ( EnvironmentManager environmentManager )
+    public void setEnvironmentManager( EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
 
 
-    public NetworkManager getNetworkManager ()
+    public NetworkManager getNetworkManager()
     {
         return networkManager;
     }
 
 
-    public void setNetworkManager ( NetworkManager networkManager )
+    public void setNetworkManager( NetworkManager networkManager )
     {
         this.networkManager = networkManager;
     }
 
 
-    public QuotaManager getQuotaManager ()
+    public QuotaManager getQuotaManager()
     {
         return quotaManager;
     }
 
 
-    public void setQuotaManager ( QuotaManager quotaManager )
+    public void setQuotaManager( QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
     }
 
 
-    public PeerManager getPeerManager ()
+    public PeerManager getPeerManager()
     {
         return peerManager;
     }
 
 
-    public void setPeerManager ( PeerManager peerManager )
+    public void setPeerManager( PeerManager peerManager )
     {
         this.peerManager = peerManager;
     }
 
 
-    public Environment getEnvironment ()
+    public Environment getEnvironment()
     {
         return environment;
     }
 
 
-    public void setEnvironment ( Environment environment )
+    public void setEnvironment( Environment environment )
     {
         this.environment = environment;
     }
 
 
-    public static Logger getLOG ()
+    public static Logger getLOG()
     {
         return LOG;
     }
 
 
-    public Tracker getTracker ()
+    public Tracker getTracker()
     {
         return tracker;
     }
 
 
-    public void setTracker ( Tracker tracker )
+    public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
     }

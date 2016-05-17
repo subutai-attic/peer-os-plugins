@@ -12,7 +12,6 @@ import io.subutai.webui.entity.WebuiModuleResourse;
 
 
 /**
- *
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
@@ -23,58 +22,54 @@ public class AppScaleWebModule implements WebuiModule
     public static final String IMG = "plugins/appscale/appscale.png";
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
-
     static
     {
-        TEMPLATES_REQUIREMENT = new HashMap<> ();
-        TEMPLATES_REQUIREMENT.put ( "appscale", 1 );
+        TEMPLATES_REQUIREMENT = new HashMap<>();
+        TEMPLATES_REQUIREMENT.put( "appscale", 1 );
     }
 
 
     private WebuiModuleResourse appscaleResource;
 
 
-    public void init ()
+    public void init()
     {
-        this.appscaleResource = new WebuiModuleResourse ( NAME.toLowerCase (), IMG );
-        AngularjsDependency angularjsDependency = new AngularjsDependency (
-                "subutai.plugins.appscale",
-                "plugins/appscale/appscale.js",
-                "plugins/appscale/controller.js",
-                "plugins/appscale/service.js",
-                "subutai-app/environment/service.js"
-        );
+        this.appscaleResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
+        AngularjsDependency angularjsDependency =
+                new AngularjsDependency( "subutai.plugins.appscale", "plugins/appscale/appscale.js",
+                        "plugins/appscale/controller.js", "plugins/appscale/service.js",
+                        "subutai-app/environment/service.js" );
 
-        appscaleResource.addDependency ( angularjsDependency );
+        appscaleResource.addDependency( angularjsDependency );
     }
 
 
     @Override
-    public String getAngularState ()
+    public String getAngularState()
     {
-        return appscaleResource.getAngularjsList ();
+        return appscaleResource.getAngularjsList();
     }
 
 
     @Override
-    public String getName ()
+    public String getName()
     {
         return NAME;
     }
 
 
     @Override
-    public String getModuleInfo ()
+    public String getModuleInfo()
     {
-        return String.format ( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
-                               new Gson ().toJson ( TEMPLATES_REQUIREMENT ).toString () );
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+                new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
 
 
     @Override
-    public String getAngularDependecyList ()
+    public String getAngularDependecyList()
     {
-        return String.format ( ".state('%s', %s)", NAME.toLowerCase(), appscaleResource.getAngularjsList () );
+        return String.format( ".state('%s', %s)", NAME.toLowerCase(), appscaleResource.getAngularjsList() );
     }
 }
 

@@ -9,7 +9,7 @@ AppscaleCtrl.$inject = ['appscaleSrv', 'SweetAlert', '$scope', 'ngDialog', '$htt
 
 function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
     var vm = this;
-    vm.config = {userDomain: "", login: "", password: ""};
+    vm.config = {userDomain: "", login: "", password: "", clusterName: ""};
     vm.nodes = [];
     vm.console = "";
     vm.confirmPassword = "";
@@ -187,6 +187,9 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
         if (vm.config.userDomain === "") {
             SweetAlert.swal("ERROR!", 'Please enter domain', "error");
         }
+        else if (vm.config.clusterName === "") {
+            SweetAlert.swal("ERROR!", 'Please enter cluster name', "error");
+        }
         else if (wrongDomain() && vm.config.domainOption == 0) {
             SweetAlert.swal("ERROR!", 'Invalid domain', "error");
         }
@@ -224,16 +227,39 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 
     vm.uninstallCluster = uninstallCluster;
     function uninstallCluster() {
-        LOADING_SCREEN();
-        console.log(vm.currentCluster);
-        appscaleSrv.uninstallCluster(vm.currentCluster).success(function (data) {
-            LOADING_SCREEN('none');
-            SweetAlert.swal("Success!", "Your Appscale cluster is being deleted.", "success");
-            listClusters();
-        }).error(function (error) {
-            LOADING_SCREEN('none');
-            SweetAlert.swal("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
-        });
+        // LOADING_SCREEN();
+        // console.log(vm.currentCluster);
+        // appscaleSrv.uninstallCluster(vm.currentCluster).success(function (data) {
+        //     LOADING_SCREEN('none');
+        //     SweetAlert.swal("Success!", "Your Appscale cluster is being deleted.", "success");
+        //     listClusters();
+        // }).error(function (error) {
+        //     LOADING_SCREEN('none');
+        //     SweetAlert.swal("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
+        // });
+        if (vm.currentCluster.clusterName === undefined) return;
+        SweetAlert.swal({
+                title: "Are you sure?",
+                text: "Your will not be able to recover this cluster!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ff3f3c",
+                confirmButtonText: "Delete",
+                cancelButtonText: "Cancel",
+                closeOnConfirm: false,
+                closeOnCancel: true,
+                showLoaderOnConfirm: true
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    appscaleSrv.uninstallCluster(vm.currentCluster).success(function (data) {
+                        SweetAlert.swal("Deleted!", "Cluster has been deleted.", "success");
+                        vm.currentCluster = {};
+                        listClusters();
+                    });
+                }
+            });
+
     }
 
     vm.toggleScale = function (val) {

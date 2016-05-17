@@ -2,128 +2,163 @@
   <div class="b-main-form">
     <div class="b-main-form__wrapper b-main-form__wrapper_margin-r">
       <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-        <label class="b-form-label b-form-label_margin_r">Select environment</label>
+        <label class="b-form-label b-form-label_margin_r">Select the cluster</label>
         <select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r"
-                ng-model="appscaleCtrl.currentCluster"
-                ng-options="cluster.environmentId for cluster in appscaleCtrl.clusters">
+                ng-model="selectedCluster"
+                ng-change="appscaleCtrl.getClustersInfo(selectedCluster)"
+                ng-options="cluster for cluster in appscaleCtrl.clusters">
         </select>
 
-        <a href = "https://1443.{{appscaleCtrl.currentCluster.domain}}"
-		   target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
+        <a href="https://1443.{{appscaleCtrl.currentCluster.domain}}"
+           target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
           Console
+        </a>
+
+        <a href
+           class="b-btn b-btn_light-grey b-btn_margin-r"
+           ng-click="appscaleCtrl.uninstallCluster()">
+          Remove
+					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_red">
+						<i class="fa fa-times"></i>
+					</span>
         </a>
 
       </div>
     </div>
   </div>
-	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
 
-		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-			Master nodes
-		</h2>
+  <div class="b-workspace-content__row b-workspace-content__row_margin-b">
 
-		<div class="b-main-table-border">
-			<table class="b-main-table b-main-table_with-header">
-				<thead>
-				<tr>
-					<th>Hostname</th>
-					<th></th>
-					<th></th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr>
-					<td colspan="3" class="b-main-table__empty-item" ng-show="appscaleCtrl.currentCluster.clusterName === undefined">
-						No data available in table
-					</td>
-				<tr>
-				<tr ng-show="appscaleCtrl.currentCluster.clusterName !== undefined">
-					<td>{{ appscaleCtrl.currentCluster.clusterName }}</td>
-					<td>
-					<td>
-					</td>
-				</tr>
-				</tbody>
-			</table>
+    <label class="b-form-label">Domain name</label>
+    <input type="text"
+           class="b-form-input b-form-input_full"
+           ng-model="appscaleCtrl.currentCluster.domain" style="width: 200px;"
+           readonly>
 
-		</div>
-	</div>
-	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
-		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-			App engine nodes
-		</h2>
 
-		<div class="b-main-table-border">
-			<table class="b-main-table b-main-table_with-header">
-				<thead>
-				<tr>
-					<th>IP Address</th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.appengineNodes == undefined">
-					<td colspan="3" class="b-main-table__empty-item">
-						No data available in table
-					</td>
-				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.appengineNodes">
-					<td>{{ name }}</td>
-				</tr>
-				</tbody>
-			</table>
+    <label class="b-form-label">Login</label>
+    <input type="text"
+           class="b-form-input b-form-input_full"
+           ng-model="appscaleCtrl.currentCluster.login" style="width: 200px;"
+           readonly>
 
-		</div>
-	</div>
-	<div class="b-workspace-content__row b-workspace-content__row_margin-b">
-		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-			Zookeeper nodes
-		</h2>
 
-		<div class="b-main-table-border">
-			<table class="b-main-table b-main-table_with-header">
-				<thead>
-				<tr>
-					<th>IP Address</th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.zookeeperNodes == undefined">
-					<td colspan="3" class="b-main-table__empty-item">
-						No data available in table
-					</td>
-				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.zookeeperNodes">
-					<td>{{ name }}</td>
-				</tr>
-				</tbody>
-			</table>
+    <label class="b-form-label">Password</label>
+    <input type="text"
+           class="b-form-input b-form-input_full"
+           ng-model="appscaleCtrl.currentCluster.password" style="width: 200px;"
+           readonly>
+    <br>
+    <br>
+    <br>
 
-		</div>
-	</div>
-	<div class="b-workspace-content__row">
-		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-			Database nodes
-		</h2>
+    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+      Controller nodes
+    </h2>
 
-		<div class="b-main-table-border">
-			<table class="b-main-table b-main-table_with-header">
-				<thead>
-				<tr>
-					<th>IP Address</th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr ng-show="appscaleCtrl.currentCluster.cassandraNodes == undefined">
-					<td colspan="3" class="b-main-table__empty-item">
-						No data available in table
-					</td>
-				<tr>
-				<tr ng-repeat="name in appscaleCtrl.currentCluster.cassandraNodes">
-					<td>{{ name }}</td>
-				</tr>
-				</tbody>
-			</table>
+    <div class="b-main-table-border">
+      <table class="b-main-table b-main-table_with-header">
+        <thead>
+        <tr>
+          <th>Hostname</th>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td colspan="3" class="b-main-table__empty-item"
+              ng-show="appscaleCtrl.currentCluster.controllerNode === undefined">
+            No data available in table
+          </td>
+        <tr>
+        <tr ng-show="appscaleCtrl.currentCluster.controllerNode !== undefined">
+          <td>{{ appscaleCtrl.currentCluster.controllerNode }}</td>
+          <td>
+          <td>
+          </td>
+        </tr>
+        </tbody>
+      </table>
 
-		</div>
-	</div>
+    </div>
+  </div>
+  <div class="b-workspace-content__row b-workspace-content__row_margin-b">
+    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+      App engine nodes
+    </h2>
+
+    <div class="b-main-table-border">
+      <table class="b-main-table b-main-table_with-header">
+        <thead>
+        <tr>
+          <th>IP Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-show="appscaleCtrl.currentCluster.appengineNodes == undefined">
+          <td colspan="3" class="b-main-table__empty-item">
+            No data available in table
+          </td>
+        <tr>
+        <tr ng-repeat="name in appscaleCtrl.currentCluster.appengineNodes">
+          <td>{{ name }}</td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+  <div class="b-workspace-content__row b-workspace-content__row_margin-b">
+    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+      Zookeeper nodes
+    </h2>
+
+    <div class="b-main-table-border">
+      <table class="b-main-table b-main-table_with-header">
+        <thead>
+        <tr>
+          <th>IP Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-show="appscaleCtrl.currentCluster.zookeeperNodes == undefined">
+          <td colspan="3" class="b-main-table__empty-item">
+            No data available in table
+          </td>
+        <tr>
+        <tr ng-repeat="name in appscaleCtrl.currentCluster.zookeeperNodes">
+          <td>{{ name }}</td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+  <div class="b-workspace-content__row">
+    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+      Database nodes
+    </h2>
+
+    <div class="b-main-table-border">
+      <table class="b-main-table b-main-table_with-header">
+        <thead>
+        <tr>
+          <th>IP Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-show="appscaleCtrl.currentCluster.cassandraNodes == undefined">
+          <td colspan="3" class="b-main-table__empty-item">
+            No data available in table
+          </td>
+        <tr>
+        <tr ng-repeat="name in appscaleCtrl.currentCluster.cassandraNodes">
+          <td>{{ name }}</td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
 </div>

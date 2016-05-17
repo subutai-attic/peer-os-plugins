@@ -8,6 +8,7 @@ package io.subutai.plugin.appscale.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -66,26 +67,18 @@ public class RestServiceImpl implements RestService
     }
 
 
-    /**
-     * @return list of clusters in environment.
-     */
-    @Override
-    public Response listCluster( Environment environmentID )
-    {
-        Set<EnvironmentContainerHost> containerHosts = environmentID.getContainerHosts();
-        return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( containerHosts ) ).build();
-    }
-
-
-    /**
-     * @return return list of cluster in format of master : mastername; cassandra : cassandraname; zookeeper :
-     * zookeepername
-     */
     @Override
     public Response listClusters()
     {
-        List<AppScaleConfig> ascs = appScaleInterface.getClusters();
-        return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( ascs ) ).build();
+        List<AppScaleConfig> appScaleConfigList = appScaleInterface.getClusters();
+        ArrayList<String> clusterNames = new ArrayList<>();
+
+        for ( AppScaleConfig hadoopClusterConfig : appScaleConfigList )
+        {
+            clusterNames.add( hadoopClusterConfig.getClusterName() );
+        }
+
+        return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( clusterNames ) ).build();
     }
 
 
@@ -107,11 +100,13 @@ public class RestServiceImpl implements RestService
 
     @Override
     public Response installCluster( String clusterName, String appengineName, String zookeeperName,
-                                      String cassandraName, String envID, String userDomain, String login, String password )
+                                    String cassandraName, String envID, String userDomain, String login,
+                                    String password, String controller )
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
         appScaleConfig.setClusterName( clusterName );
+        appScaleConfig.setControllerNode( controller );
         appScaleConfig.setDomain( userDomain );
         if ( !zookeeperName.isEmpty() )
         {
@@ -161,20 +156,10 @@ public class RestServiceImpl implements RestService
     @Override
     public Response uninstallCluster( String clusterName )
     {
-        AppScaleConfig appScaleConfig = appScaleInterface.getConfig( clusterName );
-        UUID uuid = appScaleInterface.uninstallCluster( appScaleConfig );
-        OperationState operationState = waitUntilOperationFinish( uuid );
-        TrackerOperationView tov = tracker.getTrackerOperation( clusterName, uuid );
-        switch ( operationState )
-        {
-            case SUCCEEDED:
-                return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            case FAILED:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
-                               .entity( JsonUtil.GSON.toJson( tov.getLog() ) ).build();
-            default:
-                return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( "timeout" ).build();
-        }
+        UUID uuid = appScaleInterface.uninstallCluster( clusterName );
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 

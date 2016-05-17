@@ -25,18 +25,13 @@ import io.subutai.common.environment.Environment;
  */
 public interface RestService
 {
+    // get cluster list
     @GET
-    @Path( "clusters/{environmentID}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response listCluster( @PathParam( "name" ) Environment environmentID );
-
-
-    @GET
-    @Path( "clusterList" )
+    @Path( "clusters" )
     @Produces( { MediaType.APPLICATION_JSON } )
     Response listClusters();
 
-
+    //view cluster info
     @GET
     @Path( "clusters/{clusterName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -46,13 +41,12 @@ public interface RestService
     @Path( "configure_environment" )
     @Produces( { MediaType.APPLICATION_JSON } )
     Response installCluster( @FormParam( "clusterName" ) String clusterName,
-                               @FormParam( "appengineName" ) String appengine,
-                               @FormParam( "zookeeperName" ) String zookeeperName,
-                               @FormParam( "cassandraName" ) String cassandraName,
-                               @FormParam( "envID" ) String envID,
-                               @FormParam( "userDomain" ) String userDomain,
-                               @FormParam( "login" ) String login,
-                               @FormParam( "password" ) String password );
+                             @FormParam( "appengineName" ) String appengine,
+                             @FormParam( "zookeeperName" ) String zookeeperName,
+                             @FormParam( "cassandraName" ) String cassandraName, @FormParam( "envID" ) String envID,
+                             @FormParam( "userDomain" ) String userDomain, @FormParam( "login" ) String login,
+                             @FormParam( "password" ) String password,
+                             @FormParam( "controllerName" ) String controllerName );
 
 
     @DELETE

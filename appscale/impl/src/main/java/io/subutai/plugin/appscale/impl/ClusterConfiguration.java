@@ -80,7 +80,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             // this will be our controller container.
-            containerHost = environment.getContainerHostByHostname( config.getClusterName() );
+            containerHost = environment.getContainerHostByHostname( config.getControllerNode() );
             if ( containerHost.getContainerSize() != ContainerSize.HUGE )
             {
                 LOG.error( "Please make sure your containers' sizes are HUGE, disk quota is too small for your "
@@ -141,7 +141,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             ReverseProxyConfig proxyConfig =
                     new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(), "*." + config.getDomain(),
-                            "/mnt/lib/lxc/" + config.getClusterName() + "/rootfs/etc/nginx/ssl.pem",
+                            "/mnt/lib/lxc/" + config.getControllerNode() + "/rootfs/etc/nginx/ssl.pem",
                             ProxyLoadBalanceStrategy.NONE );
 
             containerHost.getPeer().addReverseProxy( proxyConfig );

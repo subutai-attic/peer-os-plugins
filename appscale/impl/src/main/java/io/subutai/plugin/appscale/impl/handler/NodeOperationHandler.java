@@ -19,7 +19,6 @@ import io.subutai.core.plugincommon.api.NodeType;
 
 
 /**
- *
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
@@ -31,13 +30,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<AppScaleImpl,
     private AppScaleConfig config;
     private AppScaleImpl manager;
     private NodeType nodeType;
-    private static final Logger LOG = LoggerFactory.getLogger ( NodeOperationHandler.class.getName () );
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
 
 
-    public NodeOperationHandler ( final AppScaleImpl manager, final String clusterName, final String hostName,
-                                  NodeOperationType operationType )
+    public NodeOperationHandler( final AppScaleImpl manager, final String clusterName, final String hostName,
+                                 NodeOperationType operationType )
     {
-        super ( manager, clusterName );
+        super( manager, clusterName );
         this.clusterName = clusterName;
         this.hostname = hostName;
         this.operationType = operationType;
@@ -45,24 +44,23 @@ public class NodeOperationHandler extends AbstractOperationHandler<AppScaleImpl,
 
 
     @Override
-    public void run ()
+    public void run()
     {
-        AppScaleConfig appScaleConfig = manager.getCluster ( clusterName );
+        AppScaleConfig appScaleConfig = manager.getCluster( clusterName );
         if ( appScaleConfig == null )
         {
-            LOG.error ( "NodeOperationHandler appscaleconfig null: " );
+            LOG.error( "NodeOperationHandler appscaleconfig null: " );
             return;
         }
         Environment environment = null;
         try
         {
-            environment = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            LOG.error ( "Environment: " + e );
+            LOG.error( "Environment: " + e );
         }
     }
-
 }
 
