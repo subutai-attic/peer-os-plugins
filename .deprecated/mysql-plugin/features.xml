@@ -1,9 +1,9 @@
-<features name="mysql-plugin" version="4.0.0-RC13">
-  <feature name="mysql-plugin" version="4.0.0-RC13">
-    <bundle>mvn:io.subutai/mysql-plugin-api/4.0.0-RC13</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-impl/4.0.0-RC13</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-ui/4.0.0-RC13</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-cli/4.0.0-RC13</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-rest/4.0.0-RC13</bundle>
+<features name="mysql-plugin" version="4.0.0-RC14-SNAPSHOT">
+  <feature name="mysql-plugin" version="4.0.0-RC14-SNAPSHOT">
+    <bundle>mvn:io.subutai/mysql-plugin-api/4.0.0-RC14-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-impl/4.0.0-RC14-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-ui/4.0.0-RC14-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-cli/4.0.0-RC14-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-rest/4.0.0-RC14-SNAPSHOT</bundle>
   </feature>
 </features>
