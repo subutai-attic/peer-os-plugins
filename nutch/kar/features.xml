@@ -1,11 +1,11 @@
-<features name="nutch-plugin" version="4.0.0-RC13-SNAPSHOT">
-  <feature name="nutch-plugin" version="4.0.0-RC13-SNAPSHOT">
-    <bundle> mvn:io.subutai.plugin/nutch-plugin-api/4.0.0-RC13-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/nutch-plugin-impl/4.0.0-RC13-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/nutch-plugin-cli/4.0.0-RC13-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/nutch-plugin-rest/4.0.0-RC13-SNAPSHOT</bundle>
+<features name="nutch-plugin" version="4.0.0-RC13">
+  <feature name="nutch-plugin" version="4.0.0-RC13">
+    <bundle> mvn:io.subutai.plugin/nutch-plugin-api/4.0.0-RC13</bundle>
+    <bundle> mvn:io.subutai.plugin/nutch-plugin-impl/4.0.0-RC13</bundle>
+    <bundle> mvn:io.subutai.plugin/nutch-plugin-cli/4.0.0-RC13</bundle>
+    <bundle> mvn:io.subutai.plugin/nutch-plugin-rest/4.0.0-RC13</bundle>
   </feature>
-    <feature name="nutch-plugin-war" version="4.0.0-RC13-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/nutch-plugin-webui/4.0.0-RC13-SNAPSHOT/war?Webapp-Context=nutch-plugin-war</bundle>
+    <feature name="nutch-plugin-war" version="4.0.0-RC13">
+        <bundle> war:mvn:io.subutai.plugin/nutch-plugin-webui/4.0.0-RC13/war?Webapp-Context=nutch-plugin-war</bundle>
     </feature>
 </features>
