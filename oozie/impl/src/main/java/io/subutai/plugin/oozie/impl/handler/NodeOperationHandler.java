@@ -127,6 +127,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         CommandResult result = null;
         try
         {
+            host.execute( Commands.getAptUpdate() );
             result = host.execute( new RequestBuilder( Commands.make( CommandType.INSTALL_CLIENT ) ) );
             if ( result.hasSucceeded() )
             {
