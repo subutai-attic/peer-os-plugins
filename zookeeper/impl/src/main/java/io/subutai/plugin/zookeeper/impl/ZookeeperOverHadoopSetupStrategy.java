@@ -169,6 +169,10 @@ public class ZookeeperOverHadoopSetupStrategy implements ClusterSetupStrategy
         Set<Host> hostSet = getHosts( zookeeperClusterConfig.getNodes(), environment );
         RequestBuilder installRequest = new RequestBuilder( Commands.getInstallCommand() );
         installRequest.withTimeout( 360 );
+
+        // apt-get update
+        commandUtil.execute( Commands.getAptUpdate(), hostSet, environment.getId() );
+
         CommandUtil.HostCommandResults results = commandUtil.execute( installRequest, hostSet, environment.getId() );
         Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
         Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();

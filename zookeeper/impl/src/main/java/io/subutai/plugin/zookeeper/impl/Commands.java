@@ -6,6 +6,8 @@
 package io.subutai.plugin.zookeeper.impl;
 
 
+import io.subutai.common.command.OutputRedirection;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.settings.Common;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
@@ -28,6 +30,14 @@ public class Commands
     public static String getInstallCommand()
     {
         return "apt-get --force-yes --assume-yes install " + PACKAGE_NAME;
+    }
+
+
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 )
+                                                                              .withStdOutRedirection(
+                                                                                      OutputRedirection.NO );
     }
 
 
