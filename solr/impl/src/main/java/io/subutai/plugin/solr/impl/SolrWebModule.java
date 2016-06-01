@@ -34,7 +34,7 @@ public class SolrWebModule implements WebuiModule
                 "plugins/solr/solr.js",
                 "plugins/solr/controller.js",
                 "plugins/solr/service.js",
-                "subutai-app/environment/service"
+                "subutai-app/environment/service.js"
         );
 
         solr.addDependency(angularjsDependency);
