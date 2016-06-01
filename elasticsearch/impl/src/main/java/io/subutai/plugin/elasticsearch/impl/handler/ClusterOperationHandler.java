@@ -1,6 +1,9 @@
 package io.subutai.plugin.elasticsearch.impl.handler;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,12 +21,18 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.quota.ContainerQuota;
+import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.strategy.api.ContainerPlacementStrategy;
+import io.subutai.core.strategy.api.RoundRobinStrategy;
+import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.Commands;
@@ -204,17 +213,37 @@ public class ClusterOperationHandler
             }
             else
             {
-                Set<EnvironmentContainerHost> newNodeSet;
+                Set<EnvironmentContainerHost> newNodeSet = null;
                 try
                 {
-                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), new Topology(
-                            manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName() ),
-                            false );
+                    NodeSchema node =
+                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "elasticsearch", 0, 0 );
+                    List<NodeSchema> nodes = new ArrayList<>();
+                    nodes.add( node );
+
+                    Blueprint blueprint = new Blueprint(
+                            manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName(),
+                            nodes );
+
+                    ContainerPlacementStrategy strategy =
+                            manager.getStrategyManager().findStrategyById( RoundRobinStrategy.ID );
+                    PeerGroupResources peerGroupResources = manager.getPeerManager().getPeerGroupResources();
+                    Map<ContainerSize, ContainerQuota> quotas = manager.getQuotaManager().getDefaultQuotas();
+
+                    Topology topology =
+                            strategy.distribute( blueprint.getName(), blueprint.getNodes(), peerGroupResources,
+                                    quotas );
+
+                    newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
                     LOG.error( "Could not add new node(s) to environment." );
                     throw new ClusterException( e );
+                }
+                catch ( StrategyException | PeerException e )
+                {
+                    e.printStackTrace();
                 }
 
                 newNode = newNodeSet.iterator().next();
