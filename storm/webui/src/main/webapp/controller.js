@@ -9,6 +9,7 @@ StormCtrl.$inject = ['$scope', 'stormSrv', 'SweetAlert', 'DTOptionsBuilder', 'DT
 function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder, ngDialog) {
     var vm = this;
 	vm.activeTab = 'install';
+	vm.stormAll = false;
 	vm.stormInstall = {};
 	vm.clusters = [];
 	vm.environments = [];
@@ -79,8 +80,10 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.currentCluster = {};
 		stormSrv.getClusters(selectedCluster).success(function (data) {
 			vm.currentCluster = data;
-			console.log (vm.currentCluster.coordinator === undefined);
-			console.log (vm.currentCluster);
+			vm.currentCluster.nimbus.checkbox = false;
+			for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
+			    vm.currentCluster.supervisors[i].checkbox = false;
+			}
 			LOADING_SCREEN('none');
 		}).error (function (error) {
 			LOADING_SCREEN ("none");
@@ -248,25 +251,34 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		var index = checkIfPushed (id);
 		if(index !== -1) {
 			vm.nodes2Action.splice(index, 1);
+			vm.stormAll = false;
 		} else {
 			vm.nodes2Action.push({name: id, type: type});
+			if (vm.nodes2Action.length === vm.currentCluster.supervisors.length + 1) {
+                vm.stormAll = true;
+            }
 		}
 	}
 
 
 	function pushAll() {
-		if (vm.currentCluster.coordinator !== undefined) {
-			if (vm.nodes2Action.length === vm.currentCluster.workers.length + 1) {
-				vm.nodes2Action = [];
-			}
-			else {
-				vm.nodes2Action.push ({name: vm.currentCluster.nimbus.hostname, type: "nimbus"});
-				for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
-					vm.nodes2Action.push ({name: vm.currentCluster.supervisors[i].hostname, type: "supervisor"});
-				}
-				console.log (vm.nodes2Action);
-			}
-		}
+        if (vm.nodes2Action.length === vm.currentCluster.supervisors.length + 1) {
+            vm.nodes2Action = [];
+            vm.stormAll = false;
+            vm.currentCluster.nimbus.checkbox = false;
+            for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
+                vm.currentCluster.supervisors[i].checkbox = false;
+            }
+        }
+        else {
+            vm.nodes2Action.push ({name: vm.currentCluster.nimbus.hostname, type: "nimbus"});
+            vm.currentCluster.nimbus.checkbox = true;
+            for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
+                vm.nodes2Action.push ({name: vm.currentCluster.supervisors[i].hostname, type: "supervisor"});
+                vm.currentCluster.supervisors[i].checkbox = true;
+            }
+            vm.stormAll = true;
+        }
 	}
 
 
@@ -288,6 +300,8 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		stormSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes have been started successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
+			vm.nodes2Action = [];
+            vm.stormAll = false;
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to start Cluster error: ' + error.ERROR, "error");
 		});
@@ -306,6 +320,8 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		stormSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes have been stopped successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
+			vm.nodes2Action = [];
+            vm.stormAll = false;
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.ERROR, "error");
 		});
