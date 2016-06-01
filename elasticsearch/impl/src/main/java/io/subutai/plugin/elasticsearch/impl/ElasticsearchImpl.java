@@ -18,9 +18,11 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -44,6 +46,8 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private PluginDAO pluginDAO;
     private Monitor monitor;
     private PeerManager peerManager;
+    private StrategyManager strategyManager;
+    private QuotaManager quotaManager;
     private ElasticSearchWebModule webModule;
 
     Commands commands = new Commands();
@@ -383,5 +387,29 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public void setWebModule( final WebuiModule webModule )
     {
         this.webModule = (ElasticSearchWebModule) webModule;
+    }
+
+
+    public StrategyManager getStrategyManager()
+    {
+        return strategyManager;
+    }
+
+
+    public void setStrategyManager( final StrategyManager strategyManager )
+    {
+        this.strategyManager = strategyManager;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 }
