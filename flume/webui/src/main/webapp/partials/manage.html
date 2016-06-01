@@ -47,7 +47,7 @@
 			<thead>
 				<tr>
 					<th>
-						<input type="checkbox" onClick="toggle(this, 'flumeChk')" ng-click = "flumeCtrl.pushAll()">
+						<input type="checkbox" ng-model = "flumeCtrl.flumeAll" ng-click = "flumeCtrl.pushAll()">
 					</th>
 					<th>Host</th>
 					<th>IP List</th>
@@ -58,7 +58,7 @@
 			<tbody>
 				<tr ng-repeat="clusterNode in flumeCtrl.currentCluster.containers">
 					<td class="b-main-table__edit-icon">
-						<input type="checkbox" ng-click="flumeCtrl.pushNode(clusterNode.hostname)" name="flumeChk">
+						<input type="checkbox" ng-model = "clusterNode.checkbox" ng-click="flumeCtrl.pushNode(clusterNode.hostname)" name="flumeChk">
 					</td>
 					<td>{{ clusterNode.hostname }}</td>
 					<td>{{ clusterNode.ip }}</td>
