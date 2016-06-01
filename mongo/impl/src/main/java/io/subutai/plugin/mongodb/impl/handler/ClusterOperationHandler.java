@@ -1,8 +1,12 @@
 package io.subutai.plugin.mongodb.impl.handler;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +17,12 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -24,6 +30,7 @@ import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.quota.ContainerQuota;
 import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
@@ -33,6 +40,9 @@ import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.strategy.api.ContainerPlacementStrategy;
+import io.subutai.core.strategy.api.RoundRobinStrategy;
+import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.MongoException;
 import io.subutai.plugin.mongodb.api.NodeType;
@@ -196,17 +206,37 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             }
             else
             {
-                Set<EnvironmentContainerHost> newNodeSet;
+                Set<EnvironmentContainerHost> newNodeSet = null;
                 try
                 {
-                    Topology topology = new Topology( config.getClusterName() );
-                    // topology.addNodeGroupPlacement( nodeGroup.getPeerId(), nodeGroup );
+                    NodeSchema node =
+                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "mongo", 0, 0 );
+                    List<NodeSchema> nodes = new ArrayList<>();
+                    nodes.add( node );
+
+                    Blueprint blueprint = new Blueprint(
+                            manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() ).getName(),
+                            nodes );
+
+                    ContainerPlacementStrategy strategy =
+                            manager.getStrategyManager().findStrategyById( RoundRobinStrategy.ID );
+                    PeerGroupResources peerGroupResources = manager.getPeerManager().getPeerGroupResources();
+                    Map<ContainerSize, ContainerQuota> quotas = manager.getQuotaManager().getDefaultQuotas();
+
+                    Topology topology =
+                            strategy.distribute( blueprint.getName(), blueprint.getNodes(), peerGroupResources,
+                                    quotas );
+
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
                 catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
                 {
                     LOG.error( "Could not add new node(s) to environment." );
                     throw new ClusterException( e );
+                }
+                catch ( StrategyException | PeerException e )
+                {
+                    e.printStackTrace();
                 }
                 newNode = newNodeSet.iterator().next();
             }

@@ -5,6 +5,8 @@
              interface="io.subutai.core.tracker.api.Tracker" />
   <reference id="peerManager" availability="mandatory"
              interface="io.subutai.core.peer.api.PeerManager" />
+  <reference id="strategyManager" availability="mandatory" interface="io.subutai.core.strategy.api.StrategyManager" />
+  <reference id="quotaManager" availability="mandatory" interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="environmentManager" availability="mandatory"
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="monitor" availability="mandatory"
@@ -20,6 +22,8 @@
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
     <argument ref="module" />
+    <property name="strategyManager" ref="strategyManager" />
+    <property name="quotaManager" ref="quotaManager" />
   </bean>
 
   <bean id="alertListener" scope="singleton" class="io.subutai.plugin.mongodb.impl.alert.MongoAlertListener">
@@ -31,10 +35,9 @@
   <service ref="alertListener" interface="io.subutai.common.peer.AlertHandler" />
   <!-- *********************************************************************************** -->
 
-	<service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
 
-
-	<bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.mongodb.impl.MongoWebModule">
-	</bean>
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.mongodb.impl.MongoWebModule">
+  </bean>
 
 </blueprint>

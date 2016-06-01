@@ -26,10 +26,12 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -61,10 +63,13 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private Commands commands;
     private PluginDAO pluginDAO;
     private PeerManager peerManager;
+    private StrategyManager strategyManager;
+    private QuotaManager quotaManager;
     private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private MongoWebModule webModule;
+
 
     public MongoImpl( Monitor monitor, PluginDAO pluginDAO, MongoWebModule webModule )
     {
@@ -322,26 +327,28 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         }
     }
 
-	@Override
-	public UUID startService (String clusterName, String hostname)
-	{
-		AbstractOperationHandler operationHandler =
-				new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.START );
-		executor.execute( operationHandler );
-		return operationHandler.getTrackerId();
-	}
 
-	@Override
-	public UUID stopService (String clusterName, String hostname)
-	{
-		AbstractOperationHandler operationHandler =
-				new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
-		executor.execute( operationHandler );
-		return operationHandler.getTrackerId();
-	}
+    @Override
+    public UUID startService( String clusterName, String hostname )
+    {
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.START );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
 
 
-	public Monitor getMonitor()
+    @Override
+    public UUID stopService( String clusterName, String hostname )
+    {
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, clusterName, hostname, NodeOperationType.STOP );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    public Monitor getMonitor()
     {
         return monitor;
     }
@@ -487,15 +494,41 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
         }
     }
 
+
     @Override
     public WebuiModule getWebModule()
     {
         return webModule;
     }
 
+
     @Override
     public void setWebModule( final WebuiModule webModule )
     {
-        this.webModule = (MongoWebModule) webModule;
+        this.webModule = ( MongoWebModule ) webModule;
+    }
+
+
+    public StrategyManager getStrategyManager()
+    {
+        return strategyManager;
+    }
+
+
+    public void setStrategyManager( final StrategyManager strategyManager )
+    {
+        this.strategyManager = strategyManager;
+    }
+
+
+    public QuotaManager getQuotaManager()
+    {
+        return quotaManager;
+    }
+
+
+    public void setQuotaManager( final QuotaManager quotaManager )
+    {
+        this.quotaManager = quotaManager;
     }
 }
