@@ -124,6 +124,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         CommandResult result = null;
         try
         {
+            host.execute( Commands.getAptUpdate() );
             result = host.execute( new RequestBuilder( Commands.make( CommandType.INSTALL ) ).withTimeout( 600 ) );
             if ( result.hasSucceeded() )
             {
