@@ -210,7 +210,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 try
                 {
                     NodeSchema node =
-                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "storm", 0, 0 );
+                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "mongo", 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
