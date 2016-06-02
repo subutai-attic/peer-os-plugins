@@ -56,7 +56,7 @@ public class RemoveNodeOperationHandler extends AbstractOperationHandler<HadoopI
             config.getDataNodes().remove( host.getId() );
             config.getTaskTrackers().remove( host.getId() );
             manager.excludeNode( config, lxcHostName );
-            config.getBlockedAgents().remove( host.getId() );
+//            config.getBlockedAgents().remove( host.getId() );
             removeNodeFromConfigurationFiles( host );
             manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
             environmentManager.destroyContainer( environment.getId(), host.getId(), true );

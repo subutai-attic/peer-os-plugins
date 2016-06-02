@@ -12,6 +12,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -203,6 +205,26 @@ public class RestServiceImpl implements RestService
 
 
     @Override
+    public Response destroyNode( final String clusterName, final String node )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( node );
+
+        if ( hadoopManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+
+        HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
+
+        UUID uuid = hadoopManager.destroyNode( config, node );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
+    }
+
+
+    @Override
     public Response statusDataNode( String clusterName, String hostname )
     {
         UUID uuid = hadoopManager.statusDataNode( hadoopManager.getCluster( clusterName ), hostname );
@@ -246,6 +268,7 @@ public class RestServiceImpl implements RestService
         return Response.status( Response.Status.OK ).entity( "Auto scale is " + message + " successfully" ).build();
     }
 
+
     @Override
     public Response getPluginInfo()
     {
@@ -254,7 +277,7 @@ public class RestServiceImpl implements RestService
         InputStream input = null;
         try
         {
-            input = getClass().getResourceAsStream("/git.properties");
+            input = getClass().getResourceAsStream( "/git.properties" );
 
             prop.load( input );
             pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
@@ -297,7 +320,6 @@ public class RestServiceImpl implements RestService
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
     }
-
 
 
     public Hadoop getHadoopManager()
@@ -460,6 +482,6 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (hadoopManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( hadoopManager.getWebModule().getAngularDependecyList() ).build();
     }
 }

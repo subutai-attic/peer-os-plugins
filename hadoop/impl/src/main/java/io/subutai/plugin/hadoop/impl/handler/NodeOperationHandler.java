@@ -211,9 +211,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             }
         }
 
-        config.getBlockedAgents().add( host.getId() );
-        manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-        trackerOperation.addLogDone( "Cluster info saved to DB" );
+//        config.getBlockedAgents().add( host.getId() );
+//        manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+//        trackerOperation.addLogDone( "Cluster info saved to DB" );
     }
 
 
@@ -362,9 +362,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HadoopImpl, H
             logExceptionWithMessage( "Error running command", e );
         }
 
-        config.getBlockedAgents().remove( host.getId() );
-        manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-        trackerOperation.addLogDone( "Cluster info saved to DB" );
+//        config.getBlockedAgents().remove( host.getId() );
+//        manager.getPluginDAO().saveInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+//        trackerOperation.addLogDone( "Cluster info saved to DB" );
     }
 
 

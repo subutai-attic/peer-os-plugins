@@ -90,6 +90,14 @@ public interface RestService
     @Produces( { MediaType.APPLICATION_JSON } )
     Response addNode( @PathParam( "clusterName" ) String clusterName );
 
+    // destroy node
+    @DELETE
+    @Path( "clusters/{clusterName}/remove/node/{lxcHostName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
+                                 @PathParam( "lxcHostName" ) String node );
+
+
     //statusDataNode
     @GET
     @Path( "clusters/{clusterName}/node/{hostname}/status" )
