@@ -210,7 +210,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 try
                 {
                     NodeSchema node =
-                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "mongo", 0, 0 );
+                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "storm", 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -229,14 +229,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
                     newNodeSet = environmentManager.growEnvironment( config.getEnvironmentId(), topology, false );
                 }
-                catch ( EnvironmentNotFoundException | EnvironmentModificationException e )
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException | StrategyException |
+                        PeerException e )
                 {
                     LOG.error( "Could not add new node(s) to environment." );
                     throw new ClusterException( e );
-                }
-                catch ( StrategyException | PeerException e )
-                {
-                    e.printStackTrace();
                 }
                 newNode = newNodeSet.iterator().next();
             }
