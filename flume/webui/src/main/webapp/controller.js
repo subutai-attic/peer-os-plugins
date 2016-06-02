@@ -9,6 +9,7 @@ FlumeCtrl.$inject = ['$scope', 'flumeSrv', 'SweetAlert', 'DTOptionsBuilder', 'DT
 function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder, ngDialog) {
     var vm = this;
 	vm.activeTab = 'install';
+	vm.flumeAll = false;
 	vm.flumeInstall = {};
 	vm.clusters = [];
 	vm.containers = [];
@@ -112,6 +113,9 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		LOADING_SCREEN();
 		flumeSrv.getClusters(selectedCluster).success(function (data) {
 			vm.currentCluster = data;
+			for (var i = 0; i < vm.currentCluster.containers.length; ++i) {
+			    vm.currentCluster.containers[i].checkbox = false;
+			}
 			LOADING_SCREEN('none');
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster get info error: ' + error.replace(/\\n/g, ' '), "error");
@@ -131,6 +135,8 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		flumeSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
+			vm.nodes2Action = [];
+			vm.flumeAll = false;
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
 		});
@@ -148,6 +154,8 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		flumeSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
 			SweetAlert.swal("Success!", "Your cluster nodes stoped successfully.", "success");
 			getClustersInfo(vm.currentCluster.clusterName);
+			vm.nodes2Action = [];
+			vm.flumeAll = false;
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
 		});
@@ -156,8 +164,12 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function pushNode(id) {
 		if(vm.nodes2Action.indexOf(id) >= 0) {
 			vm.nodes2Action.splice(vm.nodes2Action.indexOf(id), 1);
+			vm.flumeAll = false;
 		} else {
 			vm.nodes2Action.push(id);
+			if (vm.nodes2Action.length === vm.currentCluster.containers.length) {
+			    vm.flumeAll = true;
+			}
 		}
 	}
 
@@ -165,11 +177,17 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if (vm.currentCluster.containers !== undefined) {
 			if (vm.nodes2Action.length === vm.currentCluster.containers.length) {
 				vm.nodes2Action = [];
+				vm.flumeAll = false;
+				for (var i = 0; i < vm.currentCluster.containers.length; ++i) {
+				    vm.currentCluster.containers[i].checkbox = false;
+				}
 			}
 			else {
 				for (var i = 0; i < vm.currentCluster.containers.length; ++i) {
 					vm.nodes2Action.push(vm.currentCluster.containers[i].hostname);
+                    vm.currentCluster.containers[i].checkbox = true;
 				}
+				vm.flumeAll = true;
 			}
 		}
 	}

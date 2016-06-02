@@ -50,7 +50,7 @@
 				class="row-border hover">
 				<thead>
 					<tr>
-						<th><input type="checkbox" onClick="toggle(this, 'stormChk')" ng-click = "stormCtrl.pushAll()"></th>
+						<th><input type="checkbox" ng-model = "stormCtrl.stormAll" ng-click = "stormCtrl.pushAll()"></th>
 						<th>Host</th>
 						<th>IP List</th>
 						<th>Node Type</th>
@@ -61,7 +61,7 @@
 				<tbody>
 				<tr ng-if="stormCtrl.currentCluster.nimbus !== undefined">
 					<td class="b-main-table__edit-icon">
-						<input name = "stormChk" type="checkbox" ng-click="stormCtrl.pushNode(stormCtrl.currentCluster.nimbus.hostname, 'nimbus')">
+						<input name = "stormChk" type="checkbox" ng-model = "stormCtrl.currentCluster.nimbus.checkbox" ng-click="stormCtrl.pushNode(stormCtrl.currentCluster.nimbus.hostname, 'nimbus')">
 					</td>
 					<td>{{ stormCtrl.currentCluster.nimbus.hostname }}</td>
 					<td>{{ stormCtrl.currentCluster.nimbus.ip }}</td>
@@ -78,7 +78,7 @@
 				</tr>
 				<tr ng-repeat="clusterNode in stormCtrl.currentCluster.supervisors">
 					<td class="b-main-table__edit-icon">
-						<input name = "stormChk" type="checkbox" ng-click="stormCtrl.pushNode(clusterNode.hostname, 'supervisor')">
+						<input name = "stormChk" type="checkbox" ng-model = "clusterNode.checkbox" ng-click="stormCtrl.pushNode(clusterNode.hostname, 'supervisor')">
 					</td>
 					<td>{{ clusterNode.hostname }}</td>
 					<td>{{ clusterNode.ip }}</td>
