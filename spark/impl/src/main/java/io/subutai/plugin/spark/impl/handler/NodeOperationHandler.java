@@ -23,6 +23,7 @@ import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.OperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
+import io.subutai.plugin.spark.impl.Commands;
 import io.subutai.plugin.spark.impl.SparkImpl;
 
 
@@ -200,6 +201,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
         //if the slave already contains master then we don't need to install Spark since it is already installed
         boolean install = !node.getId().equals( config.getMasterNodeId() );
+
+        executeCommand( node, Commands.getAptUpdate() );
 
         //check installed subutai packages
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();

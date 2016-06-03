@@ -95,7 +95,7 @@
              class="row-border hover">
         <thead>
         <tr>
-          <th><input type="checkbox"></th>
+          <th><input type="checkbox" ng-model = "sparkCtrl.sparkAll" ng-click = "sparkCtrl.pushAll()"></th>
           <th>Host</th>
           <th>IP List</th>
           <th>Status</th>
@@ -105,7 +105,7 @@
         <tbody>
         <tr ng-repeat="clusterNode in sparkCtrl.currentCluster.clients">
           <td class="b-main-table__edit-icon">
-            <input type="checkbox" ng-click="sparkCtrl.pushNode(clusterNode.uuid)">
+            <input type="checkbox" ng-model = "clusterNode.checkbox" ng-click="sparkCtrl.pushNode(clusterNode.uuid)" name="sparkChk">
           </td>
           <td>{{ clusterNode.hostname }}</td>
           <td>{{ clusterNode.ip }}</td>
