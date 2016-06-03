@@ -92,6 +92,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 	function addNode() {
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal("Success!", "node is being added.", "success");
 		stormSrv.addNode(vm.currentCluster.clusterName).success(function (data) {
 			SweetAlert.swal(
@@ -100,6 +101,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 				"success"
 			);
 			getClustersInfo(vm.currentCluster.clusterName);
+			LOADING_SCREEN('none');
 		});
 	}
 

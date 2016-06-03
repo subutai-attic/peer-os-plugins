@@ -407,7 +407,7 @@ public class RestServiceImpl implements RestService
 
                 for ( final EnvironmentContainerHost host : hosts )
                 {
-                    hostsName.add( host.getHostname() );
+                    hostsName.add( host.getId() );
                 }
             }
             catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
