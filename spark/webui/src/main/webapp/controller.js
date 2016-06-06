@@ -92,7 +92,6 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 
     function startNodes() {
-        console.log(vm.nodes2Action);
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({

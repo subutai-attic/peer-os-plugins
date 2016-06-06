@@ -78,18 +78,13 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
                     }
 
                     vm.config.master = vm.nodes[0];
-                    if (vm.nodes.length === 1) {
-                        vm.config.appeng.push (vm.nodes[0]);
-                        vm.config.zookeeper.push (vm.nodes[0]);
-                        vm.config.db.push (vm.nodes[0]);
-                    }
-                    else {
-                        vm.config.appeng = [];
-                        vm.config.zookeeper = [];
-                        vm.config.db = [];
-                        vm.config.environment = vm.currentEnvironment;
-                        vm.config.password = "";
-                    }
+
+                    vm.config.appeng = [];
+                    vm.config.zookeeper = [];
+                    vm.config.db = [];
+                    vm.config.environment = vm.currentEnvironment;
+                    vm.config.password = "";
+                    
                 }
             });
         });
@@ -207,15 +202,6 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
         }
         else if (vm.config.password !== vm.confirmPassword) {
             SweetAlert.swal("ERROR!", "Passwords don\'t match", "error");
-        }
-        else if (vm.config.appeng.length === 0) {
-            SweetAlert.swal("ERROR!", "Select appengine nodes", "error");
-        }
-        else if (vm.config.zookeeper.length === 0) {
-            SweetAlert.swal("ERROR!", "Select zookeeper nodes", "error");
-        }
-        else if (vm.config.db.length === 0) {
-            SweetAlert.swal("ERROR!", "Select database nodes", "error");
         }
         else {
             LOADING_SCREEN();

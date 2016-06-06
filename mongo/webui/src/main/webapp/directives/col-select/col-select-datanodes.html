@@ -5,7 +5,7 @@
         ng-repeat="container in mongoCtrl.dataNodes"
         ng-if="mongoCtrl.mongoInstall.dataNodes.indexOf(container.id) == -1"
         ng-click="mongoCtrl.addDataNode(container.id)">
-      {{ container.id }}
+      {{ container.hostname }}
     </li>
   </ul>
 </div>
@@ -22,7 +22,7 @@
         ng-repeat="container in mongoCtrl.dataNodes"
         ng-if="mongoCtrl.mongoInstall.dataNodes.indexOf(container.id) > -1"
         ng-click="mongoCtrl.addDataNode(container.id)">
-      {{ container.id }}
+      {{ container.hostname }}
     </li>
   </ul>
 </div>

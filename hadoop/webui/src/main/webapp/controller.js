@@ -82,7 +82,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         hadoopSrv.startNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes have been started successfully. LOG: " + data.replace(/\\n/g, ' ').substring(0, 40), "success");
             node.status = 'RUNNING';
-            //getClustersInfo(vm.currentCluster.name);
+            getClustersInfo(vm.currentCluster.clusterName);
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Failed to start cluster error: ' + error.replace(/\\n/g, ' '), "error");
             node.status = 'ERROR';
@@ -94,7 +94,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         node.status = 'STOPPING';
         hadoopSrv.stopNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes have stopped successfully. LOG: " + data.replace(/\\n/g, ' ').substring(0, 40), "success");
-            //getClustersInfo(vm.currentCluster.name);
+            getClustersInfo(vm.currentCluster.clusterName);
             node.status = 'STOPPED';
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.replace(/\\n/g, ' '), "error");
