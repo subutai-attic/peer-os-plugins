@@ -326,6 +326,7 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
     function addNode(chosenNode) {
         if (chosenNode === undefined) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        LOADING_SCREEN();
         SweetAlert.swal("Success!", "Adding node action started.", "success");
         ngDialog.closeAll();
         zookeeperSrv.addNode(vm.currentCluster.clusterName, chosenNode).success(function (data) {
@@ -335,8 +336,10 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
                 "success"
             );
             getClustersInfo(vm.currentCluster.clusterName);
+            LOADING_SCREEN("none");
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Adding node error: ' + error.replace(/\\n/g, ' '), "error");
+            LOADING_SCREEN("none");
         });
     }
 
