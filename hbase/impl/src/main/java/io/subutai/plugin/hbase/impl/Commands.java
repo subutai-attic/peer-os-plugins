@@ -13,10 +13,18 @@ public class Commands
     public final static String PACKAGE_NAME = Common.PACKAGE_PREFIX + HBaseConfig.PRODUCT_KEY.toLowerCase();
 
 
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 5000 )
+                                                                              .withStdOutRedirection(
+                                                                                      OutputRedirection.NO );
+    }
+
+
     public static RequestBuilder getInstallCommand()
     {
 
-        return new RequestBuilder( "apt-get --assume-yes --force-yes install " + PACKAGE_NAME ).withTimeout( 600 )
+        return new RequestBuilder( "apt-get --assume-yes --force-yes install " + PACKAGE_NAME ).withTimeout( 2000 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }

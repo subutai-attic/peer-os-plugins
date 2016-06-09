@@ -162,6 +162,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                  * if there is already HBase debian package installed on container, then
                  * just add the new role to that container, otherwise both install and configure node.
                  */
+                // execute apt-get update
+                executeCommand( node, Commands.getAptUpdate() );
+
                 CommandResult result = executeCommand( node, Commands.getCheckInstalledCommand() );
                 if ( !result.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) )
                 {

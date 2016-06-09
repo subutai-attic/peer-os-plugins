@@ -104,12 +104,29 @@ public class HBaseSetupStrategy
         trackerOperation.addLog( "Installing HBase..." );
 
         Set<Host> hostSet = getHosts( config, environment );
-        CommandUtil.HostCommandResults results = commandUtil.execute( Commands.getInstallCommand(), hostSet, environment.getId() );
-        Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
-        Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
-        for ( CommandUtil.HostCommandResult result : resultSet)
+
+
+        // execute apt-get update
+        for ( final Host host : hostSet )
         {
-            resultMap.put (result.getHost(), result.getCommandResult());
+            try
+            {
+                host.execute( Commands.getAptUpdate() );
+            }
+            catch ( CommandException e )
+            {
+                LOG.error( "Error in execution apt-get update command" );
+                trackerOperation.addLogFailed( "Error in execution apt-get update command" );
+            }
+        }
+
+        CommandUtil.HostCommandResults results =
+                commandUtil.execute( Commands.getInstallCommand(), hostSet, environment.getId() );
+        Set<CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+        Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
+        for ( CommandUtil.HostCommandResult result : resultSet )
+        {
+            resultMap.put( result.getHost(), result.getCommandResult() );
         }
         if ( ClusterOperationHandler.isAllSuccessful( resultMap, hostSet ) )
         {
