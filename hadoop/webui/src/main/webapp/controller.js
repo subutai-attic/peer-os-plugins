@@ -93,7 +93,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STARTING';
         hadoopSrv.startNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes have been started successfully. LOG: " + data.replace(/\\n/g, ' ').substring(0, 40), "success");
+            SweetAlert.swal("Success!", "Your cluster node have been started successfully.", "success");
             node.status = 'RUNNING';
             getClustersInfo(vm.currentCluster.clusterName);
         }).error(function (error) {
@@ -106,7 +106,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STOPPING';
         hadoopSrv.stopNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes have stopped successfully. LOG: " + data.replace(/\\n/g, ' ').substring(0, 40), "success");
+            SweetAlert.swal("Success!", "Your cluster node have stopped successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
             node.status = 'STOPPED';
         }).error(function (error) {
@@ -169,7 +169,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         vm.activeTab = 'manage';
         LOADING_SCREEN();
         hadoopSrv.createHadoop(JSON.stringify(vm.hadoopInstall)).success(function (data) {
-            SweetAlert.swal("Success!", "Hadoop cluster creation message:" + data.replace(/\\n/g, ' '), "success");
+            SweetAlert.swal("Success!", "Hadoop cluster created successfully", "success");
             getClusters();
             LOADING_SCREEN("none");
         }).error(function (error) {

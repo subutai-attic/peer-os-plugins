@@ -84,7 +84,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
                     vm.config.db = [];
                     vm.config.environment = vm.currentEnvironment;
                     vm.config.password = "";
-                    
+
                 }
             });
         });
@@ -143,8 +143,7 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
             }
             vm.environments = temp;
             if (vm.environments.length === 0) {
-                // @todo
-                //SweetAlert.swal("ERROR!", 'No free environment. Create a new one', "error");
+                SweetAlert.swal("ERROR!", 'No Appscale environment. Create a new one', "error");
             }
             else {
                 vm.currentEnvironment = vm.environments[0];
@@ -203,6 +202,15 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
         else if (vm.config.password !== vm.confirmPassword) {
             SweetAlert.swal("ERROR!", "Passwords don\'t match", "error");
         }
+        else if (vm.config.appeng.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set App Engine node", "error");
+        }
+        else if (vm.config.zookeeper.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Zookeeper node", "error");
+        }
+        else if (vm.config.db.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Database node", "error");
+        }
         else {
             LOADING_SCREEN();
             appscaleSrv.build(vm.config).success(function (data) {
@@ -228,16 +236,6 @@ function AppscaleCtrl(appscaleSrv, SweetAlert, $scope, ngDialog, $http) {
 
     vm.uninstallCluster = uninstallCluster;
     function uninstallCluster() {
-        // LOADING_SCREEN();
-        // console.log(vm.currentCluster);
-        // appscaleSrv.uninstallCluster(vm.currentCluster).success(function (data) {
-        //     LOADING_SCREEN('none');
-        //     SweetAlert.swal("Success!", "Your Appscale cluster is being deleted.", "success");
-        //     listClusters();
-        // }).error(function (error) {
-        //     LOADING_SCREEN('none');
-        //     SweetAlert.swal("ERROR!", 'Appscale delete error: ' + error.replace(/\\n/g, ' '), "error");
-        // });
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",

@@ -239,9 +239,14 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 trackerOperation.addLogFailed( String.format( "Host %s is not connected. Aborting", hostName ) );
                 return commandResultList;
             }
+
+
             CommandResult commandResult;
             try
             {
+                // execute apt-get update
+                newNode.execute( Commands.getAptUpdate() );
+
                 commandResult =
                         newNode.execute( new RequestBuilder( Commands.getCheckInstalledCommand() ).withTimeout( 30 ) );
                 if ( !commandResult.getStdOut().contains( ZookeeperClusterConfig.PRODUCT_NAME ) )
