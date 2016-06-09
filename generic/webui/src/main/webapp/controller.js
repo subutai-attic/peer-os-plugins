@@ -359,7 +359,28 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 
 
 	// Manage
+	
+	$scope.session = {
+		commands: [],
+		output: [],
+		$scope:$scope
+	};
 
+	$scope.$watchCollection(function () { return $scope.session.commands; }, function (n) {
+		for (var i = 0; i < n.length; i++) {
+			$scope.$broadcast('terminal-command', n[i]);
+		}
+		$scope.session.commands.splice(0, $scope.session.commands.length);
+		$scope.$$phase || $scope.$apply();
+	});
+
+	$scope.$watchCollection(function () { return $scope.session.output; }, function (n) {
+		for (var i = 0; i < n.length; i++) {
+			$scope.$broadcast('terminal-output', n[i]);
+		}
+		$scope.session.output.splice(0, $scope.session.output.length);
+		$scope.$$phase || $scope.$apply();
+	});
 
 	function executeOperation (container) {
 		vm.output = "";
@@ -373,14 +394,10 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 				}
 			}
 		}
-		console.log (vm.currentOperation);
 		genericSrv.executeOperation (vm.currentOperation.operationId, container.hostname, vm.currentEnvironment.id).success (function (data) {
 			vm.output = data;
-			$scope.$broadcast('terminal-output', {
-				output: true,
-				text: [vm.output],
-				breakLine: true
-			});
+			$scope.outputDelay = 0;
+			$scope.session.output.push({ output: true, text: [vm.output], breakLine: true });
 		}).error (function (error) {
 			SweetAlert.swal ("ERROR!", "Operation execute error: " + error.replace(/\\n/g, " "), "error");
 		});

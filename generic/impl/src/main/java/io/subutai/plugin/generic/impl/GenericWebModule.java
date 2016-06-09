@@ -29,6 +29,10 @@ public class GenericWebModule implements WebuiModule
 				"subutai-app/environment/service.js"
 		);
 
+		this.genericResource.addDependency(
+			new AngularjsDependency("vtortola.ng-terminal")
+		);
+
 		this.genericResource.addDependency(angularjsDependency);
 	}
 
