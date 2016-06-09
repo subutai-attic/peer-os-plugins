@@ -155,6 +155,14 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function addNodeForm() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.clusterName === undefined) return;
         sparkSrv.getAvailableNodes(vm.currentCluster.clusterName).success(function (data) {
             vm.availableNodes = data;

@@ -13,6 +13,8 @@ public class MongoPojo
     private Set<ContainerPojo> dataHosts;
     private boolean autoScaling;
 
+    private String environmentDataSource;
+
 
     public String getClusterName()
     {
@@ -83,5 +85,17 @@ public class MongoPojo
     public void setAutoScaling( final boolean autoScaling )
     {
         this.autoScaling = autoScaling;
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( final String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 }

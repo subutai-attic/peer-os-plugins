@@ -311,6 +311,14 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 	}
 
 	function addNodeForm() {
+
+		if ( vm.currentCluster.environmentDataSource == "hub" )
+		{
+			SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+			return;
+		}
+
 		if(vm.currentCluster.clusterName === undefined) return;
 		zookeeperSrv.getAvailableNodes(vm.currentCluster.clusterName).success(function (data) {
 			vm.availableNodes = data;
@@ -322,6 +330,7 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 	}
 
 	function addNode(chosenNode) {
+
 		if(chosenNode === undefined) return;
 		if(vm.currentCluster.clusterName === undefined) return;
 		SweetAlert.swal("Success!", "Adding node action started.", "success");

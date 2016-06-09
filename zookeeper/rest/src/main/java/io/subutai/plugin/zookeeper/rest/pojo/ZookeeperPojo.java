@@ -10,6 +10,8 @@ public class ZookeeperPojo
     private boolean autoScaling;
     private Set<ContainerPojo> nodes;
 
+    private String environmentDataSource;
+
 
     public String getClusterName()
     {
@@ -44,5 +46,17 @@ public class ZookeeperPojo
     public void setNodes( final Set<ContainerPojo> nodes )
     {
         this.nodes = nodes;
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 }

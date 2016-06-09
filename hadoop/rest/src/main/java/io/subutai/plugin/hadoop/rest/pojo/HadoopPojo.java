@@ -21,6 +21,9 @@ public class HadoopPojo implements Serializable
     private Integer replicationFactor = 1, countOfSlaveNodes = 1;
     private Set<ContainerPojo> blockedAgents;
     private String environmentId;
+
+    private String environmentDataSource;
+
     private boolean autoScaling;
 
 
@@ -204,6 +207,18 @@ public class HadoopPojo implements Serializable
     public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 
 

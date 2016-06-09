@@ -14,6 +14,8 @@ public class SparkPojo implements Serializable
     private NodePojo server;
     private Set<NodePojo> clients = new HashSet<>();
 
+    private String environmentDataSource;
+
 
     public SparkPojo()
     {
@@ -77,6 +79,18 @@ public class SparkPojo implements Serializable
     public void setClients( final Set<NodePojo> clients )
     {
         this.clients = clients;
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( final String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 
 

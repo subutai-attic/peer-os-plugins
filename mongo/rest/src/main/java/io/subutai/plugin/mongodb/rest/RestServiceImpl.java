@@ -3,11 +3,14 @@ package io.subutai.plugin.mongodb.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import io.subutai.plugin.mongodb.rest.pojo.VersionPojo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,6 +34,7 @@ import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.rest.pojo.ContainerPojo;
 import io.subutai.plugin.mongodb.rest.pojo.MongoPojo;
+import io.subutai.plugin.mongodb.rest.pojo.VersionPojo;
 
 
 /**
@@ -430,11 +434,15 @@ public class RestServiceImpl implements RestService
             pojo.setEnvironmentId( config.getEnvironmentId() );
             pojo.setAutoScaling( config.isAutoScaling() );
 
-            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+            pojo.setEnvironmentDataSource( envDataSource );
 
             for ( final String uuid : config.getConfigHosts() )
             {
-                ContainerHost ch = environment.getContainerHostById( uuid );
+                ContainerHost ch = env.getContainerHostById( uuid );
                 HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname (), NodeType.CONFIG_NODE );
                 configHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
@@ -444,7 +452,7 @@ public class RestServiceImpl implements RestService
 
             for ( final String uuid : config.getRouterHosts() )
             {
-                ContainerHost ch = environment.getContainerHostById( uuid );
+                ContainerHost ch = env.getContainerHostById( uuid );
                 HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.ROUTER_NODE );
                 routerHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
@@ -454,7 +462,7 @@ public class RestServiceImpl implements RestService
 
             for ( final String uuid : config.getDataHosts() )
             {
-                ContainerHost ch = environment.getContainerHostById( uuid );
+                ContainerHost ch = env.getContainerHostById( uuid );
                 HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.DATA_NODE );
                 dataHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),

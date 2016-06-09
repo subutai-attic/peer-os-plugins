@@ -62,16 +62,29 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     }
 
     function addNode() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.clusterName === undefined) return;
+
         LOADING_SCREEN();
+
         SweetAlert.swal("Success!", "Node adding is in progress.", "success");
+
         hadoopSrv.addNode(vm.currentCluster.clusterName).success(function (data) {
             SweetAlert.swal(
                 "Success!",
                 "Node has been added to cluster " + vm.currentCluster.clusterName + ".",
                 "success"
             );
+
             getClustersInfo(vm.currentCluster.clusterName);
+
             LOADING_SCREEN('none');
         });
     }

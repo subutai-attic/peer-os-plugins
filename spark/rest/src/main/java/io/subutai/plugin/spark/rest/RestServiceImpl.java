@@ -3,11 +3,14 @@ package io.subutai.plugin.spark.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import io.subutai.plugin.spark.rest.pojo.VersionPojo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +33,7 @@ import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 import io.subutai.plugin.spark.rest.pojo.NodePojo;
 import io.subutai.plugin.spark.rest.pojo.SparkPojo;
+import io.subutai.plugin.spark.rest.pojo.VersionPojo;
 
 
 public class RestServiceImpl implements RestService
@@ -483,6 +487,10 @@ public class RestServiceImpl implements RestService
         try
         {
             Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+            pojo.setEnvironmentDataSource( envDataSource );
 
             pojo.setClusterName( config.getClusterName() );
             pojo.setEnvironmentId( config.getEnvironmentId() );
