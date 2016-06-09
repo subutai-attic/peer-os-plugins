@@ -1,7 +1,7 @@
 "use strict";
 angular.module("subutai.plugins.generic.controller", [])
     .controller("GenericCtrl", GenericCtrl)
-    .config(['terminalConfigurationProvider', function (terminalConfigurationProvider) {
+	.config(['terminalConfigurationProvider', function (terminalConfigurationProvider) {
 		terminalConfigurationProvider.config('modern').allowTypingWriteDisplaying = false;
 		terminalConfigurationProvider.config('modern').outputDelay = 0;
 	}]);
@@ -40,13 +40,6 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 
 	vm.executeOperation = executeOperation;
 	vm.updateEnvironment = updateEnvironment;
-	vm.output = "";
-
-	$scope.session = {
-		commands: [],
-		output: [],
-		$scope:$scope
-	};
 
 	// Init
 
@@ -360,10 +353,11 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 
 	// Manage
 	
+	$scope.theme = 'modern';
+
 	$scope.session = {
 		commands: [],
-		output: [],
-		$scope:$scope
+		output: []
 	};
 
 	$scope.$watchCollection(function () { return $scope.session.commands; }, function (n) {
@@ -382,8 +376,27 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 		$scope.$$phase || $scope.$apply();
 	});
 
+	$scope.$on('terminal-input', function (e, consoleInput) {
+		var output = [];
+		$scope.outputDelay = 0;
+
+		$scope.showPrompt = false;
+
+		var cmd = consoleInput[0];
+
+		try {
+			if (cmd.command =='clear') {
+				$('.terminal-results').empty();
+				return;
+			}
+
+		} catch (err) {
+			$scope.session.output.push({ output: true, breakLine: true, text: [err.message] });
+		}
+	});
+
 	function executeOperation (container) {
-		vm.output = "";
+		var output = [];
 		for (var i = 0; i < vm.currentEnvironment.containers.length; ++i) {
 			if (vm.currentEnvironment.containers[i].id === container.id) {
 				for (var j = 0; j < vm.operations.length; ++j) {
@@ -395,9 +408,9 @@ function GenericCtrl($scope, genericSrv, SweetAlert, DTOptionsBuilder, DTColumnD
 			}
 		}
 		genericSrv.executeOperation (vm.currentOperation.operationId, container.hostname, vm.currentEnvironment.id).success (function (data) {
-			vm.output = data;
+			output.push(data);
 			$scope.outputDelay = 0;
-			$scope.session.output.push({ output: true, text: [vm.output], breakLine: true });
+			$scope.session.output.push({ output: true, text: output, breakLine: true });
 		}).error (function (error) {
 			SweetAlert.swal ("ERROR!", "Operation execute error: " + error.replace(/\\n/g, " "), "error");
 		});
