@@ -13,6 +13,9 @@ public class ClusterDto
     private String clusterName;
     private List<ContainerDto> containers;
 
+    private String environmentDataSource;
+
+
     public ClusterDto(  )
     {
         containers = new ArrayList<>(  );
@@ -64,5 +67,17 @@ public class ClusterDto
     public void addContainerDto( ContainerDto containerDto )
     {
         containers.add( containerDto );
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( final String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 }

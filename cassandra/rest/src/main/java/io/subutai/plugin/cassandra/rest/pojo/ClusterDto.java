@@ -13,7 +13,11 @@ public class ClusterDto
     private String cacheDir;
     private Set<String> containers;
     private Set<String> seeds;
+
     private String environmentId;
+
+    private String environmentDataSource;
+
     private boolean scaling;
     private Map< String, ContainerDto> containersStatuses;
 
@@ -124,6 +128,18 @@ public class ClusterDto
     public void setEnvironmentId( final String environmentId )
     {
         this.environmentId = environmentId;
+    }
+
+
+    public String getEnvironmentDataSource()
+    {
+        return environmentDataSource;
+    }
+
+
+    public void setEnvironmentDataSource( final String environmentDataSource )
+    {
+        this.environmentDataSource = environmentDataSource;
     }
 
 

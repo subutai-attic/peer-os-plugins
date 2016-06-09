@@ -156,6 +156,14 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
     }
 
     function addNode() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.clusterName === undefined) return;
         LOADING_SCREEN();
         SweetAlert.swal("Success!", "Node is being added.", "success");

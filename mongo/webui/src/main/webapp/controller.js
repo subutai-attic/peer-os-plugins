@@ -231,6 +231,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
     }
 
     function addNode() {
+
         if (vm.currentCluster.clusterName === undefined) return;
         LOADING_SCREEN();
         SweetAlert.swal("Success!", "Adding node action started.", "success");
@@ -313,6 +314,14 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
 
     function sendRouter() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal("Success!", "Your Mongo cluster started to add additional router.", "success");
         mongoSrv.sendRouter(vm.currentCluster.clusterName).success(function (data) {
@@ -325,6 +334,14 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
 
     function sendDataNode() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal("Success!", "Mongo cluster started to add additional data node.", "success");
         mongoSrv.sendDataNode(vm.currentCluster.clusterName).success(function (data) {

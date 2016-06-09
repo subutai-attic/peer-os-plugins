@@ -15,6 +15,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.gson.reflect.TypeToken;
 
@@ -25,13 +28,13 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.rest.pojo.ClusterDto;
 import io.subutai.plugin.cassandra.rest.pojo.ContainerDto;
 import io.subutai.plugin.cassandra.rest.pojo.VersionPojo;
-import io.subutai.core.plugincommon.api.ClusterException;
 
 
 public class RestServiceImpl implements RestService
@@ -54,18 +57,20 @@ public class RestServiceImpl implements RestService
         return Response.ok( JsonUtil.toJson( clusterNames ) ).build();
     }
 
+    private final Logger log = LoggerFactory.getLogger( getClass() );
 
     @Override
     public Response getCluster( final String clusterName )
     {
         CassandraClusterConfig config = cassandraManager.getCluster( clusterName );
 
-        boolean thrownException = false;
         if ( config == null )
         {
-            thrownException = true;
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( clusterName + " cluster not found." ).build();
         }
 
+        Environment env = null;
 
         Map<String, ContainerDto> map = new HashMap<>();
 
@@ -75,8 +80,12 @@ public class RestServiceImpl implements RestService
             {
                 ContainerDto containerDto = new ContainerDto();
 
-                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-                EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+                if ( env == null )
+                {
+                    env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                }
+
+                EnvironmentContainerHost containerHost = env.getContainerHostById( node );
 
                 String ip = containerHost.getInterfaceByName( "eth0" ).getIp();
                 containerDto.setIp( ip );
@@ -98,25 +107,28 @@ public class RestServiceImpl implements RestService
             catch ( Exception e )
             {
                 map.put( node, new ContainerDto() );
-                thrownException = true;
+
+                return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                               .entity( clusterName + " cluster not found." ).build();
             }
         }
 
-        ClusterDto result = new ClusterDto();
-        result.setSeeds( config.getSeedNodes() );
-        result.setContainers( config.getNodes() );
-        result.setContainersStatuses( map );
-        result.setName( config.getClusterName() );
-        result.setScaling( config.isAutoScaling() );
+        ClusterDto dto = new ClusterDto();
 
-        String cluster = JsonUtil.toJson( result );
+        dto.setSeeds( config.getSeedNodes() );
+        dto.setContainers( config.getNodes() );
+        dto.setContainersStatuses( map );
+        dto.setName( config.getClusterName() );
+        dto.setScaling( config.isAutoScaling() );
 
+        log.info( ">> env: {}", env );
 
-        if ( thrownException )
-        {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
-                           .entity( clusterName + " cluster not found." ).build();
-        }
+        String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+        dto.setEnvironmentDataSource( envDataSource );
+
+        String cluster = JsonUtil.toJson( dto );
+
         return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 

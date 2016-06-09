@@ -406,6 +406,10 @@ public class RestServiceImpl implements RestService
             pojo.getJobTracker().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
             pojo.getJobTracker().setStatus( parseStatus( uuid ) );
 
+            String envDataSource = environment.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+            pojo.setEnvironmentDataSource( envDataSource );
+
             for ( ContainerPojo container : pojo.getAllDataNodeAgent() )
             {
                 ch = environment.getContainerHostById( container.getUuid() );

@@ -22,8 +22,8 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.rest.dto.ClusterDto;
@@ -74,33 +74,44 @@ public class RestServiceImpl implements RestService
 
         ClusterDto clusterDto = new ClusterDto( config );
 
+        Environment env = null;
+
         for ( String node : config.getNodes() )
         {
             try
             {
-                ContainerDto containerDtoJson = new ContainerDto();
+                ContainerDto containerDto = new ContainerDto();
 
-                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-                EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
+                if ( env == null )
+                {
+                    env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+                    String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+                    clusterDto.setEnvironmentDataSource( envDataSource );
+                }
+
+                EnvironmentContainerHost containerHost = env.getContainerHostById( node );
 				HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
                 String ip = hostInterface.getIp ();
-                containerDtoJson.setIp( ip );
-                containerDtoJson.setId( node );
-                containerDtoJson.setHostname( containerHost.getHostname() );
+
+                containerDto.setIp( ip );
+                containerDto.setId( node );
+                containerDto.setHostname( containerHost.getHostname() );
 
                 UUID uuid = elasticsearch.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
                 if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
                 {
-                    containerDtoJson.setStatus( "RUNNING" );
+                    containerDto.setStatus( "RUNNING" );
                 }
                 else
                 {
-                    containerDtoJson.setStatus( "STOPPED" );
+                    containerDto.setStatus( "STOPPED" );
                 }
 
-                clusterDto.addContainerDto( containerDtoJson );
+                clusterDto.addContainerDto( containerDto );
             }
             catch ( Exception e )
             {

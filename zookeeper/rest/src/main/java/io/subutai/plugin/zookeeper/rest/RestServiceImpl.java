@@ -3,11 +3,14 @@ package io.subutai.plugin.zookeeper.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
-
-import io.subutai.plugin.zookeeper.rest.pojo.VersionPojo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +28,15 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.Zookeeper;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.rest.pojo.ContainerPojo;
+import io.subutai.plugin.zookeeper.rest.pojo.VersionPojo;
 import io.subutai.plugin.zookeeper.rest.pojo.ZookeeperPojo;
 
 
@@ -552,11 +556,15 @@ public class RestServiceImpl implements RestService
             pojo.setClusterName( config.getClusterName() );
             pojo.setAutoScaling( config.isAutoScaling() );
 
-            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+
+            pojo.setEnvironmentDataSource( envDataSource );
 
             for ( final String uuid : config.getNodes() )
             {
-                ContainerHost ch = environment.getContainerHostById( uuid );
+                ContainerHost ch = env.getContainerHostById( uuid );
                 UUID uuidStatus = zookeeperManager.checkNode( config.getClusterName(), ch.getHostname() );
                 containerPojoSet
                         .add( new ContainerPojo( ch.getHostname(), uuid, ch.getInterfaceByName( "eth0" ).getIp(),

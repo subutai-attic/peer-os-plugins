@@ -140,6 +140,14 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function addNode() {
+
+        if ( vm.currentCluster.environmentDataSource == "hub" )
+        {
+            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+
+            return;
+        }
+
         if (vm.currentCluster.name === undefined) return;
         LOADING_SCREEN();
         SweetAlert.swal("Success!", "Adding node action started.", "success");
