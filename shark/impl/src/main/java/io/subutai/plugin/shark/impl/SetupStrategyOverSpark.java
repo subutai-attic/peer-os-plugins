@@ -138,6 +138,8 @@ public class SetupStrategyOverSpark implements ClusterSetupStrategy
         RequestBuilder checkCommand = manager.getCommands().getCheckInstalledCommand();
         for ( EnvironmentContainerHost node : allNodes )
         {
+            // execute apt-get update
+            executeCommand( node, Commands.getAptUpdate() );
 
             CommandResult result = executeCommand( node, checkCommand );
             if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )

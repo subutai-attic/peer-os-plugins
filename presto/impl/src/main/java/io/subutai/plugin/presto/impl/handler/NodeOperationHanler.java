@@ -277,13 +277,13 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        if ( result.getExitCode() == 0 )
-        {
-            log.append( result.getStdOut() );
-        }
-        if ( result.getExitCode() == 768 )
+        if ( result.getStdOut().contains( "Not running" ) )
         {
             log.append( "Not running" );
+        }
+        if ( result.getStdOut().contains( "Running as" ) )
+        {
+            log.append( result.getStdOut() );
         }
         po.addLogDone( log.toString() );
     }

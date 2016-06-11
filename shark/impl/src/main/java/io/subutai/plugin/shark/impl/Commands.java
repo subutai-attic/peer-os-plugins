@@ -14,9 +14,17 @@ public class Commands
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + SharkClusterConfig.PRODUCT_KEY.toLowerCase();
 
 
+    public static RequestBuilder getAptUpdate()
+    {
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 50000 )
+                                                                              .withStdOutRedirection(
+                                                                                      OutputRedirection.NO );
+    }
+
+
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 900 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 50000 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }

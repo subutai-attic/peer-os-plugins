@@ -179,6 +179,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<SharkImpl, Sh
 
         trackerOperation.addLog( "Checking prerequisites..." );
 
+        // execute apt-get update
+        executeCommand( node, Commands.getAptUpdate() );
+
         CommandResult result = executeCommand( node, manager.getCommands().getCheckInstalledCommand() );
 
         boolean install = !result.getStdOut().contains( Commands.PACKAGE_NAME );
