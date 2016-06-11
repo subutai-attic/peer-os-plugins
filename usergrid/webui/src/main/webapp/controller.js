@@ -170,6 +170,12 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 		else if (wrongDomain()) {
 			SweetAlert.swal ("ERROR!", 'Wrong domain format', "error");
 		}
+		else if (vm.config.cassandra.length == 0) {
+			SweetAlert.swal("ERROR!", "Please set Cassandra node", "error");
+		}
+		else if (vm.config.elastic.length	 == 0) {
+			SweetAlert.swal("ERROR!", "Please set ElasticSearch node", "error");
+		}
 		else {
 			LOADING_SCREEN();
 			usergridSrv.build (vm.config).success (function (data) {
