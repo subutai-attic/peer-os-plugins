@@ -234,6 +234,12 @@ function UsergridCtrl (usergridSrv, SweetAlert, $scope, ngDialog) {
 			LOADING_SCREEN('none');
 		} );
 	}
+
+	vm.info = {};
+	usergridSrv.getPluginInfo().success(function (data) {
+		vm.info = data;
+	});
+
 }
 
 function initMSelect()

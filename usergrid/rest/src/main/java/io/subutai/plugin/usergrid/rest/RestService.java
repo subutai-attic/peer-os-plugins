@@ -19,7 +19,6 @@ import io.subutai.common.environment.Environment;
 
 
 /**
- *
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
@@ -27,34 +26,32 @@ public interface RestService
 {
 
     @GET
-    @Path ( "clusters/{environmentID}" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response listClusterUI ( @PathParam ( "name" ) Environment environmentID );
+    @Path( "clusters/{environmentID}" )
+    @Produces( {
+            MediaType.APPLICATION_JSON
+    } )
+    Response listClusterUI( @PathParam( "name" ) Environment environmentID );
 
 
     @GET
-    @Path ( "clusterList" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response listClustersDB ();
+    @Path( "clusterList" )
+    @Produces( {
+            MediaType.APPLICATION_JSON
+    } )
+    Response listClustersDB();
 
 
     @POST
-    @Path ( "configure_environment" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response configureCluster ( @FormParam ( "clusterName" ) String clusterName, // this is tomcat template and single selection
-                                @FormParam ( "userDomain" ) String userDomain, // user will enter the desired domain name
-                                @FormParam ( "cassandraCSV" ) String cassandraCSV, // cassandra templates...
-                                @FormParam ( "elasticSearchCSV" ) String elasticSearchCSV, // elastic search templates
-                                @FormParam ( "environmentId" ) String environmentId ); // env.id will be send from ui
+    @Path( "configure_environment" )
+    @Produces( {
+            MediaType.APPLICATION_JSON
+    } )
+    Response configureCluster( @FormParam( "clusterName" ) String clusterName,
+                               // this is tomcat template and single selection
+                               @FormParam( "userDomain" ) String userDomain, // user will enter the desired domain name
+                               @FormParam( "cassandraCSV" ) String cassandraCSV, // cassandra templates...
+                               @FormParam( "elasticSearchCSV" ) String elasticSearchCSV, // elastic search templates
+                               @FormParam( "environmentId" ) String environmentId ); // env.id will be send from ui
 
 
     /*
@@ -65,12 +62,15 @@ public interface RestService
 
 
     @POST
-    @Path ( "oneclick" )
-    @Produces (
-                        {
-                MediaType.APPLICATION_JSON
-            } )
-    Response oneClick ( @FormParam ( "ename" ) String ename, @FormParam ( "udom" ) String udom );
+    @Path( "oneclick" )
+    @Produces( {
+            MediaType.APPLICATION_JSON
+    } )
+    Response oneClick( @FormParam( "ename" ) String ename, @FormParam( "udom" ) String udom );
 
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }
 
