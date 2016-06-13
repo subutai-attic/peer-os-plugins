@@ -57,7 +57,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
             while ( iterator.hasNext() )
             {
                 host = ( ContainerHost ) iterator.next();
-                if ( host.getHostname().equals( hostName ) )
+                if ( host.getId().equals( hostName ) )
                 {
                     break;
                 }
@@ -96,11 +96,11 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
         String status;
-        if ( result.getExitCode() == 0 )
+        if ( result.getStdOut().contains( "Solr is running" ) )
         {
             status = result.getStdOut();
         }
-        else if ( result.getExitCode() == 768 )
+        else if ( result.getStdOut().contains( "Solr is not running" ) )
         {
             status = "solr is not running";
         }
