@@ -82,6 +82,7 @@ public class NodeOperationHandlerTest
         Set<EnvironmentContainerHost> mySet = new HashSet<>();
         mySet.add( containerHost );
         when( containerHost.getHostname() ).thenReturn( "testHostName" );
+        when( containerHost.getId() ).thenReturn( UUID.randomUUID().toString() );
         when( solrImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHosts() ).thenReturn( mySet );
@@ -106,6 +107,7 @@ public class NodeOperationHandlerTest
     public void testRunNodeTypeStart() throws EnvironmentNotFoundException, CommandException
     {
         when( containerHost.execute( new RequestBuilder( Commands.startCommand ) ) ).thenReturn( commandResult );
+        when( commandResult.getStdOut() ).thenReturn( "Solr is running" );
 
         nodeOperationHandler.run();
 
@@ -118,6 +120,7 @@ public class NodeOperationHandlerTest
     public void testRunNodeTypeStop() throws EnvironmentNotFoundException, CommandException
     {
         when( containerHost.execute( new RequestBuilder( Commands.stopCommand ) ) ).thenReturn( commandResult );
+        when( commandResult.getStdOut() ).thenReturn( "Solr is running" );
 
         nodeOperationHandler2.run();
 
@@ -130,6 +133,7 @@ public class NodeOperationHandlerTest
     public void testRunNodeTypeStatus() throws EnvironmentNotFoundException, CommandException
     {
         when( containerHost.execute( new RequestBuilder( Commands.statusCommand ) ) ).thenReturn( commandResult );
+        when( commandResult.getStdOut() ).thenReturn( "Solr is running" );
 
         nodeOperationHandler3.run();
 
@@ -141,7 +145,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testLogStatusResults()
     {
-        when( commandResult.getExitCode() ).thenReturn( 768 );
+        when( commandResult.getStdOut() ).thenReturn( "Solr is running" );
 
         nodeOperationHandler.logStatusResults( trackerOperation, commandResult );
     }
@@ -150,7 +154,7 @@ public class NodeOperationHandlerTest
     @Test
     public void testLogStatusResults2()
     {
-        when( commandResult.getExitCode() ).thenReturn( 5 );
+        when( commandResult.getStdOut() ).thenReturn( "Solr is not running" );
 
         nodeOperationHandler.logStatusResults( trackerOperation, commandResult );
     }
