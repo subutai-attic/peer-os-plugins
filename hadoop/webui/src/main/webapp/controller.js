@@ -26,6 +26,8 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     vm.addNode = addNode;
     vm.startNode = startNode;
     vm.stopNode = stopNode;
+    vm.addAllContainers = addAllContainers;
+    vm.unselectAllContainers = unselectAllContainers;
 
     setDefaultValues();
 
@@ -201,6 +203,19 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         } else {
             vm.hadoopInstall.slaves.push(containerId);
         }
+
+		console.log(vm.hadoopInstall.slaves);
+    }
+
+    function addAllContainers() {
+        vm.hadoopInstall.slaves = [];
+        for (var i = 0; i < vm.containers.length; i++) {
+            vm.hadoopInstall.slaves.push(vm.containers[i].id);
+        }
+    }
+
+    function unselectAllContainers() {
+		vm.hadoopInstall.slaves = [];
     }
 
     vm.dtOptions = DTOptionsBuilder
