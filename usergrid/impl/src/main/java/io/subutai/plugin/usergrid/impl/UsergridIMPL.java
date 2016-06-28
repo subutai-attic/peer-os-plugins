@@ -61,14 +61,13 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
 
 /**
- *
  * @author caveman
  * @author Beyazıt Kelçeoğlu
  */
 public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger ( UsergridIMPL.class.getName () );
+    private static final Logger LOG = LoggerFactory.getLogger( UsergridIMPL.class.getName() );
     private ExecutorService executor;
     private final Monitor monitor;
     private final PluginDAO pluginDAO;
@@ -81,149 +80,143 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     private String token;
 
 
-    private static final String BUILD_TOPOLOGY_URL
-            = "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY";
+    private static final String BUILD_TOPOLOGY_URL = "https://localhost:8443/rest/v1/strategy/ROUND-ROBIN-STRATEGY";
     private static final String ENVIRONMENT_URL = "https://localhost:8443/rest/v1/environments/";
 
 
-    public UsergridIMPL ( Monitor monitor, PluginDAO pluginDAO )
+    public UsergridIMPL( Monitor monitor, PluginDAO pluginDAO )
     {
         this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
 
-    public void init ()
+    public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool ();
+        executor = SubutaiExecutors.newCachedThreadPool();
     }
 
 
-    public void destroy ()
+    public void destroy()
     {
 
     }
 
 
     @Override
-    public List<String> getClusterList ( Environment name )
+    public List<String> getClusterList( Environment name )
     {
-        List<String> c = new ArrayList ();
-        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts ();
-        containerHosts.stream ().forEach ( (e)
-                ->
-                {
-                    c.add ( e.getHostname () );
+        List<String> c = new ArrayList();
+        Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
+        containerHosts.stream().forEach( ( e ) -> {
+            c.add( e.getHostname() );
         } );
         return c;
     }
 
 
     @Override
-    public UUID installCluster ( UsergridConfig usergridConfig )
+    public UUID installCluster( UsergridConfig usergridConfig )
     {
-        LOG.info ( "Install cluster Started..." );
-        Preconditions.checkNotNull ( usergridConfig, "Configuration is null" );
-        Preconditions.checkArgument (
-                !Strings.isNullOrEmpty ( usergridConfig.getClusterName () ), "clusterName is empty or null" );
-        AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, usergridConfig,
-                                                                                          ClusterOperationType.INSTALL );
-        executor.execute ( abstractOperationHandler );
-        return abstractOperationHandler.getTrackerId ();
-
+        LOG.info( "Install cluster Started..." );
+        Preconditions.checkNotNull( usergridConfig, "Configuration is null" );
+        Preconditions.checkArgument( !Strings.isNullOrEmpty( usergridConfig.getClusterName() ),
+                "clusterName is empty or null" );
+        AbstractOperationHandler abstractOperationHandler =
+                new ClusterOperationHandler( this, usergridConfig, ClusterOperationType.INSTALL );
+        executor.execute( abstractOperationHandler );
+        return abstractOperationHandler.getTrackerId();
     }
 
 
-    private WebClient createWebClient ( String url, Boolean trustCerts )
+    private WebClient createWebClient( String url, Boolean trustCerts )
     {
-        JacksonJsonProvider jsonProvider = new JacksonJsonProvider ();
-        WebClient webClient = WebClient.create ( url, Collections.singletonList ( jsonProvider ) );
+        JacksonJsonProvider jsonProvider = new JacksonJsonProvider();
+        WebClient webClient = WebClient.create( url, Collections.singletonList( jsonProvider ) );
         if ( trustCerts )
         {
-            HTTPConduit conduit = WebClient.getConfig ( webClient ).getHttpConduit ();
-            TLSClientParameters params = conduit.getTlsClientParameters ();
+            HTTPConduit conduit = WebClient.getConfig( webClient ).getHttpConduit();
+            TLSClientParameters params = conduit.getTlsClientParameters();
             if ( params == null )
             {
-                params = new TLSClientParameters ();
-                conduit.setTlsClientParameters ( params );
+                params = new TLSClientParameters();
+                conduit.setTlsClientParameters( params );
             }
-            params.setTrustManagers ( new TrustManager[]
-            {
-                new NaiveTrustManager ()
+            params.setTrustManagers( new TrustManager[] {
+                    new NaiveTrustManager()
             } );
-            params.setDisableCNCheck ( true );
+            params.setDisableCNCheck( true );
         }
         return webClient;
     }
 
 
-    private UsergridConfig buildEnvironment ( UsergridConfig lConfig )
+    private UsergridConfig buildEnvironment( UsergridConfig lConfig )
     {
-        LOG.info ( "building environment started" );
+        LOG.info( "building environment started" );
 
-        String environmentName = lConfig.getEnvironmentName ();
-        NodeSchema elasticNode = new NodeSchema ( "elasticsearch144" + randomAlphabetic ( 10 ).toLowerCase (),
-                                                  ContainerSize.HUGE,
-                                                  "elasticsearch144", 0, 0 );
-        NodeSchema cassandraNode = new NodeSchema ( "cassandra" + randomAlphabetic ( 10 ).toLowerCase (),
-                                                    ContainerSize.HUGE,
-                                                    "cassandra", 0, 0 );
-        NodeSchema tomcatNode = new NodeSchema ( "tomcat7" + randomAlphabetic ( 10 ).toLowerCase (), ContainerSize.HUGE,
-                                                 "tomcat7", 0, 0 );
-        List<NodeSchema> nodes = new ArrayList<> ();
-        nodes.add ( tomcatNode );
-        nodes.add ( cassandraNode );
-        nodes.add ( elasticNode );
-        Blueprint blueprint = new Blueprint ( environmentName, nodes );
-        Topology topology = buildTopology ( blueprint );
-        LOG.info ( "topology: " + blueprint.toString () );
-        EnvironmentId usergridEnvironmentID = createEnvironment ( topology );
+        String environmentName = lConfig.getEnvironmentName();
+        NodeSchema elasticNode =
+                new NodeSchema( "elasticsearch144" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
+                        "elasticsearch144", 0, 0 );
+        NodeSchema cassandraNode =
+                new NodeSchema( "cassandra" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "cassandra", 0,
+                        0 );
+        NodeSchema tomcatNode =
+                new NodeSchema( "tomcat7" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "tomcat7", 0, 0 );
+        List<NodeSchema> nodes = new ArrayList<>();
+        nodes.add( tomcatNode );
+        nodes.add( cassandraNode );
+        nodes.add( elasticNode );
+        Blueprint blueprint = new Blueprint( environmentName, nodes );
+        Topology topology = buildTopology( blueprint );
+        LOG.info( "topology: " + blueprint.toString() );
+        EnvironmentId usergridEnvironmentID = createEnvironment( topology );
         Boolean healt = false;
         while ( !healt )
         {
             try
             {
-                TimeUnit.SECONDS.sleep ( 10 );
-                Environment env = environmentManager.loadEnvironment ( usergridEnvironmentID.getId () );
-                if ( env != null && env.getStatus ().equals ( EnvironmentStatus.HEALTHY ) )
+                TimeUnit.SECONDS.sleep( 10 );
+                Environment env = environmentManager.loadEnvironment( usergridEnvironmentID.getId() );
+                if ( env != null && env.getStatus().equals( EnvironmentStatus.HEALTHY ) )
                 {
-                    LOG.info ( "Environment loaded and healty..." );
-                    List<String> cassList = new ArrayList ();
-                    List<String> elasticList = new ArrayList ();
-                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
+                    LOG.info( "Environment loaded and healty..." );
+                    List<String> cassList = new ArrayList();
+                    List<String> elasticList = new ArrayList();
+                    Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts();
                     for ( EnvironmentContainerHost e : containerHosts )
                     {
-                        switch ( e.getTemplateName () )
+                        switch ( e.getTemplateName() )
                         {
                             case "elasticsearch144":
                             {
-                                elasticList.add ( e.getHostname () );
+                                elasticList.add( e.getHostname() );
                                 break;
                             }
                             case "cassandra":
                             {
-                                cassList.add ( e.getHostname () );
+                                cassList.add( e.getHostname() );
                                 break;
                             }
                             case "tomcat7":
                             {
-                                lConfig.setClusterName ( e.getHostname () );
-                                lConfig.setTomcatName ( e.getHostname () );
+                                lConfig.setClusterName( e.getHostname() );
+                                lConfig.setTomcatName( e.getHostname() );
                                 break;
                             }
                         }
                     }
-                    lConfig.setElasticSName ( elasticList );
-                    lConfig.setCassandraName ( cassList );
-                    lConfig.setEnvironmentId ( usergridEnvironmentID.getId () );
+                    lConfig.setElasticSName( elasticList );
+                    lConfig.setCassandraName( cassList );
+                    lConfig.setEnvironmentId( usergridEnvironmentID.getId() );
                     healt = true;
                 }
-
             }
             catch ( EnvironmentNotFoundException | InterruptedException ex )
             {
 
-                LOG.error ( "environment can not loaded yet..." + ex );
+                LOG.error( "environment can not loaded yet..." + ex );
             }
         }
 
@@ -231,19 +224,19 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     }
 
 
-    private EnvironmentId createEnvironment ( Topology topology )
+    private EnvironmentId createEnvironment( Topology topology )
     {
-        LOG.info ( "create environment started" );
-        WebClient webClient = createWebClient ( ENVIRONMENT_URL, true );
-        webClient.type ( MediaType.APPLICATION_JSON );
-        webClient.accept ( MediaType.APPLICATION_JSON );
-        webClient.replaceHeader ( "sptoken", token );
-        LOG.info ( webClient.getHeaders ().toString () );
-        Response response = webClient.post ( topology );
-        LOG.info ( String.valueOf ( response.getStatus () ) );
-        if ( response.getStatus () == 200 )
+        LOG.info( "create environment started" );
+        WebClient webClient = createWebClient( ENVIRONMENT_URL, true );
+        webClient.type( MediaType.APPLICATION_JSON );
+        webClient.accept( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader( "sptoken", token );
+        LOG.info( webClient.getHeaders().toString() );
+        Response response = webClient.post( topology );
+        LOG.info( String.valueOf( response.getStatus() ) );
+        if ( response.getStatus() == 200 )
         {
-            return response.readEntity ( EnvironmentId.class );
+            return response.readEntity( EnvironmentId.class );
         }
         else
         {
@@ -252,18 +245,18 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     }
 
 
-    private Topology buildTopology ( Blueprint blueprint )
+    private Topology buildTopology( Blueprint blueprint )
     {
-        WebClient webClient = createWebClient ( BUILD_TOPOLOGY_URL, true );
-        webClient.type ( MediaType.APPLICATION_JSON );
-        webClient.accept ( MediaType.APPLICATION_JSON );
-        webClient.replaceHeader ( "sptoken", token );
-        LOG.info ( webClient.getHeaders ().toString () );
-        Response response = webClient.post ( blueprint );
-        LOG.info ( String.valueOf ( response.getStatus () ) );
-        if ( response.getStatus () == 200 )
+        WebClient webClient = createWebClient( BUILD_TOPOLOGY_URL, true );
+        webClient.type( MediaType.APPLICATION_JSON );
+        webClient.accept( MediaType.APPLICATION_JSON );
+        webClient.replaceHeader( "sptoken", token );
+        LOG.info( webClient.getHeaders().toString() );
+        Response response = webClient.post( blueprint );
+        LOG.info( String.valueOf( response.getStatus() ) );
+        if ( response.getStatus() == 200 )
         {
-            return response.readEntity ( Topology.class );
+            return response.readEntity( Topology.class );
         }
         else
         {
@@ -273,262 +266,300 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 
 
     @Override
-    public UUID oneClickInstall ( UsergridConfig localConfig )
+    public UUID oneClickInstall( UsergridConfig localConfig )
     {
-        LOG.info ( "one click install" );
+        LOG.info( "one click install" );
         UUID uuid = null;
-        token = localConfig.getPermanentToken ();
-        UsergridConfig newLocalConfig = buildEnvironment ( localConfig );
-        if ( newLocalConfig.getClusterName () != null )
+        token = localConfig.getPermanentToken();
+        UsergridConfig newLocalConfig = buildEnvironment( localConfig );
+        if ( newLocalConfig.getClusterName() != null )
         {
-            AbstractOperationHandler abstractOperationHandler = new ClusterOperationHandler ( this, newLocalConfig,
-                                                                                              ClusterOperationType.INSTALL );
-            executor.execute ( abstractOperationHandler );
-            uuid = abstractOperationHandler.getTrackerId ();
+            AbstractOperationHandler abstractOperationHandler =
+                    new ClusterOperationHandler( this, newLocalConfig, ClusterOperationType.INSTALL );
+            executor.execute( abstractOperationHandler );
+            uuid = abstractOperationHandler.getTrackerId();
         }
         return uuid;
     }
 
 
-    private String getIPAddress ( EnvironmentContainerHost ch )
+    private String getIPAddress( EnvironmentContainerHost ch )
     {
         String ipaddr = null;
         try
         {
 
             String localCommand = "ip addr | grep eth0 | grep \"inet\" | cut -d\" \" -f6 | cut -d\"/\" -f1";
-            CommandResult resultAddr = ch.execute ( new RequestBuilder ( localCommand ) );
-            ipaddr = resultAddr.getStdOut ();
-            ipaddr = ipaddr.replace ( "\n", "" );
-            LOG.info ( "Container IP: " + ipaddr );
+            CommandResult resultAddr = ch.execute( new RequestBuilder( localCommand ) );
+            ipaddr = resultAddr.getStdOut();
+            ipaddr = ipaddr.replace( "\n", "" );
+            LOG.info( "Container IP: " + ipaddr );
         }
         catch ( CommandException ex )
         {
-            LOG.error ( "ip address command error : " + ex );
+            LOG.error( "ip address command error : " + ex );
         }
         return ipaddr;
-
     }
 
 
     @Override
-    public void saveConfig ( UsergridConfig ac ) throws ClusterException
+    public void saveConfig( UsergridConfig ac ) throws ClusterException
     {
-        if ( !getPluginDAO ().saveInfo ( UsergridConfig.PRODUCT_KEY, ac.getClusterName (), ac ) )
+        if ( !getPluginDAO().saveInfo( UsergridConfig.PRODUCT_KEY, ac.getClusterName(), ac ) )
         {
-            throw new ClusterException ( "Could not save cluster info" );
+            throw new ClusterException( "Could not save cluster info" );
         }
     }
 
 
     @Override
-    public UsergridConfig getConfig ( String clusterName )
+    public UsergridConfig getConfig( String clusterName )
     {
         return this.userGridConfig;
     }
 
 
     @Override
-    public UUID startCluster ( String clusterName )
+    public UUID startCluster( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID stopCluster ( String clusterName )
+    public UUID stopCluster( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID restartCluster ( String clusterName )
+    public UUID restartCluster( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID statusCluster ( String clusterName )
+    public UUID statusCluster( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID startService ( String clusterName, String hostName )
+    public UUID startService( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID stopService ( String clusterName, String hostName )
+    public UUID stopService( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID statusService ( String clusterName, String hostName )
+    public UUID statusService( String clusterName, String hostName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID addNode ( String clusterName )
+    public UUID addNode( String clusterName )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public UUID uninstallCluster ( String string )
+    public UUID uninstallCluster( String string )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public List<UsergridConfig> getClusters ()
+    public List<UsergridConfig> getClusters()
     {
-        return this.pluginDAO.getInfo ( UsergridConfig.PRODUCT_NAME, UsergridConfig.class );
+        return this.pluginDAO.getInfo( UsergridConfig.PRODUCT_NAME, UsergridConfig.class );
     }
 
 
     @Override
-    public UsergridConfig getCluster ( String string )
+    public UsergridConfig getCluster( String string )
     {
-        return pluginDAO.getInfo ( UsergridConfig.PACKAGE_NAME, string, UsergridConfig.class );
+        return pluginDAO.getInfo( UsergridConfig.PACKAGE_NAME, string, UsergridConfig.class );
     }
 
 
     @Override
-    public UUID addNode ( String string, String string1 )
+    public UUID addNode( String string, String string1 )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void onEnvironmentCreated ( Environment e )
+    public void onEnvironmentCreated( Environment e )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        //not needed
     }
 
 
     @Override
-    public void onEnvironmentGrown ( Environment e, Set<EnvironmentContainerHost> set )
+    public void onEnvironmentGrown( Environment e, Set<EnvironmentContainerHost> set )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        //not needed
     }
 
 
     @Override
-    public void onContainerDestroyed ( Environment e, String string )
+    public void onContainerDestroyed( Environment e, String string )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        String envId = e.getId();
+        LOG.info( String.format( "Usergrid environment event: Environment destroyed: %s", envId ) );
+
+        List<UsergridConfig> clusters = getClusters();
+        for ( UsergridConfig clusterConfig : clusters )
+        {
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Usergrid environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                getPluginDAO().deleteInfo( UsergridConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Usergrid environment event: Cluster %s removed",
+                        clusterConfig.getClusterName() ) );
+                break;
+            }
+        }
     }
 
 
     @Override
-    public void onEnvironmentDestroyed ( String string )
+    public void onEnvironmentDestroyed( String envId )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        LOG.info( String.format( "Usergrid environment event: Environment destroyed: %s", envId ) );
+
+        List<UsergridConfig> clusters = getClusters();
+        for ( UsergridConfig clusterConfig : clusters )
+        {
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Usergrid environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                getPluginDAO().deleteInfo( UsergridConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Usergrid environment event: Cluster %s removed",
+                        clusterConfig.getClusterName() ) );
+                break;
+            }
+        }
     }
 
 
-    public ExecutorService getExecutor ()
+    public ExecutorService getExecutor()
     {
         return executor;
     }
 
 
-    public void setExecutor ( ExecutorService executor )
+    public void setExecutor( ExecutorService executor )
     {
         this.executor = executor;
     }
 
 
-    public Tracker getTracker ()
+    public Tracker getTracker()
     {
         return tracker;
     }
 
 
-    public void setTracker ( Tracker tracker )
+    public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
     }
 
 
-    public EnvironmentManager getEnvironmentManager ()
+    public EnvironmentManager getEnvironmentManager()
     {
         return environmentManager;
     }
 
 
-    public void setEnvironmentManager ( EnvironmentManager environmentManager )
+    public void setEnvironmentManager( EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
     }
 
 
-    public NetworkManager getNetworkManager ()
+    public NetworkManager getNetworkManager()
     {
         return networkManager;
     }
 
 
-    public void setNetworkManager ( NetworkManager networkManager )
+    public void setNetworkManager( NetworkManager networkManager )
     {
         this.networkManager = networkManager;
     }
 
 
-    public PeerManager getPeerManager ()
+    public PeerManager getPeerManager()
     {
         return peerManager;
     }
 
 
-    public void setPeerManager ( PeerManager peerManager )
+    public void setPeerManager( PeerManager peerManager )
     {
         this.peerManager = peerManager;
     }
 
 
-    public Environment getEnvironment ()
+    public Environment getEnvironment()
     {
         return environment;
     }
 
 
-    public void setEnvironment ( Environment environment )
+    public void setEnvironment( Environment environment )
     {
         this.environment = environment;
     }
 
 
-    public UsergridConfig getUsergridConfig ()
+    public UsergridConfig getUsergridConfig()
     {
         return userGridConfig;
     }
 
 
-    public void setUsergridConfig ( UsergridConfig usergridConfig )
+    public void setUsergridConfig( UsergridConfig usergridConfig )
     {
         this.userGridConfig = usergridConfig;
     }
 
 
-    public PluginDAO getPluginDAO ()
+    public PluginDAO getPluginDAO()
     {
         return pluginDAO;
     }
-
-
 }
 

@@ -253,24 +253,7 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public List<AppScaleConfig> getClusters()
     {
-        List<AppScaleConfig> returnConfig = new ArrayList();
-        List<AppScaleConfig> info = pluginDAO.getInfo( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
-        for ( AppScaleConfig c : info )
-        {
-            try
-            {
-                Environment loadEnvironment = environmentManager.loadEnvironment( c.getEnvironmentId() );
-                if ( EnvironmentStatus.HEALTHY == loadEnvironment.getStatus() )
-                {
-                    returnConfig.add( c );
-                }
-            }
-            catch ( EnvironmentNotFoundException ex )
-            {
-
-            }
-        }
-        return returnConfig;
+        return pluginDAO.getInfo( AppScaleConfig.PRODUCT_KEY, AppScaleConfig.class );
     }
 
 
@@ -381,28 +364,59 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     @Override
     public void onEnvironmentCreated( final Environment environment )
     {
-
+        //not needed
     }
 
 
     @Override
     public void onEnvironmentGrown( final Environment environment, final Set<EnvironmentContainerHost> set )
     {
-
+        //not needed
     }
 
 
     @Override
     public void onContainerDestroyed( final Environment environment, final String s )
     {
+        String envId = environment.getId();
+        LOG.info( String.format( "Appscale environment event: Environment destroyed: %s", envId ) );
 
+        List<AppScaleConfig> clusters = getClusters();
+        for ( AppScaleConfig clusterConfig : clusters )
+        {
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Appscale environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                getPluginDAO().deleteInfo( AppScaleConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Appscale environment event: Cluster %s removed",
+                        clusterConfig.getClusterName() ) );
+                break;
+            }
+        }
     }
 
 
     @Override
-    public void onEnvironmentDestroyed( final String s )
+    public void onEnvironmentDestroyed( final String envId )
     {
+        LOG.info( String.format( "Appscale environment event: Environment destroyed: %s", envId ) );
 
+        List<AppScaleConfig> clusters = getClusters();
+        for ( AppScaleConfig clusterConfig : clusters )
+        {
+            if ( envId.equals( clusterConfig.getEnvironmentId() ) )
+            {
+                LOG.info( String.format( "Appscale environment event: Target cluster: %s",
+                        clusterConfig.getClusterName() ) );
+
+                getPluginDAO().deleteInfo( AppScaleConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+                LOG.info( String.format( "Appscale environment event: Cluster %s removed",
+                        clusterConfig.getClusterName() ) );
+                break;
+            }
+        }
     }
 }
 
