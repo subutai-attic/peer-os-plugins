@@ -157,9 +157,8 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
 
     function addNode() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -180,22 +179,28 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
     }
 
     function createElasticSearch() {
-        if (vm.elasticSearchInstall.clusterName === undefined || vm.elasticSearchInstall.clusterName.length == 0) return;
-        if (vm.elasticSearchInstall.environmentId === undefined) return;
+        if (vm.elasticSearchInstall.environmentId === undefined) {
+            SweetAlert.swal("ERROR!", 'Please select Elastic Search environment', "error");
+        }
+        else if (vm.elasticSearchInstall.nodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set nodes", "error");
+        }
+        else {
+            SweetAlert.swal("Success!", "Elastic Search cluster is being created.", "success");
+            LOADING_SCREEN();
+            elasticSearchSrv.createElasticSearch(vm.elasticSearchInstall).success(function (data) {
+                SweetAlert.swal("Success!", "Your Elastic Search cluster has been created.", "success");
+                LOADING_SCREEN("none");
+                getClusters();
+                vm.activeTab = 'manage';
+            }).error(function (error) {
+                SweetAlert.swal("ERROR!", 'Elastic Search cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+                LOADING_SCREEN("none");
+                getClusters();
+            });
+            setDefaultValues();
+        }
 
-        SweetAlert.swal("Success!", "Elastic Search cluster is being created.", "success");
-        LOADING_SCREEN();
-        elasticSearchSrv.createElasticSearch(vm.elasticSearchInstall).success(function (data) {
-            SweetAlert.swal("Success!", "Your Elastic Search cluster has been created.", "success");
-            LOADING_SCREEN("none");
-            getClusters();
-        }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Elastic Search cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
-            LOADING_SCREEN("none");
-            getClusters();
-        });
-        setDefaultValues();
-        vm.activeTab = 'manage';
     }
 
     function deleteCluster() {
