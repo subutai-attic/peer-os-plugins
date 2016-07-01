@@ -156,9 +156,8 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
     function addNodeForm() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -231,21 +230,27 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function createSpark() {
-        if (vm.sparkInstall.clusterName === undefined || vm.sparkInstall.clusterName.length == 0) return;
-        if (vm.sparkInstall.hadoopClusterName === undefined || vm.sparkInstall.hadoopClusterName.length == 0) return;
-        SweetAlert.swal("Success!", "Spark cluster is being created.", "success");
-        LOADING_SCREEN();
-        sparkSrv.createSpark(vm.sparkInstall).success(function (data) {
-            SweetAlert.swal("Success!", "Your Spark cluster was created.", "success");
-            LOADING_SCREEN("none");
-            getClusters();
-        }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Spark cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
-            LOADING_SCREEN("none");
-            getClusters();
-        });
-        setDefaultValues();
-        vm.activeTab = 'manage';
+        if (vm.sparkInstall.hadoopClusterName === undefined) {
+            SweetAlert.swal("ERROR!", "Please select Hadoop cluster", "error");
+        }
+        else if (vm.sparkInstall.nodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set nodes", "error");
+        }
+        else {
+            SweetAlert.swal("Success!", "Spark cluster is being created.", "success");
+            LOADING_SCREEN();
+            sparkSrv.createSpark(vm.sparkInstall).success(function (data) {
+                SweetAlert.swal("Success!", "Your Spark cluster was created.", "success");
+                LOADING_SCREEN("none");
+                getClusters();
+                vm.activeTab = 'manage';
+            }).error(function (error) {
+                SweetAlert.swal("ERROR!", 'Spark cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+                LOADING_SCREEN("none");
+                getClusters();
+            });
+            setDefaultValues();
+        }
     }
 
     function deleteCluster() {
