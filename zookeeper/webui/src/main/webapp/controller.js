@@ -29,7 +29,6 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
     vm.addContainer = addContainer;
     vm.createZookeeper = createZookeeper;
     vm.deleteNode = deleteNode;
-    ;
     vm.addNode = addNode;
     vm.addNodeForm = addNodeForm;
     vm.deleteCluster = deleteCluster;
@@ -163,23 +162,33 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
     }
 
     function createZookeeper() {
-        if (vm.zookeeperInstall.clusterName === undefined || vm.zookeeperInstall.clusterName.length == 0) return;
-        SweetAlert.swal("Success!", "Zookeeper cluster start creating.", "success");
-        LOADING_SCREEN();
-        if (vm.installType == 'hadoop') {
-            vm.zookeeperInstall.environmentId = vm.hadoopFullInfo.environmentId;
+        if (vm.installType == 'hadoop' && vm.zookeeperInstall.hadoopClusterName === undefined) {
+            SweetAlert.swal("ERROR!", "Please select Hadoop cluster", "error");
         }
-        zookeeperSrv.createZookeeper(vm.zookeeperInstall, vm.installType).success(function (data) {
-            SweetAlert.swal("Success!", "Zookeeper cluster successfully created.", "success");
-            LOADING_SCREEN("none");
-            getClusters();
-        }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Zookeeper cluster create error: ' + error, "error");
-            LOADING_SCREEN("none");
-            getClusters();
-        });
-        setDefaultValues();
-        vm.activeTab = 'manage';
+        else if (vm.installType != 'hadoop' && vm.zookeeperInstall.environmentId === undefined) {
+            SweetAlert.swal("ERROR!", "Please select Zookeeper environment", "error");
+        }
+        else if (vm.zookeeperInstall.nodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set nodes", "error");
+        }
+        else {
+            SweetAlert.swal("Success!", "Zookeeper cluster start creating.", "success");
+            LOADING_SCREEN();
+            if (vm.installType == 'hadoop') {
+                vm.zookeeperInstall.environmentId = vm.hadoopFullInfo.environmentId;
+            }
+            zookeeperSrv.createZookeeper(vm.zookeeperInstall, vm.installType).success(function (data) {
+                SweetAlert.swal("Success!", "Zookeeper cluster successfully created.", "success");
+                LOADING_SCREEN("none");
+                getClusters();
+                vm.activeTab = 'manage';
+            }).error(function (error) {
+                SweetAlert.swal("ERROR!", 'Zookeeper cluster create error: ' + error, "error");
+                LOADING_SCREEN("none");
+                getClusters();
+            });
+            setDefaultValues();
+        }
     }
 
     function deleteCluster() {
@@ -314,9 +323,8 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 
     function addNodeForm() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -362,5 +370,5 @@ function colSelectZookeeperNodes() {
         restrict: 'E',
         templateUrl: 'plugins/zookeeper/directives/col-select/col-select-containers.html'
     }
-};
+}
 
