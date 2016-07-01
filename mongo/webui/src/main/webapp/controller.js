@@ -70,19 +70,31 @@ function MongoCtrl(mongoSrv, SweetAlert) {
     setDefaultValues();
 
     function createMongo() {
-        console.log(vm.mongoInstall.configNodes.length);
         SweetAlert.swal("Success!", "Mongo cluster started creating.", "success");
-        if (vm.mongoInstall.configNodes.length % 2 !== 1) {
+        if (vm.mongoInstall.environmentId === undefined) {
+            SweetAlert.swal("ERROR!", "Please select Mongo environment", "error");
+        }
+        else if (vm.mongoInstall.configNodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Config nodes", "error");
+        }
+        else if (vm.mongoInstall.dataNodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Data nodes", "error");
+        }
+        else if (vm.mongoInstall.routeNodes.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Route nodes", "error");
+        }
+        else if (vm.mongoInstall.configNodes.length % 2 !== 1) {
             SweetAlert.swal("ERROR!", "Number of configuration node servers must be odd");
         }
+
         else {
             SweetAlert.swal("Success!", "Mongo cluster creating started.", "success");
             LOADING_SCREEN('block');
-            vm.activeTab = "manage";
             mongoSrv.createMongo(JSON.stringify(vm.mongoInstall)).success(function (data) {
                 SweetAlert.swal("Success!", "Mongo cluster created.", "success");
                 LOADING_SCREEN('none');
                 updateClusters();
+                vm.activeTab = "manage";
             }).error(function (error) {
                 SweetAlert.swal("ERROR!", 'Mongo cluster create error: ' + error.replace(/\\n/g, ' '), "error");
                 LOADING_SCREEN('none');
@@ -315,9 +327,8 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
     function sendRouter() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -335,9 +346,8 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
     function sendDataNode() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
