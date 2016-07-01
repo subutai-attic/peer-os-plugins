@@ -25,11 +25,6 @@ import io.subutai.plugin.usergrid.api.UsergridConfig;
 import io.subutai.plugin.usergrid.api.UsergridInterface;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 @Command ( scope = "usergrid", name = "install-cluster", description = "Install Cluster" )
 public class InstallClusterCommand extends OsgiCommandSupport
 {

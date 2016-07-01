@@ -36,11 +36,6 @@ import io.subutai.plugin.usergrid.api.UsergridInterface;
 import io.subutai.plugin.usergrid.rest.pojo.VersionPojo;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class RestServiceImpl implements RestService
 {
 

@@ -17,11 +17,6 @@ import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 @Command ( scope = "appscale", name = "uninstall-cluster", description = "Uninstall Cluster" )
 public class UninstallClusterCommand extends OsgiCommandSupport
 {

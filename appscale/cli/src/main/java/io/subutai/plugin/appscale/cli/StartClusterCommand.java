@@ -19,11 +19,6 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 @Command ( scope = "appscale", name = "start-cluster", description = "Command to start AppScale cluster" )
 public class StartClusterCommand extends OsgiCommandSupport
 {

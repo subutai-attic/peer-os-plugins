@@ -26,11 +26,6 @@ import io.subutai.plugin.usergrid.impl.ClusterConfiguration;
 import io.subutai.plugin.usergrid.impl.UsergridIMPL;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIMPL, UsergridConfig>
         implements ClusterOperationHandlerInterface
 {

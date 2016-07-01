@@ -12,11 +12,6 @@ import io.subutai.common.settings.Common;
 import io.subutai.core.plugincommon.api.ConfigBase;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class UsergridConfig implements ConfigBase
 {
 

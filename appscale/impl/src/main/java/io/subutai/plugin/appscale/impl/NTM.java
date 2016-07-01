@@ -12,10 +12,6 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.X509TrustManager;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class NTM implements X509TrustManager
 {
     @Override

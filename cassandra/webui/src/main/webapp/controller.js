@@ -141,9 +141,8 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
     function addNode() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -215,15 +214,30 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function createCassandra() {
-        SweetAlert.swal("Success!", "Your Cassandra cluster started creating.", "success");
-        vm.activeTab = "manage";
-        LOADING_SCREEN();
-        cassandraSrv.createCassandra(JSON.stringify(vm.cassandraInstall)).success(function (data) {
-            SweetAlert.swal("Success!", "Your Cassandra cluster successfully created.", "success");
-            getClusters();
-        }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Cassandra cluster create error: ' + error.replace(/\\n/g, ' '), "error");
-        });
+        console.log(vm.cassandraInstall)
+        if (vm.cassandraInstall.environmentId === undefined) {
+            SweetAlert.swal("ERROR!", 'Please select Cassandra environment', "error");
+        }
+        else if (vm.cassandraInstall.containers.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set nodes for configuration", "error");
+        }
+        else if (vm.cassandraInstall.seeds.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Seed nodes", "error");
+        }
+        else {
+            SweetAlert.swal("Success!", "Your Cassandra cluster started creating.", "success");
+            LOADING_SCREEN();
+            cassandraSrv.createCassandra(JSON.stringify(vm.cassandraInstall)).success(function (data) {
+                vm.activeTab = "manage";
+                LOADING_SCREEN('none');
+                SweetAlert.swal("Success!", "Your Cassandra cluster successfully created.", "success");
+                getClusters();
+            }).error(function (error) {
+                SweetAlert.swal("ERROR!", 'Cassandra cluster create error: ' + error.replace(/\\n/g, ' '), "error");
+                LOADING_SCREEN("none");
+            });
+        }
+
     }
 
     function changeClusterScaling(scale) {

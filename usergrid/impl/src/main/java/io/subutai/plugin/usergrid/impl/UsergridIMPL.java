@@ -60,10 +60,6 @@ import io.subutai.plugin.usergrid.impl.handler.ClusterOperationHandler;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 {
 

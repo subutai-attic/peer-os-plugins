@@ -11,10 +11,6 @@ import org.slf4j.LoggerFactory;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class Commands
 {
     AppScaleConfig config;

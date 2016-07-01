@@ -12,11 +12,6 @@ import java.util.List;
 import io.subutai.plugin.usergrid.api.UsergridConfig;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class Commands
 {
     UsergridConfig usergridConfig;

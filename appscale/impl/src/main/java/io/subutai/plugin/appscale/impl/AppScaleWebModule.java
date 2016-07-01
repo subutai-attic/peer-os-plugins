@@ -11,10 +11,6 @@ import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class AppScaleWebModule implements WebuiModule
 {
 

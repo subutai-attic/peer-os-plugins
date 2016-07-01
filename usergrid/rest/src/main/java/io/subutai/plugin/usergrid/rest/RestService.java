@@ -18,10 +18,6 @@ import javax.ws.rs.core.Response;
 import io.subutai.common.environment.Environment;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public interface RestService
 {
 

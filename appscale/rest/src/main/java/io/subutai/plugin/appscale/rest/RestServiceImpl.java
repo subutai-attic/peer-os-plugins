@@ -39,10 +39,6 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class RestServiceImpl implements RestService
 {
 

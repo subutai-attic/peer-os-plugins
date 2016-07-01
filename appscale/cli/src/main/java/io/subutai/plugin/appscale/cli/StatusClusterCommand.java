@@ -18,11 +18,6 @@ import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.api.AppScaleInterface;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 @Command ( scope = "appscale", name = "check-cluster", description = "Returns the current state of cluster" )
 public class StatusClusterCommand extends OsgiCommandSupport
 {

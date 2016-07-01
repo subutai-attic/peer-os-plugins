@@ -20,9 +20,6 @@ import javax.ws.rs.core.Response;
 import io.subutai.common.environment.Environment;
 
 
-/**
- * @author caveman
- */
 public interface RestService
 {
     // get cluster list

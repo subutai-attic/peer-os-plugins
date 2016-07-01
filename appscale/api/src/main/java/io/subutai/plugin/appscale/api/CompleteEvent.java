@@ -6,10 +6,6 @@
 package io.subutai.plugin.appscale.api;
 
 
-/**
- *
- * @author caveman
- */
 public interface CompleteEvent
 {
     void onComplete( String operationLog );

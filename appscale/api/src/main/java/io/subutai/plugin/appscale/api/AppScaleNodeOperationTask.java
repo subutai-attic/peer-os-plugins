@@ -19,11 +19,6 @@ import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.impl.AbstractNodeOperationTask;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class AppScaleNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;

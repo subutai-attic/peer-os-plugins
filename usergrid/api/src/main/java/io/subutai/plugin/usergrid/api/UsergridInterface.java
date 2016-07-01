@@ -14,10 +14,6 @@ import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 
 
-/**
- *
- * @author caveman
- */
 public interface UsergridInterface extends ApiBase<UsergridConfig>
 {
     List<String> getClusterList ( Environment name );

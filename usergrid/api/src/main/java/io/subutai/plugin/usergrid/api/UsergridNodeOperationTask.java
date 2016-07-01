@@ -19,11 +19,6 @@ import io.subutai.core.plugincommon.impl.AbstractNodeOperationTask;
 import io.subutai.core.tracker.api.Tracker;
 
 
-/**
- *
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class UsergridNodeOperationTask extends AbstractNodeOperationTask implements Runnable
 {
     private final String clusterName;

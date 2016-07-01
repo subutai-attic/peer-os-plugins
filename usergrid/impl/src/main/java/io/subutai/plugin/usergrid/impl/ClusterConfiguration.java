@@ -28,10 +28,6 @@ import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.usergrid.api.UsergridConfig;
 
 
-/**
- * @author caveman
- * @author Beyazıt Kelçeoğlu
- */
 public class ClusterConfiguration implements ClusterConfigurationInterface
 {
 
