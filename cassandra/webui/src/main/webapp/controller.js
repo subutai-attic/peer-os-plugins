@@ -214,7 +214,6 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function createCassandra() {
-        console.log(vm.cassandraInstall)
         if (vm.cassandraInstall.environmentId === undefined) {
             SweetAlert.swal("ERROR!", 'Please select Cassandra environment', "error");
         }

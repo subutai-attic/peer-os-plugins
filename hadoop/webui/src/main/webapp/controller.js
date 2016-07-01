@@ -65,9 +65,8 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
 
     function addNode() {
 
-        if ( vm.currentCluster.environmentDataSource == "hub" )
-        {
-            SweetAlert.swal( "Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+        if (vm.currentCluster.environmentDataSource == "hub") {
+            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
 
             return;
         }
@@ -167,19 +166,37 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     }
 
     function createHadoop() {
-        SweetAlert.swal("Success!", "Hadoop cluster is being created.", "success");
-        vm.activeTab = 'manage';
-        LOADING_SCREEN();
-        hadoopSrv.createHadoop(JSON.stringify(vm.hadoopInstall)).success(function (data) {
-            SweetAlert.swal("Success!", "Hadoop cluster created successfully", "success");
-            getClusters();
-            LOADING_SCREEN("none");
-        }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Hadoop cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
-            getClusters();
-            LOADING_SCREEN("none");
-        });
-        setDefaultValues();
+        if (vm.hadoopInstall.environmentId === undefined || "") {
+            SweetAlert.swal("ERROR!", 'Please select Hadoop environment', "error");
+        }
+        else if (vm.hadoopInstall.nameNode === undefined || "") {
+            SweetAlert.swal("ERROR!", "Please set Namenode", "error");
+        }
+        else if (vm.hadoopInstall.jobTracker === undefined || "") {
+            SweetAlert.swal("ERROR!", "Please set JobTraker node", "error");
+        }
+        else if (vm.hadoopInstall.secNameNode === undefined || "") {
+            SweetAlert.swal("ERROR!", "Please set Secondary node", "error");
+        }
+        else if (vm.hadoopInstall.slaves.length == 0) {
+            SweetAlert.swal("ERROR!", "Please set Slave nodes", "error");
+        }
+        else {
+
+            SweetAlert.swal("Success!", "Hadoop cluster is being created.", "success");
+            LOADING_SCREEN();
+            hadoopSrv.createHadoop(JSON.stringify(vm.hadoopInstall)).success(function (data) {
+                SweetAlert.swal("Success!", "Hadoop cluster created successfully", "success");
+                vm.activeTab = 'manage';
+                getClusters();
+                LOADING_SCREEN("none");
+            }).error(function (error) {
+                SweetAlert.swal("ERROR!", 'Hadoop cluster creation error: ' + error.replace(/\\n/g, ' '), "error");
+                getClusters();
+                LOADING_SCREEN("none");
+            });
+            setDefaultValues();
+        }
     }
 
     function showContainers(environmentId) {
@@ -204,7 +221,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
             vm.hadoopInstall.slaves.push(containerId);
         }
 
-		console.log(vm.hadoopInstall.slaves);
+        console.log(vm.hadoopInstall.slaves);
     }
 
     function addAllContainers() {
@@ -215,7 +232,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     }
 
     function unselectAllContainers() {
-		vm.hadoopInstall.slaves = [];
+        vm.hadoopInstall.slaves = [];
     }
 
     vm.dtOptions = DTOptionsBuilder
