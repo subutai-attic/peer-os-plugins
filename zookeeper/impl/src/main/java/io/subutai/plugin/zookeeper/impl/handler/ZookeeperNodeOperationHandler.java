@@ -185,12 +185,12 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 if ( envContainerHosts.isEmpty() )
                 {
                     Node nodeGroup = new Node( UUID.randomUUID().toString(), ZookeeperClusterConfig.PRODUCT_NAME,
-                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1, 1, null, null );
+                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, null, null );
                     Topology topology = new Topology( environment.getName() );
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
 
-                    johnnyRawSet.addAll( environment.growEnvironment ( topology, false ) );
+                    johnnyRawSet.addAll( environment.growEnvironment( topology, false ) );
                 }
                 if ( johnnyRawSet.isEmpty() )
                 {

@@ -98,8 +98,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                 {
                     try
                     {
-                        groupResources.getResources().add(
-                                peer.getResourceLimits( new PeerId( manager.getPeerManager().getLocalPeer().getId() ) ) );
+                        groupResources.getResources().add( peer
+                                .getResourceLimits( new PeerId( manager.getPeerManager().getLocalPeer().getId() ) ) );
                     }
                     catch ( PeerException e )
                     {
@@ -114,7 +114,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
                     Node nodeGroup =
                             new Node( UUID.randomUUID().toString(), containerName, HadoopClusterConfig.TEMPLATE_NAME,
-                                    ContainerSize.SMALL, 1, 1, resourceHost.getPeerId(), resourceHost.getId() );
+                                    ContainerSize.SMALL, resourceHost.getPeerId(), resourceHost.getId() );
 
                     nodeGroups.add( nodeGroup );
                 }

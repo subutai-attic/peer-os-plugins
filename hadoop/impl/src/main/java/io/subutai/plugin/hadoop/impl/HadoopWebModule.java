@@ -14,42 +14,45 @@ import io.subutai.webui.entity.WebuiModuleResourse;
 public class HadoopWebModule implements WebuiModule
 {
     private WebuiModuleResourse hadoopResource;
-    public static String NAME = "Hadoop";
-    public static String IMG = "plugins/hadoop/hadoop.png";
+    private static String NAME = "Hadoop";
+    private static String IMG = "plugins/hadoop/hadoop.png";
+    private static final String SIZE = "SMALL";
+
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put("hadoop", 1);
+        TEMPLATES_REQUIREMENT.put( "hadoop", 3 );
     }
-
 
     public void init()
     {
         this.hadoopResource = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
-        AngularjsDependency angularjsDependency = new AngularjsDependency(
-                "subutai.plugins.hadoop",
-                "plugins/hadoop/hadoop.js",
-                "plugins/hadoop/controller.js",
-                "plugins/hadoop/service.js",
-                "subutai-app/environment/service.js"
-        );
+        AngularjsDependency angularjsDependency =
+                new AngularjsDependency( "subutai.plugins.hadoop", "plugins/hadoop/hadoop.js",
+                        "plugins/hadoop/controller.js", "plugins/hadoop/service.js",
+                        "subutai-app/environment/service.js" );
 
-        this.hadoopResource.addDependency(angularjsDependency);
+        this.hadoopResource.addDependency( angularjsDependency );
     }
 
 
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
+        return String
+                .format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+                        SIZE, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
+
 
     @Override
     public String getName()
     {
         return NAME;
     }
+
 
     @Override
     public String getAngularState()

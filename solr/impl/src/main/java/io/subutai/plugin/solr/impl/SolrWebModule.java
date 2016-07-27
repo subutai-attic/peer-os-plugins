@@ -2,6 +2,7 @@ package io.subutai.plugin.solr.impl;
 
 
 import com.google.gson.Gson;
+
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -12,14 +13,17 @@ import java.util.Map;
 
 public class SolrWebModule implements WebuiModule
 {
-    public static String NAME = "Solr";
-    public static String IMG = "plugins/solr/solr.png";
+    private static String NAME = "Solr";
+    private static String IMG = "plugins/solr/solr.png";
+    private static final String SIZE = "SMALL";
+
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
+
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put("hadoop", 1);
+        TEMPLATES_REQUIREMENT.put( "solr", 3 );
     }
 
 
@@ -29,22 +33,20 @@ public class SolrWebModule implements WebuiModule
     public void init()
     {
         solr = new WebuiModuleResourse( NAME.toLowerCase(), IMG );
-        AngularjsDependency angularjsDependency = new AngularjsDependency(
-                "subutai.plugins.solr",
-                "plugins/solr/solr.js",
-                "plugins/solr/controller.js",
-                "plugins/solr/service.js",
-                "subutai-app/environment/service.js"
-        );
+        AngularjsDependency angularjsDependency =
+                new AngularjsDependency( "subutai.plugins.solr", "plugins/solr/solr.js", "plugins/solr/controller.js",
+                        "plugins/solr/service.js", "subutai-app/environment/service.js" );
 
-        solr.addDependency(angularjsDependency);
+        solr.addDependency( angularjsDependency );
     }
+
 
     @Override
     public String getAngularState()
     {
         return solr.getAngularjsList();
     }
+
 
     @Override
     public String getName()
@@ -56,7 +58,9 @@ public class SolrWebModule implements WebuiModule
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString());
+        return String
+                .format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+                        SIZE, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
 
 

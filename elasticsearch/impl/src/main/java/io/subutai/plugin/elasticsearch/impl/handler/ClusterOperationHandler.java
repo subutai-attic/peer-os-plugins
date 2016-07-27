@@ -198,8 +198,8 @@ public class ClusterOperationHandler
         final String hostname = UUID.randomUUID().toString();
         final String containerName = ElasticsearchClusterConfiguration.PRODUCT_KEY + "_" + hostname;
         Node tempnode =
-                new Node( hostname, containerName, ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.TINY,
-                        1, 1, localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
+                new Node( hostname, containerName, ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL,
+                        localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
 
         EnvironmentContainerHost newNode;
         try

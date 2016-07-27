@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
+import io.subutai.common.peer.ContainerSize;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -14,14 +15,16 @@ import io.subutai.webui.entity.WebuiModuleResourse;
 public class AppScaleWebModule implements WebuiModule
 {
 
-    public static final String NAME = "AppScale";
-    public static final String IMG = "plugins/appscale/appscale.png";
+    private static final String NAME = "AppScale";
+    private static final String IMG = "plugins/appscale/appscale.png";
+    private static final String SIZE = "HUGE";
+
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "appscale", 1 );
+        TEMPLATES_REQUIREMENT.put( "appscale", 4 );
     }
 
 
@@ -57,7 +60,7 @@ public class AppScaleWebModule implements WebuiModule
     @Override
     public String getModuleInfo()
     {
-        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+        return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME, SIZE,
                 new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
 

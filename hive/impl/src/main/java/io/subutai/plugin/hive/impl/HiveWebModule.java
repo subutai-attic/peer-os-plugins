@@ -13,13 +13,15 @@ import io.subutai.webui.entity.WebuiModuleResourse;
 public class HiveWebModule implements WebuiModule
 {
 	private WebuiModuleResourse hiveResource;
-	public static String NAME = "Hive";
-	public static String IMG = "plugins/hive/hive.png";
+	private static String NAME = "Hive";
+	private static String IMG = "plugins/hive/hive.png";
+	private static final String SIZE = "SMALL";
+
 	private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 	static
 	{
 		TEMPLATES_REQUIREMENT = new HashMap<>();
-		TEMPLATES_REQUIREMENT.put("hadoop", 2);
+		TEMPLATES_REQUIREMENT.put("hadoop", 3);
 	}
 
 
@@ -42,7 +44,9 @@ public class HiveWebModule implements WebuiModule
 	@Override
 	public String getModuleInfo()
 	{
-		return String.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"requirement\" : %s}", IMG, NAME, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
+		return String
+				.format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+						SIZE, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
 	}
 
 	@Override
