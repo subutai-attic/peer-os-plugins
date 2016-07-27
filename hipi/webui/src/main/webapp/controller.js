@@ -143,7 +143,7 @@ function HipiCtrl($scope, hipiSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
 		SweetAlert.swal("Success!", "Hipi cluster start creating.", "success");
 		LOADING_SCREEN();
 		hipiSrv.createHipi(vm.hipiInstall).success(function (data) {
-			SweetAlert.swal("Success!", "Your Hipi cluster start creating. LOG: " + data.replace(/\\n/g, ' '), "success");
+			SweetAlert.swal("Success!", "Hipi cluster created successfully", "success");
 			LOADING_SCREEN("none");
 			getClusters();
 		}).error(function (error) {
