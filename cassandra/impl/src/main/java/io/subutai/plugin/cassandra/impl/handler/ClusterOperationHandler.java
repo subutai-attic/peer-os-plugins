@@ -2,6 +2,7 @@ package io.subutai.plugin.cassandra.impl.handler;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -138,11 +140,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
 
         try
         {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            List<Integer> containersIndex = Lists.newArrayList();
+
+            for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
+            {
+                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
+                containersIndex.add( Integer.parseInt( number ) );
+            }
+
             Set<EnvironmentContainerHost> newNodeSet = null;
             try
             {
+                String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
                 NodeSchema node =
-                        new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "cassandra", 0, 0 );
+                        new NodeSchema( containerName, ContainerSize.SMALL, "cassandra", 0, 0 );
                 List<NodeSchema> nodes = new ArrayList<>();
                 nodes.add( node );
 
@@ -229,6 +242,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
         }
     }
 

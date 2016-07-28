@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -229,17 +230,20 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
     private void addNode()
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        final String hostname = UUID.randomUUID().toString();
-        //        final String containerName = ZookeeperClusterConfig.PRODUCT_NAME + "_" + hostname;
-        //        Node node = new Node( hostname, containerName, ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize
-        // .TINY, 1, 1,
-        //                localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
 
         EnvironmentContainerHost newNode;
         try
         {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            List<Integer> containersIndex = Lists.newArrayList();
+
+            for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
+            {
+                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
+                containersIndex.add( Integer.parseInt( number ) );
+            }
+
             EnvironmentContainerHost unUsedContainerInEnvironment =
                     findUnUsedContainerInEnvironment( environmentManager );
             if ( unUsedContainerInEnvironment != null )
@@ -252,8 +256,8 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 Set<EnvironmentContainerHost> newNodeSet = null;
                 try
                 {
-                    NodeSchema node =
-                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "storm", 0, 0 );
+                    String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
+                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "storm", 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -328,6 +332,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
         }
     }
 

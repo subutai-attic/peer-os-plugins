@@ -2,6 +2,7 @@ package io.subutai.plugin.elasticsearch.impl.handler;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -193,17 +195,20 @@ public class ClusterOperationHandler
 
     private void addNode()
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-        final String hostname = UUID.randomUUID().toString();
-        final String containerName = ElasticsearchClusterConfiguration.PRODUCT_KEY + "_" + hostname;
-        Node tempnode =
-                new Node( hostname, containerName, ElasticsearchClusterConfiguration.TEMPLATE_NAME, ContainerSize.SMALL,
-                        localPeer.getId(), localPeer.getResourceHosts().iterator().next().getId() );
 
         EnvironmentContainerHost newNode;
         try
         {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            List<Integer> containersIndex = Lists.newArrayList();
+
+            for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
+            {
+                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
+                containersIndex.add( Integer.parseInt( number ) );
+            }
+
             EnvironmentContainerHost unUsedContainerInEnvironment =
                     findUnUsedContainerInEnvironment( environmentManager );
             if ( unUsedContainerInEnvironment != null )
@@ -216,8 +221,8 @@ public class ClusterOperationHandler
                 Set<EnvironmentContainerHost> newNodeSet = null;
                 try
                 {
-                    NodeSchema node =
-                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "elasticsearch", 0, 0 );
+                    String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
+                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "elasticsearch", 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -300,6 +305,10 @@ public class ClusterOperationHandler
         catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
         }
     }
 

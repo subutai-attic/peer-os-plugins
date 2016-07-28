@@ -2,6 +2,7 @@ package io.subutai.plugin.mongodb.impl.handler;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -188,17 +190,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
 
     public void addNode( NodeType nodeType )
     {
-        LocalPeer localPeer = manager.getPeerManager().getLocalPeer();
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
-
-        String hostId = getPreferredHost();
-        /*NodeGroup nodeGroup =
-                new NodeGroup( MongoClusterConfig.PRODUCT_NAME, MongoClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, 1,
-                        1, localPeer.getId(), hostId );*/
 
         EnvironmentContainerHost newNode;
         try
         {
+            Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            List<Integer> containersIndex = Lists.newArrayList();
+
+            for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
+            {
+                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
+                containersIndex.add( Integer.parseInt( number ) );
+            }
+
             EnvironmentContainerHost unusedNodeInEnvironment = findUnUsedContainerInEnvironment( environmentManager );
             if ( unusedNodeInEnvironment != null )
             {
@@ -209,8 +214,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 Set<EnvironmentContainerHost> newNodeSet = null;
                 try
                 {
-                    NodeSchema node =
-                            new NodeSchema( UUID.randomUUID().toString(), ContainerSize.SMALL, "mongo", 0, 0 );
+                    String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
+                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "mongo", 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -321,6 +326,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
         }
     }
 

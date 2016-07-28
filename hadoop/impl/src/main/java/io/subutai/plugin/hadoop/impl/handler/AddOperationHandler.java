@@ -1,6 +1,7 @@
 package io.subutai.plugin.hadoop.impl.handler;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +9,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
@@ -71,8 +74,13 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             int numberOfContainersNotBeingUsed = 0;
             boolean allContainersNotBeingUsed = false;
+
+            List<Integer> containersIndex = Lists.newArrayList();
             for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
+                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
+                containersIndex.add( Integer.parseInt( number ) );
+
                 if ( !config.getAllNodes().contains( containerHost.getId() ) )
                 {
                     if ( containerHost.getTemplateName().equals( HadoopClusterConfig.TEMPLATE_NAME ) )
@@ -89,8 +97,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
             if ( ( !allContainersNotBeingUsed ) | ( numberOfContainersNotBeingUsed < nodeCount ) )
             {
-
-                String containerName = HadoopClusterConfig.PRODUCT_NAME + "_" + System.currentTimeMillis();
+                String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
                 final int newNodes = nodeCount - numberOfContainersNotBeingUsed;
                 Set<Node> nodeGroups = new HashSet<>();
                 PeerGroupResources groupResources = manager.getPeerManager().getPeerGroupResources();
@@ -113,7 +120,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
                     Node nodeGroup =
-                            new Node( UUID.randomUUID().toString(), containerName, HadoopClusterConfig.TEMPLATE_NAME,
+                            new Node( containerName, containerName, HadoopClusterConfig.TEMPLATE_NAME,
                                     ContainerSize.SMALL, resourceHost.getPeerId(), resourceHost.getId() );
 
                     nodeGroups.add( nodeGroup );
