@@ -57,7 +57,9 @@ public class RestServiceImpl implements RestService
         return Response.ok( JsonUtil.toJson( clusterNames ) ).build();
     }
 
+
     private final Logger log = LoggerFactory.getLogger( getClass() );
+
 
     @Override
     public Response getCluster( final String clusterName )
@@ -93,13 +95,14 @@ public class RestServiceImpl implements RestService
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+                if ( response.getStatus() == 200 && !response.getEntity().toString()
+                                                             .contains( "Active: active (running)" ) )
                 {
-                    containerDto.setStatus( "RUNNING" );
+                    containerDto.setStatus( "STOPPED" );
                 }
                 else
                 {
-                    containerDto.setStatus( "STOPPED" );
+                    containerDto.setStatus( "RUNNING" );
                 }
 
                 map.put( node, containerDto );
@@ -350,7 +353,8 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( lxcHosts );
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {
@@ -391,7 +395,8 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( lxcHosts );
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {

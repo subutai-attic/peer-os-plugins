@@ -31,10 +31,9 @@ public class ClusterConfiguration
     public void configureCluster( CassandraClusterConfig config, Environment environment )
             throws ClusterConfigurationException
     {
-
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
-        String script = "/opt/cassandra*/bin/cassandra-conf.sh %s";
-        String permissionParam = "sudo chmod 750 /opt/cassandra*";
+        String script = "/etc/cassandra/cassandra-conf.sh %s";
+        String permissionParam = "chmod +x /etc/cassandra/cassandra-conf.sh";
         String clusterNameParam = "cluster_name " + config.getClusterName();
         String dataDirParam = "data_dir " + config.getDataDirectory();
         String commitLogDirParam = "commitlog_dir " + config.getCommitLogDirectory();
@@ -102,19 +101,53 @@ public class ClusterConfiguration
                 po.addLog( commandResult.getStdOut() );
 
                 // Set RPC address
-                String rpcAddress = String.format( "/opt/cassandra*/bin/cassandra-conf.sh %s %s", "rpc_address",
+                String rpcAddress = String.format( "/etc/cassandra/cassandra-conf.sh %s %s", "rpc_address",
                         containerHost.getInterfaceByName( "eth0" ).getIp() );
                 commandResult = containerHost.execute( new RequestBuilder( rpcAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
                 // Set listen address
-                String listenAddress = String.format( "/opt/cassandra*/bin/cassandra-conf.sh %s %s", "listen_address",
+                String listenAddress = String.format( "/etc/cassandra/cassandra-conf.sh %s %s", "listen_address",
                         containerHost.getInterfaceByName( "eth0" ).getIp() );
                 commandResult = containerHost.execute( new RequestBuilder( listenAddress ) );
                 po.addLog( commandResult.getStdOut() );
 
                 // Configure seeds
                 commandResult = containerHost.execute( new RequestBuilder( String.format( script, seedsParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+            }
+            catch ( ContainerHostNotFoundException | CommandException e )
+            {
+                po.addLogFailed( "Installation failed" );
+                throw new ClusterConfigurationException( e.getMessage() );
+            }
+        }
+
+        for ( String id : config.getNodes() )
+        {
+            try
+            {
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
+                po.addLog( "Configuring node: " + containerHost.getHostname() );
+
+                // Stop cassandra service
+                CommandResult commandResult = containerHost.execute( new RequestBuilder( Commands.stopCommand ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Remove /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.removeFolder ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Create /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.createFolder ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Chown /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.chown ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Restart cassandra service
+                commandResult = containerHost.execute( new RequestBuilder( Commands.restartCommand ) );
                 po.addLog( commandResult.getStdOut() );
             }
             catch ( ContainerHostNotFoundException | CommandException e )
@@ -136,5 +169,115 @@ public class ClusterConfiguration
         }
 
         po.addLogDone( "Cassandra cluster data saved into database" );
+    }
+
+
+    public void deleteClusterConfiguration( final CassandraClusterConfig config, final Environment environment )
+            throws ClusterConfigurationException
+    {
+        po.addLog( String.format( "Deleting configuration of cluster: %s", config.getClusterName() ) );
+        String script = "/etc/cassandra/cassandra-conf.sh %s";
+        String permissionParam = "chmod +x /etc/cassandra/cassandra-conf.sh";
+        String clusterNameParam = "cluster_name Test Cluster";
+        String dataDirParam = "data_dir /var/lib/cassandra/data";
+        String commitLogDirParam = "commitlog_dir /var/lib/cassandra/commitlog";
+        String savedCacheDirParam = "saved_cache_dir /var/lib/cassandra/saved_caches";
+
+        String seedsParam = "seeds 127.0.0.1";
+
+        for ( String id : config.getNodes() )
+        {
+            try
+            {
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
+
+                // Setting permission
+                CommandResult commandResult = containerHost.execute( new RequestBuilder( permissionParam ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Setting cluster name
+                commandResult =
+                        containerHost.execute( new RequestBuilder( String.format( script, clusterNameParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Configure directories
+                commandResult = containerHost.execute( new RequestBuilder( String.format( script, dataDirParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+
+                commandResult =
+                        containerHost.execute( new RequestBuilder( String.format( script, commitLogDirParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+
+                commandResult =
+                        containerHost.execute( new RequestBuilder( String.format( script, savedCacheDirParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Set RPC address
+                String rpcAddress =
+                        String.format( "/etc/cassandra/cassandra-conf.sh %s %s", "rpc_address", "localhost" );
+                commandResult = containerHost.execute( new RequestBuilder( rpcAddress ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Set listen address
+                String listenAddress =
+                        String.format( "/etc/cassandra/cassandra-conf.sh %s %s", "listen_address", "localhost" );
+                commandResult = containerHost.execute( new RequestBuilder( listenAddress ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Configure seeds
+                commandResult = containerHost.execute( new RequestBuilder( String.format( script, seedsParam ) ) );
+                po.addLog( commandResult.getStdOut() );
+            }
+            catch ( ContainerHostNotFoundException | CommandException e )
+            {
+                po.addLogFailed( "Deleting configuration failed" );
+                throw new ClusterConfigurationException( e.getMessage() );
+            }
+        }
+
+        for ( String id : config.getNodes() )
+        {
+            try
+            {
+                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
+
+                // Stop cassandra service
+                CommandResult commandResult = containerHost.execute( new RequestBuilder( Commands.stopCommand ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Remove /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.removeFolder ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Create /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.createFolder ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Chown /var/lib/cassandra folder
+                commandResult = containerHost.execute( new RequestBuilder( Commands.chown ) );
+                po.addLog( commandResult.getStdOut() );
+
+                // Restart cassandra service
+                commandResult = containerHost.execute( new RequestBuilder( Commands.restartCommand ) );
+                po.addLog( commandResult.getStdOut() );
+            }
+            catch ( ContainerHostNotFoundException | CommandException e )
+            {
+                po.addLogFailed( "Installation failed" );
+                throw new ClusterConfigurationException( e.getMessage() );
+            }
+        }
+
+        try
+        {
+            cassandraManager.deleteConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            po.addLogFailed( "Failed to delete cluster information from database" );
+            return;
+        }
+
+        po.addLogDone( "Cluster removed from database" );
     }
 }

@@ -154,8 +154,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             try
             {
                 String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                NodeSchema node =
-                        new NodeSchema( containerName, ContainerSize.SMALL, "cassandra", 0, 0 );
+                NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "cassandra", 0, 0 );
                 List<NodeSchema> nodes = new ArrayList<>();
                 nodes.add( node );
 
@@ -361,31 +360,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            new ClusterConfiguration( trackerOperation, manager ).deleteClusterConfiguration( config, environment );
         }
-        catch ( EnvironmentNotFoundException e )
+        catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
-            return;
         }
-
-        //        try
-        //        {
-        //            manager.unsubscribeFromAlerts( environment );
-        //        }
-        //        catch ( MonitorException e )
-        //        {
-        //            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage()
-        // ) );
-        //        }
-        try
-        {
-            manager.deleteConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
-            return;
-        }
-        trackerOperation.addLogDone( "Cluster removed from database" );
     }
 }

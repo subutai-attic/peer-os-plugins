@@ -253,7 +253,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         for (var i in vm.environments) {
             if (environmentId == vm.environments[i].id) {
                 for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'cassandra') {
+                    if (vm.environments[i].containers[j].templateName == 'cassandra37') {
                         vm.containers.push(vm.environments[i].containers[j]);
                     }
                 }

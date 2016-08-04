@@ -15,14 +15,14 @@ public class CassandraWebModule implements WebuiModule
 {
     private static String NAME = "Cassandra";
     private static String IMG = "plugins/cassandra/cassandra.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "MEDIUM";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "cassandra", 3 );
+        TEMPLATES_REQUIREMENT.put( "cassandra37", 3 );
     }
 
 
