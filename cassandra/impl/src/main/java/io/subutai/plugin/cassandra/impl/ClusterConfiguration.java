@@ -271,13 +271,11 @@ public class ClusterConfiguration
         try
         {
             cassandraManager.deleteConfig( config );
+            po.addLogDone( "Cluster removed from database" );
         }
         catch ( ClusterException e )
         {
             po.addLogFailed( "Failed to delete cluster information from database" );
-            return;
         }
-
-        po.addLogDone( "Cluster removed from database" );
     }
 }

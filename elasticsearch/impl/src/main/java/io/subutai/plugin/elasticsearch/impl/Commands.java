@@ -27,13 +27,37 @@ public class Commands
     }
 
 
-    public RequestBuilder getConfigureCommand( String clusterName )
+    public static RequestBuilder getRestartCommand()
     {
-        return new RequestBuilder( String.format( "es-conf.sh cluster.name %s", clusterName ) );
+        return new RequestBuilder( "service elasticsearch restart" );
     }
 
 
-    public RequestBuilder getInstallCommand()
+    RequestBuilder setClusterNameCommand( String clusterName )
+    {
+        return new RequestBuilder( String.format( "bash /etc/elasticsearch/scripts/es-conf.sh cluster.name %s", clusterName ) );
+    }
+
+
+    RequestBuilder setNodeNameCommand( String nodeName )
+    {
+        return new RequestBuilder( String.format( "bash /etc/elasticsearch/scripts/es-conf.sh node.name %s", nodeName ) );
+    }
+
+
+    RequestBuilder setNetworkHostCommand( String host )
+    {
+        return new RequestBuilder( String.format( "bash /etc/elasticsearch/scripts/es-conf.sh network.host %s", host ) );
+    }
+
+
+    RequestBuilder setUnicastHostsCommand( String hosts )
+    {
+        return new RequestBuilder( String.format( "bash /etc/elasticsearch/scripts/es-conf.sh unicast.hosts %s", hosts ) );
+    }
+
+
+    RequestBuilder getInstallCommand()
     {
         return new RequestBuilder( String.format( "apt-get --force-yes --assume-yes install %s",
                 ElasticsearchClusterConfiguration.PACKAGE_NAME ) ).withTimeout( 600 );
@@ -47,7 +71,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getCheckInstallationCommand()
+    RequestBuilder getCheckInstallationCommand()
     {
         return new RequestBuilder(
                 String.format( "dpkg -l | grep '^ii' | grep %s", Common.PACKAGE_PREFIX_WITHOUT_DASH ) );

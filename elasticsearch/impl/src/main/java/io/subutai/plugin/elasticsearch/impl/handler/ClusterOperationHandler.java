@@ -358,27 +358,26 @@ public class ClusterOperationHandler
     public void removeCluster()
     {
         ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
-        Environment environment = null;
+        if ( config == null )
+        {
+            trackerOperation.addLogFailed(
+                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+            return;
+        }
+
+        Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            new ClusterConfiguration( manager, trackerOperation ).deleteClusterConfiguration( config, environment );
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLog( "Environment not found!" );
         }
-
-
-        try
+        catch ( ClusterConfigurationException e )
         {
-            // stop cluster before removing it
-            manager.stopCluster( config.getClusterName() );
-            manager.deleteConfig( config );
-            trackerOperation.addLogDone( "Cluster removed from database" );
-        }
-        catch ( ClusterException e )
-        {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( "Deleting configuration failed" );
         }
     }
 

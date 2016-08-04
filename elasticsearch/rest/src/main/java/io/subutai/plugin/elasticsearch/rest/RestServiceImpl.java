@@ -102,7 +102,7 @@ public class RestServiceImpl implements RestService
                 UUID uuid = elasticsearch.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+                if ( response.getStatus() == 200 && !response.getEntity().toString().contains( "Active: inactive (dead)" ) )
                 {
                     containerDto.setStatus( "RUNNING" );
                 }

@@ -16,7 +16,7 @@ public class ElasticSearchWebModule implements WebuiModule
     private WebuiModuleResourse elasticsearchResource;
     private static String NAME = "ElasticSearch";
     private static String IMG = "plugins/elasticsearch/elasticsearch.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "MEDIUM";
 
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
@@ -24,7 +24,7 @@ public class ElasticSearchWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "elasticsearch", 3 );
+        TEMPLATES_REQUIREMENT.put( "elasticsearch235", 3 );
     }
 
     public void init()
