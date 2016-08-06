@@ -222,45 +222,6 @@ public class ZookeeperClusterOperationHandler
             LOG.error( String.format( "Error during deleting cluster configuration, %s", e.getMessage() ) );
         }
 
-
-        //        try
-        //        {
-        //            if ( config.getSetupType() == SetupType.OVER_HADOOP || config.getSetupType() == SetupType
-        // .OVER_ENVIRONMENT )
-        //            {
-        //                trackerOperation.addLog( "Uninstalling zookeeper from nodes" );
-        //                Environment zookeeperEnvironment =
-        //                        manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-        //
-        //                Set<Host> hostSet =
-        //                        ZookeeperOverHadoopSetupStrategy.getHosts( config.getNodes(), zookeeperEnvironment );
-        //
-        //                CommandUtil.HostCommandResults results = commandUtil
-        //                        .execute( new RequestBuilder( Commands.getUninstallCommand() ), hostSet,
-        // zookeeperEnvironment.getId() );
-        //                Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
-        //                Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
-        //                for ( CommandUtil.HostCommandResult result : resultSet)
-        //                {
-        //                    resultMap.put (result.getHost(), result.getCommandResult());
-        //                }
-        //                if ( ZookeeperOverHadoopSetupStrategy.isAllSuccessful( resultMap, hostSet ) )
-        //                {
-        //                    trackerOperation.addLog( "Zookeeper is uninstalled from all containers successfully" );
-        //                }
-        //            }
-        //            else
-        //            {
-        //                trackerOperation.addLog( "Destroying environment..." );
-        //                manager.getEnvironmentManager().destroyEnvironment( config.getEnvironmentId(), true );
-        //            }
-        //
-        //        }
-        //        catch ( EnvironmentDestructionException | EnvironmentNotFoundException e )
-        //        {
-        //            trackerOperation.addLogFailed( String.format( "Error running command, %s", e.getMessage() ) );
-        //            LOG.error( e.getMessage(), e );
-        //        }
         manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
         trackerOperation.addLogDone( "Cluster destroyed" );
     }
