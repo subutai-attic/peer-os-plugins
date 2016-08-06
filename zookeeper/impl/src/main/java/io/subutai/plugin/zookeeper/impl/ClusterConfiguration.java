@@ -35,6 +35,11 @@ public class ClusterConfiguration
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
+    private static final String DEFAULT_CONFIGURATION =
+            "dataDir=/var/zookeeper\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n" + "syncLimit=2\n"
+                    + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
+                    + "#server.3=zookeeper3:2888:3888";
+
     private ZookeeperImpl manager;
     private TrackerOperation po;
 
@@ -51,7 +56,6 @@ public class ClusterConfiguration
     {
 
         po.addLog( "Configuring cluster..." );
-
 
         String configureClusterCommand;
         Set<String> nodeUUIDs = config.getNodes();
@@ -114,13 +118,15 @@ public class ClusterConfiguration
         //restart all other nodes with new configuration
         List<CommandResult> commandsResultList = new ArrayList<>();
 
+        removeSnaps( containerHosts );
+
         for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
-            String restartCommand = Commands.getRestartCommand();
             CommandResult commandResult = null;
             try
             {
-                commandResult = containerHost.execute( new RequestBuilder( restartCommand ).withTimeout( 60 ) );
+                commandResult =
+                        containerHost.execute( new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
             }
             catch ( CommandException e )
             {
@@ -132,11 +138,11 @@ public class ClusterConfiguration
 
         for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
-            String startZkServer = Commands.getStartZkServerCommand();
             CommandResult commandResult = null;
             try
             {
-                commandResult = containerHost.execute( new RequestBuilder( startZkServer ).withTimeout( 60 ) );
+                commandResult = containerHost
+                        .execute( new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
             }
             catch ( CommandException e )
             {
@@ -146,7 +152,6 @@ public class ClusterConfiguration
             commandsResultList.add( commandResult );
         }
 
-
         if ( getFailedCommandResults( commandsResultList ).size() == 0 )
         {
             po.addLog( "Cluster successfully restarted" );
@@ -154,6 +159,40 @@ public class ClusterConfiguration
         else
         {
             po.addLogFailed( "Failed to restart cluster, skipping..." );
+        }
+    }
+
+
+    private void removeSnaps( final Set<EnvironmentContainerHost> containerHosts )
+    {
+        po.addLog( "Removing snaps..." );
+
+        //restart all other nodes with new configuration
+        List<CommandResult> commandsResultList = new ArrayList<>();
+
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
+        {
+            CommandResult commandResult = null;
+            try
+            {
+                commandResult = containerHost
+                        .execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
+            }
+            catch ( CommandException e )
+            {
+                po.addLogFailed( "Could not remove snap in node:" + containerHost.getHostname() + ": " + e );
+                LOG.error( "Could not remove snap in node:" + containerHost.getHostname() + ": " + e );
+            }
+            commandsResultList.add( commandResult );
+        }
+
+        if ( getFailedCommandResults( commandsResultList ).size() == 0 )
+        {
+            po.addLog( "Snaps successfully removed" );
+        }
+        else
+        {
+            po.addLogFailed( "Failed to remove snaps, skipping..." );
         }
     }
 
@@ -208,7 +247,7 @@ public class ClusterConfiguration
     }
 
 
-    public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
+    private List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
     {
         List<CommandResult> failedCommands = new ArrayList<>();
         for ( CommandResult commandResult : commandResultList )
@@ -230,16 +269,10 @@ public class ClusterConfiguration
         {
             containerHosts = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
 
-            String defaultConfiguration =
-                    "dataDir=/var/zookeeper\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n"
-                            + "syncLimit=2\n" + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
-                            + "#server.3=zookeeper3:2888:3888";
-            int nodeNumber = 0;
-
             for ( final EnvironmentContainerHost containerHost : containerHosts )
             {
-                String configureClusterCommand = Commands.getConfigureClusterCommand( defaultConfiguration,
-                        ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
+                String configureClusterCommand = Commands.getResetClusterConfigurationCommand( DEFAULT_CONFIGURATION,
+                        ConfigParams.CONFIG_FILE_PATH.getParamValue() );
                 try
                 {
                     containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
@@ -251,12 +284,34 @@ public class ClusterConfiguration
                 }
             }
 
+            removeSnaps( containerHosts );
+
             restartAllNodes( containerHosts );
         }
         catch ( ContainerHostNotFoundException e )
         {
             po.addLogFailed( "Error getting container hosts by ids" );
             LOG.error( "Error getting container hosts by ids", e );
+        }
+    }
+
+
+    public void removeNode( final ContainerHost host )
+    {
+        String configureClusterCommand = Commands.getResetClusterConfigurationCommand( DEFAULT_CONFIGURATION,
+                ConfigParams.CONFIG_FILE_PATH.getParamValue() );
+
+        try
+        {
+            host.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+            host.execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
+            host.execute( new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
+            host.execute( new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
+        }
+        catch ( CommandException e )
+        {
+            po.addLogFailed( "Could not run command: " + e );
+            LOG.error( "Could not run command: " + e );
         }
     }
 }

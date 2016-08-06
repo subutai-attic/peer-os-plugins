@@ -212,10 +212,8 @@ public class ZookeeperClusterOperationHandler
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-//            new ClusterConfiguration( manager, trackerOperation )
-//                    .deleteConfiguration( zookeeperClusterConfig, environment );
-            // stop all nodes before removing zookeeper
-            manager.stopAllNodes( clusterName );
+            new ClusterConfiguration( manager, trackerOperation )
+                    .deleteConfiguration( zookeeperClusterConfig, environment );
         }
         catch ( EnvironmentNotFoundException e )
         {

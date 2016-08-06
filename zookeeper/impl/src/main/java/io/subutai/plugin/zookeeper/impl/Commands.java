@@ -52,6 +52,7 @@ public class Commands
         return "service zookeeper start";
     }
 
+
     public static String getStartZkServerCommand()
     {
         return "/usr/share/zookeeper/bin/zkServer.sh start";
@@ -64,10 +65,23 @@ public class Commands
     }
 
 
+    public static String getRestartZkServerCommand()
+    {
+        return "/usr/share/zookeeper/bin/zkServer.sh restart";
+    }
+
+
+    public static String getRemoveSnapsCommand()
+    {
+        return "rm -rf /var/zookeeper/version-2/*";
+    }
+
+
     public static String getStopCommand()
     {
         return "service zookeeper stop";
     }
+
 
     public static String getStopZkServerCommand()
     {
@@ -79,6 +93,7 @@ public class Commands
     {
         return "service zookeeper status";
     }
+
 
     public static String getStatusZkServerCommand()
     {
@@ -94,8 +109,15 @@ public class Commands
 
     public static String getConfigureClusterCommand( String zooCfgFileContents, String zooCfgFilePath, int id )
     {
-        return String.format( "bash /etc/zookeeper/scripts/zookeeper-setID.sh %s && echo '%s' > %s", id, zooCfgFileContents,
-                zooCfgFilePath );
+        return String
+                .format( "bash /etc/zookeeper/scripts/zookeeper-setID.sh %s && echo '%s' > %s", id, zooCfgFileContents,
+                        zooCfgFilePath );
+    }
+
+
+    public static String getResetClusterConfigurationCommand( String zooCfgFileContents, String zooCfgFilePath )
+    {
+        return String.format( "echo '%s' > %s", zooCfgFileContents, zooCfgFilePath );
     }
 
 
