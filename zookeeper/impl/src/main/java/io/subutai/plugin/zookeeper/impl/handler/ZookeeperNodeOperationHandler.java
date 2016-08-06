@@ -112,15 +112,15 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 case START:
                     assert containerHost != null;
                     commandResultList
-                            .add( containerHost.execute( new RequestBuilder( Commands.getStartCommand() ).daemon() ) );
+                            .add( containerHost.execute( new RequestBuilder( Commands.getStartZkServerCommand() ).daemon() ) );
                     break;
                 case STOP:
                     assert containerHost != null;
-                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopCommand() ) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStopZkServerCommand() ) ) );
                     break;
                 case STATUS:
                     assert containerHost != null;
-                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStatusCommand() ) ) );
+                    commandResultList.add( containerHost.execute( new RequestBuilder( Commands.getStatusZkServerCommand() ) ) );
                     break;
                 case ADD:
                     if ( hostname != null )

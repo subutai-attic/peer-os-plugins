@@ -110,7 +110,7 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
         for (var i in vm.environments) {
             if (selectedCluster == vm.environments[i].id) {
                 for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'zookeeper') {
+                    if (vm.environments[i].containers[j].templateName == 'zookeeper348') {
                         vm.currentClusterNodes.push(vm.environments[i].containers[j]);
                     }
                 }

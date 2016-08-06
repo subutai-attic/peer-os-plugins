@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
@@ -22,6 +25,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
 
 
 /**
@@ -29,6 +33,7 @@ import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
  */
 public class ClusterConfiguration
 {
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
     private ZookeeperImpl manager;
     private TrackerOperation po;
@@ -60,26 +65,25 @@ public class ClusterConfiguration
             po.addLogFailed( "Error getting container hosts by ids" );
             return;
         }
-        Iterator<EnvironmentContainerHost> iterator = containerHosts.iterator();
 
         int nodeNumber = 0;
         List<CommandResult> commandsResultList = new ArrayList<>();
-        while ( iterator.hasNext() )
+
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
             configureClusterCommand = Commands.getConfigureClusterCommand( prepareConfiguration( containerHosts ),
                     ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
             try
             {
-                ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
                 CommandResult commandResult;
                 commandResult =
-                        zookeeperNode.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+                        containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
                 commandsResultList.add( commandResult );
             }
-            catch ( CommandException | ContainerHostNotFoundException e )
+            catch ( CommandException e )
             {
                 po.addLogFailed( "Could not run command " + configureClusterCommand + ": " + e );
-                e.printStackTrace();
+                LOG.error( "Could not run command " + configureClusterCommand + ": " + e );
             }
         }
 
@@ -93,39 +97,63 @@ public class ClusterConfiguration
         }
         if ( isSuccesful )
         {
-            po.addLog( "Cluster configured\nRestarting cluster..." );
-            //restart all other nodes with new configuration
-            commandsResultList = new ArrayList<>();
-            while ( iterator.hasNext() )
-            {
-                String restartCommand = Commands.getRestartCommand();
-                CommandResult commandResult = null;
-                try
-                {
-                    ContainerHost zookeeperNode = environment.getContainerHostById( iterator.next().getId() );
-                    commandResult = zookeeperNode.execute( new RequestBuilder( restartCommand ).withTimeout( 60 ) );
-                }
-                catch ( CommandException | ContainerHostNotFoundException e )
-                {
-                    po.addLogFailed( "Could not run command " + restartCommand + ": " + e );
-                    e.printStackTrace();
-                }
-                commandsResultList.add( commandResult );
-            }
-
-            if ( getFailedCommandResults( commandsResultList ).size() == 0 )
-            {
-                po.addLog( "Cluster successfully restarted" );
-            }
-            else
-            {
-                po.addLog( String.format( "Failed to restart cluster, skipping..." ) );
-            }
+            restartAllNodes( containerHosts );
         }
         else
         {
 
-            throw new ClusterConfigurationException( String.format( "Cluster configuration failed" ) );
+            throw new ClusterConfigurationException( "Cluster configuration failed" );
+        }
+    }
+
+
+    private void restartAllNodes( final Set<EnvironmentContainerHost> containerHosts )
+    {
+        po.addLog( "Cluster configured\nRestarting cluster..." );
+
+        //restart all other nodes with new configuration
+        List<CommandResult> commandsResultList = new ArrayList<>();
+
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
+        {
+            String restartCommand = Commands.getRestartCommand();
+            CommandResult commandResult = null;
+            try
+            {
+                commandResult = containerHost.execute( new RequestBuilder( restartCommand ).withTimeout( 60 ) );
+            }
+            catch ( CommandException e )
+            {
+                po.addLogFailed( "Could not restart node:" + containerHost.getHostname() + ": " + e );
+                LOG.error( "Could not restart node:" + containerHost.getHostname() + ": " + e );
+            }
+            commandsResultList.add( commandResult );
+        }
+
+        for ( final EnvironmentContainerHost containerHost : containerHosts )
+        {
+            String startZkServer = Commands.getStartZkServerCommand();
+            CommandResult commandResult = null;
+            try
+            {
+                commandResult = containerHost.execute( new RequestBuilder( startZkServer ).withTimeout( 60 ) );
+            }
+            catch ( CommandException e )
+            {
+                po.addLogFailed( "Could not start node:" + containerHost.getHostname() + ": " + e );
+                LOG.error( "Could not restart node:" + containerHost.getHostname() + ": " + e );
+            }
+            commandsResultList.add( commandResult );
+        }
+
+
+        if ( getFailedCommandResults( commandsResultList ).size() == 0 )
+        {
+            po.addLog( "Cluster successfully restarted" );
+        }
+        else
+        {
+            po.addLogFailed( "Failed to restart cluster, skipping..." );
         }
     }
 
@@ -139,7 +167,8 @@ public class ClusterConfiguration
         {
             URL url = ZookeeperStandaloneSetupStrategy.class.getProtectionDomain().getCodeSource().getLocation();
 
-            URLClassLoader loader = new URLClassLoader( new URL[] { url }, Thread.currentThread().getContextClassLoader() );
+            URLClassLoader loader =
+                    new URLClassLoader( new URL[] { url }, Thread.currentThread().getContextClassLoader() );
             InputStream is = loader.getResourceAsStream( "conf/zoo.cfg" );
             Scanner scanner = new Scanner( is ).useDelimiter( "\\A" );
             zooCfgFile = scanner.hasNext() ? scanner.next() : "";
@@ -190,5 +219,44 @@ public class ClusterConfiguration
             }
         }
         return failedCommands;
+    }
+
+
+    public void deleteConfiguration( final ZookeeperClusterConfig zookeeperClusterConfig,
+                                     final Environment environment )
+    {
+        Set<EnvironmentContainerHost> containerHosts;
+        try
+        {
+            containerHosts = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+
+            String defaultConfiguration =
+                    "dataDir=/var/zookeeper\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n"
+                            + "syncLimit=2\n" + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
+                            + "#server.3=zookeeper3:2888:3888";
+            int nodeNumber = 0;
+
+            for ( final EnvironmentContainerHost containerHost : containerHosts )
+            {
+                String configureClusterCommand = Commands.getConfigureClusterCommand( defaultConfiguration,
+                        ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
+                try
+                {
+                    containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+                }
+                catch ( CommandException e )
+                {
+                    po.addLogFailed( "Could not run command " + configureClusterCommand + ": " + e );
+                    LOG.error( "Could not run command " + configureClusterCommand + ": " + e );
+                }
+            }
+
+            restartAllNodes( containerHosts );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            po.addLogFailed( "Error getting container hosts by ids" );
+            LOG.error( "Error getting container hosts by ids", e );
+        }
     }
 }

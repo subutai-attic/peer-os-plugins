@@ -101,59 +101,9 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             }
         }
 
-        po.addLog( "Checking prerequisites..." );
-
-
-        //check installed subutai packages
-        String checkInstalledCommand = Commands.getStatusCommand();
-        List<CommandResult> commandResultList = runCommandOnContainers( checkInstalledCommand, zookeeperNodes );
-        /*if ( getFailedCommandResults( commandResultList ).size() != 0 )
-        {
-            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-        }*/
-
-        Iterator<EnvironmentContainerHost> iterator = zookeeperNodes.iterator();
-        int nodeIndex = 0;
-        while ( iterator.hasNext() )
-        {
-            ContainerHost host = iterator.next();
-            CommandResult result = commandResultList.get( nodeIndex++ );
-
-            if ( result.getStdOut().contains( "Zookeeper Server is running" ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s already has Zookeeper installed", host.getHostname() ) );
-            }
-        }
-
-        po.addLog( String.format( "Installing Zookeeper..." ) );
-
-        //install
         try
         {
-            String installCommand = Commands.getStatusCommand();
-            for ( final ContainerHost zookeeperNode : zookeeperNodes )
-            {
-                try
-                {
-                    CommandResult result =
-                            zookeeperNode.execute( new RequestBuilder( installCommand ).withTimeout( 30 ) );
-                    if ( result.getStdErr().contains( "unrecognized service" ) )
-                    {
-                        zookeeperNode.execute( new RequestBuilder( Commands.getInstallCommand() ).withTimeout( 120 ) );
-                    }
-                    po.addLog( String.format( "Installed zookeeper package on %s", zookeeperNode.getHostname() ) );
-                }
-                catch ( CommandException e )
-                {
-                    po.addLogFailed( "Couldn't install zookeeper on container host: " + zookeeperNode.getHostname() );
-                    LOGGER.error( "Couldn't install zookeeper on container host: " + zookeeperNode.getHostname(), e );
-                    throw new ClusterSetupException( e );
-                }
-            }
-
-
-            po.addLog( "Installation succeeded\nConfiguring cluster..." );
+            po.addLog( "Configuring cluster..." );
 
             new ClusterConfiguration( manager, po ).configureCluster( zookeeperClusterConfig, environment );
 
@@ -164,7 +114,7 @@ public class ZookeeperOverEnvironmentSetupStrategy implements ClusterSetupStrate
             manager.getPluginDAO()
                    .saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, zookeeperClusterConfig.getClusterName(),
                            zookeeperClusterConfig );
-            po.addLog( "Cluster information saved to database" );
+            po.addLogDone( "Cluster information saved to database" );
         }
         catch ( ClusterConfigurationException e )
         {

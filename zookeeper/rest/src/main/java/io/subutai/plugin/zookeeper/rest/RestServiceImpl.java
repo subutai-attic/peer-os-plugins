@@ -172,7 +172,8 @@ public class RestServiceImpl implements RestService
         config.setSetupType( SetupType.OVER_ENVIRONMENT );
 
         List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         for ( String node : hosts )
         {
@@ -200,7 +201,8 @@ public class RestServiceImpl implements RestService
         config.setSetupType( SetupType.OVER_HADOOP );
 
         List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         for ( String node : hosts )
         {
@@ -312,7 +314,8 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( lxcHosts );
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {
@@ -352,7 +355,8 @@ public class RestServiceImpl implements RestService
 
 
         List<String> hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
-        {}.getType() );
+        {
+        }.getType() );
 
         if ( hosts == null || hosts.isEmpty() )
         {
@@ -593,11 +597,11 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "Zookeeper Server is running" ) )
+                    if ( !po.getLog().contains( "Error contacting service. It is probably not running" ) )
                     {
                         state = "RUNNING";
                     }
-                    else if ( po.getLog().contains( "Zookeeper Server is not running" ) )
+                    else
                     {
                         state = "STOPPED";
                     }
