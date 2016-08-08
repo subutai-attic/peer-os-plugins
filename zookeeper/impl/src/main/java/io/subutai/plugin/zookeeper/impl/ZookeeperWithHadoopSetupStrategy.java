@@ -7,10 +7,12 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.PeerException;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -75,14 +77,16 @@ public class ZookeeperWithHadoopSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                // TODO: check getProducts()
-                if ( containerHost.getTemplate().getConfigContents()/* getProducts()*/
-                                  .contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
+                CommandResult commandResult = containerHost.execute( new RequestBuilder(
+                        String.format( "dpkg -l | grep %s",
+                                Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) ) );
+
+                if ( commandResult.getStdOut().contains( Common.PACKAGE_PREFIX + ZookeeperClusterConfig.PRODUCT_NAME ) )
                 {
                     zookeeperNodes.add( containerHost );
                 }
             }
-            catch ( PeerException e )
+            catch ( CommandException e )
             {
                 e.printStackTrace();
             }

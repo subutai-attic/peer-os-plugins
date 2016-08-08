@@ -2,7 +2,6 @@ package io.subutai.plugin.zookeeper.impl.handler;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +28,6 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
-import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.ClusterConfiguration;
@@ -190,7 +188,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/
 
-                    johnnyRawSet.addAll( environment.growEnvironment( topology, false ) );
+                    johnnyRawSet.addAll( environmentManager.growEnvironment( environment.getId(), topology, false ) );
                 }
                 if ( johnnyRawSet.isEmpty() )
                 {
