@@ -221,6 +221,14 @@ public class ZookeeperClusterOperationHandler
                     .addLogFailed( String.format( "Error during deleting cluster configuration, %s", e.getMessage() ) );
             LOG.error( String.format( "Error during deleting cluster configuration, %s", e.getMessage() ) );
         }
+        catch ( ClusterConfigurationException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Error during reconfiguration after removing cluster: %s",
+                    config.getClusterName() ) );
+            LOG.error(
+                    String.format( "Error during reconfiguration after removing cluster: %s", config.getClusterName() ),
+                    e );
+        }
 
         manager.getPluginDAO().deleteInfo( config.getProductKey(), config.getClusterName() );
         trackerOperation.addLogDone( "Cluster destroyed" );

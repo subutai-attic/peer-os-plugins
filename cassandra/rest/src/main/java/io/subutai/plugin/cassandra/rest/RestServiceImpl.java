@@ -76,7 +76,7 @@ public class RestServiceImpl implements RestService
 
         Map<String, ContainerDto> map = new HashMap<>();
 
-        for ( String node : config.getNodes() )
+        for ( String node : config.getSeedNodes() )
         {
             try
             {
@@ -87,7 +87,7 @@ public class RestServiceImpl implements RestService
                     env = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 }
 
-                EnvironmentContainerHost containerHost = env.getContainerHostById( node );
+                EnvironmentContainerHost containerHost = env.getContainerHostByHostname( node );
 
                 String ip = containerHost.getInterfaceByName( "eth0" ).getIp();
                 containerDto.setIp( ip );
@@ -119,7 +119,6 @@ public class RestServiceImpl implements RestService
         ClusterDto dto = new ClusterDto();
 
         dto.setSeeds( config.getSeedNodes() );
-        dto.setContainers( config.getNodes() );
         dto.setContainersStatuses( map );
         dto.setName( config.getClusterName() );
         dto.setScaling( config.isAutoScaling() );
@@ -205,7 +204,6 @@ public class RestServiceImpl implements RestService
         String[] configSeeds = seeds.replaceAll( "\\s+", "" ).split( "," );
         Collections.addAll( allNodes, configNodes );
         Collections.addAll( allSeeds, configSeeds );
-        config.setNodes( allNodes );
         config.setSeedNodes( allSeeds );
 
 
@@ -592,10 +590,8 @@ public class RestServiceImpl implements RestService
         clusterConfig.setDataDirectory( clusterDto.getDataDir() );
         clusterConfig.setCommitLogDirectory( clusterDto.getCommitDir() );
         clusterConfig.setSavedCachesDirectory( clusterDto.getCacheDir() );
-        clusterConfig.setNodes( clusterDto.getContainers() );
-        clusterConfig.setSeedNodes( clusterDto.getSeeds() );
-        clusterConfig.setNumberOfNodes( clusterDto.getContainers().size() );
-        clusterConfig.setNumberOfSeeds( clusterDto.getSeeds().size() );
+        clusterConfig.setSeedNodes( clusterDto.getContainers() );
+        clusterConfig.setNumberOfSeeds( clusterDto.getContainers().size() );
         clusterConfig.setEnvironmentId( clusterDto.getEnvironmentId() );
         Environment environment = null;
         try

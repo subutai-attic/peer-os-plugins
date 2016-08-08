@@ -240,8 +240,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
 
             for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
             {
-                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
-                containersIndex.add( Integer.parseInt( number ) );
+                String numbers = containerHost.getContainerName().replace( "Container", "" ).trim();
+                String contId = numbers.split( "-" )[0];
+                containersIndex.add( Integer.parseInt( contId ) );
             }
 
             EnvironmentContainerHost unUsedContainerInEnvironment =

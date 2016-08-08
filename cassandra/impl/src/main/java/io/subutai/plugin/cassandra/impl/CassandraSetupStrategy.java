@@ -67,7 +67,7 @@ public class CassandraSetupStrategy implements ClusterSetupStrategy
         {
             cassNodes.add( environmentContainer.getId() );
         }
-        config.setNodes( cassNodes );
+        config.setSeedNodes( cassNodes );
 
         Iterator<String> iterator = cassNodes.iterator();
         Set<String> seedNodes = new HashSet<>();

@@ -71,7 +71,6 @@ public class DescribeClusterCommandTest
         mySet.add( id );
 
         when( cassandra.getCluster( anyString() ) ).thenReturn( cassandraClusterConfig );
-        when( cassandraClusterConfig.getNodes() ).thenReturn( mySet );
         when( cassandraClusterConfig.getSeedNodes() ).thenReturn( mySet );
 
         describeClusterCommand.setCassandraManager( cassandra );
@@ -80,7 +79,6 @@ public class DescribeClusterCommandTest
         // assertions
         assertNotNull( cassandra.getCluster( anyString() ) );
         verify( cassandraClusterConfig ).getClusterName();
-        verify( cassandraClusterConfig ).getNodes();
         verify( cassandraClusterConfig ).getSeedNodes();
         verify( cassandraClusterConfig ).getDataDirectory();
         verify( cassandraClusterConfig ).getCommitLogDirectory();

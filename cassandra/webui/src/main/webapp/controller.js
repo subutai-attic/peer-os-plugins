@@ -86,6 +86,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         vm.currentCluster = {};
         vm.nodes2Action = [];
         cassandraSrv.getClusters(selectedCluster).success(function (data) {
+            console.log(data);
             vm.currentCluster = data;
             LOADING_SCREEN('none');
         });
@@ -220,9 +221,9 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         else if (vm.cassandraInstall.containers.length == 0) {
             SweetAlert.swal("ERROR!", "Please set nodes for configuration", "error");
         }
-        else if (vm.cassandraInstall.seeds.length == 0) {
-            SweetAlert.swal("ERROR!", "Please set Seed nodes", "error");
-        }
+        // else if (vm.cassandraInstall.seeds.length == 0) {
+        //     SweetAlert.swal("ERROR!", "Please set Seed nodes", "error");
+        // }
         else {
             SweetAlert.swal("Success!", "Your Cassandra cluster started creating.", "success");
             LOADING_SCREEN();
@@ -263,6 +264,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     }
 
     function addContainer(containerId) {
+        console.log(vm.containers);
         if (vm.cassandraInstall.containers.indexOf(containerId) > -1) {
             vm.cassandraInstall.containers.splice(vm.cassandraInstall.containers.indexOf(containerId), 1);
         } else {
@@ -274,7 +276,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function addAllContainers() {
         vm.cassandraInstall.containers = [];
         for (var i = 0; i < vm.containers.length; i++) {
-            vm.cassandraInstall.containers.push(vm.containers[i].id);
+            vm.cassandraInstall.containers.push(vm.containers[i].hostname);
         }
         console.log(vm.cassandraInstall.containers);
         vm.seeds = angular.copy(vm.cassandraInstall.containers);
@@ -293,14 +295,14 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             vm.cassandraInstall.seeds.push(seedId);
         }
     }
-
+    
     function addAllSeeds() {
         vm.cassandraInstall.seeds = [];
         for (var i = 0; i < vm.seeds.length; i++) {
             vm.cassandraInstall.seeds.push(vm.seeds[i]);
         }
     }
-
+    
     function unselectAllSeeds() {
         vm.cassandraInstall.seeds = [];
     }

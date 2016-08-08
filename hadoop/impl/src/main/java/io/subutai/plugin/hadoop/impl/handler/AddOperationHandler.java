@@ -78,8 +78,9 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
             List<Integer> containersIndex = Lists.newArrayList();
             for ( EnvironmentContainerHost containerHost : environment.getContainerHosts() )
             {
-                String number = containerHost.getContainerName().replace( "Container", "" ).trim();
-                containersIndex.add( Integer.parseInt( number ) );
+                String numbers = containerHost.getContainerName().replace( "Container", "" ).trim();
+                String contId = numbers.split( "-" )[0];
+                containersIndex.add( Integer.parseInt( contId ) );
 
                 if ( !config.getAllNodes().contains( containerHost.getId() ) )
                 {
@@ -119,9 +120,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     ResourceHost resourceHost =
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
-                    Node nodeGroup =
-                            new Node( containerName, containerName, HadoopClusterConfig.TEMPLATE_NAME,
-                                    ContainerSize.SMALL, resourceHost.getPeerId(), resourceHost.getId() );
+                    Node nodeGroup = new Node( containerName, containerName, HadoopClusterConfig.TEMPLATE_NAME,
+                            ContainerSize.SMALL, resourceHost.getPeerId(), resourceHost.getId() );
 
                     nodeGroups.add( nodeGroup );
                 }

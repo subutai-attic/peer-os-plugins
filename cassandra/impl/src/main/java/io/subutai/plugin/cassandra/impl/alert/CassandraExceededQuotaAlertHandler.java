@@ -119,7 +119,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
         }
 
         //check if source host belongs to found cluster
-        if ( !targetCluster.getNodes().contains( sourceHost.getId() ) )
+        if ( !targetCluster.getSeedNodes().contains( sourceHost.getId() ) )
         {
             LOG.info( String.format( "Alert source host %s does not belong to Cassandra cluster",
                     alert.getValue().getHostId() ) );
@@ -137,7 +137,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
             int processPID = 0;
             try
             {
-                CommandResult result = commandUtil.execute( new RequestBuilder( Commands.statusCommand ), sourceHost );
+                CommandResult result = commandUtil.execute( new RequestBuilder( Commands.STATUS_COMMAND ), sourceHost );
                 processPID = parsePid( result.getStdOut() );
             }
             catch ( NumberFormatException | CommandException e )

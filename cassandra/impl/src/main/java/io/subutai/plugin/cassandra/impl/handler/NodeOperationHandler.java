@@ -1,6 +1,9 @@
 package io.subutai.plugin.cassandra.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -28,6 +31,7 @@ import io.subutai.core.plugincommon.api.NodeOperationType;
  */
 public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl, CassandraClusterConfig>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
 
     private String clusterName;
     private String id;
@@ -70,7 +74,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         EnvironmentContainerHost host = null;
         try
         {
-            host = environment.getContainerHostById( id );
+            host = environment.getContainerHostByHostname( id );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -83,7 +87,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             return;
         }
 
-        if ( !config.getAllNodes().contains( host.getId() ) )
+        if ( !config.getSeedNodes().contains( host.getHostname() ) )
         {
             trackerOperation.addLogFailed( String.format( "Node %s does not belong to %s cluster.", id, clusterName ) );
             return;
@@ -95,15 +99,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             switch ( operationType )
             {
                 case START:
-                    result = host.execute( new RequestBuilder( Commands.startCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.START_COMMAND ) );
                     logResults( trackerOperation, result );
                     break;
                 case STOP:
-                    result = host.execute( new RequestBuilder( Commands.stopCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.STOP_COMMAND ) );
                     logResults( trackerOperation, result );
                     break;
                 case STATUS:
-                    result = host.execute( new RequestBuilder( Commands.statusCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.STATUS_COMMAND ) );
                     logResults( trackerOperation, result );
                     break;
                 case DESTROY:
@@ -124,26 +128,48 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
-            CassandraClusterConfig config = manager.getCluster( clusterName );
-            config.getNodes().remove( host.getId() );
-            manager.saveConfig( config );
-            // configure cluster again
-            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-                configurator
-                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
+                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+                CassandraClusterConfig config = manager.getCluster( clusterName );
+                config.getSeedNodes().remove( host.getHostname() );
+
+                // configure cluster again
+                ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+                try
+                {
+                    configurator.removeNode( host );
+                    configurator.configureCluster( config, environment );
+                }
+                catch ( ClusterConfigurationException e )
+                {
+                    trackerOperation.addLogFailed(
+                            String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                                    host.getHostname(), config.getClusterName() ) );
+                    LOG.error( String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                            host.getHostname(), config.getClusterName() ), e );
+                }
+
+                // saving config
+                manager.saveConfig( config );
+
+                trackerOperation.addLog( "Cluster information is updated" );
+                trackerOperation
+                        .addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
+                LOG.info( String.format( "Container %s is removed from cluster", host.getHostname() ) );
             }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            catch ( EnvironmentNotFoundException e )
             {
-                e.printStackTrace();
+                trackerOperation
+                        .addLogFailed( String.format( "Environment not found: %s", config.getEnvironmentId() ) );
+                LOG.error( String.format( "Environment not found: %s", config.getEnvironmentId() ), e );
             }
-            trackerOperation.addLog( String.format( "Cluster information is updated" ) );
-            trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
         catch ( ClusterException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed(
+                    String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ) );
+            LOG.error( String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ), e );
         }
     }
 

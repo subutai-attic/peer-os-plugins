@@ -65,7 +65,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
         CassandraClusterConfig config = new CassandraClusterConfig();
         config.setClusterName( clusterName );
         config.setDomainName( domainName );
-        config.setNumberOfNodes( Integer.parseInt( numberOfNodes ) );
         config.setNumberOfSeeds( Integer.parseInt( numberOfSeeds ) );
 
         UUID uuid = cassandraManager.installCluster( config );

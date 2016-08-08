@@ -64,23 +64,24 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
         return alertSettings;
     }
 
-//
-//    public void subscribeToAlerts( Environment environment ) throws MonitorException
-//    {
-//        getMonitor().startMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment, alertSettings );
-//    }
-//
-//
-//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-//    {
-//        getMonitor().activateMonitoring( host, alertSettings );
-//    }
-//
-//
-//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-//    {
-//        getMonitor().stopMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment );
-//    }
+    //
+    //    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    //    {
+    //        getMonitor().startMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment,
+    // alertSettings );
+    //    }
+    //
+    //
+    //    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+    //    {
+    //        getMonitor().activateMonitoring( host, alertSettings );
+    //    }
+    //
+    //
+    //    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    //    {
+    //        getMonitor().stopMonitoring( CassandraAlertListener.CASSANDRA_ALERT_LISTENER, environment );
+    //    }
 
 
     public Monitor getMonitor()
@@ -348,6 +349,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     @Override
     public void onContainerDestroyed( final Environment environment, final String containerId )
     {
+        // TODO need to reconfigure after container destroyed
         LOG.info( String.format( "Cassandra environment event: Container destroyed: %s", containerId ) );
         List<CassandraClusterConfig> clusters = getClusters();
         for ( CassandraClusterConfig clusterConfig : clusters )
@@ -357,29 +359,22 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
                 LOG.info( String.format( "Cassandra environment event: Target cluster: %s",
                         clusterConfig.getClusterName() ) );
 
-                if ( clusterConfig.getAllNodes().contains( containerId ) )
-                {
-                    LOG.info( String.format( "Cassandra environment event: Before: %s", clusterConfig ) );
+                LOG.info( String.format( "Cassandra environment event: Before: %s", clusterConfig ) );
 
-                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getNodes() ) )
-                    {
-                        clusterConfig.getNodes().remove( containerId );
-                    }
-                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSeedNodes() ) )
-                    {
-                        clusterConfig.getSeedNodes().remove( containerId );
-                    }
-                    try
-                    {
-                        saveConfig( clusterConfig );
-                        LOG.info( String.format( "Cassandra environment event: After: %s", clusterConfig ) );
-                    }
-                    catch ( ClusterException e )
-                    {
-                        LOG.error( "Error updating cluster config", e );
-                    }
-                    break;
+                if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getSeedNodes() ) )
+                {
+                    clusterConfig.getSeedNodes().remove( containerId );
                 }
+                try
+                {
+                    saveConfig( clusterConfig );
+                    LOG.info( String.format( "Cassandra environment event: After: %s", clusterConfig ) );
+                }
+                catch ( ClusterException e )
+                {
+                    LOG.error( "Error updating cluster config", e );
+                }
+                break;
             }
         }
     }

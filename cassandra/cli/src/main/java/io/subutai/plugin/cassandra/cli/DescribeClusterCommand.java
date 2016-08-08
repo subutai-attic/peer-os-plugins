@@ -42,10 +42,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             StringBuilder sb = new StringBuilder();
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Nodes:" ).append( "\n" );
-            for ( String containerId : config.getNodes() )
-            {
-                sb.append( "Container ID: " ).append( containerId ).append( "\n" );
-            }
             sb.append( "Seeds:" ).append( "\n" );
             for ( String containerId : config.getSeedNodes() )
             {

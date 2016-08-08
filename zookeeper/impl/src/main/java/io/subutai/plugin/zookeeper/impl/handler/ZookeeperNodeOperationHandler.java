@@ -40,6 +40,7 @@ import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
  */
 public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandler<ZookeeperImpl, ZookeeperClusterConfig>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( ZookeeperNodeOperationHandler.class.getName() );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ZookeeperNodeOperationHandler.class );
     private String clusterName;
@@ -323,7 +324,6 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             ZookeeperClusterConfig config = manager.getCluster( clusterName );
             config.getNodes().remove( host.getId() );
-            manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
             // configure cluster again
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             try
@@ -333,14 +333,22 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
             }
             catch ( ClusterConfigurationException e )
             {
-                e.printStackTrace();
+                trackerOperation.addLogFailed(
+                        String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                                host.getHostname(), config.getClusterName() ) );
+                LOG.error( String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                        host.getHostname(), config.getClusterName() ), e );
             }
+            manager.getPluginDAO().saveInfo( ZookeeperClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
+
             trackerOperation.addLog( "Cluster information is updated" );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
+            LOG.info( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            trackerOperation.addLogFailed( String.format( "Environment not found: %s", config.getEnvironmentId() ) );
+            LOG.error( String.format( "Environment not found: %s", config.getEnvironmentId() ), e );
         }
     }
 

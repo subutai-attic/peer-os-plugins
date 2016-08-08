@@ -112,6 +112,7 @@ public class ClusterConfiguration
 
 
     private void restartAllNodes( final Set<EnvironmentContainerHost> containerHosts )
+            throws ClusterConfigurationException
     {
         po.addLog( "Cluster configured\nRestarting cluster..." );
 
@@ -158,7 +159,8 @@ public class ClusterConfiguration
         }
         else
         {
-            po.addLogFailed( "Failed to restart cluster, skipping..." );
+            po.addLogFailed( "Failed to restart cluster" );
+            throw new ClusterConfigurationException( "Cluster configuration failed" );
         }
     }
 
@@ -262,7 +264,7 @@ public class ClusterConfiguration
 
 
     public void deleteConfiguration( final ZookeeperClusterConfig zookeeperClusterConfig,
-                                     final Environment environment )
+                                     final Environment environment ) throws ClusterConfigurationException
     {
         Set<EnvironmentContainerHost> containerHosts;
         try
