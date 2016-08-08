@@ -13,7 +13,6 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ContainerHostMetric;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -48,8 +47,7 @@ public class OozieAlertListenerTest
     OozieClusterConfig oozieClusterConfig;
     @Mock
     OozieImpl oozieImpl;
-    @Mock
-    ContainerHostMetric containerHostMetric;
+
     @Mock
     EnvironmentManager environmentManager;
     @Mock
@@ -72,11 +70,11 @@ public class OozieAlertListenerTest
     }
 
 
-//    @Test( expected = AlertException.class )
-//    public void testOnAlertClusterNotFound() throws Exception
-//    {
-//        oozieAlertListener.onAlert( containerHostMetric );
-//    }
+    //    @Test( expected = AlertException.class )
+    //    public void testOnAlertClusterNotFound() throws Exception
+    //    {
+    //        oozieAlertListener.onAlert( containerHostMetric );
+    //    }
 
 
     @Test( expected = AlertHandlerException.class )
@@ -93,76 +91,76 @@ public class OozieAlertListenerTest
     }
 
 
-//    @Test
-//    public void testGetSubscriberId() throws Exception
-//    {
-//        oozieAlertListener.getSubscriberId();
-//    }
+    //    @Test
+    //    public void testGetSubscriberId() throws Exception
+    //    {
+    //        oozieAlertListener.getSubscriberId();
+    //    }
 
 
-//    @Test( expected = AlertException.class )
-//    public void testOnAlertEnvironmentIsNull() throws Exception
-//    {
-//        List<OozieClusterConfig> myList = new ArrayList<>();
-//        myList.add( oozieClusterConfig );
-//        when( oozieImpl.getClusters() ).thenReturn( myList );
-//        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
-//        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
-//        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-//        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( null );
-//
-//
-//        oozieAlertListener.onAlert( containerHostMetric );
-//    }
-//
-//
-//    @Test
-//    public void testOnAlertNotBelongToOozie() throws Exception
-//    {
-//        List<OozieClusterConfig> myList = new ArrayList<>();
-//        myList.add( oozieClusterConfig );
-//        Set<EnvironmentContainerHost> mySet = new HashSet<>();
-//        mySet.add( containerHost );
-//        when( oozieImpl.getClusters() ).thenReturn( myList );
-//        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
-//        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
-//        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-//        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
-//        when( environment.getContainerHosts() ).thenReturn( mySet );
-//        when( containerHost.getId() ).thenReturn( id );
-//        when( containerHostMetric.getHostId() ).thenReturn( id );
-//
-//        oozieAlertListener.onAlert( containerHostMetric );
-//    }
-//
-//
-//    @Test( expected = AlertException.class )
-//    public void testOnAlert() throws Exception
-//    {
-//        List<OozieClusterConfig> myList = new ArrayList<>();
-//        myList.add( oozieClusterConfig );
-//        Set<EnvironmentContainerHost> mySet = new HashSet<>();
-//        mySet.add( containerHost );
-//        Set<String> myUUID = new HashSet<>();
-//        myUUID.add( id );
-//        when( oozieImpl.getClusters() ).thenReturn( myList );
-//        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
-//        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
-//        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-//        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
-//        when( environment.getContainerHosts() ).thenReturn( mySet );
-//        when( containerHost.getId() ).thenReturn( id );
-//        when( containerHostMetric.getHostId() ).thenReturn( id );
-//        when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
-//        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
-//        when( commandResult.hasSucceeded() ).thenReturn( true );
-//        when( commandResult.getStdOut() ).thenReturn( "12345" );
-//        when( ( oozieImpl.getAlertSettings() ) ).thenReturn( monitoringSettings );
-//        when( containerHost.getProcessResourceUsage( 12345 ) ).thenReturn( processResourceUsage );
-//        when( oozieClusterConfig.isAutoScaling() ).thenReturn( true );
-//        when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
-//        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
-//
-//        oozieAlertListener.onAlert( containerHostMetric );
-//    }
+    //    @Test( expected = AlertException.class )
+    //    public void testOnAlertEnvironmentIsNull() throws Exception
+    //    {
+    //        List<OozieClusterConfig> myList = new ArrayList<>();
+    //        myList.add( oozieClusterConfig );
+    //        when( oozieImpl.getClusters() ).thenReturn( myList );
+    //        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+    //        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
+    //        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+    //        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( null );
+    //
+    //
+    //        oozieAlertListener.onAlert( containerHostMetric );
+    //    }
+    //
+    //
+    //    @Test
+    //    public void testOnAlertNotBelongToOozie() throws Exception
+    //    {
+    //        List<OozieClusterConfig> myList = new ArrayList<>();
+    //        myList.add( oozieClusterConfig );
+    //        Set<EnvironmentContainerHost> mySet = new HashSet<>();
+    //        mySet.add( containerHost );
+    //        when( oozieImpl.getClusters() ).thenReturn( myList );
+    //        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+    //        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
+    //        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+    //        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+    //        when( environment.getContainerHosts() ).thenReturn( mySet );
+    //        when( containerHost.getId() ).thenReturn( id );
+    //        when( containerHostMetric.getHostId() ).thenReturn( id );
+    //
+    //        oozieAlertListener.onAlert( containerHostMetric );
+    //    }
+    //
+    //
+    //    @Test( expected = AlertException.class )
+    //    public void testOnAlert() throws Exception
+    //    {
+    //        List<OozieClusterConfig> myList = new ArrayList<>();
+    //        myList.add( oozieClusterConfig );
+    //        Set<EnvironmentContainerHost> mySet = new HashSet<>();
+    //        mySet.add( containerHost );
+    //        Set<String> myUUID = new HashSet<>();
+    //        myUUID.add( id );
+    //        when( oozieImpl.getClusters() ).thenReturn( myList );
+    //        when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
+    //        when( containerHostMetric.getEnvironmentId() ).thenReturn( id );
+    //        when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
+    //        when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
+    //        when( environment.getContainerHosts() ).thenReturn( mySet );
+    //        when( containerHost.getId() ).thenReturn( id );
+    //        when( containerHostMetric.getHostId() ).thenReturn( id );
+    //        when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
+    //        when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
+    //        when( commandResult.hasSucceeded() ).thenReturn( true );
+    //        when( commandResult.getStdOut() ).thenReturn( "12345" );
+    //        when( ( oozieImpl.getAlertSettings() ) ).thenReturn( monitoringSettings );
+    //        when( containerHost.getProcessResourceUsage( 12345 ) ).thenReturn( processResourceUsage );
+    //        when( oozieClusterConfig.isAutoScaling() ).thenReturn( true );
+    //        when( oozieImpl.getHadoopManager() ).thenReturn( hadoop );
+    //        when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
+    //
+    //        oozieAlertListener.onAlert( containerHostMetric );
+    //    }
 }
