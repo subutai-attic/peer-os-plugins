@@ -3,6 +3,7 @@ package io.subutai.plugin.cassandra.rest.pojo;
 
 public class ContainerDto
 {
+    private String id;
     private String ip;
     private String status;
 
@@ -11,6 +12,7 @@ public class ContainerDto
     {
         ip = "";
         status = "";
+        id = "";
     }
 
 
@@ -35,5 +37,17 @@ public class ContainerDto
     public void setStatus( final String status )
     {
         this.status = status;
+    }
+
+
+    public String getId()
+    {
+        return id;
+    }
+
+
+    public void setId( final String id )
+    {
+        this.id = id;
     }
 }

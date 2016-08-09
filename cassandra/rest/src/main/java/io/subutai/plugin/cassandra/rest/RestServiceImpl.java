@@ -91,6 +91,7 @@ public class RestServiceImpl implements RestService
 
                 String ip = containerHost.getInterfaceByName( "eth0" ).getIp();
                 containerDto.setIp( ip );
+                containerDto.setId( containerHost.getId() );
 
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
@@ -122,6 +123,7 @@ public class RestServiceImpl implements RestService
         dto.setContainersStatuses( map );
         dto.setName( config.getClusterName() );
         dto.setScaling( config.isAutoScaling() );
+        dto.setEnvironmentId( config.getEnvironmentId() );
 
         log.info( ">> env: {}", env );
 
@@ -144,8 +146,9 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.uninstallCluster( clusterName );
-        String operationId = wrapUUID( uuid );
-        return Response.status( Response.Status.OK ).entity( operationId ).build();
+        waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
