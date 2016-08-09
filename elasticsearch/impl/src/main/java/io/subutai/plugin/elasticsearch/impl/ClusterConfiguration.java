@@ -1,6 +1,7 @@
 package io.subutai.plugin.elasticsearch.impl;
 
 
+import java.util.HashSet;
 import java.util.Set;
 
 import io.subutai.common.command.CommandException;
@@ -9,6 +10,7 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -128,10 +130,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
                 commandUtil.execute( new RequestBuilder( command ), containerHost );
 
-                //                // Setting unicast hosts
-                //                commandUtil.execute( manager.getCommands().setUnicastHostsCommand( "host1,host2" ),
-                // containerHost );
-
                 // Restart node
                 commandUtil.execute( Commands.getRestartCommand(), containerHost );
             }
@@ -150,6 +148,92 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         catch ( ClusterException e )
         {
             po.addLogFailed( "Failed to delete cluster information from database" );
+        }
+    }
+
+
+    public void removeNode( final ContainerHost host ) throws ClusterConfigurationException
+    {
+        po.addLog( String.format( "Deleting configuration of node: %s", host.getHostname() ) );
+
+        try
+        {
+            // Stopping node
+            CommandResult commandResult = host.execute( Commands.getStopCommand() );
+            po.addLog( commandResult.getStdOut() );
+
+            String command = "sed -i \"s/.*discovery.zen.ping.unicast.hosts: .*/#discovery.zen.ping.unicast.hosts: "
+                    + "[\"host1\", \"host2\"]/g\" " + "/etc/elasticsearch/elasticsearch" + ".yml";
+
+            commandUtil.execute( new RequestBuilder( command ), host );
+
+            // Restart node
+            commandUtil.execute( Commands.getRestartCommand(), host );
+        }
+        catch ( CommandException e )
+        {
+            po.addLogFailed( "Deleting configuration failed" );
+            throw new ClusterConfigurationException( e.getMessage() );
+        }
+    }
+
+
+    public void addNode( final ElasticsearchClusterConfiguration config, final Environment environment,
+                         final EnvironmentContainerHost newNode ) throws ClusterConfigurationException
+    {
+        Set<EnvironmentContainerHost> esNodes = new HashSet<>();
+        try
+        {
+            esNodes = environment.getContainerHostsByIds( config.getNodes() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        if ( CollectionUtil.isCollectionEmpty( esNodes ) )
+        {
+            throw new ClusterConfigurationException( "No nodes found in environment" );
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for ( EnvironmentContainerHost containerHost : esNodes )
+        {
+            sb.append( containerHost.getInterfaceByName( "eth0" ).getIp() ).append( "," );
+        }
+        if ( !sb.toString().isEmpty() )
+        {
+            sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
+        }
+        String hosts = sb.toString();
+
+        try
+        {
+            po.addLog( String.format( "Configuring node %s...", newNode.getHostname() ) );
+
+            // Setting cluster name
+            commandUtil.execute( manager.getCommands().setClusterNameCommand( config.getClusterName() ), newNode );
+
+            // Setting node name
+            commandUtil.execute( manager.getCommands().setNodeNameCommand( newNode.getHostname() ), newNode );
+
+            // Setting network host
+            commandUtil.execute(
+                    manager.getCommands().setNetworkHostCommand( newNode.getInterfaceByName( "eth0" ).getIp() ),
+                    newNode );
+
+            for ( final EnvironmentContainerHost esNode : esNodes )
+            {
+                // Setting unicast hosts
+                commandUtil.execute( manager.getCommands().setUnicastHostsCommand( hosts ), esNode );
+
+                // Restart node
+                commandUtil.execute( Commands.getRestartCommand(), esNode );
+            }
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterConfigurationException( e.getMessage() );
         }
     }
 }

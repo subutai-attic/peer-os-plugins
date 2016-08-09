@@ -148,6 +148,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
                                     host.getHostname(), config.getClusterName() ) );
                     LOG.error( String.format( "Error during reconfiguration after removing node %s from cluster: %s",
                             host.getHostname(), config.getClusterName() ), e );
+                    e.printStackTrace();
                 }
 
                 // saving config
@@ -163,6 +164,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
                 trackerOperation
                         .addLogFailed( String.format( "Environment not found: %s", config.getEnvironmentId() ) );
                 LOG.error( String.format( "Environment not found: %s", config.getEnvironmentId() ), e );
+                e.printStackTrace();
             }
         }
         catch ( ClusterException e )
@@ -170,6 +172,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
             trackerOperation.addLogFailed(
                     String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ) );
             LOG.error( String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ), e );
+            e.printStackTrace();
         }
     }
 

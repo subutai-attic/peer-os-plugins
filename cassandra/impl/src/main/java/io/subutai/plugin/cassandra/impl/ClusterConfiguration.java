@@ -248,7 +248,7 @@ public class ClusterConfiguration
 
     public void removeNode( final EnvironmentContainerHost host ) throws ClusterConfigurationException
     {
-        po.addLog( String.format( "Deleting configuration of cluster: %s", host.getHostname() ) );
+        po.addLog( String.format( "Deleting configuration of node: %s", host.getHostname() ) );
         String seedsParam = "seeds 127.0.0.1";
 
         try

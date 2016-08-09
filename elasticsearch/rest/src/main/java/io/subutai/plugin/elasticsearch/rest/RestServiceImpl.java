@@ -89,6 +89,7 @@ public class RestServiceImpl implements RestService
                     String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
 
                     clusterDto.setEnvironmentDataSource( envDataSource );
+                    clusterDto.setEnvironmentId( config.getEnvironmentId() );
                 }
 
                 EnvironmentContainerHost containerHost = env.getContainerHostById( node );
@@ -98,6 +99,7 @@ public class RestServiceImpl implements RestService
                 containerDto.setIp( ip );
                 containerDto.setId( node );
                 containerDto.setHostname( containerHost.getHostname() );
+                containerDto.setId( containerHost.getId() );
 
                 UUID uuid = elasticsearch.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );

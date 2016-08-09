@@ -13,6 +13,7 @@ public class ClusterDto
     private String clusterName;
     private List<ContainerDto> containers;
 
+    private String environmentId;
     private String environmentDataSource;
 
 
@@ -79,5 +80,17 @@ public class ClusterDto
     public void setEnvironmentDataSource( final String environmentDataSource )
     {
         this.environmentDataSource = environmentDataSource;
+    }
+
+
+    public String getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final String environmentId )
+    {
+        this.environmentId = environmentId;
     }
 }

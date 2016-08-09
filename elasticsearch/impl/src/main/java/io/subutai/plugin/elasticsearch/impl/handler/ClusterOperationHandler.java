@@ -206,7 +206,7 @@ public class ClusterOperationHandler
             for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
             {
                 String numbers = containerHost.getContainerName().replace( "Container", "" ).trim();
-                String contId = numbers.split("-")[0];
+                String contId = numbers.split( "-" )[0];
                 containersIndex.add( Integer.parseInt( contId ) );
             }
 
@@ -257,50 +257,21 @@ public class ClusterOperationHandler
                 config.getNodes().add( newNode.getId() );
             }
 
-            manager.saveConfig( config );
-
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             Environment environment;
             try
             {
                 environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-                configurator
-                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
-                // check if one of nodes in elasticsearch cluster is already running,
-                // then newly added node should be started automatically.
-                try
-                {
-                    EnvironmentContainerHost node =
-                            environment.getContainerHostById( config.getNodes().iterator().next() );
-                    RequestBuilder checkNodeIsRunning = manager.getCommands().getStatusCommand();
-                    CommandResult result = null;
-                    try
-                    {
-                        result = commandUtil.execute( checkNodeIsRunning, node );
-                        if ( result.hasSucceeded() )
-                        {
-                            if ( !result.getStdOut().toLowerCase().contains( "not" ) )
-                            {
-                                commandUtil.execute( manager.getCommands().getStartCommand(), newNode );
-                            }
-                        }
-                    }
-                    catch ( CommandException e )
-                    {
-                        LOG.error( "Could not check if Elasticsearch is running on one of the nodes" );
-                        e.printStackTrace();
-                    }
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
+                configurator.addNode( config, environment, newNode );
             }
             catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
             {
                 LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
                 throw new ClusterException( e );
             }
+
+            manager.saveConfig( config );
+
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )

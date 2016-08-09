@@ -1,6 +1,9 @@
 package io.subutai.plugin.elasticsearch.impl.handler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
@@ -25,6 +28,7 @@ import io.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
  */
 public class NodeOperationHandler extends AbstractOperationHandler<ElasticsearchImpl, ElasticsearchClusterConfiguration>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
 
     private String hostId;
     private NodeOperationType operationType;
@@ -114,25 +118,45 @@ public class NodeOperationHandler extends AbstractOperationHandler<Elasticsearch
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
             ElasticsearchClusterConfiguration config = manager.getCluster( clusterName );
             config.getNodes().remove( host.getId() );
-            manager.saveConfig( config );
+
             // configure cluster again
             ClusterConfiguration configurator = new ClusterConfiguration( manager, trackerOperation );
             try
             {
+                configurator.removeNode(host);
                 configurator
-                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
+                        .configureCluster( config, environment );
             }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
+            catch ( ClusterConfigurationException e )
             {
+                trackerOperation.addLogFailed(
+                        String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                                host.getHostname(), config.getClusterName() ) );
+                LOG.error( String.format( "Error during reconfiguration after removing node %s from cluster: %s",
+                        host.getHostname(), config.getClusterName() ), e );
                 e.printStackTrace();
             }
+
+            manager.saveConfig( config );
+
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
         catch ( ClusterException e )
         {
+            trackerOperation.addLogFailed(
+                    String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ) );
+            LOG.error( String.format( "Error in saving configuration of cluster: %s", config.getClusterName() ), e );
+            e.printStackTrace();
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Environment not found: %s", config.getEnvironmentId() ) );
+            LOG.error( String.format( "Environment not found: %s", config.getEnvironmentId() ), e );
             e.printStackTrace();
         }
     }

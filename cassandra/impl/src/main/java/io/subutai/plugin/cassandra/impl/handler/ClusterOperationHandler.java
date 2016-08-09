@@ -191,7 +191,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             try
             {
-//                configurator.configureCluster( config, environment );
                 configurator.addNode( config, environment, newNode );
             }
             catch ( ClusterConfigurationException e )
@@ -201,51 +200,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
                                 newNode.getHostname(), config.getClusterName() ) );
                 LOG.error( String.format( "Error during reconfiguration after adding node %s from cluster: %s",
                         newNode.getHostname(), config.getClusterName() ), e );
+                e.printStackTrace();
             }
-
-            // check if one of seeds in cassandra cluster is already running,
-            // then newly added node should be started automatically.
-            //                try
-            //                {
-            //                    EnvironmentContainerHost coordinator =
-            //                            environment.getContainerHostById( config.getSeedNodes().iterator().next
-            // () );
-            //                    RequestBuilder checkMasterIsRunning = new RequestBuilder( Commands
-            // .statusCommand );
-            //                    CommandResult result;
-            //                    try
-            //                    {
-            //                        result = commandUtil.execute( checkMasterIsRunning, coordinator );
-            //                        if ( result.hasSucceeded() )
-            //                        {
-            //                            if ( result.getStdOut().toLowerCase().contains( "pid" ) )
-            //                            {
-            //                                commandUtil.execute( new RequestBuilder( Commands.startCommand ),
-            // newNode );
-            //                            }
-            //                        }
-            //                    }
-            //                    catch ( CommandException e )
-            //                    {
-            //                        LOG.error( "Could not check if Cassandra is running on one of the seeds
-            // nodes" );
-            //                        e.printStackTrace();
-            //                    }
-            //                }
-            //                catch ( ContainerHostNotFoundException e )
-            //                {
-            //                    e.printStackTrace();
-            //                }
-
-            //subscribe to alerts
-            //            try
-            //            {
-            //                manager.subscribeToAlerts( newNode );
-            //            }
-            //            catch ( MonitorException e )
-            //            {
-            //                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            //            }
 
             manager.saveConfig( config );
             trackerOperation.addLogDone( "Node added successfully" );
@@ -254,10 +210,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
         catch ( ClusterException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+            e.printStackTrace();
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
+            e.printStackTrace();
         }
     }
 
