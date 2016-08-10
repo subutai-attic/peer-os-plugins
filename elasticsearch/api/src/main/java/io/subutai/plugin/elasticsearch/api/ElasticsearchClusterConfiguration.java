@@ -12,7 +12,7 @@ public class ElasticsearchClusterConfiguration implements ConfigBase
 {
     public static final String PRODUCT_KEY = "Elasticsearch";
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_KEY.toLowerCase();
-    public static final String TEMPLATE_NAME = "elasticsearch";
+    public static final String TEMPLATE_NAME = "elasticsearch235";
 
     private String clusterName = "";
     private String environmentId;
