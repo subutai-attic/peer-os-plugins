@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -24,7 +25,7 @@ public class ElasticSearchWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "elasticsearch235", 3 );
+        TEMPLATES_REQUIREMENT.put( ElasticsearchClusterConfiguration.TEMPLATE_NAME, 3 );
     }
 
     public void init()
