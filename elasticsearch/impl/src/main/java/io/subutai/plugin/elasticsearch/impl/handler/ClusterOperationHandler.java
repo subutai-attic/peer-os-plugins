@@ -225,7 +225,7 @@ public class ClusterOperationHandler
                 try
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL,
+                    NodeSchema node = new NodeSchema( containerName, ContainerSize.MEDIUM,
                             ElasticsearchClusterConfiguration.TEMPLATE_NAME, 0, 0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );

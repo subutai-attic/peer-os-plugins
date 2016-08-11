@@ -23,7 +23,7 @@ public class MongoWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "mongo", 3 );
+        TEMPLATES_REQUIREMENT.put( "mongo32", 3 );
     }
 
     public void init()

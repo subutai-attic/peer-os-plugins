@@ -244,84 +244,22 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 newNode = newNodeSet.iterator().next();
             }
 
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
             if ( nodeType.equals( NodeType.ROUTER_NODE ) )
             {
+                configurator.addNode( config, environment, newNode, NodeType.ROUTER_NODE );
                 config.getRouterHosts().add( newNode.getId() );
             }
             else if ( nodeType.equals( NodeType.DATA_NODE ) )
             {
+                configurator.addNode( config, environment, newNode, NodeType.DATA_NODE );
                 config.getDataHosts().add( newNode.getId() );
             }
+
             manager.saveConfig( config );
 
-            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-            Environment environment;
-            try
-            {
-                environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
-                configurator.configureCluster( config, environment );
-
-                // check if one of config server nodes in mongo cluster is already running,
-                // then newly added node should be started automatically.
-                try
-                {
-                    EnvironmentContainerHost coordinator =
-                            environment.getContainerHostById( config.getConfigHosts().iterator().next() );
-                    RequestBuilder checkMasterIsRunning = Commands.getCheckConfigServer().build( true );
-                    CommandResult result;
-                    try
-                    {
-                        result = commandUtil.execute( checkMasterIsRunning, coordinator );
-                        if ( result.hasSucceeded() )
-                        {
-                            if ( !result.getStdOut().isEmpty() )
-                            {
-                                if ( nodeType.equals( NodeType.ROUTER_NODE ) )
-                                {
-                                    Set<EnvironmentContainerHost> configServers = new HashSet<>();
-                                    for ( String id : config.getConfigHosts() )
-                                    {
-                                        configServers.add( findHost( id ) );
-                                    }
-                                    commandUtil.execute( Commands.getStartRouterCommandLine( config.getRouterPort(),
-                                            config.getCfgSrvPort(), config.getDomainName(), configServers )
-                                                                 .build( true ), newNode );
-                                }
-                                else if ( nodeType.equals( NodeType.DATA_NODE ) )
-                                {
-                                    commandUtil.execute(
-                                            Commands.getStartDataNodeCommandLine( config.getDataNodePort() )
-                                                    .build( true ), newNode );
-                                }
-                            }
-                        }
-                    }
-                    catch ( CommandException e )
-                    {
-                        LOG.error( "Could not check if Mongo is running on one of the seeds nodes" );
-                        e.printStackTrace();
-                    }
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-            {
-                LOG.error( "Could not find environment with id {} ", config.getEnvironmentId() );
-                throw new ClusterException( e );
-            }
-
-            //subscribe to alerts
-           /* try
-            {
-                manager.subscribeToAlerts( newNode );
-            }
-            catch ( MonitorException e )
-            {
-                throw new ClusterException( "Failed to subscribe to alerts: " + e.getMessage() );
-            }*/
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -331,6 +269,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
+        }
+        catch ( CommandException | MongoException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -410,6 +352,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     @Override
     public void destroyCluster()
     {
+        // TODO delete configurations
         MongoClusterConfig config = manager.getCluster( clusterName );
         if ( config == null )
         {

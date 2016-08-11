@@ -8,6 +8,8 @@ package io.subutai.plugin.mongodb.impl.common;
 
 import java.util.Set;
 
+import org.apache.derby.impl.sql.catalog.SYSSTATISTICSRowFactory;
+
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -25,15 +27,6 @@ public class Commands
     private static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + MongoClusterConfig.PRODUCT_NAME;
 
 
-    public static CommandDef getRegisterSecondaryNodeWithPrimaryCommandLine( String secondaryNodeHostname,
-                                                                             int dataNodePort, String domainName )
-    {
-        return new CommandDef( "Register node with replica",
-                String.format( "mongo --port %s --eval \"%s\"", dataNodePort,
-                        "rs.add('" + secondaryNodeHostname + "." + domainName + ":" + dataNodePort + "');" ), 900 );
-    }
-
-
     public static CommandDef getUnregisterSecondaryNodeFromPrimaryCommandLine( int dataNodePort,
                                                                                String removeNodehostname,
                                                                                String domainName )
@@ -44,64 +37,9 @@ public class Commands
     }
 
 
-    public static CommandDef getStopNodeCommand()
+    public static RequestBuilder getPidCommand()
     {
-        return new CommandDef( "Stop node", "/usr/bin/pkill -2 mongo", Timeouts.STOP_NODE_TIMEOUT_SEC );
-    }
-
-
-    public static CommandDef checkIfMongoInstalled()
-    {
-        return new CommandDef( "Check if mongo installed",
-                String.format( "dpkg-query -W -f='${Status}\\n' %s", PACKAGE_NAME ), 60 );
-    }
-
-
-    public static CommandDef installMongoCommand()
-    {
-        return new CommandDef( String.format( "Update and install %s%s package", Common.PACKAGE_PREFIX,
-                MongoClusterConfig.PRODUCT_NAME ),
-                String.format( "apt-get --yes --force-yes install %s", PACKAGE_NAME ), 900 );
-    }
-
-
-    public static CommandDef getUninstallMongoCommand()
-    {
-        return new CommandDef( String.format( "Purge %s package", PACKAGE_NAME ),
-                String.format( "apt-get --force-yes --assume-yes purge %s", PACKAGE_NAME ), 900 );
-    }
-
-
-    public static CommandDef getClearMongoConfigsCommand()
-    {
-        return new CommandDef( String.format( "Clear %s config files", PACKAGE_NAME ),
-                String.format( "rm -r %s %s", Constants.CONFIG_DIR, Constants.DATA_NODE_CONF_FILE ), 900 );
-    }
-
-
-    public static CommandDef getUninstallClearMongoConfigsCommand()
-    {
-        return new CommandDef( String.format( "Purge & clear config files for %s package", PACKAGE_NAME ),
-                String.format( "%s && %s", getUninstallMongoCommand().getCommand(),
-                        getClearMongoConfigsCommand().getCommand() ), 900 );
-    }
-
-
-    public static CommandDef getSetReplicaSetNameCommandLine( String replicaSetName )
-    {
-        return new CommandDef( "Set replica set name",
-                String.format( "sed -i 's/.*replSet =.*/replSet = %s/1' %s", replicaSetName,
-                        Constants.DATA_NODE_CONF_FILE ), 30 );
-    }
-
-
-    // LIFECYCLE COMMANDS =======================================================
-    public static CommandDef getStartConfigServerCommand( int cfgSrvPort )
-    {
-        return new CommandDef( "Start config server(s)", String.format(
-                "/bin/mkdir -p %s ; mongod --configsvr --dbpath %s --port %s --fork --logpath %s/mongodb.log",
-                Constants.CONFIG_DIR, Constants.CONFIG_DIR, cfgSrvPort, Constants.LOG_DIR ),
-                Timeouts.START_CONFIG_SERVER_TIMEOUT_SEC );
+        return new RequestBuilder( " ps aux | grep '[m]ongod --config' | awk  -F ' ' '{print $2}' " ).withTimeout( 30 );
     }
 
 
@@ -139,13 +77,6 @@ public class Commands
     }
 
 
-    public static CommandDef getInitiateReplicaSetCommandLine( int port )
-    {
-        return new CommandDef( "Initiate replica set",
-                String.format( "mongo --port %d --eval \"rs.initiate();\" ; sleep 30", port ), 180 );
-    }
-
-
     public static CommandDef getFindPrimaryNodeCommandLine( int dataNodePort )
     {
         return new CommandDef( "Find primary node",
@@ -153,29 +84,176 @@ public class Commands
     }
 
 
-    public static CommandDef getCheckConfigServer()
+    public static RequestBuilder getReplSetCommand( String repl )
     {
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --configsvr\"",
-                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+        return new RequestBuilder( String.format( "bash /etc/scripts/mongo-conf.sh repl %s", repl ) );
     }
 
 
-    public static CommandDef getCheckRouterNode()
+    public static RequestBuilder getSetBindIpCommand()
     {
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongos --configdb\"",
-                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh bind.ip 0.0.0.0" );
     }
 
 
-    public static CommandDef getCheckDataNode()
+    public static RequestBuilder getSetLocaleCommand()
     {
-        return new CommandDef( "Check node", "ps axu | grep \"[m]ongod --config \"",
-                Timeouts.CHECK_NODE_STATUS_TIMEOUT_SEC );
+        return new RequestBuilder( "export LC_ALL=C" );
     }
 
 
-    public static RequestBuilder getPidCommand()
+    public static RequestBuilder getReplInitiateCommand()
     {
-        return new RequestBuilder( " ps aux | grep '[m]ongod --config' | awk  -F ' ' '{print $2}' " ).withTimeout( 30 );
+        return new RequestBuilder( "mongo --eval \"rs.initiate();\"" );
+    }
+
+
+    public static RequestBuilder getAddDataReplCommand( String hostname )
+    {
+        return new RequestBuilder( String.format( "mongo --eval \"rs.add(\\\"%s\\\");\"", hostname ) );
+    }
+
+
+    public static RequestBuilder getSetPortCommand()
+    {
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh config.port 27019" );
+    }
+
+
+    public static RequestBuilder getSetClusterRoleCommand()
+    {
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh config.role configsvr" );
+    }
+
+
+    public static RequestBuilder getAddConfigReplCommand( String servers )
+    {
+        return new RequestBuilder( String.format(
+                "mongo --port 27019 --eval \"rs.initiate( {_id: \\\"configReplSet\\\",configsvr: true, members: "
+                        + "[%s]} )\";", servers ) );
+    }
+
+
+    public static RequestBuilder getCommentStorageCommand()
+    {
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh comment storage" );
+    }
+
+
+    public static RequestBuilder getSetConfigDbCommand( String hostname )
+    {
+        return new RequestBuilder(
+                String.format( "bash /etc/scripts/mongo-conf.sh mongos.config \"configReplSet\\/%s:27019\"",
+                        hostname ) );
+    }
+
+
+    public static RequestBuilder getRenametoMongosCommand()
+    {
+        return new RequestBuilder( "mv /etc/systemd/system/mongodb.service /etc/systemd/system/mongos.service" );
+    }
+
+
+    public static RequestBuilder getRenametoMongodbCommand()
+    {
+        return new RequestBuilder( "mv /etc/systemd/system/mongos.service /etc/systemd/system/mongodb.service" );
+    }
+
+
+    public static RequestBuilder getChangeServiceCommand( String oldService, String newService )
+    {
+        return new RequestBuilder(
+                String.format( "bash /etc/scripts/mongo-conf.sh service.change %s %s", oldService, newService ) );
+    }
+
+
+    public static RequestBuilder getSetShardCommand( String hostname, final String replicaSetName )
+    {
+        return new RequestBuilder(
+                String.format( "mongo --eval \"sh.addShard(\\\"%s\\/%s:27017\\\");\"", replicaSetName, hostname ) );
+    }
+
+
+    public static RequestBuilder getMongosRestartCommand()
+    {
+        return new RequestBuilder( "systemctl restart mongos ; sleep 10" );
+    }
+
+
+    public static RequestBuilder getMongosStopCommand()
+    {
+        return new RequestBuilder( "systemctl stop mongos" );
+    }
+
+
+    public static RequestBuilder getMongosStartCommand()
+    {
+        return new RequestBuilder( "systemctl start mongos" );
+    }
+
+
+    public static RequestBuilder getMongosStatusCommand()
+    {
+        return new RequestBuilder( "systemctl status mongos" );
+    }
+
+
+    public static RequestBuilder getMongodbStatusCommand()
+    {
+        return new RequestBuilder( "service mongodb status" );
+    }
+
+
+    public static RequestBuilder getMongodbStartCommand()
+    {
+        return new RequestBuilder( "service mongodb start" );
+    }
+
+
+    public static RequestBuilder getMongodbStopCommand()
+    {
+        return new RequestBuilder( "systemctl stop mongodb" );
+    }
+
+
+    public static RequestBuilder getMongoDBRestartCommand()
+    {
+        return new RequestBuilder( "service mongodb restart" );
+    }
+
+
+    public static RequestBuilder getShutDownCommand()
+    {
+        return new RequestBuilder( "mongo localhost:27019/admin --eval \"db.shutdownServer()\"" );
+    }
+
+
+    public static RequestBuilder getRemoveFromReplicaSetCommand( final String hostname )
+    {
+        return new RequestBuilder( String.format( "mongo --eval \"rs.remove(\\\"%s:27017\\\")\"", hostname ) );
+    }
+
+
+    public static RequestBuilder getResetDataConfig()
+    {
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh data.reset default" );
+    }
+
+
+    public static RequestBuilder getResetMongosConfig()
+    {
+        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh mongos.reset default" );
+    }
+
+
+    public static RequestBuilder getUncommentStorageCommand()
+    {
+        return null;
+    }
+
+
+    public static RequestBuilder getReloadDaemonCommand()
+    {
+        return new RequestBuilder( "systemctl daemon-reload" );
     }
 }

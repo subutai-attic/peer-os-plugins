@@ -1,9 +1,6 @@
 package io.subutai.plugin.mongodb.impl.handler;
 
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
@@ -16,14 +13,12 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
-import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.impl.ClusterConfiguration;
 import io.subutai.plugin.mongodb.impl.MongoImpl;
-import io.subutai.plugin.mongodb.impl.common.CommandDef;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
@@ -52,16 +47,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
     }
 
 
-	public NodeOperationHandler( final MongoImpl manager, final String clusterName, final String hostname,
-								 NodeOperationType operationType )
-	{
-		super( manager, clusterName );
-		this.hostname = hostname;
-		this.clusterName = clusterName;
-		this.operationType = operationType;
-		this.trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
-				String.format( "Creating %s tracker object...", clusterName ) );
-	}
+    public NodeOperationHandler( final MongoImpl manager, final String clusterName, final String hostname,
+                                 NodeOperationType operationType )
+    {
+        super( manager, clusterName );
+        this.hostname = hostname;
+        this.clusterName = clusterName;
+        this.operationType = operationType;
+        this.trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
+                String.format( "Creating %s tracker object...", clusterName ) );
+    }
+
 
     @Override
     public void run()
@@ -87,7 +83,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         EnvironmentContainerHost host = null;
         try
         {
-            host = environment.getContainerHostByHostname ( hostname );
+            host = environment.getContainerHostByHostname( hostname );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -127,23 +123,23 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
 
     private boolean checkNode( EnvironmentContainerHost host )
     {
-        CommandDef commandDef = null;
+        RequestBuilder command = null;
         switch ( nodeType )
         {
             case CONFIG_NODE:
-                commandDef = Commands.getCheckConfigServer();
+                command = Commands.getMongodbStatusCommand();
                 break;
             case ROUTER_NODE:
-                commandDef = Commands.getCheckRouterNode();
+                command = Commands.getMongosStatusCommand();
                 break;
             case DATA_NODE:
-                commandDef = Commands.getCheckDataNode();
+                command = Commands.getMongodbStatusCommand();
                 break;
         }
         try
         {
-            CommandResult commandResult = host.execute( commandDef.build( true ).withTimeout( 20 ) );
-            if ( !commandResult.getStdOut().isEmpty() )
+            CommandResult commandResult = host.execute( command );
+            if ( commandResult.getStdOut().contains( "active (running)" ) )
             {
                 trackerOperation.addLogDone( nodeType.name() + " service is running on node " + host.getHostname() );
                 return true;
@@ -163,19 +159,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         switch ( nodeType )
         {
             case CONFIG_NODE:
-                executeCommand( Commands.getStartConfigServerCommand( config.getCfgSrvPort() ).build( true ), host );
+                executeCommand( Commands.getMongodbStartCommand(), host );
                 break;
             case ROUTER_NODE:
-                Set<EnvironmentContainerHost> configServers = new HashSet<>();
-                for ( String id : config.getConfigHosts() )
-                {
-                    configServers.add( findHost( id ) );
-                }
-                executeCommand( Commands.getStartRouterCommandLine( config.getRouterPort(), config.getCfgSrvPort(),
-                        config.getDomainName(), configServers ).build( true ), host );
+                executeCommand( Commands.getMongosStartCommand(), host );
                 break;
             case DATA_NODE:
-                executeCommand( Commands.getStartDataNodeCommandLine( config.getDataNodePort() ).build( true ), host );
+                executeCommand( Commands.getMongodbStartCommand(), host );
                 break;
         }
         trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is started." );
@@ -184,7 +174,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
 
     private void stopNode( EnvironmentContainerHost host )
     {
-        executeCommand( Commands.getStopNodeCommand().build(), host );
+        switch ( nodeType )
+        {
+            case CONFIG_NODE:
+                executeCommand( Commands.getMongodbStopCommand(), host );
+                break;
+            case ROUTER_NODE:
+                executeCommand( Commands.getMongosStopCommand(), host );
+                break;
+            case DATA_NODE:
+                executeCommand( Commands.getMongodbStopCommand(), host );
+                break;
+        }
         trackerOperation.addLogDone( "Mongo service on " + host.getHostname() + " is stopped." );
     }
 
@@ -194,32 +195,35 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         try
         {
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
             MongoClusterConfig config = manager.getCluster( clusterName );
+
             if ( nodeType.equals( NodeType.ROUTER_NODE ) )
             {
+                configurator.removeNode( config, environment, host, NodeType.ROUTER_NODE );
                 config.getRouterHosts().remove( host.getId() );
             }
             else if ( nodeType.equals( NodeType.DATA_NODE ) )
             {
+                configurator.removeNode( config, environment, host, NodeType.DATA_NODE );
                 config.getDataHosts().remove( host.getId() );
             }
+
             manager.saveConfig( config );
 
-            // configure cluster again
-            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
-            try
-            {
-                configurator
-                        .configureCluster( config, environmentManager.loadEnvironment( config.getEnvironmentId() ) );
-            }
-            catch ( EnvironmentNotFoundException | ClusterConfigurationException e )
-            {
-                e.printStackTrace();
-            }
             trackerOperation.addLog( String.format( "Cluster information is updated" ) );
             trackerOperation.addLogDone( String.format( "Container %s is removed from cluster", host.getHostname() ) );
         }
         catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
         {
             e.printStackTrace();
         }

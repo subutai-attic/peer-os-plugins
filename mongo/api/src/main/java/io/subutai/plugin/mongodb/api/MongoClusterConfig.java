@@ -37,7 +37,8 @@ public class MongoClusterConfig implements ConfigBase
     private int cfgSrvPort = 27019;
     private int routerPort = 27018;
     private int dataNodePort = 27017;
-    private String primaryNode;
+    private String primaryDataNode;
+    private String primaryConfigServer;
 
     private Set<String> configHosts;
     private Set<String> routerHosts;
@@ -156,15 +157,15 @@ public class MongoClusterConfig implements ConfigBase
     }
 
 
-    public String getPrimaryNode()
+    public String getPrimaryDataNode()
     {
-        return primaryNode;
+        return primaryDataNode;
     }
 
 
-    public void setPrimaryNode( final String primaryNode )
+    public void setPrimaryDataNode( final String primaryNode )
     {
-        this.primaryNode = primaryNode;
+        this.primaryDataNode = primaryNode;
     }
 
 
@@ -299,12 +300,24 @@ public class MongoClusterConfig implements ConfigBase
                 ", cfgSrvPort=" + cfgSrvPort +
                 ", routerPort=" + routerPort +
                 ", dataNodePort=" + dataNodePort +
-                ", primaryNode=" + primaryNode +
+                ", primaryNode=" + primaryDataNode +
                 ", configHosts=" + configHosts +
                 ", routerHosts=" + routerHosts +
                 ", dataHosts=" + dataHosts +
                 ", environmentId=" + environmentId +
                 ", autoScaling=" + autoScaling +
                 '}';
+    }
+
+
+    public String getPrimaryConfigServer()
+    {
+        return primaryConfigServer;
+    }
+
+
+    public void setPrimaryConfigServer( final String primaryConfigServer )
+    {
+        this.primaryConfigServer = primaryConfigServer;
     }
 }

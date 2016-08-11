@@ -1,12 +1,13 @@
 package io.subutai.plugin.mongodb.impl;
 
 
+import java.util.Objects;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
-import io.subutai.common.command.CommandResult;
-import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -15,7 +16,7 @@ import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.MongoException;
-import io.subutai.plugin.mongodb.impl.common.CommandDef;
+import io.subutai.plugin.mongodb.api.NodeType;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 
 
@@ -39,60 +40,97 @@ public class ClusterConfiguration
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
         try
         {
-            for ( String id : config.getDataHosts() )
+            // Setting locale to all nodes
+            Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+
+            for ( final EnvironmentContainerHost node : allNodes )
             {
-                EnvironmentContainerHost dataNode = findContainerHost( id, environment );
-                po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
-                setReplicaSetName( dataNode, config.getReplicaSetName() );
+                node.execute( Commands.getSetLocaleCommand() );
             }
 
-            EnvironmentContainerHost datanode;
-            for ( String id : config.getDataHosts() )
+            // Configuring Config servers
+            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config.getConfigHosts() );
+
+            for ( final EnvironmentContainerHost configServer : configServers )
             {
-                datanode = findContainerHost( id, environment );
-                if ( config.getPrimaryNode() == null )
+                configureCofigServer( configServer );
+            }
+
+            int count = 0;
+            StringBuilder sb = new StringBuilder();
+            for ( final EnvironmentContainerHost configServer : configServers )
+            {
+                sb.append( String.format( "{_id: %s, host:\\\"%s:27019\\\"}", String.valueOf( count ),
+                        configServer.getHostname() ) ).append( "," );
+                count++;
+            }
+
+            if ( !sb.toString().isEmpty() )
+            {
+                sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
+            }
+
+            String servers = sb.toString();
+
+            EnvironmentContainerHost primaryConfigServer = configServers.iterator().next();
+            primaryConfigServer.execute( Commands.getAddConfigReplCommand( servers ) );
+
+            config.setPrimaryConfigServer( primaryConfigServer.getId() );
+
+            // Configuring Data nodes
+
+            // Configuring /etc/mongod.conf of data nodes
+            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
+
+            for ( final EnvironmentContainerHost dataNode : dataNodes )
+            {
+                po.addLog( "Setting replicaSetname: " + dataNode.getHostname() );
+                configureDataNodes( dataNode, config.getReplicaSetName() );
+            }
+
+            // Configuring primary data node
+            EnvironmentContainerHost primaryDataNode = dataNodes.iterator().next();
+
+            primaryDataNode.execute( Commands.getReplInitiateCommand() );
+
+            config.setPrimaryDataNode( primaryDataNode.getId() );
+
+            // Adding secondary data nodes
+            for ( final EnvironmentContainerHost dataNode : dataNodes )
+            {
+                if ( !Objects.equals( dataNode.getId(), primaryDataNode.getId() ) )
                 {
-                    config.setPrimaryNode( datanode.getId() );
-                    initiateReplicaSet( datanode, config );
-                    po.addLog( "Primary data node: " + datanode.getHostname() );
-                }
-                else
-                {
-                    po.addLog( "registering secondary data node: " + datanode.getHostname() );
-                    registerSecondaryNode( datanode, config );
+                    primaryDataNode.execute( Commands.getAddDataReplCommand( dataNode.getHostname() ) );
                 }
             }
+
+            // Configuring mongos (routers)
+            Set<EnvironmentContainerHost> mongosNodes = environment.getContainerHostsByIds( config.getRouterHosts() );
+
+            for ( final EnvironmentContainerHost mongosNode : mongosNodes )
+            {
+                configureMongosNodes( mongosNode, primaryConfigServer.getHostname() );
+            }
+
+            EnvironmentContainerHost mongosRouter = mongosNodes.iterator().next();
+            mongosRouter.execute(
+                    Commands.getSetShardCommand( primaryDataNode.getHostname(), config.getReplicaSetName() ) );
         }
         catch ( MongoException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
         {
             e.printStackTrace();
         }
 
         config.setEnvironmentId( environment.getId() );
 
-        try
-        {
-            RequestBuilder requestBuilder = new RequestBuilder( "sudo mkdir /var/log/mongodb/" );
-            for ( String id : config.getConfigHosts() )
-            {
-                EnvironmentContainerHost host = findContainerHost( id, environment );
-                host.execute( requestBuilder );
-            }
-            for ( String id : config.getDataHosts() )
-            {
-                EnvironmentContainerHost host = findContainerHost( id, environment );
-                host.execute( requestBuilder );
-            }
-            for ( String id : config.getRouterHosts() )
-            {
-                EnvironmentContainerHost host = findContainerHost( id, environment );
-                host.execute( requestBuilder );
-            }
-        }
-        catch ( CommandException e )
-        {
-            e.printStackTrace();
-        }
 
         try
         {
@@ -106,58 +144,67 @@ public class ClusterConfiguration
     }
 
 
-    public void setReplicaSetName( EnvironmentContainerHost host, final String replicaSetName ) throws MongoException
+    private void configureMongosNodes( final EnvironmentContainerHost mongosNode, final String primaryConfigServer )
+            throws CommandException
+    {
+        // Changing bindip to 0.0.0.0
+        mongosNode.execute( Commands.getSetBindIpCommand() );
+
+        // Comment storage section
+        mongosNode.execute( Commands.getCommentStorageCommand() );
+
+        // Set configDB
+        mongosNode.execute( Commands.getSetConfigDbCommand( primaryConfigServer ) );
+
+        // Stop mongodb
+        mongosNode.execute( Commands.getMongodbStopCommand() );
+
+        // Rename service to mongos
+        mongosNode.execute( Commands.getRenametoMongosCommand() );
+
+        // Change to mongos in service file
+        mongosNode.execute( Commands.getChangeServiceCommand( "mongod", "mongos" ) );
+
+        // Restart mongos
+        mongosNode.execute( Commands.getMongosRestartCommand() );
+    }
+
+
+    private void configureCofigServer( final EnvironmentContainerHost configServer ) throws CommandException
+    {
+        // Changing bindip to 0.0.0.0
+        configServer.execute( Commands.getSetBindIpCommand() );
+
+        // Changing port to 27019
+        configServer.execute( Commands.getSetPortCommand() );
+
+        // Setting Replication
+        configServer.execute( Commands.getReplSetCommand( "configReplSet" ) );
+
+        // Setting cluster role
+        configServer.execute( Commands.getSetClusterRoleCommand() );
+
+        // Restart node
+        configServer.execute( Commands.getMongoDBRestartCommand() );
+    }
+
+
+    public void configureDataNodes( EnvironmentContainerHost host, final String replicaSetName ) throws MongoException
     {
         try
         {
-            CommandDef commandDef = Commands.getSetReplicaSetNameCommandLine( replicaSetName );
-            host.execute( commandDef.build().withTimeout( 90 ) );
+            // Changing bindip to 0.0.0.0
+            host.execute( Commands.getSetBindIpCommand() );
+
+            // Setting replSetName
+            host.execute( Commands.getReplSetCommand( replicaSetName ) );
+
+            // Restart node
+            host.execute( Commands.getMongoDBRestartCommand() );
         }
         catch ( CommandException e )
         {
             throw new MongoException( "Error on setting replica set name: " );
-        }
-    }
-
-
-    public void initiateReplicaSet( EnvironmentContainerHost host, MongoClusterConfig config ) throws MongoException
-    {
-        CommandDef commandDef = Commands.getInitiateReplicaSetCommandLine( config.getCfgSrvPort() );
-        try
-        {
-            CommandResult commandResult = host.execute( commandDef.build().withTimeout( 90 ) );
-
-            if ( !commandResult.getStdOut().contains( "connecting to:" ) )
-            {
-                throw new CommandException( "Could not register secondary node." );
-            }
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( commandDef.getDescription(), e );
-            throw new MongoException( "Initiate replica set error." );
-        }
-    }
-
-
-    public void registerSecondaryNode( final EnvironmentContainerHost dataNode, MongoClusterConfig config )
-            throws MongoException
-    {
-        CommandDef commandDef = Commands.getRegisterSecondaryNodeWithPrimaryCommandLine( dataNode.getHostname(),
-                config.getDataNodePort(), config.getDomainName() );
-        try
-        {
-            CommandResult commandResult = dataNode.execute( commandDef.build().withTimeout( 90 ) );
-
-            if ( !commandResult.getStdOut().contains( "connecting to:" ) )
-            {
-                throw new CommandException( "Could not register secondary node." );
-            }
-        }
-        catch ( CommandException e )
-        {
-            LOG.error( commandDef.getDescription(), e );
-            throw new MongoException( "Error on registering secondary node." );
         }
     }
 
@@ -173,5 +220,65 @@ public class ClusterConfiguration
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    public void removeNode( final MongoClusterConfig config, final Environment environment,
+                            final EnvironmentContainerHost host, final NodeType nodeType ) throws CommandException
+    {
+        switch ( nodeType )
+        {
+            case ROUTER_NODE:
+                // Shutdown node
+                host.execute( Commands.getShutDownCommand() );
+                // Reset config file
+                host.execute( Commands.getResetMongosConfig() );
+                // Stop mongodb
+                host.execute( Commands.getMongosStopCommand() );
+                // Rename service to mongos
+                host.execute( Commands.getRenametoMongodbCommand() );
+                // Change to mongos in service file
+                host.execute( Commands.getChangeServiceCommand( "mongos", "mongod" ) );
+                // Reload daemon
+                host.execute( Commands.getReloadDaemonCommand() );
+                // Restart node
+                host.execute( Commands.getMongosRestartCommand() );
+                break;
+            case DATA_NODE:
+                // Shutdown node
+                host.execute( Commands.getShutDownCommand() );
+                EnvironmentContainerHost primaryDataNode =
+                        findContainerHost( config.getPrimaryDataNode(), environment );
+                // remove from replicaSet
+                primaryDataNode.execute( Commands.getRemoveFromReplicaSetCommand( primaryDataNode.getHostname() ) );
+                // reset config file
+                host.execute( Commands.getResetDataConfig() );
+                // restart node
+                host.execute( Commands.getMongoDBRestartCommand() );
+                break;
+        }
+    }
+
+
+    public void addNode( final MongoClusterConfig config, final Environment environment,
+                         final EnvironmentContainerHost newNode, final NodeType nodeType )
+            throws CommandException, MongoException
+    {
+        // TODO check adding new nodes
+        switch ( nodeType )
+        {
+            case ROUTER_NODE:
+                configureMongosNodes( newNode, config.getPrimaryConfigServer() );
+                newNode.execute( Commands.getSetShardCommand(
+                        findContainerHost( config.getPrimaryDataNode(), environment ).getHostname(),
+                        config.getReplicaSetName() ) );
+
+                break;
+            case DATA_NODE:
+                configureDataNodes( newNode, config.getReplicaSetName() );
+                findContainerHost( config.getPrimaryDataNode(), environment )
+                        .execute( Commands.getAddDataReplCommand( newNode.getHostname() ) );
+                break;
+        }
     }
 }
