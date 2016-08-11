@@ -1,11 +1,11 @@
-<features name="usergrid-plugin" version="4.0.2-SNAPSHOT">
-  <feature name="usergrid-plugin" version="4.0.2-SNAPSHOT">
-    <bundle> mvn:io.subutai/usergrid-plugin-api/4.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/usergrid-plugin-impl/4.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/usergrid-plugin-cli/4.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/usergrid-plugin-rest/4.0.2-SNAPSHOT</bundle>
+<features name="usergrid-plugin" version="4.0.2">
+  <feature name="usergrid-plugin" version="4.0.2">
+    <bundle> mvn:io.subutai/usergrid-plugin-api/4.0.2</bundle>
+    <bundle> mvn:io.subutai/usergrid-plugin-impl/4.0.2</bundle>
+    <bundle> mvn:io.subutai/usergrid-plugin-cli/4.0.2</bundle>
+    <bundle> mvn:io.subutai/usergrid-plugin-rest/4.0.2</bundle>
   </feature>
-   <feature name="usergrid-plugin-war" version="4.0.2-SNAPSHOT">
-    <bundle> war:mvn:io.subutai/usergrid-plugin-webui/4.0.2-SNAPSHOT/war?Webapp-Context=usergrid-plugin-war</bundle>
+   <feature name="usergrid-plugin-war" version="4.0.2">
+    <bundle> war:mvn:io.subutai/usergrid-plugin-webui/4.0.2/war?Webapp-Context=usergrid-plugin-war</bundle>
   </feature>
 </features>
