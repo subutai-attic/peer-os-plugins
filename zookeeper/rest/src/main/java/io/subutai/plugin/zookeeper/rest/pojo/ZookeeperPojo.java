@@ -11,6 +11,7 @@ public class ZookeeperPojo
     private Set<ContainerPojo> nodes;
 
     private String environmentDataSource;
+    private String environmentId;
 
 
     public String getClusterName()
@@ -58,5 +59,17 @@ public class ZookeeperPojo
     public void setEnvironmentDataSource( String environmentDataSource )
     {
         this.environmentDataSource = environmentDataSource;
+    }
+
+
+    public String getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final String environmentId )
+    {
+        this.environmentId = environmentId;
     }
 }

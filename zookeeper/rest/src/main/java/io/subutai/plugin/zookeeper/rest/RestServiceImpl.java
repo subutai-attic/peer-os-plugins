@@ -564,6 +564,7 @@ public class RestServiceImpl implements RestService
 
             String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
 
+            pojo.setEnvironmentId( config.getEnvironmentId() );
             pojo.setEnvironmentDataSource( envDataSource );
 
             for ( final String uuid : config.getNodes() )
