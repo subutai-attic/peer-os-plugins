@@ -60,7 +60,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         vm.mongoInstall.domainName = 'intra.lan';
         vm.mongoInstall.repl = 'repl';
         vm.mongoInstall.configPort = '27019';
-        vm.mongoInstall.routePort = '27018';
+        vm.mongoInstall.routePort = '27017';
         vm.mongoInstall.dataPort = '27017';
         vm.mongoInstall.configNodes = [];
         vm.mongoInstall.routeNodes = [];

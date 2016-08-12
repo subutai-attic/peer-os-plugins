@@ -60,6 +60,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         implements ClusterOperationHandlerInterface
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
+
     private ClusterOperationType operationType;
     private MongoClusterConfig config;
     private CommandUtil commandUtil;
@@ -177,11 +178,15 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             }
             catch ( ContainerHostNotFoundException e )
             {
+                trackerOperation.addLogFailed( "Container not found:" + e.getMessage() );
+                LOG.error( "Container not found: ", e );
                 e.printStackTrace();
             }
         }
         catch ( EnvironmentNotFoundException e )
         {
+            trackerOperation.addLogFailed( "Environment not found:" + e.getMessage() );
+            LOG.error( "Environment not found: ", e );
             e.printStackTrace();
         }
         return null;
@@ -201,7 +206,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
             for ( final EnvironmentContainerHost containerHost : env.getContainerHosts() )
             {
                 String numbers = containerHost.getContainerName().replace( "Container", "" ).trim();
-                String contId = numbers.split("-")[0];
+                String contId = numbers.split( "-" )[0];
                 containersIndex.add( Integer.parseInt( contId ) );
             }
 
@@ -216,7 +221,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 try
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "mongo", 0, 0 );
+                    NodeSchema node =
+                            new NodeSchema( containerName, ContainerSize.SMALL, MongoClusterConfig.TEMPLATE_NAME, 0,
+                                    0 );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -264,14 +271,20 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         }
         catch ( ClusterException e )
         {
-            trackerOperation.addLogFailed( String.format( "failed to add node:  %s", e ) );
+            trackerOperation.addLogFailed( String.format( "Failed to add node:  %s", e ) );
+            LOG.error( "Failed to add node: ", e );
+            e.printStackTrace();
         }
         catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
+            trackerOperation.addLogFailed( "Environment not found:" + e.getMessage() );
+            LOG.error( "Environment not found: ", e );
+            e.printStackTrace();
         }
         catch ( CommandException | MongoException e )
         {
+            trackerOperation.addLogFailed( "Error during execution command:" + e.getMessage() );
+            LOG.error( "Error during execution command: ", e );
             e.printStackTrace();
         }
     }
@@ -365,11 +378,26 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
+
+            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
+            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config.getConfigHosts() );
+            Set<EnvironmentContainerHost> routerNodes = environment.getContainerHostsByIds( config.getRouterHosts() );
+
+            configurator.destroyCluster( dataNodes, configServers, routerNodes, config, environment );
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
             return;
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
         }
 
         try

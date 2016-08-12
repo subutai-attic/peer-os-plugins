@@ -1,6 +1,11 @@
 package io.subutai.plugin.mongodb.impl.handler;
 
 
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
@@ -27,6 +32,7 @@ import io.subutai.plugin.mongodb.impl.common.Commands;
  */
 public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, MongoClusterConfig>
 {
+    private static final Logger LOG = LoggerFactory.getLogger( NodeOperationHandler.class.getName() );
 
     private String clusterName;
     private String hostname;
@@ -144,11 +150,52 @@ public class NodeOperationHandler extends AbstractOperationHandler<MongoImpl, Mo
                 trackerOperation.addLogDone( nodeType.name() + " service is running on node " + host.getHostname() );
                 return true;
             }
+
+            // check Primary data, config node
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
+            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config.getConfigHosts() );
+
+            for ( final EnvironmentContainerHost dataNode : dataNodes )
+            {
+                CommandResult result = dataNode.execute( Commands.getCheckIsMaster( config.getDataNodePort() ) );
+
+                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+                {
+                    config.setPrimaryDataNode( dataNode.getId() );
+                }
+            }
+
+            for ( final EnvironmentContainerHost configServer : configServers )
+            {
+                CommandResult result =
+                        configServer.execute( Commands.getCheckIsMaster( config.getCfgSrvPort() ) );
+
+                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+                {
+                    config.setPrimaryDataNode( configServer.getId() );
+                }
+            }
         }
         catch ( CommandException e )
         {
+            trackerOperation.addLogFailed( "Error during execution command:" + e.getMessage() );
+            LOG.error( "Error during execution command: ", e );
             e.printStackTrace();
         }
+        catch ( EnvironmentNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Environment not found:" + e.getMessage() );
+            LOG.error( "Environment not found: ", e );
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Container not found:" + e.getMessage() );
+            LOG.error( "Container not found: ", e );
+            e.printStackTrace();
+        }
+
         trackerOperation.addLogDone( nodeType.name() + " service is NOT running on node " + host.getHostname() );
         return false;
     }

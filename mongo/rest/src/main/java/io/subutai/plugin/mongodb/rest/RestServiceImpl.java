@@ -17,11 +17,13 @@ import org.json.JSONObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.subutai.common.command.CommandResult;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -435,6 +437,33 @@ public class RestServiceImpl implements RestService
             pojo.setAutoScaling( config.isAutoScaling() );
 
             Environment env = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+            // TODO check primary nodes
+            // check Primary data, config node
+//            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+//            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
+//            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config.getConfigHosts() );
+//
+//            for ( final EnvironmentContainerHost dataNode : dataNodes )
+//            {
+//                CommandResult result = dataNode.execute( Commands.getCheckIsMaster( config.getDataNodePort() ) );
+//
+//                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+//                {
+//                    config.setPrimaryDataNode( dataNode.getId() );
+//                }
+//            }
+//
+//            for ( final EnvironmentContainerHost configServer : configServers )
+//            {
+//                CommandResult result =
+//                        configServer.execute( Commands.getCheckIsMaster( config.getCfgSrvPort() ) );
+//
+//                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+//                {
+//                    config.setPrimaryDataNode( configServer.getId() );
+//                }
+//            }
 
             String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
 

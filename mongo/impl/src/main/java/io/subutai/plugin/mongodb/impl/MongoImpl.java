@@ -475,16 +475,15 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     @Override
     public void onEnvironmentDestroyed( final String environmentId )
     {
-        List<String> clusterDataList = pluginDAO.getInfo( MongoClusterConfig.PRODUCT_KEY );
-        for ( final String clusterData : clusterDataList )
+        List<MongoClusterConfig> configs = getClusters();
+        for ( final MongoClusterConfig config : configs )
         {
-            MongoClusterConfig clusterConfig = GSON.fromJson( clusterData, MongoClusterConfig.class );
-            if ( clusterConfig.getEnvironmentId().equals( environmentId ) )
+            if ( config.getEnvironmentId().equals( environmentId ) )
             {
                 try
                 {
-                    deleteConfig( clusterConfig );
-                    LOG.info( String.format( "Mongo cluster: %s destroyed", clusterConfig.getClusterName() ) );
+                    deleteConfig( config );
+                    LOG.info( String.format( "Mongo cluster: %s destroyed", config.getClusterName() ) );
                 }
                 catch ( ClusterException e )
                 {

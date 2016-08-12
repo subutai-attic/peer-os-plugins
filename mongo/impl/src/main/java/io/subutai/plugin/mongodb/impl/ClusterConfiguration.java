@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -34,8 +35,7 @@ public class ClusterConfiguration
     }
 
 
-    public void configureCluster( MongoClusterConfig config, Environment environment )
-            throws ClusterConfigurationException
+    void configureCluster( MongoClusterConfig config, Environment environment ) throws ClusterConfigurationException
     {
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
         try
@@ -53,15 +53,15 @@ public class ClusterConfiguration
 
             for ( final EnvironmentContainerHost configServer : configServers )
             {
-                configureCofigServer( configServer );
+                configureCofigServer( configServer, config.getCfgSrvPort() );
             }
 
             int count = 0;
             StringBuilder sb = new StringBuilder();
             for ( final EnvironmentContainerHost configServer : configServers )
             {
-                sb.append( String.format( "{_id: %s, host:\\\"%s:27019\\\"}", String.valueOf( count ),
-                        configServer.getHostname() ) ).append( "," );
+                sb.append( String.format( "{_id: %s, host:\\\"%s:%s\\\"}", String.valueOf( count ),
+                        configServer.getHostname(), config.getCfgSrvPort() ) ).append( "," );
                 count++;
             }
 
@@ -78,7 +78,6 @@ public class ClusterConfiguration
             config.setPrimaryConfigServer( primaryConfigServer.getId() );
 
             // Configuring Data nodes
-
             // Configuring /etc/mongod.conf of data nodes
             Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
 
@@ -91,6 +90,7 @@ public class ClusterConfiguration
             // Configuring primary data node
             EnvironmentContainerHost primaryDataNode = dataNodes.iterator().next();
 
+            primaryDataNode.execute( new RequestBuilder( "sleep 5" ) );
             primaryDataNode.execute( Commands.getReplInitiateCommand() );
 
             config.setPrimaryDataNode( primaryDataNode.getId() );
@@ -113,8 +113,11 @@ public class ClusterConfiguration
             }
 
             EnvironmentContainerHost mongosRouter = mongosNodes.iterator().next();
+
+            mongosRouter.execute( new RequestBuilder( "sleep 5" ) );
             mongosRouter.execute(
-                    Commands.getSetShardCommand( primaryDataNode.getHostname(), config.getReplicaSetName() ) );
+                    Commands.getSetShardCommand( primaryDataNode.getHostname(), config.getReplicaSetName(),
+                            config.getDataNodePort() ) );
         }
         catch ( MongoException e )
         {
@@ -163,20 +166,24 @@ public class ClusterConfiguration
         mongosNode.execute( Commands.getRenametoMongosCommand() );
 
         // Change to mongos in service file
-        mongosNode.execute( Commands.getChangeServiceCommand( "mongod", "mongos" ) );
+        mongosNode.execute( Commands.getChangeServiceToMongosCommand( "mongos" ) );
+
+        // Reload daemon
+        mongosNode.execute( Commands.getReloadDaemonCommand() );
 
         // Restart mongos
         mongosNode.execute( Commands.getMongosRestartCommand() );
     }
 
 
-    private void configureCofigServer( final EnvironmentContainerHost configServer ) throws CommandException
+    private void configureCofigServer( final EnvironmentContainerHost configServer, final int cfgSrvPort )
+            throws CommandException
     {
         // Changing bindip to 0.0.0.0
         configServer.execute( Commands.getSetBindIpCommand() );
 
         // Changing port to 27019
-        configServer.execute( Commands.getSetPortCommand() );
+        configServer.execute( Commands.getSetPortCommand( String.valueOf( cfgSrvPort ) ) );
 
         // Setting Replication
         configServer.execute( Commands.getReplSetCommand( "configReplSet" ) );
@@ -189,7 +196,7 @@ public class ClusterConfiguration
     }
 
 
-    public void configureDataNodes( EnvironmentContainerHost host, final String replicaSetName ) throws MongoException
+    private void configureDataNodes( EnvironmentContainerHost host, final String replicaSetName ) throws MongoException
     {
         try
         {
@@ -209,7 +216,7 @@ public class ClusterConfiguration
     }
 
 
-    public EnvironmentContainerHost findContainerHost( String id, Environment environment )
+    private EnvironmentContainerHost findContainerHost( String id, Environment environment )
     {
         try
         {
@@ -230,29 +237,39 @@ public class ClusterConfiguration
         {
             case ROUTER_NODE:
                 // Shutdown node
-                host.execute( Commands.getShutDownCommand() );
+                host.execute( Commands.getShutDownCommand( config.getCfgSrvPort() ) );
                 // Reset config file
                 host.execute( Commands.getResetMongosConfig() );
+                // Reset port
+                host.execute( Commands.getSetPortCommand( "27017" ) );
                 // Stop mongodb
                 host.execute( Commands.getMongosStopCommand() );
                 // Rename service to mongos
                 host.execute( Commands.getRenametoMongodbCommand() );
                 // Change to mongos in service file
-                host.execute( Commands.getChangeServiceCommand( "mongos", "mongod" ) );
+                host.execute( Commands.getChangeServiceToMongodCommand( "mongod" ) );
                 // Reload daemon
                 host.execute( Commands.getReloadDaemonCommand() );
+                // Update var dir
+                host.execute( Commands.getUpdateVarDirectory() );
                 // Restart node
-                host.execute( Commands.getMongosRestartCommand() );
+                host.execute( Commands.getMongoDBRestartCommand() );
                 break;
             case DATA_NODE:
                 // Shutdown node
-                host.execute( Commands.getShutDownCommand() );
+                host.execute( Commands.getShutDownCommand( config.getDataNodePort() ) );
                 EnvironmentContainerHost primaryDataNode =
                         findContainerHost( config.getPrimaryDataNode(), environment );
                 // remove from replicaSet
-                primaryDataNode.execute( Commands.getRemoveFromReplicaSetCommand( primaryDataNode.getHostname() ) );
+                if ( primaryDataNode != null )
+                {
+                    primaryDataNode.execute(
+                            Commands.getRemoveFromReplicaSetCommand( host.getHostname(), config.getDataNodePort() ) );
+                }
                 // reset config file
                 host.execute( Commands.getResetDataConfig() );
+                // Update var dir
+                host.execute( Commands.getUpdateVarDirectory() );
                 // restart node
                 host.execute( Commands.getMongoDBRestartCommand() );
                 break;
@@ -264,14 +281,14 @@ public class ClusterConfiguration
                          final EnvironmentContainerHost newNode, final NodeType nodeType )
             throws CommandException, MongoException
     {
-        // TODO check adding new nodes
         switch ( nodeType )
         {
             case ROUTER_NODE:
-                configureMongosNodes( newNode, config.getPrimaryConfigServer() );
-                newNode.execute( Commands.getSetShardCommand(
-                        findContainerHost( config.getPrimaryDataNode(), environment ).getHostname(),
-                        config.getReplicaSetName() ) );
+                configureMongosNodes( newNode,
+                        findContainerHost( config.getPrimaryConfigServer(), environment ).getHostname() );
+                //                newNode.execute( Commands.getSetShardCommand(
+                //                        findContainerHost( config.getPrimaryDataNode(), environment ).getHostname(),
+                //                        config.getReplicaSetName() ) );
 
                 break;
             case DATA_NODE:
@@ -279,6 +296,34 @@ public class ClusterConfiguration
                 findContainerHost( config.getPrimaryDataNode(), environment )
                         .execute( Commands.getAddDataReplCommand( newNode.getHostname() ) );
                 break;
+        }
+    }
+
+
+    public void destroyCluster( final Set<EnvironmentContainerHost> dataNodes,
+                                final Set<EnvironmentContainerHost> configServers,
+                                final Set<EnvironmentContainerHost> routerNodes, final MongoClusterConfig config,
+                                final Environment environment ) throws CommandException
+    {
+        for ( final EnvironmentContainerHost dataNode : dataNodes )
+        {
+            dataNode.execute( Commands.getResetDataConfig() );
+            dataNode.execute( Commands.getUpdateVarDirectory() );
+            dataNode.execute( Commands.getMongoDBRestartCommand() );
+        }
+
+        for ( final EnvironmentContainerHost configServer : configServers )
+        {
+            configServer.execute( Commands.getResetDataConfig() );
+            configServer.execute( new RequestBuilder(
+                    "sed -i -e 's/.*sharding:/#sharding:/g; s/.*clusterRole:.*/ /g' /etc/mongod.conf" ) );
+            configServer.execute( Commands.getSetPortCommand( "27017" ) );
+            configServer.execute( Commands.getUpdateVarDirectory() );
+            configServer.execute( Commands.getMongoDBRestartCommand() );
+        }
+        for ( final EnvironmentContainerHost routerNode : routerNodes )
+        {
+            removeNode( config, environment, routerNode, NodeType.ROUTER_NODE );
         }
     }
 }

@@ -8,8 +8,6 @@ package io.subutai.plugin.mongodb.impl.common;
 
 import java.util.Set;
 
-import org.apache.derby.impl.sql.catalog.SYSSTATISTICSRowFactory;
-
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -114,9 +112,9 @@ public class Commands
     }
 
 
-    public static RequestBuilder getSetPortCommand()
+    public static RequestBuilder getSetPortCommand( final String port )
     {
-        return new RequestBuilder( "bash /etc/scripts/mongo-conf.sh config.port 27019" );
+        return new RequestBuilder( String.format( "bash /etc/scripts/mongo-conf.sh config.port %s", port ) );
     }
 
 
@@ -160,23 +158,30 @@ public class Commands
     }
 
 
-    public static RequestBuilder getChangeServiceCommand( String oldService, String newService )
+    public static RequestBuilder getChangeServiceToMongosCommand( String service )
     {
-        return new RequestBuilder(
-                String.format( "bash /etc/scripts/mongo-conf.sh service.change %s %s", oldService, newService ) );
+        return new RequestBuilder( String.format( "bash /etc/scripts/mongo-conf.sh service.mongos %s", service ) );
     }
 
 
-    public static RequestBuilder getSetShardCommand( String hostname, final String replicaSetName )
+    public static RequestBuilder getChangeServiceToMongodCommand( String service )
+    {
+        return new RequestBuilder( String.format( "bash /etc/scripts/mongo-conf.sh service.mongod %s", service ) );
+    }
+
+
+    public static RequestBuilder getSetShardCommand( String hostname, final String replicaSetName,
+                                                     final int dataNodePort )
     {
         return new RequestBuilder(
-                String.format( "mongo --eval \"sh.addShard(\\\"%s\\/%s:27017\\\");\"", replicaSetName, hostname ) );
+                String.format( "mongo --eval \"sh.addShard(\\\"%s\\/%s:%s\\\");\"", replicaSetName, hostname,
+                        dataNodePort ) );
     }
 
 
     public static RequestBuilder getMongosRestartCommand()
     {
-        return new RequestBuilder( "systemctl restart mongos ; sleep 10" );
+        return new RequestBuilder( "systemctl restart mongos" );
     }
 
 
@@ -222,15 +227,16 @@ public class Commands
     }
 
 
-    public static RequestBuilder getShutDownCommand()
+    public static RequestBuilder getShutDownCommand( final int port )
     {
-        return new RequestBuilder( "mongo localhost:27019/admin --eval \"db.shutdownServer()\"" );
+        return new RequestBuilder( String.format( "mongo localhost:%s/admin --eval \"db.shutdownServer()\"", port ) );
     }
 
 
-    public static RequestBuilder getRemoveFromReplicaSetCommand( final String hostname )
+    public static RequestBuilder getRemoveFromReplicaSetCommand( final String hostname, final int dataNodePort )
     {
-        return new RequestBuilder( String.format( "mongo --eval \"rs.remove(\\\"%s:27017\\\")\"", hostname ) );
+        return new RequestBuilder(
+                String.format( "mongo --eval \"rs.remove(\\\"%s:%s\\\")\"", hostname, dataNodePort ) );
     }
 
 
@@ -246,14 +252,22 @@ public class Commands
     }
 
 
-    public static RequestBuilder getUncommentStorageCommand()
-    {
-        return null;
-    }
-
-
     public static RequestBuilder getReloadDaemonCommand()
     {
         return new RequestBuilder( "systemctl daemon-reload" );
+    }
+
+
+    public static RequestBuilder getCheckIsMaster( final int port )
+    {
+        return new RequestBuilder( String.format( "mongo --port %s --eval \"rs.isMaster()\"", port ) );
+    }
+
+
+    public static RequestBuilder getUpdateVarDirectory()
+    {
+        return new RequestBuilder(
+                "service mongodb stop;rm -rf /var/lib/mongodb/;mkdir /var/lib/mongodb;chown mongodb:mongodb "
+                        + "/var/lib/mongodb/" );
     }
 }
