@@ -13,7 +13,6 @@
   <artifactId>subutai-plugins-parent</artifactId>
   <version>4.0.3-SNAPSHOT</version>
 
-
   <name>Subutai Plugins Project Parent</name>
   <description>
     Parent Project for Subutai Social Management Console Plugins.
@@ -77,6 +76,12 @@
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>environment-manager-api</artifactId>
+        <version>${management.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.subutai</groupId>
+        <artifactId>template-manager-api</artifactId>
         <version>${management.version}</version>
       </dependency>
 

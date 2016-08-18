@@ -236,6 +236,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                         namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
                 executeCommandOnContainer( namenode, Commands.getSetReplication( config.getReplicationFactor() ) );
             }
+
+            executeCommandOnContainer( namenode, Commands.getStartDfsCommand() );
+            executeCommandOnContainer( namenode, Commands.getStartYarnCommand() );
         }
         else
         {

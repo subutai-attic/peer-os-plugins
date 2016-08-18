@@ -37,6 +37,7 @@ import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
@@ -60,6 +61,7 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private NetworkManager networkManager;
     private StrategyManager strategyManager;
     private HadoopWebModule webModule;
+    private TemplateManager templateManager;
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
@@ -343,7 +345,8 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
 
-        AbstractOperationHandler operationHandler = new AddOperationHandler( this, clusterName, nodeCount );
+        AbstractOperationHandler operationHandler =
+                new AddOperationHandler( this, templateManager, clusterName, nodeCount );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -408,9 +411,9 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     {
 
         List<NodeSchema> schema = new ArrayList<>();
-        schema.add( new NodeSchema( "hadoop-master-1", ContainerSize.TINY, "hadoop", 1, 1 ) );
-        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
-        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
+        //        schema.add( new NodeSchema( "hadoop-master-1", ContainerSize.TINY, "hadoop", 1, 1 ) );
+        //        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
+        //        schema.add( new NodeSchema( "hadoop-master-2", ContainerSize.TINY, "hadoop", 1, 1 ) );
         //        for ( int i = 0; i < config.getCountOfSlaveNodes(); i++ )
         //        {
         //            schema.add( new NodeSchema( "hadoop-slave-" + ( i + 1 ), ContainerSize.SMALL, "hadoop", 1, 1 ) );
@@ -504,5 +507,11 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public void setWebModule( final WebuiModule webModule )
     {
         this.webModule = ( HadoopWebModule ) webModule;
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }

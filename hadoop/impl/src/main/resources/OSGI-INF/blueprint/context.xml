@@ -15,6 +15,8 @@
   <reference id="monitor" availability="mandatory"
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+  <reference id="templateManager" availability="mandatory"
+             interface="io.subutai.core.template.api.TemplateManager" />
   <!-- ************************************************************************************************** -->
 
   <bean id="hadoop-impl" scope="singleton" class="io.subutai.plugin.hadoop.impl.HadoopImpl"
@@ -27,6 +29,7 @@
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
     <property name="networkManager" ref="networkManager" />
+    <property name="templateManager" ref="templateManager" />
   </bean>
 
   <bean id="alertListener" scope="singleton"

@@ -152,18 +152,18 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
         LOG.info( "building environment started" );
 
         String environmentName = lConfig.getEnvironmentName();
-        NodeSchema elasticNode =
-                new NodeSchema( "elasticsearch144" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
-                        "elasticsearch144", 0, 0 );
-        NodeSchema cassandraNode =
-                new NodeSchema( "cassandra" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "cassandra", 0,
-                        0 );
-        NodeSchema tomcatNode =
-                new NodeSchema( "tomcat7" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "tomcat7", 0, 0 );
+//        NodeSchema elasticNode =
+//                new NodeSchema( "elasticsearch144" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
+//                        "elasticsearch144", 0, 0 );
+//        NodeSchema cassandraNode =
+//                new NodeSchema( "cassandra" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "cassandra", 0,
+//                        0 );
+//        NodeSchema tomcatNode =
+//                new NodeSchema( "tomcat7" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "tomcat7", 0, 0 );
         List<NodeSchema> nodes = new ArrayList<>();
-        nodes.add( tomcatNode );
-        nodes.add( cassandraNode );
-        nodes.add( elasticNode );
+//        nodes.add( tomcatNode );
+//        nodes.add( cassandraNode );
+//        nodes.add( elasticNode );
         Blueprint blueprint = new Blueprint( environmentName, nodes );
         Topology topology = buildTopology( blueprint );
         LOG.info( "topology: " + blueprint.toString() );

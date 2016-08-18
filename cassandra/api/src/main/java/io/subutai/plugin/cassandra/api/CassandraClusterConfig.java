@@ -18,7 +18,7 @@ public class CassandraClusterConfig implements ConfigBase
     public static final String PRODUCT_NAME = "Cassandra";
     public static final String PACKAGE_NAME = ( Common.PACKAGE_PREFIX + PRODUCT_NAME ).toLowerCase();
 
-    public static final String TEMPLATE_NAME = "cassandra";
+    public static final String TEMPLATE_NAME = "cassandra37";
     private String clusterName = "";
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private int numberOfSeeds;

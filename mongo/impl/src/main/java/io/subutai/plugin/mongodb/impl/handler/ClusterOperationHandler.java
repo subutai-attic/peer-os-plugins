@@ -45,6 +45,7 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.MongoException;
 import io.subutai.plugin.mongodb.api.NodeType;
@@ -65,14 +66,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
     private MongoClusterConfig config;
     private CommandUtil commandUtil;
     private NodeType nodeType;
+    private TemplateManager templateManager;
 
 
-    public ClusterOperationHandler( final MongoImpl manager, final MongoClusterConfig config,
-                                    final ClusterOperationType operationType, NodeType nodeType )
+    public ClusterOperationHandler( final MongoImpl manager, final TemplateManager templateManager,
+                                    final MongoClusterConfig config, final ClusterOperationType operationType,
+                                    NodeType nodeType )
     {
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
+        this.templateManager = templateManager;
         trackerOperation = manager.getTracker().createTrackerOperation( MongoClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
         commandUtil = new CommandUtil();
@@ -222,8 +226,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<MongoImpl,
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
                     NodeSchema node =
-                            new NodeSchema( containerName, ContainerSize.SMALL, MongoClusterConfig.TEMPLATE_NAME, 0,
-                                    0 );
+                            new NodeSchema( containerName, ContainerSize.SMALL, MongoClusterConfig.TEMPLATE_NAME,
+                                    templateManager.getTemplateByName( MongoClusterConfig.TEMPLATE_NAME ).getId() );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 

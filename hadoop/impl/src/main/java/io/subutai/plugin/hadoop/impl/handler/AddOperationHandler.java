@@ -30,6 +30,7 @@ import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hadoop.impl.ClusterConfiguration;
 import io.subutai.plugin.hadoop.impl.Commands;
@@ -41,12 +42,14 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
 
     private int nodeCount;
     private static final Logger LOGGER = LoggerFactory.getLogger( AddOperationHandler.class );
+    private TemplateManager templateManager;
 
 
-    public AddOperationHandler( HadoopImpl manager, String clusterName, int nodeCount )
+    public AddOperationHandler( HadoopImpl manager, TemplateManager templateManager, String clusterName, int nodeCount )
     {
         super( manager, manager.getCluster( clusterName ) );
         this.nodeCount = nodeCount;
+        this.templateManager = templateManager;
         trackerOperation = manager.getTracker().createTrackerOperation( HadoopClusterConfig.PRODUCT_KEY,
                 String.format( "Adding node to cluster %s", clusterName ) );
     }
@@ -123,7 +126,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
                     Node nodeGroup = new Node( containerName, containerName, HadoopClusterConfig.TEMPLATE_NAME,
-                            ContainerSize.LARGE, resourceHost.getPeerId(), resourceHost.getId() );
+                            ContainerSize.LARGE, resourceHost.getPeerId(), resourceHost.getId(),
+                            templateManager.getTemplateByName( HadoopClusterConfig.TEMPLATE_NAME ).getId() );
 
                     nodeGroups.add( nodeGroup );
                 }

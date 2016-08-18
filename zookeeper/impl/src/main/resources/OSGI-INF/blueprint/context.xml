@@ -14,6 +14,8 @@
   <reference id="quotaManager" availability="mandatory"
              interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+  <reference id="templateManager" availability="mandatory"
+             interface="io.subutai.core.template.api.TemplateManager" />
   <!-- *********************************************************************************** -->
 
   <bean id="impl" scope="singleton" class="io.subutai.plugin.zookeeper.impl.ZookeeperImpl"
@@ -25,6 +27,7 @@
     <property name="quotaManager" ref="quotaManager" />
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    <property name="templateManager" ref="templateManager" />
   </bean>
 
   <bean id="alertListener" scope="singleton"

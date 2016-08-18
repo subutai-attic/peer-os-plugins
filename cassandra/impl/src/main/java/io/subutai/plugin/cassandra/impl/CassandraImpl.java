@@ -24,6 +24,7 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
@@ -49,6 +50,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private QuotaManager quotaManager;
     private StrategyManager strategyManager;
     private Monitor monitor;
+    private TemplateManager templateManager;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 
@@ -145,7 +147,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     public UUID installCluster( final CassandraClusterConfig config )
     {
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -155,7 +157,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -165,7 +167,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -210,7 +212,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.START_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -221,7 +223,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STATUS_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.STATUS_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -232,7 +234,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.STOP_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -273,7 +275,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     {
         CassandraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -430,5 +432,11 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }
