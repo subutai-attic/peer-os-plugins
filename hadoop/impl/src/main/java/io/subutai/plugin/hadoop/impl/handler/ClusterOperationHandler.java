@@ -326,10 +326,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                 return;
             }
 
-            // before removing cluster, stop it first.
-//            manager.stopNameNode( config.getClusterName(),
-//                    environment.getContainerHostById( config.getNameNode() ).getHostname() );
-
             new ClusterConfiguration( trackerOperation, manager ).deleteClusterConfiguration( config, environment );
 
             if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )

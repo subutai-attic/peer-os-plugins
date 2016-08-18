@@ -85,12 +85,14 @@ public class RestServiceImpl implements RestService
     public Response configureCluster( final String config )
     {
         TrimmedHadoopConfig trimmedHadoopConfig = JsonUtil.fromJson( config, TrimmedHadoopConfig.class );
+        Set<String> excludedSlaves = new HashSet<>();
         HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
         hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
         hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
         hadoopConfig.setEnvironmentId( trimmedHadoopConfig.getEnvironmentId() );
         hadoopConfig.setNameNode( trimmedHadoopConfig.getNameNode() );
         hadoopConfig.setReplicationFactor( trimmedHadoopConfig.getReplicationFactor() );
+        hadoopConfig.setExcludedSlaves( excludedSlaves );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedHadoopConfig.getSlaves() ) )
         {

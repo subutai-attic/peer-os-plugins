@@ -156,7 +156,7 @@ public class Commands
 
     public static String getIncludeCommand( final String slaveIP )
     {
-        return String.format( "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh include", slaveIP );
+        return String.format( "sed -i -e \"/%s/d\" /opt/hadoop/etc/hadoop/dfs.exclude", slaveIP );
     }
 
 
@@ -175,5 +175,17 @@ public class Commands
     public static String getRefreshNodesCommand()
     {
         return "source /etc/profile ; hdfs dfsadmin -refreshNodes";
+    }
+
+
+    public static String getDeleteNamenodeFolder()
+    {
+        return "rm -rf /opt/hadoop/data/namenode ; rm -rf /opt/hadoop/data";
+    }
+
+
+    public static String getDeleteDataNodeFolder()
+    {
+        return "rm -rf /opt/hadoop/data/datanode ; rm -rf /opt/hadoop/data";
     }
 }

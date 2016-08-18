@@ -186,6 +186,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         executeCommandOnContainer( datanode, Commands.getCleanYarn() );
         executeCommandOnContainer( datanode, Commands.getCleanMapred() );
         executeCommandOnContainer( datanode, Commands.getSetSlavesCommand( "localhost" ) );
+        executeCommandOnContainer( datanode, Commands.getDeleteNamenodeFolder() );
 
         Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
 
@@ -195,6 +196,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             executeCommandOnContainer( node, Commands.getCleanCore() );
             executeCommandOnContainer( node, Commands.getCleanYarn() );
             executeCommandOnContainer( node, Commands.getCleanMapred() );
+            executeCommandOnContainer( node, Commands.getDeleteDataNodeFolder() );
         }
     }
 
