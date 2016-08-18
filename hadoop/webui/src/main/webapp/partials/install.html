@@ -46,6 +46,23 @@
           </div>
 
           <div class="b-form__wrapper b-form__wrapper_margin-bottom">
+            <label class="b-form-label b-form-label_fix-size-1 g-left">Choose Name Node</label>
+
+            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
+              <select
+                  class="b-form-input b-form-input_full"
+                  ng-model="hadoopCtrl.hadoopInstall.nameNode"
+                  ng-change="hadoopCtrl.changeDirective(hadoopCtrl.hadoopInstall.nameNode)">
+                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.id }}">
+                  {{ container.hostname }}
+                </option>
+              </select>
+            </div>
+
+            <div class="clear"></div>
+          </div>
+
+          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
             <label class="b-form-label b-form-label_2-line b-form-label_fix-size-1 g-left">
               Choose replication factor<br> for slave nodes
             </label>
@@ -72,65 +89,6 @@
 
         </div>
       </div>
-      <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-left g-right">
-
-        <div class="b-form">
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">Choose Name Node</label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="hadoopCtrl.hadoopInstall.nameNode">
-                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_fix-size-1 g-left">
-              Choose Job Tracker
-            </label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="hadoopCtrl.hadoopInstall.jobTracker">
-                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
-            <label class="b-form-label b-form-label_2-line b-form-label_fix-size-1 g-left">
-              Choose Secondary Name Node
-            </label>
-
-            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
-              <select
-                  class="b-form-input b-form-input_full"
-                  ng-model="hadoopCtrl.hadoopInstall.secNameNode">
-                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.id }}">
-                  {{ container.id }}
-                </option>
-              </select>
-            </div>
-
-            <div class="clear"></div>
-          </div>
-
-        </div>
-
-      </div>
     </div>
 
     <div class="b-workspace-content__row">
@@ -147,7 +105,7 @@
 
   <div class="b-workspace__button-group b-workspace__button-group_right">
     <button type="submit" class="b-btn b-btn_green g-right">Create</button>
-	<div class="clear"></div>
+    <div class="clear"></div>
   </div>
 </form>
 

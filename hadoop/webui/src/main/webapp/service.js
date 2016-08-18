@@ -37,19 +37,19 @@ function hadoopSrv($http, environmentService) {
         return $http.post(CLUSTER_URL + clusterName + '/nodes');
     }
 
-    function startNode(clusterName, nodeType) {
+    function startNode(clusterName, hostname) {
         var postData = '';
         return $http.put(
-            CLUSTER_URL + nodeType + clusterName + '/start',
+            CLUSTER_URL + clusterName + '/start/' + hostname,
             postData,
             {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
         );
     }
 
-    function stopNode(clusterName, nodeType) {
+    function stopNode(clusterName, hostname) {
         var postData = '';
         return $http.put(
-            CLUSTER_URL + nodeType + clusterName + '/stop',
+            CLUSTER_URL + clusterName + '/stop/' + hostname,
             postData,
             {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
         );

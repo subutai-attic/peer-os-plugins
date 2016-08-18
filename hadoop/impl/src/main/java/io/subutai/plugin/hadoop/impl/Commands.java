@@ -14,207 +14,166 @@ public class Commands
         this.config = config;
     }
 
-    public static String getStatusAll() { return "service hadoop-all status"; }
 
-    public static String getStatusNameNodeCommand()
+    public static String getNodeStatusCommand()
     {
-        return "service hadoop-dfs status";
+        return "source /etc/profile ; jps";
     }
 
 
-    public static String getStartNameNodeCommand()
+    public static String getStartYarnCommand()
     {
-        return "service hadoop-dfs start";
+        return "source /etc/profile ; start-yarn.sh";
     }
 
 
-    public static String getStopNameNodeCommand()
+    public static String getStartDfsCommand()
     {
-        return "service hadoop-dfs stop";
+        return "source /etc/profile ; start-dfs.sh";
     }
 
 
-    public static String getStartJobTrackerCommand()
+    public static String getStopYarnCommand()
     {
-        return "service hadoop-mapred start";
+        return "source /etc/profile ; stop-yarn.sh";
     }
 
 
-    public static String getStopJobTrackerCommand()
+    public static String getStopDfsCommand()
     {
-        return "service hadoop-mapred stop";
+        return "source /etc/profile ; stop-dfs.sh";
     }
 
 
-    public static String getStatusJobTrackerCommand()
+    public static String getCreateNamenodeDirectoryCommand()
     {
-        return "service hadoop-mapred status";
+        return "mkdir -pv /opt/hadoop/data/namenode";
     }
 
 
-    public static String getStatusDataNodeCommand()
+    public static String getUpdateHdfsMaster()
     {
-        return "service hadoop-dfs status";
+        return "rm /opt/hadoop/etc/hadoop/hdfs-site.xml ; cp /opt/hadoop/etc/hadoop/hdfs-site.xml.master.template "
+                + "/opt/hadoop/etc/hadoop/hdfs-site.xml";
     }
 
 
-    public static String getClearMastersCommand()
+    public static String getUpdateCore()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh masters clear";
+        return "rm /opt/hadoop/etc/hadoop/core-site.xml ; cp /opt/hadoop/etc/hadoop/core-site.xml.template "
+                + "/opt/hadoop/etc/hadoop/core-site.xml";
     }
 
 
-    public static String getClearSlavesCommand()
+    public static String getUpdateYarn()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear";
+        return "rm /opt/hadoop/etc/hadoop/yarn-site.xml ; cp /opt/hadoop/etc/hadoop/yarn-site.xml.template "
+                + "/opt/hadoop/etc/hadoop/yarn-site.xml";
     }
 
 
-    public static String getRefreshJobTrackerCommand()
+    public static String getCreateMapred()
     {
-        return "/opt/hadoop*/bin/hadoop mradmin -refreshNodes";
+        return "cp /opt/hadoop/etc/hadoop/mapred-site.xml.template /opt/hadoop/etc/hadoop/mapred-site.xml";
     }
 
 
-    public static String getStartDataNodeCommand()
+    public static String getSetNamenodeIp( String ip )
     {
-        return "/opt/hadoop*/bin/hadoop-daemon.sh start datanode";
+        return String.format( "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh namenode.ip.hdfs %s", ip );
     }
 
 
-    public static String getStopDataNodeCommand()
+    public static String getSetReplication( final String replicationFactor )
     {
-        return "/opt/hadoop*/bin/hadoop-daemon.sh stop datanode";
+        return String.format( "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh repl %s", replicationFactor );
     }
 
 
-    public static String getStartTaskTrackerCommand()
+    public static String getSetSlavesCommand( final String slaveIPs )
     {
-        return "/opt/hadoop*/bin/hadoop-daemon.sh start tasktracker";
+        return String.format( "echo -e \"%s\" > /opt/hadoop/etc/hadoop/slaves", slaveIPs );
     }
 
 
-    public static String getStopTaskTrackerCommand()
+    public static String getCreateDatanodeDirectoryCommand()
     {
-        return "/opt/hadoop*/bin/hadoop-daemon.sh stop tasktracker";
+        return "mkdir -pv /opt/hadoop/data/datanode";
     }
 
 
-    public static String getStatusTaskTrackerCommand()
+    public static String getUpdateHdfsSlave()
     {
-        return "service hadoop-mapred status";
+        return "rm /opt/hadoop/etc/hadoop/hdfs-site.xml ; cp /opt/hadoop/etc/hadoop/hdfs-site.xml.slave.template "
+                + "/opt/hadoop/etc/hadoop/hdfs-site.xml";
     }
 
 
-    public static String getFormatNameNodeCommand()
+    public static String getSetNamenodeIpCore( final String ip )
     {
-        return "/opt/hadoop*/bin/hadoop namenode -format";
+        return String.format( "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh namenode.ip.core %s", ip );
     }
 
 
-    public static String getReportHadoopCommand()
+    public static String getFormatHdfs()
     {
-        return "/opt/hadoop*/bin/hadoop dfsadmin -report";
+        return "source /etc/profile ; hdfs namenode -format";
     }
 
 
-    public static String getRefreshNameNodeCommand()
+    public static String getCleanHdfs()
     {
-        return "/opt/hadoop*/bin/hadoop dfsadmin -refreshNodes";
+        return "rm /opt/hadoop/etc/hadoop/hdfs-site.xml ; cp /opt/hadoop/etc/hadoop/hdfs-site.xml.clean "
+                + "/opt/hadoop/etc/hadoop/hdfs-site.xml";
     }
 
 
-    public static String getSetDataNodeCommand( String hostname )
+    public static String getCleanCore()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
+        return "rm /opt/hadoop/etc/hadoop/core-site.xml ; cp /opt/hadoop/etc/hadoop/core-site.xml.clean "
+                + "/opt/hadoop/etc/hadoop/core-site.xml";
     }
 
 
-    public static String getExcludeDataNodeCommand( String ip )
+    public static String getCleanYarn()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude clear " + ip;
+        return "rm /opt/hadoop/etc/hadoop/yarn-site.xml ; cp /opt/hadoop/etc/hadoop/yarn-site.xml.clean "
+                + "/opt/hadoop/etc/hadoop/yarn-site.xml";
     }
 
 
-    public static String getSetTaskTrackerCommand( String hostname )
+    public static String getCleanMapred()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
+        return "rm /opt/hadoop/etc/hadoop/mapred-site.xml";
     }
 
 
-    public static String getExcludeTaskTrackerCommand( String ip )
+    public static String getExcludeCommand( final String slaveIP )
     {
-
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude clear " + ip;
+        return String.format( "echo \"%s\" >> /opt/hadoop/etc/hadoop/dfs.exclude", slaveIP );
     }
 
 
-    public static String getRemoveTaskTrackerCommand( String hostname )
+    public static String getIncludeCommand( final String slaveIP )
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname;
+        return String.format( "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh include", slaveIP );
     }
 
 
-    public static String getIncludeTaskTrackerCommand( String ip )
+    public static String getUncommentExcludeSettingsCommand()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh mapred.exclude " + ip;
+        return "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh uncomment 51,54";
     }
 
 
-    public static String getRemoveDataNodeCommand( String hostname )
+    public static String getCommentExcludeSettingsCommand()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves clear " + hostname;
+        return "bash /opt/hadoop/etc/hadoop/hadoop-conf.sh comment 51,54";
     }
 
 
-    public static String getIncludeDataNodeCommand( String ip )
+    public static String getRefreshNodesCommand()
     {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh dfs.exclude " + ip;
+        return "source /etc/profile ; hdfs dfsadmin -refreshNodes";
     }
-
-
-    public static String getConfigureJobTrackerCommand( String hostname )
-    {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
-    }
-
-
-    public static String getConfigureSecondaryNameNodeCommand( String hostname )
-    {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh masters " + hostname;
-    }
-
-
-    public static String getConfigureSlaveNodes( String hostname )
-    {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
-    }
-
-
-    public static  String getConfigureTaskTrackersCommand( String hostname )
-    {
-        return "/opt/hadoop*/bin/hadoop-master-slave.sh slaves " + hostname;
-    }
-
-
-    public String getSetMastersCommand( String namenode, String jobtracker )
-    {
-        return "/opt/hadoop*/bin/hadoop-configure.sh " +
-                namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
-                jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
-                config.getReplicationFactor();
-    }
-
-    public static String getSetMastersCommand( String namenode, String jobtracker, int replicationFactor )
-    {
-        return "/opt/hadoop*/bin/hadoop-configure.sh " +
-                namenode + ":" + HadoopClusterConfig.NAME_NODE_PORT + " " +
-                jobtracker + ":" + HadoopClusterConfig.JOB_TRACKER_PORT + " " +
-                replicationFactor;
-    }
-
-    public static String getClearDataDirectory(){
-        return " rm -rf /var/lib/hadoop-root/";
-    }
-
 }

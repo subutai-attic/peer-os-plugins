@@ -45,71 +45,71 @@ public class CheckClusterCommand extends OsgiCommandSupport
         {
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-            UUID nameNodeUUID = hadoopManager.statusNameNode( config );
-            UUID jtUUID = hadoopManager.statusJobTracker( config );
-            UUID snnUUID = hadoopManager.statusSecondaryNameNode( config );
+//            UUID nameNodeUUID = hadoopManager.statusNameNode( config );
+//            UUID jtUUID = hadoopManager.statusJobTracker( config );
+//            UUID snnUUID = hadoopManager.statusSecondaryNameNode( config );
             HashMap<String, UUID> dn = new HashMap<>();
-            for ( String id : config.getDataNodes() )
-            {
-                try
-                {
-                    dn.put( id, hadoopManager
-                            .statusDataNode( config, environment.getContainerHostById( id ).getHostname() ) );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
+//            for ( String id : config.getDataNodes() )
+//            {
+//                try
+//                {
+//                    dn.put( id, hadoopManager
+//                            .statusDataNode( config, environment.getContainerHostById( id ).getHostname() ) );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
 
             HashMap<String, UUID> tt = new HashMap<>();
-            for ( String id : config.getTaskTrackers() )
-            {
-                try
-                {
-                    tt.put( id, hadoopManager
-                            .statusTaskTracker( config, environment.getContainerHostById( id ).getHostname() ) );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
+//            for ( String id : config.getTaskTrackers() )
+//            {
+//                try
+//                {
+//                    tt.put( id, hadoopManager
+//                            .statusTaskTracker( config, environment.getContainerHostById( id ).getHostname() ) );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
 
-            System.out.println( "Namenode : " + waitUntilOperationFinish( tracker, nameNodeUUID ).name() );
-            System.out.println( "JobTracker : " + waitUntilOperationFinish( tracker, jtUUID ).name() );
-            System.out.println( "SecondaryNameNode : " + waitUntilOperationFinish( tracker, snnUUID ).name() );
+//            System.out.println( "Namenode : " + waitUntilOperationFinish( tracker, nameNodeUUID ).name() );
+//            System.out.println( "JobTracker : " + waitUntilOperationFinish( tracker, jtUUID ).name() );
+//            System.out.println( "SecondaryNameNode : " + waitUntilOperationFinish( tracker, snnUUID ).name() );
             StringBuilder sb = new StringBuilder();
             sb.append( "DataNodes : " );
-            for ( String id : config.getDataNodes() )
-            {
-                try
-                {
-                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
-                      .append( waitUntilOperationFinish( tracker, dn.get( id ) ) ).append( " " );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
+//            for ( String id : config.getDataNodes() )
+//            {
+//                try
+//                {
+//                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
+//                      .append( waitUntilOperationFinish( tracker, dn.get( id ) ) ).append( " " );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
             System.out.println( sb.toString() );
 
 
             sb = new StringBuilder();
             sb.append( "TaskTrackers : " );
-            for ( String id : config.getTaskTrackers() )
-            {
-                try
-                {
-                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
-                      .append( waitUntilOperationFinish( tracker, tt.get( id ) ) ).append( " " );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
+//            for ( String id : config.getTaskTrackers() )
+//            {
+//                try
+//                {
+//                    sb.append( environment.getContainerHostById( id ).getHostname() ).append( " " )
+//                      .append( waitUntilOperationFinish( tracker, tt.get( id ) ) ).append( " " );
+//                }
+//                catch ( ContainerHostNotFoundException e )
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
 
             System.out.println( sb.toString() );
         }

@@ -44,13 +44,13 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                 switch ( operationType )
                 {
                     case START:
-                        trackID = hadoop.startNameNode( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.startNameNode( hadoop.getCluster( clusterName ) );
                         break;
                     case STOP:
-                        trackID = hadoop.stopNameNode( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.stopNameNode( hadoop.getCluster( clusterName ) );
                         break;
                     case STATUS:
-                        trackID = hadoop.statusNameNode( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.statusNameNode( hadoop.getCluster( clusterName ) );
                         break;
                 }
                 break;
@@ -58,13 +58,13 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                 switch ( operationType )
                 {
                     case START:
-                        trackID = hadoop.startJobTracker( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.startJobTracker( hadoop.getCluster( clusterName ) );
                         break;
                     case STOP:
-                        trackID = hadoop.stopJobTracker( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.stopJobTracker( hadoop.getCluster( clusterName ) );
                         break;
                     case STATUS:
-                        trackID = hadoop.statusJobTracker( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.statusJobTracker( hadoop.getCluster( clusterName ) );
                         break;
                 }
                 break;
@@ -72,7 +72,7 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                 switch ( operationType )
                 {
                     case STATUS:
-                        trackID = hadoop.statusSecondaryNameNode( hadoop.getCluster( clusterName ) );
+//                        trackID = hadoop.statusSecondaryNameNode( hadoop.getCluster( clusterName ) );
                         break;
                 }
                 break;
@@ -86,8 +86,8 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                         trackID = hadoop.stopDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                     case STATUS:
-                        trackID =
-                                hadoop.statusDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
+//                        trackID =
+//                                hadoop.statusDataNode( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                 }
                 break;
@@ -95,16 +95,16 @@ public class HadoopNodeOperationTask extends AbstractNodeOperationTask implement
                 switch ( operationType )
                 {
                     case START:
-                        trackID = hadoop.startTaskTracker( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+//                        trackID = hadoop.startTaskTracker( hadoop.getCluster( clusterName ),
+//                                containerHost.getHostname() );
                         break;
                     case STOP:
-                        trackID =
-                                hadoop.stopTaskTracker( hadoop.getCluster( clusterName ), containerHost.getHostname() );
+//                        trackID =
+//                                hadoop.stopTaskTracker( hadoop.getCluster( clusterName ), containerHost.getHostname() );
                         break;
                     case STATUS:
-                        trackID = hadoop.statusTaskTracker( hadoop.getCluster( clusterName ),
-                                containerHost.getHostname() );
+//                        trackID = hadoop.statusTaskTracker( hadoop.getCluster( clusterName ),
+//                                containerHost.getHostname() );
                         break;
                 }
                 break;

@@ -1,6 +1,8 @@
 package io.subutai.plugin.hadoop.impl;
 
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +11,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
@@ -33,15 +36,61 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
-
-
         HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
-        Commands commands = new Commands( config );
 
         EnvironmentContainerHost namenode;
         try
         {
+            po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
+
             namenode = environment.getContainerHostById( config.getNameNode() );
+
+            // create directory for namenode
+            executeCommandOnContainer( namenode, Commands.getCreateNamenodeDirectoryCommand() );
+
+            // update hdfs-site.xml
+            executeCommandOnContainer( namenode, Commands.getUpdateHdfsMaster() );
+
+            // update core-site.xml
+            executeCommandOnContainer( namenode, Commands.getUpdateCore() );
+
+            // update yarn-site.xml
+            executeCommandOnContainer( namenode, Commands.getUpdateYarn() );
+
+            // create mapred-site.xml
+            executeCommandOnContainer( namenode, Commands.getCreateMapred() );
+
+            // configure hdfs-site.xml
+            executeCommandOnContainer( namenode, Commands.getSetNamenodeIp(
+                    namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
+            // configure core-site.xml
+            executeCommandOnContainer( namenode, Commands.getSetNamenodeIpCore(
+                    namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
+            // set replication
+            executeCommandOnContainer( namenode, Commands.getSetReplication( config.getReplicationFactor() ) );
+
+            // collecting slaves ip
+            Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+
+            String slaveIPs = collectSlavesIp( slaves );
+
+            // set slaves
+            executeCommandOnContainer( namenode, Commands.getSetSlavesCommand( slaveIPs ) );
+
+            // Configure slaves
+            for ( final EnvironmentContainerHost slave : slaves )
+            {
+                configureSlave( namenode, slave, config );
+            }
+
+            // format hdfs
+            executeCommandOnContainer( namenode, Commands.getFormatHdfs() );
+
+            // start cluster
+            executeCommandOnContainer( namenode, Commands.getStartDfsCommand() );
+            executeCommandOnContainer( namenode, Commands.getStartYarnCommand() );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -49,84 +98,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             po.addLogFailed( "Error getting container host for name node." );
             throw new ClusterConfigurationException( e );
         }
-        EnvironmentContainerHost jobtracker;
-        try
-        {
-            jobtracker = environment.getContainerHostById( config.getJobTracker() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Error getting container host for job tracker.", e );
-            po.addLogFailed( "Error getting container host for name node." );
-            throw new ClusterConfigurationException( e );
-        }
-        EnvironmentContainerHost secondaryNameNode;
-        try
-        {
-            secondaryNameNode = environment.getContainerHostById( config.getSecondaryNameNode() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Error getting secondary container host", e );
-            po.addLogFailed( "Error getting secondary container host" );
-            throw new ClusterConfigurationException( e );
-        }
-        po.addLog( String.format( "Configuring cluster: %s", configBase.getClusterName() ) );
-
-
-        // Configure NameNode & JobTracker and replication factor on all cluser nodes
-        for ( String id : config.getAllNodes() )
-        {
-            try
-            {
-                EnvironmentContainerHost containerHost = environment.getContainerHostById( id );
-                if ( containerHost.getId().equals( namenode.getId() ) || containerHost.getId()
-                                                                                      .equals( jobtracker.getId() ) )
-                {
-                    executeCommandOnContainer( containerHost, Commands.getClearMastersCommand() );
-                    executeCommandOnContainer( containerHost, Commands.getClearSlavesCommand() );
-                }
-                executeCommandOnContainer( containerHost,
-                        commands.getSetMastersCommand( namenode.getHostname(), jobtracker.getHostname() ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                e.printStackTrace();
-            }
-        }
-
-        // Configure Secondary NameNode
-        executeCommandOnContainer( namenode,
-                Commands.getConfigureSecondaryNameNodeCommand( secondaryNameNode.getHostname() ) );
-
-
-        // Configure DataNodes & TaskTrackers
-        for ( String id : config.getDataNodes() )
-        {
-            try
-            {
-                executeCommandOnContainer( namenode,
-                        Commands.getConfigureSlaveNodes( environment.getContainerHostById( id ).getHostname() ) );
-
-                if ( !namenode.getId().equals( jobtracker.getId() ) )
-                {
-                    executeCommandOnContainer( jobtracker,
-                            Commands.getConfigureSlaveNodes( environment.getContainerHostById( id ).getHostname() ) );
-                }
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error executing command", e );
-            }
-        }
-
-        // Format NameNode
-        executeCommandOnContainer( namenode, Commands.getFormatNameNodeCommand() );
-
-
-        // Start Hadoop cluster
-        // executeCommandOnContainer( namenode, Commands.getStartNameNodeCommand() );
-        // executeCommandOnContainer( jobtracker, Commands.getStartJobTrackerCommand() );
 
 
         po.addLog( "Configuration is finished !" );
@@ -135,16 +106,55 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         hadoopManager.getPluginDAO()
                      .saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "Hadoop cluster data saved into database" );
+    }
 
-        //subscribe to alerts
-//        try
-//        {
-//            hadoopManager.subscribeToAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            throw new ClusterConfigurationException( e );
-//        }
+
+    private String collectSlavesIp( final Set<EnvironmentContainerHost> slaves )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for ( final EnvironmentContainerHost slave : slaves )
+        {
+            sb.append( slave.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ).append( "\n" );
+        }
+
+        if ( !sb.toString().isEmpty() )
+        {
+            sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
+        }
+
+        return sb.toString();
+    }
+
+
+    private void configureSlave( final EnvironmentContainerHost namenode, final EnvironmentContainerHost slave,
+                                 final HadoopClusterConfig config )
+    {
+        // creating data node directory
+        executeCommandOnContainer( slave, Commands.getCreateDatanodeDirectoryCommand() );
+
+        // update hdfs-site.xml
+        executeCommandOnContainer( slave, Commands.getUpdateHdfsSlave() );
+
+        // update core-site.xml
+        executeCommandOnContainer( slave, Commands.getUpdateCore() );
+
+        // update yarn-site.xml
+        executeCommandOnContainer( slave, Commands.getUpdateYarn() );
+
+        // create mapred-site.xml
+        executeCommandOnContainer( slave, Commands.getCreateMapred() );
+
+        // configure core-site.xml
+        executeCommandOnContainer( slave, Commands.getSetNamenodeIpCore(
+                namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
+        // set replication
+        executeCommandOnContainer( slave, Commands.getSetReplication( config.getReplicationFactor() ) );
+
+        // configure hdfs-site.xml
+        executeCommandOnContainer( slave, Commands.getSetNamenodeIp(
+                namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
     }
 
 
@@ -152,12 +162,103 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         try
         {
-            containerHost.execute( new RequestBuilder( command ).withTimeout( 10 ) );
+            containerHost.execute( new RequestBuilder( command ).withTimeout( 20 ) );
         }
         catch ( CommandException e )
         {
             LOG.error( "Error while executing \"" + command + "\"." );
             e.printStackTrace();
         }
+    }
+
+
+    public void deleteClusterConfiguration( final HadoopClusterConfig config, final Environment environment )
+            throws ContainerHostNotFoundException
+    {
+        // clean up datanode configuration
+        EnvironmentContainerHost datanode = environment.getContainerHostById( config.getNameNode() );
+
+        executeCommandOnContainer( datanode, Commands.getStopDfsCommand() );
+        executeCommandOnContainer( datanode, Commands.getStopYarnCommand() );
+
+        executeCommandOnContainer( datanode, Commands.getCleanHdfs() );
+        executeCommandOnContainer( datanode, Commands.getCleanCore() );
+        executeCommandOnContainer( datanode, Commands.getCleanYarn() );
+        executeCommandOnContainer( datanode, Commands.getCleanMapred() );
+        executeCommandOnContainer( datanode, Commands.getSetSlavesCommand( "localhost" ) );
+
+        Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+
+        for ( final EnvironmentContainerHost node : slaves )
+        {
+            executeCommandOnContainer( node, Commands.getCleanHdfs() );
+            executeCommandOnContainer( node, Commands.getCleanCore() );
+            executeCommandOnContainer( node, Commands.getCleanYarn() );
+            executeCommandOnContainer( node, Commands.getCleanMapred() );
+        }
+    }
+
+
+    public void addNode( final Environment environment, final HadoopClusterConfig config,
+                         final EnvironmentContainerHost newNode ) throws ContainerHostNotFoundException
+    {
+        EnvironmentContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
+
+        if ( config.getExcludedSlaves().isEmpty() )
+        {
+
+            // Stop cluster
+            executeCommandOnContainer( namenode, Commands.getStopDfsCommand() );
+            executeCommandOnContainer( namenode, Commands.getStopYarnCommand() );
+
+            Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+            String slaveIps = collectSlavesIp( slaves );
+            int repl = slaves.size();
+            config.setReplicationFactor( String.valueOf( repl ) );
+
+            // configure new slave node
+            configureSlave( namenode, newNode, config );
+
+            // update configuration of namenode
+            executeCommandOnContainer( namenode, Commands.getSetSlavesCommand( slaveIps ) );
+            executeCommandOnContainer( namenode, Commands.getUpdateHdfsMaster() );
+            executeCommandOnContainer( namenode, Commands.getSetNamenodeIp(
+                    namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+            executeCommandOnContainer( namenode, Commands.getSetReplication( config.getReplicationFactor() ) );
+
+            // update configuration on slaves
+            for ( final EnvironmentContainerHost slave : slaves )
+            {
+                executeCommandOnContainer( slave, Commands.getUpdateHdfsSlave() );
+                executeCommandOnContainer( namenode, Commands.getSetNamenodeIp(
+                        namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+                executeCommandOnContainer( namenode, Commands.getSetReplication( config.getReplicationFactor() ) );
+            }
+        }
+        else
+        {
+            // adding decommissed node
+            executeCommandOnContainer( namenode,
+                    Commands.getIncludeCommand( config.getExcludedSlaves().iterator().next() ) );
+            executeCommandOnContainer( namenode, Commands.getCommentExcludeSettingsCommand() );
+            executeCommandOnContainer( namenode, Commands.getRefreshNodesCommand() );
+            config.getExcludedSlaves()
+                  .remove( newNode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() );
+        }
+    }
+
+
+    public void excludeNode( final EnvironmentContainerHost namenode, final EnvironmentContainerHost slave,
+                             final HadoopClusterConfig config, final Environment environment )
+    {
+        // add slave ip to dfs.exclude
+        executeCommandOnContainer( namenode,
+                Commands.getExcludeCommand( slave.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
+        // uncomment exclude in hdfs-site.xml
+        executeCommandOnContainer( namenode, Commands.getUncommentExcludeSettingsCommand() );
+
+        // refresh nodes
+        executeCommandOnContainer( namenode, Commands.getRefreshNodesCommand() );
     }
 }

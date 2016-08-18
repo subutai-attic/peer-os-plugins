@@ -16,14 +16,14 @@ public class HadoopWebModule implements WebuiModule
     private WebuiModuleResourse hadoopResource;
     private static String NAME = "Hadoop";
     private static String IMG = "plugins/hadoop/hadoop.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "hadoop", 3 );
+        TEMPLATES_REQUIREMENT.put( "hadoop27", 3 );
     }
 
     public void init()

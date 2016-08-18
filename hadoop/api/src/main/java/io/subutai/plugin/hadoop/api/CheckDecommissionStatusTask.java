@@ -73,7 +73,7 @@ public class CheckDecommissionStatusTask implements Runnable
 
         NodeState state = NodeState.UNKNOWN;
 
-        trackID = hadoop.statusNameNode( hadoopClusterConfig );
+//        trackID = hadoop.statusNameNode( hadoopClusterConfig );
 
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -108,7 +108,7 @@ public class CheckDecommissionStatusTask implements Runnable
 
         if ( state.equals( NodeState.RUNNING ) )
         {
-            trackID = hadoop.checkDecomissionStatus( hadoopClusterConfig );
+//            trackID = hadoop.checkDecomissionStatus( hadoopClusterConfig );
             start = System.currentTimeMillis();
             while ( !Thread.interrupted() )
             {

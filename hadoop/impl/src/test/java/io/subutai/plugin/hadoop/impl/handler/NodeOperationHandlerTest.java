@@ -86,7 +86,6 @@ public class NodeOperationHandlerTest
         when( environment.getId() ).thenReturn( id );
         when( environment.getContainerHosts() ).thenReturn( mySet );
         when( hadoopClusterConfig.getNameNode() ).thenReturn( UUID.randomUUID().toString() );
-        when( hadoopClusterConfig.getJobTracker() ).thenReturn( UUID.randomUUID().toString() );
         Iterator<EnvironmentContainerHost> iterator = mock( Iterator.class );
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false );

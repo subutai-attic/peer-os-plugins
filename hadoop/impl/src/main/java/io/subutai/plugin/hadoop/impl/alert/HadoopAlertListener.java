@@ -167,74 +167,74 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                 switch ( nodeType )
                 {
                     case NAMENODE:
-                        CommandResult result = commandUtil
-                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
-                                        sourceHost );
-                        String output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                        if ( !output.toLowerCase().contains( PID_STRING ) )
-                        {
-                            break;
-                        }
-                        pid = parsePid( output );
-                        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                        ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
-                        cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
-                        break;
-                    case SECONDARY_NAMENODE:
-                        result = commandUtil
-                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
-                                        sourceHost );
-                        output = parseService( result.getStdOut(), "secondarynamenode" );
-                        if ( !output.toLowerCase().contains( PID_STRING ) )
-                        {
-                            break;
-                        }
-                        pid = parsePid( output );
-                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                        ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
-                        cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
-                        break;
-                    case JOBTRACKER:
-                        result = commandUtil
-                                .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).withTimeout( 60 ),
-                                        sourceHost );
-                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                        if ( !output.toLowerCase().contains( PID_STRING ) )
-                        {
-                            break;
-                        }
-                        pid = parsePid( output );
-                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                        ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
-                        cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
-                        break;
-                    case DATANODE:
-                        result = commandUtil
-                                .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ).withTimeout( 60 ),
-                                        sourceHost );
-                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                        if ( !output.toLowerCase().contains( PID_STRING ) )
-                        {
-                            break;
-                        }
-                        pid = parsePid( output );
-                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                        ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
-                        cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
-                        break;
-                    case TASKTRACKER:
-                        result = commandUtil.execute(
-                                new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ),
-                                sourceHost );
-                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
-                        if ( !output.toLowerCase().contains( PID_STRING ) )
-                        {
-                            break;
-                        }
-                        pid = parsePid( output );
-                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
-                        ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
-                        cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
+//                        CommandResult result = commandUtil
+//                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
+//                                        sourceHost );
+//                        String output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+//                        if ( !output.toLowerCase().contains( PID_STRING ) )
+//                        {
+//                            break;
+//                        }
+//                        pid = parsePid( output );
+//                        ProcessResourceUsage processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+//                        ramConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedRam() );
+//                        cpuConsumption.put( NodeType.NAMENODE, processResourceUsage.getUsedCpu() );
+//                        break;
+//                    case SECONDARY_NAMENODE:
+//                        result = commandUtil
+//                                .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ).withTimeout( 60 ),
+//                                        sourceHost );
+//                        output = parseService( result.getStdOut(), "secondarynamenode" );
+//                        if ( !output.toLowerCase().contains( PID_STRING ) )
+//                        {
+//                            break;
+//                        }
+//                        pid = parsePid( output );
+//                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+//                        ramConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedRam() );
+//                        cpuConsumption.put( NodeType.SECONDARY_NAMENODE, processResourceUsage.getUsedCpu() );
+//                        break;
+//                    case JOBTRACKER:
+//                        result = commandUtil
+//                                .execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ).withTimeout( 60 ),
+//                                        sourceHost );
+//                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+//                        if ( !output.toLowerCase().contains( PID_STRING ) )
+//                        {
+//                            break;
+//                        }
+//                        pid = parsePid( output );
+//                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+//                        ramConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedRam() );
+//                        cpuConsumption.put( NodeType.JOBTRACKER, processResourceUsage.getUsedCpu() );
+//                        break;
+//                    case DATANODE:
+//                        result = commandUtil
+//                                .execute( new RequestBuilder( Commands.getStatusDataNodeCommand() ).withTimeout( 60 ),
+//                                        sourceHost );
+//                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+//                        if ( !output.toLowerCase().contains( PID_STRING ) )
+//                        {
+//                            break;
+//                        }
+//                        pid = parsePid( output );
+//                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+//                        ramConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedRam() );
+//                        cpuConsumption.put( NodeType.DATANODE, processResourceUsage.getUsedCpu() );
+//                        break;
+//                    case TASKTRACKER:
+//                        result = commandUtil.execute(
+//                                new RequestBuilder( Commands.getStatusTaskTrackerCommand() ).withTimeout( 60 ),
+//                                sourceHost );
+//                        output = parseService( result.getStdOut(), nodeType.name().toLowerCase() );
+//                        if ( !output.toLowerCase().contains( PID_STRING ) )
+//                        {
+//                            break;
+//                        }
+//                        pid = parsePid( output );
+//                        processResourceUsage = sourceHost.getProcessResourceUsage( pid );
+//                        ramConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedRam() );
+//                        cpuConsumption.put( NodeType.TASKTRACKER, processResourceUsage.getUsedCpu() );
                         break;
                 }
             }
@@ -371,7 +371,7 @@ public class HadoopAlertListener extends ExceededQuotaAlertHandler
                 notifyUser();
             }
         }
-        catch ( CommandException | PeerException e )
+        catch ( PeerException e )
         {
             throwAlertException( e.getMessage(), e );
         }

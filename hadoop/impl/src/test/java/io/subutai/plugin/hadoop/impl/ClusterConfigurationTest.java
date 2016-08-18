@@ -61,9 +61,6 @@ public class ClusterConfigurationTest
         PluginDAO pluginDAO = mock( PluginDAO.class );
         HadoopClusterConfig hadoopClusterConfig = mock( HadoopClusterConfig.class );
         when( environment.getContainerHostById( hadoopClusterConfig.getNameNode() ) ).thenReturn( containerHost );
-        when( environment.getContainerHostById( hadoopClusterConfig.getJobTracker() ) ).thenReturn( containerHost );
-        when( environment.getContainerHostById( hadoopClusterConfig.getSecondaryNameNode() ) )
-                .thenReturn( containerHost );
 
         when( environment.getContainerHosts() ).thenReturn( mySet );
         Iterator<EnvironmentContainerHost> iterator = mock( Iterator.class );
@@ -72,7 +69,6 @@ public class ClusterConfigurationTest
                                   .thenReturn( false );
         when( iterator.next() ).thenReturn( containerHost ).thenReturn( containerHost2 ).thenReturn( containerHost );
 
-        when( hadoopClusterConfig.getDataNodes() ).thenReturn( mylist );
         Iterator<String> iterator1 = mock( Iterator.class );
         when( mylist.iterator() ).thenReturn( iterator1 );
         when( iterator1.hasNext() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
@@ -83,11 +79,9 @@ public class ClusterConfigurationTest
                 .thenReturn( true );
 
         when( environment.getId() ).thenReturn( UUID.randomUUID().toString() );
-        clusterConfiguration.configureCluster( configBase, environment );
+//        clusterConfiguration.configureCluster( configBase, environment );
 
         assertEquals( containerHost, environment.getContainerHostById( hadoopClusterConfig.getNameNode() ) );
-        assertEquals( containerHost, environment.getContainerHostById( hadoopClusterConfig.getJobTracker() ) );
-        assertEquals( containerHost, environment.getContainerHostById( hadoopClusterConfig.getSecondaryNameNode() ) );
     }
 
 
