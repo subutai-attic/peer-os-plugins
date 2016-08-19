@@ -32,6 +32,7 @@ import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -69,6 +70,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private MongoWebModule webModule;
+    private TemplateManager templateManager;
 
 
     public MongoImpl( Monitor monitor, PluginDAO pluginDAO, MongoWebModule webModule )
@@ -154,7 +156,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public UUID installCluster( MongoClusterConfig config )
     {
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL, null );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.INSTALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -164,7 +166,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         MongoClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE, null );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.REMOVE, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -195,7 +197,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.ADD, nodeType );
+                new ClusterOperationHandler( this, templateManager, getCluster( clusterName ), ClusterOperationType.ADD,
+                        nodeType );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -239,7 +242,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL, null );
+                new ClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                        ClusterOperationType.START_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -250,7 +254,8 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     {
         Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL, null );
+                new ClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                        ClusterOperationType.STOP_ALL, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -529,5 +534,11 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }

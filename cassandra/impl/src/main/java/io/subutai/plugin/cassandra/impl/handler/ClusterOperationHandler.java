@@ -41,6 +41,7 @@ import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.strategy.api.StrategyNotFoundException;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
@@ -61,15 +62,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
+    private TemplateManager templateManager;
     private CommandUtil commandUtil;
 
 
-    public ClusterOperationHandler( final CassandraImpl manager, final CassandraClusterConfig config,
-                                    final ClusterOperationType operationType )
+    public ClusterOperationHandler( final CassandraImpl manager, final TemplateManager templateManager,
+                                    final CassandraClusterConfig config, final ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
+        this.templateManager = templateManager;
         trackerOperation = manager.getTracker().createTrackerOperation( CassandraClusterConfig.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
         commandUtil = new CommandUtil();
@@ -155,7 +158,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             try
             {
                 String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                NodeSchema node = new NodeSchema( containerName, ContainerSize.MEDIUM, "cassandra37", 0, 0 );
+                NodeSchema node =
+                        new NodeSchema( containerName, ContainerSize.MEDIUM, CassandraClusterConfig.TEMPLATE_NAME,
+                                templateManager.getTemplateByName( CassandraClusterConfig.TEMPLATE_NAME ).getId() );
                 List<NodeSchema> nodes = new ArrayList<>();
                 nodes.add( node );
 

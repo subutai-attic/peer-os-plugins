@@ -23,6 +23,7 @@ import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -49,6 +50,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private StrategyManager strategyManager;
     private QuotaManager quotaManager;
     private ElasticSearchWebModule webModule;
+    private TemplateManager templateManager;
 
     Commands commands = new Commands();
 
@@ -133,7 +135,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
         Preconditions.checkNotNull( config, "Configuration is null" );
 
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.INSTALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.INSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -143,7 +145,8 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public UUID uninstallCluster( String clusterName )
     {
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
+                new ClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                        ClusterOperationType.UNINSTALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -171,7 +174,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.ADD );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -192,7 +195,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -203,7 +206,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.START_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.START_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -214,7 +217,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STOP_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.STOP_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -225,7 +228,7 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     {
         ElasticsearchClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new ClusterOperationHandler( this, config, ClusterOperationType.STATUS_ALL );
+                new ClusterOperationHandler( this, templateManager, config, ClusterOperationType.STATUS_ALL );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -383,10 +386,11 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
         return webModule;
     }
 
+
     @Override
     public void setWebModule( final WebuiModule webModule )
     {
-        this.webModule = (ElasticSearchWebModule) webModule;
+        this.webModule = ( ElasticSearchWebModule ) webModule;
     }
 
 
@@ -411,5 +415,11 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }

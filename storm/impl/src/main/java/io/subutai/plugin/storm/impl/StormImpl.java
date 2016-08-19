@@ -25,6 +25,7 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.handler.ConfigureEnvironmentClusterHandler;
 import io.subutai.plugin.storm.impl.handler.StormClusterOperationHandler;
@@ -37,6 +38,7 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
     private StrategyManager strategyManager;
     private QuotaManager quotaManager;
+    private TemplateManager templateManager;
 
 
     public StormImpl( Monitor monitor1, PluginDAO pluginDAO )
@@ -59,8 +61,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     @Override
     public UUID uninstallCluster( String clusterName )
     {
-        AbstractOperationHandler h =
-                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.UNINSTALL );
+        AbstractOperationHandler h = new StormClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                ClusterOperationType.UNINSTALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -101,8 +103,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     @Override
     public UUID startAll( String clusterName )
     {
-        AbstractOperationHandler h =
-                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.START_ALL );
+        AbstractOperationHandler h = new StormClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                ClusterOperationType.START_ALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -111,8 +113,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     @Override
     public UUID checkAll( final String clusterName )
     {
-        AbstractOperationHandler h =
-                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STATUS_ALL );
+        AbstractOperationHandler h = new StormClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                ClusterOperationType.STATUS_ALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -131,8 +133,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     @Override
     public UUID stopAll( String clusterName )
     {
-        AbstractOperationHandler h =
-                new StormClusterOperationHandler( this, getCluster( clusterName ), ClusterOperationType.STOP_ALL );
+        AbstractOperationHandler h = new StormClusterOperationHandler( this, templateManager, getCluster( clusterName ),
+                ClusterOperationType.STOP_ALL );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -163,8 +165,8 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     {
         StormClusterConfiguration zookeeperClusterConfig = getCluster( clusterName );
 
-        AbstractOperationHandler h =
-                new StormClusterOperationHandler( this, zookeeperClusterConfig, ClusterOperationType.ADD );
+        AbstractOperationHandler h = new StormClusterOperationHandler( this, templateManager, zookeeperClusterConfig,
+                ClusterOperationType.ADD );
         executor.execute( h );
         return h.getTrackerId();
     }
@@ -184,7 +186,7 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     {
         StormClusterConfiguration config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new StormClusterOperationHandler( this, config, ClusterOperationType.REMOVE );
+                new StormClusterOperationHandler( this, templateManager, config, ClusterOperationType.REMOVE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -326,5 +328,11 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     public void setQuotaManager( final QuotaManager quotaManager )
     {
         this.quotaManager = quotaManager;
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }

@@ -36,6 +36,7 @@ import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
@@ -54,15 +55,18 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     private ClusterOperationType operationType;
     private StormClusterConfiguration config;
     private Environment environment;
+    private TemplateManager templateManager;
     CommandUtil commandUtil = new CommandUtil();
 
 
-    public StormClusterOperationHandler( final StormImpl manager, final StormClusterConfiguration config,
+    public StormClusterOperationHandler( final StormImpl manager, final TemplateManager templateManager,
+                                         final StormClusterConfiguration config,
                                          final ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
+        this.templateManager = templateManager;
         trackerOperation = manager.getTracker().createTrackerOperation( config.getProductKey(),
                 String.format( "Running %s operation on %s...", operationType, clusterName ) );
     }
@@ -258,7 +262,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 try
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                    NodeSchema node = new NodeSchema( containerName, ContainerSize.SMALL, "storm", 0, 0 );
+                    NodeSchema node =
+                            new NodeSchema( containerName, ContainerSize.SMALL, StormClusterConfiguration.TEMPLATE_NAME,
+                                    templateManager.getTemplateByName( StormClusterConfiguration.TEMPLATE_NAME )
+                                                   .getId() );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 

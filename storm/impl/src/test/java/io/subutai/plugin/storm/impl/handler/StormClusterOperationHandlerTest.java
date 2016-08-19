@@ -23,6 +23,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.environment.api.exception.EnvironmentDestructionException;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
@@ -71,6 +72,8 @@ public class StormClusterOperationHandlerTest
     PeerManager peerManager;
     @Mock
     LocalPeer localPeer;
+    @Mock
+    TemplateManager templateManager;
     private StormClusterOperationHandler stormClusterOperationHandler;
     private StormClusterOperationHandler stormClusterOperationHandler2;
     private StormClusterOperationHandler stormClusterOperationHandler3;
@@ -99,19 +102,19 @@ public class StormClusterOperationHandlerTest
         when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         stormClusterOperationHandler =
-                new StormClusterOperationHandler( stormImpl, stormClusterConfiguration, ClusterOperationType.INSTALL );
-        stormClusterOperationHandler2 = new StormClusterOperationHandler( stormImpl, stormClusterConfiguration,
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.INSTALL );
+        stormClusterOperationHandler2 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
                 ClusterOperationType.UNINSTALL );
-        stormClusterOperationHandler3 = new StormClusterOperationHandler( stormImpl, stormClusterConfiguration,
+        stormClusterOperationHandler3 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
                 ClusterOperationType.START_ALL );
         stormClusterOperationHandler4 =
-                new StormClusterOperationHandler( stormImpl, stormClusterConfiguration, ClusterOperationType.STOP_ALL );
-        stormClusterOperationHandler5 = new StormClusterOperationHandler( stormImpl, stormClusterConfiguration,
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.STOP_ALL );
+        stormClusterOperationHandler5 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
                 ClusterOperationType.STATUS_ALL );
         stormClusterOperationHandler6 =
-                new StormClusterOperationHandler( stormImpl, stormClusterConfiguration, ClusterOperationType.ADD );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.ADD );
         stormClusterOperationHandler7 =
-                new StormClusterOperationHandler( stormImpl, stormClusterConfiguration, ClusterOperationType.REMOVE );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.REMOVE );
 
         when( stormImpl.getClusterSetupStrategy( stormClusterConfiguration, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );

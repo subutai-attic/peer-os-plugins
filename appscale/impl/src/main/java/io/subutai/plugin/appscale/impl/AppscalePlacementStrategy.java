@@ -52,26 +52,11 @@ public class AppscalePlacementStrategy implements ContainerPlacementStrategy
     public List<NodeSchema> getScheme()
     {
         final List<NodeSchema> result = new ArrayList<>();
-        NodeSchema schema =
-                new NodeSchema( "appscale-" + UUID.randomUUID().toString(), ContainerSize.HUGE, "appscale", 0, 0 );
-
-        result.add( schema );
-
-        return result;
-    }
-
-
-    @Override
-    public Topology distribute( final String environmentName, PeerGroupResources peerGroupResources,
-                                Map<ContainerSize, ContainerQuota> quotas ) throws StrategyException
-    {
-        Topology result = new Topology( environmentName );
-
-        Set<Node> nodes = distribute( getScheme(), peerGroupResources, quotas );
-        for ( Node node : nodes )
-        {
-            result.addNodePlacement( node.getPeerId(), node );
-        }
+        //        NodeSchema schema =
+        //                new NodeSchema( "appscale-" + UUID.randomUUID().toString(), ContainerSize.HUGE, "appscale",
+        // 0, 0 );
+        //
+        //        result.add( schema );
 
         return result;
     }
@@ -148,10 +133,10 @@ public class AppscalePlacementStrategy implements ContainerPlacementStrategy
             {
                 for ( Allocator.AllocatedContainer container : containers )
                 {
-                    Node node =
-                            new Node( UUID.randomUUID().toString(), container.getName(), container.getTemplateName(),
-                                    container.getSize(), container.getPeerId(), container.getHostId() );
-                    nodes.add( node );
+//                    Node node =
+//                            new Node( UUID.randomUUID().toString(), container.getName(), container.getTemplateName(),
+//                                    container.getSize(), container.getPeerId(), container.getHostId() );
+//                    nodes.add( node );
                 }
             }
         }

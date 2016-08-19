@@ -17,6 +17,10 @@
   <dependencies>
     <dependency>
       <groupId>io.subutai</groupId>
+      <artifactId>template-manager-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
     </dependency>

@@ -33,6 +33,10 @@
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
     </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>template-manager-api</artifactId>
+    </dependency>
 
     <!-- test dependencies -->
 

@@ -23,6 +23,7 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -55,6 +56,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     private Monitor monitor;
     private ExecutorService executor;
     private PeerManager peerManager;
+    private TemplateManager templateManager;
 
     private PluginDAO pluginDAO;
     private QuotaManager quotaManager;
@@ -321,7 +323,8 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
         ZookeeperClusterConfig zookeeperClusterConfig = getCluster( clusterName );
 
         AbstractOperationHandler operationHandler =
-                new ZookeeperNodeOperationHandler( this, zookeeperClusterConfig, NodeOperationType.ADD );
+                new ZookeeperNodeOperationHandler( this, templateManager, zookeeperClusterConfig,
+                        NodeOperationType.ADD );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -497,5 +500,11 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
                 LOG.info( "Environment destroyed from cluster: " + clusterConfig.getClusterName() );
             }
         }
+    }
+
+
+    public void setTemplateManager( final TemplateManager templateManager )
+    {
+        this.templateManager = templateManager;
     }
 }

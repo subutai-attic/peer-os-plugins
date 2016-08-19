@@ -28,6 +28,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.ClusterConfiguration;
@@ -47,14 +48,16 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
     private String hostname;
     private NodeOperationType operationType;
     private CommandUtil commandUtil;
+    private TemplateManager templateManager;
 
 
-    public ZookeeperNodeOperationHandler( final ZookeeperImpl manager, final ZookeeperClusterConfig config,
-                                          NodeOperationType nodeOperationType )
+    public ZookeeperNodeOperationHandler( final ZookeeperImpl manager, final TemplateManager templateManager,
+                                          final ZookeeperClusterConfig config, NodeOperationType nodeOperationType )
     {
         super( manager, config );
         this.clusterName = config.getClusterName();
         this.operationType = nodeOperationType;
+        this.templateManager = templateManager;
         this.trackerOperation = manager.getTracker().createTrackerOperation( ZookeeperClusterConfig.PRODUCT_NAME,
                 String.format( "Running %s operation on %s...", operationType, hostname ) );
         commandUtil = new CommandUtil();
@@ -184,7 +187,8 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 if ( envContainerHosts.isEmpty() )
                 {
                     Node nodeGroup = new Node( UUID.randomUUID().toString(), ZookeeperClusterConfig.PRODUCT_NAME,
-                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, null, null );
+                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, null, null,
+                            templateManager.getTemplateByName( ZookeeperClusterConfig.TEMPLATE_NAME ).getId() );
                     Topology topology = new Topology( environment.getName() );
                     /*Blueprint blueprint =
                             new Blueprint( ZookeeperClusterConfig.PRODUCT_NAME, Sets.newHashSet( nodeGroup ) );*/

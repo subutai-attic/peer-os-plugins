@@ -37,6 +37,7 @@ import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.Commands;
@@ -54,14 +55,17 @@ public class ClusterOperationHandler
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
     CommandUtil commandUtil = new CommandUtil();
+    private TemplateManager templateManager;
 
 
-    public ClusterOperationHandler( final ElasticsearchImpl manager, final ElasticsearchClusterConfiguration config,
+    public ClusterOperationHandler( final ElasticsearchImpl manager, final TemplateManager templateManager,
+                                    final ElasticsearchClusterConfiguration config,
                                     final ClusterOperationType operationType )
     {
         super( manager, config );
         this.operationType = operationType;
         this.config = config;
+        this.templateManager = templateManager;
         trackerOperation = manager.getTracker().createTrackerOperation( ElasticsearchClusterConfiguration.PRODUCT_KEY,
                 String.format( "Creating %s tracker object...", clusterName ) );
     }
@@ -226,7 +230,9 @@ public class ClusterOperationHandler
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
                     NodeSchema node = new NodeSchema( containerName, ContainerSize.MEDIUM,
-                            ElasticsearchClusterConfiguration.TEMPLATE_NAME, 0, 0 );
+                            ElasticsearchClusterConfiguration.TEMPLATE_NAME,
+                            templateManager.getTemplateByName( ElasticsearchClusterConfiguration.TEMPLATE_NAME )
+                                           .getId() );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 

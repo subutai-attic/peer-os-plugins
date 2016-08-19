@@ -238,10 +238,11 @@ public class SolrImpl implements Solr, EnvironmentEventListener
     public Blueprint getDefaultEnvironmentBlueprint( SolrClusterConfig config )
     {
         //1 node group
-        List<NodeSchema> schema = new ArrayList<>();
-        schema.add( new NodeSchema( "solr-master-1", ContainerSize.TINY, SolrClusterConfig.TEMPLATE_NAME, 1, 1 ) );
-        return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
-                schema );
+//        List<NodeSchema> schema = new ArrayList<>();
+//        schema.add( new NodeSchema( "solr-master-1", ContainerSize.TINY, SolrClusterConfig.TEMPLATE_NAME, 1, 1 ) );
+//        return new Blueprint( String.format( "%s-%s", SolrClusterConfig.PRODUCT_KEY, UUIDUtil.generateTimeBasedUUID() ),
+//                schema );
+        return null;
     }
 
 

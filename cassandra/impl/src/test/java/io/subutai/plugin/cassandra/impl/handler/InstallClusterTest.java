@@ -16,6 +16,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -55,6 +56,8 @@ public class InstallClusterTest
     CommandResult commandResult;
     @Mock
     ClusterSetupStrategy clusterSetupStrategy;
+    @Mock
+    TemplateManager templateManager;
 
 
     @Before
@@ -66,7 +69,7 @@ public class InstallClusterTest
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
         installClusterHandler =
-                new ClusterOperationHandler( cassandraImpl, cassandraClusterConfig, ClusterOperationType.INSTALL );
+                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.INSTALL );
     }
 
 
