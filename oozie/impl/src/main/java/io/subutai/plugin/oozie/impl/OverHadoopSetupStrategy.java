@@ -151,34 +151,6 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             po.addLogFailed( "Container hosts not found" );
         }
 
-
-        //check installed subutai packages
-        List<CommandResult> commandResultList = runCommandOnContainers( Commands.getCheckInstalledCommand(), clients );
-
-        if ( getFailedCommandResults( commandResultList ).size() != 0 )
-        {
-            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-        }
-
-        Iterator<EnvironmentContainerHost> iterator = clients.iterator();
-        int nodeIndex = 0;
-        while ( iterator.hasNext() )
-        {
-            EnvironmentContainerHost host = iterator.next();
-            CommandResult result = commandResultList.get( nodeIndex++ );
-
-            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_CLIENT ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s already has OozieClient installed", host.getHostname() ) );
-            }
-            else if ( !result.getStdOut().contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s has no Hadoop installed", host.getHostname() ) );
-            }
-        }
-
         //======================================================================================================================
         // CHECKING for oozie - server
         //======================================================================================================================
@@ -186,78 +158,37 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
         Set<EnvironmentContainerHost> oozieServerNodes = new HashSet<>();
         oozieServerNodes.add( server );
 
-        //check installed subutai packages
-        List<CommandResult> commandResultList2 =
-                runCommandOnContainers( Commands.getCheckInstalledCommand(), oozieServerNodes );
-
-        if ( getFailedCommandResults( commandResultList2 ).size() != 0 )
-        {
-            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-        }
-
-        Iterator<EnvironmentContainerHost> iterator2 = oozieServerNodes.iterator();
-        int nodeIndex2 = 0;
-        while ( iterator2.hasNext() )
-        {
-            EnvironmentContainerHost host = iterator2.next();
-            CommandResult result = commandResultList2.get( nodeIndex2++ );
-
-            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_SERVER ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s already has OozieServer installed", host.getHostname() ) );
-            }
-        }
         //======================================================================================================================
 
         po.addLog( String.format( "Installing Oozie Server and Oozie Client..." ) );
 
-        List<EnvironmentContainerHost> servers = new ArrayList<>( oozieServerNodes );
-        List<EnvironmentContainerHost> clientNodes = new ArrayList<>( clients );
         //install
         runCommandOnContainers( Commands.getAptUpdate(), oozieServerNodes );
-        runCommandOnContainers( Commands.getInstallPythonCommand(), oozieServerNodes);
-        commandResultList2 = runCommandOnContainers( Commands.getInstallServerCommand(), oozieServerNodes );
-        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
+        runCommandOnContainers( Commands.getInstallPythonCommand(), oozieServerNodes );
+        runCommandOnContainers( Commands.getInstallServerCommand(), oozieServerNodes );
 
         runCommandOnContainers( Commands.getAptUpdate(), clients );
-        runCommandOnContainers( Commands.getInstallPythonCommand(), clients);
-        commandResultList = runCommandOnContainers( Commands.getInstallClientsCommand(), clients );
-        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
+        runCommandOnContainers( Commands.getInstallPythonCommand(), clients );
+        runCommandOnContainers( Commands.getInstallClientsCommand(), clients );
+        po.addLog( "Installation succeeded\nConfiguring cluster..." );
 
-        if ( ( getFailedCommandResults( commandResultList2 ).size() == 0 ) && (
-                getFailedCommandResults( commandResultList ).size() == 0 ) )
+        try
         {
-            po.addLog( "Installation succeeded\nConfiguring cluster..." );
-
-            try
-            {
-                new ClusterConfiguration( manager, po ).configureCluster( oozieClusterConfig, environment );
-            }
-            catch ( ClusterConfigurationException e )
-            {
-                throw new ClusterSetupException( e.getMessage() );
-            }
-
-            po.addLog( "Saving cluster information to database..." );
-
-
-            oozieClusterConfig.setEnvironmentId( environment.getId() );
-
-            manager.getPluginDao()
-                   .saveInfo( OozieClusterConfig.PRODUCT_KEY, oozieClusterConfig.getClusterName(), oozieClusterConfig );
-            po.addLog( "Cluster information saved to database" );
+            new ClusterConfiguration( manager, po ).configureCluster( oozieClusterConfig, environment );
         }
-        else
+        catch ( ClusterConfigurationException e )
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            for ( CommandResult commandResult : getFailedCommandResults( commandResultList2 ) )
-            {
-                stringBuilder.append( commandResult.getStdErr() );
-            }
-
-            throw new ClusterSetupException( String.format( "Installation failed, %s", stringBuilder ) );
+            throw new ClusterSetupException( e.getMessage() );
         }
+
+        po.addLog( "Saving cluster information to database..." );
+
+
+        oozieClusterConfig.setEnvironmentId( environment.getId() );
+
+        manager.getPluginDao()
+               .saveInfo( OozieClusterConfig.PRODUCT_KEY, oozieClusterConfig.getClusterName(), oozieClusterConfig );
+        po.addLog( "Cluster information saved to database" );
 
         return oozieClusterConfig;
     }

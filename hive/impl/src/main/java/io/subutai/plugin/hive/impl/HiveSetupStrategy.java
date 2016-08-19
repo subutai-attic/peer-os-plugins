@@ -177,19 +177,19 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Installing server..." );
         try
         {
-            server.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
-                                                                        .withStdOutRedirection( OutputRedirection.NO ) );
-            if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
-            {
-                server.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
-                        .withTimeout( 600 ) );
-            }
-            if ( !checkIfProductIsInstalled( server, "derby" ) )
-            {
-                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" )
-                        .withTimeout( 600 ) );
-            }
+            server.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
+                    OutputRedirection.NO ) );
+            //            if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
+            //            {
+            server.execute( new RequestBuilder(
+                    Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
+                    .withTimeout( 600 ) );
+            //            }
+            //            if ( !checkIfProductIsInstalled( server, "derby" ) )
+            //            {
+            server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" )
+                    .withTimeout( 600 ) );
+            //            }
         }
         catch ( CommandException e )
         {
@@ -205,16 +205,16 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                client.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
-                                                                                                    .withStdOutRedirection( OutputRedirection.NO ) );
-                if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
-                {
-                    CommandResult result = client.execute( new RequestBuilder(
-                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
-                            .withTimeout( 600 ) );
-                    checkInstalled( client, result );
-                    trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
-                }
+                client.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
+                        OutputRedirection.NO ) );
+                //                if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
+                //                {
+                CommandResult result = client.execute( new RequestBuilder(
+                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
+                        .withTimeout( 600 ) );
+                //                checkInstalled( client, result );
+                trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
+                //                }
             }
             catch ( CommandException e )
             {

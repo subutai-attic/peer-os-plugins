@@ -102,7 +102,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
         List<PrestoClusterConfig> prestoClusters = manager.getClusters();
 
         //check installed packages
-        RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
+        //        RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
         for ( String nodeId : config.getAllNodes() )
         {
             EnvironmentContainerHost node = null;
@@ -131,19 +131,11 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                 }
             }
             //filter nodes missing Presto
-            try
-            {
-                CommandResult result = node.execute( checkInstalledCommand );
-                if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-                {
-                    nodesToInstallPresto.add( node );
-                }
-            }
-            catch ( CommandException e )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Error while checking Presto installation: %s; ", e.getMessage() ) );
-            }
+            //                CommandResult result = node.execute( checkInstalledCommand );
+            //                if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+            //                {
+            nodesToInstallPresto.add( node );
+            //                }
         }
     }
 
@@ -156,10 +148,10 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Installing Presto..." );
             for ( EnvironmentContainerHost node : nodesToInstallPresto )
             {
-            	commandUtil.execute (manager.getCommands ().getAptUpdate (), node);
-            	commandUtil.execute (manager.getCommands ().getInstallPython (), node);
+                commandUtil.execute( manager.getCommands().getAptUpdate(), node );
+                commandUtil.execute( manager.getCommands().getInstallPython(), node );
                 CommandResult result = commandUtil.execute( manager.getCommands().getInstallCommand(), node );
-                checkInstalled( node, result );
+//                checkInstalled( node, result );
             }
             po.addLog( "Configuring cluster..." );
             try

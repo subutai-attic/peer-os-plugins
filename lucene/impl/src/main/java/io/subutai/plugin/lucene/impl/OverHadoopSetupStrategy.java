@@ -93,7 +93,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         }
 
         trackerOperation.addLog( "Checking prerequisites..." );
-        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
+//        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
 
 
         for ( EnvironmentContainerHost node : nodes )
@@ -102,22 +102,22 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             {
                 node.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
                         OutputRedirection.NO ) );
-                CommandResult result = node.execute( checkInstalledCommand );
-                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s already has Lucene installed. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
+//                CommandResult result = node.execute( checkInstalledCommand );
+//                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+//                {
+//                    trackerOperation.addLog(
+//                            String.format( "Node %s already has Lucene installed. Omitting this node from installation",
+//                                    node.getHostname() ) );
+//                    config.getNodes().remove( node.getId() );
+//                }
+//                else if ( !result.getStdOut()
+//                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
+//                {
+//                    trackerOperation.addLog(
+//                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
+//                                    node.getHostname() ) );
+//                    config.getNodes().remove( node.getId() );
+//                }
             }
             catch ( CommandException e )
             {
@@ -151,7 +151,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             {
                 CommandResult result =
                         node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
-                checkInstalled( node, result );
+//                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {

@@ -152,14 +152,6 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
             }
             catch ( CommandException e )
             {
@@ -191,7 +183,7 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
                 RequestBuilder installCommand =
                         new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 300 );
                 CommandResult result = commandUtil.execute( installCommand, node );
-                checkInstalled( node, result );
+//                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
