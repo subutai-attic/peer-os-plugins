@@ -20,6 +20,7 @@
   </bean>
 
   <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+  <service ref="cephImpl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
 
   <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.ceph.impl.CephWebModule">
   </bean>
