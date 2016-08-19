@@ -1,11 +1,11 @@
-<features name="presto-plugin" version="4.0.3-SNAPSHOT">
-  <feature name="presto-plugin" version="4.0.3-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/presto-plugin-api/4.0.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/presto-plugin-impl/4.0.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/presto-plugin-cli/4.0.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/presto-plugin-rest/4.0.3-SNAPSHOT</bundle>
+<features name="presto-plugin" version="4.0.3">
+  <feature name="presto-plugin" version="4.0.3">
+    <bundle>mvn:io.subutai.plugin/presto-plugin-api/4.0.3</bundle>
+    <bundle>mvn:io.subutai.plugin/presto-plugin-impl/4.0.3</bundle>
+    <bundle>mvn:io.subutai.plugin/presto-plugin-cli/4.0.3</bundle>
+    <bundle>mvn:io.subutai.plugin/presto-plugin-rest/4.0.3</bundle>
   </feature>
-    <feature name="presto-plugin-war" version="4.0.3-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/presto-plugin-webui/4.0.3-SNAPSHOT/war?Webapp-Context=presto-plugin-war</bundle>
+    <feature name="presto-plugin-war" version="4.0.3">
+        <bundle> war:mvn:io.subutai.plugin/presto-plugin-webui/4.0.3/war?Webapp-Context=presto-plugin-war</bundle>
     </feature>
 </features>
