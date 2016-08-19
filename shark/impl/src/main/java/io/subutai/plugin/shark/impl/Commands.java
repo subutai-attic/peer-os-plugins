@@ -16,7 +16,7 @@ public class Commands
 
     public static RequestBuilder getAptUpdate()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 50000 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 100000 )
                                                                               .withStdOutRedirection(
                                                                                       OutputRedirection.NO );
     }
@@ -24,7 +24,7 @@ public class Commands
 
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 50000 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 100000 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }
