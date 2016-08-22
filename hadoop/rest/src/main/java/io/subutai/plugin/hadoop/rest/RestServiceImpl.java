@@ -338,6 +338,7 @@ public class RestServiceImpl implements RestService
             pojo.setEnvironmentDataSource( envDataSource );
             pojo.setClusterName( config.getClusterName() );
             pojo.setAutoScaling( config.isAutoScaling() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
         {
