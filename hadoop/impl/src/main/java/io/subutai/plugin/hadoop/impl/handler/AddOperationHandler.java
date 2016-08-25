@@ -167,7 +167,7 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     {
                         if ( count <= nodeCount )
                         {
-                            config.getSlaves().add( containerHost.getId() );
+                            //                            config.getSlaves().add( containerHost.getId() );
                             newNode = containerHost;
                             count++;
                             newlyCreatedContainers.add( containerHost );
@@ -175,6 +175,8 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     }
                 }
             }
+
+            config.getSlaves().add( newNode.getId() );
 
             ClusterConfiguration configurator = new ClusterConfiguration( trackerOperation, manager );
 

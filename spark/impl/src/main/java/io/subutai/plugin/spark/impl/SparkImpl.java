@@ -15,6 +15,7 @@ import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -34,6 +35,7 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
 {
 
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
+    private PeerManager peerManager;
 
 
     public SparkImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
@@ -339,5 +341,17 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
                 break;
             }
         }
+    }
+
+
+    public PeerManager getPeerManager()
+    {
+        return peerManager;
+    }
+
+
+    public void setPeerManager( final PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 }

@@ -25,6 +25,12 @@
 						<i class="fa fa-times"></i>
 					</span>
         </a>
+
+        <a href="http://{{sparkCtrl.currentCluster.server.hostname}}.spark"
+           target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
+          Console
+        </a>
+
       </div>
     </div>
   </div>
@@ -52,7 +58,7 @@
                 tooltips
                 tooltip-title="{{ sparkCtrl.currentCluster.server.status }}"
                 class="b-status-icon b-status-icon_{{ sparkCtrl.currentCluster.server.status }}"
-                >
+            >
             </div>
           </td>
           <td class="b-main-table__empty-item">
@@ -95,7 +101,7 @@
              class="row-border hover">
         <thead>
         <tr>
-          <th><input type="checkbox" ng-model = "sparkCtrl.sparkAll" ng-click = "sparkCtrl.pushAll()"></th>
+          <th><input type="checkbox" ng-model="sparkCtrl.sparkAll" ng-click="sparkCtrl.pushAll()"></th>
           <th>Host</th>
           <th>IP List</th>
           <th>Status</th>
@@ -105,7 +111,8 @@
         <tbody>
         <tr ng-repeat="clusterNode in sparkCtrl.currentCluster.clients">
           <td class="b-main-table__edit-icon">
-            <input type="checkbox" ng-model = "clusterNode.checkbox" ng-click="sparkCtrl.pushNode(clusterNode.uuid)" name="sparkChk">
+            <input type="checkbox" ng-model="clusterNode.checkbox" ng-click="sparkCtrl.pushNode(clusterNode.uuid)"
+                   name="sparkChk">
           </td>
           <td>{{ clusterNode.hostname }}</td>
           <td>{{ clusterNode.ip }}</td>

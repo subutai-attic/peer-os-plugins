@@ -102,7 +102,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
             po.addLog( "Configuring reverse proxy for web console" );
 
-            configureReverseProxy( namenode, namenode.getHostname() );
+            configureReverseProxy( namenode, namenode.getHostname().toLowerCase() + ".hadoop" );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -315,9 +315,14 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         else
         {
             // adding decommissed node
-            executeCommandOnContainer( namenode,
-                    Commands.getIncludeCommand( config.getExcludedSlaves().iterator().next() ) );
-            executeCommandOnContainer( namenode, Commands.getCommentExcludeSettingsCommand() );
+            executeCommandOnContainer( namenode, Commands.getIncludeCommand(
+                    newNode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
+            if ( config.getExcludedSlaves().size() == 1 )
+            {
+                executeCommandOnContainer( namenode, Commands.getCommentExcludeSettingsCommand() );
+            }
+
             executeCommandOnContainer( namenode, Commands.getRefreshNodesCommand() );
             config.getExcludedSlaves()
                   .remove( newNode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() );
