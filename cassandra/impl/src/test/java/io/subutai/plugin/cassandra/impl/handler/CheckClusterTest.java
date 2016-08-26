@@ -18,6 +18,7 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -55,6 +56,8 @@ public class CheckClusterTest
     Set<EnvironmentContainerHost> mySet;
     @Mock
     CommandResult commandResult;
+    @Mock
+    TemplateManager templateManager;
 
 
     @Before
@@ -77,7 +80,7 @@ public class CheckClusterTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
 
         checkClusterHandler =
-                new ClusterOperationHandler( cassandraImpl, cassandraClusterConfig, ClusterOperationType.STATUS_ALL );
+                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.STATUS_ALL );
     }
 
 

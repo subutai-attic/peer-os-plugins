@@ -417,7 +417,7 @@ public class OozieImplTest
         when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( false );
 
-        oozieImpl.onContainerDestroyed( environment, id );
+//        oozieImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -431,7 +431,7 @@ public class OozieImplTest
         when( environment.getId() ).thenReturn( id );
         when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
 
-        oozieImpl.onEnvironmentDestroyed( id );
+//        oozieImpl.onEnvironmentDestroyed( id );
     }
 
 

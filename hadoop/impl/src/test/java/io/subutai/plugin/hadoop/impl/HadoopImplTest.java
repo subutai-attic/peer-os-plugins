@@ -322,15 +322,6 @@ public class HadoopImplTest
 
 
     @Test
-    public void testGetDefaultEnvironmentBlueprint() throws ClusterSetupException
-    {
-        hadoopImpl.getDefaultEnvironmentBlueprint( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.getDefaultEnvironmentBlueprint( hadoopClusterConfig ) );
-    }
-
-
-    @Test
     public void testGetClusters()
     {
         hadoopImpl.getClusters();

@@ -13,6 +13,7 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
 import io.subutai.plugin.hadoop.impl.HadoopWebModule;
@@ -40,6 +41,9 @@ public class AddOperationHandlerTest
     @Mock
     private StrategyManager strategyManager;
 
+    @Mock
+    TemplateManager templateManager;
+
 
     @Before
     public void setUp()
@@ -57,7 +61,7 @@ public class AddOperationHandlerTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         hadoop.setTracker( tracker );
         hadoop.setExecutor( executorService );
-        addOperationHandler = new AddOperationHandler( hadoop, clusterName, 5 );
+        addOperationHandler = new AddOperationHandler( hadoop, templateManager, clusterName, 5 );
 
         assertEquals( uuid, trackerOperation.getId() );
         assertEquals( tracker, hadoop.getTracker() );

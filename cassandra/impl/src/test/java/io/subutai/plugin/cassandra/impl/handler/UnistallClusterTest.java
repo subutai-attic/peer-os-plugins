@@ -15,6 +15,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
+import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -52,6 +53,8 @@ public class UnistallClusterTest
     CommandResult commandResult;
     @Mock
     PluginDAO pluginDAO;
+    @Mock
+    TemplateManager templateManager;
 
 
     @Before
@@ -62,7 +65,7 @@ public class UnistallClusterTest
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
         uninstallClusterHandler =
-                new ClusterOperationHandler( cassandraImpl, cassandraClusterConfig, ClusterOperationType.UNINSTALL );
+                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.UNINSTALL );
     }
 
 
