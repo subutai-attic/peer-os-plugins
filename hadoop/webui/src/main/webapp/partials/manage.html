@@ -134,8 +134,8 @@
           <th>Status</th>
           <th>Hostname</th>
           <th>IP</th>
-          <th></th>
           <th>SSH</th>
+          <th></th>
         </tr>
         </thead>
         <tbody>
@@ -149,12 +149,6 @@
           </td>
           <td>{{ slave.hostname }}</td>
           <td class="subt_text__container-ip">{{ slave.ip }}</td>
-          <td>
-            <a href
-               class="b-icon b-icon_remove"
-               ng-click="hadoopCtrl.deleteNode(slave.hostname)">
-            </a>
-          </td>
           <td>
             <div env-id="{{ hadoopCtrl.currentCluster.environmentId }}"
                  container-id="{{ slave.uuid }}">
@@ -185,6 +179,12 @@
 								</div>
 							</span>
             </div>
+          </td>
+          <td>
+            <a href
+               class="b-icon b-icon_remove"
+               ng-click="hadoopCtrl.deleteNode(slave.hostname)">
+            </a>
           </td>
         </tr>
         </tbody>

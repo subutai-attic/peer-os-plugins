@@ -2,6 +2,7 @@ package io.subutai.plugin.hadoop.impl;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,10 +162,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
             LOG.info( "resouceHostID: " + resourceHost );
 
-            CommandResult resultStr = resourceHost.execute(
-                    new RequestBuilder( String.format( "grep vlan /mnt/lib/lxc/%s/config", namenode.getHostname() ) ) );
-            String stdOut = resultStr.getStdOut();
-            String vlanString = stdOut.substring( 11, 14 );
+            //            CommandResult resultStr = resourceHost.execute(
+            //                    new RequestBuilder( String.format( "grep vlan /mnt/lib/lxc/%s/config", namenode
+            // .getHostname() ) ) );
+            //            String stdOut = resultStr.getStdOut();
+            //            String vlanString = stdOut.substring( 11, 14 );
+            String vlanString = UUID.randomUUID().toString();
             resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
             resourceHost.execute( new RequestBuilder(
                     String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,

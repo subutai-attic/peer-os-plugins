@@ -214,28 +214,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
         {
             e.printStackTrace();
         }
-        //        executeCommand( node, Commands.getAptUpdate() );
 
-        //check installed subutai packages
-        //        RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
-        //        CommandResult result = executeCommand( node, checkInstalledCommand );
-        //
-        //
-        //        if ( install )
-        //        {
-        //            //install only if container does not have Spark installed
-        //            install = !result.getStdOut()
-        //                             .contains( Commands.PACKAGE_NAME );
-        //        }
-
-
-        //install spark
-        //        if ( install )
-        //        {
         trackerOperation.addLog( "Installing Spark..." );
         RequestBuilder installCommand = manager.getCommands().getInstallCommand();
         executeCommand( node, installCommand );
-        //        }
 
         ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
         config.getSlaveIds().add( node.getId() );
