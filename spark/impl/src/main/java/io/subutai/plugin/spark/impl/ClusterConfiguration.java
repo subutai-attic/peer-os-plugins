@@ -72,6 +72,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
             executeCommand( master, Commands.getSetSlavesCommand( slaveIPs ) );
 
             configureReverseProxy( master, master.getHostname().toLowerCase() + ".spark" );
+
+            startCluster( master, environment, config );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -210,6 +212,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
 
         po.addLog( "Successfully unregistered slave from master..." );
 
+        config.getSlaveIds().remove( node.getId() );
+
         boolean uninstall = !node.getId().equals( config.getMasterNodeId() );
         if ( uninstall )
         {
@@ -217,6 +221,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
             RequestBuilder uninstallCommand = manager.getCommands().getUninstallCommand();
             executeCommand( node, uninstallCommand );
         }
+
+        startCluster( master, environment, config );
     }
 
 
@@ -233,6 +239,23 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
         for ( final EnvironmentContainerHost slave : slaves )
         {
             executeCommand( slave, manager.getCommands().getStopSlaveCommand() );
+        }
+    }
+
+
+    private void startCluster( final EnvironmentContainerHost master, final Environment environment,
+                               final SparkClusterConfig config )
+            throws ClusterConfigurationException, ContainerHostNotFoundException
+    {
+        po.addLog( "Stopping cluster..." );
+
+        executeCommand( master, manager.getCommands().getStartMasterCommand() );
+
+        Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaveIds() );
+
+        for ( final EnvironmentContainerHost slave : slaves )
+        {
+            executeCommand( slave, manager.getCommands().getStartSlaveCommand( master.getHostname() ) );
         }
     }
 
@@ -254,5 +277,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
 
         // set slaves
         executeCommand( master, Commands.getSetSlavesCommand( slaveIPs ) );
+
+        startCluster( master, environment, config );
     }
 }

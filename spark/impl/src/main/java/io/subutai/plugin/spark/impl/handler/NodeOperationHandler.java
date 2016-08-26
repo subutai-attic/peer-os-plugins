@@ -291,7 +291,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<SparkImpl, Sp
 
             configuration.removeNode( master, node, config, environment );
 
-            config.getSlaveIds().remove( node.getId() );
             trackerOperation.addLog( "Updating db..." );
             manager.saveConfig( config );
         }
