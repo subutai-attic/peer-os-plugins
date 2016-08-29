@@ -1,9 +1,6 @@
 package io.subutai.plugin.pig.rest.pojo;
 
 
-/**
- * Created by ermek on 11/26/15.
- */
 public class ContainerPojo
 {
     private String hostname;

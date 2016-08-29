@@ -108,6 +108,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<PigImpl, PigC
         CommandResult result = null;
         try
         {
+            host.execute( Commands.getAptUpdate() );
             result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
             if ( result.hasSucceeded() )
             {

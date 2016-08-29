@@ -117,7 +117,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
 
         trackerOperation.addLog( "Checking prerequisites..." );
 
-//        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
+        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
         for ( String nodeId : config.getNodes() )
         {
             EnvironmentContainerHost node;
@@ -133,23 +133,15 @@ class PigSetupStrategy implements ClusterSetupStrategy
             }
             try
             {
+                CommandResult result = node.execute( checkInstalledCommand );
                 commandUtil.execute( Commands.getAptUpdate(), node );
-//                CommandResult result = commandUtil.execute( checkInstalledCommand, node );
-//                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s already has Pig installed. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
-//                else if ( !result.getStdOut()
-//                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s already has Pig installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
             }
             catch ( CommandException e )
             {
@@ -174,7 +166,7 @@ class PigSetupStrategy implements ClusterSetupStrategy
                 {
                     CommandResult result = commandUtil
                             .execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ), node );
-//                    checkInstalled( node, result );
+                    checkInstalled( node, result );
                 }
                 catch ( CommandException e )
                 {

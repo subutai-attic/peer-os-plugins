@@ -104,7 +104,6 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 			vm.currentClusterNodes = data.slaves;
 			vm.currentClusterNodes.push(data.nameNode);
 			LOADING_SCREEN('none');
-			console.log(vm.currentClusterNodes);
 		});
 	}
 
