@@ -3,6 +3,8 @@ package io.subutai.plugin.mahout.impl.handler;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.OutputRedirection;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -10,6 +12,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.mahout.api.MahoutClusterConfig;
+import io.subutai.plugin.mahout.impl.Commands;
 import io.subutai.plugin.mahout.impl.MahoutImpl;
 
 
@@ -83,6 +86,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<MahoutImpl, M
         CommandResult result = null;
         try
         {
+            host.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
+                                                                      .withStdOutRedirection( OutputRedirection.NO ) );
             result = host.execute( manager.getCommands().getInstallCommand() );
             if ( result.hasSucceeded() )
             {

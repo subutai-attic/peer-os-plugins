@@ -169,7 +169,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         if (vm.currentCluster.name === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the Cassandra node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -182,7 +182,7 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             function (isConfirm) {
                 if (isConfirm) {
                     cassandraSrv.deleteNode(vm.currentCluster.name, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         getClustersInfo(vm.currentCluster.name);
                     });
                 }

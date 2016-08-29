@@ -4,9 +4,6 @@ package io.subutai.plugin.mahout.rest.pojo;
 import java.util.Set;
 
 
-/**
- * Created by ermek on 11/26/15.
- */
 public class MahoutPojo
 {
     private String clusterName;

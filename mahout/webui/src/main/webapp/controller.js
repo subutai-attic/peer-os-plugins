@@ -68,9 +68,10 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 
 	function addNodeForm() {
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		mahoutSrv.getAvailableNodes(vm.currentCluster.clusterName).success(function (data) {
+			LOADING_SCREEN('none');
 			vm.availableNodes = data;
-			console.log(vm.availableNodes);
 		});
 		ngDialog.open({
 			template: 'plugins/mahout/partials/addNodesForm.html',
@@ -81,6 +82,7 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 	function addNode(chosenNode) {
 		if(chosenNode === undefined) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal("Success!", "Adding node action started.", "success");
 		ngDialog.closeAll();
 		mahoutSrv.addNode(vm.currentCluster.clusterName, chosenNode).success(function (data) {
@@ -90,6 +92,7 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 				"success"
 			);
 			getClustersInfo(vm.currentCluster.clusterName);
+			LOADING_SCREEN('none');
 		}).error(function(error){
 			SweetAlert.swal("ERROR!", 'Mahout add node error: ' + error.replace(/\\n/g, ' '), "error");
 		});
@@ -98,39 +101,8 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 	function getHadoopClusterNodes(selectedCluster) {
 		LOADING_SCREEN();
 		mahoutSrv.getHadoopClusters(selectedCluster).success(function (data) {
-			vm.currentClusterNodes = data.dataNodes;
-			var tempArray = [];
-
-			var nameNodeFound = false;
-			var jobTrackerFound = false;
-			var secondaryNameNodeFound = false;
-			for(var i = 0; i < vm.currentClusterNodes.length; i++) {
-				var node = vm.currentClusterNodes[i];
-				if(node.hostname === data.nameNode.hostname) nameNodeFound = true;
-				if(node.hostname === data.jobTracker.hostname) jobTrackerFound = true;
-				if(node.hostname === data.secondaryNameNode.hostname) secondaryNameNodeFound = true;
-			}
-			if(!nameNodeFound) {
-				tempArray.push(data.nameNode);
-			}
-			if(!jobTrackerFound) {
-				if(tempArray[0].hostname != data.jobTracker.hostname) {
-					tempArray.push(data.jobTracker);
-				}
-			}
-			if(!secondaryNameNodeFound) {
-				var checker = 0;
-				for(var i = 0; i < tempArray.length; i++) {
-					if(tempArray[i].hostname != data.secondaryNameNode.hostname) {
-						checker++;
-					}
-				}
-				if(checker == tempArray.length) {
-					tempArray.push(data.secondaryNameNode);
-				}
-			}
-			vm.currentClusterNodes = vm.currentClusterNodes.concat(tempArray);
-
+			vm.currentClusterNodes = data.slaves;
+			vm.currentClusterNodes.push(data.nameNode);
 			LOADING_SCREEN('none');
 			console.log(vm.currentClusterNodes);
 		});
@@ -186,7 +158,7 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		if(vm.currentCluster.clusterName === undefined) return;
 		SweetAlert.swal({
 			title: "Are you sure?",
-			text: "Your will not be able to recover this node!",
+			text: "This operation removes the Mahout node from the cluster, and does not delete the container itself.",
 			type: "warning",
 			showCancelButton: true,
 			confirmButtonColor: "#ff3f3c",
@@ -199,7 +171,7 @@ function MahoutCtrl($scope, mahoutSrv, SweetAlert, DTOptionsBuilder, DTColumnDef
 		function (isConfirm) {
 			if (isConfirm) {
 				mahoutSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-					SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+					SweetAlert.swal("Deleted!", "Node has been removed.", "success");
 					getClustersInfo(vm.currentCluster.clusterName);
 				}).error(function(error){
 					SweetAlert.swal("ERROR!", 'Delete node error: ' + error.replace(/\\n/g, ' '), "error");
