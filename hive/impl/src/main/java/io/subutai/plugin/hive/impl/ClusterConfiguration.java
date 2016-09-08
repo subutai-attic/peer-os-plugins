@@ -1,7 +1,10 @@
 package io.subutai.plugin.hive.impl;
 
 
+import java.util.Set;
+
 import io.subutai.common.host.HostInterface;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +13,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
@@ -36,32 +40,56 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             throws ClusterConfigurationException
     {
         HiveConfig hiveConfig = ( HiveConfig ) config;
-        ContainerHost server;
+
         try
         {
-            server = environment.getContainerHostById( ( ( HiveConfig ) config ).getServer() );
+            Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( hiveConfig.getAllNodes() );
+
+            ContainerHost server = environment.getContainerHostById( hiveConfig.getServer() );
+            ContainerHost namenode = environment.getContainerHostById( hiveConfig.getNamenode() );
+
+            // configure hive server
+            po.addLog( "Configuring server node: " + server.getHostname() );
+            HostInterface hostInterface = server.getInterfaceByName( "eth0" );
+
+            // copy derby jars to hive/lib
+            executeCommand( server, Commands.copyDerbyJarsCommand );
+
+            // edit hive-site.xml
+            executeCommand( server, Commands.configureHiveServer( hostInterface.getIp() ) );
+
+            // create HDFS directories
+            executeCommand( namenode, Commands.CREATE_HDFS_DIRECTORIES );
+
+            // stop namenode
+            executeCommand( namenode, Commands.STOP_NAMENODE_COMMAND );
+
+            // add authentication step to core-site.xml
+            executeCommand( namenode, Commands.addConfigHostsCoreSite() );
+            executeCommand( namenode, Commands.addConfigGroupsCoreSite() );
+            executeCommand( namenode, "sed -i -e \"s/bin/*/g\" "
+                    + "/opt/hadoop/etc/hadoop/core-site.xml" );
+
+            // start namenode
+            executeCommand( namenode, Commands.START_NAMENODE_COMMAND );
+
+            // start derby
+            executeCommand( server, Commands.START_DERBY_COMMAND );
+
+            // initialize schema
+            executeCommand( server, Commands.INITIALIZE_SCHEMA );
+
+            // start hiveserver2
+            executeCommand( server, Commands.START_COMMAND );
         }
         catch ( ContainerHostNotFoundException e )
         {
+            e.printStackTrace();
             LOGGER.error( "Error getting server container host.", e );
             po.addLogFailed( "Error getting server container host." );
             return;
         }
 
-        // configure hive server
-        po.addLog( "Configuring server node: " + server.getHostname() );
-		HostInterface hostInterface = server.getInterfaceByName ("eth0");
-        executeCommand( server, Commands.configureHiveServer( hostInterface.getIp () ) );
-
-
-        for ( ContainerHost containerHost : environment.getContainerHosts() )
-        {
-            if ( !containerHost.getId().equals( server.getId() ) )
-            {
-                po.addLog( "Configuring client node : " + containerHost.getHostname() );
-                executeCommand( containerHost, Commands.configureClient( server ) );
-            }
-        }
         hiveConfig.setEnvironmentId( environment.getId() );
         manager.getPluginDAO().saveInfo( HiveConfig.PRODUCT_KEY, config.getClusterName(), config );
         po.addLogDone( HiveConfig.PRODUCT_KEY + " cluster data saved into database" );
