@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
-import io.subutai.common.host.HostInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +21,7 @@ import com.google.common.collect.Sets;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
@@ -29,8 +29,8 @@ import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBase;
@@ -114,7 +114,7 @@ public class RestServiceImpl implements RestService
         }
 
         UUID uuid = hbaseManager.installCluster( hbaseConfig );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 60 * 60 );
         return createResponse( uuid, state );
     }
 
@@ -280,9 +280,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getRegionServers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
+                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setRegionServers( regionServers );
@@ -290,9 +290,9 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getQuorumPeers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
+                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setQuorumPeers( quorumPeers );
@@ -300,18 +300,19 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getBackupMasters() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
+                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
             pojo.setBackupMasters( backupMasters );
 
             ContainerHost containerHost = environment.getContainerHostById( config.getHbaseMaster() );
-			HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+            HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
             UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), containerHost.getHostname() );
-            pojo.setHbaseMaster( new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(),
-					hostInterface.getIp (), checkStatus( tracker, uuidStatus ) ) );
+            pojo.setHbaseMaster(
+                    new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(), hostInterface.getIp(),
+                            checkStatus( tracker, uuidStatus ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
@@ -444,6 +445,12 @@ public class RestServiceImpl implements RestService
 
     private OperationState waitUntilOperationFinish( UUID uuid )
     {
+        return waitUntilOperationFinish( uuid, 60 );
+    }
+
+
+    private OperationState waitUntilOperationFinish( UUID uuid, int timeoutSec )
+    {
         OperationState state = null;
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
@@ -465,7 +472,7 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 60 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( timeoutSec * 1000 ) )
             {
                 break;
             }
@@ -503,9 +510,10 @@ public class RestServiceImpl implements RestService
         this.environmentManager = environmentManager;
     }
 
+
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (hbaseManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( hbaseManager.getWebModule().getAngularDependecyList() ).build();
     }
 }
