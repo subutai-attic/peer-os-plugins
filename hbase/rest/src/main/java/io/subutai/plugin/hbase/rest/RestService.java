@@ -44,18 +44,34 @@ public interface RestService
     public Response destroyCluster( @PathParam( "clusterName" ) String clusterName );
 
 
-    //start cluster
+    //start master node
     @PUT
-    @Path( "clusters/{clusterName}/start" )
+    @Path( "clusters/{clusterName}/start/node/{lxcHostName}/master/{master}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response startCluster( @PathParam( "clusterName" ) String clusterName );
+    Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
+                        @PathParam( "master" ) boolean master );
 
 
-    //stop cluster
+    //stop master node
     @PUT
-    @Path( "clusters/{clusterName}/stop" )
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostName}/master/{master}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    public Response stopCluster( @PathParam( "clusterName" ) String clusterName );
+    Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
+                       @PathParam( "master" ) boolean master );
+
+
+    //start region servers
+    @POST
+    @Path( "clusters/nodes/start" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    Response startNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHosts" ) String lxcHosts );
+
+
+    //stop region servers
+    @POST
+    @Path( "clusters/nodes/stop" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    Response stopNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHosts" ) String lxcHosts );
 
 
     //add node

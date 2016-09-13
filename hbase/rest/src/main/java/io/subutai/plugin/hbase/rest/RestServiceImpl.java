@@ -10,14 +10,18 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -83,16 +87,6 @@ public class RestServiceImpl implements RestService
         hbaseConfig.setEnvironmentId( trimmedHBaseConfig.getEnvironmentId() );
         hbaseConfig.setHbaseMaster( trimmedHBaseConfig.getHmaster() );
 
-        if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getQuorumPeers() ) )
-        {
-            Set<String> slaveNodes = new HashSet<>();
-            for ( String node : trimmedHBaseConfig.getQuorumPeers() )
-            {
-                slaveNodes.add( node );
-            }
-            hbaseConfig.getQuorumPeers().addAll( slaveNodes );
-        }
-
         if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getRegionServers() ) )
         {
             Set<String> slaveNodes = new HashSet<>();
@@ -101,16 +95,6 @@ public class RestServiceImpl implements RestService
                 slaveNodes.add( node );
             }
             hbaseConfig.getRegionServers().addAll( slaveNodes );
-        }
-
-        if ( !CollectionUtil.isCollectionEmpty( trimmedHBaseConfig.getBackupMasters() ) )
-        {
-            Set<String> slaveNodes = new HashSet<>();
-            for ( String node : trimmedHBaseConfig.getBackupMasters() )
-            {
-                slaveNodes.add( node );
-            }
-            hbaseConfig.getBackupMasters().addAll( slaveNodes );
         }
 
         UUID uuid = hbaseManager.installCluster( hbaseConfig );
@@ -131,24 +115,50 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startCluster( final String clusterName )
+    public Response startNode( final String clusterName, final String lxcHostName, final boolean master )
     {
-        UUID uuid = hbaseManager.startCluster( clusterName );
-
-        waitUntilOperationFinish( uuid );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostName );
+        Preconditions.checkNotNull( master );
+        if ( hbaseManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = hbaseManager.startNode( clusterName, lxcHostName, master );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response stopCluster( final String clusterName )
+    public Response stopNode( final String clusterName, final String lxcHostName, final boolean master )
     {
-        UUID uuid = hbaseManager.stopCluster( clusterName );
-
-        waitUntilOperationFinish( uuid );
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostName );
+        Preconditions.checkNotNull( master );
+        if ( hbaseManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = hbaseManager.stopNode( clusterName, lxcHostName, master );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    @Override
+    public Response startNodes( final String clusterName, final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, true );
+    }
+
+
+    @Override
+    public Response stopNodes( final String clusterName, final String lxcHosts )
+    {
+        return nodeOperation( clusterName, lxcHosts, false );
     }
 
 
@@ -265,8 +275,6 @@ public class RestServiceImpl implements RestService
     {
         HbasePojo pojo = new HbasePojo();
         Set<ContainerPojo> regionServers = Sets.newHashSet();
-        Set<ContainerPojo> quorumPeers = Sets.newHashSet();
-        Set<ContainerPojo> backupMasters = Sets.newHashSet();
 
         try
         {
@@ -280,38 +288,19 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getRegionServers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
-                        checkStatus( tracker, uuidStatus ) ) );
+                regionServers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
+                        checkRegionServerStatus( tracker, uuidStatus ) ) );
             }
             pojo.setRegionServers( regionServers );
 
-            for ( final String uuid : config.getQuorumPeers() )
-            {
-                ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
-                UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                quorumPeers.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
-                        checkStatus( tracker, uuidStatus ) ) );
-            }
-            pojo.setQuorumPeers( quorumPeers );
-
-            for ( final String uuid : config.getBackupMasters() )
-            {
-                ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
-                UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), ch.getHostname() );
-                backupMasters.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
-                        checkStatus( tracker, uuidStatus ) ) );
-            }
-            pojo.setBackupMasters( backupMasters );
-
             ContainerHost containerHost = environment.getContainerHostById( config.getHbaseMaster() );
-			HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
+            HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
             UUID uuidStatus = hbaseManager.checkNode( config.getClusterName(), containerHost.getHostname() );
-            pojo.setHbaseMaster( new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(),
-					hostInterface.getIp (), checkStatus( tracker, uuidStatus ) ) );
+            pojo.setHbaseMaster(
+                    new ContainerPojo( containerHost.getHostname(), config.getHbaseMaster(), hostInterface.getIp(),
+                            checkHbaseMasterStatus( tracker, uuidStatus ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
@@ -322,7 +311,7 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private String checkStatus( Tracker tracker, UUID uuid )
+    private String checkRegionServerStatus( Tracker tracker, UUID uuid )
     {
         String state = "UNKNOWN";
         long start = System.currentTimeMillis();
@@ -333,14 +322,51 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "HQuorumPeer is running" ) || po.getLog()
-                                                                               .contains( "HRegionServer is running" )
-                            || po.getLog().contains( "HMaster is running" ) )
+                    if ( po.getLog().contains( "HRegionServer" ) )
                     {
                         state = "RUNNING";
                     }
-                    else if ( po.getLog().contains( "HQuorumPeer is NOT running" ) || ( po.getLog().contains(
-                            "HRegionServer is NOT running" ) ) || ( po.getLog().contains( "HMaster is NOT running" ) ) )
+                    else
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
+    }
+
+
+    private String checkHbaseMasterStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HBaseConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "HMaster" ) && po.getLog().contains( "HQuorumPeer" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else
                     {
                         state = "STOPPED";
                     }
@@ -465,12 +491,71 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 60 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 90 * 100000 ) )
             {
                 break;
             }
         }
         return state;
+    }
+
+
+    private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        List<String> hosts;
+
+
+        if ( hbaseManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+
+        try
+        {
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+            {
+            }.getType() );
+        }
+        catch ( Exception e )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) )
+                           .build();
+        }
+
+        int errors = 0;
+
+        for ( String host : hosts )
+        {
+            UUID uuid;
+            if ( startNode )
+            {
+                uuid = hbaseManager.startNode( clusterName, host, false );
+            }
+            else
+            {
+                uuid = hbaseManager.stopNode( clusterName, host, false );
+            }
+
+            OperationState state = waitUntilOperationFinish( uuid );
+
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
     }
 
 
@@ -503,9 +588,10 @@ public class RestServiceImpl implements RestService
         this.environmentManager = environmentManager;
     }
 
+
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (hbaseManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( hbaseManager.getWebModule().getAngularDependecyList() ).build();
     }
 }

@@ -76,4 +76,29 @@ public interface HBase extends ApiBase<HBaseConfig>
     public WebuiModule getWebModule();
 
     public void setWebModule( final WebuiModule webModule );
+
+
+    /**
+     * Starts the specified node
+     *
+     * @param clusterName - name of cluster
+     * @param lxcHostName - hostname of node
+     * @param master - specifies if this commands affects master or slave running on this node true - master, false -
+     * regionserver
+     *
+     * @return - UUID of operation to track
+     */
+    UUID startNode( String clusterName, String lxcHostName, boolean master );
+
+    /**
+     * Stops the specified node
+     *
+     * @param clusterName - name of cluster
+     * @param lxcHostName - hostname of node
+     * @param master - specifies if this commands affects master or slave running on this node true - master, false -
+     * regionserver
+     *
+     * @return - UUID of operation to track
+     */
+    UUID stopNode( String clusterName, String lxcHostName, boolean master );
 }

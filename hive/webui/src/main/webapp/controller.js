@@ -141,7 +141,6 @@ function HiveCtrl($scope, hiveSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuil
             vm.currentClusterNodes = data.slaves;
             vm.currentClusterNodes.push(data.nameNode);
             vm.hiveInstall.namenode = data.nameNode;
-            console.log(data.nameNode);
             LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", error.replace(/\\n/g, ' '), "error");

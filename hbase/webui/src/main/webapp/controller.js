@@ -2,9 +2,7 @@
 
 angular.module('subutai.plugins.hbase.controller', [])
     .controller('HbaseCtrl', HbaseCtrl)
-    .directive('colSelectRegionHbaseNodes', colSelectRegionHbaseNodes)
-    .directive('colSelectQuorumHbaseNodes', colSelectQuorumHbaseNodes)
-    .directive('colSelectBackupHbaseNodes', colSelectBackupHbaseNodes);
+    .directive('colSelectRegionHbaseNodes', colSelectRegionHbaseNodes);
 
 HbaseCtrl.$inject = ['$scope', 'hbaseSrv', 'SweetAlert', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'ngDialog'];
 
@@ -12,11 +10,14 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     var vm = this;
     vm.activeTab = 'install';
     vm.hbaseInstall = {};
+    vm.hbaseAll = false;
+    vm.regionServers = [];
     vm.clusters = [];
     vm.hadoopClusters = [];
     vm.currentClusterNodes = [];
     vm.currentCluster = [];
     vm.availableNodes = [];
+    vm.nodes2Action = [];
     vm.otherNodes = [];
     vm.hadoopFullInfo = {};
 
@@ -33,6 +34,11 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     vm.changeClusterScaling = changeClusterScaling;
     vm.startNodes = startNodes;
     vm.stopNodes = stopNodes;
+    vm.startMaster = startMaster;
+    vm.stopMaster = stopMaster;
+    vm.pushNode = pushNode;
+    vm.pushAll = pushAll;
+
 
     hbaseSrv.getHadoopClusters().success(function (data) {
         vm.hadoopClusters = data;
@@ -72,6 +78,9 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         LOADING_SCREEN();
         hbaseSrv.getClusters(selectedCluster).success(function (data) {
             vm.currentCluster = data;
+            for (var i = 0; i < vm.currentCluster.regionServers.length; ++i) {
+                vm.currentCluster.regionServers[i].checkbox = false;
+            }
             LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Get cluster info error: ' + error.replace(/\\n/g, ' '), "error");
@@ -87,7 +96,41 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         }
     }
 
+    function pushNode(id) {
+        if (vm.nodes2Action.indexOf(id) >= 0) {
+            vm.nodes2Action.splice(vm.nodes2Action.indexOf(id), 1);
+            vm.hbaseAll = false;
+        } else {
+            vm.nodes2Action.push(id);
+            if (vm.nodes2Action.length === vm.currentCluster.regionServers.length) {
+                vm.hbaseAll = true;
+            }
+        }
+    }
+
+
+    function pushAll() {
+        if (vm.currentCluster.regionServers !== undefined) {
+            if (vm.nodes2Action.length === vm.currentCluster.regionServers.length) {
+                vm.nodes2Action = [];
+                vm.hbaseAll = false;
+                for (var i = 0; i < vm.currentCluster.regionServers.length; ++i) {
+                    vm.currentCluster.regionServers[i].checkbox = false;
+                }
+            }
+            else {
+                for (var i = 0; i < vm.currentCluster.regionServers.length; ++i) {
+                    vm.nodes2Action.push(vm.currentCluster.regionServers[i].id);
+                    vm.currentCluster.regionServers[i].checkbox = true;
+                }
+                vm.hbaseAll = true;
+            }
+        }
+    }
+
+
     function startNodes() {
+        if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
             title: 'Success!',
@@ -95,15 +138,18 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             timer: VARS_TOOLTIP_TIMEOUT,
             showConfirmButton: false
         });
-        hbaseSrv.startNodes(vm.currentCluster.clusterName).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes have been started successfully.", "success");
+        hbaseSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
+            SweetAlert.swal("Success!", "Your cluster slaves started successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
+            vm.nodes2Action = [];
+            vm.hbaseAll = false;
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Cluster starting error: ' + error.replace(/\\n/g, ' '), "error");
+            SweetAlert.swal("ERROR!", 'Cluster slaves start error: ' + error.replace(/\\n/g, ' '), "error");
         });
     }
 
     function stopNodes() {
+        if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
             title: 'Success!',
@@ -111,11 +157,13 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             timer: VARS_TOOLTIP_TIMEOUT,
             showConfirmButton: false
         });
-        hbaseSrv.stopNodes(vm.currentCluster.clusterName).success(function (data) {
-            SweetAlert.swal("Success!", "Your cluster nodes have been stopped successfully.", "success");
+        hbaseSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
+            SweetAlert.swal("Success!", "Your cluster slaves have stopped successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
+            vm.nodes2Action = [];
+            vm.hbaseAll = false;
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.replace(/\\n/g, ' '), "error");
+            SweetAlert.swal("ERROR!", 'Failed to stop cluster slaves error: ' + error.replace(/\\n/g, ' '), "error");
         });
     }
 
@@ -160,39 +208,9 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         LOADING_SCREEN();
         hbaseSrv.getHadoopClusters(selectedCluster).success(function (data) {
             vm.hadoopFullInfo = data;
-            vm.currentClusterNodes = data.dataNodes;
-            var tempArray = [];
-
-            var nameNodeFound = false;
-            var jobTrackerFound = false;
-            var secondaryNameNodeFound = false;
-            for (var i = 0; i < vm.currentClusterNodes.length; i++) {
-                var node = vm.currentClusterNodes[i];
-                if (node.hostname === data.nameNode.hostname) nameNodeFound = true;
-                if (node.hostname === data.jobTracker.hostname) jobTrackerFound = true;
-                if (node.hostname === data.secondaryNameNode.hostname) secondaryNameNodeFound = true;
-            }
-            if (!nameNodeFound) {
-                tempArray.push(data.nameNode);
-            }
-            if (!jobTrackerFound) {
-                if (tempArray[0].hostname != data.jobTracker.hostname) {
-                    tempArray.push(data.jobTracker);
-                }
-            }
-            if (!secondaryNameNodeFound) {
-                var checker = 0;
-                for (var i = 0; i < tempArray.length; i++) {
-                    if (tempArray[i].hostname != data.secondaryNameNode.hostname) {
-                        checker++;
-                    }
-                }
-                if (checker == tempArray.length) {
-                    tempArray.push(data.secondaryNameNode);
-                }
-            }
-            vm.currentClusterNodes = vm.currentClusterNodes.concat(tempArray);
-
+            vm.currentClusterNodes = data.slaves;
+            vm.currentClusterNodes.push(data.nameNode);
+            vm.hbaseInstall.namenode = data.nameNode;
             LOADING_SCREEN('none');
         });
     }
@@ -279,6 +297,35 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             vm.hbaseInstall[field].push(containerId);
         }
     }
+
+
+    function startMaster() {
+        if (vm.currentCluster.clusterName === undefined) return;
+        vm.currentCluster.hbaseMaster.status = 'STARTING';
+        hbaseSrv.startMasterNode(vm.currentCluster.clusterName, vm.currentCluster.hbaseMaster.hostname).success(function (data) {
+            SweetAlert.swal("Success!", "Your HbaseMaster has been started.", "success");
+            vm.currentCluster.hbaseMaster.status = 'RUNNING';
+            getClustersInfo(vm.currentCluster.clusterName);
+        }).error(function (error) {
+            SweetAlert.swal("ERROR!", 'Failed to start HbaseMaster error: ' + error.replace(/\\n/g, ' '), "error");
+            vm.currentCluster.hbaseMaster.status = 'ERROR';
+        });
+    }
+
+
+    function stopMaster() {
+        if (vm.currentCluster.clusterName === undefined) return;
+        vm.currentCluster.hbaseMaster.status = 'STOPPING';
+        hbaseSrv.stopMasterNode(vm.currentCluster.clusterName, vm.currentCluster.hbaseMaster.hostname).success(function (data) {
+            SweetAlert.swal("Success!", "Your HbaseMaster has been stopped.", "success");
+            vm.currentCluster.hbaseMaster.status = 'STOPPED';
+            getClustersInfo(vm.currentCluster.clusterName);
+        }).error(function (error) {
+            SweetAlert.swal("ERROR!", 'Failed to stop HbaseMaster error: ' + error.replace(/\\n/g, ' '), "error");
+            vm.currentCluster.hbaseMaster.status = 'ERROR';
+        });
+    }
+
 
     function setDefaultValues() {
         vm.hbaseInstall = {};

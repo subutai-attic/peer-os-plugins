@@ -10,41 +10,49 @@ import io.subutai.plugin.hbase.api.HBaseConfig;
 public class Commands
 {
 
-    public final static String PACKAGE_NAME = Common.PACKAGE_PREFIX + HBaseConfig.PRODUCT_KEY.toLowerCase();
+    public final static String PACKAGE_NAME = Common.PACKAGE_PREFIX + "hbase2";
 
 
-    public static RequestBuilder getAptUpdate()
-    {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 5000 )
-                                                                              .withStdOutRedirection(
-                                                                                      OutputRedirection.NO );
-    }
+    public final static String UPDATE_COMAND = "apt-get --force-yes --assume-yes update";
+    public static final String INSTALL_COMMAND =
+            String.format( "apt-get install %s -y --allow-unauthenticated", PACKAGE_NAME );
 
 
     public static RequestBuilder getInstallCommand()
     {
 
-        return new RequestBuilder( "apt-get --assume-yes --force-yes install " + PACKAGE_NAME ).withTimeout( 5000 )
-                                                                                               .withStdOutRedirection(
-                                                                                                       OutputRedirection.NO );
+        return new RequestBuilder( String.format( "apt-get install %s -y --allow-unauthenticated", PACKAGE_NAME ) )
+                .withTimeout( 20000 );
     }
 
 
     public static RequestBuilder getStartCommand()
     {
-        return new RequestBuilder( "service hbase start" ).daemon();
+        return new RequestBuilder( "source /etc/profile ; start-hbase.sh" ).daemon();
     }
 
 
     public static RequestBuilder getStopCommand()
     {
-        return new RequestBuilder( "service hbase stop" ).withTimeout( 360 );
+        return new RequestBuilder( "source /etc/profile ; stop-hbase.sh" ).withTimeout( 360 );
+    }
+
+
+    public static RequestBuilder getStartRegionServerCommand()
+    {
+        return new RequestBuilder( "source /etc/profile ; hbase-daemon.sh start regionserver" ).withTimeout( 360 );
+    }
+
+
+    public static RequestBuilder getStopRegionServerCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"HRegionServer\" | cut -d \" \" -f 1`" ).withTimeout( 360 );
     }
 
 
     public static RequestBuilder getStatusCommand()
     {
-        return new RequestBuilder( "service hbase status" );
+        return new RequestBuilder( "jps" );
     }
 
 
@@ -74,7 +82,13 @@ public class Commands
 
     public static RequestBuilder getRemoveRegionServerCommand( String regionServer )
     {
-        return new RequestBuilder( String.format( ". /etc/profile && region.sh remove %s", regionServer ) );
+        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/hbase/conf/regionservers", regionServer ) );
+    }
+
+
+    public static RequestBuilder getAddRegionServerCommand( String regionServer )
+    {
+        return new RequestBuilder( String.format( "echo \"%s\" >> /opt/hbase/conf/regionservers", regionServer ) );
     }
 
 
@@ -154,8 +168,65 @@ public class Commands
     public static RequestBuilder getUninstallCommand()
     {
 
-        return new RequestBuilder( "apt-get --force-yes --assume-yes purge " + PACKAGE_NAME ).withTimeout( 360 )
-                                                                                             .withStdOutRedirection(
-                                                                                                     OutputRedirection.NO );
+        return new RequestBuilder( String.format( "apt-get purge %s -y --allow-unauthenticated", PACKAGE_NAME ) )
+                .withTimeout( 360 ).withStdOutRedirection( OutputRedirection.NO );
+    }
+
+
+    public static String addHbaseProperty( String cmd, String propFile, String property, String value )
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( "bash /opt/hbase/conf/hbase-property.sh " ).append( cmd ).append( " " );
+        sb.append( propFile ).append( " " ).append( property );
+        if ( value != null )
+        {
+            sb.append( " " ).append( value );
+        }
+        return sb.toString();
+    }
+
+
+    public static String setHbaseMasterInfoPort()
+    {
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.master.info.port", "16010" );
+    }
+
+
+    public static String setHbaseRootDir( final String hmasterIp )
+    {
+        String uri = String.format( "hdfs://%s:8020/hbase", hmasterIp );
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.rootdir", uri );
+    }
+
+
+    public static String setHbaseClusterDistributed()
+    {
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.cluster.distributed", "true" );
+    }
+
+
+    public static String setHbaseZookeeperQuorum( final String hmasterIp )
+    {
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.zookeeper.quorum", hmasterIp );
+    }
+
+
+    public static String setHbaseZookeeperDataDir( final String hmasterIp )
+    {
+        String uri = String.format( "hdfs://%s:8020/zookeeper", hmasterIp );
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.zookeeper.property.dataDir", uri );
+    }
+
+
+    public static String setHbaseZookeeperClientPort()
+    {
+        return addHbaseProperty( "add", "hbase/conf/hbase-site.xml", "hbase.zookeeper.property.clientPort", "2181" );
+    }
+
+
+    public static String setRegionServers( final String slavesHostnames )
+    {
+        return String.format( "rm /opt/hbase/conf/regionservers ; echo -e \"%s\" > /opt/hbase/conf/regionservers",
+                slavesHostnames );
     }
 }

@@ -27,9 +27,7 @@ public class DescribeClusterCommand extends OsgiCommandSupport
             sb.append( "Cluster name: " ).append( config.getClusterName() ).append( "\n" );
             sb.append( "Domain name: " ).append( config.getDomainName() ).append( "\n" );
             sb.append( "Master node: " ).append( config.getHbaseMaster() ).append( "\n" );
-            sb.append( "Backup master node: " ).append( config.getBackupMasters() ).append( "\n" );
             sb.append( "Region nodes: " ).append( config.getRegionServers() ).append( "\n" );
-            sb.append( "Quorum nodes: " ).append( config.getQuorumPeers() ).append( "\n" );
             System.out.println( sb.toString() );
         }
         else

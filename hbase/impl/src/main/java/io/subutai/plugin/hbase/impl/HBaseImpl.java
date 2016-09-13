@@ -21,6 +21,7 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -65,7 +66,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
     public void subscribeToAlerts( Environment environment ) throws MonitorException
     {
-//        getMonitor().startMonitoring( HBaseAlertListener.HBASE_ALERT_LISTENER, environment, alertSettings );
+        //        getMonitor().startMonitoring( HBaseAlertListener.HBASE_ALERT_LISTENER, environment, alertSettings );
     }
 
 
@@ -83,7 +84,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
 
     public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
     {
-//        getMonitor().activateMonitoring( host, alertSettings );
+        //        getMonitor().activateMonitoring( host, alertSettings );
     }
 
 
@@ -105,7 +106,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( hostname );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.DESTROY );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.DESTROY, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -141,7 +142,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.STATUS, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -216,7 +217,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         Preconditions.checkNotNull( clusterName );
         HBaseConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
-                new NodeOperationHandler( this, config, hostname, NodeOperationType.ADD );
+                new NodeOperationHandler( this, config, hostname, NodeOperationType.ADD, null );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -252,7 +253,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
             {
                 if ( clusterConfig.getAllNodes().contains( containerHostId ) )
                 {
-                    clusterConfig.getBackupMasters().remove( containerHostId );
                     clusterConfig.getHadoopNodes().remove( containerHostId );
                     clusterConfig.getRegionServers().remove( containerHostId );
                     getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, clusterConfig.getClusterName(), clusterConfig );
@@ -345,16 +345,42 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
         this.hadoopManager = hadoopManager;
     }
 
+
     @Override
     public WebuiModule getWebModule()
     {
         return webModule;
     }
 
+
     @Override
     public void setWebModule( final WebuiModule webModule )
     {
-        this.webModule = (HBaseWebModule) webModule;
+        this.webModule = ( HBaseWebModule ) webModule;
+    }
+
+
+    @Override
+    public UUID startNode( final String clusterName, final String lxcHostName, final boolean master )
+    {
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, lxcHostName, NodeOperationType.START,
+                        master ? NodeType.MASTER_NODE : NodeType.HREGIONSERVER );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
+    }
+
+
+    @Override
+    public UUID stopNode( final String clusterName, final String lxcHostName, final boolean master )
+    {
+        HBaseConfig config = getCluster( clusterName );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, lxcHostName, NodeOperationType.STOP,
+                        master ? NodeType.MASTER_NODE : NodeType.HREGIONSERVER );
+        executor.execute( operationHandler );
+        return operationHandler.getTrackerId();
     }
 }
 

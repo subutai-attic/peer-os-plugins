@@ -11,8 +11,6 @@ public class HbasePojo
     private String environmentId;
     private boolean autoScaling;
     private Set<ContainerPojo> regionServers;
-    private Set<ContainerPojo> quorumPeers;
-    private Set<ContainerPojo> backupMasters;
     private ContainerPojo hbaseMaster;
 
 
@@ -73,30 +71,6 @@ public class HbasePojo
     public void setRegionServers( final Set<ContainerPojo> regionServers )
     {
         this.regionServers = regionServers;
-    }
-
-
-    public Set<ContainerPojo> getQuorumPeers()
-    {
-        return quorumPeers;
-    }
-
-
-    public void setQuorumPeers( final Set<ContainerPojo> quorumPeers )
-    {
-        this.quorumPeers = quorumPeers;
-    }
-
-
-    public Set<ContainerPojo> getBackupMasters()
-    {
-        return backupMasters;
-    }
-
-
-    public void setBackupMasters( final Set<ContainerPojo> backupMasters )
-    {
-        this.backupMasters = backupMasters;
     }
 
 

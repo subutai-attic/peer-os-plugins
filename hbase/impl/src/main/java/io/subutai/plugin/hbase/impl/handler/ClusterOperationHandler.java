@@ -102,6 +102,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStopCommand() );
+            Set<EnvironmentContainerHost> regionServers = environment.getContainerHostsByIds( config.getRegionServers() );
+
+            for ( final EnvironmentContainerHost regionServer : regionServers )
+            {
+                regionServer.execute( Commands.getStopRegionServer() );
+            }
+
             if ( result.hasSucceeded() )
             {
                 trackerOperation.addLog( result.getStdOut() );

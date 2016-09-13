@@ -1,83 +1,104 @@
 'use strict';
 
-angular.module('subutai.plugins.hbase.service',[])
-	.factory('hbaseSrv', hbaseSrv);
+angular.module('subutai.plugins.hbase.service', [])
+    .factory('hbaseSrv', hbaseSrv);
 
 hbaseSrv.$inject = ['$http', 'hadoopSrv'];
 
 function hbaseSrv($http, hadoopSrv) {
-	var BASE_URL = SERVER_URL + 'rest/hbase/';
-	var CLUSTER_URL = BASE_URL + 'clusters/';
+    var BASE_URL = SERVER_URL + 'rest/hbase/';
+    var CLUSTER_URL = BASE_URL + 'clusters/';
 
-	var hbaseSrv = {
-		getPluginInfo: getPluginInfo,
-		getHadoopClusters: getHadoopClusters,
-		createHbase: createHbase,
-		getClusters: getClusters,
-		deleteNode: deleteNode,
-		getAvailableNodes: getAvailableNodes,
-		addNode: addNode,
-		deleteCluster: deleteCluster,
-		changeClusterScaling: changeClusterScaling,
-		startNodes: startNodes,
-		stopNodes: stopNodes,
-	};
+    var hbaseSrv = {
+        getPluginInfo: getPluginInfo,
+        getHadoopClusters: getHadoopClusters,
+        createHbase: createHbase,
+        getClusters: getClusters,
+        deleteNode: deleteNode,
+        getAvailableNodes: getAvailableNodes,
+        addNode: addNode,
+        deleteCluster: deleteCluster,
+        changeClusterScaling: changeClusterScaling,
+        startMasterNode: startMasterNode,
+        stopMasterNode: stopMasterNode,
+        startNodes: startNodes,
+        stopNodes: stopNodes
+    };
 
-	return hbaseSrv;
+    return hbaseSrv;
 
-	function addNode(clusterName, lxcHostname) {
-		return $http.post(CLUSTER_URL + clusterName + '/add/node/' + lxcHostname);
-	}
+    function addNode(clusterName, lxcHostname) {
+        return $http.post(CLUSTER_URL + clusterName + '/add/node/' + lxcHostname);
+    }
 
-	function startNodes(clusterName) {
-		return $http.put(CLUSTER_URL + clusterName + '/start');
-	}
+    function startNodes(clusterName, nodesArray) {
+        var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+        return $http.post(
+            CLUSTER_URL + 'nodes/start',
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+    }
 
-	function stopNodes(clusterName) {
-		return $http.put(CLUSTER_URL + clusterName + '/stop');
-	}
+    function stopNodes(clusterName, nodesArray) {
+        var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+        return $http.post(
+            CLUSTER_URL + 'nodes/stop',
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+    }
 
-	function changeClusterScaling(clusterName, scale) {
-		return $http.post(CLUSTER_URL + clusterName + '/auto_scale/' + scale);
-	}
+    function startMasterNode(clusterName, lxcHostName) {
+        return $http.put(CLUSTER_URL + clusterName + "/start/node/" + lxcHostName + '/master/true');
+    }
 
-	function getHadoopClusters(clusterName) {
-		return hadoopSrv.getClusters(clusterName);
-	}
+    function stopMasterNode(clusterName, lxcHostName) {
+        return $http.put(CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName + '/master/true');
+    }
 
-	function getClusters(clusterName) {
-		if(clusterName === undefined || clusterName === null) clusterName = '';
-		return $http.get(
-			CLUSTER_URL + clusterName,
-			{withCredentials: true, headers: {'Content-Type': 'application/json'}}
-		);
-	}
 
-	function getAvailableNodes(clusterName) {
-		return $http.get(
-			CLUSTER_URL + clusterName + '/available/nodes',
-			{withCredentials: true, headers: {'Content-Type': 'application/json'}}
-		);
-	}
+    function changeClusterScaling(clusterName, scale) {
+        return $http.post(CLUSTER_URL + clusterName + '/auto_scale/' + scale);
+    }
 
-	function deleteCluster(clusterName) {
-		return $http.delete(CLUSTER_URL + 'destroy/' + clusterName);
-	}
+    function getHadoopClusters(clusterName) {
+        return hadoopSrv.getClusters(clusterName);
+    }
 
-	function deleteNode(clusterName, nodeId) {
-		return $http.delete(CLUSTER_URL + clusterName + '/destroy/node/' + nodeId);
-	}
+    function getClusters(clusterName) {
+        if (clusterName === undefined || clusterName === null) clusterName = '';
+        return $http.get(
+            CLUSTER_URL + clusterName,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
 
-	function createHbase(hbaseJson) {
-		var postData = 'config=' + hbaseJson;
-		return $http.post(
-			CLUSTER_URL,
-			postData, 
-			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-		);
-	}
+    function getAvailableNodes(clusterName) {
+        return $http.get(
+            CLUSTER_URL + clusterName + '/available/nodes',
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
 
-	function getPluginInfo() {
-    	return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+    function deleteCluster(clusterName) {
+        return $http.delete(CLUSTER_URL + 'destroy/' + clusterName);
+    }
+
+    function deleteNode(clusterName, nodeId) {
+        return $http.delete(CLUSTER_URL + clusterName + '/destroy/node/' + nodeId);
+    }
+
+    function createHbase(hbaseJson) {
+        var postData = 'config=' + hbaseJson;
+        return $http.post(
+            CLUSTER_URL,
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+    }
+
+    function getPluginInfo() {
+        return $http.get(BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
     }
 }

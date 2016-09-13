@@ -64,7 +64,6 @@ public class DescribeClusterCommandTest
         when( mySet.iterator() ).thenReturn( iterator );
         when( iterator.hasNext() ).thenReturn( true ).thenReturn( false );
         when( iterator.next() ).thenReturn( id );
-        when( hBaseConfig.getQuorumPeers() ).thenReturn( mySet2 );
         Iterator<String> iterator2 = mock( Iterator.class );
         when( mySet2.iterator() ).thenReturn( iterator2 );
         when( iterator2.hasNext() ).thenReturn( true ).thenReturn( false );
@@ -76,7 +75,6 @@ public class DescribeClusterCommandTest
         assertNotNull( hBase.getCluster( anyString() ) );
         verify( hBaseConfig ).getClusterName();
         verify( hBaseConfig ).getHbaseMaster();
-        verify( hBaseConfig ).getBackupMasters();
     }
 
 
